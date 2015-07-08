@@ -129,7 +129,7 @@ public class ExponentialMovingAverage {
 		double mean = weight > 0 ? sum / weight : 0.;
 		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
 		double standardDeviation =  var > 0 ? Math.sqrt(var) : 0;
-		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation);
+		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation);//NOSONAR
 	}
 
 	/**

@@ -38,9 +38,9 @@ import org.springframework.messaging.core.GenericMessagingTemplate;
 public class MessagingTemplate extends GenericMessagingTemplate {
 
 	private BeanFactory beanFactory;
-	
+
 	private volatile boolean throwExceptionOnLateReplySet;
-	
+
 	/**
 	 * Create a MessagingTemplate with no default channel. Note, that one
 	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
@@ -61,7 +61,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+		this.beanFactory = beanFactory;//NOSONAR - non-sync is ok here
 		super.setDestinationResolver(new BeanFactoryChannelResolver(beanFactory));
 	}
 
@@ -85,7 +85,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 		if (!this.throwExceptionOnLateReplySet) {
 			synchronized (this) {
 				if (!this.throwExceptionOnLateReplySet) {
-					Properties integrationProperties = 
+					Properties integrationProperties =
 							IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 					Boolean throwExceptionOnLateReply = Boolean.valueOf(integrationProperties
 							.getProperty(IntegrationProperties.THROW_EXCEPTION_ON_LATE_REPLY));
