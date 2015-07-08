@@ -219,6 +219,18 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="remote-directory-expression"
+						type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify a SpEL expression which
+								will be used to evaluate the directory
+								path from where the files will be transferred
+								(e.g., "@someBean.fetchDirectory").
+								Mutually exclusive with 'remote-directory'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -501,12 +513,12 @@
 	<xsd:complexType name="base-sftp-adapter-type">
 		<xsd:complexContent>
 			<xsd:extension base="base-adapter-type">
-				<xsd:attribute name="remote-directory" type="xsd:string"
-					use="optional">
+				<xsd:attribute name="remote-directory" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
 							Identifies the directory path (e.g.,
 							"/temp/mytransfers")
+								Mutually exclusive with 'remote-directory-expression'.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

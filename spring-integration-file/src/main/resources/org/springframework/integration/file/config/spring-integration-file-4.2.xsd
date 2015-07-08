@@ -731,9 +731,9 @@ Only files matching this regular expression will be picked up by this adapter.
 			type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Allows you to provide a SpEL expression which
-					will compute the directory
-					path where the files will be transferred to
+					Specify a SpEL expression which
+					will be used to evaluate the directory
+					path to where the files will be transferred
 					(e.g., "headers.['remote_dir'] +
 					'/myTransfers'");
 				</xsd:documentation>
@@ -743,9 +743,9 @@ Only files matching this regular expression will be picked up by this adapter.
 			type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Allows you to provide a SpEL expression which
-					will compute the temporary directory
-					path where files will be transferred to before they are moved to the remote-directory
+					Specify a SpEL expression which
+					will be used to evaluate the temporary directory
+					path to where files will be transferred before they are moved to the remote-directory
 					(e.g., "headers.['remote_dir'] +
 					'/temp/myTransfers'");
 				</xsd:documentation>

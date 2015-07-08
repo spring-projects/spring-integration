@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -44,7 +45,9 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 
 		// configure the InboundFileSynchronizer properties
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
+		BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression(
+				"remote-directory", "remote-directory-expression", parserContext, element, true);
+		synchronizerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "preserve-timestamp");
 

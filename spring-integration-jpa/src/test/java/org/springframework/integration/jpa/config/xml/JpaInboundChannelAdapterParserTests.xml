@@ -17,6 +17,7 @@
 		entity-manager-factory="entityManagerFactory"
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		expect-single-result="true"
+									 parameter-source=""
 		channel="out">
 		<int:poller fixed-rate="5000"/>
 	</int-jpa:inbound-channel-adapter>

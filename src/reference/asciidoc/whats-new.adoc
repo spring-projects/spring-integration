@@ -207,3 +207,9 @@ In addition, a `SimpleMessageGroupProcessor` is provided that simply returns the
 When an output processor produces a collection of `Message<?>`, the aggregator releases those messages individually.
 Configuring the `SimpleMessageGroupProcessor` makes the aggregator a message barrier, were messages are held up
 until they all arrive, and are then released individually. See <<aggregator>> for more information.
+
+==== (S)FTP Changes
+
+You can now specify a `remote-directory-expression` on the inbound channel adapters, to determine the directory
+at runtime.
+See <<ftp>> and <<sftp>> for more information.
