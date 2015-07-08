@@ -41,7 +41,7 @@
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
 			filename-regex="f[o]+\.txt"
-			remote-directory="/foo"
+			remote-directory-expression="'/foo'"
 			local-directory="file:local-test-dir"
 			auto-create-local-directory="false"
 			remote-file-separator="."

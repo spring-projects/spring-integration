@@ -29,7 +29,7 @@
 				comparator="comparator"
 				temporary-file-suffix=".foo"
 				local-filter="acceptAllFilter"
-				remote-directory="foo/bar">
+				remote-directory-expression="'foo/bar'">
 			<int:poller fixed-rate="1000">
 				<int:transactional synchronization-factory="syncFactory"/>
 			</int:poller>

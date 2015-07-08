@@ -154,6 +154,10 @@ So, the root object of the SpEL Evaluation Context is the original name of the r
 
 Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
 
+Starting with _version 4.2_, you can specify `remote-directory-expression` instead of `remote-directory`, allowing
+you to dynamically determine the directory on each poll.
+e.g `remote-directory-expression="@myBean.determineRemoteDir()"`.
+
 Sometimes file filtering based on the simple pattern specified via `filename-pattern` attribute might not be sufficient.
 If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g.
 `filename-regex=".*\.test$"`).

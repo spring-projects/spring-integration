@@ -37,6 +37,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -96,6 +97,8 @@ public class FtpInboundChannelAdapterParserTests {
 
 		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
+		assertEquals("'foo/bar'", TestUtils.getPropertyValue(fisync, "remoteDirectoryExpression", Expression.class)
+				.getExpressionString());
 		assertNotNull(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression"));
 		assertTrue(TestUtils.getPropertyValue(fisync, "preserveTimestamp", Boolean.class));
 		assertEquals(".foo", TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
@@ -131,6 +134,8 @@ public class FtpInboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("/", remoteFileSeparator);
+		assertEquals("foo/bar", TestUtils.getPropertyValue(fisync, "remoteDirectoryExpression", Expression.class)
+				.getExpressionString());
 	}
 
 	@Test
