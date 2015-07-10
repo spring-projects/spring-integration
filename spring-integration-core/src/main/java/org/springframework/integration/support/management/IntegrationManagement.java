@@ -36,8 +36,8 @@ public interface IntegrationManagement {
 	@ManagedOperation
 	void reset();
 
-	@ManagedOperation(description = "Enable message counting statistics")
-	void enableCounts(boolean countsEnabled);
+	@ManagedAttribute(description = "Enable message counting statistics")
+	void setCountsEnabled(boolean countsEnabled);
 
 	@ManagedAttribute
 	boolean isCountsEnabled();

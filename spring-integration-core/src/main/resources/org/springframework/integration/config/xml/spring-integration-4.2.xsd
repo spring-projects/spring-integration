@@ -4482,6 +4482,82 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="management">
+		<xsd:complexType>
+			<xsd:attribute name="default-logging-enabled" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set false, to disable all main-path debug logging for components that implement
+						'IntegrationManagement' (channels, message handlers etc). For high-volume environments
+						avoiding calls to 'isDebuggingEnabled()` can improve performance.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="default-counts-enabled" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The default value for components that don't match 'counts-enabled-patterns'.
+						Defaults to false, or true when an Integration MBean Exporter is provided.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="default-stats-enabled" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						The default value for components that don't match 'stats-enabled-patterns'.
+						Defaults to false, or true when an Integration MBean Exporter is provided.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="counts-enabled-patterns" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma separated list of simple patterns for component names for which message counts
+						will be enabled (defaults to '*'). Only patterns that also match 'managed-components'
+						will be considered. Enables message counting (`sendCount`, `errorCount`, `receiveCount`)
+						for those components that support counters (channels, message handlers, etc).
+						This is the initial setting only, individual components can have counts enabled/disabled
+						at runtime. May be overridden by an entry in 'stats-enabled' which is additional
+						functionality over simple counts. If a pattern starts with `!`, counts are disabled
+						for matches. For components with names that match multiple patterns, the first pattern wins.
+						Disabling counts at runtime also disables stats.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="stats-enabled-patterns" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma separated list of simple patterns for component names for which message statistics
+						will be enabled (response times, rates etc), as well as counts (a positive match here
+						overrides `counts-enabled`, you can't have statistics without counts).
+						(defaults to '*'). Only patterns that also match 'managed-components'
+						will be considered. Enables statistics for those components that support
+						statistics (channels - when sending, message handlers, etc).
+						This is the initial setting only, individual components can have stats enabled/disabled
+						at runtime. If a pattern starts with `!`, stats (and counts) are disabled
+						for matches. Note: this means that '!foo' here will disable stats
+						and counts for 'foo' even if counts are enabled for 'foo' in 'counts-enabled'.
+						For components with names that match multiple patterns, the first pattern wins.
+						Enabling stats at runtime also enables counts.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="metrics-factory" use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.support.management.MetricsFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A MetricsFactory responsible for creating objects that maintain metrics for message
+						channels and message handlers.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[

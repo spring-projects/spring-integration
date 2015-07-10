@@ -13,32 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.monitor;
+package org.springframework.integration.support.management;
 
 import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.channel.management.DefaultMessageChannelMetrics;
+import org.springframework.integration.channel.management.AggregatingMessageChannelMetrics;
 import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
+import org.springframework.integration.handler.management.AggregatingMessageHandlerMetrics;
 
 
 
 /**
- * Default implementation.
+ * Implementation that returns aggregating metrics.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public class DefaultMetricsFactory implements MetricsFactory {
+public class AggregatingMetricsFactory implements MetricsFactory {
+
+	private final int sampleSize;
+
+	/**
+	 * @param sampleSize the number of messages over which to aggregate the elapsed time.
+	 */
+	public AggregatingMetricsFactory(int sampleSize) {
+		this.sampleSize = sampleSize;
+	}
 
 	@Override
 	public AbstractMessageChannelMetrics createChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name);
+		return new AggregatingMessageChannelMetrics(name, this.sampleSize);
 	}
 
 	@Override
 	public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-		return new DefaultMessageHandlerMetrics(name);
+		return new AggregatingMessageHandlerMetrics(name, this.sampleSize);
 	}
 
 }

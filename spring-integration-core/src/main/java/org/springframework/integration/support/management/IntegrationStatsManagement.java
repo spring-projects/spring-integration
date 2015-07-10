@@ -16,7 +16,6 @@
 package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 
 
 /**
@@ -28,8 +27,8 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  */
 public interface IntegrationStatsManagement extends IntegrationManagement {
 
-	@ManagedOperation(description = "Enable all statistics")
-	void enableStats(boolean statsEnabled);
+	@ManagedAttribute(description = "Enable all statistics")
+	void setStatsEnabled(boolean statsEnabled);
 
 	@ManagedAttribute
 	boolean isStatsEnabled();

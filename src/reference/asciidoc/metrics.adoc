@@ -1,0 +1,269 @@
+[[metrics-management]]
+=== Metrics and Management
+
+==== Configuring Metrics Capture
+
+NOTE: Prior to _version 4.2_ metrics were only available when JMX was enabled.
+See <<jmx>>.
+
+To enable `MessageSource`, `MessageChannel` and `MessageHandler` metrics, add an `<int:management/>` bean to the
+application context, or annotate one of your `@Configuration` classes with `@EnableIntegrationManagement`.
+`MessageSource` s only maintain counts, `MessageChannel` s and `MessageHandler` s maintain duration statistics in
+addition to counts.
+See <<mgmt-channel-features>> and <<mgmt-handler-features>> below.
+
+This causes the automatic registration of the `IntegrationManagementConfigurer` bean in the application context.
+Only one such bean can exist in the context and it must have the bean name `integrationManagementConfigurer`
+if registered manually via a `<bean/>` definition.
+
+In addition to metrics, you can control *debug* logging in the main message flow.
+It has been found that in very high volume applications, even calls to `isDebugEnabled()` can be quite expensive with
+some logging subsystems.
+You can disable all such logging to avoid this overhead; exception logging (debug or otherwise) are not affected
+by this setting.
+
+A number of options are available:
+
+[source, xml]
+----
+<int:management
+    default-logging-enabled="false" <1>
+    default-counts-enabled="false" <2>
+    default-stats-enabled="false" <3>
+    counts-enabled-patterns="foo, !baz, ba*" <4>
+    stats-enabled-patterns="fiz, buz" <5>
+    metrics-factory="myMetricsFactory" /> <6>
+----
+
+[source, java]
+----
+@Configuration
+@EnableIntegration
+@EnableIntegrationManagement(
+		defaultLoggingEnabled = "false", <1>
+		defaultCountsEnabled = "false", <2>
+		defaultStatsEnabled = "false", <3>
+		countsEnabled = { "foo", "${count.patterns}" }, <4>
+		statsEnabled = { "qux", "!*" }, <5>
+		MetricsFactory = "myMetricsFactory") <6>
+public static class ContextConfiguration {
+...
+}
+----
+
+<1> Set to `false` to disable all logging in the main message flow, regardless of the log system category settings.
+Set to 'true' to enable debug logging (if also enabled by the logging subsystem).
+
+<2> Enable or disable count metrics for components not matching one of the patterns in <4>.
+
+<3> Enable or disable statistical metrics for components not matching one of the patterns in <5>.
+
+<4> A comma-delimited list of patterns for beans for which counts should be enabled; negate the pattern with `!`.
+First match wins (positive or negative).
+In the unlikely event that you have a bean name starting with `!`, escape the `!` in the pattern: `\!foo` positively
+matches a bean named `!foo`.
+
+<5> A comma-delimited list of patterns for beans for which statistical metrics should be enabled; negate the pattern
+with `!`.
+First match wins (positive or negative).
+In the unlikely event that you have a bean name starting with `!`, escape the `!` in the pattern: `\!foo` positively
+matches a bean named `!foo`.
+Stats implies counts.
+
+<6> A reference to a `MetricsFactory`.
+See <<mgmt-metrics-factory>>.
+
+At runtime, counts and statistics can be obtained by calling `IntegrationManagementConfigurer` `getChannelMetrics`,
+`getHandlerMetrics` and `getSourceMetrics`, returning `MessageChannelMetrics`, `MessageHandlerMetrics` and
+`MessageSourceMetrics` respectively.
+
+See the javadocs for complete information about these classes.
+
+When JMX is enabled (see <<jmx>>), these metrics are also exposed by the `IntegrationMBeanExporter`.
+
+[[mgmt-channel-features]]
+==== MessageChannel Metric Features
+
+Message channels report metrics according to their concrete type.
+If you are looking at a `DirectChannel`, you will see statistics for the send operation.
+If it is a `QueueChannel`, you will also see statistics for the receive operation, as well as the count of messages that are currently buffered by this `QueueChannel`.
+In both cases there are some metrics that are simple counters (message count and error count), and some that are estimates of averages of interesting quantities.
+The algorithms used to calculate these estimates are described briefly in the section below.
+
+.MessageChannel Metrics
+
+
+[cols="1,2,3", options="header"]
+|===
+| Metric Type
+| Example
+| Algorithm
+
+| Count
+| Send Count
+| Simple incrementer.
+Increases by one when an event occurs.
+
+| Error Count
+| Send Error Count
+| Simple incrementer.
+Increases by one when an send results in an error.
+
+| Duration
+| Send Duration (method execution time in milliseconds)
+| Exponential Moving Average with decay factor (10 by default).
+Average of the method execution time over roughly the last 10 (default) measurements.
+
+| Rate
+| Send Rate (number of operations per second)
+| Inverse of Exponential Moving Average of the interval between events with decay in time (lapsing over 60 seconds by default) and per measurement (last 10 events by default).
+
+| Error Rate
+| Send Error Rate (number of errors per second)
+| Inverse of Exponential Moving Average of the interval between error events with decay in time (lapsing over 60 seconds by default) and per measurement (last 10 events by default).
+
+| Ratio
+| Send Success Ratio (ratio of successful to total sends)
+| Estimate the success ratio as the Exponential Moving Average of the series composed of values 1 for success and 0 for failure (decaying as per the rate measurement over time and events by default).
+Error ratio is 1 - success ratio.
+
+|===
+
+[[mgmt-handler-features]]
+==== MessageHandler Metric Features
+
+The following table shows the statistics maintained for message handlers.
+Some metrics are simple counters (message count and error count), and one is an estimate of averages of send duration.
+The algorithms used to calculate these estimates are described briefly in the table below:
+
+.MessageHandlerMetrics
+
+[cols="1,2,3", options="header"]
+|===
+| Metric Type
+| Example
+| Algorithm
+
+| Count
+| Handle Count
+| Simple incrementer.
+Increases by one when an event occurs.
+
+| Error Count
+| Handler Error Count
+| Simple incrementer.
+Increases by one when an invocation results in an error.
+
+| Active Count
+| Handler Active Count
+| Indicates the number of currently active threads currently invoking the handler (or any downstream synchronous flow).
+
+| Duration
+| Handle Duration (method execution time in milliseconds)
+| Exponential Moving Average with decay factor (10 by default).
+Average of the method execution time over roughly the last 10 (default) measurements.
+
+|===
+
+[[mgmt-statistics]]
+==== Time-Based Average Estimates
+
+A feature of the time-based average estimates is that they decay with time if no new measurements arrive.
+To help interpret the behaviour over time, the time (in seconds) since the last measurement is also exposed as a metric.
+
+There are two basic exponential models: decay per measurement (appropriate for duration and anything where the number of measurements is part of the metric), and decay per time unit (more suitable for rate measurements where the time in between measurements is part of the metric).
+Both models depend on the fact that
+
+`S(n) = sum(i=0,i=n) w(i) x(i)` has a special form when `w(i) = r^i`, with `r=constant`:
+
+`S(n) = x(n) + r S(n-1)` (so you only have to store `S(n-1)`, not the whole series `x(i)`, to generate a new metric estimate from the last measurement).
+The algorithms used in the duration metrics use `r=exp(-1/M)` with `M=10`.
+The net effect is that the estimate `S(n)` is more heavily weighted to recent measurements and is composed roughly of the last `M` measurements.
+So `M` is the "window" or lapse rate of the estimate In the case of the vanilla moving average, `i` is a counter over the number of measurements.
+In the case of the rate we interpret `i` as the elapsed time, or a combination of elapsed time and a counter (so the metric estimate contains contributions roughly from the last `M` measurements and the last `T` seconds).
+
+
+[[mgmt-metrics-factory]]
+==== Metrics Factory
+
+A new strategy interface `MetricsFactory` has been introduced allowing you to provide custom channel metrics for your
+`MessageChannel` s and `MessageHandler` s.
+By default, a `DefaultMetricsFactory` provides default implementation of `MessageChannelMetrics` and
+`MessageHandlerMetrics` which are described in the next bullet.
+To override the default `MetricsFactory` configure it as described above, by providing a reference to your
+`MetricsFactory` bean instance.
+You can either customize the default implementations as described in the next bullet, or provide completely different
+implementations by extending `AbstractMessageChannelMetrics` and/or `AbstractMessageHandlerMetrics`.
+
+In addition to the default metrics factory described above, the framework provides the `AggregatingMetricsFactory`.
+This factory creates `AggregatingMessageChannelMetrics` and `AggregatingMessageHandlerMetrics`.
+In very high volume scenarios, the cost of capturing statistics can be prohibitive (2 calls to the system time and
+storing the data for each message).
+The aggregating metrics aggregate the response time over a sample of messages.
+This can save significant CPU time.
+
+CAUTION: The statistics will be skewed if messages arrive in bursts.
+These metrics are intended for use with high, constant-volume, message rates.
+
+[source, xml]
+----
+<bean id="aggregatingMetricsFactory"
+            class="org.springframework.integration.support.management.AggregatingMetricsFactory">
+    <constructor-arg value="1000" /> <!-- sample size -->
+</bean>
+----
+
+The above configuration aggregates the duration over 1000 messages.
+Counts (send, error) are maintained per-message but the statistics are per 1000 messages.
+
+* *Customizing the Default Channel/Handler Statistics*
+
+See <<mgmt-statistics>> and the Javadocs for the `ExponentialMovingAverage*` classes for more information about these
+values.
+
+By default, the `DefaultMessageChannelMetrics` and `DefaultMessageHandlerMetrics` use a `window` of 10 measurements,
+a rate period of 1 second (rate per second) and a decay lapse period of 1 minute.
+
+If you wish to override these defaults, you can provide a custom `MetricsFactory` that returns appropriately configured
+metrics and provide a reference to it to the MBean exporter as described above.
+
+Example:
+
+[source,java]
+----
+public static class CustomMetrics implements MetricsFactory {
+
+    @Override
+    public AbstractMessageChannelMetrics createChannelMetrics(String name) {
+        return new DefaultMessageChannelMetrics(name,
+                new ExponentialMovingAverage(20, 1000000.),
+                new ExponentialMovingAverageRate(2000, 120000, 30, true),
+                new ExponentialMovingAverageRatio(130000, 40, true),
+                new ExponentialMovingAverageRate(3000, 140000, 50, true));
+    }
+
+    @Override
+    public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
+        return new DefaultMessageHandlerMetrics(name, new ExponentialMovingAverage(20, 1000000.));
+    }
+
+}
+----
+
+
+* *Advanced Customization*
+
+The customizations described above are wholesale and will apply to all appropriate beans exported by the MBean exporter.
+This is the extent of customization available using XML configuration.
+
+Individual beans can be provided with different implementations using java `@Configuration` or programmatically at
+runtime, after the application context has been refreshed, by invoking the `configureMetrics` methods on
+`AbstractMessageChannel` and `AbstractMessageHandler`.
+
+
+* *Performance Improvement*
+
+Previously, the time-based metrics (see <<mgmt-statistics>>) were calculated in real time.
+The statistics are now calculated when retrieved instead.
+This resulted in a significant performance improvement, at the expense of a small amount of additional memory for each statistic.
+As discussed in the bullet above, the statistics can be disabled altogether, while retaining the MBean allowing the invocation of `Lifecycle` methods.

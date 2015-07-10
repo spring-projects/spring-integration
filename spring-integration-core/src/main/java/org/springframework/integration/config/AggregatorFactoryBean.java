@@ -102,12 +102,12 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.aggregator.setChannelResolver(channelResolver);
 	}
 
-	public void enableStats(boolean statsEnabled) {
-		this.aggregator.enableStats(statsEnabled);
+	public void setStatsEnabled(boolean statsEnabled) {
+		this.aggregator.setStatsEnabled(statsEnabled);
 	}
 
-	public void enableCounts(boolean countsEnabled) {
-		this.aggregator.enableCounts(countsEnabled);
+	public void setCountsEnabled(boolean countsEnabled) {
+		this.aggregator.setCountsEnabled(countsEnabled);
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {

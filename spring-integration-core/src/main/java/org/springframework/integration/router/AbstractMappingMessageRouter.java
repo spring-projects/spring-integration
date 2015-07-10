@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;

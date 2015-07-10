@@ -8,14 +8,15 @@ If you are interested in more details, please see the Issue Tracker tickets that
 === New Components
 
 [[x4.2-JMX]]
-==== Major JMX Rework
+==== Major Management/JMX Rework
 
 A new `MetricsFactory` strategy interface has been introduced.
-This, together with other changes in the JMX infrastructure provides much more control over JMX configuration and runtime performance.
+This, together with other changes in the JMX and management infrastructure provides much more control over management
+configuration and runtime performance.
 
 However, this has some important implications for (some) user environments.
 
-For complete details, see <<jmx-42-improvements>>.
+For complete details, see <<metrics-management>> and <<jmx-42-improvements>>.
 
 [[x4.2-mongodb-metadata-store]]
 ==== MongodDB Metadata Store
