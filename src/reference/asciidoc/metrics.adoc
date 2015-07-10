@@ -174,9 +174,9 @@ To help interpret the behaviour over time, the time (in seconds) since the last 
 There are two basic exponential models: decay per measurement (appropriate for duration and anything where the number of measurements is part of the metric), and decay per time unit (more suitable for rate measurements where the time in between measurements is part of the metric).
 Both models depend on the fact that
 
-`S(n) = sum(i=0,i=n) w(i) x(i)`has a special form when `w(i) = r^i`, with `r=constant`:
+`S(n) = sum(i=0,i=n) w(i) x(i)` has a special form when `w(i) = r^i`, with `r=constant`:
 
-`S(n) = x(n) + r S(n-1)`(so you only have to store `S(n-1)`, not the whole series `x(i)`, to generate a new metric estimate from the last measurement).
+`S(n) = x(n) + r S(n-1)` (so you only have to store `S(n-1)`, not the whole series `x(i)`, to generate a new metric estimate from the last measurement).
 The algorithms used in the duration metrics use `r=exp(-1/M)` with `M=10`.
 The net effect is that the estimate `S(n)` is more heavily weighted to recent measurements and is composed roughly of the last `M` measurements.
 So `M` is the "window" or lapse rate of the estimate In the case of the vanilla moving average, `i` is a counter over the number of measurements.
