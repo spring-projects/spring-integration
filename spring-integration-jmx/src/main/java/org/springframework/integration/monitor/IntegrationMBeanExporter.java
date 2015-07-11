@@ -793,7 +793,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				}
 			}
 		}
-		return null;
+		return null;//NOSONAR - intentional null return
 	}
 
 	private Object extractTarget(Object bean) {
