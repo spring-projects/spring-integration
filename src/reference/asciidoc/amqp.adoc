@@ -83,7 +83,7 @@ _Optional_.
 
 
 <6> Flag to indicate that channels created by this component will be transactional.
-Ff true, tells the framework to use a transactional channel and to end all operations (send or receive) with a commit or rollback depending on the outcome, with an exception signalling a rollback.
+If true, tells the framework to use a transactional channel and to end all operations (send or receive) with a commit or rollback depending on the outcome, with an exception signalling a rollback.
 _Optional (Defaults to false)_.
 
 
