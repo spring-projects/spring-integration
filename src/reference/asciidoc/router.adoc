@@ -996,7 +996,7 @@ The `ref` attribute references the bean name of a custom Router implementation (
 <int:router ref="customRouter" input-channel="input3"
             default-output-channel="defaultOutput3"/>
 
-<beans:bean id="customRouterBean class="org.foo.MyCustomRouter"/>
+<beans:bean id="customRouterBean" class="org.foo.MyCustomRouter"/>
 ----
 
 Alternatively, `ref` may point to a simple POJO that contains the @Router annotation (see below), or the `ref` may be combined with an explicit `method` name.
