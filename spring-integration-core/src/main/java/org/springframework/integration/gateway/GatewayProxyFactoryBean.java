@@ -86,7 +86,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private static final boolean reactorPresent = ClassUtils.isPresent("reactor.Environment",
+	private static final boolean reactorPresent = ClassUtils.isPresent("reactor.rx.Promise",
 			GatewayProxyFactoryBean.class.getClassLoader());
 
 	private volatile Class<?> serviceInterface;
