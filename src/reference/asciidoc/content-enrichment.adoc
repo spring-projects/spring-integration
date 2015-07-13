@@ -5,7 +5,7 @@
 ==== Introduction
 
 At times you may have a requirement to enhance a request with more information than was provided by the target system.
-Thehttp://www.eaipatterns.com/DataEnricher.html[Content Enricher] pattern describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
+The http://www.eaipatterns.com/DataEnricher.html[Content Enricher] pattern describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
 
 The Spring Integration `Core` module includes 2 enrichers:
 

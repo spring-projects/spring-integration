@@ -126,7 +126,11 @@ See <<ip-msg-headers>> for more information.
 ===== TCP Events
 
 New events are now published whenever a correlation exception occurs - for example sending a message to a
-non-existent socket. See <<tcp-events>> for more information.
+non-existent socket.
+
+The `TcpConnectionEventListeningMessageProducer` is deprecated; use the generic event adapter instead.
+
+See <<tcp-events>> for more information.
 
 [[x4.2-inbound-channel-adapter-annotation]]
 ==== @InboundChannelAdapter

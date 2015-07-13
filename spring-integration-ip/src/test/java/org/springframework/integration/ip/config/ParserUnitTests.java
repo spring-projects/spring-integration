@@ -55,7 +55,6 @@ import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketF
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
@@ -268,8 +267,9 @@ public class ParserUnitTests {
 	@Autowired
 	TcpMessageMapper mapper;
 
+	@SuppressWarnings("deprecation")
 	@Autowired
-	TcpConnectionEventListeningMessageProducer eventAdapter;
+	org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer eventAdapter;
 
 	@Autowired
 	QueueChannel eventChannel;
@@ -664,7 +664,7 @@ public class ParserUnitTests {
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Test
 	public void testEventAdapter() {
 		Set<?> eventTypes = TestUtils.getPropertyValue(this.eventAdapter, "eventTypes", Set.class);

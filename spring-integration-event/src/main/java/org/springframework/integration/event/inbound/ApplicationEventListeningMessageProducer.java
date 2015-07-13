@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,8 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
-	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
+	@SafeVarargs
+	public final void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
 		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(
 				Arrays.asList(eventTypes));
 		eventSet.remove(null);

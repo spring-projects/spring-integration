@@ -410,7 +410,7 @@
 			<xsd:attribute name="remote-timeout-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specifies an expresssion that is evaluated against the outbound message 
+						Specifies an expresssion that is evaluated against the outbound message
 						to determine the time the gateway will wait for a reply
 						from the remote system. Mutually exclusive with
 						'remote-timeout'.
@@ -701,6 +701,7 @@
 	<xsd:element name="tcp-connection-event-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
+				[DEPRECATED: Use an event inbound channel adapter instead]
 				Configures an inbound Channel Adapter which
 				listens for TCP Connection
 				events, converts them to Messages and
