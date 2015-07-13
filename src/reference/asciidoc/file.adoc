@@ -90,7 +90,24 @@ The `CompositeFileListFilter` enables the composition.
 </bean>
 ----
 
-The configuration can be simplified using the file specific namespace.
+If it is not possible to create the file with a temporary name and rename to the final name, another alternative is
+provided.
+The `LastModifiedFileListFilter` was added in _version 4.2_.
+This filter can be configured with an `age` property and only files older than this will be passed by the filter.
+The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early, due
+to, say, network glitches.
+
+[source, xml]
+----
+<bean id="filter" class="org.springframework.integration.file.filters.LastModifiedFileListFilter">
+    <property name="age" value="120" />
+</bean>
+----
+
+[[file-namespace-support]]
+==== Namespace Support
+
+The configuration for file reading can be simplified using the file specific namespace.
 To do this use the following template.
 [source,xml]
 ----
