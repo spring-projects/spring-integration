@@ -58,19 +58,31 @@ As an alternative to the existing `selector` attribute, the `<wire-tap/>` now su
 [[x4.2-file-changes]]
 ==== File Changes
 
+See <<files>> for more information about these changes.
+
+===== Appending NewLines
+
 The `<int-file:outbound-channel-adapter>` and `<int-file:outbound-gateway>` now support an `append-new-line` attribute.
 If set to `true`, a new line is appended to the file after a message is written.
 The default attribute value is `false`.
+
+===== Ignoring Hidden Files
 
 The `ignore-hidden` attribute has been introduced for the `<int-file:inbound-channel-adapter>` to pick up or not
 the _hidden_ files from the source directory.
 It is `true` by default.
 
+===== Writing InputStream Payloads
+
 The `FileWritingMessageHandler` now also accepts `InputStream` as a valid message payload type.
+
+===== HeadDirectoryScanner
 
 The `HeadDirectoryScanner` can now be used with other `FileListFilter` s.
 
-See <<files>> for more information.
+===== Last Modified Filter
+
+The `LastModifiedFileListFilter` has been added.
 
 [[x4.2-class-package-change]]
 ==== Class Package Change
