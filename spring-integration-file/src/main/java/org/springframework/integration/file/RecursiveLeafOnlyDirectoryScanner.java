@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,16 @@ import java.util.List;
  * without limit. This scanner should not be used with directories that contain
  * a vast number of files or on deep trees, as all the file names will be read
  * into memory and the scanning will be done recursively.
- * 
+ *
  * @author Iwein Fuld
+ * @author Gary Russell
+ *
+ * @deprecated in favor of {@link WatchServiceDirectoryScanner} (when using Java 7 or later)
  */
+@Deprecated
 public class RecursiveLeafOnlyDirectoryScanner extends DefaultDirectoryScanner {
 
+	@Override
 	protected File[] listEligibleFiles(File directory) throws IllegalArgumentException {
 		File[] rootFiles = directory.listFiles();
 		List<File> files = new ArrayList<File>(rootFiles.length);
