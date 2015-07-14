@@ -214,7 +214,12 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		Assert.state(exchangeNameExpression == null || exchangeName == null,
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
 		BeanFactory beanFactory = this.getBeanFactory();
+		SpelExpressionParser defaultParser = getDefaultSpelExpressionParser();
 		if (this.exchangeNameExpression != null) {
+			if (defaultParser != null) {
+				this.exchangeNameExpression = defaultParser
+						.parseExpression(this.exchangeNameExpression.getExpressionString());
+			}
 			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.exchangeNameExpression,
 					String.class);
 			if (beanFactory != null) {
@@ -224,6 +229,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		Assert.state(routingKeyExpression == null || routingKey == null,
 				"Either a routingKey or a routingKeyExpression can be provided, but not both");
 		if (this.routingKeyExpression != null) {
+			if (defaultParser != null) {
+				this.routingKeyExpression = defaultParser
+						.parseExpression(this.routingKeyExpression.getExpressionString());
+			}
 			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.routingKeyExpression,
 					String.class);
 			if (beanFactory != null) {
@@ -231,6 +240,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			}
 		}
 		if (this.confirmCorrelationExpression != null) {
+			if (defaultParser != null) {
+				this.confirmCorrelationExpression = defaultParser
+						.parseExpression(this.confirmCorrelationExpression.getExpressionString());
+			}
 			this.correlationDataGenerator =
 					new ExpressionEvaluatingMessageProcessor<Object>(this.confirmCorrelationExpression, Object.class);
 			Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
