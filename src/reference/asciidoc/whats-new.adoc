@@ -84,6 +84,10 @@ The `HeadDirectoryScanner` can now be used with other `FileListFilter` s.
 
 The `LastModifiedFileListFilter` has been added.
 
+===== WatchService Directory Scanner
+
+The `WatchServiceDirectoryScanner` is now available.
+
 [[x4.2-class-package-change]]
 ==== Class Package Change
 
