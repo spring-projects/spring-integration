@@ -23,7 +23,9 @@
 
 	<jms:publish-subscribe-channel id="topicReferenceChannel" topic="testTopic"/>
 
-	<jms:publish-subscribe-channel id="topicNameChannel" topic-name="test.topic"/>
+	<jms:publish-subscribe-channel id="topicNameChannel" topic-name="test.topic"
+		auto-startup="false"
+		durable="true" subscription="subName" subscription-shared="true" />
 
 	<jms:publish-subscribe-channel id="topicNameWithResolverChannel" topic-name="foo"
 			     destination-resolver="destinationResolver" connection-factory="connFact"/>

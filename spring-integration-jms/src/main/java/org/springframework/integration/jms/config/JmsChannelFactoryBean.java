@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile Long recoveryInterval;
 
 	private volatile String beanName;
+
+	private volatile boolean subscriptionShared;
 
 	/**
 	 * This value differs from the container implementations' default (which is AUTO_ACKNOWLEDGE)
@@ -354,6 +356,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.maxSubscribers = maxSubscribers;
 	}
 
+	public void setSubscriptionShared(boolean subscriptionShared) {
+		this.subscriptionShared = subscriptionShared;
+	}
+
 	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
@@ -368,7 +374,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	protected AbstractJmsChannel createInstance() throws Exception {
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
-			this.container = this.createContainer();
+			this.container = createContainer();
 			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
 			this.channel = subscribableJmsChannel;
@@ -438,6 +444,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
+		container.setSubscriptionShared(this.subscriptionShared);
 
 
 

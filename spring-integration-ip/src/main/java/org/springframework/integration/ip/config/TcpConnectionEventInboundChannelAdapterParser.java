@@ -16,14 +16,13 @@
 
 package org.springframework.integration.ip.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
+
+import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
@@ -35,9 +34,10 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListe
 public class TcpConnectionEventInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-				.rootBeanDefinition(TcpConnectionEventListeningMessageProducer.class);
+				.rootBeanDefinition(org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer.class);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
