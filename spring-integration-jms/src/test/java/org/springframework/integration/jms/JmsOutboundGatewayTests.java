@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.integration.jms;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -32,23 +33,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
+import javax.jms.TextMessage;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
+import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
@@ -60,7 +72,22 @@ import org.springframework.util.ObjectUtils;
  */
 public class JmsOutboundGatewayTests {
 
+	private static BrokerService broker;
+
 	final Log logger = LogFactory.getLog(this.getClass());
+
+	@BeforeClass
+	public static void brokerUp() throws Exception {
+		BrokerService broker = new BrokerService();
+		broker.setPersistent(false);
+		broker.start();
+		JmsOutboundGatewayTests.broker = broker;
+	}
+
+	@AfterClass
+	public static void brokerDown() throws Exception {
+		broker.stop();
+	}
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
@@ -154,4 +181,103 @@ public class JmsOutboundGatewayTests {
 			gateway.stop();
 		}
 	}
+
+	@Test
+	public void testConnectionBreakOnReplyMessageIdCorrelation() throws Exception {
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
+				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		final JmsOutboundGateway gateway = new JmsOutboundGateway();
+		gateway.setConnectionFactory(connectionFactory1);
+		String requestQ = "requests1";
+		gateway.setRequestDestinationName(requestQ);
+		String replyQ = "replies1";
+		gateway.setReplyDestinationName(replyQ);
+		QueueChannel queueChannel = new QueueChannel();
+		gateway.setOutputChannel(queueChannel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setReceiveTimeout(60000);
+		gateway.afterPropertiesSet();
+		gateway.start();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				gateway.handleMessage(new GenericMessage<String>("foo"));
+			}
+		});
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
+				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		JmsTemplate template = new JmsTemplate(connectionFactory2);
+		template.setReceiveTimeout(5000);
+		template.afterPropertiesSet();
+		final Message request = template.receive(requestQ);
+		assertNotNull(request);
+		connectionFactory1.resetConnection();
+		MessageCreator reply = new MessageCreator() {
+
+			@Override
+			public Message createMessage(Session session) throws JMSException {
+				TextMessage reply = session.createTextMessage("bar");
+				reply.setJMSCorrelationID(request.getJMSMessageID());
+				return reply;
+			}
+		};
+		template.send(replyQ, reply);
+		org.springframework.messaging.Message<?> received = queueChannel.receive(10000);
+		assertNotNull(received);
+		assertEquals("bar", received.getPayload());
+		gateway.stop();
+		connectionFactory1.destroy();
+		connectionFactory2.destroy();
+	}
+
+	@Test
+	public void testConnectionBreakOnReplyCustomCorrelation() throws Exception {
+		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
+				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		final JmsOutboundGateway gateway = new JmsOutboundGateway();
+		gateway.setConnectionFactory(connectionFactory1);
+		String requestQ = "requests2";
+		gateway.setRequestDestinationName(requestQ);
+		String replyQ = "replies2";
+		gateway.setReplyDestinationName(replyQ);
+		QueueChannel queueChannel = new QueueChannel();
+		gateway.setOutputChannel(queueChannel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setReceiveTimeout(60000);
+		gateway.setCorrelationKey("JMSCorrelationID");
+		gateway.afterPropertiesSet();
+		gateway.start();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				gateway.handleMessage(new GenericMessage<String>("foo"));
+			}
+		});
+		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
+				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		JmsTemplate template = new JmsTemplate(connectionFactory2);
+		template.setReceiveTimeout(5000);
+		template.afterPropertiesSet();
+		final Message request = template.receive(requestQ);
+		assertNotNull(request);
+		connectionFactory1.resetConnection();
+		MessageCreator reply = new MessageCreator() {
+
+			@Override
+			public Message createMessage(Session session) throws JMSException {
+				TextMessage reply = session.createTextMessage("bar");
+				reply.setJMSCorrelationID(request.getJMSCorrelationID());
+				return reply;
+			}
+		};
+		template.send(replyQ, reply);
+		org.springframework.messaging.Message<?> received = queueChannel.receive(10000);
+		assertNotNull(received);
+		assertEquals("bar", received.getPayload());
+		connectionFactory1.destroy();
+		connectionFactory2.destroy();
+	}
+
 }
