@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -801,7 +801,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(Destination requestDestination,
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
 		try {
 			messageProducer = session.createProducer(requestDestination);
 			Assert.state(this.correlationKey != null, "correlationKey must not be null");
@@ -822,13 +821,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				messageSelector = "JMSCorrelationID = '" + jmsRequest.getJMSCorrelationID() + "'";
 			}
 
-			messageConsumer = session.createConsumer(replyTo, messageSelector);
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
-			return this.receiveReplyMessage(messageConsumer);
+			return retryableReceiveReply(session, replyTo, messageSelector);
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			JmsUtils.closeMessageConsumer(messageConsumer);
 		}
 	}
 
@@ -864,17 +861,88 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					"will be created before the request Message is sent.");
 		}
 		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
 		try {
 			messageProducer = session.createProducer(requestDestination);
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 			String messageSelector = "JMSCorrelationID = '" + messageId + "'";
-			messageConsumer = session.createConsumer(replyTo, messageSelector);
-			return this.receiveReplyMessage(messageConsumer);
+			return retryableReceiveReply(session, replyTo, messageSelector);
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
+		}
+	}
+
+
+	/*
+	 * If the replyTo is not temporary, and the connection is lost while waiting for a reply, reconnect for
+	 * up to receiveTimeout.
+	 */
+	private javax.jms.Message retryableReceiveReply(Session session, Destination replyTo, String messageSelector)
+			throws JMSException {
+		Connection consumerConnection = null;
+		Session consumerSession = session;
+		MessageConsumer messageConsumer = null;
+		JMSException exception = null;
+		boolean isTemporaryReplyTo = replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic;
+		long replyTimeout = isTemporaryReplyTo
+				? Long.MIN_VALUE
+				: this.receiveTimeout < 0
+					? Long.MAX_VALUE
+					: System.currentTimeMillis() + this.receiveTimeout;
+		try {
+			do {
+				try {
+					messageConsumer = consumerSession.createConsumer(replyTo, messageSelector);
+					javax.jms.Message reply = receiveReplyMessage(messageConsumer);
+					if (reply == null) {
+						if (replyTimeout > System.currentTimeMillis()) {
+							throw new JMSException("Consumer closed before timeout");
+						}
+					}
+					return reply;
+				}
+				catch (JMSException e) {
+					exception = e;
+					if (logger.isDebugEnabled()) {
+						logger.debug("Connection lost waiting for reply, retrying: " + e.getMessage());
+					}
+					do {
+						try {
+							consumerConnection = createConnection();
+							consumerSession = createSession(consumerConnection);
+							break;
+						}
+						catch (JMSException ee) {
+							exception = ee;
+							if (logger.isDebugEnabled()) {
+								logger.debug("Could not reconnect, retrying: " + ee.getMessage());
+							}
+							try {
+								Thread.sleep(1000);
+							}
+							catch (InterruptedException e1) {
+								Thread.currentThread().interrupt();
+								return null;
+							}
+						}
+					}
+					while (replyTimeout > System.currentTimeMillis());
+				}
+			}
+			while (replyTimeout > System.currentTimeMillis());
+			if (isTemporaryReplyTo) {
+				return null;
+			}
+			else {
+				throw exception;
+			}
+		}
+		finally {
+			if (consumerSession != session) {
+				JmsUtils.closeSession(consumerSession);
+				JmsUtils.closeConnection(consumerConnection);
+			}
 			JmsUtils.closeMessageConsumer(messageConsumer);
 		}
 	}
