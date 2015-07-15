@@ -156,6 +156,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 		if (isPubSub) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable", "subscriptionDurable");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription", "durableSubscriptionName");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-shared");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		}
 	}

@@ -97,8 +97,19 @@
 					<xsd:attribute name="subscription" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	The name for the durable subscription, if any.
+	The name for the durable or shared subscription, if any.
 							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-shared" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean property indicating whether to make the subscription shared. The shared subscription name to be used can be
+	specified through the 'subscription' attribute. Default is "false". Set this to "true" to register a shared
+	subscription.
+	Note that shared subscriptions may also be durable, so this flag can
+	(and often will) be combined with 'durable' as well. Requires a JMS 2.0 compatible message broker.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -376,9 +387,10 @@
 					<xsd:attribute name="pub-sub-domain" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	The boolean property used to configure the JmsTemplate with knowledge of what JMS domain is being used. By default the value of this property is 'false'',
-	indicating that the point-to-point domain, Queues, will be used. This property used by JmsTemplate determines the behavior of dynamic destination resolution
-	via implementations of the DestinationResolver interface.
+	The boolean property used to configure the listener container with knowledge of what JMS domain is being used.
+	Unless 'subscription-shared' or 'subscription-durable' is true, by default the value of this property is 'false' ,
+	indicating that the point-to-point domain, Queues, will be used. When true, the pub/sub domain, Topics, will
+	be used.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -395,10 +407,35 @@
 					<xsd:attribute name="durable-subscription-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
+	[DEPRECATED: Use 'subscription-durable="true"' together with 'subscription-name'].
 	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
 	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
-	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
+	specified message listener. Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed
 	for each durable subscription.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-shared" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean property indicating whether to make the subscription shared. The shared subscription name to be used can be
+	specified through the 'subscription-name' attribute. Default is "false". Set this to "true" to register a shared
+	subscription, typically in combination with a 'subscription-name' value (unless your message listener class name is
+	good enough as subscription name). Note that shared subscriptions may also be durable, so this flag can
+	(and often will) be combined with 'subscription-durable' as well.
+	Only makes sense when listening to a topic (pub-sub domain), therefore this automatically sets
+	'pub-sub-domain' to 'true'. Requires a JMS 2.0 compatible message broker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The name of a subscription to create. To be applied in case of a topic (pub-sub domain) with a shared or durable
+	subscription. The subscription name needs to be unique within this client's JMS client id. Default is the class name
+	of the specified message listener.
+	Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed for each
+	subscription, except for a shared subscription (which requires JMS 2.0).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -686,10 +723,35 @@
 					<xsd:attribute name="durable-subscription-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
+	[DEPRECATED: Use 'subscription-durable="true"' together with 'subscription-name'].
 	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
 	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
-	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
+	specified message listener. Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed
 	for each durable subscription.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-shared" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean property indicating whether to make the subscription shared. The shared subscription name to be used can be
+	specified through the 'subscription-name' attribute. Default is "false". Set this to "true" to register a shared
+	subscription, typically in combination with a 'subscription-name' value (unless your message listener class name is
+	good enough as subscription name). Note that shared subscriptions may also be durable, so this flag can
+	(and often will) be combined with 'subscription-durable' as well.
+	Only makes sense when listening to a topic (pub-sub domain), therefore this automatically sets
+	'request-pub-sub-domain' to 'true'. Requires a JMS 2.0 compatible message broker.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The name of a subscription to create. To be applied in case of a topic (pub-sub domain) with a shared or durable
+	subscription. The subscription name needs to be unique within this client's JMS client id. Default is the class name
+	of the specified message listener.
+	Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed for each
+	subscription, except for a shared subscription (which requires JMS 2.0).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

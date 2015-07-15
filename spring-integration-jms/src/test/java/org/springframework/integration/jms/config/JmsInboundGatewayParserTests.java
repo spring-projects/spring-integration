@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -42,6 +45,7 @@ import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class JmsInboundGatewayParserTests {
 
@@ -61,7 +65,7 @@ public class JmsInboundGatewayParserTests {
 		assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -75,7 +79,7 @@ public class JmsInboundGatewayParserTests {
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -89,7 +93,7 @@ public class JmsInboundGatewayParserTests {
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test-message", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -100,6 +104,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
+		context.close();
 	}
 
 	@Test
@@ -110,6 +115,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
+		context.close();
 	}
 
 	@Test
@@ -120,6 +126,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractReplyPayload"));
+		context.close();
 	}
 
 	@Test
@@ -130,6 +137,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractRequestPayload"));
+		context.close();
 	}
 
 	@Test
@@ -140,12 +148,13 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractRequestPayload"));
+		context.close();
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)
 	public void testGatewayWithConnectionFactoryOnly() {
 		try {
-			new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().contains("request-destination"));
@@ -157,7 +166,7 @@ public class JmsInboundGatewayParserTests {
 	@Test(expected = BeanDefinitionStoreException.class)
 	public void testGatewayWithEmptyConnectionFactory() {
 		try {
-			new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().contains("connection-factory"));
@@ -176,7 +185,7 @@ public class JmsInboundGatewayParserTests {
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -187,6 +196,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listenerContainer"));
 		assertNull(accessor.getPropertyValue("transactionManager"));
+		context.close();
 	}
 
 	@Test
@@ -200,6 +210,7 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(JmsTransactionManager.class, txManager.getClass());
 		assertEquals(context.getBean("txManager"), txManager);
 		assertEquals(context.getBean("testConnectionFactory"), ((JmsTransactionManager) txManager).getConnectionFactory());
+		context.close();
 	}
 
 	@Test
@@ -212,6 +223,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("concurrentConsumers"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -224,6 +236,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(22, new DirectFieldAccessor(container).getPropertyValue("maxConcurrentConsumers"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -236,6 +249,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(99, new DirectFieldAccessor(container).getPropertyValue("maxMessagesPerTask"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -248,6 +262,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(1111L, new DirectFieldAccessor(container).getPropertyValue("receiveTimeout"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -267,6 +282,7 @@ public class JmsInboundGatewayParserTests {
 		}
 		assertEquals(2222L, recoveryInterval);
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -279,6 +295,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -291,6 +308,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -303,6 +321,7 @@ public class JmsInboundGatewayParserTests {
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(context.getBean("messageListenerContainer"), container);
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -316,6 +335,7 @@ public class JmsInboundGatewayParserTests {
 		String messageSelector = (String) new DirectFieldAccessor(container).getPropertyValue("messageSelector");
 		assertEquals("TestProperty = 'foo'", messageSelector);
 		gateway.stop();
+		context.close();
 	}
 
 	@Test
@@ -329,6 +349,7 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(7, accessor.getPropertyValue("replyPriority"));
 		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("replyDeliveryMode"));
 		assertEquals(true, accessor.getPropertyValue("explicitQosEnabledForReplies"));
+		context.close();
 	}
 
 	@Test
@@ -339,6 +360,7 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
 		assertEquals(false, accessor.getPropertyValue("explicitQosEnabledForReplies"));
+		context.close();
 	}
 
 	@Test
@@ -348,6 +370,7 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
 		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
+		context.close();
 	}
 
 	@Test
@@ -360,6 +383,8 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(Boolean.TRUE, container.isSubscriptionDurable());
 		assertEquals("testDurableSubscriptionName", container.getDurableSubscriptionName());
 		assertEquals("testClientId", container.getClientId());
+		assertTrue(container.isSubscriptionShared());
+		context.close();
 	}
 
 	@Test
@@ -373,6 +398,7 @@ public class JmsInboundGatewayParserTests {
 		JmsTemplate template = new JmsTemplate(context.getBean(ConnectionFactory.class));
 		template.convertAndSend("testDestination", "Hello");
 		assertNotNull(template.receive("testReplyDestination"));
+		context.close();
 	}
 
 }
