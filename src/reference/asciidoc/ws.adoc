@@ -4,7 +4,7 @@
 [[webservices-outbound]]
 === Outbound Web Service Gateways
 
-To invoke a Web Service upon sending a message to a channel, there are two options - both of which build upon the http://static.springsource.org/spring-ws/site/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
+To invoke a Web Service upon sending a message to a channel, there are two options - both of which build upon the http://projects.spring.io/spring-ws/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
 The former will accept either a `String` or `javax.xml.transform.Source` as the message payload.
 The latter provides support for any implementation of the `Marshaller` and `Unmarshaller` interfaces.
 Both require a Spring Web Services `DestinationProvider` for determining the URI of the Web Service to be called.
