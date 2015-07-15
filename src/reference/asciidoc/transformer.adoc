@@ -367,18 +367,19 @@ Also see <<advising-with-annotations>>.
 ==== Header Filter
 
 Some times your transformation use case might be as simple as removing a few headers.
-  	For such a use case, Spring Integration provides a _Header Filter_which allows you to specify certain header names
-    that should be removed from the output Message (e.g.
-for security reasons or a value that was only needed temporarily).Basically the _Header Filter_is the opposite  of the _Header Enricher_.
-  	The latter is discussed in <<header-enricher>>[source,xml]
+For such a use case, Spring Integration provides a _Header Filter_ which allows you to specify certain header names
+that should be removed from the output Message (e.g. for security reasons or a value that was only needed temporarily).
+Basically, the _Header Filter_ is the opposite  of the _Header Enricher_.
+The latter is discussed in <<header-enricher>>.
+
+[source,xml]
 ----
 <int:header-filter input-channel="inputChannel"
 		output-channel="outputChannel" header-names="lastName, state"/>
 ----
 
-As you can see, configuration of a _Header Filter_is quite simple.
-It is a typical endpoint with input/output channels
-	and a `header-names` attribute.
+As you can see, configuration of a _Header Filter_ is quite simple.
+It is a typical endpoint with input/output channels and a `header-names` attribute.
 That attribute accepts the names of the header(s) (delimited by commas if there are multiple)
-	that need to be removed.
+that need to be removed.
 So, in the above example the headers named 'lastName' and 'state' will not be present on the outbound Message.
