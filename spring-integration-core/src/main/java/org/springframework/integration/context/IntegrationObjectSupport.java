@@ -33,6 +33,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.expression.spel.SpelCompilerMode;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -88,6 +91,16 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile MessageBuilderFactory messageBuilderFactory;
 
+	private volatile SpelExpressionParser defaultSpelExpressionParser;
+
+	private volatile SpelExpressionParser notCompiledSpelExpressionParser;
+
+	private volatile SpelExpressionParser immediateSpelExpressionParser;
+
+	private volatile SpelExpressionParser mixedSpelExpressionParser;
+
+	private SpelCompilerMode spelCompilerMode;
+
 	@Override
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
@@ -140,8 +153,29 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.channelResolver = channelResolver;
 	}
 
+	protected SpelExpressionParser getDefaultSpelExpressionParser() {
+		return this.defaultSpelExpressionParser;
+	}
+
+	protected SpelExpressionParser getNotCompiledSpelExpressionParser() {
+		return this.notCompiledSpelExpressionParser;
+	}
+
+	protected SpelExpressionParser getImmediateSpelExpressionParser() {
+		return this.immediateSpelExpressionParser;
+	}
+
+	protected SpelExpressionParser getMixedSpelExpressionParser() {
+		return this.mixedSpelExpressionParser;
+	}
+
+	public void setDefaultSpelCompilerMode(SpelCompilerMode spelCompilerMode) {
+		this.spelCompilerMode = spelCompilerMode;
+	}
+
 	@Override
 	public final void afterPropertiesSet() {
+		initSpelParsers();
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 		try {
 			if (this.messageBuilderFactory == null) {
@@ -159,6 +193,25 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 				throw (RuntimeException) e;
 			}
 			throw new BeanInitializationException("failed to initialize", e);
+		}
+	}
+
+	private void initSpelParsers() {
+		if (this.applicationContext != null) {
+			SpelParserConfiguration config = new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE,
+				this.applicationContext.getClassLoader());
+			this.immediateSpelExpressionParser = new SpelExpressionParser(config);
+			config = new SpelParserConfiguration(SpelCompilerMode.MIXED,
+					this.applicationContext.getClassLoader());
+			this.mixedSpelExpressionParser = new SpelExpressionParser(config);
+			this.notCompiledSpelExpressionParser = new SpelExpressionParser();
+			if (this.spelCompilerMode != null) {
+				this.defaultSpelExpressionParser = this.spelCompilerMode.equals(SpelCompilerMode.IMMEDIATE)
+						? this.immediateSpelExpressionParser
+						: this.spelCompilerMode.equals(SpelCompilerMode.MIXED)
+							? this.mixedSpelExpressionParser
+							: this.notCompiledSpelExpressionParser;
+			}
 		}
 	}
 
