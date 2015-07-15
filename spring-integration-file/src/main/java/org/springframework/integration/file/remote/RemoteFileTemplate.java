@@ -446,6 +446,9 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 					}
 					rename = false;
 				}
+				else {
+					session.write(inputStream, tempFilePath);
+				}
 			}
 			// then rename it to its final name if necessary
 			if (rename) {
