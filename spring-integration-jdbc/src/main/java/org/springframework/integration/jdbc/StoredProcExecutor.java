@@ -17,10 +17,10 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -86,7 +86,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
 
-	private volatile Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
+	private final Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
 
 	private volatile Expression storedProcedureNameExpression;
 
@@ -163,6 +163,19 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		Assert.notNull(dataSource, "dataSource must not be null.");
 		this.dataSource = dataSource;
 
+		if (!guavaPresent) {
+			this.jdbcCallOperationsMap = new LinkedHashMap<String, SimpleJdbcCallOperations>() {
+
+				@Override
+				protected boolean removeEldestEntry(Entry<String, SimpleJdbcCallOperations> eldest) {
+					return size() > jdbcCallOperationsCacheSize;
+				}
+
+			};
+		}
+		else {
+			this.jdbcCallOperationsMap = null;
+		}
 	}
 
 	/**
@@ -231,10 +244,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 							return createSimpleJdbcCall(storedProcedureName);
 						}
 					});
-		}
-		else {
-			this.jdbcCallOperationsMap =
-					new ConcurrentHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize);
 		}
 
 		if (this.storedProcedureNameExpression instanceof LiteralExpression) {
@@ -360,8 +369,13 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		else {
 			SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
 			if (operations == null) {
-				operations = createSimpleJdbcCall(storedProcedureName);
-				this.jdbcCallOperationsMap.putIfAbsent(storedProcedureName, operations);
+				synchronized (this.jdbcCallOperationsMap) {
+					operations = this.jdbcCallOperationsMap.get(storedProcedureName);
+					if (operations == null) {
+						operations = createSimpleJdbcCall(storedProcedureName);
+						this.jdbcCallOperationsMap.put(storedProcedureName, operations);
+					}
+				}
 			}
 			return operations;
 		}
