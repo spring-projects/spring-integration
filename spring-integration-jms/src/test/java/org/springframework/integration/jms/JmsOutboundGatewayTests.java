@@ -41,11 +41,8 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -72,22 +69,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class JmsOutboundGatewayTests {
 
-	private static BrokerService broker;
-
 	final Log logger = LogFactory.getLog(this.getClass());
-
-	@BeforeClass
-	public static void brokerUp() throws Exception {
-		BrokerService broker = new BrokerService();
-		broker.setPersistent(false);
-		broker.start();
-		JmsOutboundGatewayTests.broker = broker;
-	}
-
-	@AfterClass
-	public static void brokerDown() throws Exception {
-		broker.stop();
-	}
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
