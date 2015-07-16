@@ -378,7 +378,7 @@ project('spring-integration-jdbc') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "com.google.guava:guava:$guavaVersion"
+		compile ("com.google.guava:guava:$guavaVersion", optional)
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
