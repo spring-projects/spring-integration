@@ -86,7 +86,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
 
-	private final Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
+	private final Object jdbcCallOperationsMapMonitor = new Object();
+
+	private volatile Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
 
 	private volatile Expression storedProcedureNameExpression;
 
@@ -162,20 +164,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		Assert.notNull(dataSource, "dataSource must not be null.");
 		this.dataSource = dataSource;
-
-		if (!guavaPresent) {
-			this.jdbcCallOperationsMap = new LinkedHashMap<String, SimpleJdbcCallOperations>() {
-
-				@Override
-				protected boolean removeEldestEntry(Entry<String, SimpleJdbcCallOperations> eldest) {
-					return size() > jdbcCallOperationsCacheSize;
-				}
-
-			};
-		}
-		else {
-			this.jdbcCallOperationsMap = null;
-		}
 	}
 
 	/**
@@ -245,20 +233,22 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 						}
 					});
 		}
+		else {
+			this.jdbcCallOperationsMap =
+					new LinkedHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize + 1, 0.75f,
+							true) {
 
-		if (this.storedProcedureNameExpression instanceof LiteralExpression) {
-			String storedProcedureName = this.storedProcedureNameExpression.getValue(String.class);
-			final SimpleJdbcCall simpleJdbcCall = createSimpleJdbcCall(storedProcedureName);
-			if (guavaPresent) {
-				this.jdbcCallOperationsCache.put(storedProcedureName, simpleJdbcCall);
-			}
-			else {
-				this.jdbcCallOperationsMap.put(storedProcedureName, simpleJdbcCall);
-			}
+						private static final long serialVersionUID = 3801124242820219131L;
+
+						@Override
+						protected boolean removeEldestEntry(Entry<String, SimpleJdbcCallOperations> eldest) {
+							return size() > jdbcCallOperationsCacheSize;
+						}
+
+					};
 		}
 
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-
 	}
 
 	private SimpleJdbcCall createSimpleJdbcCall(String storedProcedureName) {
@@ -356,7 +346,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		SimpleJdbcCallOperations localSimpleJdbcCall = obtainSimpleJdbcCall(storedProcedureName);
 
 		SqlParameterSource storedProcedureParameterSource =
-			sqlParameterSourceFactory.createParameterSource(input);
+				sqlParameterSourceFactory.createParameterSource(input);
 
 		return localSimpleJdbcCall.execute(storedProcedureParameterSource);
 
@@ -369,7 +359,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		else {
 			SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
 			if (operations == null) {
-				synchronized (this.jdbcCallOperationsMap) {
+				synchronized (this.jdbcCallOperationsMapMonitor) {
 					operations = this.jdbcCallOperationsMap.get(storedProcedureName);
 					if (operations == null) {
 						operations = createSimpleJdbcCall(storedProcedureName);

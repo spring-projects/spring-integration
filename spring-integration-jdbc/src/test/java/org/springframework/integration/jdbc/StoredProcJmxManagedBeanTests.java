@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,32 +72,38 @@ public class StoredProcJmxManagedBeanTests {
 
 		// MessageHandler
 
-		final Set<ObjectName> messageHandlerObjectNames = server.queryNames(ObjectName.getInstance("org.springframework.integration.jdbc.test:name=outboundChannelAdapter.adapter.storedProcExecutor,*"), null);
+		final Set<ObjectName> messageHandlerObjectNames = server.queryNames(
+				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=outboundChannelAdapter.adapter.storedProcExecutor,*"),
+				null);
 		assertEquals(1, messageHandlerObjectNames.size());
 		ObjectName messageHandlerObjectName = messageHandlerObjectNames.iterator().next();
-		Map<String, Object> messageHandlerCacheStatistics = (Map<String, Object>) server.getAttribute(messageHandlerObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> messageHandlerCacheStatistics =
+				(Map<String, Object>) server.getAttribute(messageHandlerObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
-		assertEquals(Long.valueOf(0), messageHandlerCacheStatistics.get("hitCount"));
-		assertEquals(Long.valueOf(0), messageHandlerCacheStatistics.get("loadCount"));
-		assertEquals(Long.valueOf(0), messageHandlerCacheStatistics.get("loadExceptionCount"));
-		assertEquals(Long.valueOf(0), messageHandlerCacheStatistics.get("loadSuccessCount"));
-		assertEquals(Long.valueOf(0), messageHandlerCacheStatistics.get("missCount"));
+		assertEquals((long) 0, messageHandlerCacheStatistics.get("hitCount"));
+		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadCount"));
+		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadExceptionCount"));
+		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadSuccessCount"));
+		assertEquals((long) 0, messageHandlerCacheStatistics.get("missCount"));
 
 		// StoredProcOutboundGateway
-		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"), null);
+		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(
+				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"),
+				null);
 		assertEquals(1, storedProcOutboundGatewayObjectNames.size());
 		ObjectName storedProcOutboundGatewayObjectName = storedProcOutboundGatewayObjectNames.iterator().next();
-		Map<String, Object> storedProcOutboundGatewayCacheStatistics = (Map<String, Object>) server.getAttribute(storedProcOutboundGatewayObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> storedProcOutboundGatewayCacheStatistics =
+				(Map<String, Object>) server.getAttribute(storedProcOutboundGatewayObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
-		assertEquals(Long.valueOf(0), storedProcOutboundGatewayCacheStatistics.get("hitCount"));
-		assertEquals(Long.valueOf(0), storedProcOutboundGatewayCacheStatistics.get("loadCount"));
-		assertEquals(Long.valueOf(0), storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount"));
-		assertEquals(Long.valueOf(0), storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount"));
-		assertEquals(Long.valueOf(0), storedProcOutboundGatewayCacheStatistics.get("missCount"));
+		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("hitCount"));
+		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadCount"));
+		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount"));
+		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount"));
+		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("missCount"));
 
 		// StoredProcPollingChannelAdapter
 
@@ -107,11 +114,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, storedProcPollingChannelAdapterCacheStatistics.size());
 
-		assertEquals(Long.valueOf(0), storedProcPollingChannelAdapterCacheStatistics.get("hitCount"));
-		assertEquals(Long.valueOf(0), storedProcPollingChannelAdapterCacheStatistics.get("loadCount"));
-		assertEquals(Long.valueOf(0), storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount"));
-		assertEquals(Long.valueOf(0), storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount"));
-		assertEquals(Long.valueOf(0), storedProcPollingChannelAdapterCacheStatistics.get("missCount"));
+		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("hitCount"));
+		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadCount"));
+		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount"));
+		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount"));
+		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("missCount"));
 
 	}
 
@@ -124,18 +131,21 @@ public class StoredProcJmxManagedBeanTests {
 
 		final MBeanServer server = servers.iterator().next();
 
-		final Set<ObjectName> objectNames = server.queryNames(ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"), null);
+		final Set<ObjectName> objectNames = server.queryNames(
+				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"),
+				null);
 		assertEquals(1, objectNames.size());
 		ObjectName name = objectNames.iterator().next();
-		Map<String, Object> cacheStatistics = (Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> cacheStatistics =
+				(Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, cacheStatistics.size());
 
-		assertEquals(Long.valueOf(0), cacheStatistics.get("hitCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics.get("loadCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics.get("loadExceptionCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics.get("loadSuccessCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics.get("missCount"));
+		assertEquals((long) 0, cacheStatistics.get("hitCount"));
+		assertEquals((long) 0, cacheStatistics.get("loadCount"));
+		assertEquals((long) 0, cacheStatistics.get("loadExceptionCount"));
+		assertEquals((long) 0, cacheStatistics.get("loadSuccessCount"));
+		assertEquals((long) 0, cacheStatistics.get("missCount"));
 
 		userService.createUser(new User("myUsername", "myPassword", "myEmail"));
 
@@ -147,17 +157,17 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
 
-		Map<String, Object> cacheStatistics2 = (Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> cacheStatistics2 =
+				(Map<String, Object>) server.getAttribute(name, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, cacheStatistics2.size());
 
-		assertEquals(Long.valueOf(1), cacheStatistics2.get("hitCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics2.get("loadCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics2.get("loadExceptionCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics2.get("loadSuccessCount"));
-		assertEquals(Long.valueOf(0), cacheStatistics2.get("missCount"));
+		assertEquals((long) 0, cacheStatistics2.get("hitCount"));
+		assertEquals((long) 1, cacheStatistics2.get("loadCount"));
+		assertEquals((long) 0, cacheStatistics2.get("loadExceptionCount"));
+		assertEquals((long) 1, cacheStatistics2.get("loadSuccessCount"));
+		assertEquals((long) 1, cacheStatistics2.get("missCount"));
 
 	}
 
@@ -170,8 +180,9 @@ public class StoredProcJmxManagedBeanTests {
 				//prevent message overload
 				return null;
 			}
-			return Integer.valueOf(count.incrementAndGet());
+			return count.incrementAndGet();
 		}
+
 	}
 
 
@@ -187,5 +198,7 @@ public class StoredProcJmxManagedBeanTests {
 		Message<Collection<User>> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
+
 }
