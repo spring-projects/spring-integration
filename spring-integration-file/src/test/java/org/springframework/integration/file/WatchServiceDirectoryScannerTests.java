@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -58,7 +59,7 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
-	public void testInitial() throws Exception {
+	public void testInitialAndAddMore() throws Exception {
 		WatchServiceDirectoryScanner scanner = new WatchServiceDirectoryScanner(folder.getRoot().getAbsolutePath());
 		scanner.start();
 		List<File> files = scanner.listFiles(folder.getRoot());
@@ -74,15 +75,17 @@ public class WatchServiceDirectoryScannerTests {
 		File baz1 = File.createTempFile("baz", ".txt", baz);
 		files = scanner.listFiles(folder.getRoot());
 		int n = 0;
-		while (n++ < 200 && files.size() == 0) {
+		List<File> accum = new ArrayList<File>(files);
+		while (n++ < 300 && accum.size() != 4) {
 			Thread.sleep(100);
 			files = scanner.listFiles(folder.getRoot());
+			accum.addAll(files);
 		}
-		assertEquals(4, files.size());
-		assertTrue(files.contains(top2));
-		assertTrue(files.contains(foo2));
-		assertTrue(files.contains(bar2));
-		assertTrue(files.contains(baz1));
+		assertEquals(4, accum.size());
+		assertTrue(accum.contains(top2));
+		assertTrue(accum.contains(foo2));
+		assertTrue(accum.contains(bar2));
+		assertTrue(accum.contains(baz1));
 		scanner.stop();
 	}
 
