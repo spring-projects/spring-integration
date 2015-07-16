@@ -12,14 +12,15 @@
  */
 
 package org.springframework.integration.jdbc;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -47,6 +48,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -69,6 +71,9 @@ import com.google.common.cache.LoadingCache;
 @IntegrationManagedResource
 public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
+	private static final boolean guavaPresent = ClassUtils.isPresent("com.google.common.cache.LoadingCache",
+			StoredProcExecutor.class.getClassLoader());
+
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile BeanFactory beanFactory = null;
@@ -76,9 +81,13 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private volatile int jdbcCallOperationsCacheSize = 10;
 
 	/**
-	 * Uses the {@link SimpleJdbcCall} implementation for executing Stored Procedures.
+	 * For {@code optional} Google Guava library in the CLASSPATH
 	 */
-	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache = null;
+	private volatile GuavaCacheWrapper guavaCacheWrapper;
+
+	private final Object jdbcCallOperationsMapMonitor = new Object();
+
+	private volatile Map<String, SimpleJdbcCallOperations> jdbcCallOperationsMap;
 
 	private volatile Expression storedProcedureNameExpression;
 
@@ -134,7 +143,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private volatile List<ProcedureParameter>procedureParameters;
 
 	private volatile boolean isFunction = false;
+
 	private volatile boolean returnValueRequired = false;
+
 	private volatile Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<String, RowMapper<?>>(0);
 
 	private final DataSource dataSource;
@@ -152,7 +163,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		Assert.notNull(dataSource, "dataSource must not be null.");
 		this.dataSource = dataSource;
-
 	}
 
 	/**
@@ -210,24 +220,25 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		}
 
-		jdbcCallOperationsCache = CacheBuilder.newBuilder()
-				.maximumSize(jdbcCallOperationsCacheSize)
-				.recordStats()
-				.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
-					@Override
-					public SimpleJdbcCall load(String storedProcedureName) {
-						return createSimpleJdbcCall(storedProcedureName);
-					}
-				});
+		if (guavaPresent) {
+			this.guavaCacheWrapper = new GuavaCacheWrapper(this, this.jdbcCallOperationsCacheSize);
+		}
+		else {
+			this.jdbcCallOperationsMap =
+					new LinkedHashMap<String, SimpleJdbcCallOperations>(this.jdbcCallOperationsCacheSize + 1, 0.75f,
+							true) {
 
-		if (this.storedProcedureNameExpression instanceof LiteralExpression) {
-			String storedProcedureName = this.storedProcedureNameExpression.getValue(String.class);
-			final SimpleJdbcCall simpleJdbcCall = createSimpleJdbcCall(storedProcedureName);
-			this.jdbcCallOperationsCache.put(storedProcedureName, simpleJdbcCall);
+						private static final long serialVersionUID = 3801124242820219131L;
+
+						@Override
+						protected boolean removeEldestEntry(Entry<String, SimpleJdbcCallOperations> eldest) {
+							return size() > jdbcCallOperationsCacheSize;
+						}
+
+					};
 		}
 
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
-
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	private SimpleJdbcCall createSimpleJdbcCall(String storedProcedureName) {
@@ -314,7 +325,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Execute the Stored Procedure using the passed in {@link Message} as a source
 	 * for parameters.
 	 *
-	 * @param message The message is used to extract parameters for the stored procedure.
+	 * @param input The message is used to extract parameters for the stored procedure.
 	 * @return A map containing the return values from the Stored Procedure call if any.
 	 */
 	private Map<String, Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
@@ -322,13 +333,32 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		Assert.notNull(sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
 												+ "was Null. Did you call afterPropertiesSet()?");
 
-		SimpleJdbcCallOperations localSimpleJdbcCall = this.jdbcCallOperationsCache.getUnchecked(storedProcedureName);
+		SimpleJdbcCallOperations localSimpleJdbcCall = obtainSimpleJdbcCall(storedProcedureName);
 
 		SqlParameterSource storedProcedureParameterSource =
-			sqlParameterSourceFactory.createParameterSource(input);
+				sqlParameterSourceFactory.createParameterSource(input);
 
 		return localSimpleJdbcCall.execute(storedProcedureParameterSource);
 
+	}
+
+	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
+		if (guavaPresent) {
+			return this.guavaCacheWrapper.jdbcCallOperationsCache.getUnchecked(storedProcedureName);
+		}
+		else {
+			SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
+			if (operations == null) {
+				synchronized (this.jdbcCallOperationsMapMonitor) {
+					operations = this.jdbcCallOperationsMap.get(storedProcedureName);
+					if (operations == null) {
+						operations = createSimpleJdbcCall(storedProcedureName);
+						this.jdbcCallOperationsMap.put(storedProcedureName, operations);
+					}
+				}
+			}
+			return operations;
+		}
 	}
 
 	//~~~~~Setters for Properties~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -548,19 +578,25 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}, which is used to store
+	 * Allows for the retrieval of metrics ({@link CacheStats}) for the
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}, which is used to store
 	 * instances of {@link SimpleJdbcCallOperations}.
 	 *
-	 * @return Cache statistics for {@link StoredProcExecutor#jdbcCallOperationsCache}
+	 * @return {@link CacheStats} object for {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
+	 * Since Google Guava is an optional dependency for Spring Integration this method can't
+	 * return Guava {@link CacheStats} type directly because of some reflection manipulation
+	 * by the Spring bean definition phase.
 	 */
-	public CacheStats getJdbcCallOperationsCacheStatistics() {
-		return this.jdbcCallOperationsCache.stats();
+	public Object getJdbcCallOperationsCacheStatistics() {
+		if (!guavaPresent) {
+			throw new UnsupportedOperationException("The Google Guava library isn't present in the classpath.");
+		}
+		return this.guavaCacheWrapper.jdbcCallOperationsCache.stats();
 	}
 
 	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 * Allows for the retrieval of metrics ({@link CacheStats}) for the
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
 	 *
 	 * Provides the properties of {@link CacheStats} as a {@link Map}. This allows
 	 * for exposing the those properties easily via JMX.
@@ -571,7 +607,10 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	@ManagedMetric
 	public Map<String, Object> getJdbcCallOperationsCacheStatisticsAsMap() {
-		final CacheStats cacheStats = this.getJdbcCallOperationsCacheStatistics();
+		if (!guavaPresent) {
+			throw new UnsupportedOperationException("The Google Guava library isn't present in the classpath.");
+		}
+		final CacheStats cacheStats = (CacheStats) getJdbcCallOperationsCacheStatistics();
 		final Map<String, Object> cacheStatistics  = new HashMap<String, Object>(11);
 		cacheStatistics.put("averageLoadPenalty", cacheStats.averageLoadPenalty());
 		cacheStatistics.put("evictionCount", cacheStats.evictionCount());
@@ -590,7 +629,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
 	 * ({@link SimpleJdbcCall}) instances to be held by
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
 	 *
 	 * A value of zero will disable the cache. The default is 10.
 	 *
@@ -611,8 +650,35 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
-		Assert.notNull(returningResultSetRowMappers, "returningResultSetRowMappers must not be null.");
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * The lazy-load workaround class to avoid {@link NoClassDefFoundError}
+	 * for {@link CacheLoader} class, when Google Guava isn't present in the CLASSPATH.
+	 *
+	 * @since 4.2
+	 */
+	private static class GuavaCacheWrapper {
+
+		private final LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
+
+		private GuavaCacheWrapper(final StoredProcExecutor executor, int size) {
+			this.jdbcCallOperationsCache = CacheBuilder.newBuilder()
+					.maximumSize(size)
+					.recordStats()
+					.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
+
+						@Override
+						public SimpleJdbcCallOperations load(String key) throws Exception {
+							return executor.createSimpleJdbcCall(key);
+						}
+
+					});
+		}
+
+	}
+
 }
+
+
