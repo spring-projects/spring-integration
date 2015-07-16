@@ -883,16 +883,20 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		Connection consumerConnection = null;
 		Session consumerSession = session;
 		MessageConsumer messageConsumer = null;
-		long now = System.currentTimeMillis();
 		JMSException exception = null;
 		boolean isTemporaryReplyTo = replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic;
+		long replyTimeout = isTemporaryReplyTo
+				? Long.MIN_VALUE
+				: this.receiveTimeout < 0
+					? Long.MAX_VALUE
+					: System.currentTimeMillis() + this.receiveTimeout;
 		try {
 			do {
 				try {
 					messageConsumer = consumerSession.createConsumer(replyTo, messageSelector);
 					javax.jms.Message reply = receiveReplyMessage(messageConsumer);
 					if (reply == null) {
-						if (this.receiveTimeout < 0 || now + this.receiveTimeout > System.currentTimeMillis()) {
+						if (replyTimeout > System.currentTimeMillis()) {
 							throw new JMSException("Consumer closed before timeout");
 						}
 					}
@@ -923,12 +927,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 							}
 						}
 					}
-					while (!isTemporaryReplyTo &&
-							(this.receiveTimeout < 0 || now + this.receiveTimeout > System.currentTimeMillis()));
+					while (replyTimeout > System.currentTimeMillis());
 				}
 			}
-			while (!isTemporaryReplyTo &&
-					(this.receiveTimeout < 0 || now + this.receiveTimeout > System.currentTimeMillis()));
+			while (replyTimeout > System.currentTimeMillis());
 			if (isTemporaryReplyTo) {
 				return null;
 			}
@@ -941,9 +943,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				JmsUtils.closeSession(consumerSession);
 				JmsUtils.closeConnection(consumerConnection);
 			}
-			else {
-				JmsUtils.closeMessageConsumer(messageConsumer);
-			}
+			JmsUtils.closeMessageConsumer(messageConsumer);
 		}
 	}
 
