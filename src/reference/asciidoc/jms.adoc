@@ -254,9 +254,9 @@ Note that, in this situation, a new consumer is used for each request, and consu
 [source,xml]
 ----
 <int-jms:outbound-gateway id="jmsOutGateway"
-    request-destination="outQueue"
-    request-channel="outboundJmsRequests"
-    reply-channel="jmsReplies">
+        request-destination="outQueue"
+        request-channel="outboundJmsRequests"
+        reply-channel="jmsReplies">
     <int-jms:reply-listener />
 </int-jms-outbound-gateway>
 ----
@@ -266,6 +266,10 @@ The listener is very lightweight and it is anticipated that, in most cases, only
 However, attributes such as _concurrent-consumers_, _max-concurrent-consumers_ etc., can be added.
 Refer to the schema for a complete list of supported attributes, together with thehttp://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
 
+Starting with _version 4.2_, the reply listener can be started as needed (and stopped after an idle time) instead
+of running for the duration of the gateway's lifecycle. See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
+
+[[jms-og-attributes]]
 ==== Attribute Reference
 
 [source,xml]
@@ -295,7 +299,8 @@ Refer to the schema for a complete list of supported attributes, together with t
     request-pub-sub-domain="" <22>
     time-to-live="" <23>
     requires-reply=""> <24>
-    <int-jms:reply-listener /> <25>
+    idle-reply-listener-timeout <25>
+  <int-jms:reply-listener /> <26>
 </int-jms:outbound-gateway>
 ----
 
@@ -401,8 +406,15 @@ This value is `true` by default, and a `MessageTimeoutException` will be thrown 
 Note, it is important to keep in mind that, if the service is never expected to return a reply, it would be better to use a `<int-jms:outbound-channel-adapter/>` instead of a `<int-jms:outbound-gateway/>` with `requires-reply="false"`.
 With the latter, the sending thread is blocked, waiting for a reply for the `receive-timeout` period.
 
+<25> When a `<reply-listener />` is used, it's lifecycle (start/stop) matches that of the gateway by default.
+When this value is greater than `0`, the container is started on demand (when a request is sent).
+The container continues to run until at least this time elapses with no requests being received (and no replies
+are outstanding).
+The container will be started again on the next request.
+The stop time is a minimum and may actually be up to 1.5x this value.
 
-<25> When this element is included, replies are received by a `MessageListenerContainer` rather than creating a consumer for each reply.
+<26> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than
+creating a consumer for each reply.
 This can be more efficient in many cases.
 
 

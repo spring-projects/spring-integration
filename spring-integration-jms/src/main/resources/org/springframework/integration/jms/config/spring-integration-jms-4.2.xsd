@@ -1108,6 +1108,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="idle-reply-listener-timeout" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						When using a 'reply-listener', specify whether the container should be started on-demand
+						and stopped when idle for this time (in seconds). When omitted (or &lt;= 0), the reply container
+						is started/stopped according to the gateway's lifecycle.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>

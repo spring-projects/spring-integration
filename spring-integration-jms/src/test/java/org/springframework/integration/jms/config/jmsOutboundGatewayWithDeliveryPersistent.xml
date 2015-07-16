@@ -30,6 +30,7 @@
 						  request-destination-name="requestQueue"
 						  request-channel="requestChannel"
 						  delivery-persistent="true"
+						  idle-reply-listener-timeout="1234"
 						  auto-startup="false">
 		<jms:reply-listener
 			acknowledge="${jmsAcknowledgeModeTransacted}"
