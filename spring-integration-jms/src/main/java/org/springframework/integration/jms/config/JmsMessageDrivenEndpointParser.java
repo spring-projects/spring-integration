@@ -67,6 +67,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		"receive-timeout", "recovery-interval",
 		"idle-consumer-limit", "idle-task-execution-limit",
 		"cache-level", "subscription-durable", "durable-subscription-name",
+		"subscription-shared", "subscription-name",
 		"client-id", "task-executor"
 	};
 
@@ -167,6 +168,11 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
 
+		if (StringUtils.hasText(element.getAttribute("subsription-name"))
+				&& StringUtils.hasText(element.getAttribute("durable-subsription-name"))) {
+			parserContext.getReaderContext().error(
+					"Only one of 'subscription-name' or 'durable-subscription-name' is allowed.", element);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
@@ -182,6 +188,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-durable");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable-subscription-name",
 				"subscriptionName");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-shared");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		builder.addPropertyValue("autoStartup", false);
 		String beanName = adapterBeanNameRoot(element, parserContext, adapterBeanDefinition)

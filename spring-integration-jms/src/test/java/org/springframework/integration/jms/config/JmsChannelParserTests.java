@@ -18,6 +18,7 @@ package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -185,6 +186,9 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals("test.topic", jmsTemplate.getDefaultDestinationName());
 		assertEquals("test.topic", container.getDestinationName());
+		assertTrue(container.isSubscriptionShared());
+		assertTrue(container.isSubscriptionDurable());
+		assertEquals("subName", container.getSubscriptionName());
 	}
 
 	@Test

@@ -15,10 +15,12 @@
 	</si:channel>
 
 	<jms:message-driven-channel-adapter id="messageDrivenAdapter"
+			auto-startup="false"
 			destination-name="testDestination"
 			pub-sub-domain="true"
 			subscription-durable="true"
-			durable-subscription-name="testDurableSubscriptionName"
+			subscription-name="testDurableSubscriptionName"
+			subscription-shared="true"
 			client-id="testClientId"
 			channel="output"/>
 
