@@ -60,6 +60,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -143,6 +144,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private final Object lifeCycleMonitor = new Object();
 
 	private volatile boolean requiresReply;
+
+	private long lastSend;
+
+	private volatile long idleReplyContainerTimeout;
+
+	private ScheduledFuture<?> idleTask;
 
 	/**
 	 * Set whether message delivery should be persistent or non-persistent,
@@ -425,6 +432,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.requiresReply = requiresReply;
 	}
 
+	/**
+	 * Set the target timeout for idle containers, in seconds. Setting this greater than zero enables lazy
+	 * starting of the reply listener container. The container will be started when a message is sent. It will be
+	 * stopped when idle for at least this time. The actual stop time may be up to 1.5x this time.
+	 * @param idleReplyContainerTimeout the timeout in seconds.
+	 * @since 4.2
+	 */
+	public void setIdleReplyContainerTimeout(long idleReplyContainerTimeout) {
+		setIdleReplyContainerTimeout(idleReplyContainerTimeout, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Set the target timeout for idle containers. Setting this greater than zero enables lazy
+	 * starting of the reply listener container. The container will be started when a message is sent. It will be
+	 * stopped when idle for at least this time. The actual stop time may be up to 1.5x this time.
+	 * @param idleReplyContainerTimeout the timeout in seconds.
+	 * @param unit the time unit.
+	 * @since 4.2
+	 */
+	public void setIdleReplyContainerTimeout(long idleReplyContainerTimeout, TimeUnit unit) {
+		this.idleReplyContainerTimeout = unit.toMillis(idleReplyContainerTimeout);
+	}
+
 	private Destination determineRequestDestination(Message<?> message, Session session) throws JMSException {
 		if (this.requestDestination != null) {
 			return this.requestDestination;
@@ -620,9 +650,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		synchronized (this.lifeCycleMonitor) {
 			if (!this.active) {
 				if (this.replyContainer != null) {
-					this.replyContainer.start();
+					TaskScheduler taskScheduler = getTaskScheduler();
+					if (this.idleReplyContainerTimeout <= 0) {
+						this.replyContainer.start();
+					}
+					else {
+						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
+					}
 					if (this.receiveTimeout >= 0) {
-						this.reaper = this.getTaskScheduler().schedule(new LateReplyReaper(), new Date());
+						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
+						this.reaper = taskScheduler.schedule(new LateReplyReaper(), new Date());
 					}
 				}
 				this.active = true;
@@ -637,6 +674,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				this.replyContainer.stop();
 				this.deleteDestinationIfTemporary(this.replyContainer.getDestination());
 				this.reaper.cancel(false);
+			}
+			if (this.idleTask != null) {
+				this.idleTask.cancel(true);
+				this.idleTask = null;
 			}
 			this.active = false;
 		}
@@ -659,6 +700,19 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				jmsReply = this.sendAndReceiveWithoutContainer(requestMessage);
 			}
 			else {
+				if (this.idleReplyContainerTimeout > 0) {
+					synchronized(this.lifeCycleMonitor) {
+						this.lastSend = System.currentTimeMillis();
+						if (!this.replyContainer.isRunning()) {
+							if (logger.isDebugEnabled()) {
+								logger.debug(this.getComponentName() + ": Starting reply container.");
+							}
+							this.replyContainer.start();
+							this.idleTask = getTaskScheduler().scheduleAtFixedRate(new IdleContainerStopper(),
+									this.idleReplyContainerTimeout / 2);
+						}
+					}
+				}
 				jmsReply = this.sendAndReceiveWithContainer(requestMessage);
 			}
 			if (jmsReply == null) {
@@ -1275,7 +1329,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	private class IdleContainerStopper implements Runnable {
+
+		@Override
+		public void run() {
+			synchronized(JmsOutboundGateway.this.lifeCycleMonitor) {
+				if (System.currentTimeMillis() - lastSend > idleReplyContainerTimeout
+						&& replies.size() == 0) {
+					if (replyContainer.isRunning()) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(getComponentName() + ": Stopping idle reply container.");
+						}
+						replyContainer.stop();
+						idleTask.cancel(false);
+						idleTask = null;
+					}
+				}
+			}
+		}
+
+	}
+
 	public static class ReplyContainerProperties {
+
 		private volatile Boolean sessionTransacted;
 
 		private volatile Integer sessionAcknowledgeMode;

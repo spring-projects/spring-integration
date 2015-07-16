@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.jms;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -34,12 +35,16 @@ import javax.jms.Session;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -60,19 +65,15 @@ public class OutboundGatewayFunctionTests {
 
 	private static Destination requestQueue3 = new ActiveMQQueue("request3");
 
-	private static Destination replyQueue3 = new ActiveMQQueue("reply3");
-
 	private static Destination requestQueue4 = new ActiveMQQueue("request4");
-
-	private static Destination replyQueue4 = new ActiveMQQueue("reply4");
 
 	private static Destination requestQueue5 = new ActiveMQQueue("request5");
 
-	private static Destination replyQueue5 = new ActiveMQQueue("reply5");
-
 	private static Destination requestQueue6 = new ActiveMQQueue("request6");
 
-	private static Destination replyQueue6 = new ActiveMQQueue("reply6");
+	private static Destination requestQueue7 = new ActiveMQQueue("request7");
+
+	private static Destination replyQueue7 = new ActiveMQQueue("reply7");
 
 	@Test
 	public void testContainerWithDest() throws Exception {
@@ -95,6 +96,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -114,6 +116,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				return jmsReply;
 			}
@@ -144,6 +147,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -163,6 +167,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 				return jmsReply;
@@ -195,6 +200,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -214,6 +220,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				return jmsReply;
 			}
@@ -244,6 +251,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -263,6 +271,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 				return jmsReply;
@@ -294,6 +303,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -313,6 +323,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				return jmsReply;
 			}
@@ -342,6 +353,7 @@ public class OutboundGatewayFunctionTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				latch1.countDown();
 				try {
@@ -361,6 +373,7 @@ public class OutboundGatewayFunctionTests {
 		final javax.jms.Message jmsReply = request;
 		template.send(request.getJMSReplyTo(), new MessageCreator() {
 
+			@Override
 			public Message createMessage(Session session) throws JMSException {
 				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 				return jmsReply;
@@ -370,6 +383,68 @@ public class OutboundGatewayFunctionTests {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+	}
+
+	@Test
+	public void testLazyContainerWithDest() throws Exception {
+		BeanFactory beanFactory = mock(BeanFactory.class);
+		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.initialize();
+		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
+			.thenReturn(scheduler);
+		final JmsOutboundGateway gateway = new JmsOutboundGateway();
+		gateway.setBeanFactory(beanFactory);
+		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setRequestDestination(requestQueue7);
+		gateway.setReplyDestination(replyQueue7);
+		gateway.setCorrelationKey("JMSCorrelationID");
+		gateway.setUseReplyContainer(true);
+		gateway.setIdleReplyContainerTimeout(1, TimeUnit.SECONDS);
+		gateway.afterPropertiesSet();
+		gateway.start();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
+			public void run() {
+				JmsTemplate template = new JmsTemplate();
+				template.setConnectionFactory(getTemplateConnectionFactory());
+				template.setReceiveTimeout(10000);
+				receiveAndSend(template);
+				receiveAndSend(template);
+			}
+
+			private void receiveAndSend(JmsTemplate template) {
+				javax.jms.Message request = template.receive(requestQueue7);
+				final javax.jms.Message jmsReply = request;
+				try {
+					template.send(request.getJMSReplyTo(), new MessageCreator() {
+
+						@Override
+						public Message createMessage(Session session) throws JMSException {
+							return jmsReply;
+						}
+					});
+				}
+				catch (JmsException e) {
+				}
+				catch (JMSException e) {
+				}
+			}
+		});
+
+		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
+				DefaultMessageListenerContainer.class);
+		int n = 0;
+		while (n++ < 100 && container.isRunning()) {
+			Thread.sleep(100);
+		}
+		assertFalse(container.isRunning());
+		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+		assertTrue(container.isRunning());
+
+		gateway.stop();
+		assertFalse(container.isRunning());
 	}
 
 	private ConnectionFactory getTemplateConnectionFactory() {

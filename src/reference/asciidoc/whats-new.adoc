@@ -155,6 +155,13 @@ Of course, Reactor is still supported for functionality such as the `Promise` ga
 [[x4.2-jms-changes]]
 ==== JMS Changes
 
+===== Reply Listener Lazy Initialization
+
+It is now possible to configure the reply listener in JMS outbound gateways to be initialized on-demand and stopped
+after an idle period, instead of being controlled by the gateway's lifecycle.
+
+See <<jms-outbound-gateway>> for more information.
+
 ===== Conversion Errors in Message-Driven Endpoints
 
 The `error-channel` now is used for the conversion errors, which have caused a transaction rollback and message redelivery previously.
