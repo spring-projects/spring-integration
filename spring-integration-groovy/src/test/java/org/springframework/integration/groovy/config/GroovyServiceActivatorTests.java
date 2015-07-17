@@ -182,7 +182,7 @@ public class GroovyServiceActivatorTests {
 		catch (Exception e) {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
-			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
+			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy_lang"));
 		    throw e;
 		}
 
