@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.TransactionDefinition;
@@ -81,8 +81,8 @@ public class FileInboundTransactionTests {
 		final AtomicBoolean crash = new AtomicBoolean();
 		input.subscribe(new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				System.out.println(message);
 				if (crash.get()) {
 					throw new MessagingException("eek");
 				}
@@ -96,14 +96,12 @@ public class FileInboundTransactionTests {
 		Message<?> result = successChannel.receive(10000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
-		System.out.println(result);
 		assertFalse(file.delete());
 		crash.set(true);
 		file = new File(tmpDir + "/si-test1/bar");
 		file.createNewFile();
 		result = failureChannel.receive(10000);
 		assertNotNull(result);
-		System.out.println(result);
 		assertTrue(file.delete());
 		assertEquals("foo", result.getPayload());
 		pseudoTx.stop();
@@ -117,8 +115,8 @@ public class FileInboundTransactionTests {
 		final AtomicBoolean crash = new AtomicBoolean();
 		txInput.subscribe(new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				System.out.println(message);
 				if (crash.get()) {
 					throw new MessagingException("eek");
 				}
@@ -133,14 +131,12 @@ public class FileInboundTransactionTests {
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(file.delete());
-		System.out.println(result);
 		assertTrue(transactionManager.getCommitted());
 		crash.set(true);
 		file = new File(tmpDir + "/si-test2/qux");
 		file.createNewFile();
 		result = failureChannel.receive(10000);
 		assertNotNull(result);
-		System.out.println(result);
 		assertTrue(file.delete());
 		assertEquals(Boolean.TRUE, result.getPayload());
 		realTx.stop();

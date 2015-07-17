@@ -398,6 +398,8 @@ The `-dirs` option is not allowed (the recursive mget uses the recursive `ls` to
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
 
+See also <<ftp-partial>>.
+
 *put*
 
 _put_ sends a file to the remote server; the payload of the message can be a `java.io.File`, a `byte[]` or a `String`.
@@ -421,6 +423,8 @@ The filter works with recursion, as long as the subdirectories themselves pass t
 Subdirectories that do not pass the filter are not recursed.
 
 The message payload resulting from an _mget_ operation is a `List<String>` object - a List of remote file paths resulting from the transfer.
+
+See also <<ftp-partial>>.
 
 *rm*
 
@@ -479,6 +483,40 @@ when using the namespace support). This affects the behavior when the local file
 file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
 operations, the default is `FAIL`.
+
+[[ftp-partial]]
+==== Outbound Gateway Partial Success (mget and mput)
+
+When performing operations on multiple files (`mget` and `mput`) it is possible that an exception occurs some time after
+one or more files have been transferred.
+In this case (starting with _version 4.2_), a `PartialSuccessException` is thrown.
+As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional
+properties:
+
+- `partialResults` - the successful transfer results.
+- `derivedInput` - the list of files generated from the request message (e.g. local files to transfer for an `mput`).
+
+This will enable you to determine which files were successfully transferred, and which were not.
+
+In the case of a recursive `mput`, the `PartialSuccessException` may have nested `PartialSuccessException` s.
+
+Consider:
+
+[source]
+----
+root/
+|- file1.txt
+|- subdir/
+   | - file2.txt
+   | - file3.txt
+|- zoo.txt
+----
+
+If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway will have `derivedInput`
+of `file1.txt`, `subdir`, `zoo.txt` and `partialResults` of `file1.txt`.
+It's `cause` will be another `PartialSuccessException` with `derivedInput` of `file2.txt`, `file3.txt` and
+`partialResults` of `file2.txt`.
+
 
 [[ftp-session-caching]]
 === FTP Session Caching

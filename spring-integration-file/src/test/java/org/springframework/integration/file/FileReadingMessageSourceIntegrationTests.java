@@ -109,7 +109,6 @@ public class FileReadingMessageSourceIntegrationTests {
 	@Test
 	public void getFiles() throws Exception {
 		Message<File> received1 = pollableFileSource.receive();
-		System.out.println("receive files round 1");
 		assertNotNull("This should return the first message", received1);
 		pollableFileSource.onSend(received1);
 		Message<File> received2 = pollableFileSource.receive();

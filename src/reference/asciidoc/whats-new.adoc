@@ -241,6 +241,15 @@ until they all arrive, and are then released individually. See <<aggregator>> fo
 
 ==== (S)FTP Changes
 
+===== Inbound channel adapters
+
 You can now specify a `remote-directory-expression` on the inbound channel adapters, to determine the directory
 at runtime.
 See <<ftp>> and <<sftp>> for more information.
+
+===== Gateway Partial Results
+
+When use FTP/SFTP outbound gateways to operate on multiple files (`mget`, `mput`), it is possible for an exception to
+occur after part of the request is completed.
+If such a condition occurs, a `PartialSuccessException` is thrown containing the partial results.
+See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
