@@ -190,7 +190,7 @@ public class GroovyServiceActivatorTests {
 		catch (Exception e) {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
-			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
+			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy_lang"));
 		    throw e;
 		}
 
@@ -209,6 +209,7 @@ public class GroovyServiceActivatorTests {
 
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator{
+		@Override
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
@@ -225,6 +226,7 @@ public class GroovyServiceActivatorTests {
 
 		private volatile boolean executed;
 
+		@Override
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}
