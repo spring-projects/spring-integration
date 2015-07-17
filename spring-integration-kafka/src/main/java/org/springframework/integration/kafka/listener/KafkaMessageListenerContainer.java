@@ -306,7 +306,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				partitionsByBrokerMap.clear();
 				partitionsByBrokerMap.putAll(partitionsAsList.groupBy(getLeader));
 				if (fetchTaskExecutor == null) {
-					fetchTaskExecutor = Executors.newFixedThreadPool(partitionsByBrokerMap.size());
+					fetchTaskExecutor = Executors.newFixedThreadPool(partitionsByBrokerMap.keysView().size());
 				}
 				partitionsByBrokerMap.forEachKey(launchFetchTask);
 			}
