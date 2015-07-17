@@ -40,7 +40,6 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -48,6 +47,7 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -568,25 +568,42 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		File[] files = file.listFiles();
 		List<File> filteredFiles = this.filterMputFiles(files);
 		List<String> replies = new ArrayList<String>();
-		for (File filteredFile : filteredFiles) {
-			if (!filteredFile.isDirectory()) {
-				String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
-						.copyHeaders(requestMessage.getHeaders())
-						.build(), subDirectory);
-				if (path == null) {//NOSONAR - false positive
-					if (logger.isDebugEnabled()) {
-						logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
+		try {
+			for (File filteredFile : filteredFiles) {
+				if (!filteredFile.isDirectory()) {
+					String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
+							.copyHeaders(requestMessage.getHeaders())
+							.build(), subDirectory);
+					if (path == null) {//NOSONAR - false positive
+						if (logger.isDebugEnabled()) {
+							logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
+						}
+					}
+					else {
+						replies.add(path);
 					}
 				}
-				else {
-					replies.add(path);
+				else if (this.options.contains(Option.RECURSIVE)){
+					String newSubDirectory = (StringUtils.hasText(subDirectory) ?
+							subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
+						+ filteredFile.getName();
+					replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
 				}
 			}
-			else if (this.options.contains(Option.RECURSIVE)){
-				String newSubDirectory = (StringUtils.hasText(subDirectory) ?
-						subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
-					+ filteredFile.getName();
-				replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
+		}
+		catch (Exception e) {
+			if (replies.size() > 0) {
+				throw new PartialSuccessException(requestMessage,
+						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
+						e, replies, filteredFiles);
+			}
+			else if (e instanceof PartialSuccessException) {
+				throw new PartialSuccessException(requestMessage,
+						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
+						e, replies, filteredFiles);
+			}
+			else if (e instanceof MessagingException) {
+				throw (MessagingException) e;
 			}
 		}
 		return replies;
@@ -792,18 +809,33 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		List<File> files = new ArrayList<File>();
 		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
-		for (String fileName : fileNames) {
-			File file;
-			if (fileName.contains(remoteFileSeparator) &&
-					fileName.startsWith(remoteDirectory)) { // the server returned the full path
-				file = this.get(message, session, remoteDirectory, fileName,
-						fileName.substring(fileName.lastIndexOf(remoteFileSeparator)), false);
+		try {
+			for (String fileName : fileNames) {
+				File file;
+				if (fileName.contains(remoteFileSeparator) &&
+						fileName.startsWith(remoteDirectory)) { // the server returned the full path
+					file = this.get(message, session, remoteDirectory, fileName,
+							fileName.substring(fileName.lastIndexOf(remoteFileSeparator)), false);
+				}
+				else {
+					file = this.get(message, session, remoteDirectory,
+							this.generateFullPath(remoteDirectory, fileName), fileName, false);
+				}
+				files.add(file);
 			}
-			else {
-				file = this.get(message, session, remoteDirectory,
-						this.generateFullPath(remoteDirectory, fileName), fileName, false);
+		}
+		catch (Exception e) {
+			if (files.size() > 0) {
+				throw new PartialSuccessException(message,
+						"Partially successful 'mget' operation on " + remoteDirectory, e, files,
+						Arrays.asList(fileNames));
 			}
-			files.add(file);
+			else if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			else if (e instanceof IOException) {
+				throw (IOException) e;
+			}
 		}
 		return files;
 	}
@@ -817,17 +849,31 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			throw new MessagingException("No files found at " + remoteDirectory
 					+ " with pattern " + remoteFilename);
 		}
-		for (AbstractFileInfo<F> lsEntry : fileNames) {
-			String fullFileName = remoteDirectory + this.getFilename(lsEntry);
-			/*
-			 * With recursion, the filename might contain subdirectory information
-			 * normalize each file separately.
-			 */
-			String fileName = this.getRemoteFilename(fullFileName);
-			String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-			File file = this.get(message, session, actualRemoteDirectory,
-						fullFileName, fileName, false);
-			files.add(file);
+		try {
+			for (AbstractFileInfo<F> lsEntry : fileNames) {
+				String fullFileName = remoteDirectory + this.getFilename(lsEntry);
+				/*
+				 * With recursion, the filename might contain subdirectory information
+				 * normalize each file separately.
+				 */
+				String fileName = this.getRemoteFilename(fullFileName);
+				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
+				File file = this.get(message, session, actualRemoteDirectory,
+							fullFileName, fileName, false);
+				files.add(file);
+			}
+		}
+		catch (Exception e) {
+			if (files.size() > 0) {
+				throw new PartialSuccessException(message,
+						"Partially successful recursive 'mget' operation on " + remoteDirectory, e, files, fileNames);
+			}
+			else if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			else if (e instanceof IOException) {
+				throw (IOException) e;
+			}
 		}
 		return files;
 	}

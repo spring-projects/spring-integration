@@ -27,13 +27,20 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.net.ftp.FTPFile;
@@ -41,6 +48,9 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,11 +65,14 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.TestFtpServer;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -72,6 +85,7 @@ import org.springframework.util.FileCopyUtils;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class FtpServerOutboundTests {
 
 	@Autowired
@@ -374,6 +388,137 @@ public class FtpServerOutboundTests {
 		assertEquals("ftpSource2.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertSame(TestUtils.getPropertyValue(session, "targetSession"),
 				TestUtils.getPropertyValue(result.getHeaders().get(FileHeaders.REMOTE_SESSION), "targetSession"));
+	}
+
+	@Test
+	public void testMgetPartial() throws Exception {
+		Session<FTPFile> session = spyOnSession();
+		doAnswer(new Answer<String[]>() {
+
+			@Override
+			public String[] answer(InvocationOnMock invocation) throws Throwable {
+				String[] files = (String[]) invocation.callRealMethod();
+				// add an extra file where the get will fail
+				files = Arrays.copyOf(files, files.length + 1);
+				files[files.length - 1] = "bogus.txt";
+				return files;
+			}
+		}).when(session).listNames("ftpSource/subFtpSource/*");
+		String dir = "ftpSource/subFtpSource/";
+		try {
+			this.inboundMGet.send(new GenericMessage<Object>(dir + "*"));
+			fail("expected exception");
+		}
+		catch (PartialSuccessException e) {
+			assertEquals(2, e.getDerivedInput().size());
+			assertEquals(1, e.getPartialResults().size());
+			assertThat(e.getCause().getMessage(),
+					containsString("/ftpSource/subFtpSource/bogus.txt: No such file or directory."));
+		}
+
+	}
+
+	@Test
+	public void testMgetRecursivePartial() throws Exception {
+		Session<FTPFile> session = spyOnSession();
+		doAnswer(new Answer<FTPFile[]>() {
+
+			@Override
+			public FTPFile[] answer(InvocationOnMock invocation) throws Throwable {
+				FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
+				// add an extra file where the get will fail
+				files = Arrays.copyOf(files, files.length + 1);
+				FTPFile bogusFile = new FTPFile();
+				bogusFile.setName("bogus.txt");
+				bogusFile.setTimestamp(Calendar.getInstance());
+				files[files.length - 1] = bogusFile;
+				return files;
+			}
+		}).when(session).list("ftpSource/subFtpSource/");
+		String dir = "ftpSource/";
+		try {
+			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+			fail("expected exception");
+		}
+		catch (PartialSuccessException e) {
+			assertEquals(4, e.getDerivedInput().size());
+			assertEquals(2, e.getPartialResults().size());
+			assertThat(e.getCause().getMessage(),
+					containsString("/ftpSource/subFtpSource/bogus.txt: No such file or directory."));
+		}
+	}
+
+	@Test
+	public void testMputPartial() throws Exception {
+		Session<FTPFile> session = spyOnSession();
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				throw new IOException("Failed to send localSource2");
+			}
+
+		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("localSource2"));
+		try {
+			this.inboundMPut.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+			fail("expected exception");
+		}
+		catch (PartialSuccessException e) {
+			assertEquals(3, e.getDerivedInput().size());
+			assertEquals(1, e.getPartialResults().size());
+			assertEquals("ftpTarget/localSource1.txt", e.getPartialResults().iterator().next());
+			assertThat(e.getCause().getMessage(),
+					containsString("Failed to send localSource2"));
+		}
+	}
+
+	@Test
+	public void testMputRecursivePartial() throws Exception {
+		Session<FTPFile> session = spyOnSession();
+		File sourceLocalSubDirectory =  new File(ftpServer.getSourceLocalDirectory(), "subLocalSource");
+		assertTrue(sourceLocalSubDirectory.isDirectory());
+		File extra = new File(sourceLocalSubDirectory, "subLocalSource2.txt");
+		FileOutputStream writer = new FileOutputStream(extra);
+		writer.write("foo".getBytes());
+		writer.close();
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				throw new IOException("Failed to send subLocalSource2");
+			}
+
+		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("subLocalSource2"));
+		try {
+			this.inboundMPutRecursive.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+			fail("expected exception");
+		}
+		catch (PartialSuccessException e) {
+			assertEquals(3, e.getDerivedInput().size());
+			assertEquals(2, e.getPartialResults().size());
+			assertThat(e.getCause(), Matchers.instanceOf(PartialSuccessException.class));
+			PartialSuccessException cause = (PartialSuccessException) e.getCause();
+			assertEquals(2, cause.getDerivedInput().size());
+			assertEquals(1, cause.getPartialResults().size());
+			assertThat(cause.getCause().getMessage(), containsString("Failed to send subLocalSource2"));
+		}
+		extra.delete();
+	}
+
+	private Session<FTPFile> spyOnSession() {
+		Session<FTPFile> session = spy(this.ftpSessionFactory.getSession());
+		session.close();
+		@SuppressWarnings("unchecked")
+		BlockingQueue<Session<FTPFile>> cache = TestUtils.getPropertyValue(ftpSessionFactory, "pool.available",
+				BlockingQueue.class);
+		assertNotNull(cache.poll());
+		cache.offer(session);
+		@SuppressWarnings("unchecked")
+		Set<Session<FTPFile>> allocated = TestUtils.getPropertyValue(ftpSessionFactory, "pool.allocated",
+				Set.class);
+		allocated.clear();
+		allocated.add(session);
+		return session;
 	}
 
 	private void assertLength6(FtpRemoteFileTemplate template) {
