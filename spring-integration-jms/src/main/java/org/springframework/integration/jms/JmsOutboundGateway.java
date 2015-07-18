@@ -1336,10 +1336,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			synchronized(JmsOutboundGateway.this.lifeCycleMonitor) {
 				if (System.currentTimeMillis() - lastSend > idleReplyContainerTimeout
 						&& replies.size() == 0) {
-					if (logger.isDebugEnabled()) {
-						logger.debug(getComponentName() + ": Stopping idle reply container.");
-					}
 					if (replyContainer.isRunning()) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(getComponentName() + ": Stopping idle reply container.");
+						}
 						replyContainer.stop();
 						idleTask.cancel(false);
 						idleTask = null;

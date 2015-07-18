@@ -435,7 +435,10 @@ public class OutboundGatewayFunctionTests {
 		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
-		Thread.sleep(3000);
+		int n = 0;
+		while (n++ < 100 && container.isRunning()) {
+			Thread.sleep(100);
+		}
 		assertFalse(container.isRunning());
 		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
 		assertTrue(container.isRunning());

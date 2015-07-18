@@ -266,8 +266,18 @@ The listener is very lightweight and it is anticipated that, in most cases, only
 However, attributes such as _concurrent-consumers_, _max-concurrent-consumers_ etc., can be added.
 Refer to the schema for a complete list of supported attributes, together with thehttp://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS documentation] for their meanings.
 
+*Idle Reply Listeners*
+
 Starting with _version 4.2_, the reply listener can be started as needed (and stopped after an idle time) instead
-of running for the duration of the gateway's lifecycle. See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
+of running for the duration of the gateway's lifecycle.
+This might be useful if you have many gateways in the application context where they are mostly idle.
+One such situation is a context with many (inactive) partitioned http://projects.spring.io/spring-batch/[Spring Batch]
+jobs using Spring Integration and JMS for partition distribution.
+If all the reply listeners were active, the JMS broker would have an active consumer for each gateway.
+By enabling the idle timeout, each consumer would exist only while the corresponding batch job is running (and
+for a short time after it finishes).
+
+See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
 
 [[jms-og-attributes]]
 ==== Attribute Reference
