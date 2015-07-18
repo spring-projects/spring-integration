@@ -82,11 +82,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
-		assertEquals((long) 0, messageHandlerCacheStatistics.get("hitCount"));
-		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadCount"));
-		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadExceptionCount"));
-		assertEquals((long) 0, messageHandlerCacheStatistics.get("loadSuccessCount"));
-		assertEquals((long) 0, messageHandlerCacheStatistics.get("missCount"));
+		assertEquals(0L, messageHandlerCacheStatistics.get("hitCount"));
+		assertEquals(0L, messageHandlerCacheStatistics.get("loadCount"));
+		assertEquals(0L, messageHandlerCacheStatistics.get("loadExceptionCount"));
+		assertEquals(0L, messageHandlerCacheStatistics.get("loadSuccessCount"));
+		assertEquals(0L, messageHandlerCacheStatistics.get("missCount"));
 
 		// StoredProcOutboundGateway
 		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(
@@ -99,11 +99,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
-		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("hitCount"));
-		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadCount"));
-		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount"));
-		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount"));
-		assertEquals((long) 0, storedProcOutboundGatewayCacheStatistics.get("missCount"));
+		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("hitCount"));
+		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadCount"));
+		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadExceptionCount"));
+		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("loadSuccessCount"));
+		assertEquals(0L, storedProcOutboundGatewayCacheStatistics.get("missCount"));
 
 		// StoredProcPollingChannelAdapter
 
@@ -114,11 +114,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, storedProcPollingChannelAdapterCacheStatistics.size());
 
-		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("hitCount"));
-		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadCount"));
-		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount"));
-		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount"));
-		assertEquals((long) 0, storedProcPollingChannelAdapterCacheStatistics.get("missCount"));
+		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("hitCount"));
+		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadCount"));
+		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadExceptionCount"));
+		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("loadSuccessCount"));
+		assertEquals(0L, storedProcPollingChannelAdapterCacheStatistics.get("missCount"));
 
 	}
 
@@ -141,11 +141,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, cacheStatistics.size());
 
-		assertEquals((long) 0, cacheStatistics.get("hitCount"));
-		assertEquals((long) 0, cacheStatistics.get("loadCount"));
-		assertEquals((long) 0, cacheStatistics.get("loadExceptionCount"));
-		assertEquals((long) 0, cacheStatistics.get("loadSuccessCount"));
-		assertEquals((long) 0, cacheStatistics.get("missCount"));
+		assertEquals(0L, cacheStatistics.get("hitCount"));
+		assertEquals(0L, cacheStatistics.get("loadCount"));
+		assertEquals(0L, cacheStatistics.get("loadExceptionCount"));
+		assertEquals(0L, cacheStatistics.get("loadSuccessCount"));
+		assertEquals(0L, cacheStatistics.get("missCount"));
 
 		userService.createUser(new User("myUsername", "myPassword", "myEmail"));
 
@@ -163,11 +163,11 @@ public class StoredProcJmxManagedBeanTests {
 
 		assertEquals(11, cacheStatistics2.size());
 
-		assertEquals((long) 0, cacheStatistics2.get("hitCount"));
-		assertEquals((long) 1, cacheStatistics2.get("loadCount"));
-		assertEquals((long) 0, cacheStatistics2.get("loadExceptionCount"));
-		assertEquals((long) 1, cacheStatistics2.get("loadSuccessCount"));
-		assertEquals((long) 1, cacheStatistics2.get("missCount"));
+		assertEquals(0L, cacheStatistics2.get("hitCount"));
+		assertEquals(1L, cacheStatistics2.get("loadCount"));
+		assertEquals(0L, cacheStatistics2.get("loadExceptionCount"));
+		assertEquals(1L, cacheStatistics2.get("loadSuccessCount"));
+		assertEquals(1L, cacheStatistics2.get("missCount"));
 
 	}
 

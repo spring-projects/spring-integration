@@ -74,7 +74,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private static final boolean guavaPresent = ClassUtils.isPresent("com.google.common.cache.LoadingCache",
 			StoredProcExecutor.class.getClassLoader());
 
-
 	private volatile EvaluationContext evaluationContext;
 
 	private volatile BeanFactory beanFactory = null;
@@ -82,9 +81,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private volatile int jdbcCallOperationsCacheSize = 10;
 
 	/**
-	 * Uses the {@link SimpleJdbcCall} implementation for executing Stored Procedures.
+	 * For {@code optional} Google Guava library in the CLASSPATH
 	 */
-	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
+	private volatile GuavaCacheWrapper guavaCacheWrapper;
 
 	private final Object jdbcCallOperationsMapMonitor = new Object();
 
@@ -222,16 +221,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		}
 
 		if (guavaPresent) {
-			this.jdbcCallOperationsCache = CacheBuilder.newBuilder()
-					.maximumSize(this.jdbcCallOperationsCacheSize)
-					.recordStats()
-					.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
-
-						@Override
-						public SimpleJdbcCall load(String storedProcedureName) {
-							return createSimpleJdbcCall(storedProcedureName);
-						}
-					});
+			this.guavaCacheWrapper = new GuavaCacheWrapper(this, this.jdbcCallOperationsCacheSize);
 		}
 		else {
 			this.jdbcCallOperationsMap =
@@ -354,7 +344,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private SimpleJdbcCallOperations obtainSimpleJdbcCall(String storedProcedureName) {
 		if (guavaPresent) {
-			return this.jdbcCallOperationsCache.getUnchecked(storedProcedureName);
+			return this.guavaCacheWrapper.jdbcCallOperationsCache.getUnchecked(storedProcedureName);
 		}
 		else {
 			SimpleJdbcCallOperations operations = this.jdbcCallOperationsMap.get(storedProcedureName);
@@ -588,22 +578,25 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}, which is used to store
+	 * Allows for the retrieval of metrics ({@link CacheStats}) for the
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}, which is used to store
 	 * instances of {@link SimpleJdbcCallOperations}.
 	 *
-	 * @return Cache statistics for {@link StoredProcExecutor#jdbcCallOperationsCache}
+	 * @return {@link CacheStats} object for {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
+	 * Since Google Guava is an optional dependency for Spring Integration this method can't
+	 * return Guava {@link CacheStats} type directly because of some reflection manipulation
+	 * by the Spring bean definition phase.
 	 */
-	public CacheStats getJdbcCallOperationsCacheStatistics() {
+	public Object getJdbcCallOperationsCacheStatistics() {
 		if (!guavaPresent) {
 			throw new UnsupportedOperationException("The Google Guava library isn't present in the classpath.");
 		}
-		return this.jdbcCallOperationsCache.stats();
+		return this.guavaCacheWrapper.jdbcCallOperationsCache.stats();
 	}
 
 	/**
-	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 * Allows for the retrieval of metrics ({@link CacheStats}) for the
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
 	 *
 	 * Provides the properties of {@link CacheStats} as a {@link Map}. This allows
 	 * for exposing the those properties easily via JMX.
@@ -617,7 +610,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		if (!guavaPresent) {
 			throw new UnsupportedOperationException("The Google Guava library isn't present in the classpath.");
 		}
-		final CacheStats cacheStats = this.getJdbcCallOperationsCacheStatistics();
+		final CacheStats cacheStats = (CacheStats) getJdbcCallOperationsCacheStatistics();
 		final Map<String, Object> cacheStatistics  = new HashMap<String, Object>(11);
 		cacheStatistics.put("averageLoadPenalty", cacheStats.averageLoadPenalty());
 		cacheStatistics.put("evictionCount", cacheStats.evictionCount());
@@ -636,7 +629,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
 	 * ({@link SimpleJdbcCall}) instances to be held by
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 * {@link GuavaCacheWrapper#jdbcCallOperationsCache}.
 	 *
 	 * A value of zero will disable the cache. The default is 10.
 	 *
@@ -660,4 +653,32 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * The lazy-load workaround class to avoid {@link NoClassDefFoundError}
+	 * for {@link CacheLoader} class, when Google Guava isn't present in the CLASSPATH.
+	 *
+	 * @since 4.2
+	 */
+	private static class GuavaCacheWrapper {
+
+		private final LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
+
+		private GuavaCacheWrapper(final StoredProcExecutor executor, int size) {
+			this.jdbcCallOperationsCache = CacheBuilder.newBuilder()
+					.maximumSize(size)
+					.recordStats()
+					.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
+
+						@Override
+						public SimpleJdbcCallOperations load(String key) throws Exception {
+							return executor.createSimpleJdbcCall(key);
+						}
+
+					});
+		}
+
+	}
+
 }
+
+
