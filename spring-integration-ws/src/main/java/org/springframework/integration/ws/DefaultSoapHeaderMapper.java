@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.xml.namespace.QNameUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
+ * @author Mauro Molinari
  * @since 2.0
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
@@ -61,7 +62,13 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 
 	@Override
 	protected Map<String, Object> extractStandardHeaders(SoapMessage source) {
-		return Collections.emptyMap();
+		final String soapAction = source.getSoapAction();
+		if (StringUtils.hasText(soapAction)) {
+			Map<String, Object> headers = new HashMap<String, Object>(1);
+			headers.put(WebServiceHeaders.SOAP_ACTION, soapAction);
+			return headers;
+		} else
+			return Collections.emptyMap();
 	}
 
 	@Override
