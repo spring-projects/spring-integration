@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.integration.ws;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,7 @@ import org.springframework.ws.soap.SoapMessage;
 
 /**
  * @author Gary Russell
+ * @author Mauro Molinari
  * @since 2.1
  *
  */
@@ -75,4 +77,34 @@ public class DefaultSoapHeaderMapperTests {
 		assertSame(soapHeaderElement, headers.get("x:elem"));
 	}
 
+	@Test
+	public void testExtractStandardHeadersNullSoapAction() {
+		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+		SoapMessage soapMessage = mock(SoapMessage.class);
+		when(soapMessage.getSoapAction()).thenReturn(null);
+
+		assertTrue(mapper.extractStandardHeaders(soapMessage).isEmpty());
+	}
+
+	@Test
+	public void testExtractStandardHeadersEmptySoapAction() {
+		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+		SoapMessage soapMessage = mock(SoapMessage.class);
+		when(soapMessage.getSoapAction()).thenReturn("");
+
+		assertTrue(mapper.extractStandardHeaders(soapMessage).isEmpty());
+	}
+
+	@Test
+	public void testExtractStandardHeadersNonEmptySoapAction() {
+		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+		SoapMessage soapMessage = mock(SoapMessage.class);
+		when(soapMessage.getSoapAction()).thenReturn("foo");
+
+		final Map<String, Object> standardHeaders = mapper
+				.extractStandardHeaders(soapMessage);
+		assertEquals(1, standardHeaders.size());
+		assertTrue(standardHeaders.containsKey(WebServiceHeaders.SOAP_ACTION));
+		assertEquals("foo", standardHeaders.get(WebServiceHeaders.SOAP_ACTION));
+	}
 }
