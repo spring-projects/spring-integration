@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -57,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
@@ -533,4 +535,29 @@ public class FtpServerOutboundTests {
 		assertEquals(6, files[0].getSize());
 	}
 
+	public static class SortingFileListFilter implements FileListFilter<File> {
+
+		@Override
+		public List<File> filterFiles(File[] files) {
+			File[] sorted = Arrays.copyOf(files, files.length);
+			Arrays.sort(sorted, new Comparator<File>() {
+
+				@Override
+				public int compare(File o1, File o2) {
+					if (o1.isDirectory() && !o2.isDirectory()) {
+						return 1;
+					}
+					else if (!o1.isDirectory() && o2.isDirectory()) {
+						return -1;
+					}
+					else {
+						return o1.getName().compareTo(o2.getName());
+					}
+				}
+
+			});
+			return Arrays.asList(sorted);
+		}
+
+	}
 }

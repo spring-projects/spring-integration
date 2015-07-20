@@ -78,6 +78,7 @@
 							  filename-pattern="*.txt"
 							  expression="payload"
 							  remote-directory="ftpTarget"
+							  mput-filter="sortingFilter"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMPutRecursive"/>
@@ -90,6 +91,7 @@
 							  filename-pattern="*.txt"
 							  expression="payload"
 							  remote-directory="ftpTarget"
+							  mput-filter="sortingFilter"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMPutRecursiveFiltered"/>
@@ -154,5 +156,8 @@
 							  remote-directory="ftpTarget"
 							  auto-create-directory="true"
 							  remote-file-separator="/"	/>
+
+	<bean id="sortingFilter"
+		class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests$SortingFileListFilter"/>
 
 </beans>
