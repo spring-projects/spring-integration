@@ -10,15 +10,15 @@ This section details the compatible http://www.oracle.com/technetwork/java/javas
 [[supported-java-versions]]
 === Compatible Java Versions
 
-For _Spring Integration_*4.1.x*, the *minimum* compatible Java version is *Java SE 6*.
+For _Spring Integration_ *4.2.x*, the *minimum* compatible Java version is *Java SE 6*.
 Older versions of Java are not supported.
 
-_Spring Integration_*4.1.x* is also compatible with *Java SE 7* as well as *Java SE 8*.
+_Spring Integration_ *4.2.x* is also compatible with *Java SE 7* as well as *Java SE 8*.
 
 [[supported-spring-versions]]
 === Compatible Versions of the Spring Framework
 
-_Spring Integration_*4.1.x* requires _Spring Framework_*4.1.4* or later.
+_Spring Integration_ *4.2.x* requires _Spring Framework_ *4.2.0* or later.
 
 [[code-conventions]]
 === Code Conventions
