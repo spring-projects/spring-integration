@@ -92,11 +92,11 @@ public class LoggingHandlerTests {
 		expression = spy(expression);
 		accessor.setPropertyValue("expression", expression);
 		when(log.isInfoEnabled()).thenReturn(false);
-		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
 		verify(expression, never()).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
 
 		when(log.isInfoEnabled()).thenReturn(true);
-		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
 		verify(expression, times(1)).getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class));
 	}
 
@@ -108,12 +108,12 @@ public class LoggingHandlerTests {
 		log = spy(log);
 		accessor.setPropertyValue("messageLogger", log);
 		when(log.isInfoEnabled()).thenReturn(true);
-		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
 		verify(log, times(1)).info(Mockito.anyString());
 		verify(log, never()).warn(Mockito.anyString());
 
 		loggingHandler.setLevel(Level.WARN);
-		loggingHandler.handleMessage(new GenericMessage<>("foo"));
+		loggingHandler.handleMessage(new GenericMessage<String>("foo"));
 		verify(log, times(1)).info(Mockito.anyString());
 		verify(log, times(1)).warn(Mockito.anyString());
 	}
