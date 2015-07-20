@@ -16,6 +16,7 @@
 
 package org.springframework.integration.codec.kryo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -113,6 +114,15 @@ public abstract class AbstractKryoCodec implements Codec {
 			input.close();
 		}
 		return result;
+	}
+
+	@Override
+	public byte[] serialize(Object object) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serialize(object, bos);
+		byte[] bytes = bos.toByteArray();
+		bos.close();
+		return bytes;
 	}
 
 }

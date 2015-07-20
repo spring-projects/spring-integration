@@ -35,9 +35,7 @@ public class FileKryoRegistrarTests {
 
 		PojoCodec pc = new PojoCodec(new FileKryoRegistrar());
 		File file = new File("/foo/bar");
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		pc.serialize(file, bos);
-		File file2 = (File) pc.deserialize(bos.toByteArray(), File.class);
+		File file2 = (File) pc.deserialize(pc.serialize(file), File.class);
 		assertEquals(file, file2);
 	}
 }

@@ -59,6 +59,17 @@ public class CompositeCodec implements Codec {
 		}
 	}
 
+	@Override
+	public byte[] serialize(Object object) throws IOException {
+		Codec codec = findDelegate(object.getClass());
+		if (codec != null) {
+			return codec.serialize(object);
+		}
+		else {
+			return defaultCodec.serialize(object);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object deserialize(InputStream inputStream, Class<?> type) throws IOException {

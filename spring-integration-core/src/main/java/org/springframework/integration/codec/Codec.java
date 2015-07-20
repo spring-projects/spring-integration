@@ -45,4 +45,6 @@ public interface Codec extends Serializer<Object> {
 	 * @throws IOException
 	 */
 	public abstract Object deserialize(byte[] bytes, Class<?> type) throws IOException;
+
+	public abstract byte[] serialize(Object object) throws IOException;
 }

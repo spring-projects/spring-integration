@@ -46,11 +46,9 @@ public class CompositeCodecTests {
 
 	@Test
 	public void testPojoSerialization() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
-		codec.serialize(foo, bos);
 		SomeClassWithNoDefaultConstructors foo2 = (SomeClassWithNoDefaultConstructors) codec.deserialize(
-				bos.toByteArray(),
+				codec.serialize(foo),
 				SomeClassWithNoDefaultConstructors.class);
 		assertEquals(foo, foo2);
 	}
