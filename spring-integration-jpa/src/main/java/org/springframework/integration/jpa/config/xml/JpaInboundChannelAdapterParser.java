@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  */
 public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -70,6 +71,7 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush-after-delete", "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String channelAdapterId = this.resolveId(element, jpaPollingChannelAdapterBuilder.getRawBeanDefinition(), parserContext);

@@ -13,11 +13,16 @@
 
 	<int:channel id="out"/>
 
+	<bean id="jpaParameterSource" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.jpa.support.parametersource.ParameterSource"/>
+	</bean>
+
 	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter1"
-		entity-manager-factory="entityManagerFactory"
-		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
-		expect-single-result="true"
-		channel="out">
+			entity-manager-factory="entityManagerFactory"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			expect-single-result="true"
+			parameter-source="jpaParameterSource"
+			channel="out">
 		<int:poller fixed-rate="5000"/>
 	</int-jpa:inbound-channel-adapter>
 
