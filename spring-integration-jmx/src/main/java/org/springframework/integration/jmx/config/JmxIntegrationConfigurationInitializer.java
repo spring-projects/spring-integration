@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class JmxIntegrationConfigurationInitializer implements IntegrationConfig
 	}
 
 	private void registerMBeanExporterHelperIfNecessary(ConfigurableListableBeanFactory beanFactory) {
-		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class).length > 0) {
+		if (beanFactory.getBeanNamesForType(IntegrationMBeanExporter.class, false, false).length > 0) {
 			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(MBEAN_EXPORTER_HELPER_BEAN_NAME,
 					new RootBeanDefinition(MBeanExporterHelper.class));
 		}
