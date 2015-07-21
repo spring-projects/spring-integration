@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.springframework.integration.jpa.config.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -28,6 +29,7 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
+import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -66,7 +68,8 @@ public class JpaInboundChannelAdapterParserTests {
 		assertNotNull(jpaOperations);
 
 		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
-
+		ParameterSource parameterSource = this.context.getBean(ParameterSource.class);
+		assertSame(parameterSource, TestUtils.getPropertyValue(jpaExecutor, "parameterSource"));
 	}
 
 	@Test
