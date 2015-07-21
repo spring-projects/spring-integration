@@ -32,7 +32,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -41,7 +41,8 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.jpa.core.JpaQLParameterSource" />
+							<tool:expected-type
+									type="org.springframework.integration.jpa.support.parametersource.ParameterSource" />
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -336,7 +337,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.messaging.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -349,7 +350,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.messaging.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -381,7 +382,8 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.jpa.JPAQLParameterSourceFactory" />
+						<tool:expected-type
+								type="org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
