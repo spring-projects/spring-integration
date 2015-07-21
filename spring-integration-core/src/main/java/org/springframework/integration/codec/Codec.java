@@ -25,6 +25,7 @@ import org.springframework.core.serializer.Serializer;
 /**
  * Interface for classes that perform both serialization and deserialization on multiple classes.
  * @author David Turanski
+ * @since 4.1
  */
 public interface Codec extends Serializer<Object> {
 
@@ -33,7 +34,7 @@ public interface Codec extends Serializer<Object> {
 	 * @param inputStream the input stream containing the serialized object
 	 * @param type the object's class
 	 * @return the object
-	 * @throws IOException
+	 * @throws IOException if the operation fails
 	 */
 	public abstract Object deserialize(InputStream inputStream, Class<?> type) throws IOException;
 
@@ -42,9 +43,15 @@ public interface Codec extends Serializer<Object> {
 	 * @param bytes the byte array containing the serialized object
 	 * @param type the object's class
 	 * @return the object
-	 * @throws IOException
+	 * @throws IOException if the operation fails
 	 */
 	public abstract Object deserialize(byte[] bytes, Class<?> type) throws IOException;
 
+	/**
+	 * Serialize an object to a byte array
+	 * @param object the object to serialize
+	 * @return the bytes
+	 * @throws IOException if the operation fails
+	 */
 	public abstract byte[] serialize(Object object) throws IOException;
 }

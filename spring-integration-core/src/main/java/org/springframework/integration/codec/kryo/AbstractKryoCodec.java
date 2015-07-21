@@ -33,7 +33,8 @@ import org.springframework.util.Assert;
 
 
 /**
- * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}
+ * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}. Manages pooled Kryo
+ * instances.
  * @author David Turanski
  */
 public abstract class AbstractKryoCodec implements Codec {
@@ -53,13 +54,7 @@ public abstract class AbstractKryoCodec implements Codec {
 		pool = new KryoPool.Builder(factory).softReferences().build();
 	}
 
-	/**
-	 * Serialize an object using an existing output stream
-	 * @param object the object to be serialized
-	 * @param outputStream the output stream, e.g. a FileOutputStream
-	 * @throws IOException
-	 */
-
+	@Override
 	public void serialize(final Object object, OutputStream outputStream) throws IOException {
 		Assert.notNull(outputStream, "\'outputSteam\' cannot be null");
 		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
@@ -73,19 +68,6 @@ public abstract class AbstractKryoCodec implements Codec {
 		output.close();
 	}
 
-	protected abstract void doSerialize(Kryo kryo, Object object, Output output);
-
-	protected abstract Object doDeserialize(Kryo kryo, Input input, Class<?> type);
-
-	protected abstract void configureKryoInstance(Kryo kryo);
-
-	/**
-	 * Deserialize an object of a given type given a byte array
-	 * @param bytes the byte array containing the serialized object
-	 * @param type the object's class
-	 * @return the object
-	 * @throws IOException
-	 */
 	@Override
 	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
 		final Input input = new Input(bytes);
@@ -124,5 +106,29 @@ public abstract class AbstractKryoCodec implements Codec {
 		bos.close();
 		return bytes;
 	}
+
+	/**
+	 * Subclasses implement this method to serialize with Kryo.
+	 * @param kryo the Kryo instance
+	 * @param object the object to serialize
+	 * @param output the Kryo Output instance
+	 */
+	protected abstract void doSerialize(Kryo kryo, Object object, Output output);
+
+	/**
+	 * Subclasses implement this method to deserialize with Kryo.
+	 * @param kryo the Kryo instance
+	 * @param input the Kryo Input instance
+	 * @param type the class of the deserialized object
+	 * @return the deserialized object
+	 */
+	protected abstract Object doDeserialize(Kryo kryo, Input input, Class<?> type);
+
+	/**
+	 * Subclasses implement this to configure the kryo instance. This is invoked on each new Kryo instance
+	 * when it is created.
+	 * @param kryo the Kryo instance
+	 */
+	protected abstract void configureKryoInstance(Kryo kryo);
 
 }

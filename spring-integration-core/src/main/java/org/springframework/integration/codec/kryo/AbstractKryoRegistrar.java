@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.serializer.support.SerializationFailedException;
 
 /**
+ * Base class for {@link org.springframework.integration.codec.kryo.KryoRegistrar} implementations. 
  * @author David Turanski
  */
 public abstract class AbstractKryoRegistrar implements KryoRegistrar {
@@ -39,9 +40,14 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 		}
 	}
 
+	/**
+	 * Subclasses implement this to get provided registrations.
+	 *
+	 * @return a list of {@link com.esotericsoftware.kryo.Registration}
+	 */
 	public abstract List<Registration> getRegistrations();
 
-	protected void register(Kryo kryo, Registration registration) {
+	private void register(Kryo kryo, Registration registration) {
 		int id = registration.getId();
 
 		Registration existing = kryo.getRegistration(id);

@@ -27,8 +27,9 @@ import org.springframework.util.Assert;
 
 
 /**
- * A codec that can delegate to one out of many codecs, depending on the type of the object to serialize/deserialize.
+ * A codec that can delegate to one out of many Codecs, each mapped to a class.
  * @author David Turanski
+ * @since 4.1
  */
 public class CompositeCodec implements Codec {
 

@@ -28,7 +28,7 @@ import org.springframework.util.CollectionUtils;
  * A {@link KryoRegistrar} implementation backed by a Map
  * used to explicitly set the registration ID for each class.
  * @author David Turanski
- * @since 1.1
+ * @since 4.1
  */
 public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
 

@@ -25,12 +25,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * A {@link KryoRegistrar} used to register a
+ * A {@link KryoRegistrar} used to validateRegistration a
  * list of Java classes. This assigns a sequential registration ID starting with an initial value (50 by default), but
  * may be configured. This is easiest to set up but requires that every server node be configured with the identical
  * list in the same order.
  * @author David Turanski
- * @since 1.1
+ * @since 4.1
  */
 public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
@@ -39,7 +39,7 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 	private int initialValue = 50;
 
 	/**
-	 * @param classes the list of classes to register
+	 * @param classes the list of classes to validateRegistration
 	 */
 	public KryoClassListRegistrar(List<Class<?>> classes) {
 		this.registeredClasses = classes;

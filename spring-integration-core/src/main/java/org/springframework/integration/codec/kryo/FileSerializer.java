@@ -24,7 +24,10 @@ import com.esotericsoftware.kryo.io.Output;
 
 /**
  * @author David Turanski
- * @since 1.2
+ * A custom Kryo Serializer for serializing File payloads. It serializes the file path and creates a new
+ * File instance to preserve the original path. File does not preserve the absolute otherwise as <em>prefixLength</em> 
+ * is declared transient.
+ * @since 4.1
  */
 public class FileSerializer extends Serializer<File> {
 

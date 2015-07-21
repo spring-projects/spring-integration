@@ -23,7 +23,7 @@ import com.esotericsoftware.kryo.Registration;
 /**
  * A {@link KryoRegistrar } implementation backed by a List of {@link com.esotericsoftware.kryo.Registration}.
  * @author David Turanski
- * @since 1.2
+ * @since 4.1
  */
 public class KryoRegistrationRegistrar extends AbstractKryoRegistrar {
 	private final List<Registration> registrations;

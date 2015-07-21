@@ -21,7 +21,7 @@ import java.util.List;
 import com.esotericsoftware.kryo.Registration;
 
 /**
- * A {@link KryoRegistrar} used to register a File serializer.
+ * A {@link KryoRegistrar} used to validateRegistration a File serializer.
  * @author David Turanski
  * @since 1.2
  */

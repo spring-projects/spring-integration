@@ -31,7 +31,7 @@ import org.springframework.util.CollectionUtils;
  * {@link com.esotericsoftware.kryo.Serializer}s may be registered via
  * {@link org.springframework.integration.codec.kryo.KryoRegistrar}s.
  * @author David Turanski
- * @since 1.0
+ * @since 4.1
  */
 public class PojoCodec extends AbstractKryoCodec {
 	private final CompositeKryoRegistrar kryoRegistrar;
