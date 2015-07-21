@@ -51,6 +51,7 @@ import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.integration.security.context.SecurityContextCleanupAdvice;
 import org.springframework.integration.security.context.SecurityContextCleanupChannelInterceptor;
 import org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor;
 import org.springframework.integration.support.MessageBuilder;
@@ -60,6 +61,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -100,6 +102,10 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	@Autowired
 	@Qualifier("securedChannelExecutor")
 	MessageChannel securedChannelExecutor;
+
+	@Autowired
+	@Qualifier("cleanupSecurityContextChannel")
+	ChannelInterceptorAware cleanupSecurityContextChannel;
 
 	@Autowired
 	TestHandler testConsumer;
@@ -182,13 +188,23 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
 		SecurityContext securityContext = (SecurityContext) receive.getPayload();
-		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
-		assertNull(securityContext.getAuthentication());
+		// we don't get here an empty SecurityContext from the taskScheduler Thread because
+		// the SecurityContextCleanupChannelInterceptor bypasses DirectChannel for its cleanup functionality
+		assertNotNull(securityContext.getAuthentication());
 	}
 
 	@Test
 	public void testSecurityContextPropagationExecutorChannel() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		ChannelInterceptor cleanupInterceptor = new ChannelInterceptorAdapter() {
+
+			@Override
+			public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+				SecurityContextCleanupAdvice.cleanup();
+			}
+
+		};
+		this.cleanupSecurityContextChannel.addInterceptor(cleanupInterceptor);
 		this.securedChannelExecutor.send(new GenericMessage<String>("test"));
 		Message<?> receive = this.resultChannel.receive(10000);
 		assertNotNull(receive);
@@ -200,8 +216,9 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
 		SecurityContext securityContext = (SecurityContext) receive.getPayload();
-		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
+		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the Executor Thread
 		assertNull(securityContext.getAuthentication());
+		this.cleanupSecurityContextChannel.removeInterceptor(cleanupInterceptor);
 	}
 
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.security.context;
 
+import org.springframework.aop.support.AopUtils;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -48,7 +50,9 @@ public class SecurityContextCleanupChannelInterceptor extends ChannelInterceptor
 
 	@Override
 	public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-		SecurityContextCleanupAdvice.cleanup();
+		if (!DirectChannel.class.isAssignableFrom(AopUtils.getTargetClass(channel))) {
+			SecurityContextCleanupAdvice.cleanup();
+		}
 	}
 
 	@Override

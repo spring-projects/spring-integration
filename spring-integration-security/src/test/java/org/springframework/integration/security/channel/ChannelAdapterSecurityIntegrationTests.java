@@ -104,6 +104,8 @@ public class ChannelAdapterSecurityIntegrationTests {
 		Message<?> receive = this.resultChannel.receive(10000);
 		assertNotNull(receive);
 
+		assertNull(SecurityContextHolder.getContext().getAuthentication());
+
 		assertNotEquals(Thread.currentThread().getId(), receive.getHeaders().get("threadId"));
 
 		// Without SecurityContext propagation we end up here with: AuthenticationCredentialsNotFoundException

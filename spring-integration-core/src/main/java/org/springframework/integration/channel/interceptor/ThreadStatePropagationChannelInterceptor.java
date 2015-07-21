@@ -82,7 +82,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S extends Seriali
 	}
 
 	@Override
-	public final void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
+	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
 										  Exception ex) {
 		// No-op
 	}

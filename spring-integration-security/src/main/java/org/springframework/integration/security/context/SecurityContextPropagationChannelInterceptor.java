@@ -24,6 +24,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.ThreadStatePropagationChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -34,15 +35,42 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * the {@link SecurityContext} propagation from one message flow's thread to another
  * through the {@link MessageChannel}s involved in the flow.
  * <p>
- * @author Artem Bilan
- * @since 4.2
  *
+ * @author Artem Bilan
  * @see ThreadStatePropagationChannelInterceptor
+ * @since 4.2
  */
 public class SecurityContextPropagationChannelInterceptor
 		extends ThreadStatePropagationChannelInterceptor<Authentication> {
 
 	static final ThreadLocal<Deque<SecurityContext>> ORIGINAL_CONTEXT = new ThreadLocal<Deque<SecurityContext>>();
+
+	private final SecurityContextCleanupChannelInterceptor securityContextCleanupChannelInterceptor;
+
+	public SecurityContextPropagationChannelInterceptor() {
+		this(false);
+	}
+
+	public SecurityContextPropagationChannelInterceptor(boolean cleanupContext) {
+		this.securityContextCleanupChannelInterceptor =
+				cleanupContext
+						? new SecurityContextCleanupChannelInterceptor()
+						: null;
+	}
+
+	@Override
+	public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
+		if (this.securityContextCleanupChannelInterceptor != null) {
+			this.securityContextCleanupChannelInterceptor.afterSendCompletion(message, channel, sent, ex);
+		}
+	}
+
+	@Override
+	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {
+		if (this.securityContextCleanupChannelInterceptor != null) {
+			this.securityContextCleanupChannelInterceptor.afterMessageHandled(message, channel, handler, ex);
+		}
+	}
 
 	@Override
 	protected Authentication obtainPropagatingContext(Message<?> message, MessageChannel channel) {

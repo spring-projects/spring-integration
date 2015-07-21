@@ -174,8 +174,9 @@ So, the config on the matter may look like this:
 <int:channel id="processChannel">
     <int:dispatcher task-executor="threadPollExecutor"/>
     <int:interceptors>
-    	<bean class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor"/>
-        <bean class="org.springframework.integration.security.context.SecurityContextCleanupChannelInterceptor"/>
+    	<bean class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor">
+            <constructor-arg value="true"/>
+        </bean>
     </int:interceptors>
 </int:channel>
 
@@ -192,10 +193,13 @@ But after the process is finished and pushed to the aggregator we leave the thre
 be ready for other invocations on the `processChannel`.
 In this case we must clean up `SecurityContext` manually using the `SecurityContextCleanupChannelInterceptor` on the
 same `processChannel`.
+Or use the `SecurityContextPropagationChannelInterceptor` `cleanupContext = true` constructor argument (see the
+sample above) to achieve the same `SecurityContextCleanupChannelInterceptor` functionality.
 
 For those cases when `MessageChannel` interception technique doesn't fit to the application logic the
 `SecurityContextCleanupAdvice` is presented, which can be configured as any other AOP `Advice` via standard Spring
-configuration or using `<request-handler-advice-chain>` on the Spring Integration component:
+configuration or using `<request-handler-advice-chain>` (<<message-handler-advice-chain>>)
+on the Spring Integration component:
 
 [source,xml]
 ----
@@ -212,3 +216,6 @@ configuration or using `<request-handler-advice-chain>` on the Spring Integratio
     </int:request-handler-advice-chain>
 </int:outbound-channel-adapter>
 ----
+
+Or as an `Advice` on the `<poller>` `<advice-chain>` configuration (<<polling-consumer>>).
+

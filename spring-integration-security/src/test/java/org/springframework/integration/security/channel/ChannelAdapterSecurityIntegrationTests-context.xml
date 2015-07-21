@@ -32,7 +32,9 @@
 		<queue/>
 		<interceptors>
 			<beans:bean
-					class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor"/>
+					class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor">
+				<beans:constructor-arg value="true"/>
+			</beans:bean>
 		</interceptors>
 	</channel>
 
