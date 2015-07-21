@@ -70,6 +70,7 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush-after-delete", "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String channelAdapterId = this.resolveId(element, jpaPollingChannelAdapterBuilder.getRawBeanDefinition(), parserContext);
