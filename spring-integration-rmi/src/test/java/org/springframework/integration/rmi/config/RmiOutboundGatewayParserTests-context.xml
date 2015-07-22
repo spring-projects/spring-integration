@@ -26,9 +26,12 @@
 						  requires-reply="false"
 						  host="localhost">
 		<rmi:request-handler-advice-chain>
-			<beans:bean class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
+			<beans:ref bean="advice" />
 		</rmi:request-handler-advice-chain>
 	</rmi:outbound-gateway>
+
+	<beans:bean id="advice" 
+			class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
 
 	<chain input-channel="rmiOutboundGatewayInsideChain">
 		<rmi:outbound-gateway remote-channel="testChannel" host="localhost" requires-reply="false"/>

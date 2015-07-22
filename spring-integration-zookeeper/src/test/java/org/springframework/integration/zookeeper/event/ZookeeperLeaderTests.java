@@ -75,20 +75,20 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 		LeaderInitiator initiator2 = new LeaderInitiator(this.client, candidate2, "/sitest");
 		initiator2.setLeaderEventPublisher(publisher);
 		initiator2.start();
-		AbstractLeaderEvent event = this.events.poll(10, TimeUnit.SECONDS);
+		AbstractLeaderEvent event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnGrantedEvent.class));
 		event.getContext().yield();
 
 		assertTrue(this.adapter.isRunning());
 
-		event = this.events.poll(10, TimeUnit.SECONDS);
+		event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnRevokedEvent.class));
 
 		assertFalse(this.adapter.isRunning());
 
-		event = this.events.poll(10, TimeUnit.SECONDS);
+		event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnGrantedEvent.class));
 
@@ -96,7 +96,7 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
 		initiator1.stop();
 		initiator2.stop();
-		event = this.events.poll(10, TimeUnit.SECONDS);
+		event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnRevokedEvent.class));
 

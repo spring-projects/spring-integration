@@ -66,6 +66,7 @@ public class ClientWebSocketContainerTests {
 
 		TestWebSocketListener messageListener = new TestWebSocketListener();
 		container.setMessageListener(messageListener);
+		container.setConnectionTimeout(30);
 
 		container.start();
 

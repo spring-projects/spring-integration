@@ -255,7 +255,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.stop();
 
 		executorService.shutdown();
-		assertTrue(executorService.awaitTermination(1, TimeUnit.SECONDS));
+		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
 
 		Mockito.verify(boundListOperations).rightPush(Mockito.any(byte[].class));
 	}
@@ -286,9 +286,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		});
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(100);

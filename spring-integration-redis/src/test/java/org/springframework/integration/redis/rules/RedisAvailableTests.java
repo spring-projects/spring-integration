@@ -64,7 +64,7 @@ public class RedisAvailableTests {
 		RedisConnection connection = null;
 
 		int n = 0;
-		while (n++ < 100 &&
+		while (n++ < 300 &&
 				(connection =
 				TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection .class)) == null) {
 			Thread.sleep(100);
@@ -72,10 +72,10 @@ public class RedisAvailableTests {
 		assertNotNull("RedisMessageListenerContainer Failed to Connect", connection);
 
 		n = 0;
-		while (n++ < 100 && !connection.isSubscribed()) {
+		while (n++ < 300 && !connection.isSubscribed()) {
 			Thread.sleep(100);
 		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 300);
 	}
 
 	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
@@ -84,10 +84,10 @@ public class RedisAvailableTests {
 				RedisConnection.class);
 
 		int n = 0;
-		while (n++ < 100 && connection.getSubscription().getPatterns().size() == 0) {
+		while (n++ < 300 && connection.getSubscription().getPatterns().size() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 300);
 		// wait another second because of race condition
 		Thread.sleep(1000);
 	}
@@ -98,7 +98,7 @@ public class RedisAvailableTests {
 		drain(channel);
 		long now = System.currentTimeMillis();
 		Message<?> received = null;
-		while (received == null && System.currentTimeMillis() - now < 10000) {
+		while (received == null && System.currentTimeMillis() - now < 30000) {
 			redisTemplate.convertAndSend(redisChannelName, message);
 			received = channel.receive(1000);
 		}
