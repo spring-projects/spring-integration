@@ -243,6 +243,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -267,6 +268,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
@@ -286,6 +288,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -305,6 +308,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -338,6 +342,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -369,6 +374,7 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
@@ -388,7 +394,7 @@ public class DelayHandlerTests {
 	@Test //INT-1132
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
-		this.delayHandler.setDefaultDelay(200);
+		this.delayHandler.setDefaultDelay(2000);
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
@@ -430,6 +436,7 @@ public class DelayHandlerTests {
 	public void testDoubleOnApplicationEvent() throws Exception {
 		this.delayHandler = Mockito.spy(this.delayHandler);
 		Mockito.doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
@@ -518,6 +525,7 @@ public class DelayHandlerTests {
 
 		private volatile Thread lastThread;
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.lastMessage = message;
 			this.lastThread = Thread.currentThread();

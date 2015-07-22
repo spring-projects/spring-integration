@@ -61,9 +61,9 @@
 		<queue/>
 	</channel>
 
-	<beans:bean id="time" class="java.util.Calendar" factory-method="getInstance"/>
+	<beans:bean id="time" class="java.util.Calendar" factory-method="getInstance" scope="prototype"/>
 
-	<delayer id="delayerExpression" input-channel="inputC" output-channel="outputC" expression="new java.util.Date(@time.timeInMillis + 5000)"/>
+	<delayer id="delayerExpression" input-channel="inputC" output-channel="outputC" expression="new java.util.Date(@time.timeInMillis + 1000)"/>
 
 
 </beans:beans>
