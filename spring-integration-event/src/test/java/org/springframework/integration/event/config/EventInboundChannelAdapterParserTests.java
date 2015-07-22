@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,13 +36,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -51,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -66,7 +68,8 @@ public class EventInboundChannelAdapterParserTests {
 	@Autowired
 	MessageChannel autoChannel;
 
-	@Autowired @Qualifier("autoChannel.adapter")
+	@Autowired
+	@Qualifier("autoChannel.adapter")
 	ApplicationEventListeningMessageProducer eventListener;
 
 	@Test
@@ -87,11 +90,12 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFiltered"), adapterAccessor.getPropertyValue("outputChannel"));
-		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		Set<ResolvableType> eventTypes = (Set<ResolvableType>) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
-		assertTrue(eventTypes.size() == 2);
-		assertTrue(eventTypes.contains(SampleEvent.class));
-		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+		assertTrue(eventTypes.size() == 3);
+		assertTrue(eventTypes.contains(ResolvableType.forClass(SampleEvent.class)));
+		assertTrue(eventTypes.contains(ResolvableType.forClass(AnotherSampleEvent.class)));
+		assertTrue(eventTypes.contains(ResolvableType.forClass(Date.class)));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
 	}
 
@@ -103,11 +107,11 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFilteredPlaceHolder"), adapterAccessor.getPropertyValue("outputChannel"));
-		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		Set<ResolvableType> eventTypes = (Set<ResolvableType>) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
 		assertTrue(eventTypes.size() == 2);
-		assertTrue(eventTypes.contains(SampleEvent.class));
-		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+		assertTrue(eventTypes.contains(ResolvableType.forClass(SampleEvent.class)));
+		assertTrue(eventTypes.contains(ResolvableType.forClass(AnotherSampleEvent.class)));
 	}
 
 	@Test
@@ -142,15 +146,20 @@ public class EventInboundChannelAdapterParserTests {
 
 	@SuppressWarnings("serial")
 	public static class SampleEvent extends ApplicationEvent {
+
 		public SampleEvent(Object source) {
 			super(source);
 		}
+
 	}
 
 	@SuppressWarnings("serial")
 	public static class AnotherSampleEvent extends ApplicationEvent {
+
 		public AnotherSampleEvent(Object source) {
 			super(source);
 		}
+
 	}
+
 }

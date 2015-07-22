@@ -43,6 +43,7 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.ResolvableType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -68,9 +69,9 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
-		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
 		adapter.onApplicationEvent(new TestApplicationEvent1());
-		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
@@ -90,25 +91,25 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
-		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
 		adapter.onApplicationEvent(new TestApplicationEvent1());
-		assertFalse(adapter.supportsEventType(TestApplicationEvent2.class));
+		assertFalse(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
 		assertEquals("event1", ((ApplicationEvent) message2.getPayload()).getSource());
 		assertNull(channel.receive(0));
 
 		adapter.setEventTypes((Class<? extends ApplicationEvent>) null);
-		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
-		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
 
 		adapter.setEventTypes(null, TestApplicationEvent2.class, null);
-		assertFalse(adapter.supportsEventType(TestApplicationEvent1.class));
-		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+		assertFalse(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
 
 		adapter.setEventTypes(null, null);
-		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
-		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent1.class)));
+		assertTrue(adapter.supportsEventType(ResolvableType.forClass(TestApplicationEvent2.class)));
 	}
 
 	@Test
@@ -266,7 +267,7 @@ public class ApplicationEventListeningMessageProducerTests {
 				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListenerBeans", Set.class);
 				assertEquals(2, listeners.size());
 				for (Object listener : listeners) {
-					assertThat((String) listener, 
+					assertThat((String) listener,
 							Matchers.is(Matchers.isOneOf("testListenerMessageProducer", "testListener")));
 				}
 				break;
@@ -282,6 +283,30 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertNotNull(receive);
 		assertSame(event2, receive.getPayload());
 		assertNull(channel.receive(1));
+		ctx.close();
+	}
+
+	@Test
+	public void testPayloadEvents() {
+		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
+		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
+
+		QueueChannel channel = new QueueChannel();
+		ApplicationEventListeningMessageProducer listenerMessageProducer =
+				new ApplicationEventListeningMessageProducer();
+		listenerMessageProducer.setOutputChannel(channel);
+		listenerMessageProducer.setEventTypes(String.class);
+		beanFactory.registerSingleton("testListenerMessageProducer", listenerMessageProducer);
+
+		ctx.refresh();
+
+		ctx.publishEvent("foo");
+
+		Message<?> receive = channel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("foo", receive.getPayload());
+
+		ctx.close();
 	}
 
 

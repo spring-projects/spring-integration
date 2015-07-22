@@ -298,3 +298,11 @@ See <<ftp-dsf>> and <<sftp-dsf>> for more information.
 `WebSocketHandlerDecoratorFactory` support has been added to the `ServerWebSocketContainer`
 to allow chained customization for the internal `WebSocketHandler`.
 See <<web-sockets-namespace>> for more information.
+
+==== Application Event Adapters changes
+
+The `ApplicationEvent` adapters can now operate with `payload` as `event` directly allow to omit custom
+`ApplicationEvent` extensions.
+The `publish-payload` boolean attribute has been introduced on the `<int-event:outbound-channel-adapter>` for this
+purpose.
+See <<applicationevent>> for more information.
