@@ -280,6 +280,17 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="decorator-factories" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of 'org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory' bean references.
+						Configure one or more factories to decorate the handler used to process WebSocket
+						messages. This may be useful for some advanced use cases, for example to allow
+						Spring Security to forcibly close the WebSocket session when the corresponding
+						HTTP session expires.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="send-time-limit" default="10000">
 				<xsd:annotation>
 					<xsd:documentation>

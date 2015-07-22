@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.websocket.config;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -54,8 +55,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -138,7 +141,11 @@ public class WebSocketParserTests {
 	@Qualifier("customOutboundAdapter.handler")
 	private WebSocketOutboundMessageHandler customOutboundAdapter;
 
+	@Autowired
+	private WebSocketHandlerDecoratorFactory decoratorFactory;
+
 	@Test
+	@SuppressWarnings("unckecked")
 	public void testDefaultInboundChannelAdapterAndServerContainer() {
 		Map<?, ?> urlMap = TestUtils.getPropertyValue(this.handlerMapping, "urlMap", Map.class);
 		assertEquals(1, urlMap.size());
@@ -152,10 +159,18 @@ public class WebSocketParserTests {
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "handshakeHandler"));
 		HandshakeInterceptor[] interceptors =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "interceptors", HandshakeInterceptor[].class);
+		assertNotNull(interceptors);
 		assertEquals(1, interceptors.length);
 		assertSame(this.handshakeInterceptor, interceptors[0]);
 		assertEquals(100, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit"));
 		assertEquals(100000, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit"));
+
+		WebSocketHandlerDecoratorFactory[] decoratorFactories =
+				TestUtils.getPropertyValue(this.serverWebSocketContainer, "decoratorFactories",
+						WebSocketHandlerDecoratorFactory[].class);
+		assertNotNull(decoratorFactories);
+		assertEquals(1, decoratorFactories.length);
+		assertSame(this.decoratorFactory, decoratorFactories[0]);
 
 		TransportHandlingSockJsService sockJsService =
 				TestUtils.getPropertyValue(mappedHandler, "sockJsService", TransportHandlingSockJsService.class);
@@ -296,6 +311,15 @@ public class WebSocketParserTests {
 		assertSame(this.mapMessageConverter, converters.get(1));
 		assertThat(converters.get(2), instanceOf(StringMessageConverter.class));
 		assertTrue(TestUtils.getPropertyValue(this.customOutboundAdapter, "client", Boolean.class));
+	}
+
+	private static class TestWebSocketHandlerDecoratorFactory implements WebSocketHandlerDecoratorFactory {
+
+		@Override
+		public WebSocketHandler decorate(WebSocketHandler handler) {
+			return handler;
+		}
+
 	}
 
 }

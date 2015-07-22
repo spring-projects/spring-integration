@@ -9,7 +9,7 @@ It is based on architecture, infrastructure and API from the Spring Framework's 
 Therefore, many of Spring WebSocket's components (e.g.
 `SubProtocolHandler` or `WebSocketClient`) and configuration options (e.g.
 `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
-For more information, please, refer to thehttp://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
+For more information, please, refer to the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
 NOTE: Since the Spring Framework WebSocket infrastructure is based on the _Spring Messaging_ foundation and provides a basic Messaging framework based on the same `MessageChannel` s, `MessageHandler` s that Spring Integration uses, and some POJO-method annotation mappings, Spring Integration can be directly involved in a WebSocket flow, even without WebSocket adapters.
 For this purpose you can simply configure a Spring Integration `@MessagingGateway` with appropriate annotations:
@@ -195,19 +195,20 @@ See `SmartLifeCycle`.
 					path=""  <2>
 					handshake-handler=""  <3>
 					handshake-interceptors=""  <4>
-					send-time-limit=""  <5>
-					send-buffer-size-limit="">  <6>
+					decorator-factories=""  <5>
+					send-time-limit=""  <6>
+					send-buffer-size-limit="">  <7>
 				  <int-websocket:sockjs
-						client-library-url=""   <7>
-						stream-bytes-limit=""   <8>
-						session-cookie-needed=""   <9>
-						heartbeat-time=""   <10>
-						disconnect-delay=""   <11>
-						message-cache-size=""   <12>
-						websocket-enabled=""   <13>
-						scheduler=""   <14>
-						message-codec=""   <15>
-						transport-handlers="" />  <16>
+						client-library-url=""   <8>
+						stream-bytes-limit=""   <9>
+						session-cookie-needed=""   <10>
+						heartbeat-time=""   <11>
+						disconnect-delay=""   <12>
+						message-cache-size=""   <13>
+						websocket-enabled=""   <14>
+						scheduler=""   <15>
+						message-codec=""   <16>
+						transport-handlers="" />  <17>
 </int-websocket:server-container>
 ----
 
@@ -225,13 +226,20 @@ Default to `DefaultHandshakeHandler`.
 <4> List of `HandshakeInterceptor` bean references.
 
 
-<5> See the same option on the `<int-websocket:client-container>`.
-
+<5> Configure one or more factories to decorate the handler (`WebSocketHandlerDecoratorFactory`)
+used to process WebSocket messages.
+This may be useful for some advanced use cases, for example to allow Spring Security to forcibly close
+the WebSocket session when the corresponding HTTP session expires.
+See http://docs.spring.io/spring-session/docs/current/reference/html5/#websocket[Spring Session Project]
+for more information.
 
 <6> See the same option on the `<int-websocket:client-container>`.
 
 
-<7> Transports with no native cross-domain communication (e.g.
+<7> See the same option on the `<int-websocket:client-container>`.
+
+
+<8> Transports with no native cross-domain communication (e.g.
 "eventsource", "htmlfile") must get a simple page from the "foreign" domain in an invisible iframe so that code in the iframe can run from a domain local to the SockJS server.
 Since the iframe needs to load the SockJS javascript client library, this property allows specifying where to load it from.
 By default this is set to point to `https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js`.
@@ -241,43 +249,47 @@ For example assuming a SockJS endpoint mapped to "/sockjs", and resulting iframe
 In case of a prefix-based Servlet mapping one more traversal may be needed.
 
 
-<8> Minimum number of bytes that can be send over a single HTTP streaming request before it will be closed.
+<9> Minimum number of bytes that can be send over a single HTTP streaming request before it will be closed.
 Defaults to `128K` (i.e.
 128*1024 bytes).
 
 
-<9> The "cookie_needed" value in the response from the SockJs `"/info"` endpoint.
+<10> The "cookie_needed" value in the response from the SockJs `"/info"` endpoint.
 This property indicates whether the use of a JSESSIONID cookie is required for the application to function correctly, e.g.
 for load balancing or in Java Servlet containers for the use of an HTTP session.
 
 
-<10> The amount of time in milliseconds when the server has not sent any messages and after which the server should send a heartbeat frame to the client in order to keep the connection from breaking.
+<11> The amount of time in milliseconds when the server has not sent any messages and after which the server should
+send a heartbeat frame to the client in order to keep the connection from breaking.
 The default value is `25,000` (25 seconds).
 
 
-<11> The amount of time in milliseconds before a client is considered disconnected after not having a receiving connection, i.e.
+<12> The amount of time in milliseconds before a client is considered disconnected after not having a receiving
+connection, i.e.
 an active connection over which the server can send data to the client.
 The default value is `5000`.
 
 
-<12> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request from the client.
+<13> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request
+ from the client.
 The default size is `100`.
 
 
-<13> Some load balancers don't support websockets.
+<14> Some load balancers don't support websockets.
 Set this option to `false` to disable the WebSocket transport on the server side.
 The default value is `true`.
 
 
-<14> The `TaskScheduler` bean reference; a new `ThreadPoolTaskScheduler` instance will be created if no value is provided.
+<15> The `TaskScheduler` bean reference; a new `ThreadPoolTaskScheduler` instance will be created if no value is
+provided.
 This scheduler instance will be used for scheduling heart-beat messages.
 
 
-<15> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
+<16> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
 By default `Jackson2SockJsMessageCodec` is used requiring the Jackson library to be present on the classpath.
 
 
-<16> List of `TransportHandler` bean references.
+<17> List of `TransportHandler` bean references.
 
 *<int-websocket:outbound-channel-adapter>*
 
