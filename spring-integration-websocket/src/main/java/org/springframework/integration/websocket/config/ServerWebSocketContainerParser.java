@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,14 @@ public class ServerWebSocketContainerParser extends AbstractSingleBeanDefinition
 			handshakeInterceptorList.add(new RuntimeBeanReference(id));
 		}
 		builder.addPropertyValue("interceptors", handshakeInterceptorList);
+
+		String decoratorFactories = element.getAttribute("decorator-factories");
+		List<BeanReference> decoratorFactoryList = new ManagedList<BeanReference>();
+		ids = StringUtils.commaDelimitedListToStringArray(decoratorFactories);
+		for (String id : ids) {
+			decoratorFactoryList.add(new RuntimeBeanReference(id));
+		}
+		builder.addPropertyValue("decoratorFactories", decoratorFactoryList);
 
 		Element sockjs = DomUtils.getChildElementByTagName(element, "sockjs");
 

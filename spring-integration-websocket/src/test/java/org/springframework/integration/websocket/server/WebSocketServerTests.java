@@ -37,6 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -46,6 +51,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
@@ -68,11 +74,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
+import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -100,6 +111,9 @@ public class WebSocketServerTests {
 
 	@Value("#{server.serverContext.getBean('simpleBrokerMessageHandler')}")
 	private SimpleBrokerMessageHandler brokerHandler;
+
+	@Value("#{server.serverContext.getBean('webSocketEvents')}")
+	private PollableChannel webSocketEvents;
 
 	@Test
 	public void testWebSocketOutboundMessageHandler() throws Exception {
@@ -133,6 +147,10 @@ public class WebSocketServerTests {
 		List<String> subscription = subscriptions.values().iterator().next();
 		assertEquals(1, subscription.size());
 		assertEquals("subs1", subscription.get(0));
+
+		Message<?> event = this.webSocketEvents.receive(10000);
+		assertNotNull(event);
+		assertThat(event.getPayload(), instanceOf(WebSocketSession.class));
 	}
 
 	@Test
@@ -225,8 +243,15 @@ public class WebSocketServerTests {
 		}
 
 		@Bean
+		public WebSocketHandlerDecoratorFactory testWebSocketHandlerDecoratorFactory() {
+			return new TestWebSocketHandlerDecoratorFactory();
+		}
+
+		@Bean
 		public ServerWebSocketContainer serverWebSocketContainer() {
-			return new ServerWebSocketContainer("/ws").withSockJs();
+			return new ServerWebSocketContainer("/ws")
+					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
+					.withSockJs();
 		}
 
 		@Bean
@@ -265,6 +290,57 @@ public class WebSocketServerTests {
 		public MessageHandler webSocketOutboundMessageHandler() {
 			return new WebSocketOutboundMessageHandler(serverWebSocketContainer(),
 					new SubProtocolHandlerRegistry(stompSubProtocolHandler()));
+		}
+
+		@Bean
+		public PollableChannel webSocketEvents() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@SuppressWarnings("unchecked")
+		public ApplicationListener<ApplicationEvent> webSocketEventListener() {
+			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
+			producer.setEventTypes(PayloadApplicationEvent.class);
+			producer.setExpressionPayload(new SpelExpressionParser().parseExpression("payload"));
+			producer.setOutputChannel(webSocketEvents());
+			return producer;
+		}
+
+	}
+
+	private static class TestWebSocketHandlerDecoratorFactory
+			implements WebSocketHandlerDecoratorFactory, ApplicationEventPublisherAware {
+
+		private ApplicationEventPublisher applicationEventPublisher;
+
+		@Override
+		public WebSocketHandler decorate(WebSocketHandler handler) {
+			return new TestWebSocketHandler(handler);
+		}
+
+		@Override
+		public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+			this.applicationEventPublisher = applicationEventPublisher;
+		}
+
+		private class TestWebSocketHandler extends WebSocketHandlerDecorator {
+
+			public TestWebSocketHandler(WebSocketHandler delegate) {
+				super(delegate);
+			}
+
+			@Override
+			public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+				super.handleMessage(session, message);
+			}
+
+			@Override
+			public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+				super.afterConnectionEstablished(session);
+				applicationEventPublisher.publishEvent(session);
+			}
+
 		}
 
 	}

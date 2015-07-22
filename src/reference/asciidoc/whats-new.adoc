@@ -260,3 +260,9 @@ When use FTP/SFTP outbound gateways to operate on multiple files (`mget`, `mput`
 occur after part of the request is completed.
 If such a condition occurs, a `PartialSuccessException` is thrown containing the partial results.
 See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
+
+==== Websocket Changes
+
+The `WebSocketHandlerDecoratorFactory` support has been added to the `ServerWebSocketContainer`
+to allow "chain"-customization for the internal `WebSocketHandler`.
+See <<web-sockets-namespace>> for more information.
