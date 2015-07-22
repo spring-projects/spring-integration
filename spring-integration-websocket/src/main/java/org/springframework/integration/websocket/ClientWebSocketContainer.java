@@ -49,6 +49,8 @@ import org.springframework.web.socket.client.WebSocketClient;
  */
 public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
 
+	private static final int DEFAULT_CONNECTION_TIMEOUT = 10;
+
 	private final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
 	private final ConnectionManagerSupport connectionManager;
@@ -58,6 +60,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	private WebSocketSession clientSession;
 
 	private volatile Throwable openConnectionException;
+
+	private volatile int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
 
 	public ClientWebSocketContainer(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 		Assert.notNull(client, "'client' must not be null");
@@ -85,6 +89,14 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	}
 
 	/**
+	 * Set the connection timeout in seconds; default: 10.
+	 * @param connectionTimeout the timeout in seconds.
+	 */
+	public void setConnectionTimeout(int connectionTimeout) {
+		this.connectionTimeout = connectionTimeout;
+	}
+
+	/**
 	 * Return the {@link #clientSession} {@link WebSocketSession}.
 	 * Independently of provided argument, this method always returns only the
 	 * established {@link #clientSession}
@@ -95,7 +107,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	public WebSocketSession getSession(String sessionId) {
 		if (this.isRunning()) {
 			try {
-				this.connectionLatch.await(10, TimeUnit.SECONDS);
+				this.connectionLatch.await(this.connectionTimeout, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				logger.error("'clientSession' has not been established during 'openConnection'");

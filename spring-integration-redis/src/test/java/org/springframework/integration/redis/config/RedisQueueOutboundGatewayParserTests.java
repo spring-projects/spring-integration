@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,27 +26,24 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author David Liu
+ * @author Gary Russell
  * since 4.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class RedisQueueOutboundGatewayParserTests {
-
-	@Autowired
-	private RedisConnectionFactory connectionFactory;
 
 	@Autowired
 	@Qualifier("outboundGateway")
@@ -66,9 +63,6 @@ public class RedisQueueOutboundGatewayParserTests {
 
 	@Autowired
 	private RedisSerializer<?> serializer;
-
-	@Autowired
-	private ApplicationContext context;
 
 	@Test
 	public void testDefaultConfig() throws Exception {
