@@ -2,7 +2,7 @@
 == Spring ApplicationEvent Support
 
 Spring Integration provides support for inbound and outbound `ApplicationEvents` as defined by the underlying Spring Framework.
-For more information about Spring's support for events and listeners, refer to the http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#context-functionality-events[Spring Reference Manual].
+For more information about Spring's support for events and listeners, refer to the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events[Spring Reference Manual].
 
 [[appevent-inbound]]
 === Receiving Spring Application Events
@@ -15,20 +15,25 @@ If a received event has a Message instance as its 'source', then that will be pa
 Otherwise, if a SpEL-based "payloadExpression" has been provided, that will be evaluated against the ApplicationEvent instance.
 If the event's source is not a Message instance and no "payloadExpression" has been provided, then the ApplicationEvent itself will be passed as the payload.
 
+Starting with _version 4.2_ the `ApplicationEventListeningMessageProducer` implements `GenericApplicationListener`
+and can be configured to accept not only `ApplicationEvent` types, but any type for treating _payload events_
+which are supported since Spring Framework 4.2, too.
+When the accepted event is an instance of `PayloadApplicationEvent`, its `payload` is used for the message to send.
+
 For convenience namespace support is provided to configure an `ApplicationEventListeningMessageProducer` via the _inbound-channel-adapter_ element.
 
 [source,xml]
 ----
 <int-event:inbound-channel-adapter channel="eventChannel"
                                    error-channel="eventErrorChannel"
-                                   event-types="example.FooEvent, example.BarEvent"/>
+                                   event-types="example.FooEvent, example.BarEvent, java.util.Date"/>
 
 <int:publish-subscribe-channel id="eventChannel"/>
 ----
 
 In the above example, all Application Context events that match one of the types specified by the 'event-types' (optional) attribute will be delivered as Spring Integration Messages to the Message Channel named 'eventChannel'.
 If a downstream component throws an exception, a MessagingException containing the failed message and exception will be sent to the channel named 'eventErrorChannel'.
-If no "error-channel" is specified and the downstream channels are synchronous, the Exception  will be propagated to the caller.
+If no "error-channel" is specified and the downstream channels are synchronous, the Exception will be propagated to the caller.
 
 [[appevent-outbound]]
 === Sending Spring Application Events
@@ -64,4 +69,8 @@ The following example demonstrates both.
 
 In the above example, all messages sent to the 'eventChannel' channel will be published as ApplicationEvents to any relevant ApplicationListener instances that are registered within the same Spring ApplicationContext.
 If the payload of the Message is an ApplicationEvent, it will be passed as-is.
-Otherwise the Message itself will be wrapped in a MessagingEvent instance.
+Otherwise the Message itself will be wrapped in a `MessagingEvent` instance.
+
+Starting with _version 4.2_ the `ApplicationEventPublishingMessageHandler` (`<int-event:outbound-channel-adapter>`)
+can be configured with the `publish-payload` boolean attribute to publish to the application context `payload` as is,
+instead of wrapping it to a `MessagingEvent` instance.

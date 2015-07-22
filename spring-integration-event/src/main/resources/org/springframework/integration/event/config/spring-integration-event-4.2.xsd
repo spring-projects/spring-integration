@@ -43,8 +43,9 @@
 			<xsd:attribute name="event-types" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
-						Comma delimited list of event types (classes that extend ApplicationEvent) that this adapter
-						should send to the message channel. By default, all event types will be sent [OPTIONAL]
+						Comma delimited list of event types (classes that extend ApplicationEvent or any type
+						which can be treated as event 'payload') that this adapter should send to the message
+						channel. By default, all event types will be sent [OPTIONAL]
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -52,7 +53,8 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						SpEL expression to be evaluated against the ApplicationEvent to create the payload instance.
-						If not provided, the ApplicationEvent itself will be the payload.
+						If not provided, the ApplicationEvent itself will be the 'payload'.
+						In case of 'PayloadApplicationEvent' the 'payload' is extracted from the event to send.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -69,7 +71,8 @@
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="order">
@@ -79,6 +82,19 @@
 						subscriber to a SubscribableChannel.
 					</xsd:documentation>
 				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="publish-payload" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify if 'payload' should be published as is or the whole 'message'
+						must be wrapped to the 'MessagingEvent'.
+						See 'ApplicationEventPublisher#publishEvent(Object)' for more information.
+						Defaults to 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>

@@ -16,18 +16,19 @@
 
 package org.springframework.integration.event.inbound;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
-import org.springframework.context.event.SmartApplicationListener;
+import org.springframework.context.event.GenericApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
+import org.springframework.core.ResolvableType;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -41,14 +42,13 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
- *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport
-		implements SmartApplicationListener {
+		implements GenericApplicationListener {
 
-	private volatile Set<Class<? extends ApplicationEvent>> eventTypes;
+	private volatile Set<ResolvableType> eventTypes;
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
@@ -63,15 +63,19 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * In addition, this method re-registers the current instance as a {@link ApplicationListener}
 	 * with the {@link ApplicationEventMulticaster} which clears the listener cache. The cache will be
 	 * refreshed on the next appropriate {@link ApplicationEvent}.
+	 *
 	 * @param eventTypes The event types.
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
-	@SafeVarargs
-	public final void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(
-				Arrays.asList(eventTypes));
-		eventSet.remove(null);
+	public final void setEventTypes(Class<?>... eventTypes) {
+		Assert.notNull(eventTypes, "'eventTypes' must not be null");
+		Set<ResolvableType> eventSet = new HashSet<ResolvableType>(eventTypes.length);
+		for (Class<?> eventType : eventTypes) {
+			if (eventType != null) {
+				eventSet.add(ResolvableType.forClass(eventType));
+			}
+		}
 		this.eventTypes = (eventSet.size() > 0 ? eventSet : null);
 
 		if (this.applicationEventMulticaster != null) {
@@ -98,13 +102,13 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (this.active || ((event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent)
-								&& this.stoppedRecently())) {
+				&& this.stoppedRecently())) {
 			if (event.getSource() instanceof Message<?>) {
 				this.sendMessage((Message<?>) event.getSource());
 			}
 			else {
 				Message<?> message = null;
-				Object result = this.evaluatePayloadExpression(event);
+				Object result = extractObjectToSend(event);
 				if (result instanceof Message) {
 					message = (Message<?>) result;
 				}
@@ -116,20 +120,45 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 		}
 	}
 
+	private Object extractObjectToSend(Object root) {
+		if (root instanceof PayloadApplicationEvent) {
+			return ((PayloadApplicationEvent<?>) root).getPayload();
+		}
+		return evaluatePayloadExpression(root);
+	}
+
 	private boolean stoppedRecently() {
 		return this.stoppedAt > System.currentTimeMillis() - 5000;
 	}
 
 	@Override
-	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
+	public boolean supportsEventType(ResolvableType eventType) {
 		if (this.eventTypes == null) {
 			return true;
 		}
-		for (Class<? extends ApplicationEvent> type : this.eventTypes) {
+
+		for (ResolvableType type : this.eventTypes) {
 			if (type.isAssignableFrom(eventType)) {
 				return true;
 			}
 		}
+
+
+
+		if (eventType.getRawClass() != null
+				&& PayloadApplicationEvent.class.isAssignableFrom(eventType.getRawClass())) {
+			if (eventType.hasUnresolvableGenerics()) {
+				return true;
+			}
+
+			ResolvableType payloadType = eventType.as(PayloadApplicationEvent.class).getGeneric();
+			for (ResolvableType type : this.eventTypes) {
+				if (type.isAssignableFrom(payloadType)) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 
