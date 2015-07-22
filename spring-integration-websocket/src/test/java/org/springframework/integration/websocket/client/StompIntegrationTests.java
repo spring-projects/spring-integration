@@ -105,8 +105,6 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 @DirtiesContext
 public class StompIntegrationTests {
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.websocket;
 
 import java.util.Arrays;
@@ -20,10 +21,12 @@ import java.util.Arrays;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.SockJsServiceRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.sockjs.frame.SockJsMessageCodec;
@@ -47,9 +50,11 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 	private final String[] paths;
 
-	private volatile HandshakeHandler handshakeHandler;
+	private HandshakeHandler handshakeHandler;
 
-	private volatile HandshakeInterceptor[] interceptors;
+	private HandshakeInterceptor[] interceptors;
+
+	private WebSocketHandlerDecoratorFactory[] decoratorFactories;
 
 	private SockJsServiceOptions sockJsServiceOptions;
 
@@ -62,11 +67,29 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 		return this;
 	}
 
-	public ServerWebSocketContainer setInterceptors(HandshakeInterceptor[] interceptors) {
+	public ServerWebSocketContainer setInterceptors(HandshakeInterceptor... interceptors) {
+		Assert.notNull(interceptors, "'interceptors' must not be null");
+		Assert.noNullElements(interceptors, "'interceptors' must not contain null elements");
 		this.interceptors = Arrays.copyOf(interceptors, interceptors.length);
 		return this;
 	}
 
+
+	/**
+	 * Configure one or more factories to decorate the handler used to process
+	 * WebSocket messages. This may be useful in some advanced use cases, for
+	 * example to allow Spring Security to forcibly close the WebSocket session
+	 * when the corresponding HTTP session expires.
+	 * @param factories the WebSocketHandlerDecoratorFactory array to use
+	 * @return the current ServerWebSocketContainer
+	 * @since 4.2
+	 */
+	public ServerWebSocketContainer setDecoratorFactories(WebSocketHandlerDecoratorFactory... factories) {
+		Assert.notNull(factories, "'factories' must not be null");
+		Assert.noNullElements(factories, "'factories' must not contain null elements");
+		this.decoratorFactories = Arrays.copyOf(factories, factories.length);
+		return this;
+	}
 
 	public ServerWebSocketContainer withSockJs(SockJsServiceOptions... sockJsServiceOptions) {
 		if (ObjectUtils.isEmpty(sockJsServiceOptions)) {
@@ -85,9 +108,18 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		WebSocketHandlerRegistration registration = registry.addHandler(this.webSocketHandler, this.paths)
+		WebSocketHandler webSocketHandler = this.webSocketHandler;
+
+		if (this.decoratorFactories != null) {
+			for (WebSocketHandlerDecoratorFactory factory : this.decoratorFactories) {
+				webSocketHandler = factory.decorate(webSocketHandler);
+			}
+		}
+
+		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
 				.setHandshakeHandler(this.handshakeHandler)
 				.addInterceptors(this.interceptors);
+
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
 			if (this.sockJsServiceOptions.webSocketEnabled != null) {

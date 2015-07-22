@@ -18,16 +18,17 @@
 									send-buffer-size-limit="100000"
 									send-time-limit="100"
 									handshake-handler="handshakeHandler"
-									handshake-interceptors="handshakeInterceptor">
+									handshake-interceptors="handshakeInterceptor"
+									decorator-factories="decoratorFactory">
 		<int-websocket:sockjs client-library-url="https://foo.sock.js"
-				disconnect-delay="4000"
-				heartbeat-time="30000"
-				message-cache-size="10000"
-				session-cookie-needed="false"
-				stream-bytes-limit="2000"
-				websocket-enabled="false"
-				scheduler="taskScheduler"
-				message-codec="sockJsMessageCodec"/>
+							  disconnect-delay="4000"
+							  heartbeat-time="30000"
+							  message-cache-size="10000"
+							  session-cookie-needed="false"
+							  stream-bytes-limit="2000"
+							  websocket-enabled="false"
+							  scheduler="taskScheduler"
+							  message-codec="sockJsMessageCodec"/>
 	</int-websocket:server-container>
 
 	<bean id="handshakeHandler" class="org.mockito.Mockito" factory-method="mock">
@@ -42,13 +43,16 @@
 		<constructor-arg value="org.springframework.web.socket.sockjs.frame.SockJsMessageCodec"/>
 	</bean>
 
+	<bean id="decoratorFactory"
+		  class="org.springframework.integration.websocket.config.WebSocketParserTests.TestWebSocketHandlerDecoratorFactory" />
+
 	<websocket:message-broker application-destination-prefix="/app">
 		<websocket:stomp-endpoint path="/foo"/>
 		<websocket:simple-broker prefix="/topic"/>
 	</websocket:message-broker>
 
 	<int-websocket:inbound-channel-adapter id="defaultInboundAdapter" container="serverWebSocketContainer"
-			use-broker="true"/>
+										   use-broker="true"/>
 
 	<bean id="webSocketClient" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.web.socket.client.WebSocketClient"/>
@@ -93,11 +97,11 @@
 	<int-websocket:outbound-channel-adapter id="defaultOutboundAdapter" container="serverWebSocketContainer"/>
 
 	<int-websocket:outbound-channel-adapter id="customOutboundAdapter" container="clientWebSocketContainer"
-										   default-protocol-handler="stompSubProtocolHandler"
-										   protocol-handlers="passThruSubProtocolHandler"
-										   message-converters="simpleMessageConverter,mapMessageConverter"
-										   merge-with-default-converters="true"
-										   channel="clientOutboundChannel"/>
+											default-protocol-handler="stompSubProtocolHandler"
+											protocol-handlers="passThruSubProtocolHandler"
+											message-converters="simpleMessageConverter,mapMessageConverter"
+											merge-with-default-converters="true"
+											channel="clientOutboundChannel"/>
 
 	<int:channel id="clientOutboundChannel"/>
 
