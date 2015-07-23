@@ -22,6 +22,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
@@ -114,9 +115,9 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void checkConfig() {
 		assertNotNull(gateway);
-		assertThat(getPropertyValue(gateway, "expectReply"), is(true));
-		assertThat(getPropertyValue(gateway, "convertExceptions"), is(true));
-		assertThat(getPropertyValue(gateway, "replyChannel"), is(responses));
+		assertTrue(getPropertyValue(gateway, "expectReply", Boolean.class));
+		assertTrue(getPropertyValue(gateway, "convertExceptions", Boolean.class));
+		assertSame(this.responses, getPropertyValue(gateway, "replyChannel"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
 		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
 		gateway, "messagingTemplate", MessagingTemplate.class);
