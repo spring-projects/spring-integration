@@ -9,7 +9,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'io.spring.gradle:spring-io-plugin:0.0.4.RELEASE'
-		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.0'
+		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 	}
 }
@@ -18,8 +18,8 @@ def docsDir = 'src/reference/asciidoc' // Will be default with newer asciidoctor
 
 ext {
 	linkHomepage = 'https://projects.spring.io/spring-integration'
-	linkCi = 'https://build.springsource.org/browse/INT'
-	linkIssue = 'https://jira.springsource.org/browse/INT'
+	linkCi = 'https://build.spring.io/browse/INT'
+	linkIssue = 'https://jira.spring.io/browse/INT'
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
@@ -56,6 +56,7 @@ subprojects { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
+	apply plugin: 'jacoco'
 
 	if (project.hasProperty('platformVersion')) {
 		apply plugin: 'spring-io'
@@ -105,7 +106,7 @@ subprojects { subproject ->
 		javaxMailVersion = '1.5.2'
 		jedisVersion = '2.7.3'
 		jmsApiVersion = '1.1-rev-1'
-		jpaApiVersion = '2.0.0'
+		jpa21ApiVersion = '1.0.0.Final'
 		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
 		jsonpathVersion = '2.0.0'
@@ -157,10 +158,8 @@ subprojects { subproject ->
 		}
 	}
 
-	// See http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
-	// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
-	configurations {
-		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
+	jacoco {
+		toolVersion = "0.7.5.201505241946"
 	}
 
 	// dependencies that are common across all java projects
@@ -177,7 +176,6 @@ subprojects { subproject ->
 		if (!(subproject.name ==~ /.*-(core|test)/)) {
 			testCompile project(":spring-integration-test")
 		}
-		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.7.2.201409121644", classifier: "runtime"
 
 		testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
@@ -207,9 +205,20 @@ subprojects { subproject ->
 		}
 	}
 
+	jacocoTestReport {
+		reports {
+			xml.enabled false
+			csv.enabled false
+			html.destination "${buildDir}/reports/jacoco/html"
+		}
+	}
+
 	test {
 		maxHeapSize = "1024m"
-		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
+		jacoco {
+			append = false
+			destinationFile = file("$buildDir/jacoco.exec")
+		}
 	}
 
 	task testAll(type: Test)
@@ -241,6 +250,22 @@ subprojects { subproject ->
 		archives javadocJar
 	}
 
+	build.dependsOn jacocoTestReport
+}
+
+project('spring-integration-test') {
+	description = 'Spring Integration Test Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+		compile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.springframework:spring-test:$springVersion"
+	}
 }
 
 project('spring-integration-amqp') {
@@ -419,7 +444,7 @@ project('spring-integration-jpa') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-orm:$springVersion"
-		compile "org.eclipse.persistence:javax.persistence:$jpaApiVersion"
+		compile ("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion", optional)
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
@@ -570,21 +595,6 @@ project('spring-integration-syslog') {
 	}
 }
 
-project('spring-integration-test') {
-	description = 'Spring Integration Test Support'
-	dependencies {
-		compile project(":spring-integration-core")
-		compile ("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
-		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		compile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
-		compile "org.springframework:spring-test:$springVersion"
-	}
-}
-
 project('spring-integration-twitter') {
 	description = 'Spring Integration Twitter Support'
 	dependencies {
@@ -703,7 +713,6 @@ project('spring-integration-zookeeper') {
 			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
 		}
 
-		testCompile "org.springframework.integration:spring-integration-test"
 		testCompile "org.apache.curator:curator-test:$curatorVersion"
 	}
 }
@@ -935,6 +944,6 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '2.3'
+	gradleVersion = '2.5'
 	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
