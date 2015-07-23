@@ -6,6 +6,6 @@ services:
   - rabbitmq
   - redis-server
 env:
-  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true GRADLE_OPTS='-XX:MaxPermSize=512M -Xmx1024M'
+  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true
 #script:
 #  - ./gradlew build --parallel
