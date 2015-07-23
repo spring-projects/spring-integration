@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,14 +114,14 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void checkConfig() {
 		assertNotNull(gateway);
-		assertThat((Boolean) getPropertyValue(gateway, "expectReply"), is(true));
-		assertThat((Boolean) getPropertyValue(gateway, "convertExceptions"), is(true));
-		assertThat((PollableChannel) getPropertyValue(gateway, "replyChannel"), is(responses));
+		assertThat(getPropertyValue(gateway, "expectReply"), is(true));
+		assertThat(getPropertyValue(gateway, "convertExceptions"), is(true));
+		assertThat(getPropertyValue(gateway, "replyChannel"), is(responses));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
 		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
 		gateway, "messagingTemplate", MessagingTemplate.class);
-		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
-		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
+		assertEquals(1234L, TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
+		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 
 		boolean registerDefaultConverters = TestUtils.getPropertyValue(gateway,"mergeWithDefaultConverters", Boolean.class);
 		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
@@ -132,7 +132,7 @@ public class HttpInboundGatewayParserTests {
 				messageConverters.size() > 0);
 	}
 
-	@Test(timeout=1000) @DirtiesContext
+	@Test @DirtiesContext
 	public void checkFlow() throws Exception {
 		requests.subscribe(handlerExpecting(any(Message.class)));
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -258,7 +258,8 @@ public class HttpInboundGatewayParserTests {
 				messageConverters.size() > 1);
 	}
 
-	public static class Person{
+	public static class Person {
+
 		private String name;
 
 		public String getName() {
@@ -268,9 +269,10 @@ public class HttpInboundGatewayParserTests {
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
 
-	public static class PersonConverter implements Converter<Person, String>{
+	public static class PersonConverter implements Converter<Person, String> {
 
 		public String convert(Person source) {
 			return source.getName();
