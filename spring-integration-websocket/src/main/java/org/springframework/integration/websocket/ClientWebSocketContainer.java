@@ -91,6 +91,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	/**
 	 * Set the connection timeout in seconds; default: 10.
 	 * @param connectionTimeout the timeout in seconds.
+	 * @since 4.2
 	 */
 	public void setConnectionTimeout(int connectionTimeout) {
 		this.connectionTimeout = connectionTimeout;

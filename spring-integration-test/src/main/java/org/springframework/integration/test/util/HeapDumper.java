@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.test.util;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
@@ -22,11 +23,18 @@ import javax.management.MBeanServer;
 import com.sun.management.HotSpotDiagnosticMXBean;
 
 /**
- * Use to take a heap dump programmatically.
- *
+ * Use to take a heap dump programmatically. Useful to examine the heap when debugging
+ * sporadic test failures.
+ * <p>
+ * Usage: {@code HeapDumper.dumpHeap("/tmp/foo.hprof");}
+ * <p>
+ * If the file exists already, it will be replaced.
+ * <p>
  * Courtesy:
  * https://blogs.oracle.com/sundararajan/entry/programmatically_dumping_heap_from_java
- *
+ * <pre>
+ * See https://docs.oracle.com/javase/8/docs/jre/api/management/extension/com/sun/management/HotSpotDiagnosticMXBean.html#dumpHeap-java.lang.String-boolean-
+ * </pre>
  * @author Gary Russell
  * @since 4.2
  *
@@ -39,7 +47,15 @@ public class HeapDumper {
 	// field to store the hotspot diagnostic MBean
 	private static volatile HotSpotDiagnosticMXBean hotspotMBean;
 
+	public static void dumpHeap(String fileName) {
+		dumpHeap(fileName, true);
+	}
+
 	public static void dumpHeap(String fileName, boolean live) {
+		File file = new File(fileName);
+		if (file.exists()) {
+			file.delete();
+		}
 		// initialize hotspot diagnostic MBean
 		initHotspotMBean();
 		try {
