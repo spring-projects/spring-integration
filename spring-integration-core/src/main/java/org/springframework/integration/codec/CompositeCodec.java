@@ -51,6 +51,7 @@ public class CompositeCodec implements Codec {
 	@Override
 	public void serialize(Object object, OutputStream outputStream) throws IOException {
 		Assert.notNull(object, "cannot serialize a null object");
+		Assert.notNull(outputStream, "'outputStream' cannot be null");
 		Codec codec = findDelegate(object.getClass());
 		if (codec != null) {
 			codec.serialize(object, outputStream);
@@ -62,6 +63,7 @@ public class CompositeCodec implements Codec {
 
 	@Override
 	public byte[] serialize(Object object) throws IOException {
+		Assert.notNull(object, "cannot serialize a null object");
 		Codec codec = findDelegate(object.getClass());
 		if (codec != null) {
 			return codec.serialize(object);
@@ -74,6 +76,8 @@ public class CompositeCodec implements Codec {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object deserialize(InputStream inputStream, Class<?> type) throws IOException {
+		Assert.notNull(inputStream, "'inputStream' cannot be null");
+		Assert.notNull(type, "'type' cannot be null");
 		Codec codec = findDelegate(type);
 		if (codec != null) {
 			return codec.deserialize(inputStream, type);

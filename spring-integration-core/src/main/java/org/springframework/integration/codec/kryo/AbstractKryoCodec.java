@@ -56,7 +56,8 @@ public abstract class AbstractKryoCodec implements Codec {
 
 	@Override
 	public void serialize(final Object object, OutputStream outputStream) throws IOException {
-		Assert.notNull(outputStream, "\'outputSteam\' cannot be null");
+		Assert.notNull(object, "cannot serialize a null object");
+		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
 		this.pool.run(new KryoCallback<Object>() {
 			@SuppressWarnings("unchecked")
@@ -70,6 +71,7 @@ public abstract class AbstractKryoCodec implements Codec {
 
 	@Override
 	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
+		Assert.notNull(bytes, "'bytes' cannot be null");
 		final Input input = new Input(bytes);
 		try {
 			return deserialize(input, type);
@@ -81,7 +83,8 @@ public abstract class AbstractKryoCodec implements Codec {
 
 	@Override
 	public Object deserialize(InputStream inputStream, final Class<?> type) throws IOException {
-		Assert.notNull(inputStream, "\'inputStream\' cannot be null");
+		Assert.notNull(inputStream, "'inputStream' cannot be null");
+		Assert.notNull(type, "'type' cannot be null");
 		final Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream));
 		Object result = null;
 		try {
