@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,6 +36,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
  * @since 2.0.0
  */
 @ContextConfiguration
@@ -52,9 +54,9 @@ public class ProducerAndConsumerAutoStartupTests {
 	public void test() throws Exception {
 		List<Integer> received = new ArrayList<Integer>();
 		for (int i = 0; i < 3; i++) {
-			received.add(consumer.poll(500));
+			received.add(this.consumer.poll(10000));
 		}
-		context.stop();
+		this.context.stop();
 		assertEquals(new Integer(1), received.get(0));
 		assertEquals(new Integer(2), received.get(1));
 		assertEquals(new Integer(3), received.get(2));
@@ -66,12 +68,13 @@ public class ProducerAndConsumerAutoStartupTests {
 		private final AtomicInteger count = new AtomicInteger();
 
 		public Integer next() throws InterruptedException {
-			if (count.get()>2){
+			if (this.count.get() > 2) {
 				//prevent message overload
 				return null;
 			}
-			return new Integer(count.incrementAndGet());
+			return this.count.incrementAndGet();
 		}
+
 	}
 
 
@@ -80,12 +83,13 @@ public class ProducerAndConsumerAutoStartupTests {
 		private final BlockingQueue<Integer> numbers = new LinkedBlockingQueue<Integer>();
 
 		public void receive(Integer number) {
-			numbers.add(number);
+			this.numbers.add(number);
 		}
 
 		Integer poll(long timeoutInMillis) throws InterruptedException {
-			return numbers.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+			return this.numbers.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
 
 }
