@@ -66,7 +66,8 @@ public class ClientWebSocketContainerTests {
 	public void testClientWebSocketContainer() throws Exception {
 		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
 		Map<String, Object> userProperties = new HashMap<String, Object>();
-		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,	WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6);
+		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,
+				"" + (WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6));
 		webSocketClient.setUserProperties(userProperties);
 
 		ClientWebSocketContainer container =
