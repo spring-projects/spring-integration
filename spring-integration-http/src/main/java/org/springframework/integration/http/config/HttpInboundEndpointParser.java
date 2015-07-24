@@ -195,6 +195,10 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 		BeanDefinition statusCodeExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("status-code-expression", element);
+		if (statusCodeExpressionDef == null) {
+			statusCodeExpressionDef = IntegrationNamespaceUtils
+					.createExpressionDefIfAttributeDefined("reply-timeout-status-code-expression", element);
+		}
 		if (statusCodeExpressionDef != null) {
 			builder.addPropertyValue("statusCodeExpression", statusCodeExpressionDef);
 		}

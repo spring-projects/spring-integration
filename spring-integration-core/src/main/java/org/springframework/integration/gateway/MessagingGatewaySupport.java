@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -50,6 +51,16 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
+	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
+
+	private final MessagingTemplate messagingTemplate;
+
+	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
+			new HistoryWritingMessagePostProcessor();
+
+	private final Object replyMessageCorrelatorMonitor = new Object();
+
+	private final boolean errorOnTimeout;
 
 	private volatile MessageChannel requestChannel;
 
@@ -68,26 +79,34 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	@SuppressWarnings("rawtypes")
 	private volatile InboundMessageMapper requestMapper = new DefaultRequestMapper();
 
-	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
-
-	private final MessagingTemplate messagingTemplate;
-
-	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
-			new HistoryWritingMessagePostProcessor();
-
 	private volatile boolean initialized;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
-	private final Object replyMessageCorrelatorMonitor = new Object();
 
-
+	/**
+	 * Construct an instance that will return null if no reply is received.
+	 */
 	public MessagingGatewaySupport() {
+		this(false);
+	}
+
+	/**
+	 * If errorOnTimeout is true, construct an instance that will send an
+	 * {@link ErrorMessage} with a {@link MessageTimeoutException} payload to the error
+	 * channel if a reply is expected but none is received. If no error channel is
+	 * configured, the {@link MessageTimeoutException} will be thrown.
+	 *
+	 * @param errorOnTimeout true to create the error message.
+	 * @since 4.2
+	 */
+	public MessagingGatewaySupport(boolean errorOnTimeout) {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
 		template.setSendTimeout(DEFAULT_TIMEOUT);
 		template.setReceiveTimeout(this.replyTimeout);
 		this.messagingTemplate = template;
+		this.errorOnTimeout = errorOnTimeout;
 	}
 
 
@@ -332,6 +351,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				if (reply instanceof ErrorMessage) {
 					error = ((ErrorMessage) reply).getPayload();
 				}
+			}
+			if (reply == null && this.errorOnTimeout) {
+				error = new MessageTimeoutException("No reply received within timeout");
 			}
 		}
 		catch (Exception e) {

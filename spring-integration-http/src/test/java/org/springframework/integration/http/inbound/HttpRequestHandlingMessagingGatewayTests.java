@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -34,19 +35,22 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.AbstractHttpInboundTests;
+import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.LinkedMultiValueMap;
@@ -295,6 +299,71 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		assertEquals("Exptecting only 1 content type being set.", Integer.valueOf(1), Integer.valueOf(contentTypes.size()));
 		assertEquals("text/plain", contentTypes.get(0));
 	}
+
+	@Test
+	public void timeoutDefault() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRequestChannel(requestChannel);
+		gateway.setReplyTimeout(0);
+		gateway.afterPropertiesSet();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = requestChannel.receive(0);
+		assertNotNull(message);
+		assertEquals(500, response.getStatus());
+	}
+
+	@Test
+	public void timeoutStatusExpression() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRequestChannel(requestChannel);
+		gateway.setReplyTimeout(0);
+		gateway.setStatusCodeExpression(new LiteralExpression("501"));
+		gateway.afterPropertiesSet();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = requestChannel.receive(0);
+		assertNotNull(message);
+		assertEquals(501, response.getStatus());
+	}
+
+	@Test
+	public void timeoutErrorFlow() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRequestChannel(requestChannel);
+		gateway.setReplyTimeout(0);
+		DirectChannel errorChannel = new DirectChannel();
+		errorChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new GenericMessage<String>("foo",
+						Collections.<String, Object> singletonMap(HttpHeaders.STATUS_CODE, HttpStatus.GATEWAY_TIMEOUT));
+			}
+
+		});
+		gateway.setErrorChannel(errorChannel);
+		gateway.afterPropertiesSet();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = requestChannel.receive(0);
+		assertNotNull(message);
+		assertEquals(504, response.getStatus());
+	}
+
+
 
 	private class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
 
