@@ -348,6 +348,9 @@ The payload of the `ErrorMessage` is a `MessageTimeoutException`; it must be tra
 converted by the gateway, such as a `String`; a good candidate is the exception's message property, which is the
 value used when using the expression technique.
 
+If the error flow times out after a main flow timeout, `500 Internal Server Error` is returned, or the
+`reply-timeout-status-code-expression` is evaluated, if present.
+
 NOTE: previously, the default status code for a timeout was `200 OK`; to restore that behavior, set
 `reply-timeout-status-code-expression="200"`.
 

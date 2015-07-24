@@ -68,7 +68,7 @@
 						The 'evaluationContext' has a 'BeanResolver' but no variables, so the usage of this attribute
 						is somewhat limited.
 						An example might be to resolve, at runtime, some scoped Bean that returns an
-						'HttpStatus' value.
+						'HttpStatus' value, or use a literal expression e.g. "201".
 						By default 'status-code-expression' is null, meaning that the default '200 OK' response status
 						will be returned.
 						The 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
@@ -213,10 +213,11 @@
 								The 'evaluationContext' has a 'BeanResolver' but no variables, so the usage of this attribute
 								is somewhat limited.
 								An example might be to resolve, at runtime, some scoped Bean that returns an
-								'HttpStatus' value.
-								By default 'status-code-expression' is null, meaning that the default '200 OK' response status
-								will be returned.
-								The 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
+								'HttpStatus' value, or use a literal expression e.g. "504".
+								By default 'status-code-expression' is null, meaning that the default
+								'500 Internal Server Error' response status will be returned after a timeout.
+								When a timeout is not encountered,
+								the 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
 								Message.
 							</xsd:documentation>
 						</xsd:annotation>

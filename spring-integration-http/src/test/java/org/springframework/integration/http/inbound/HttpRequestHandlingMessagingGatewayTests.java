@@ -19,6 +19,7 @@ package org.springframework.integration.http.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -361,6 +363,27 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		Message<?> message = requestChannel.receive(0);
 		assertNotNull(message);
 		assertEquals(504, response.getStatus());
+	}
+
+	@Test
+	public void timeoutErrorFlowTimeout() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRequestChannel(requestChannel);
+		gateway.setReplyTimeout(0);
+		QueueChannel errorChannel = new QueueChannel();
+		gateway.setErrorChannel(errorChannel);
+		gateway.setStatusCodeExpression(new LiteralExpression("501"));
+		gateway.afterPropertiesSet();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = requestChannel.receive(0);
+		assertNotNull(message);
+		assertEquals(501, response.getStatus());
+		assertThat(response.getContentAsString(), Matchers.containsString("from error channel"));
 	}
 
 

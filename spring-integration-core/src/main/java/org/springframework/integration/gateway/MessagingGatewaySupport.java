@@ -390,6 +390,15 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				if (errorFlowReply != null && errorFlowReply.getPayload() instanceof Throwable) {
 					this.rethrow((Throwable) errorFlowReply.getPayload(), "error flow returned an Error Message");
 				}
+				if (errorFlowReply == null && this.errorOnTimeout) {
+					if (object instanceof Message) {
+						throw new MessageTimeoutException((Message<?>) object,
+								"No reply received from error channel within timeout");
+					}
+					else {
+						throw new MessageTimeoutException("No reply received from error channel within timeout");
+					}
+				}
 				return errorFlowReply;
 			}
 			else { // no errorChannel so we'll propagate
