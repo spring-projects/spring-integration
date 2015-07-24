@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.util.SimplePool;
+import org.springframework.util.Assert;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -62,6 +63,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * Create a CachingSessionFactory with the specified session limit. By default, if
 	 * no sessions are available in the cache, and the size limit has been reached,
 	 * calling threads will block until a session is available.
+	 * <p>
+	 * Do not cache a {@link DelegatingSessionFactory}, cache each delegate therein instead.
 	 * @see #setSessionWaitTimeout(long)
 	 * @see #setPoolSize(int)
 	 *
@@ -69,6 +72,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * @param sessionCacheSize The maximum cache size.
 	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
+		Assert.isTrue(!(sessionFactory instanceof DelegatingSessionFactory),
+				"'sessionFactory' cannot be a 'DelegatingSessionFactory'; cache each delegate instead");
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
 			@Override
