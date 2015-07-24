@@ -29,7 +29,6 @@ import org.springframework.context.event.GenericApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.ResolvableType;
-import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -52,8 +51,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	private volatile Set<ResolvableType> eventTypes;
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
-
-	private boolean payloadExpressionSet;
 
 	private volatile boolean active;
 
@@ -84,12 +81,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 		if (this.applicationEventMulticaster != null) {
 			this.applicationEventMulticaster.addApplicationListener(this);
 		}
-	}
-
-	@Override
-	public void setExpressionPayload(Expression payloadExpression) {
-		super.setExpressionPayload(payloadExpression);
-		this.payloadExpressionSet = payloadExpression != null;
 	}
 
 	@Override
@@ -130,13 +121,11 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
-	protected Object evaluatePayloadExpression(Object rootObject) {
-		if (!this.payloadExpressionSet && rootObject instanceof PayloadApplicationEvent) {
-			return ((PayloadApplicationEvent) rootObject).getPayload();
+	protected Object evaluatePayloadExpression(Object root) {
+		if (root instanceof PayloadApplicationEvent) {
+			return ((PayloadApplicationEvent) root).getPayload();
 		}
-		else {
-			return super.evaluatePayloadExpression(rootObject);
-		}
+		return super.evaluatePayloadExpression(root);
 	}
 
 	private boolean stoppedRecently() {

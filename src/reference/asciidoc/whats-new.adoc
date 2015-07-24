@@ -301,7 +301,7 @@ See <<web-sockets-namespace>> for more information.
 
 ==== Application Event Adapters changes
 
-The `ApplicationEvent` adapters can now operate with `payload` as `event` directly allow to omit custom
+The `ApplicationEvent` adapters can now operate with `payload` as `event` directly allow omitting custom
 `ApplicationEvent` extensions.
 The `publish-payload` boolean attribute has been introduced on the `<int-event:outbound-channel-adapter>` for this
 purpose.

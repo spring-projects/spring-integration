@@ -18,8 +18,7 @@ If the event's source is not a Message instance and no "payloadExpression" has b
 Starting with _version 4.2_ the `ApplicationEventListeningMessageProducer` implements `GenericApplicationListener`
 and can be configured to accept not only `ApplicationEvent` types, but any type for treating _payload events_
 which are supported since Spring Framework 4.2, too.
-When `payloadExpression` isn't provided and the accepted event is an instance of `PayloadApplicationEvent`,
-its `payload` is used for the message to send.
+When the accepted event is an instance of `PayloadApplicationEvent`, its `payload` is used for the message to send.
 
 For convenience namespace support is provided to configure an `ApplicationEventListeningMessageProducer` via the _inbound-channel-adapter_ element.
 
@@ -75,5 +74,3 @@ Otherwise the Message itself will be wrapped in a `MessagingEvent` instance.
 Starting with _version 4.2_ the `ApplicationEventPublishingMessageHandler` (`<int-event:outbound-channel-adapter>`)
 can be configured with the `publish-payload` boolean attribute to publish to the application context `payload` as is,
 instead of wrapping it to a `MessagingEvent` instance.
-This feature is available since Spring Framework 4.2 and allow combine Spring Integration
-`ApplicationEventPublishingMessageHandler` and `@EventListener` configurations.
