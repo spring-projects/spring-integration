@@ -141,13 +141,21 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 				}
 
 			});
+			if (logger.isDebugEnabled()) {
+				logger.debug("Zookeeper leadership granted: Starting: " + lifecycles);
+			}
 			for (SmartLifecycle lifecycle : lifecycles) {
 				try {
 					lifecycle.start();
 				}
 				catch (Exception e) {
-					logger.error("Failed to start " + lifecycle + " in role " + role);
+					logger.error("Failed to start " + lifecycle + " in role " + role, e);
 				}
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Zookeeper leadership granted: Nothing to do");
 			}
 		}
 	}
@@ -172,13 +180,21 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 				}
 
 			});
+			if (logger.isDebugEnabled()) {
+				logger.debug("Zookeeper leadership revoked: Starting: " + lifecycles);
+			}
 			for (SmartLifecycle lifecycle : lifecycles) {
 				try {
 					lifecycle.stop();
 				}
 				catch (Exception e) {
-					logger.error("Failed to stop " + lifecycle + " in role " + role);
+					logger.error("Failed to stop " + lifecycle + " in role " + role, e);
 				}
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Zookeeper leadership revoked: Nothing to do");
 			}
 		}
 	}
