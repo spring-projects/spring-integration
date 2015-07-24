@@ -270,6 +270,13 @@ occur after part of the request is completed.
 If such a condition occurs, a `PartialSuccessException` is thrown containing the partial results.
 See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
 
+===== Delegating Session Factory
+
+A delegating session factory is now available, enabling the selection of a particular session factory based on some
+thread context value.
+
+See <<ftp-dsf>> and <<sftp-dsf>> for more information.
+
 ==== Websocket Changes
 
 `WebSocketHandlerDecoratorFactory` support has been added to the `ServerWebSocketContainer`

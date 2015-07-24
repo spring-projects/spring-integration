@@ -159,6 +159,35 @@ Defaults to `0`, which means, that no timeout will occur.
 The remote user to use.
 _Mandatory_.
 
+[[sftp-dsf]]
+=== Delegating Session Factory
+
+_Version 4.2_ introduced the `DelegatingSessionFactory` which allows the selection of the actual session factory at
+runtime.
+Prior to invoking the ftp endpoint, call `setThreadKey()` on the factory to associate a key with the current thread.
+That key is then used to lookup the actual session factory to be used.
+The key can be cleared by calling `clearThreadKey()` after use.
+
+Convenience methods have been added so this can easily be done from a message flow:
+
+[source, xml]
+----
+<bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
+    <!-- delegate factories here -->
+</bean>
+
+<int:service-activator input-channel="in" output-channel="c1"
+        expression="@dsf.setThreadKey(#root, headers['factoryToUse'])" />
+
+<int-sftp:outbound-gateway request-channel="c1" reply-channel="c2" ... />
+
+<int:service-activator input-channel="c2" output-channel="out"
+        expression="@dsf.clearThreadKey(#root)" />
+----
+
+IMPORTANT: When using session caching (see <<sftp-session-caching>>), each of the delegates should be cached; you
+cannot cache the `DelegatingSessionFactory` itself.
+
 [[sftp-session-caching]]
 === SFTP Session Caching
 
