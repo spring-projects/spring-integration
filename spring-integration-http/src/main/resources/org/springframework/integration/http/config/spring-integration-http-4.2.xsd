@@ -63,12 +63,12 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						A SpEL expression that resolves to an 'HttpStatus' code when rendering a response.
-						The expression must return the object which can be converted to a
+						The expression must return an object which can be converted to a
 						'org.springframework.http.HttpStatus' enum value.
 						The 'evaluationContext' has a 'BeanResolver' but no variables, so the usage of this attribute
 						is somewhat limited.
 						An example might be to resolve, at runtime, some scoped Bean that returns an
-						'HttpStatus' value.
+						'HttpStatus' value, or use a literal expression e.g. "201".
 						By default 'status-code-expression' is null, meaning that the default '200 OK' response status
 						will be returned.
 						The 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
@@ -201,6 +201,25 @@
 	from the reply channel. If not specified this propery will default to "1000"
 	(1 second).
 							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout-status-code-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression that resolves to an 'HttpStatus' code when rendering a response after
+								a 'reply-timeout'.
+								The expression must return an object which can be converted to a
+								'org.springframework.http.HttpStatus' enum value.
+								The 'evaluationContext' has a 'BeanResolver' but no variables, so the usage of this attribute
+								is somewhat limited.
+								An example might be to resolve, at runtime, some scoped Bean that returns an
+								'HttpStatus' value, or use a literal expression e.g. "504".
+								By default 'status-code-expression' is null, meaning that the default
+								'500 Internal Server Error' response status will be returned after a timeout.
+								When a timeout is not encountered,
+								the 'http:inbound-gateway' resolves the 'status code' from the 'http_statusCode' header of the reply
+								Message.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>

@@ -267,7 +267,7 @@ This allows you to get the `Message` into the flow as early as possibly, e.g.:
 
 For more information regarding _Handler Mappings_, please see: http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping[Handler Mappings].
 
-[[cors]]
+[[http-cors]]
 ==== Cross-Origin Resource Sharing (CORS) Support
 
 Starting with _version 4.2_ the `<http:inbound-channel-adapter>` and `<http:inbound-gateway>` can be configured with
@@ -308,12 +308,13 @@ Default value is 1800 seconds, or 30 minutes.
 The CORS Java Configuration is represented by the `org.springframework.integration.http.inbound.CrossOrigin` class,
 instances of which can be injected to the `HttpRequestHandlingEndpointSupport` beans.
 
+[[http-response-statuscode]]
 ==== Response StatusCode
 
 Starting with _version 4.1_ the `<http:inbound-channel-adapter>` can be configured with a `status-code-expression` to override the default `200 OK` status.
 The expression must return an object which can be converted to an `org.springframework.http.HttpStatus` enum value.
 The `evaluationContext` has a `BeanResolver` but no variables, so the usage of this attribute is somewhat limited.
-An example might be to resolve, at runtime, some scoped Bean that returns a status code value but, most likely, it will be set to a fixed value such as `status-code=expression="'204'"` (No Content), or `status-code-expression="T(org.springframework.http.HttpStatus).NO_CONTENT"`.
+An example might be to resolve, at runtime, some scoped Bean that returns a status code value but, most likely, it will be set to a fixed value such as `status-code=expression="204"` (No Content), or `status-code-expression="T(org.springframework.http.HttpStatus).NO_CONTENT"`.
 By default, `status-code-expression` is null meaning that the normal '200 OK' response status will be returned.
 [source,xml]
 ----
@@ -325,6 +326,33 @@ By default, `status-code-expression` is null meaning that the normal '200 OK' re
 ----
 
 The `<http:inbound-gateway>` resolves the 'status code' from the `http_statusCode` header of the reply Message.
+Starting with _version 4.2_, the default response status code when no reply is received within the `reply-timeout`
+is `500 Internal Server Error`.
+There are two ways to modify this behavior:
+
+- add a `reply-timeout-status-code-expression` - this has the same semantics as the `status-code-expression` on the
+inbound adapter.
+- Add an `error-channel` and return an appropriate message with an http status code header, such as...
+
+[source, xml]
+----
+<int:chain input-channel="errors">
+    <int:header-enricher>
+        <int:header name="http_statusCode" value="504" />
+    </int:header-enricher>
+    <int:transformer expression="payload.message" />
+</int:chain>
+----
+
+The payload of the `ErrorMessage` is a `MessageTimeoutException`; it must be transformed to something that can be
+converted by the gateway, such as a `String`; a good candidate is the exception's message property, which is the
+value used when using the expression technique.
+
+If the error flow times out after a main flow timeout, `500 Internal Server Error` is returned, or the
+`reply-timeout-status-code-expression` is evaluated, if present.
+
+NOTE: previously, the default status code for a timeout was `200 OK`; to restore that behavior, set
+`reply-timeout-status-code-expression="200"`.
 
 ==== URI Template Variables and Expressions
 
