@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -61,8 +64,13 @@ public class ClientWebSocketContainerTests {
 
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
+		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+		Map<String, Object> userProperties = new HashMap<String, Object>();
+		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,	WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6);
+		webSocketClient.setUserProperties(userProperties);
+
 		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(new StandardWebSocketClient(), server.getWsBaseUrl() + "/ws/websocket");
+				new ClientWebSocketContainer(webSocketClient, server.getWsBaseUrl() + "/ws/websocket");
 
 		TestWebSocketListener messageListener = new TestWebSocketListener();
 		container.setMessageListener(messageListener);
