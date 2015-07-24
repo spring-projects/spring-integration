@@ -353,7 +353,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				}
 			}
 			if (reply == null && this.errorOnTimeout) {
-				error = new MessageTimeoutException("No reply received within timeout");
+				if (object instanceof Message) {
+					error = new MessageTimeoutException((Message<?>) object, "No reply received within timeout");
+				}
+				else {
+					error = new MessageTimeoutException("No reply received within timeout");
+				}
 			}
 		}
 		catch (Exception e) {
