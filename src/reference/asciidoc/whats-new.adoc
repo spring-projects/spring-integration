@@ -202,10 +202,19 @@ See <<xml-xpath-splitting>> for more information.
 [[x4.2-http-changes]]
 ==== HTTP Changes
 
+===== CORS
+
 The HTTP Inbound Endpoints (`<int-http:inbound-channel-adapter>` and `<int-http:inbound-gateway>`) now allow the
 configuration of _Cross-Origin Resource Sharing (CORS)_.
 
-See <<cors>> for more information.
+See <<http-cors>> for more information.
+
+===== Inbound Gateway Timeout
+
+The HTTP inbound gateway can be configured as to what status code to return when a request times out.
+The default is now `500 Internal Server Error` instead of `200 OK`.
+
+See <<http-response-statuscode>> for more information.
 
 [[x4.2-file-filter]]
 ==== Persistent File List Filter Changes

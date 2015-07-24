@@ -50,6 +50,7 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -122,6 +123,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
 
+	private final boolean expectReply;
+
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile RequestMapping requestMapping = new RequestMapping();
@@ -135,8 +138,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
-
-	private final boolean expectReply;
 
 	private volatile boolean extractReplyPayload = true;
 
@@ -159,6 +160,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
+		super(expectReply);
 		this.expectReply = expectReply;
 		this.defaultMessageConverters.add(new MultipartAwareFormHttpMessageConverter());
 		this.defaultMessageConverters.add(new ByteArrayHttpMessageConverter());
@@ -331,7 +333,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Specify the {@link Expression} to resolve a status code for Response
 	 * to override the default '200 OK'.
-	 * <p> The {@link #statusCodeExpression} is applied only for the one-way {@code <http:inbound-channel-adapter/>}.
+	 * <p> The {@link #statusCodeExpression} is applied only for the one-way {@code <http:inbound-channel-adapter/>}
+	 * or when no reply (timeout) is received for a gateway.
 	 * The {@code <http:inbound-gateway/>} resolves an {@link HttpStatus} from the
 	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply {@link Message} header.
 	 * @param statusCodeExpression The status code Expression.
@@ -377,11 +380,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			this.messageConverters.addAll(this.defaultMessageConverters);
 		}
 		this.validateSupportedMethods();
-
-		if (this.expectReply && this.statusCodeExpression != null) {
-			logger.warn("The 'statusCodeExpression' is ignored when " +
-					"this component is configured as request/reply gateway");
-		}
 
 		if (this.statusCodeExpression != null) {
 			this.evaluationContext = createEvaluationContext();
@@ -505,7 +503,23 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 			Message<?> reply = null;
 			if (this.expectReply) {
-				reply = this.sendAndReceiveMessage(message);
+				try {
+					reply = this.sendAndReceiveMessage(message);
+				}
+				catch (MessageTimeoutException e) {
+					if (this.statusCodeExpression != null) {
+						reply = getMessageBuilderFactory().withPayload(e.getMessage())
+									.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+											evaluateHttpStatus())
+									.build();
+					}
+					else {
+						reply = getMessageBuilderFactory().withPayload(e.getMessage())
+								.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+										HttpStatus.INTERNAL_SERVER_ERROR)
+								.build();
+					}
+				}
 			}
 			else {
 				this.send(message);
@@ -552,15 +566,20 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	protected void setStatusCodeIfNeeded(ServletServerHttpResponse response) {
 		if (this.statusCodeExpression != null) {
-			if (this.evaluationContext == null) {
-				this.evaluationContext = createEvaluationContext();
-			}
-			Object value = this.statusCodeExpression.getValue(this.evaluationContext);
-			HttpStatus httpStatus = buildHttpStatus(value);
+			HttpStatus httpStatus = evaluateHttpStatus();
 			if (httpStatus != null) {
 				response.setStatusCode(httpStatus);
 			}
 		}
+	}
+
+	private HttpStatus evaluateHttpStatus() {
+		if (this.evaluationContext == null) {
+			this.evaluationContext = createEvaluationContext();
+		}
+		Object value = this.statusCodeExpression.getValue(this.evaluationContext);
+		HttpStatus httpStatus = buildHttpStatus(value);
+		return httpStatus;
 	}
 
 	/**
