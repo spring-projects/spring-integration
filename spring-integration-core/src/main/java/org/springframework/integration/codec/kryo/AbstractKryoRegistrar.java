@@ -22,8 +22,6 @@ import com.esotericsoftware.kryo.Registration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.serializer.support.SerializationFailedException;
-
 /**
  * Base class for {@link KryoRegistrar} implementations.
  * @author David Turanski
@@ -54,7 +52,7 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 		Registration existing = kryo.getRegistration(id);
 
 		if (existing != null) {
-			throw new SerializationFailedException((String.format("registration already exists %s", existing)));
+			throw new RuntimeException((String.format("registration already exists %s", existing)));
 		}
 
 		if (log.isInfoEnabled()) {

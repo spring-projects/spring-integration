@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.esotericsoftware.kryo.Registration;
-
-import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -60,13 +58,13 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 			Assert.isTrue(registration.getId() >= MIN_REGISTRATION_VALUE, "registration ID must be >= " +
 					MIN_REGISTRATION_VALUE);
 			if (ids.contains(registration.getId())) {
-				throw new SerializationFailedException(String.format("Duplicate registration ID found: %d",
+				throw new RuntimeException(String.format("Duplicate registration ID found: %d",
 						registration.getId()));
 			}
 			ids.add(registration.getId());
 
 			if (types.contains(registration.getType())) {
-				throw new SerializationFailedException(String.format("Duplicate registration found for type: %s",
+				throw new RuntimeException(String.format("Duplicate registration found for type: %s",
 						registration.getType()));
 			}
 			types.add(registration.getType());
