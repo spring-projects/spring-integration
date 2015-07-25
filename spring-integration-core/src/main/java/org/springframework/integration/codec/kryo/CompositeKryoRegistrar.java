@@ -28,7 +28,7 @@ import org.springframework.util.CollectionUtils;
  * A {@link KryoRegistrar} that delegates and validates
  * registrations across all components.
  * @author David Turanski
- * @since 1.2
+ * @since 4.2
  */
 public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 

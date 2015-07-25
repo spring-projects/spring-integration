@@ -30,7 +30,7 @@ import com.esotericsoftware.kryo.Registration;
  * feature only if you really need it.
  *
  * @author David Turanski
- * @since 4.1
+ * @since 4.2
  */
 public interface KryoRegistrar {
 	
@@ -46,7 +46,7 @@ public interface KryoRegistrar {
 
 	/**
 	 *
-	 * @return the list of {@link com.esotericsoftware.kryo.Registration} provided
+	 * @return the list of {@link Registration} provided
 	 */
 	List<Registration> getRegistrations();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.codec.kryo;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,8 +46,8 @@ public class CompositeCodecTests {
 	@Test
 	public void testPojoSerialization() throws IOException {
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("hello", 123);
-		SomeClassWithNoDefaultConstructors foo2 = (SomeClassWithNoDefaultConstructors) codec.deserialize(
-				codec.serialize(foo),
+		SomeClassWithNoDefaultConstructors foo2 =  codec.decode(
+				codec.encode(foo),
 				SomeClassWithNoDefaultConstructors.class);
 		assertEquals(foo, foo2);
 	}
@@ -58,10 +57,6 @@ public class CompositeCodecTests {
 		private String val1;
 
 		private int val2;
-
-		public SomeClassWithNoDefaultConstructors(String val1) {
-			this.val1 = val1;
-		}
 
 		public SomeClassWithNoDefaultConstructors(String val1, int val2) {
 			this.val1 = val1;

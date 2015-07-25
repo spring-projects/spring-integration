@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import org.springframework.util.Assert;
 
 
 /**
- * A codec that can delegate to one out of many Codecs, each mapped to a class.
+ * A Codec that can delegate to one out of many Codecs, each mapped to a class.
  * @author David Turanski
- * @since 4.1
+ * @since 4.2
  */
 public class CompositeCodec implements Codec {
 
@@ -49,47 +49,47 @@ public class CompositeCodec implements Codec {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void serialize(Object object, OutputStream outputStream) throws IOException {
-		Assert.notNull(object, "cannot serialize a null object");
+	public void encode(Object object, OutputStream outputStream) throws IOException {
+		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputStream' cannot be null");
 		Codec codec = findDelegate(object.getClass());
 		if (codec != null) {
-			codec.serialize(object, outputStream);
+			codec.encode(object, outputStream);
 		}
 		else {
-			defaultCodec.serialize(object, outputStream);
+			defaultCodec.encode(object, outputStream);
 		}
 	}
 
 	@Override
-	public byte[] serialize(Object object) throws IOException {
-		Assert.notNull(object, "cannot serialize a null object");
+	public byte[] encode(Object object) throws IOException {
+		Assert.notNull(object, "cannot encode a null object");
 		Codec codec = findDelegate(object.getClass());
 		if (codec != null) {
-			return codec.serialize(object);
+			return codec.encode(object);
 		}
 		else {
-			return defaultCodec.serialize(object);
+			return defaultCodec.encode(object);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object deserialize(InputStream inputStream, Class<?> type) throws IOException {
+	public <T> T decode(InputStream inputStream, Class<T> type) throws IOException {
 		Assert.notNull(inputStream, "'inputStream' cannot be null");
 		Assert.notNull(type, "'type' cannot be null");
 		Codec codec = findDelegate(type);
 		if (codec != null) {
-			return codec.deserialize(inputStream, type);
+			return codec.decode(inputStream, type);
 		}
 		else {
-			return defaultCodec.deserialize(inputStream, type);
+			return defaultCodec.decode(inputStream, type);
 		}
 	}
 
 	@Override
-	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes), type);
+	public <T> T decode(byte[] bytes, Class<T> type) throws IOException {
+		return decode(new ByteArrayInputStream(bytes), type);
 	}
 
 	private Codec findDelegate(Class<?> type) {

@@ -23,7 +23,7 @@ import com.esotericsoftware.kryo.Registration;
 /**
  * A {@link KryoRegistrar} used to validateRegistration a File serializer.
  * @author David Turanski
- * @since 1.2
+ * @since 4.2
  */
 public class FileKryoRegistrar extends AbstractKryoRegistrar {
 

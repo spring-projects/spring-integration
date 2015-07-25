@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import com.esotericsoftware.kryo.io.Output;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Kryo Codec that can serialize and deserialize arbitrary types. Classes and associated
+ * Kryo Codec that can encode and decode arbitrary types. Classes and associated
  * {@link com.esotericsoftware.kryo.Serializer}s may be registered via
- * {@link org.springframework.integration.codec.kryo.KryoRegistrar}s.
+ * {@link KryoRegistrar}s.
  * @author David Turanski
- * @since 4.1
+ * @since 4.2
  */
 public class PojoCodec extends AbstractKryoCodec {
 	private final CompositeKryoRegistrar kryoRegistrar;
@@ -84,13 +84,13 @@ public class PojoCodec extends AbstractKryoCodec {
 	}
 
 	@Override
-	protected void doSerialize(Kryo kryo, Object object, Output output) {
+	protected void doEncode(Kryo kryo, Object object, Output output) {
 		kryo.writeObject(output, object);
 	}
 
 
 	@Override
-	protected Object doDeserialize(Kryo kryo, Input input, Class<?> type) {
+	protected <T> T doDecode(Kryo kryo, Input input, Class<T> type) {
 		return kryo.readObject(input, type);
 	}
 

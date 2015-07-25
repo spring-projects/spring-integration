@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.codec.kryo;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,21 +26,22 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author David Turanski
- * @since 1.0
  */
 public class KryoCodecTests {
 
 	@Test
 	public void testStringSerialization() throws IOException {
 		String str = "hello";
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-		serializer.serialize(str, bos);
+		codec.encode(str, bos);
 
-		String s2 = (String)serializer.deserialize(bos.toByteArray(), String.class);
+		String s2 = codec.decode(bos.toByteArray(), String.class);
 		assertEquals(str, s2);
 	}
 
@@ -50,24 +49,24 @@ public class KryoCodecTests {
 	public void testSerializationWithStreams() throws IOException {
 		String str = "hello";
 		File file = new File("test.ser");
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 		FileOutputStream fos = new FileOutputStream(file);
-		serializer.serialize(str, fos);
+		codec.encode(str, fos);
 		fos.close();
 
 		FileInputStream fis = new FileInputStream(file);
-		String s2 = (String) serializer.deserialize(fis, String.class);
+		String s2 = codec.decode(fis, String.class);
 		file.delete();
 		assertEquals(str, s2);
 	}
 
 	@Test
 	public void testPojoSerialization() throws IOException {
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("foo", 123);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(foo, bos);
-		Object foo2 = serializer.deserialize(bos.toByteArray(), SomeClassWithNoDefaultConstructors.class);
+		codec.encode(foo, bos);
+		Object foo2 = codec.decode(bos.toByteArray(), SomeClassWithNoDefaultConstructors.class);
 		assertEquals(foo, foo2);
 	}
 
@@ -101,38 +100,38 @@ public class KryoCodecTests {
 
 	@Test
 	public void testPrimitiveSerialization() throws IOException {
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(true, bos);
-		boolean b = (Boolean) serializer.deserialize(bos.toByteArray(), Boolean.class);
+		codec.encode(true, bos);
+		boolean b = codec.decode(bos.toByteArray(), Boolean.class);
 		assertEquals(true, b);
-		b = (Boolean) serializer.deserialize(bos.toByteArray(), boolean.class);
+		b = codec.decode(bos.toByteArray(), boolean.class);
 		assertEquals(true, b);
 
 		bos = new ByteArrayOutputStream();
-		serializer.serialize(3.14159, bos);
+		codec.encode(3.14159, bos);
 
-		double d = (Double) serializer.deserialize(bos.toByteArray(), double.class);
+		double d = codec.decode(bos.toByteArray(), double.class);
 		assertEquals(3.14159, d, 0.00001);
 
 		bos = new ByteArrayOutputStream();
-		serializer.serialize(new Double(3.14159), bos);
+		codec.encode(3.14159, bos);
 
-		d = (Double) serializer.deserialize(bos.toByteArray(), Double.class);
+		d = codec.decode(bos.toByteArray(), Double.class);
 		assertEquals(3.14159, d, 0.00001);
 
 	}
 
 	@Test
 	public void testMapSerialization() throws IOException {
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		map.put("one", 1);
 		map.put("two", 2);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(map, bos);
-		Map<?, ?> m2 = (Map<?, ?>) serializer.deserialize(bos.toByteArray(), HashMap.class);
+		codec.encode(map, bos);
+		Map<?, ?> m2 = (Map<?, ?>) codec.decode(bos.toByteArray(), HashMap.class);
 		assertEquals(2, m2.size());
 		assertEquals(1, m2.get("one"));
 		assertEquals(2, m2.get("two"));
@@ -140,19 +139,17 @@ public class KryoCodecTests {
 
 	@Test
 	public void testComplexObjectSerialization() throws IOException {
-		PojoCodec serializer = new PojoCodec();
+		PojoCodec codec = new PojoCodec();
 		Foo foo = new Foo();
 		foo.put("one", 1);
 		foo.put("two", 2);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(foo, bos);
+		codec.encode(foo, bos);
 
-		Foo foo2 = (Foo) serializer.deserialize(bos.toByteArray(), Foo.class);
+		Foo foo2 = codec.decode(bos.toByteArray(), Foo.class);
 		assertEquals(1, foo2.get("one"));
 		assertEquals(2, foo2.get("two"));
 	}
-
-
 
 	static class Foo {
 

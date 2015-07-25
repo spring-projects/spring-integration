@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,40 +18,44 @@ package org.springframework.integration.codec;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.springframework.core.serializer.Serializer;
-
+import java.io.OutputStream;
 
 /**
- * Interface for classes that perform both serialization and deserialization on multiple classes.
+ * Interface for classes that perform both encode (serialize) and decode (deserialize) on multiple classes.
  * @author David Turanski
- * @since 4.1
+ * @since 4.2
  */
-public interface Codec extends Serializer<Object> {
-
+public interface Codec {
 	/**
-	 * Deserialize an object of a given type
-	 * @param inputStream the input stream containing the serialized object
-	 * @param type the object's class
-	 * @return the object
-	 * @throws IOException if the operation fails
+	 * Encode (encode) an object to an OutputStream
+	 * @param object the object to encode
+	 * @param outputStream the OutputStream
 	 */
-	public abstract Object deserialize(InputStream inputStream, Class<?> type) throws IOException;
+	public void encode(Object object, OutputStream outputStream) throws IOException;
 
 	/**
-	 * Deserialize an object of a given type
-	 * @param bytes the byte array containing the serialized object
-	 * @param type the object's class
-	 * @return the object
-	 * @throws IOException if the operation fails
-	 */
-	public abstract Object deserialize(byte[] bytes, Class<?> type) throws IOException;
-
-	/**
-	 * Serialize an object to a byte array
-	 * @param object the object to serialize
+	 * Encode an object to a byte array
+	 * @param object the object to encode
 	 * @return the bytes
 	 * @throws IOException if the operation fails
 	 */
-	public abstract byte[] serialize(Object object) throws IOException;
+	public byte[] encode(Object object) throws IOException;
+
+	/**
+	 * Decode an object of a given type
+	 * @param inputStream the input stream containing the encoded object
+	 * @param type the object's class
+	 * @return the object
+	 * @throws IOException if the operation fails
+	 */
+	public <T> T decode(InputStream inputStream, Class<T> type) throws IOException;
+
+	/**
+	 * Decode an object of a given type
+	 * @param bytes the byte array containing the encoded object
+	 * @param type the object's class
+	 * @return the object
+	 * @throws IOException if the operation fails
+	 */
+	public <T> T decode(byte[] bytes, Class<T> type) throws IOException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import org.springframework.util.Assert;
 
 
 /**
- * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}. Manages pooled Kryo
- * instances.
+ * Base class for Codecs using {@link Kryo}. Manages pooled Kryo instances.
  * @author David Turanski
+ * @since 4.2
  */
 public abstract class AbstractKryoCodec implements Codec {
 
@@ -55,14 +55,14 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public void serialize(final Object object, OutputStream outputStream) throws IOException {
-		Assert.notNull(object, "cannot serialize a null object");
+	public void encode(final Object object, OutputStream outputStream) throws IOException {
+		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
 		this.pool.run(new KryoCallback<Object>() {
 			@SuppressWarnings("unchecked")
 			public Object execute(Kryo kryo) {
-				doSerialize(kryo, object, output);
+				doEncode(kryo, object, output);
 				return Void.class;
 			}
 		});
@@ -70,11 +70,11 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
+	public <T> T decode(byte[] bytes, Class<T> type) throws IOException {
 		Assert.notNull(bytes, "'bytes' cannot be null");
 		final Input input = new Input(bytes);
 		try {
-			return deserialize(input, type);
+			return decode(input, type);
 		}
 		finally {
 			input.close();
@@ -82,16 +82,16 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public Object deserialize(InputStream inputStream, final Class<?> type) throws IOException {
+	public <T> T decode(InputStream inputStream, final Class<T> type) throws IOException {
 		Assert.notNull(inputStream, "'inputStream' cannot be null");
 		Assert.notNull(type, "'type' cannot be null");
 		final Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream));
-		Object result = null;
+		T result = null;
 		try {
-			result = this.pool.run(new KryoCallback<Object>() {
+			result = this.pool.run(new KryoCallback<T>() {
 				@SuppressWarnings("unchecked")
-				public Object execute(Kryo kryo) {
-					return doDeserialize(kryo, input, type);
+				public T execute(Kryo kryo) {
+					return doDecode(kryo, input, type);
 				}
 			});
 		}
@@ -102,30 +102,30 @@ public abstract class AbstractKryoCodec implements Codec {
 	}
 
 	@Override
-	public byte[] serialize(Object object) throws IOException {
+	public byte[] encode(Object object) throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serialize(object, bos);
+		encode(object, bos);
 		byte[] bytes = bos.toByteArray();
 		bos.close();
 		return bytes;
 	}
 
 	/**
-	 * Subclasses implement this method to serialize with Kryo.
+	 * Subclasses implement this method to encode with Kryo.
 	 * @param kryo the Kryo instance
-	 * @param object the object to serialize
+	 * @param object the object to encode
 	 * @param output the Kryo Output instance
 	 */
-	protected abstract void doSerialize(Kryo kryo, Object object, Output output);
+	protected abstract void doEncode(Kryo kryo, Object object, Output output);
 
 	/**
-	 * Subclasses implement this method to deserialize with Kryo.
+	 * Subclasses implement this method to decode with Kryo.
 	 * @param kryo the Kryo instance
 	 * @param input the Kryo Input instance
-	 * @param type the class of the deserialized object
-	 * @return the deserialized object
+	 * @param type the class of the decoded object
+	 * @return the decoded object
 	 */
-	protected abstract Object doDeserialize(Kryo kryo, Input input, Class<?> type);
+	protected abstract <T> T doDecode(Kryo kryo, Input input, Class<T> type);
 
 	/**
 	 * Subclasses implement this to configure the kryo instance. This is invoked on each new Kryo instance

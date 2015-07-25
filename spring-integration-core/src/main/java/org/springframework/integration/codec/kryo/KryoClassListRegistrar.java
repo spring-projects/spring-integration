@@ -30,7 +30,7 @@ import org.springframework.util.CollectionUtils;
  * may be configured. This is easiest to set up but requires that every server node be configured with the identical
  * list in the same order.
  * @author David Turanski
- * @since 4.1
+ * @since 4.2
  */
 public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 

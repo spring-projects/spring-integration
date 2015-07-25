@@ -25,8 +25,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.serializer.support.SerializationFailedException;
 
 /**
- * Base class for {@link org.springframework.integration.codec.kryo.KryoRegistrar} implementations. 
+ * Base class for {@link KryoRegistrar} implementations.
  * @author David Turanski
+ * @since 4.2
  */
 public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 	protected final Log log = LogFactory.getLog(this.getClass());
@@ -43,7 +44,7 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 	/**
 	 * Subclasses implement this to get provided registrations.
 	 *
-	 * @return a list of {@link com.esotericsoftware.kryo.Registration}
+	 * @return a list of {@link Registration}
 	 */
 	public abstract List<Registration> getRegistrations();
 
