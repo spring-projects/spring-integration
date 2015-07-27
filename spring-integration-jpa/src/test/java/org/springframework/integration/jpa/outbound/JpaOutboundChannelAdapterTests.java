@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,12 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.jpa.outbound;
 
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 
 import org.junit.After;
@@ -33,12 +33,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
@@ -51,7 +52,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@TransactionConfiguration(transactionManager="transactionManager", defaultRollback=true)
+@Rollback
+@Transactional("transactionManager")
 public class JpaOutboundChannelAdapterTests {
 
 	@Autowired
@@ -197,4 +199,5 @@ public class JpaOutboundChannelAdapterTests {
 
 		Assert.assertNotNull(testStudent.getRollNumber());
 	}
+
 }

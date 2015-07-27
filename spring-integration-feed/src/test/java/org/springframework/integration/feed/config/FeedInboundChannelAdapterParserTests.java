@@ -108,7 +108,7 @@ public class FeedInboundChannelAdapterParserTests {
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
-		latch.await(5, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
 
@@ -135,7 +135,7 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);
 		feedChannel.subscribe(handler);
-		latch.await(5, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 		verify(handler, atLeast(3)).handleMessage(Mockito.any(Message.class));
 	}
 
