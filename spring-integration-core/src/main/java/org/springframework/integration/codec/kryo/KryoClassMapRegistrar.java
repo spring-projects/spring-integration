@@ -16,6 +16,7 @@
 package org.springframework.integration.codec.kryo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
 	final private Map<Integer, Class<?>> registeredClasses;
 
 	public KryoClassMapRegistrar(Map<Integer, Class<?>> kryoRegisteredClasses) {
-		this.registeredClasses = kryoRegisteredClasses;
+		this.registeredClasses = new HashMap<Integer, Class<?>>(kryoRegisteredClasses);
 	}
 
 

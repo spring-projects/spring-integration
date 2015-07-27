@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.util.ClassUtils;
@@ -40,7 +41,7 @@ public class CompositeCodec implements Codec {
 	public CompositeCodec(Map<Class<?>, Codec> delegates, Codec defaultCodec) {
 		Assert.notNull(defaultCodec, "'defaultCodec' cannot be null");
 		this.defaultCodec = defaultCodec;
-		this.delegates = delegates;
+		this.delegates = new HashMap<Class<?>, Codec>(delegates);
 	}
 
 	public CompositeCodec(Codec defaultCodec) {

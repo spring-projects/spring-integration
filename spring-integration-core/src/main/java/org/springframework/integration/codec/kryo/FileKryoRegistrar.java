@@ -35,7 +35,6 @@ public class FileKryoRegistrar extends AbstractKryoRegistrar {
 	
 	
 	public FileKryoRegistrar() {
-		super();
 		this.registrationId = DEFAULT_REGISTRATION_ID;
 	}
 

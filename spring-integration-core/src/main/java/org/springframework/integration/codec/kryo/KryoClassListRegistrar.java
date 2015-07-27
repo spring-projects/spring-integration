@@ -42,7 +42,7 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 	 * @param classes the list of classes to validateRegistration
 	 */
 	public KryoClassListRegistrar(List<Class<?>> classes) {
-		this.registeredClasses = classes;
+		this.registeredClasses = new ArrayList<Class<?>>(classes);
 	}
 
 	/**

@@ -29,7 +29,8 @@ public class KryoRegistrationRegistrar extends AbstractKryoRegistrar {
 	private final List<Registration> registrations;
 
 	public KryoRegistrationRegistrar(List<Registration> registrations) {
-		this.registrations = registrations != null ? registrations : new ArrayList<Registration>();
+		this.registrations = registrations != null ? new ArrayList<Registration>(registrations) : new 
+				ArrayList<Registration>();
 	}
 
 	@Override

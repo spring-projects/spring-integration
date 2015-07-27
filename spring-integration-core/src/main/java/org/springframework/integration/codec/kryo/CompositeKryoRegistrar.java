@@ -33,8 +33,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	private final List<KryoRegistrar> delegates;
 
 	public CompositeKryoRegistrar(List<KryoRegistrar> delegates) {
-		super();
-		this.delegates = delegates;
+		this.delegates = new ArrayList<KryoRegistrar>(delegates);
 
 		if (!CollectionUtils.isEmpty(this.delegates)) {
 			validateRegistrations();
