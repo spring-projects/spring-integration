@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jpa.inbound;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.persistence.EntityManager;
 
 import org.junit.Test;
@@ -45,21 +45,24 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.TransactionConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for the Jpa Polling Channel Adapter {@link JpaPollingChannelAdapter}.
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@TransactionConfiguration(transactionManager="transactionManager", defaultRollback=true)
+@Rollback
+@Transactional("transactionManager")
 public class JpaPollingChannelAdapterTests {
 
 	@Autowired
@@ -118,7 +121,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -162,7 +164,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -207,7 +208,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -250,7 +250,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -301,7 +300,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull("Message is null.", message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -312,7 +310,7 @@ public class JpaPollingChannelAdapterTests {
 	}
 
 	private Long waitForDeletes(Collection<?> students) throws InterruptedException {
-		Long studentCount = Long.valueOf(students.size());
+		Long studentCount = (long) students.size();
 
 		int n = 0;
 
@@ -398,7 +396,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull("Message is null.", message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		final Collection<?> students = message.getPayload();
 
@@ -446,7 +443,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -490,7 +486,6 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 

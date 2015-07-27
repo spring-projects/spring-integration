@@ -98,7 +98,7 @@ subprojects { subproject ->
 		guavaVersion = '18.0'
 		hamcrestVersion = '1.3'
 		hazelcastVersion = '3.4.2'
-		hibernateVersion = '4.3.8.Final'
+		hibernateVersion = '4.3.10.Final'
 		hsqldbVersion = '2.3.2'
 		h2Version = '1.4.180'
 		jackson2Version = '2.5.1'
@@ -107,6 +107,7 @@ subprojects { subproject ->
 		jedisVersion = '2.7.3'
 		jmsApiVersion = '1.1-rev-1'
 		jpa21ApiVersion = '1.0.0.Final'
+		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
 		jsonpathVersion = '2.0.0'
@@ -444,7 +445,8 @@ project('spring-integration-jpa') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-orm:$springVersion"
-		compile ("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion", optional)
+		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
+
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
@@ -456,6 +458,7 @@ project('spring-integration-jpa') {
 			exclude group: 'org.apache.geronimo.specs'
 		}
 
+		testRuntime "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
 		testRuntime "org.eclipse.persistence:org.eclipse.persistence.jpa:$eclipseLinkVersion"
 		testRuntime "org.springframework:spring-instrument:$springVersion"
 	}
