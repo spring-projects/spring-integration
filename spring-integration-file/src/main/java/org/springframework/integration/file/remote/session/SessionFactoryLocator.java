@@ -23,7 +23,7 @@ package org.springframework.integration.file.remote.session;
  * @since 4.2
  *
  */
-public interface SessionFactoryFactory<F> {
+public interface SessionFactoryLocator<F> {
 
 	/**
 	 * Return a {@link SessionFactory} for the key.

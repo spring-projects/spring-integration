@@ -19,32 +19,52 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The default implementation of {@link SessionFactoryFactory} using a simple map lookup.
+ * The default implementation of {@link SessionFactoryLocator} using a simple map lookup
+ * and an optional default to fall back on.
  *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public class DefaultSessionFactoryFactory<F> implements SessionFactoryFactory<F> {
+public class DefaultSessionFactoryLocator<F> implements SessionFactoryLocator<F> {
 
 	private final Map<Object, SessionFactory<F>> factories = new ConcurrentHashMap<Object, SessionFactory<F>>();
 
 	private final SessionFactory<F> defaultFactory;
 
-	public DefaultSessionFactoryFactory(Map<Object, SessionFactory<F>> factories) {
+	/**
+	 * @param factories A map of factories, keyed by lookup key.
+	 */
+	public DefaultSessionFactoryLocator(Map<Object, SessionFactory<F>> factories) {
 		this(factories, null);
 	}
 
-	public DefaultSessionFactoryFactory(Map<Object, SessionFactory<F>> factories, Object defaultKey) {
+	/**
+	 * @param factories A map of factories, keyed by lookup key.
+	 * @param defaultFactory A default to be used if the lookup fails.
+	 */
+	public DefaultSessionFactoryLocator(Map<Object, SessionFactory<F>> factories, SessionFactory<F> defaultFactory) {
 		this.factories.putAll(factories);
-		if (defaultKey != null) {
-			this.defaultFactory = factories.get(defaultKey);
-		}
-		else {
-			this.defaultFactory = null;
-		}
+		this.defaultFactory = defaultFactory;
 	}
 
+	/**
+	 * Add a session factory.
+	 * @param key the lookup key.
+	 * @param factory the factory.
+	 */
+	public void addSessionFactory(String key, SessionFactory<F> factory) {
+		this.factories.put(key, factory);
+	}
+
+	/**
+	 * Remove a session factory.
+	 * @param key the lookup key.
+	 * @return the factory, if it was present.
+	 */
+	public SessionFactory<F> removeSessionFactory(Object key) {
+		return this.factories.remove(key);
+	}
 
 	@Override
 	public SessionFactory<F> getSessionFactory(Object key) {

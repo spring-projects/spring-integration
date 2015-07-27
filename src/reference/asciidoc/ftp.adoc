@@ -135,7 +135,11 @@ Convenience methods have been added so this can easily be done from a message fl
 [source, xml]
 ----
 <bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
-    <!-- delegate factories here -->
+    <constructor-arg>
+        <bean class="o.s.i.file.remote.session.DefaultSessionFactoryLocator">
+		    <!-- delegate factories here -->
+        </bean>
+    </constructor-arg>
 </bean>
 
 <int:service-activator input-channel="in" output-channel="c1"

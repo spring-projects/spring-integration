@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 
 /**
  * {@link SessionFactory} that delegates to a {@link SessionFactory} retrieved from a
- * {@link SessionFactoryFactory}.
+ * {@link SessionFactoryLocator}.
  *
  * @author Gary Russell
  * @since 4.2
@@ -30,27 +30,35 @@ import org.springframework.util.Assert;
  */
 public class DelegatingSessionFactory<F> implements SessionFactory<F> {
 
-	private final SessionFactoryFactory<F> factoryFactory;
+	private final SessionFactoryLocator<F> factoryLocator;
 
 	private final ThreadLocal<Object> threadKey = new ThreadLocal<Object>();
 
 	/**
-	 * Construct an instance with a {@link DefaultSessionFactoryFactory} using the
+	 * Construct an instance with a {@link DefaultSessionFactoryLocator} using the
 	 * supplied factories and default key.
 	 * @param factories the factories.
-	 * @param defaultKey the default key.
+	 * @param defaultFactory the default to use if the lookup fails.
 	 */
-	public DelegatingSessionFactory(Map<Object, SessionFactory<F>> factories, Object defaultKey) {
-		this(new DefaultSessionFactoryFactory<F>(factories, defaultKey));
+	public DelegatingSessionFactory(Map<Object, SessionFactory<F>> factories, SessionFactory<F> defaultFactory) {
+		this(new DefaultSessionFactoryLocator<F>(factories, defaultFactory));
 	}
 
 	/**
 	 * Construct an instance using the supplied factory.
-	 * @param factoryFactory the factory.
+	 * @param factoryLocator the factory.
 	 */
-	public DelegatingSessionFactory(SessionFactoryFactory<F> factoryFactory) {
-		Assert.notNull(factoryFactory, "'factoryFactory' cannot be null");
-		this.factoryFactory = factoryFactory;
+	public DelegatingSessionFactory(SessionFactoryLocator<F> factoryLocator) {
+		Assert.notNull(factoryLocator, "'factoryFactory' cannot be null");
+		this.factoryLocator = factoryLocator;
+	}
+
+	/**
+	 * Return this factory's locator.
+	 * @return the locator.
+	 */
+	public SessionFactoryLocator<F> getFactoryLocator() {
+		return factoryLocator;
 	}
 
 	/**
@@ -97,7 +105,7 @@ public class DelegatingSessionFactory<F> implements SessionFactory<F> {
 	}
 
 	public Session<F> getSession(Object key) {
-		SessionFactory<F> sessionFactory = this.factoryFactory.getSessionFactory(key);
+		SessionFactory<F> sessionFactory = this.factoryLocator.getSessionFactory(key);
 		Assert.notNull(sessionFactory, "No default SessionFactory configured");
 		return sessionFactory.getSession();
 	}

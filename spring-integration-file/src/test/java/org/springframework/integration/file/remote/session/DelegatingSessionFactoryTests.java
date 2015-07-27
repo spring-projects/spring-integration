@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote.session;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -70,15 +71,24 @@ public class DelegatingSessionFactoryTests {
 	@Autowired
 	PollableChannel out;
 
+	@Autowired
+	DefaultSessionFactoryLocator<String> sessionFactoryLocator;
+
 	@Test
 	public void testDelegates() {
-		assertEquals(foo.mockSession, dsf.getSession("foo"));
-		assertEquals(bar.mockSession, dsf.getSession("bar"));
-		assertEquals(bar.mockSession, dsf.getSession("junk"));
-		assertEquals(bar.mockSession, dsf.getSession());
-		dsf.setThreadKey("foo");
-		assertEquals(foo.mockSession, dsf.getSession("foo"));
-		dsf.clearThreadKey();
+		assertEquals(foo.mockSession, this.dsf.getSession("foo"));
+		assertEquals(bar.mockSession, this.dsf.getSession("bar"));
+		assertEquals(bar.mockSession, this.dsf.getSession("junk"));
+		assertEquals(bar.mockSession, this.dsf.getSession());
+		this.dsf.setThreadKey("foo");
+		assertEquals(foo.mockSession, this.dsf.getSession("foo"));
+		this.dsf.clearThreadKey();
+		TestSessionFactory factory = new TestSessionFactory();
+		this.sessionFactoryLocator.addSessionFactory("baz", factory);
+		this.dsf.setThreadKey("baz");
+		assertEquals(factory.mockSession, this.dsf.getSession("baz"));
+		this.dsf.clearThreadKey();
+		assertSame(factory, sessionFactoryLocator.removeSessionFactory("baz"));
 	}
 
 	@Test
@@ -107,11 +117,18 @@ public class DelegatingSessionFactoryTests {
 
 		@Bean
 		DelegatingSessionFactory<String> dsf() {
+			SessionFactoryLocator<String> sff = sessionFactoryLocator();
+			return new DelegatingSessionFactory<String>(sff);
+		}
+
+		@Bean
+		public SessionFactoryLocator<String> sessionFactoryLocator() {
 			Map<Object, SessionFactory<String>> factories = new HashMap<Object, SessionFactory<String>>();
 			factories.put("foo", foo());
-			factories.put("bar", bar());
-			SessionFactoryFactory<String> sff = new DefaultSessionFactoryFactory<String>(factories, "bar");
-			return new DelegatingSessionFactory<String>(sff);
+			TestSessionFactory bar = bar();
+			factories.put("bar", bar);
+			SessionFactoryLocator<String> sff = new DefaultSessionFactoryLocator<String>(factories, bar);
+			return sff;
 		}
 
 		@ServiceActivator(inputChannel="c1")
