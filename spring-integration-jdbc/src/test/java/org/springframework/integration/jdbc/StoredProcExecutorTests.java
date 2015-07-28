@@ -378,7 +378,7 @@ public class StoredProcExecutorTests {
 						.build());
 		}
 
-		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
+		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
 		LOGGER.info(stats);
 		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
 
@@ -415,14 +415,15 @@ public class StoredProcExecutorTests {
 						.build());
 		}
 
-		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
+		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
 		LOGGER.info(stats);
 		assertEquals("Expected a cache misscount of 10", 10, stats.missCount());
 
 	}
 
 	private void mockTheOperationsCache(final StoredProcExecutor storedProcExecutor) {
-		Object cache = TestUtils.getPropertyValue(storedProcExecutor, "jdbcCallOperationsCache.localCache");
+		Object cache = TestUtils.getPropertyValue(storedProcExecutor,
+				"guavaCacheWrapper.jdbcCallOperationsCache.localCache");
 		new DirectFieldAccessor(cache)
 				.setPropertyValue("defaultLoader", new CacheLoader<String, SimpleJdbcCallOperations>() {
 					@Override
