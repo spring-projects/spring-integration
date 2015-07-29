@@ -18,9 +18,7 @@ package org.springframework.integration.security.channel;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import org.junit.After;
@@ -33,9 +31,11 @@ import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,12 +66,16 @@ public class ChannelAdapterSecurityIntegrationTests {
 	MessageChannel unsecuredChannelAdapter;
 
 	@Autowired
-	@Qualifier("securedChannelQueue")
-	MessageChannel securedChannelQueue;
+	@Qualifier("queueChannel")
+	MessageChannel queueChannel;
 
 	@Autowired
-	@Qualifier("resultChannel")
-	PollableChannel resultChannel;
+	@Qualifier("securedChannelQueue")
+	PollableChannel securedChannelQueue;
+
+	@Autowired
+	@Qualifier("errorChannel")
+	PollableChannel errorChannel;
 
 	@Autowired
 	TestHandler testConsumer;
@@ -100,21 +104,19 @@ public class ChannelAdapterSecurityIntegrationTests {
 	@Test
 	public void testSecurityContextPropagation() {
 		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
-		this.securedChannelQueue.send(new GenericMessage<String>("test"));
-		Message<?> receive = this.resultChannel.receive(10000);
+		this.queueChannel.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertNotNull(receive);
 
-		assertNull(SecurityContextHolder.getContext().getAuthentication());
+		SecurityContextHolder.clearContext();
 
-		assertNotEquals(Thread.currentThread().getId(), receive.getHeaders().get("threadId"));
-
-		// Without SecurityContext propagation we end up here with: AuthenticationCredentialsNotFoundException
-		assertEquals(1, testConsumer.sentMessages.size());
-
-		assertThat(receive.getPayload(), instanceOf(SecurityContext.class));
-		SecurityContext securityContext = (SecurityContext) receive.getPayload();
-		// Without SecurityContext cleanup we don't get here an empty SecurityContext from the taskScheduler Thread
-		assertNull(securityContext.getAuthentication());
+		this.queueChannel.send(new GenericMessage<String>("test"));
+		Message<?> errorMessage = this.errorChannel.receive(1000);
+		assertNotNull(errorMessage);
+		Object payload = errorMessage.getPayload();
+		assertThat(payload, instanceOf(MessageHandlingException.class));
+		assertThat(((MessageHandlingException) payload).getCause(),
+				instanceOf(AuthenticationCredentialsNotFoundException.class));
 	}
 
 	@Test(expected = AccessDeniedException.class)

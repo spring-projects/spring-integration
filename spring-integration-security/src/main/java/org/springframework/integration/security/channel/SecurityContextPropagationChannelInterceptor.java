@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-package org.springframework.integration.security.context;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
+package org.springframework.integration.security.channel;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.channel.DirectChannel;
@@ -35,6 +32,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * the {@link SecurityContext} propagation from one message flow's thread to another
  * through the {@link MessageChannel}s involved in the flow.
  * <p>
+ * In addition this interceptor cleans up (restores) the {@link SecurityContext}
+ * in the containers Threads for channels like
+ * {@link org.springframework.integration.channel.ExecutorChannel}
+ * and {@link org.springframework.integration.channel.QueueChannel}.
  *
  * @author Artem Bilan
  * @see ThreadStatePropagationChannelInterceptor
@@ -43,33 +44,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SecurityContextPropagationChannelInterceptor
 		extends ThreadStatePropagationChannelInterceptor<Authentication> {
 
-	static final ThreadLocal<Deque<SecurityContext>> ORIGINAL_CONTEXT = new ThreadLocal<Deque<SecurityContext>>();
+	private final static SecurityContext EMPTY_CONTEXT = SecurityContextHolder.createEmptyContext();
 
-	private final SecurityContextCleanupChannelInterceptor securityContextCleanupChannelInterceptor;
-
-	public SecurityContextPropagationChannelInterceptor() {
-		this(false);
-	}
-
-	public SecurityContextPropagationChannelInterceptor(boolean cleanupContext) {
-		this.securityContextCleanupChannelInterceptor =
-				cleanupContext
-						? new SecurityContextCleanupChannelInterceptor()
-						: null;
-	}
-
-	@Override
-	public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-		if (this.securityContextCleanupChannelInterceptor != null) {
-			this.securityContextCleanupChannelInterceptor.afterSendCompletion(message, channel, sent, ex);
-		}
-	}
+	private static final ThreadLocal<SecurityContext> ORIGINAL_CONTEXT = new ThreadLocal<SecurityContext>();
 
 	@Override
 	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {
-		if (this.securityContextCleanupChannelInterceptor != null) {
-			this.securityContextCleanupChannelInterceptor.afterMessageHandled(message, channel, handler, ex);
-		}
+		cleanup();
 	}
 
 	@Override
@@ -86,16 +67,28 @@ public class SecurityContextPropagationChannelInterceptor
 		if (authentication != null) {
 			SecurityContext currentContext = SecurityContextHolder.getContext();
 
-			Deque<SecurityContext> contextStack = ORIGINAL_CONTEXT.get();
-			if (contextStack == null) {
-				contextStack = new ArrayDeque<SecurityContext>();
-				ORIGINAL_CONTEXT.set(contextStack);
-			}
-			contextStack.push(currentContext);
+			ORIGINAL_CONTEXT.set(currentContext);
 
 			SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication);
 			SecurityContextHolder.setContext(context);
+		}
+	}
+
+	public static void cleanup() {
+		SecurityContext originalContext = ORIGINAL_CONTEXT.get();
+
+		try {
+			if (originalContext == null || EMPTY_CONTEXT.equals(originalContext)) {
+				SecurityContextHolder.clearContext();
+				ORIGINAL_CONTEXT.remove();
+			}
+			else {
+				SecurityContextHolder.setContext(originalContext);
+			}
+		}
+		catch (Throwable t) {
+			SecurityContextHolder.clearContext();
 		}
 	}
 

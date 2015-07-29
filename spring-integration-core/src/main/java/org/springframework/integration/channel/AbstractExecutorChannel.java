@@ -31,6 +31,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * The {@link AbstractSubscribableChannel} base implementation for those inheritors
@@ -139,12 +140,12 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					}
 				}
 				messageHandler.handleMessage(message);
-				if (interceptorStack != null) {
+				if (!CollectionUtils.isEmpty(interceptorStack)) {
 					triggerAfterMessageHandled(message, null, interceptorStack);
 				}
 			}
 			catch (Exception ex) {
-				if (interceptorStack != null) {
+				if (!CollectionUtils.isEmpty(interceptorStack)) {
 					triggerAfterMessageHandled(message, ex, interceptorStack);
 				}
 				if (ex instanceof MessagingException) {
@@ -154,8 +155,8 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 				throw new MessageDeliveryException(message, description, ex);
 			}
 			catch (Error ex) {
-				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
-				if (interceptorStack != null) {
+				if (!CollectionUtils.isEmpty(interceptorStack)) {
+					String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
 					triggerAfterMessageHandled(message, new MessageDeliveryException(message, description, ex),
 							interceptorStack);
 				}

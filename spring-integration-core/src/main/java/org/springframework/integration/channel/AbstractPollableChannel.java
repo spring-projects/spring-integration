@@ -23,6 +23,7 @@ import org.springframework.integration.channel.management.PollableChannelManagem
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for all pollable channels.
@@ -108,7 +109,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			else if (logger.isTraceEnabled()) {
 				logger.trace("postReceive on channel '" + this + "', message is null");
 			}
-			if (interceptorStack != null) {
+			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
@@ -118,7 +119,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			if (countsEnabled && !counted) {
 				getMetrics().afterError();
 			}
-			if (interceptorStack != null) {
+			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}
 			throw e;

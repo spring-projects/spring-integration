@@ -19,7 +19,7 @@ However, this has some important implications for (some) user environments.
 For complete details, see <<metrics-management>> and <<jmx-42-improvements>>.
 
 [[x4.2-mongodb-metadata-store]]
-==== MongodDB Metadata Store
+==== MongoDB Metadata Store
 
 The `MongoDbMetadataStore` is now available. For more information, see <<mongodb-metadata-store>>.
 
@@ -32,7 +32,7 @@ For more information, see <<security>>.
 [[x4.2-security-context-propagation]]
 ==== SecurityContext Propagation
 
-The `SecurityContextPropagationChannelInterceptor` and `SecurityContextCleanupChannelInterceptor` have been
+The `SecurityContextPropagationChannelInterceptor` has been
 introduced for the `SecurityContext` propagation from one message flow's Thread to another.
 For more information, see <<security>>.
 

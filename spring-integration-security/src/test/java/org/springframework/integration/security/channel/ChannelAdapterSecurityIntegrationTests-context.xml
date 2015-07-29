@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
- 	xmlns:si-security="http://www.springframework.org/schema/integration/security"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:si-security="http://www.springframework.org/schema/integration/security"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:task="http://www.springframework.org/schema/task"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/security
-			http://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
+			http://www.springframework.org/schema/integration/security/spring-integration-security.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
@@ -20,38 +22,30 @@
 
 	<outbound-channel-adapter id="securedChannelAdapter" ref="testHandler"/>
 
-	<outbound-channel-adapter id="securedChannelAdapter2" ref="testHandler">
-		<request-handler-advice-chain>
-			<beans:bean class="org.springframework.integration.security.context.SecurityContextCleanupAdvice"/>
-		</request-handler-advice-chain>
-	</outbound-channel-adapter>
+	<service-activator input-channel="securedChannelAdapter2" ref="testHandler"/>
 
 	<outbound-channel-adapter id="unsecuredChannelAdapter" ref="testHandler"/>
 
-	<channel id="securedChannelQueue">
+	<channel id="queueChannel">
 		<queue/>
 		<interceptors>
 			<beans:bean
-					class="org.springframework.integration.security.context.SecurityContextPropagationChannelInterceptor">
-				<beans:constructor-arg value="true"/>
-			</beans:bean>
+					class="org.springframework.integration.security.channel.SecurityContextPropagationChannelInterceptor"/>
 		</interceptors>
 	</channel>
 
-	<recipient-list-router input-channel="securedChannelQueue">
+	<!--The single taskScheduler Thread is need to check that SecurityContext cleanup works well-->
+	<task:scheduler id="taskScheduler"/>
+
+	<bridge input-channel="queueChannel" output-channel="securedChannelQueue">
 		<poller fixed-delay="100"/>
-		<recipient channel="securedChannelAdapter2"/>
-		<recipient channel="internalChannel"/>
-	</recipient-list-router>
+	</bridge>
 
-	<chain input-channel="internalChannel" output-channel="resultChannel">
-		<service-activator expression="T(org.springframework.security.core.context.SecurityContextHolder).context"/>
-		<header-enricher>
-			<header name="threadId" expression="T(Thread).currentThread().id"/>
-		</header-enricher>
-	</chain>
+	<channel id="securedChannelQueue">
+		<queue/>
+	</channel>
 
-	<channel id="resultChannel">
+	<channel id="errorChannel">
 		<queue/>
 	</channel>
 
