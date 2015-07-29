@@ -266,6 +266,7 @@ project('spring-integration-test') {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
 		compile "org.springframework:spring-test:$springVersion"
+		compile "log4j:log4j:$log4jVersion" // TEMPORARY - DO NOT RELEASE
 	}
 }
 
