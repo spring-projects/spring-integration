@@ -36,6 +36,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.log4j.Level;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -50,6 +52,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -65,6 +68,10 @@ import org.springframework.messaging.support.GenericMessage;
  *
  */
 public class FailoverClientConnectionFactoryTests {
+
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
+			"org.springframework.integration.ip.tcp");
 
 	@Test
 	public void testFailoverGood() throws Exception {
