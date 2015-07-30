@@ -519,25 +519,32 @@ However, there are certain things you must understand when configuring a Poller 
 The problem is that there are two configurations in place.
 The _Poller_ and the _TaskExecutor_, and they both have to be in tune with each other otherwise you might end up creating an artificial memory leak.
 
-Let's look at the following configuration provided by one of the users on the Spring Integration forum (http://forum.springsource.org/showthread.php?t=94519):
+Let's look at the following configuration provided by one of the users on the
+http://forum.spring.io/forum/spring-projects/integration/87155-spring-integration-poller-configuration[Spring Integration Forum]:
 [source,xml]
 ----
+<int:channel id="publishChannel">
+    <int:queue />
+</int:channel>
+
 <int:service-activator input-channel="publishChannel" ref="myService">
-	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
+	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50" />
 </int:service-activator>
 
-<task:executor id="taskExecutor" pool-size="20" queue-capacity="20"/>
+<task:executor id="taskExecutor" pool-size="20" />
 ----
 
 The above configuration demonstrates one of those out of tune configurations.
 
+By default, the task executor has an unbounded task queue.
 The poller keeps scheduling new tasks even though all the threads are blocked waiting for either a new message to arrive, or the timeout to expire.
 Given that there are 20 threads executing tasks with a 5 second timeout, they will be executed at a rate of 4 per second (5000/20 = 250ms).
 But, new tasks are being scheduled at a rate of 20 per second, so the internal queue in the task executor will grow at a rate of 16 per second (while the process is idle), so we essentially have a memory leak.
 
-One of the ways to handle this is to set the `queue-capacity` attribute of the Task Executor to 0.
+One of the ways to handle this is to set the `queue-capacity` attribute of the Task Executor; and even 0 is a reasonable
+value.
 You can also manage it by specifying what to do with messages that can not be queued by setting the `rejection-policy` attribute of the Task Executor (e.g., DISCARD).
-In other words there are certain details you must understand with regard to configuring the TaskExecutor.
+In other words, there are certain details you must understand with regard to configuring the TaskExecutor.
 Please refer to - _Section 25 - Task Execution and Scheduling_ of the Spring reference manual for more detail on the subject.
 
 [[endpoint-inner]]
