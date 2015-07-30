@@ -308,11 +308,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
 			while (messageIds.hasNext()){
-				if (raw){
-					messages.add(getRawMessage(messageIds.next()));
-				}
-				else {
-					messages.add(getMessage(messageIds.next()));
+				UUID next = messageIds.next();
+				if (next != null) {
+					if (raw){
+						messages.add(getRawMessage(next));
+					}
+					else {
+						messages.add(getMessage(next));
+					}
 				}
 			}
 

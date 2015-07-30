@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.jpa.test;
+package org.springframework.integration.test.util;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -26,7 +26,7 @@ import org.springframework.scheduling.TriggerContext;
  * @since 2.2
  *
  */
-public class TestTrigger implements Trigger {
+public class OnlyOnceTrigger implements Trigger {
 
 	private static final AtomicBoolean hasRun = new AtomicBoolean();
 
@@ -35,15 +35,15 @@ public class TestTrigger implements Trigger {
 	private static volatile CountDownLatch latch = new CountDownLatch(1);
 
 
-	public TestTrigger() {
+	public OnlyOnceTrigger() {
 		super();
 		executionTime = new Date();
 	}
 
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 
-		if (TestTrigger.hasRun.getAndSet(true)) {
-			TestTrigger.latch.countDown();
+		if (OnlyOnceTrigger.hasRun.getAndSet(true)) {
+			OnlyOnceTrigger.latch.countDown();
 			return null;
 		}
 
@@ -67,7 +67,7 @@ public class TestTrigger implements Trigger {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		TestTrigger other = (TestTrigger) obj;
+		OnlyOnceTrigger other = (OnlyOnceTrigger) obj;
 		if (executionTime == null) {
 			if (other.executionTime != null)
 				return false;
@@ -77,13 +77,13 @@ public class TestTrigger implements Trigger {
 	}
 
 	public void reset() {
-		TestTrigger.latch = new CountDownLatch(1);
-		TestTrigger.hasRun.set(false);
+		OnlyOnceTrigger.latch = new CountDownLatch(1);
+		OnlyOnceTrigger.hasRun.set(false);
 	}
 
 	public void await() {
 		try {
-			TestTrigger.latch.await(5000, TimeUnit.MILLISECONDS);
+			OnlyOnceTrigger.latch.await(5000, TimeUnit.MILLISECONDS);
 			if (latch.getCount() != 0) {
 				throw new RuntimeException("test latch.await() did not count down");
 			}
