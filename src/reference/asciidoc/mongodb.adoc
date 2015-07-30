@@ -251,7 +251,7 @@ If you don't have a 'real' transaction, you can use a `org.springframework.integ
 
 IMPORTANT: This does NOT make MongoDB itself transactional, it simply allows the synchronization of actions to be taken before/after success (commit) or after failure (rollback).
 
-Once your poller is transactional all you need to do is set an instance of the `org.springframework.integration.transaction.TransactionSynchronizationFactory` on the `transactional` element.
+Once your poller is transactional all you need to do is set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
 `TransactionSynchronizationFactory` will create an instance of the `TransactioinSynchronization`.
 For your convenience, we've exposed a default SpEL-based `TransactionSynchronizationFactory` which allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
 Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the evaluation result (if any) will be sent.

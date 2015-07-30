@@ -182,6 +182,7 @@ For example:
 
 In the above example instead of relying on the default `SearchTermStrategy` the `TestSearchTermStrategy` will be used instead
 
+[[imap-peek]]
 [IMPORTANT]
 .Important: IMAP PEEK
 =====

@@ -465,7 +465,7 @@ If you don't have a 'real' transaction, you can use a `o.s.i.transaction.PseudoT
 
 IMPORTANT: This does NOT make the Redis activities themselves transactional, it simply allows the synchronization of actions to be taken before/after success (commit) or after failure (rollback).
 
-Once your poller is transactional all you need to do is set an instance of the `org.springframework.integration.transaction.TransactionSynchronizationFactory` on the `transactional` element.
+Once your poller is transactional all you need to do is set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
 `TransactionSynchronizationFactory` will create an instance of the `TransactionSynchronization`.
 For your convenience we've exposed a default SpEL-based `TransactionSynchronizationFactory` which allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
 Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the evaluation result (if any) will be sent.
@@ -585,10 +585,10 @@ If neither of them is provided the `payload` is used as the command argument(s).
 Argument expressions may evaluate to 'null', to support a variable number of arguments.
 
 
-<10> A `boolean` flag to specify if the evaluated Redis command string will be made available as the `#cmd` variable in the expression evaluation context in the `org.springframework.integration.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured, otherwise this attribute is ignored.
+<10> A `boolean` flag to specify if the evaluated Redis command string will be made available as the `#cmd` variable in the expression evaluation context in the `o.s.i.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured, otherwise this attribute is ignored.
 
 
-<11> Reference to an instance of `org.springframework.integration.redis.outbound.ArgumentsStrategy`.
+<11> Reference to an instance of `o.s.i.redis.outbound.ArgumentsStrategy`.
 Mutually exclusive with `argument-expressions` attribute.
 If neither of them is provided the `payload` is used as the command argument(s).
 

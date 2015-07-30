@@ -25,7 +25,7 @@ In order to provide a quick overview, all available attributes are listed in the
 
 .Routers Outside of a Chain
 
-[cols="3,1,1,1,1,1,1", options="header"]
+[cols="2,1,1,1,1,1,1", options="header"]
 |===
 
 
@@ -338,7 +338,7 @@ a| image::images/tickmark.png[]
 |===
 
 .Routers Inside of a Chain
-[cols="3,1,1,1,1,1,1", options="header"]
+[cols="2,1,1,1,1,1,1", options="header"]
 |===
 
 

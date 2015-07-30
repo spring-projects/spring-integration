@@ -66,10 +66,10 @@ To recap, *Inbound Channel Adapters* are used for one-way integration bringing d
 | *Events*
 
 
-| <<applicationevent-inbound>>
+| <<appevent-inbound>>
 
 
-| <<applicationevent-outbound>>
+| <<appevent-outbound>>
 
 
 | N

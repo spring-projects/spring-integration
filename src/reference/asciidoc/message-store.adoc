@@ -68,6 +68,7 @@ The Framework provides these implementations, which can be used as a persistent 
 * <<mongodb-priority-channel-message-store>>
 * <<jdbc-message-store-channels>>
 
+[[sms-caution]]
 [WARNING]
 .Caution with SimpleMessageStore
 =====

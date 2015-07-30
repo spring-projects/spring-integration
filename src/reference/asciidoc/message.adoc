@@ -62,7 +62,7 @@ The following Message headers are pre-defined:
 
 .Pre-defined Message Headers
 
-[cols="2l,2l,6", options="header"]
+[cols="2l,2l,5", options="header"]
 |===
 
 
