@@ -92,10 +92,12 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	@Override
 	protected void handleMessage(Message<?> message) {
 		boolean executorInterceptorPresent = false;
-		for (ChannelInterceptor interceptor : this.channelInterceptors) {
-			if (interceptor instanceof ExecutorChannelInterceptor) {
-				executorInterceptorPresent = true;
-				break;
+		if (this.channelInterceptors != null) {
+			for (ChannelInterceptor interceptor : this.channelInterceptors) {
+				if (interceptor instanceof ExecutorChannelInterceptor) {
+					executorInterceptorPresent = true;
+					break;
+				}
 			}
 		}
 
