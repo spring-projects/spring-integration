@@ -326,6 +326,7 @@ NOTE: When using the headers to determine the type, you should *not* provide a `
 In addition to JSON Transformers, Spring Integration provides a built-in _#jsonPath_ SpEL function for use in expressions.
 For more information see <<spel>>.
 
+[[transformer-xpath-spel-function]]
 *#xpath SpEL Function*
 
 Since version _3.0_, Spring Integration also provides a built-in _#xpath_ SpEL function for use in expressions.

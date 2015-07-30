@@ -358,7 +358,7 @@ Beginning with version 3.0, changes to `TcpConnection` s are reported by `TcpCon
 [NOTE]
 =====
 The following is deprecated as of _version 4.2_; use the generic Event Inbound Channel Adapter instead.
-See <<applicationevent-inbound>>.
+See <<appevent-inbound>>.
 
 For convenience, a `<int-ip:tcp-connection-event-inbound-channel-adapter/>` is provided.
 This adapter will receive all `TcpConnectionEvent` s (by default), and send them to its `channel`.
@@ -378,7 +378,7 @@ You can also use this to limit which `TcpConnectionEvent` s you are interested i
 
 In addition, since _version 4.0_ the standard deserializers discussed in <<connection-factories>> now emit `TcpDeserializationExceptionEvent` s when problems are encountered decoding the data stream.
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point the exception occurred.
-Applications can use a normal `ApplicationListener`, or see <<applicationevent-inbound>>, to capture these events, allowing analysis of the problem.
+Applications can use a normal `ApplicationListener`, or see <<appevent-inbound>>, to capture these events, allowing analysis of the problem.
 
 Starting with _versions 4.0.7, 4.1.3_, `TcpConnectionServerExceptionEvent` s are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
 These events have a reference to the connection factory and the cause.
@@ -1058,6 +1058,7 @@ Default 100.
 Only applies if `using-nio` is `true`.
 |===
 
+[[ip-udp-ib-atts]]
 .UDP Inbound Channel Adapter Attributes
 [cols="1,^1,4", options="header"]
 |===
@@ -1338,7 +1339,7 @@ Only applies if the reply-channel might block, such as a bounded QueueChannel th
 [[ip-msg-headers]]
 === IP Message Headers
 The following `MessageHeader` s are used by this module:
-[cols="1,1,4", options="header"]
+[cols="2,2,4", options="header"]
 |===
 | Header Name
 | IpHeaders Constant
@@ -1368,7 +1369,7 @@ The framework includes acknowledgment information in the data packet.
 | CONNECTION_ID
 | A unique identifier for a TCP connection; set by the framework for inbound messages; when sending to a server-side inbound channel adapter, or replying to an inbound gateway, this header is required so the endpoint can determine which connection to send the message to.
 | ip_actualConnectionId
-| ACTUAL_CONNECTION_ID
+| ACTUAL_ CONNECTION_ID
 | For information only - when using a cached or failover client connection factory, contains the actual underlying connection id.
 |===
 

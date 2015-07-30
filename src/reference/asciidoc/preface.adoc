@@ -63,3 +63,10 @@ NOTE: Please note that the namespace prefix can be freely chosen.
 You may even choose not to use any namespace prefixes at all.
 Therefore, apply the convention that suits your application needs best.
 Be aware, though, that SpringSource Tool Suite™ (STS) uses the same namespace conventions for Spring Integration as used in this reference guide.
+
+
+== Conventions in this Book
+
+In some cases, to aid formatting, when specifying long fully-qualified class names, we shorten
+the package `org.springframework` to `o.s` and `org.springframework.integration` to `o.s.i`, such as with
+`o.s.i.transaction.TransactionSynchronizationFactory`.

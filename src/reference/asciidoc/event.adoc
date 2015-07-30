@@ -4,8 +4,8 @@
 Spring Integration provides support for inbound and outbound `ApplicationEvents` as defined by the underlying Spring Framework.
 For more information about Spring's support for events and listeners, refer to the http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#context-functionality-events[Spring Reference Manual].
 
-[[applicationevent-inbound]]
-=== Receiving Spring ApplicationEvents
+[[appevent-inbound]]
+=== Receiving Spring Application Events
 
 To receive events and send them to a channel, simply define an instance of Spring Integration's `ApplicationEventListeningMessageProducer`.
 This class is an implementation of Spring's `ApplicationListener` interface.
@@ -30,8 +30,8 @@ In the above example, all Application Context events that match one of the types
 If a downstream component throws an exception, a MessagingException containing the failed message and exception will be sent to the channel named 'eventErrorChannel'.
 If no "error-channel" is specified and the downstream channels are synchronous, the Exception  will be propagated to the caller.
 
-[[applicationevent-outbound]]
-=== Sending Spring ApplicationEvents
+[[appevent-outbound]]
+=== Sending Spring Application Events
 
 To send Spring `ApplicationEvents`, create an instance of the `ApplicationEventPublishingMessageHandler` and register it within an endpoint.
 This implementation of the `MessageHandler` interface also implements Spring's `ApplicationEventPublisherAware` interface and thus acts as a bridge between Spring Integration Messages and `ApplicationEvents`.

@@ -80,7 +80,7 @@ A `UDP` adapter that sends messages to channel `fromSyslog`.
 It also shows the `SmartLifecycle` attributes `auto-startup` and `phase`.
 It has a reference to a custom `org.springframework.integration.syslog.MessageConverter` with id `converter` and an `error-channel`.
 Also notice the `udp-attributes` child element.
-You can set various UDP attributes here, as defined in <<ip-ib-adapter-attributes>>.
+You can set various UDP attributes here, as defined in <<ip-udp-ib-atts>>.
 
 NOTE: When using the `udp-attributes` element, the `port` attribute must be provided there rather than on the `inbound-channel-adapter` element itself.
 

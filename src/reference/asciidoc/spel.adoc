@@ -158,7 +158,7 @@ Instead of configuring the factory bean above, simply add one or more of these c
 With this sample, two custom `PropertyAccessor` s will be injected to the `EvaluationContext` in the order that they are declared.
 
 NOTE: Custom `PropertyAccessor` s declared in a parent context are also made available in any child context(s).
-They are placed at the end of result list (but before the default `org.springframework.context.expression.MapAccessor` and `org.springframework.expression.spel.support.ReflectivePropertyAccessor`).
+They are placed at the end of result list (but before the default `org.springframework.context.expression.MapAccessor` and `o.s.expression.spel.support.ReflectivePropertyAccessor`).
 If a `PropertyAccessor` with the same bean id is declared in a child context(s), it will override the parent accessor.
 Beans declared within a `<spel-property-accessors/>` must have an 'id' attribute.
 The final order of usage is: the accessors in the current context, in the order in which they are declared, followed by any from parent contexts, in order, followed by the `MapAccessor` and finally the `ReflectivePropertyAccessor`.
