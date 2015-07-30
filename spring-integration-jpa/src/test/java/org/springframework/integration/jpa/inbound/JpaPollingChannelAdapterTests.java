@@ -39,7 +39,7 @@ import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.test.Consumer;
 import org.springframework.integration.jpa.test.JpaTestUtils;
-import org.springframework.integration.jpa.test.TestTrigger;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
@@ -83,7 +83,7 @@ public class JpaPollingChannelAdapterTests {
 	private MessageChannel outputChannel;
 
 	@Autowired
-	TestTrigger testTrigger;
+	OnlyOnceTrigger testTrigger;
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use a plain entity class
@@ -113,7 +113,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -156,7 +156,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -200,7 +200,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -242,7 +242,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -262,7 +262,7 @@ public class JpaPollingChannelAdapterTests {
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
-	 * to retrieve a list of records from the database. Additionaly, the records
+	 * to retrieve a list of records from the database. Additionally, the records
 	 * will be deleted after the polling.
 	 *
 	 * @throws Exception
@@ -292,7 +292,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -305,8 +305,10 @@ public class JpaPollingChannelAdapterTests {
 
 		assertTrue(students.size() == 3);
 
-		assertEquals(Long.valueOf(0), entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult());
 
+		Long studentCount = waitForDeletes(students);
+
+		assertEquals(Long.valueOf(0), studentCount);
 	}
 
 	private Long waitForDeletes(Collection<?> students) throws InterruptedException {
@@ -348,7 +350,7 @@ public class JpaPollingChannelAdapterTests {
 		final Consumer consumer = new Consumer();
 
 		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		final Message<Collection<?>> message = received.get(0);
 
@@ -388,7 +390,7 @@ public class JpaPollingChannelAdapterTests {
 		final Consumer consumer = new Consumer();
 
 		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		final Message<Collection<?>> message = received.get(0);
 
@@ -435,7 +437,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 
@@ -478,7 +480,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Consumer consumer = new Consumer();
 
-		received.add(consumer.poll(5000));
+		received.add(consumer.poll(10000));
 
 		Message<Collection<?>> message = received.get(0);
 

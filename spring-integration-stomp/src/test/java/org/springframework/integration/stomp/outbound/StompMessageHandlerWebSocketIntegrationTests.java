@@ -32,6 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,6 +54,7 @@ import org.springframework.integration.stomp.WebSocketStompSessionManager;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
@@ -95,6 +97,9 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @DirtiesContext
 public class StompMessageHandlerWebSocketIntegrationTests {
 
+	@ClassRule
+	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
 
@@ -113,10 +118,10 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 	@Test
 	public void testStompMessageHandler() throws InterruptedException {
 		int n = 0;
-		while (TestUtils.getPropertyValue(this.stompMessageHandler, "stompSession") == null && n++ < 10) {
-			Thread.sleep(50);
+		while (TestUtils.getPropertyValue(this.stompMessageHandler, "stompSession") == null && n++ < 100) {
+			Thread.sleep(100);
 		}
-		assertTrue(n < 10);
+		assertTrue(n < 100);
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setDestination("/app/simple");
@@ -180,7 +185,7 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		public WebSocketStompClient stompClient(TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setTaskScheduler(taskScheduler);
-			webSocketStompClient.setReceiptTimeLimit(200);
+			webSocketStompClient.setReceiptTimeLimit(5000);
 			webSocketStompClient.setMessageConverter(new StringMessageConverter());
 			return webSocketStompClient;
 		}

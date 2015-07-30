@@ -23,8 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.concurrent.Executors;
-
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -55,8 +53,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.SocketUtils;
 
@@ -81,11 +77,13 @@ public class StompServerIntegrationTests {
 		activeMQBroker.getSystemUsage().getMemoryUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();
+
 		stompClient = new Reactor2TcpStompClient("127.0.0.1", port);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		stompClient.setTaskScheduler(taskScheduler);
+		stompClient.setReceiptTimeLimit(5000);
 	}
 
 	@AfterClass

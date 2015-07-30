@@ -51,7 +51,7 @@
 
 	<bean id="consumer" class="org.springframework.integration.jpa.test.Consumer" />
 
-	<bean id="testtrigger" class="org.springframework.integration.jpa.test.TestTrigger" />
+	<bean id="testtrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger" />
 
 	<int:poller id="defaultPoller" default="true" fixed-rate="10000" />
 

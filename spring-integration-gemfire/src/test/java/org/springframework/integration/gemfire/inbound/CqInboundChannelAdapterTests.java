@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.gemfire.inbound;
 
 import static org.junit.Assert.assertEquals;
@@ -78,7 +79,7 @@ public class CqInboundChannelAdapterTests {
 	@Test
 	public void testCqEvent()  throws InterruptedException {
 		region.put("one",1);
-		Message<?> msg = outputChannel1.receive(1000);
+		Message<?> msg = outputChannel1.receive(10000);
 		assertNotNull(msg);
 		assertTrue(msg.getPayload() instanceof CqEvent);
 	}
@@ -86,7 +87,7 @@ public class CqInboundChannelAdapterTests {
 	@Test
 	public void testPayloadExpression()  throws InterruptedException {
 		region.put("one",1);
-		Message<?> msg = outputChannel2.receive(1000);
+		Message<?> msg = outputChannel2.receive(10000);
 		assertNotNull(msg);
 		assertEquals(1,msg.getPayload());
 	}
@@ -108,4 +109,5 @@ public class CqInboundChannelAdapterTests {
 			throw new IllegalStateException("Cannot communicate with forked VM", ex);
 		}
 	}
+
 }

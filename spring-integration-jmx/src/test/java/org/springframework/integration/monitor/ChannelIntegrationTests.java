@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
@@ -33,6 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -45,6 +47,9 @@ public class ChannelIntegrationTests {
 
 	@Autowired
 	private PollableChannel intermediate;
+
+	@Autowired
+	private PollableChannel sourceChannel;
 
 	@Autowired
 	private IntegrationMBeanExporter messageChannelsMonitor;
@@ -85,7 +90,7 @@ public class ChannelIntegrationTests {
 		assertEquals(3, handlerMetrics.getHandleCount());
 		assertEquals(1, handlerMetrics.getErrorCount());
 
-		Thread.sleep(50);
+		assertNotNull(this.sourceChannel.receive(10000));
 
 		assertTrue(messageChannelsMonitor.getSourceMessageCount("source") > 0);
 		assertTrue(messageChannelsMonitor.getSourceMetrics("source").getMessageCount() > 0);

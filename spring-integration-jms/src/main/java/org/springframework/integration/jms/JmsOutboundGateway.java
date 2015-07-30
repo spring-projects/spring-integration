@@ -1200,7 +1200,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private class GatewayReplyListenerContainer extends DefaultMessageListenerContainer {
 
-		private Destination replyDestination;
+		private volatile Destination replyDestination;
 
 		@Override
 		protected Destination resolveDestinationName(Session session, String destinationName) throws JMSException {

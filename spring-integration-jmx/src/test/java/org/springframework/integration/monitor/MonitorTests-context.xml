@@ -16,9 +16,11 @@
 	<int:channel id="input">
 		<int:queue />
 	</int:channel>
-	
+
+	<bean id="testTrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger"/>
+
 	<int:bridge input-channel="input" output-channel="next">
-		<int:poller fixed-delay="500" />
+		<int:poller trigger="testTrigger" />
 	</int:bridge>
 
 	<int:service-activator input-channel="next">

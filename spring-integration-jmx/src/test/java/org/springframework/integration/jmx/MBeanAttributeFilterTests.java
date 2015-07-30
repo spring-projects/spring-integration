@@ -62,7 +62,7 @@ public class MBeanAttributeFilterTests {
 	@Autowired
 	private String domain;
 
-	private final long testTimeout = 1000L;
+	private final long testTimeout = 10000L;
 
 	@Test
 	public void testAttributeFilter() {
