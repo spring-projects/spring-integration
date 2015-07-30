@@ -41,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -87,7 +88,7 @@ public class FileReadingMessageSourceIntegrationTests {
 	}
 
 	@After
-	public void cleanoutInputDir() throws Exception {
+	public void cleanupInputDir() throws Exception {
 		File[] listFiles = inputDir.listFiles();
 		for (int i = 0; i < listFiles.length; i++) {
 			listFiles[i].delete();
@@ -140,11 +141,12 @@ public class FileReadingMessageSourceIntegrationTests {
 		assertNull(pollableFileSource.receive());
 	}
 
-	@Test(timeout = 6000)
+	@Test
 	@Repeat(5)
 	public void concurrentProcessing() throws Exception {
 		CountDownLatch go = new CountDownLatch(1);
-		Runnable succesfulConsumer = new Runnable() {
+		Runnable successfulConsumer = new Runnable() {
+
 			@Override
 			public void run() {
 				Message<File> received = pollableFileSource.receive();
@@ -154,8 +156,10 @@ public class FileReadingMessageSourceIntegrationTests {
 				}
 				pollableFileSource.onSend(received);
 			}
+
 		};
 		Runnable failingConsumer = new Runnable() {
+
 			@Override
 			public void run() {
 				Message<File> received = pollableFileSource.receive();
@@ -163,12 +167,13 @@ public class FileReadingMessageSourceIntegrationTests {
 					pollableFileSource.onFailure(received);
 				}
 			}
+
 		};
-		CountDownLatch succesfulDone = doConcurrently(3, succesfulConsumer, go);
+		CountDownLatch successfulDone = doConcurrently(3, successfulConsumer, go);
 		CountDownLatch failingDone = doConcurrently(10, failingConsumer, go);
 		go.countDown();
 		try {
-			succesfulDone.await();
+			successfulDone.await();
 			failingDone.await();
 		}
 		catch (InterruptedException e) {
@@ -187,7 +192,8 @@ public class FileReadingMessageSourceIntegrationTests {
 	 *
 	 * @param numberOfThreads how many threads to spawn
 	 * @param runnable		the runnable that should be run by all the threads
-	 * @param start		   the {@link java.util.concurrent.CountDownLatch} instance telling it when to assume everything works
+	 * @param start		   the {@link java.util.concurrent.CountDownLatch} instance
+	 *                        telling it when to assume everything works
 	 * @return a latch that will be counted down once all threads have run their
 	 *		 runnable.
 	 */
@@ -210,8 +216,10 @@ public class FileReadingMessageSourceIntegrationTests {
 					runnable.run();
 					done.countDown();
 				}
+
 			}).start();
 		}
 		return done;
 	}
+
 }

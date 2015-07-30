@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.jdbc.store.channel;
 
 import static org.junit.Assert.assertEquals;
@@ -191,7 +192,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		}
 
 		executorService.shutdown();
-		assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
+		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -200,7 +201,7 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 			this.first.send(new GenericMessage<Object>("test"));
 		}
 
-		assertTrue(this.successfulLatch.await(5, TimeUnit.SECONDS));
+		assertTrue(this.successfulLatch.await(20, TimeUnit.SECONDS));
 
 		assertEquals(0, errorAtomicInteger.get());
 	}
@@ -247,31 +248,31 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		message = MessageBuilder.withPayload("31").setHeader(IntegrationMessageHeaderAccessor.PRIORITY, 3).build();
 		priorityChannel.send(message);
 
-		Message<?> receive = priorityChannel.receive(1000);
+		Message<?> receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("3", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("31", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("2", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("1", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("0", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("-1", receive.getPayload());
 
-		receive = priorityChannel.receive(1000);
+		receive = priorityChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("none", receive.getPayload());
 	}

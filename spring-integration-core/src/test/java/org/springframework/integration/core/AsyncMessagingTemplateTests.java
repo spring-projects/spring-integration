@@ -150,7 +150,7 @@ public class AsyncMessagingTemplateTests {
 		Future<Message<?>> result = template.asyncReceive();
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
-		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get().getPayload());
 		assertTrue(elapsed >= 200-safety);
@@ -180,7 +180,7 @@ public class AsyncMessagingTemplateTests {
 		Future<Message<?>> result = template.asyncReceive("testChannel");
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
-		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 
 		assertTrue(elapsed >= 200-safety);
@@ -202,7 +202,7 @@ public class AsyncMessagingTemplateTests {
 		Future<?> result = template.asyncReceiveAndConvert();
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
-		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get());
 
@@ -216,7 +216,7 @@ public class AsyncMessagingTemplateTests {
 		Future<?> result = template.asyncReceiveAndConvert(channel);
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
-		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get());
 
@@ -234,7 +234,7 @@ public class AsyncMessagingTemplateTests {
 		Future<?> result = template.asyncReceiveAndConvert("testChannel");
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
-		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 
 		assertTrue(elapsed >= 200-safety);

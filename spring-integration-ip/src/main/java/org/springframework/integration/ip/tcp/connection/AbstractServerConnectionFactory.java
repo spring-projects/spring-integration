@@ -187,7 +187,9 @@ public abstract class AbstractServerConnectionFactory
 	}
 
 	protected void publishServerExceptionEvent(Exception e) {
-		getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, e));
+		if (getApplicationEventPublisher() != null) {
+			getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, e));
+		}
 	}
 
 }

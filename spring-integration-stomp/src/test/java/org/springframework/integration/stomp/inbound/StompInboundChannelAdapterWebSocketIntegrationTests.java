@@ -59,6 +59,7 @@ import org.springframework.messaging.simp.broker.SubscriptionRegistry;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.support.AbstractSubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
@@ -209,7 +210,6 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		public WebSocketStompClient stompClient(TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
-			webSocketStompClient.setDefaultHeartbeat(new long[]{100, 100});
 			webSocketStompClient.setTaskScheduler(taskScheduler);
 			return webSocketStompClient;
 		}
@@ -219,6 +219,9 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			WebSocketStompSessionManager webSocketStompSessionManager =
 					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
+			StompHeaders stompHeaders = new StompHeaders();
+			stompHeaders.setHeartbeat(new long[] {10000, 10000});
+			webSocketStompSessionManager.setConnectHeaders(stompHeaders);
 			return webSocketStompSessionManager;
 		}
 
