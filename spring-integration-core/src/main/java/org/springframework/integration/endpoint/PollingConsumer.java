@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -58,8 +58,8 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;
 		this.handler = handler;
-		if (this.inputChannel instanceof ChannelInterceptorAware) {
-			this.channelInterceptors = ((ChannelInterceptorAware) this.inputChannel).getChannelInterceptors();
+		if (this.inputChannel instanceof ExecutorChannelInterceptorAware) {
+			this.channelInterceptors = ((ExecutorChannelInterceptorAware) this.inputChannel).getChannelInterceptors();
 		}
 		else {
 			channelInterceptors = null;
@@ -79,7 +79,6 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		super.doStart();
 	}
 
-
 	@Override
 	protected void doStop() {
 		if (this.handler instanceof Lifecycle) {
@@ -88,22 +87,12 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		super.doStop();
 	}
 
-
 	@Override
 	protected void handleMessage(Message<?> message) {
-		boolean executorInterceptorPresent = false;
-		if (this.channelInterceptors != null) {
-			for (ChannelInterceptor interceptor : this.channelInterceptors) {
-				if (interceptor instanceof ExecutorChannelInterceptor) {
-					executorInterceptorPresent = true;
-					break;
-				}
-			}
-		}
-
 		Deque<ExecutorChannelInterceptor> interceptorStack = null;
 		try {
-			if (executorInterceptorPresent) {
+			if (this.channelInterceptors != null
+					&& ((ExecutorChannelInterceptorAware) this.inputChannel).hasExecutorInterceptors()) {
 				interceptorStack = new ArrayDeque<ExecutorChannelInterceptor>();
 				message = applyBeforeHandle(message, interceptorStack);
 				if (message == null) {
@@ -128,7 +117,8 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		catch (Error ex) {
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				String description = "Failed to handle " + message + " to " + this + " in " + this.handler;
-				triggerAfterMessageHandled(message, new MessageDeliveryException(message, description, ex),
+				triggerAfterMessageHandled(message,
+						new MessageDeliveryException(message, description, ex),
 						interceptorStack);
 			}
 			throw ex;
@@ -155,7 +145,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	}
 
 	private void triggerAfterMessageHandled(Message<?> message, Exception ex,
-											Deque<ExecutorChannelInterceptor> interceptorStack) {
+	                                        Deque<ExecutorChannelInterceptor> interceptorStack) {
 		Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
 		while (iterator.hasNext()) {
 			ExecutorChannelInterceptor interceptor = iterator.next();

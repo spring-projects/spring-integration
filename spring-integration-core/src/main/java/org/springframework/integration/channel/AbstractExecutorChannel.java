@@ -47,7 +47,8 @@ import org.springframework.util.CollectionUtils;
  * @see PublishSubscribeChannel
  * @since 4.2
  */
-public abstract class AbstractExecutorChannel extends AbstractSubscribableChannel {
+public abstract class AbstractExecutorChannel extends AbstractSubscribableChannel
+		implements ExecutorChannelInterceptorAware {
 
 	protected volatile Executor executor;
 
@@ -116,6 +117,10 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 		return interceptor;
 	}
 
+	@Override
+	public boolean hasExecutorInterceptors() {
+		return this.executorInterceptorsSize > 0;
+	}
 
 	protected class MessageHandlingTask implements Runnable {
 

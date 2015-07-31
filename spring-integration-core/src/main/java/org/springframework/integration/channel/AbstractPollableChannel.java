@@ -18,11 +18,13 @@ package org.springframework.integration.channel;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -31,10 +33,12 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel,
-		PollableChannelManagement {
+public abstract class AbstractPollableChannel extends AbstractMessageChannel
+		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
+	protected volatile int executorInterceptorsSize;
 
 	@Override
 	public int getReceiveCount() {
@@ -124,6 +128,55 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			}
 			throw e;
 		}
+	}
+
+	@Override
+	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		super.setInterceptors(interceptors);
+		for (ChannelInterceptor interceptor : interceptors) {
+			if (interceptor instanceof ExecutorChannelInterceptor) {
+				this.executorInterceptorsSize++;
+			}
+		}
+	}
+
+	@Override
+	public void addInterceptor(ChannelInterceptor interceptor) {
+		super.addInterceptor(interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		super.addInterceptor(index, interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public boolean removeInterceptor(ChannelInterceptor interceptor) {
+		boolean removed = super.removeInterceptor(interceptor);
+		if (removed && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return removed;
+	}
+
+	@Override
+	public ChannelInterceptor removeInterceptor(int index) {
+		ChannelInterceptor interceptor = super.removeInterceptor(index);
+		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return interceptor;
+	}
+
+	@Override
+	public boolean hasExecutorInterceptors() {
+		return this.executorInterceptorsSize > 0;
 	}
 
 	/**

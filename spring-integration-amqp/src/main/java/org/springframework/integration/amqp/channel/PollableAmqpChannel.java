@@ -18,16 +18,19 @@ package org.springframework.integration.amqp.channel;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -40,8 +43,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.1
  */
-public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel,
-		PollableChannelManagement {
+public class PollableAmqpChannel extends AbstractAmqpChannel
+		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
 	private final String channelName;
 
@@ -49,6 +52,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	private volatile AmqpAdmin amqpAdmin;
 
+	private volatile int executorInterceptorsSize;
 
 	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate) {
 		super(amqpTemplate);
@@ -182,6 +186,55 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 					"The timeout will be ignored since no receive timeout is supported.");
 		}
 		return this.receive();
+	}
+
+	@Override
+	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		super.setInterceptors(interceptors);
+		for (ChannelInterceptor interceptor : interceptors) {
+			if (interceptor instanceof ExecutorChannelInterceptor) {
+				this.executorInterceptorsSize++;
+			}
+		}
+	}
+
+	@Override
+	public void addInterceptor(ChannelInterceptor interceptor) {
+		super.addInterceptor(interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		super.addInterceptor(index, interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public boolean removeInterceptor(ChannelInterceptor interceptor) {
+		boolean removed = super.removeInterceptor(interceptor);
+		if (removed && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return removed;
+	}
+
+	@Override
+	public ChannelInterceptor removeInterceptor(int index) {
+		ChannelInterceptor interceptor = super.removeInterceptor(index);
+		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return interceptor;
+	}
+
+	@Override
+	public boolean hasExecutorInterceptors() {
+		return this.executorInterceptorsSize > 0;
 	}
 
 }

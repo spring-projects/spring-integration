@@ -18,12 +18,15 @@ package org.springframework.integration.jms;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
+import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
 /**
  * @author Mark Fisher
@@ -32,10 +35,12 @@ import org.springframework.messaging.support.ChannelInterceptor;
  * @author Artem Bilan
  * @since 2.0
  */
-public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel,
-		PollableChannelManagement {
+public class PollableJmsChannel extends AbstractJmsChannel
+		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
 	private volatile String messageSelector;
+
+	private volatile int executorInterceptorsSize;
 
 	public PollableJmsChannel(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -136,6 +141,55 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 		finally {
 			DynamicJmsTemplateProperties.clearReceiveTimeout();
 		}
+	}
+
+	@Override
+	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		super.setInterceptors(interceptors);
+		for (ChannelInterceptor interceptor : interceptors) {
+			if (interceptor instanceof ExecutorChannelInterceptor) {
+				this.executorInterceptorsSize++;
+			}
+		}
+	}
+
+	@Override
+	public void addInterceptor(ChannelInterceptor interceptor) {
+		super.addInterceptor(interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		super.addInterceptor(index, interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public boolean removeInterceptor(ChannelInterceptor interceptor) {
+		boolean removed = super.removeInterceptor(interceptor);
+		if (removed && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return removed;
+	}
+
+	@Override
+	public ChannelInterceptor removeInterceptor(int index) {
+		ChannelInterceptor interceptor = super.removeInterceptor(index);
+		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return interceptor;
+	}
+
+	@Override
+	public boolean hasExecutorInterceptors() {
+		return this.executorInterceptorsSize > 0;
 	}
 
 }
