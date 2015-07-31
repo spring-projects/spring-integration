@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +33,11 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.KafkaMessage;
@@ -54,12 +60,9 @@ import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.integration.kafka.util.TopicUtils;
 import org.springframework.messaging.support.MessageBuilder;
 
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.gs.collections.api.multimap.MutableMultimap;
 import com.gs.collections.impl.factory.Multimaps;
+
 import kafka.admin.AdminUtils;
 import kafka.api.OffsetRequest;
 import kafka.common.TopicExistsException;
@@ -134,6 +137,7 @@ public class OutboundTests {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		handler.setMessageKeyExpression(parser.parseExpression("headers.foo"));
 		handler.setTopicExpression(parser.parseExpression("headers.bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(MessageBuilder.withPayload("bar" + suffix)
@@ -209,6 +213,7 @@ public class OutboundTests {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		handler.setMessageKeyExpression(parser.parseExpression("headers.foo"));
 		handler.setTopicExpression(parser.parseExpression("headers.bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(MessageBuilder.withPayload("bar1" + suffix)
@@ -272,9 +277,10 @@ public class OutboundTests {
 		KafkaProducerContext producerContext = createProducerContext();
 		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(producerContext);
 
-		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix).build());
-
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
+
+		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix).build());
 
 		producerContext.stop();
 
