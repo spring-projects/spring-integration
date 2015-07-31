@@ -56,7 +56,7 @@ public class Log4jLevelAdjuster implements MethodRule {
 
 	public Log4jLevelAdjuster(Level level, String... categories) {
 		this.level = level;
-		this.classes = new Class[0];
+		this.classes = new Class<?>[0];
 		this.categories = categories;
 	}
 

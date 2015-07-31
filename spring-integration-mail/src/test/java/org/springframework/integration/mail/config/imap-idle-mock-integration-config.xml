@@ -20,7 +20,8 @@
 	</int:transaction-synchronization-factory>
 
 	<bean id="syncProcessor" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.mail.config.ImapIdelIntegrationTests.PostTransactionProcessor"/>
+		<constructor-arg
+				value="org.springframework.integration.mail.config.ImapIdleIntegrationTests.PostTransactionProcessor"/>
 	</bean>
 
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>

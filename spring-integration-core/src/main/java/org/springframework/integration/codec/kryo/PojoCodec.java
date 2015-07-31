@@ -19,6 +19,8 @@ package org.springframework.integration.codec.kryo;
 import java.util.Collections;
 import java.util.List;
 
+import org.objenesis.strategy.StdInstantiatorStrategy;
+
 import org.springframework.util.CollectionUtils;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -31,6 +33,7 @@ import com.esotericsoftware.kryo.io.Output;
  * {@link KryoRegistrar}s.
  *
  * @author David Turanski
+ * @author Artem Bilan
  * @since 4.2
  */
 public class PojoCodec extends AbstractKryoCodec {
@@ -96,6 +99,7 @@ public class PojoCodec extends AbstractKryoCodec {
 
 	@Override
 	protected void configureKryoInstance(Kryo kryo) {
+		kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 		if (this.kryoRegistrar != null) {
 			this.kryoRegistrar.registerTypes(kryo);
 		}
