@@ -341,6 +341,9 @@ public class ChannelPublishingJmsMessageListener
 				Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
 				if (replyMessage != null) {
 					Destination destination = this.getReplyDestination(jmsMessage, session);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Reply destination: " + destination);
+					}
 					if (destination != null) {
 						// convert SI Message to JMS Message
 						Object replyResult = replyMessage;
