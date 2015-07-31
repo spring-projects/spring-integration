@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.Assert;
 
 /**
@@ -35,12 +36,33 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 
 	private final AbstractMessageListenerContainer listenerContainer;
 
+	private final boolean externalContainer;
+
 	private final ChannelPublishingJmsMessageListener listener;
-	
+
 	private volatile String sessionAcknowledgeMode;
-	
+
+	/**
+	 * Construct an instance with an externally configured container.
+	 * @param listenerContainer the container.
+	 * @param listener the listener.
+	 */
 	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
 			ChannelPublishingJmsMessageListener listener) {
+		this(listenerContainer, listener, true);
+	}
+
+	/**
+	 * Construct an instance with an argument indicating whether the container's ack mode should
+	 * be overridden with {@link #setSessionAcknowledgeMode(String) sessionAcknowledgeMode}, default
+	 * 'transacted'.
+	 * @param listenerContainer the container.
+	 * @param listener the listener.
+	 * @param externalContainer true if the container is externally configured and should not have its ackmode
+	 * coerced when no sessionAcknowledgeMode was supplied.
+	 */
+	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
+			ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
 		if (logger.isWarnEnabled() && listenerContainer.getMessageListener() != null) {
@@ -51,12 +73,20 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 		this.listener = listener;
 		this.listenerContainer = listenerContainer;
 		setPhase(Integer.MAX_VALUE / 2);
+		this.externalContainer = externalContainer;
 	}
 
+	/**
+	 * Set the session acknowledge mode on the listener container. It will override the
+	 * container setting even if an external container is provided. Defaults to null
+	 * (won't change container) if an external container is provided or `transacted` when
+	 * the framework creates an implicit {@link DefaultMessageListenerContainer}.
+	 * @param sessionAcknowledgeMode the acknowledge mode.
+	 */
 	public void setSessionAcknowledgeMode(String sessionAcknowledgeMode) {
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
-	
+
 	@Override
 	public String getComponentType() {
 		return "jms:message-driven-channel-adapter";
@@ -68,7 +98,12 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();
 		}
-		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
+		String sessionAcknowledgeMode = this.sessionAcknowledgeMode;
+		if (sessionAcknowledgeMode == null && !this.externalContainer
+				&& DefaultMessageListenerContainer.class.isAssignableFrom(this.listenerContainer.getClass())) {
+			sessionAcknowledgeMode = JmsAdapterUtils.SESSION_TRANSACTED_STRING;
+		}
+		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAcknowledgeMode);
 		if (acknowledgeMode != null) {
 			if (acknowledgeMode.intValue() == JmsAdapterUtils.SESSION_TRANSACTED) {
 				this.listenerContainer.setSessionTransacted(true);
@@ -94,6 +129,7 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 		this.listener.stop();
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		if (this.isRunning()) {
 			this.stop();
@@ -102,12 +138,14 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 	}
 
 
+	@Override
 	public int beforeShutdown() {
 		this.stop();
 		return 0;
 	}
 
 
+	@Override
 	public int afterShutdown() {
 		return 0;
 	}

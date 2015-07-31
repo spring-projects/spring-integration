@@ -1317,7 +1317,10 @@
 	The native JMS acknowledge mode: "auto", "client", "dups-ok" or "transacted".
 	The latter effectively activates a locally transacted Session. 'transacted'
 	is not allowed on the inbound-channel-adapter; use 'session-transacted' instead.
-	acknowlege="transacted" is used on the message-driven-channel-adapter.
+	acknowlege="transacted" is used on the message-driven-channel-adapter and inbound gateway.
+	Defaults to "transacted" when an implicit message listener container is configured.
+	Not allowed when using an externally configured listener container; configure the container
+	instead.
 						]]></xsd:documentation>
 					</xsd:annotation>
 					<xsd:simpleType>

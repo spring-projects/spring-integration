@@ -65,7 +65,7 @@ In earlier versions, you had to inject a `JmsTemplate` with `sessionTransacted` 
 Note, however, that setting `session-transacted` to `true` has little value because the transaction is committed immediately after the `receive()` and before the message is sent to the `channel`,
 
 If you want the entire flow to be transactional (for example if there is a downstream outbound channel adapter), you must use a `transactional` poller, with a `JmsTransactionManager`.
-Or, consider using a `jms-message-driven-channel-adapter` with `acknowledge` set to `transacted`.
+Or, consider using a `jms-message-driven-channel-adapter` with `acknowledge` set to `transacted` (the default).
 
 [[jms-message-driven-channel-adapter]]
 === Message-Driven Channel Adapter
@@ -88,6 +88,10 @@ Refer to the JavaDoc and Spring Integration's JMS Schema (spring-integration-jms
 If you have a custom listener container implementation (usually a subclass of `DefaultMessageListenerContainer`), you can either provide a reference to an instance of it using the `container` attribute, or simply provide its fully qualified class name using the `container-class` attribute.
 In that case, the attributes on the adapter are transferred to an instance of your custom container.
 =====
+
+IMPORTANT: Starting with _version 4.2_, the default `acknowledge` mode is `transacted`, unless an external
+container is provided, in which case the container should be configured as needed.
+It is recommended to use `transacted` with the `DefaultMessageListenerContainer` to avoid message loss.
 
 The 'extract-payload' property has the same effect as described above, and once again its default value is 'true'.
 The poller sub-element is not applicable for a message-driven Channel Adapter, as it will be actively invoked.
@@ -205,6 +209,10 @@ When consuming from topics, set the `pub-sub-domain` attribute to true; set `sub
 for a durable subscription, `subscription-shared` for a shared subscription (requires a JMS 2.0 broker and
 has been available since _version 4.2_).
 Use `subscription-name` to name the subscription.
+
+IMPORTANT: Starting with _version 4.2_, the default `acknowledge` mode is `transacted`, unless an external
+container is provided, in which case the container should be configured as needed.
+It is recommended to use `transacted` with the `DefaultMessageListenerContainer` to avoid message loss.
 
 [[jms-outbound-gateway]]
 === Outbound Gateway

@@ -770,6 +770,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
+			if (logger.isDebugEnabled()) {
+				logger.debug("ReplyTo: " + replyTo);
+			}
 
 			Integer priority = new IntegrationMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
@@ -824,6 +827,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			replyTo = this.determineReplyDestination(requestMessage, session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
+			if (logger.isDebugEnabled()) {
+				logger.debug("ReplyTo: " + replyTo);
+			}
 
 			Integer priority = new IntegrationMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
