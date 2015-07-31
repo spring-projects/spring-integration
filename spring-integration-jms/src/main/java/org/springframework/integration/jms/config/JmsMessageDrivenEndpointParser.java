@@ -63,6 +63,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE,
 		"destination-resolver", "transaction-manager",
 		"concurrent-consumers", "max-concurrent-consumers",
+		"acknowledge",
 		"max-messages-per-task", "selector",
 		"receive-timeout", "recovery-interval",
 		"idle-consumer-limit", "idle-task-execution-limit",
@@ -117,6 +118,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		String listenerBeanName = this.parseMessageListener(element, parserContext, builder.getRawBeanDefinition());
 		builder.addConstructorArgReference(containerBeanName);
 		builder.addConstructorArgReference(listenerBeanName);
+		builder.addConstructorArgValue(hasExternalContainer(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
@@ -126,7 +128,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext,
 			BeanDefinition adapterBeanDefinition) {
 		String containerClass = element.getAttribute("container-class");
-		if (element.hasAttribute("container")) {
+		if (hasExternalContainer(element)) {
 			if (StringUtils.hasText(containerClass)) {
 				parserContext.getReaderContext().error("Cannot have both 'container' and 'container-class'", element);
 			}
@@ -196,6 +198,11 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				+ ".container";
 		parserContext.getRegistry().registerBeanDefinition(beanName, builder.getBeanDefinition());
 		return beanName;
+	}
+
+
+	private boolean hasExternalContainer(Element element) {
+		return element.hasAttribute("container");
 	}
 
 	private String parseMessageListener(Element element, ParserContext parserContext,

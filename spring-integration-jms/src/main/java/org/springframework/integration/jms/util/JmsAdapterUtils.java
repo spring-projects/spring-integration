@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,20 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Liujiong
+ * @author Gary Russell
  * @since 4.1
  *
  */
 public abstract class JmsAdapterUtils {
-	
+
+	public static final String AUTO_ACKNOWLEDGE_STRING = "auto";
+
+	public static final String DUPS_OK_ACKNOWLEDGE_STRING = "dups-ok";
+
+	public static final String CLIENT_ACKNOWLEDGE_STRING = "client";
+
+	public static final String SESSION_TRANSACTED_STRING = "transacted";
+
 	public static final int SESSION_TRANSACTED = 0;
 
 	public static final int AUTO_ACKNOWLEDGE = 1;
@@ -35,16 +44,16 @@ public abstract class JmsAdapterUtils {
 	public static Integer parseAcknowledgeMode(String acknowledge) {
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = AUTO_ACKNOWLEDGE;
-			if ("transacted".equals(acknowledge)) {
+			if (SESSION_TRANSACTED_STRING.equals(acknowledge)) {
 				acknowledgeMode = SESSION_TRANSACTED;
 			}
-			else if ("dups-ok".equals(acknowledge)) {
+			else if (DUPS_OK_ACKNOWLEDGE_STRING.equals(acknowledge)) {
 				acknowledgeMode = DUPS_OK_ACKNOWLEDGE;
 			}
-			else if ("client".equals(acknowledge)) {
+			else if (CLIENT_ACKNOWLEDGE_STRING.equals(acknowledge)) {
 				acknowledgeMode = CLIENT_ACKNOWLEDGE;
 			}
-			else if (!"auto".equals(acknowledge)) {
+			else if (!AUTO_ACKNOWLEDGE_STRING.equals(acknowledge)) {
 				throw new IllegalStateException("Invalid JMS 'acknowledge' setting: " +
 						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.");
 			}

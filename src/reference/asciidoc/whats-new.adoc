@@ -168,6 +168,15 @@ The `error-channel` now is used for the conversion errors, which have caused a t
 
 See <<jms-message-driven-channel-adapter>> and <<jms-inbound-gateway>> for more information.
 
+===== Default Acknowledge Mode
+
+When using an implicitly defined `DefaultMessageListenerContainer`, the default `acknowledge` is now `transacted`.
+`transacted` is recommended when using this container, to avoid message loss.
+This default now applies to the message-driven inbound adapter and the inbound gateway, it was already the
+default for jms-backed channels.
+
+See <<jms-message-driven-channel-adapter>> and <<jms-inbound-gateway>> for more information.
+
 ===== Shared Subscriptions
 
 Namespace support for shared subscriptions (JMS 2.0) has been added to message-driven endpoints and the

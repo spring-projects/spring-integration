@@ -150,7 +150,8 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 							jmsMessage.setObjectProperty(propertyName, value);
 						}
 						catch (Exception e) {
-							if (headerName.startsWith("JMSX")) {
+							if (headerName.startsWith("JMSX")
+									|| headerName.equals(IntegrationMessageHeaderAccessor.PRIORITY)) {
 								if (logger.isTraceEnabled()) {
 									logger.trace("skipping reserved header, it cannot be set by client: " + headerName);
 								}
