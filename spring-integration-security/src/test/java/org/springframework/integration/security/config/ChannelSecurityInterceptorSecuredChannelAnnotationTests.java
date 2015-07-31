@@ -16,27 +16,56 @@
 
 package org.springframework.integration.security.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.integration.security.channel.SecurityContextPropagationChannelInterceptor;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -62,6 +91,22 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 	@Autowired
 	MessageChannel unsecuredChannel;
+
+	@Autowired
+	@Qualifier("queueChannel")
+	MessageChannel queueChannel;
+
+	@Autowired
+	@Qualifier("securedChannelQueue")
+	PollableChannel securedChannelQueue;
+
+	@Autowired
+	@Qualifier("executorChannel")
+	MessageChannel executorChannel;
+
+	@Autowired
+	@Qualifier("errorChannel")
+	PollableChannel errorChannel;
 
 	@Autowired
 	TestHandler testConsumer;
@@ -124,6 +169,42 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
+	@Test
+	public void testSecurityContextPropagationQueueChannel() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		this.queueChannel.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.securedChannelQueue.receive(10000);
+		assertNotNull(receive);
+
+		SecurityContextHolder.clearContext();
+
+		this.queueChannel.send(new GenericMessage<String>("test"));
+		Message<?> errorMessage = this.errorChannel.receive(1000);
+		assertNotNull(errorMessage);
+		Object payload = errorMessage.getPayload();
+		assertThat(payload, instanceOf(MessageHandlingException.class));
+		assertThat(((MessageHandlingException) payload).getCause(),
+				instanceOf(AuthenticationCredentialsNotFoundException.class));
+	}
+
+	@Test
+	public void testSecurityContextPropagationExecutorChannel() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		this.executorChannel.send(new GenericMessage<String>("test"));
+		Message<?> receive = this.securedChannelQueue.receive(10000);
+		assertNotNull(receive);
+
+		SecurityContextHolder.clearContext();
+
+		this.queueChannel.send(new GenericMessage<String>("test"));
+		Message<?> errorMessage = this.errorChannel.receive(1000);
+		assertNotNull(errorMessage);
+		Object payload = errorMessage.getPayload();
+		assertThat(payload, instanceOf(MessageHandlingException.class));
+		assertThat(((MessageHandlingException) payload).getCause(),
+				instanceOf(AuthenticationCredentialsNotFoundException.class));
+	}
+
 
 	private void login(String username, String password, String... roles) {
 		SecurityContext context = SecurityTestUtils.createContext(username, password, roles);
@@ -151,6 +232,41 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		@Bean
 		public SubscribableChannel unsecuredChannel() {
 			return new DirectChannel();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = {"queueChannel", "executorChannel"})
+		public ChannelInterceptor securityContextPropagationInterceptor() {
+			return new SecurityContextPropagationChannelInterceptor();
+		}
+
+		@Bean
+		@BridgeTo(value = "securedChannelQueue", poller = @Poller(fixedDelay = "1000"))
+		public PollableChannel queueChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
+		public PollableChannel securedChannelQueue() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@BridgeTo("securedChannelQueue")
+		public SubscribableChannel executorChannel() {
+			return new ExecutorChannel(Executors.newSingleThreadExecutor());
+		}
+
+
+		@Bean
+		public TaskScheduler taskScheduler() {
+			return new ThreadPoolTaskScheduler();
+		}
+
+		@Bean
+		public PollableChannel errorChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean

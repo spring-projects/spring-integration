@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
- 	xmlns:si-security="http://www.springframework.org/schema/integration/security"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:si-security="http://www.springframework.org/schema/integration/security"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:task="http://www.springframework.org/schema/task"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/security
-			http://www.springframework.org/schema/integration/security/spring-integration-security.xsd">
+			http://www.springframework.org/schema/integration/security/spring-integration-security.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
@@ -23,5 +25,28 @@
 	<service-activator input-channel="securedChannelAdapter2" ref="testHandler"/>
 
 	<outbound-channel-adapter id="unsecuredChannelAdapter" ref="testHandler"/>
+
+	<channel id="queueChannel">
+		<queue/>
+		<interceptors>
+			<beans:bean
+					class="org.springframework.integration.security.channel.SecurityContextPropagationChannelInterceptor"/>
+		</interceptors>
+	</channel>
+
+	<!--The single taskScheduler Thread is need to check that SecurityContext cleanup works well-->
+	<task:scheduler id="taskScheduler"/>
+
+	<bridge input-channel="queueChannel" output-channel="securedChannelQueue">
+		<poller fixed-delay="100"/>
+	</bridge>
+
+	<channel id="securedChannelQueue">
+		<queue/>
+	</channel>
+
+	<channel id="errorChannel">
+		<queue/>
+	</channel>
 
 </beans:beans>

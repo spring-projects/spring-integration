@@ -65,7 +65,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		implements MessageChannel, TrackableComponent, ChannelInterceptorAware, MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics> {
 
-	private final ChannelInterceptorList interceptors;
+	protected final ChannelInterceptorList interceptors;
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
@@ -520,7 +520,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		private final Log logger;
 
-		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
+		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
 		private volatile int size;
 

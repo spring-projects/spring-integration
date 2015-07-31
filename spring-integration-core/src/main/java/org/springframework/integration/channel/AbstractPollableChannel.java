@@ -18,11 +18,14 @@ package org.springframework.integration.channel;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import org.springframework.integration.channel.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for all pollable channels.
@@ -30,10 +33,12 @@ import org.springframework.messaging.support.ChannelInterceptor;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public abstract class AbstractPollableChannel extends AbstractMessageChannel implements PollableChannel,
-		PollableChannelManagement {
+public abstract class AbstractPollableChannel extends AbstractMessageChannel
+		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
+	protected volatile int executorInterceptorsSize;
 
 	@Override
 	public int getReceiveCount() {
@@ -90,7 +95,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			if (logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
-			if (interceptorList.getInterceptors().size() > 0) {
+			if (interceptorList.getSize() > 0) {
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {
@@ -108,7 +113,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			else if (logger.isTraceEnabled()) {
 				logger.trace("postReceive on channel '" + this + "', message is null");
 			}
-			if (interceptorStack != null) {
+			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
@@ -118,11 +123,60 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel imp
 			if (countsEnabled && !counted) {
 				getMetrics().afterError();
 			}
-			if (interceptorStack != null) {
+			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}
 			throw e;
 		}
+	}
+
+	@Override
+	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		super.setInterceptors(interceptors);
+		for (ChannelInterceptor interceptor : interceptors) {
+			if (interceptor instanceof ExecutorChannelInterceptor) {
+				this.executorInterceptorsSize++;
+			}
+		}
+	}
+
+	@Override
+	public void addInterceptor(ChannelInterceptor interceptor) {
+		super.addInterceptor(interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public void addInterceptor(int index, ChannelInterceptor interceptor) {
+		super.addInterceptor(index, interceptor);
+		if (interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize++;
+		}
+	}
+
+	@Override
+	public boolean removeInterceptor(ChannelInterceptor interceptor) {
+		boolean removed = super.removeInterceptor(interceptor);
+		if (removed && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return removed;
+	}
+
+	@Override
+	public ChannelInterceptor removeInterceptor(int index) {
+		ChannelInterceptor interceptor = super.removeInterceptor(index);
+		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+			this.executorInterceptorsSize--;
+		}
+		return interceptor;
+	}
+
+	@Override
+	public boolean hasExecutorInterceptors() {
+		return this.executorInterceptorsSize > 0;
 	}
 
 	/**

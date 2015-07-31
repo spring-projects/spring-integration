@@ -1255,7 +1255,7 @@
 		<xsd:attribute name="type">
 			 <xsd:annotation>
 				 <xsd:documentation><![CDATA[
-					The Sql type used for this Sql parameter defintion. Will translate
+					The Sql type used for this Sql parameter definition. Will translate
 					into the integer value as defined by java.sql.Types. Alternatively
 					you can provide the integer value as well. If this attribute is
 					not explicitly set, then it will default to 'VARCHAR'.

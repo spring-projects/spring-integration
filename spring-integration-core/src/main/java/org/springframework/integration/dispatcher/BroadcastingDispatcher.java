@@ -29,6 +29,8 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.MessageHandlingRunnable;
+import org.springframework.util.Assert;
 
 /**
  * A broadcasting dispatcher implementation. If the 'ignoreFailures' property is set to <code>false</code> (the
@@ -61,6 +63,16 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile boolean messageBuilderFactorySet;
+
+	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator =
+			new MessageHandlingTaskDecorator() {
+
+				@Override
+				public Runnable decorate(MessageHandlingRunnable task) {
+					return task;
+				}
+
+			};
 
 	private BeanFactory beanFactory;
 
@@ -117,6 +129,11 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		this.minSubscribers = minSubscribers;
 	}
 
+	public void setMessageHandlingTaskDecorator(MessageHandlingTaskDecorator messageHandlingTaskDecorator) {
+		Assert.notNull(messageHandlingTaskDecorator, "'messageHandlingTaskDecorator' must not be null.");
+		this.messageHandlingTaskDecorator = messageHandlingTaskDecorator;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -141,16 +158,18 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
 		int sequenceSize = handlers.size();
-		for (final MessageHandler handler : handlers) {
-			final Message<?> messageToSend = (!this.applySequence) ? message : getMessageBuilderFactory().fromMessage(message)
-					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
+		for (MessageHandler handler : handlers) {
+			Message<?> messageToSend = message;
+			if (this.applySequence) {
+				messageToSend = getMessageBuilderFactory()
+						.fromMessage(message)
+						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
+						.build();
+			}
+
 			if (this.executor != null) {
-				this.executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						invokeHandler(handler, messageToSend);
-					}
-				});
+				Runnable task = createMessageHandlingTask(handler, messageToSend);
+				this.executor.execute(task);
 				dispatched++;
 			}
 			else {
@@ -168,6 +187,39 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 			}
 		}
 		return dispatched >= minSubscribers;
+	}
+
+
+	private Runnable createMessageHandlingTask(final MessageHandler handler, final Message<?> message) {
+		MessageHandlingRunnable task = new MessageHandlingRunnable() {
+
+			final MessageHandler delegate = new MessageHandler() {
+
+				@Override
+				public void handleMessage(Message<?> message) throws MessagingException {
+					invokeHandler(handler, message);
+				}
+
+			};
+
+			@Override
+			public void run() {
+				invokeHandler(handler, message);
+			}
+
+			@Override
+			public Message<?> getMessage() {
+				return message;
+			}
+
+			@Override
+			public MessageHandler getMessageHandler() {
+				return this.delegate;
+			}
+
+		};
+
+		return this.messageHandlingTaskDecorator.decorate(task);
 	}
 
 	private boolean invokeHandler(MessageHandler handler, Message<?> message) {
