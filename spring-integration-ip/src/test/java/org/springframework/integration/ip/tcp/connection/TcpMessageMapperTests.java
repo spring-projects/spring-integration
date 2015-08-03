@@ -24,21 +24,28 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.Socket;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.CompositeCodec;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.CodecMessageConverter;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConverter;
 
 /**
  * @author Gary Russell
@@ -48,6 +55,14 @@ import org.springframework.messaging.Message;
 public class TcpMessageMapperTests {
 
 	private static final String TEST_PAYLOAD = "abcdefghijkl";
+
+	private Codec codec;
+
+	@Before
+	public void setup() {
+		Map<Class<?>, Codec> codecs = new HashMap<Class<?>, Codec>();
+		this.codec = new CompositeCodec(codecs, new PojoCodec());
+	}
 
 	@Test
 	public void testToMessage() throws Exception {
@@ -323,4 +338,29 @@ public class TcpMessageMapperTests {
 		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
 		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
 	}
+
+	@Test
+	public void testCodecMessageConvertingBothWaysJava() throws Exception {
+		Message<String> outMessage = MessageBuilder.withPayload("foo")
+				.setHeader("bar", "baz")
+				.build();
+		MessageConverter converter = new CodecMessageConverter(this.codec);
+		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
+		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
+
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(bytes);
+		when(connection.getHostName()).thenReturn("someHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getConnectionId()).thenReturn("someId");
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals("foo", message.getPayload());
+		assertEquals("baz", message.getHeaders().get("bar"));
+		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+	}
+
 }
