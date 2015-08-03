@@ -33,6 +33,7 @@ class MutableMessageHeadersSerializer extends MessageHeadersSerializer {
 
 	@Override
 	public MessageHeaders read(Kryo kryo, Input input, Class<MessageHeaders> type) {
+		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
 		return new MutableMessageHeaders(headers);
 	}

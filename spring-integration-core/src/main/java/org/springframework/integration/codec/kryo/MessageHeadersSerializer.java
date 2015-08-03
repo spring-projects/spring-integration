@@ -44,7 +44,8 @@ class MessageHeadersSerializer extends Serializer<MessageHeaders> {
 
 	@Override
 	public MessageHeaders read(Kryo kryo, Input input, Class<MessageHeaders> type) {
-		Map<String, Object> headers = kryo.readObject(input, Map.class);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
 		return new MessageHeaders(headers);
 	}
 }
