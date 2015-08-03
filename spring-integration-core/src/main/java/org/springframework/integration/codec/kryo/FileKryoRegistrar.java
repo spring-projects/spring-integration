@@ -25,18 +25,17 @@ import com.esotericsoftware.kryo.Registration;
  * A {@link KryoRegistrar} used to validateRegistration a File serializer.
  *
  * @author David Turanski
+ * @author Gary Russell
  * @since 4.2
  */
 public class FileKryoRegistrar extends AbstractKryoRegistrar {
-
-	private final static int DEFAULT_REGISTRATION_ID = 40;
 
 	private final int registrationId;
 
 	private final FileSerializer fileSerializer = new FileSerializer();
 
 	public FileKryoRegistrar() {
-		this.registrationId = DEFAULT_REGISTRATION_ID;
+		this.registrationId = RegistrationIds.DEFAULT_FILE_REGISTRATION_ID;
 	}
 
 	/**

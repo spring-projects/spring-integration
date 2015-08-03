@@ -68,6 +68,15 @@ See <<barrier>> for more information.
 STOMP support has been added to the framework as _inbound_ and _outbound_ channel adapters pair.
 See <<stomp>> for more information.
 
+[[x4.2-codec]]
+==== Codec
+A new `Codec` abstraction has been introduced, to encode/decode objects to/from `byte[]`.
+An implementation that uses Kryo is provided.
+Codec-based transformers and message converters are also provided.
+
+See <<codec>> for more information.
+
+
 [[x4.2-general]]
 === General Changes
 

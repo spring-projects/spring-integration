@@ -7,3 +7,5 @@ include::./transformer.adoc[]
 include::./content-enrichment.adoc[]
 
 include::./claim-check.adoc[]
+
+include::./codec.adoc[]

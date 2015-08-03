@@ -26,13 +26,14 @@ import org.springframework.messaging.MessageHeaders;
  * header map.
  *
  * @author Stuart Williams
+ * @author David Turanski
  * @since 4.2
  */
-class MutableMessageHeaders extends MessageHeaders {
+public class MutableMessageHeaders extends MessageHeaders {
 
 	private static final long serialVersionUID = 3084692953798643018L;
 
-	MutableMessageHeaders(Map<String, Object> headers) {
+	public MutableMessageHeaders(Map<String, Object> headers) {
 		super(headers);
 	}
 

@@ -1,0 +1,139 @@
+[[codec]]
+=== Codec
+
+==== Introduction
+
+Spring Integration _version 4.2_ introduces the `Codec` abstraction.
+Codecs are used to encode/decode objects to/from `byte[]`.
+They are an alternative to Java Serialization.
+One advantage is, typically, objects do not have to implement `Serializable`.
+One implementation, using https://github.com/EsotericSoftware/kryo[Kryo] for serialization, is provided but you
+can provide your own implementation for use in any of these components:
+
+* `EncodingPayloadTransformer`
+* `DecodingTransformer`
+* `CodecMessageConverter`
+
+See their JavaDocs for more information.
+
+==== EncodingPayloadTransformer
+
+This transformer encodes the payload to a `byte[]` using the codec.
+It does not affect message headers.
+
+==== DecodingTransformer
+
+This transformer decodes a `byte[]` using the codec; it needs to be configured with the Class to which the object
+should be decoded (or an expression that resolves to a Class).
+If the resulting object is a `Message<?>`, inbound headers will not be retained.
+
+==== CodecMessageConverter
+
+Certain endpoints (e.g. TCP, Redis) have no concept of message headers; they support the use of a
+`MessageConverter` and the `CodecMessageConverter` can be used to convert a message to/from a `byte[]` for
+transmission.
+
+==== Kryo
+
+Currently, this is the only implementation of `Codec`.
+There are two `Codec` s - `PojoCodec` which can be used in the transformers and `MessageCodec` which can be used
+in the `CodecMessageConverter`.
+
+Several custom serializers are provided by the framework:
+
+* `FileSerializer`
+* `MessageHeadersSerializer`
+* `MutableMessageHeadersSerializer`
+
+The first can be used with the `PojoCodec`, by initializing it with the `FileKryoRegistrar`.
+The second and third are used with the `MessageCodec`, which is initialized with the `MessageKryoRegistrar`.
+
+===== Customizing Kryo
+
+By default, Kryo delegates unknown Java types to its `FieldSerializer`.
+Kryo also registers default serializers for each primitive type along with `String`, `Collection` and `Map` serializers.
+`FieldSerializer` uses reflection to navigate the object graph. A more efficient approach is to implement a custom
+serializer that is aware of the object's structure and can directly serialize selected primitive fields:
+
+[source,java]
+----
+public class AddressSerializer extends Serializer<Address> {
+	@Override
+	public void write(Kryo kryo, Output output, Address address) {
+		output.writeString(address.getStreet());
+		output.writeString(address.getCity());
+		output.writeString(address.getCountry());
+	}
+
+	@Override
+	public Address read(Kryo kryo, Input input, Class<Address> type) {
+		return new Address(input.readString(),input.readString(),input.readString());
+	}
+}
+----
+
+The `Serializer` interface exposes `Kryo`, `Input`, and `Output` which provide
+complete control over which fields are included and other internal settings as
+described in the https://github.com/EsotericSoftware/kryo[documentation].
+
+NOTE: When registering your custom serializer, you need a registration ID.
+The registration IDs are arbitrary but in our case must be explicitly defined because each Kryo instance across the
+distributed application must use the same IDs.
+Kryo recommends small positive integers, and reserves a few ids (value < 10).
+Spring Integration currently defaults to using 40, 41 and 42 (for the file and message header serializers mentioned
+above); we recommend you start at, say 60, to allow for expansion in the framework.
+These framework defaults can be overridden by configuring the registrars mentioned above.
+
+====== Using a Custom Kryo Serializer
+
+If custom serialization is indicated, please consult the https://github.com/EsotericSoftware/kryo[Kryo] documentation
+since you will be using the native API.
+For an example, see the `MessageCodec`.
+
+====== Implementing KryoSerializable
+
+If you have write access to the domain object source code it may implement `KryoSerializable` as described
+https://github.com/EsotericSoftware/kryo#kryoserializable[here].
+In this case
+the class provides the serialization methods itself and no further configuration
+is required. This has the advantage of being much simpler to use
+with XD, however benchmarks have shown this is not quite as efficient as
+registering a custom serializer explicitly:
+
+[source,java]
+----
+public class Address implements KryoSerializable {
+	...
+
+	@Override
+	public void write(Kryo kryo, Output output) {
+		output.writeString(this.street);
+		output.writeString(this.city);
+		output.writeString(this.country);
+	}
+
+	@Override
+	public void read(Kryo kryo, Input input) {
+		this.street = input.readString();
+		this.city = input.readString();
+		this.country = input.readString();
+	}
+}
+----
+
+Note that this technique can also be used to wrap a serialization library other than Kryo.
+
+====== Using DefaultSerializer Annotation
+
+Kryo also provides an annotation as described https://github.com/EsotericSoftware/kryo#default-serializers[here].
+
+[source,java]
+----
+@DefaultSerializer(SomeClassSerializer.class)
+public class SomeClass {
+       // ...
+}
+----
+
+If you have write access to the domain object this may be a simpler alternative to specify a custom serializer.
+Note this does not register the class with an ID, so your mileage may vary.

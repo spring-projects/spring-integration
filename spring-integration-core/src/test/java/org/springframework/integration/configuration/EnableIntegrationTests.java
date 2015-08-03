@@ -1262,7 +1262,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
-			defaultRequestTimeout="${default.request.timeout:23}", defaultReplyTimeout="#{34}",
+			defaultRequestTimeout="${default.request.timeout:12300}", defaultReplyTimeout="#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 
