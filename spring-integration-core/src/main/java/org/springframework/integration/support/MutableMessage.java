@@ -37,10 +37,11 @@ import org.springframework.util.ObjectUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Stuart Williams
+ * @author David Turanski
  * @since 4.0
  *
  */
-class MutableMessage<T> implements Message<T>, Serializable {
+public class MutableMessage<T> implements Message<T>, Serializable {
 
 	private static final long serialVersionUID = -636635024258737500L;
 
@@ -48,11 +49,11 @@ class MutableMessage<T> implements Message<T>, Serializable {
 
 	private final MutableMessageHeaders headers;
 
-	MutableMessage(T payload) {
+	public MutableMessage(T payload) {
 		this(payload, null);
 	}
 
-	MutableMessage(T payload, Map<String, Object> headers) {
+	public MutableMessage(T payload, Map<String, Object> headers) {
 		Assert.notNull(payload, "payload must not be null");
 		this.payload = payload;
 

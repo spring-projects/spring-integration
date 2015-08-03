@@ -38,6 +38,7 @@ import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.codec.CompositeCodec;
+import org.springframework.integration.codec.kryo.MessageKryoRegistrar;
 import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -61,7 +62,7 @@ public class TcpMessageMapperTests {
 	@Before
 	public void setup() {
 		Map<Class<?>, Codec> codecs = new HashMap<Class<?>, Codec>();
-		this.codec = new CompositeCodec(codecs, new PojoCodec());
+		this.codec = new CompositeCodec(codecs, new PojoCodec(new MessageKryoRegistrar()));
 	}
 
 	@Test
