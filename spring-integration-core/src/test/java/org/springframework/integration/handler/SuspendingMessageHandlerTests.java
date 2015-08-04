@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,6 +44,7 @@ import org.springframework.integration.handler.SuspendingMessageHandler.Releasin
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 
 /**
@@ -60,19 +62,35 @@ public class SuspendingMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
+		final AtomicReference<Exception> dupCorrelation = new AtomicReference<Exception>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		Runnable runnable = new Runnable() {
 
 			@Override
 			public void run() {
-				handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+				try {
+					handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+				}
+				catch (MessagingException e) {
+					dupCorrelation.set(e);
+				}
+				latch.countDown();
 			}
-		});
+		};
+		ExecutorService exec = Executors.newCachedThreadPool();
+		exec.execute(runnable);
+		exec.execute(runnable);
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
 			Thread.sleep(100);
 		}
+		Map<?, ?> inProcess = TestUtils.getPropertyValue(handler, "inProcess", Map.class);
+		assertEquals(1, inProcess.size());
 		assertTrue("suspension did not appear in time", n < 100);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(dupCorrelation.get());
+		assertThat(dupCorrelation.get().getMessage(), Matchers.startsWith("Correlation key (foo) is already in use by"));
 		releaser.handleMessage(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
 		assertNotNull(received);
@@ -80,6 +98,7 @@ public class SuspendingMessageHandlerTests {
 		assertEquals("foo", result[0]);
 		assertEquals("bar", ((Message<?>) result[1]).getPayload());
 		assertEquals(0, suspensions.size());
+		assertEquals(0, inProcess.size());
 	}
 
 	@Test

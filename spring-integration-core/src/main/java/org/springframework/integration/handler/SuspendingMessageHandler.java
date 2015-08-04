@@ -25,7 +25,6 @@ import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * A pair of message handlers; the first suspends the thread until the second receives
@@ -41,6 +40,8 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 
 	private final ConcurrentHashMap<Object, BlockingQueue<Message<?>>> suspensions =
 			new ConcurrentHashMap<Object, BlockingQueue<Message<?>>>();
+
+	private final ConcurrentHashMap<Object, Thread> inProcess = new ConcurrentHashMap<Object, Thread>();
 
 	private final long timeout;
 
@@ -68,6 +69,14 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object key = SuspendingMessageHandler.this.correlationStrategy.getCorrelationKey(requestMessage);
+		if (key == null) {
+			throw new MessagingException(requestMessage, "Correlation Strategy returned null");
+		}
+		Thread existing = this.inProcess.putIfAbsent(key, Thread.currentThread());
+		if (existing != null) {
+			throw new MessagingException(requestMessage, "Correlation key ("
+					+ key + ") is already in use by " + existing.getName());
+		}
 		BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(this.suspensions, key);
 		try {
 			Message<?> release = blockingQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
@@ -94,6 +103,9 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new MessagingException(requestMessage, "Interrupted while waiting for release", e);
+		}
+		finally {
+			this.inProcess.remove(key);
 		}
 	}
 
@@ -132,7 +144,9 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			Object key = this.correlationStrategy.getCorrelationKey(message);
-			Assert.notNull(key, "Correlation Strategy returned no value");
+			if (key == null) {
+				throw new MessagingException(message, "Correlation Strategy returned null");
+			}
 			BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(this.suspensions, key);
 			synchronized(blockingQueue) {
 				if (!blockingQueue.offer(message)) {
