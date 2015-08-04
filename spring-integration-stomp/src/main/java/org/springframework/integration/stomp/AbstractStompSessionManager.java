@@ -17,6 +17,7 @@
 package org.springframework.integration.stomp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -178,7 +179,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private static class CompositeStompSessionHandler extends StompSessionHandlerAdapter {
 
-		private final List<StompSessionHandler> delegates = new ArrayList<StompSessionHandler>();
+		private final List<StompSessionHandler> delegates =
+				Collections.synchronizedList(new ArrayList<StompSessionHandler>());
 
 		private volatile StompSession session;
 
@@ -188,41 +190,53 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			if (this.session != null) {
 				delegate.afterConnected(this.session, this.connectedHeaders);
 			}
-			this.delegates.add(delegate);
+			synchronized (this.delegates) {
+				this.delegates.add(delegate);
+			}
 		}
 
 		void removeHandler(StompSessionHandler delegate) {
-			this.delegates.remove(delegate);
+			synchronized (this.delegates) {
+				this.delegates.remove(delegate);
+			}
 		}
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			this.session = session;
 			this.connectedHeaders = connectedHeaders;
-			for (StompSessionHandler delegate : this.delegates) {
-				delegate.afterConnected(session, connectedHeaders);
+			synchronized (this.delegates) {
+				for (StompSessionHandler delegate : this.delegates) {
+					delegate.afterConnected(session, connectedHeaders);
+				}
 			}
 		}
 
 		@Override
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
 				Throwable exception) {
-			for (StompSessionHandler delegate : this.delegates) {
-				delegate.handleException(session, command, headers, payload, exception);
+			synchronized (this.delegates) {
+				for (StompSessionHandler delegate : this.delegates) {
+					delegate.handleException(session, command, headers, payload, exception);
+				}
 			}
 		}
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
-			for (StompSessionHandler delegate : this.delegates) {
-				delegate.handleTransportError(session, exception);
+			synchronized (this.delegates) {
+				for (StompSessionHandler delegate : this.delegates) {
+					delegate.handleTransportError(session, exception);
+				}
 			}
 		}
 
 		@Override
 		public void handleFrame(StompHeaders headers, Object payload) {
-			for (StompSessionHandler delegate : this.delegates) {
-				delegate.handleFrame(headers, payload);
+			synchronized (this.delegates) {
+				for (StompSessionHandler delegate : this.delegates) {
+					delegate.handleFrame(headers, payload);
+				}
 			}
 		}
 

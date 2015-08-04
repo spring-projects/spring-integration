@@ -119,7 +119,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 
 		final StompSession.Receiptable receiptable = this.stompSession.send(stompHeaders, message.getPayload());
-		if (this.stompSessionManager.isAutoReceiptEnabled()) {
+		if (receiptable.getReceiptId() != null) {
 			final String destination = stompHeaders.getDestination();
 			if (this.applicationEventPublisher != null) {
 				receiptable.addReceiptTask(new Runnable() {
@@ -197,6 +197,11 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 							new StompExceptionEvent(StompMessageHandler.this, exception));
 				}
 			}
+		}
+
+		@Override
+		public void handleTransportError(StompSession session, Throwable exception) {
+			logger.error("STOMP transport error for session: [" + session + "]", exception);
 		}
 
 	}

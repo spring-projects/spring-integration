@@ -154,7 +154,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 		if (StringUtils.hasText(headerMapper)) {
 			if (hasMappedRequestHeaders || hasMappedResponseHeaders) {
-				parserContext.getReaderContext().error("Neither 'mappped-request-headers' or 'mapped-response-headers' " +
+				parserContext.getReaderContext().error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
 						"attributes are allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
