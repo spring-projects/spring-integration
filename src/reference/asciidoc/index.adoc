@@ -88,6 +88,8 @@ include::./rmi.adoc[]
 
 include::./sftp.adoc[]
 
+include::./stomp.adoc[]
+
 include::./stream.adoc[]
 
 include::./syslog.adoc[]

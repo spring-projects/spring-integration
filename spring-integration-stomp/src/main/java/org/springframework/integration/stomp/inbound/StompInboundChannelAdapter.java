@@ -292,6 +292,11 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			}
 		}
 
+		@Override
+		public void handleTransportError(StompSession session, Throwable exception) {
+			logger.error("STOMP transport error for session: [" + session + "]", exception);
+		}
+
 	}
 
 }

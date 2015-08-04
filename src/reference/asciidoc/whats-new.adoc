@@ -62,6 +62,12 @@ occurs.
 
 See <<barrier>> for more information.
 
+[[x4.2-stomp]]
+==== STOMP Support
+
+STOMP support has been added to the framework as _inbound_ and _outbound_ channel adapters pair.
+See <<stomp>> for more information.
+
 [[x4.2-general]]
 === General Changes
 
