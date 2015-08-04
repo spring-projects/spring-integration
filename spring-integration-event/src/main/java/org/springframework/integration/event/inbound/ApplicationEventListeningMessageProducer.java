@@ -108,7 +108,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 			}
 			else {
 				Message<?> message = null;
-				Object result = evaluatePayloadExpression(event);
+				Object result = extractObjectToSend(event);
 				if (result instanceof Message) {
 					message = (Message<?>) result;
 				}
@@ -120,12 +120,11 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 		}
 	}
 
-	@Override
-	protected Object evaluatePayloadExpression(Object root) {
+	private Object extractObjectToSend(Object root) {
 		if (root instanceof PayloadApplicationEvent) {
-			return ((PayloadApplicationEvent) root).getPayload();
+			return ((PayloadApplicationEvent<?>) root).getPayload();
 		}
-		return super.evaluatePayloadExpression(root);
+		return evaluatePayloadExpression(root);
 	}
 
 	private boolean stoppedRecently() {
@@ -144,7 +143,10 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 			}
 		}
 
-		if (PayloadApplicationEvent.class.isAssignableFrom(eventType.getRawClass())) {
+
+
+		if (eventType.getRawClass() != null
+				&& PayloadApplicationEvent.class.isAssignableFrom(eventType.getRawClass())) {
 			if (eventType.hasUnresolvableGenerics()) {
 				return true;
 			}
