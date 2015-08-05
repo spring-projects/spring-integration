@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,12 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -25,15 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -50,7 +50,7 @@ public class PriorityChannelTests {
 		channel.receive(0);
 		assertTrue(channel.send(new GenericMessage<String>("test5")));
 	}
-	
+
 	@Test
 	public void testDefaultComparatorWithTimestampFallback() throws Exception{
 		PriorityChannel channel = new PriorityChannel();
@@ -91,11 +91,13 @@ public class PriorityChannelTests {
 		for (int i = 0; i < 1000; i++) {
 			channel.send(message);
 			new Thread(new Runnable() {
+				@Override
 				public void run() {
 					channel.receive();
 				}
 			}).start();
 			new Thread(new Runnable() {
+				@Override
 				public void run() {
 					message.getHeaders().toString();
 				}
@@ -120,9 +122,9 @@ public class PriorityChannelTests {
 		assertEquals("B", channel.receive(0).getPayload());
 		assertEquals("C", channel.receive(0).getPayload());
 		assertEquals("D", channel.receive(0).getPayload());
-		assertEquals("E", channel.receive(0).getPayload());		
+		assertEquals("E", channel.receive(0).getPayload());
 	}
-	
+
 	@Test
 	public void testWithCustomComparatorAndSequence() {
 		PriorityChannel channel = new PriorityChannel(10, new FooHeaderComparator());
@@ -199,7 +201,7 @@ public class PriorityChannelTests {
 		assertEquals(2, receivedFour);
 		assertEquals(3, receivedFive);
 		assertEquals(6, receivedSix);
-		assertEquals(7, receivedSeven);		
+		assertEquals(7, receivedSeven);
 	}
 
 	@Test
@@ -238,17 +240,18 @@ public class PriorityChannelTests {
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
+			@Override
 			public void run() {
 				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10));
 				latch.countDown();
 			}
 		});
 		assertFalse(sentSecondMessage.get());
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		Message<?> message1 = channel.receive();
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		latch.await(10000, TimeUnit.MILLISECONDS);
 		assertFalse(sentSecondMessage.get());
 		assertNull(channel.receive(0));
 	}
@@ -261,6 +264,7 @@ public class PriorityChannelTests {
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
+			@Override
 			public void run() {
 				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
 				latch.countDown();
@@ -286,6 +290,7 @@ public class PriorityChannelTests {
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
+			@Override
 			public void run() {
 				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1));
 				latch.countDown();
@@ -305,27 +310,29 @@ public class PriorityChannelTests {
 
 
 	private static Message<String> createPriorityMessage(int priority) {
-		return MessageBuilder.withPayload("test:" + priority).setPriority(priority).build(); 
+		return MessageBuilder.withPayload("test:" + priority).setPriority(priority).build();
 	}
 
 
 	public static class StringPayloadComparator implements Comparator<Message<?>> {
 
+		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
 			String s1 = (String) message1.getPayload();
 			String s2 = (String) message2.getPayload();
 			return s1.compareTo(s2);
-		}	
+		}
 	}
-	
+
 	public static class FooHeaderComparator implements Comparator<Message<?>> {
+		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
 			Integer foo1 = (Integer) message1.getHeaders().get("foo");
 			Integer foo2 = (Integer) message2.getHeaders().get("foo");
 			foo1 = foo1 != null ? foo1 : 0;
 			foo2 = foo2 != null ? foo2 : 0;
 			return foo2.compareTo(foo1);
-		}	
+		}
 	}
 
 }

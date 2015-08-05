@@ -23,16 +23,17 @@ import org.springframework.scheduling.TriggerContext;
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public class OnlyOnceTrigger implements Trigger {
 
-	private static final AtomicBoolean hasRun = new AtomicBoolean();
+	private final AtomicBoolean hasRun = new AtomicBoolean();
 
 	private final Date executionTime;
 
-	private static volatile CountDownLatch latch = new CountDownLatch(1);
+	private volatile CountDownLatch latch = new CountDownLatch(1);
 
 
 	public OnlyOnceTrigger() {
@@ -40,10 +41,11 @@ public class OnlyOnceTrigger implements Trigger {
 		executionTime = new Date();
 	}
 
+	@Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 
-		if (OnlyOnceTrigger.hasRun.getAndSet(true)) {
-			OnlyOnceTrigger.latch.countDown();
+		if (this.hasRun.getAndSet(true)) {
+			this.latch.countDown();
 			return null;
 		}
 
@@ -61,29 +63,34 @@ public class OnlyOnceTrigger implements Trigger {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		OnlyOnceTrigger other = (OnlyOnceTrigger) obj;
 		if (executionTime == null) {
-			if (other.executionTime != null)
+			if (other.executionTime != null) {
 				return false;
-		} else if (!executionTime.equals(other.executionTime))
+			}
+		} else if (!executionTime.equals(other.executionTime)) {
 			return false;
+		}
 		return true;
 	}
 
 	public void reset() {
-		OnlyOnceTrigger.latch = new CountDownLatch(1);
-		OnlyOnceTrigger.hasRun.set(false);
+		this.latch = new CountDownLatch(1);
+		this.hasRun.set(false);
 	}
 
 	public void await() {
 		try {
-			OnlyOnceTrigger.latch.await(5000, TimeUnit.MILLISECONDS);
+			this.latch.await(5000, TimeUnit.MILLISECONDS);
 			if (latch.getCount() != 0) {
 				throw new RuntimeException("test latch.await() did not count down");
 			}

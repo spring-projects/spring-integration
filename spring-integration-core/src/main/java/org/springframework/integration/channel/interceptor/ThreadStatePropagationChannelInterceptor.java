@@ -16,8 +16,6 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import java.io.Serializable;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -50,7 +48,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Artem Bilan
  * @since 4.2
  */
-public abstract class ThreadStatePropagationChannelInterceptor<S extends Serializable>
+public abstract class ThreadStatePropagationChannelInterceptor<S>
 		extends ChannelInterceptorAdapter implements ExecutorChannelInterceptor {
 
 	@Override
@@ -67,7 +65,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S extends Seriali
 	@Override
 	@SuppressWarnings("unchecked")
 	public final Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		if (message != null && message instanceof MessageWithThreadState) {
+		if (message instanceof MessageWithThreadState) {
 			MessageWithThreadState<S> messageWithThreadState = (MessageWithThreadState<S>) message;
 			Message<?> messageToHandle = messageWithThreadState.message;
 			populatePropagatedContext(messageWithThreadState.state, messageToHandle, channel);
@@ -92,13 +90,11 @@ public abstract class ThreadStatePropagationChannelInterceptor<S extends Seriali
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	private static class MessageWithThreadState<S> implements Message<Object>, Serializable {
+	private static class MessageWithThreadState<S> implements Message<Object> {
 
-		private static final long serialVersionUID = 1548216539234073073L;
+		private final Message<?> message;
 
-		final Message<?> message;
-
-		final S state;
+		private final S state;
 
 		public MessageWithThreadState(Message<?> message, S state) {
 			this.message = message;

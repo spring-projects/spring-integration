@@ -111,7 +111,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 	@Override
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
-		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+		if (interceptor instanceof ExecutorChannelInterceptor) {
 			this.executorInterceptorsSize--;
 		}
 		return interceptor;
@@ -170,12 +170,13 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 		}
 
 		private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
+			Message<?> theMessage = message;
 			for (ChannelInterceptor interceptor : AbstractExecutorChannel.this.interceptors.interceptors) {
 				if (interceptor instanceof ExecutorChannelInterceptor) {
 					ExecutorChannelInterceptor executorInterceptor = (ExecutorChannelInterceptor) interceptor;
-					message = executorInterceptor.beforeHandle(message, AbstractExecutorChannel.this,
+					theMessage = executorInterceptor.beforeHandle(theMessage, AbstractExecutorChannel.this,
 							this.delegate.getMessageHandler());
-					if (message == null) {
+					if (theMessage == null) {
 						if (isLoggingEnabled() && logger.isDebugEnabled()) {
 							logger.debug(executorInterceptor.getClass().getSimpleName()
 									+ " returned null from beforeHandle, i.e. precluding the send.");
@@ -186,7 +187,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					interceptorStack.add(executorInterceptor);
 				}
 			}
-			return message;
+			return theMessage;
 		}
 
 		private void triggerAfterMessageHandled(Message<?> message, Exception ex,

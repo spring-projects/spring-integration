@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.Cookie;
@@ -464,8 +465,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				payload = this.payloadExpression.getValue(evaluationContext);
 			}
 			if (!CollectionUtils.isEmpty(this.headerExpressions)) {
-				for (String headerName : this.headerExpressions.keySet()) {
-					Expression headerExpression = this.headerExpressions.get(headerName);
+				for (Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+					String headerName = entry.getKey();
+					Expression headerExpression = entry.getValue();
 					Object headerValue = headerExpression.getValue(evaluationContext);
 					if (headerValue != null) {
 						headers.put(headerName, headerValue);

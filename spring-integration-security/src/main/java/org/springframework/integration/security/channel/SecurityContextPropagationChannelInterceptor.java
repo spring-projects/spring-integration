@@ -36,7 +36,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * in the containers Threads for channels like
  * {@link org.springframework.integration.channel.ExecutorChannel}
  * and {@link org.springframework.integration.channel.QueueChannel}.
- *
  * @author Artem Bilan
  * @see ThreadStatePropagationChannelInterceptor
  * @since 4.2
@@ -46,7 +45,7 @@ public class SecurityContextPropagationChannelInterceptor
 
 	private final static SecurityContext EMPTY_CONTEXT = SecurityContextHolder.createEmptyContext();
 
-	private static final ThreadLocal<SecurityContext> ORIGINAL_CONTEXT = new ThreadLocal<SecurityContext>();
+	private final static ThreadLocal<SecurityContext> ORIGINAL_CONTEXT = new ThreadLocal<SecurityContext>();
 
 	@Override
 	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {
@@ -63,7 +62,7 @@ public class SecurityContextPropagationChannelInterceptor
 
 	@Override
 	protected void populatePropagatedContext(Authentication authentication, Message<?> message,
-											 MessageChannel channel) {
+	                                         MessageChannel channel) {
 		if (authentication != null) {
 			SecurityContext currentContext = SecurityContextHolder.getContext();
 
@@ -75,9 +74,8 @@ public class SecurityContextPropagationChannelInterceptor
 		}
 	}
 
-	public static void cleanup() {
+	private void cleanup() {
 		SecurityContext originalContext = ORIGINAL_CONTEXT.get();
-
 		try {
 			if (originalContext == null || EMPTY_CONTEXT.equals(originalContext)) {
 				SecurityContextHolder.clearContext();
@@ -87,7 +85,7 @@ public class SecurityContextPropagationChannelInterceptor
 				SecurityContextHolder.setContext(originalContext);
 			}
 		}
-		catch (Throwable t) {
+		catch (Throwable t) {//NOSONAR
 			SecurityContextHolder.clearContext();
 		}
 	}

@@ -38,6 +38,9 @@ public class RecursiveLeafOnlyDirectoryScanner extends DefaultDirectoryScanner {
 	@Override
 	protected File[] listEligibleFiles(File directory) throws IllegalArgumentException {
 		File[] rootFiles = directory.listFiles();
+		if (rootFiles == null) {
+			return new File[0];
+		}
 		List<File> files = new ArrayList<File>(rootFiles.length);
 		for (File rootFile : rootFiles) {
 			if (rootFile.isDirectory()) {

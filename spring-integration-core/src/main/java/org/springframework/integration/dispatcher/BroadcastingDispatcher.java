@@ -193,7 +193,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	private Runnable createMessageHandlingTask(final MessageHandler handler, final Message<?> message) {
 		MessageHandlingRunnable task = new MessageHandlingRunnable() {
 
-			final MessageHandler delegate = new MessageHandler() {
+			private final MessageHandler delegate = new MessageHandler() {
 
 				@Override
 				public void handleMessage(Message<?> message) throws MessagingException {

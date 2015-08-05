@@ -844,8 +844,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		}
 		StringBuilder builder = new StringBuilder();
 
-		for (Object key : objectNameStaticProperties.keySet()) {
-			builder.append("," + key + "=" + objectNameStaticProperties.get(key));
+		for (Entry<Object, Object> entry : this.objectNameStaticProperties.entrySet()) {
+			builder.append("," + entry.getKey() + "=" + entry.getValue());
 		}
 		return builder.toString();
 	}
