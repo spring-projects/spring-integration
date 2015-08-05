@@ -36,7 +36,7 @@ public class EncodingPayloadTransformer<T> extends AbstractPayloadTransformer<T,
 	}
 
 	@Override
-	protected byte[] transformPayload(T payload) throws Exception {
+	protected byte[] transformPayload(T payload) throws Exception {//NOSONAR
 		return codec.encode(payload);
 	}
 
