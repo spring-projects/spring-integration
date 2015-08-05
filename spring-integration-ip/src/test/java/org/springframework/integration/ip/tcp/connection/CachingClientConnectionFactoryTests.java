@@ -642,6 +642,7 @@ public class CachingClientConnectionFactoryTests {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		server1.stop();
 		TestingUtilities.waitStopListening(server1, 10000L);
+		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(factory1, 0);
 		conn1 = cachingFactory.getConnection();
 		conn2 = cachingFactory.getConnection();
 		conn1.send(message);

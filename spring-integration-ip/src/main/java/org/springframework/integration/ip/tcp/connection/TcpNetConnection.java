@@ -111,7 +111,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			throw e;
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("Message sent " + message);
+			logger.debug(getConnectionId() + " Message sent " + message);
 		}
 	}
 

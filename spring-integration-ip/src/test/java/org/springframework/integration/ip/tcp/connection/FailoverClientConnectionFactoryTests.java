@@ -77,7 +77,7 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Rule
 	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
-			"org.springframework.integration.ip.tcp");
+			"org.springframework.integration.ip.tcp", "org.springframework.integration.util.SimplePool");
 
 	@Test
 	public void testFailoverGood() throws Exception {
@@ -327,7 +327,7 @@ public class FailoverClientConnectionFactoryTests {
 		TestingUtilities.waitListening(server1, 10000L);
 		int port2 = SocketUtils.findAvailableServerSocket();
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
-		server1.setBeanName("server2");
+		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
 
@@ -359,7 +359,9 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
+		cachingFactory1.setBeanName("cache1");
 		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 2);
+		cachingFactory2.setBeanName("cache2");
 
 		// Failover
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
@@ -369,8 +371,7 @@ public class FailoverClientConnectionFactoryTests {
 
 		failoverFactory.start();
 		TcpConnection conn1 = failoverFactory.getConnection();
-		GenericMessage<String> message = new GenericMessage<String>("foo");
-		conn1.send(message);
+		conn1.send(new GenericMessage<String>("foo1"));
 		conn1.close();
 		TcpConnection conn2 = failoverFactory.getConnection();
 		assertSame(
@@ -378,23 +379,24 @@ public class FailoverClientConnectionFactoryTests {
 						.getTheConnection(),
 				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
-		conn2.send(message);
+		conn2.send(new GenericMessage<String>("foo2"));
 		conn1 = failoverFactory.getConnection();
 		assertNotSame(
 				(TestUtils.getPropertyValue(conn1, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection(),
 				(TestUtils.getPropertyValue(conn2, "delegate", TcpConnectionInterceptorSupport.class))
 						.getTheConnection());
-		conn1.send(message);
+		conn1.send(new GenericMessage<String>("foo3"));
 		conn1.close();
 		conn2.close();
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		server1.stop();
 		TestingUtilities.waitStopListening(server1, 10000L);
+		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(factory1, 0);
 		conn1 = failoverFactory.getConnection();
 		conn2 = failoverFactory.getConnection();
-		conn1.send(message);
-		conn2.send(message);
+		conn1.send(new GenericMessage<String>("foo4"));
+		conn2.send(new GenericMessage<String>("foo5"));
 		conn1.close();
 		conn2.close();
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
@@ -421,7 +423,7 @@ public class FailoverClientConnectionFactoryTests {
 		TestingUtilities.waitListening(server1, 10000L);
 		int port2 = SocketUtils.findAvailableServerSocket();
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
-		server1.setBeanName("server2");
+		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
 
@@ -455,7 +457,9 @@ public class FailoverClientConnectionFactoryTests {
 
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
+		cachingFactory1.setBeanName("cache1");
 		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 2);
+		cachingFactory2.setBeanName("cache2");
 
 		// Failover
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
