@@ -38,7 +38,7 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
-	protected volatile int executorInterceptorsSize;
+	private volatile int executorInterceptorsSize;
 
 	@Override
 	public int getReceiveCount() {
@@ -168,7 +168,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	@Override
 	public ChannelInterceptor removeInterceptor(int index) {
 		ChannelInterceptor interceptor = super.removeInterceptor(index);
-		if (interceptor != null && interceptor instanceof ExecutorChannelInterceptor) {
+		if (interceptor instanceof ExecutorChannelInterceptor) {
 			this.executorInterceptorsSize--;
 		}
 		return interceptor;

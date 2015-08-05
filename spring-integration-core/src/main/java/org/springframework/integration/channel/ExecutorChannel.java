@@ -134,5 +134,4 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 		this.dispatcher = unicastingDispatcher;
 	}
 
-
 }

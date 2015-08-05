@@ -71,14 +71,14 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() throws Exception {//NOSONAR
 		if (this.evaluationContext == null) {
 			this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 		}
 	}
 
 	@Override
-	protected T doTransform(Message<?> message) throws Exception {
+	protected T doTransform(Message<?> message) throws Exception {//NOSONAR
 		Assert.isTrue(message.getPayload() instanceof byte[], "Message payload must be byte[]");
 		byte[] bytes = (byte[]) message.getPayload();
 		return codec.decode(bytes, this.type != null ? this.type : type(message));

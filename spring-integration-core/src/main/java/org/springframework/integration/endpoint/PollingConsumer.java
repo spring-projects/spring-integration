@@ -89,36 +89,37 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 	@Override
 	protected void handleMessage(Message<?> message) {
+		Message<?> theMessage = message;
 		Deque<ExecutorChannelInterceptor> interceptorStack = null;
 		try {
 			if (this.channelInterceptors != null
 					&& ((ExecutorChannelInterceptorAware) this.inputChannel).hasExecutorInterceptors()) {
 				interceptorStack = new ArrayDeque<ExecutorChannelInterceptor>();
-				message = applyBeforeHandle(message, interceptorStack);
-				if (message == null) {
+				theMessage = applyBeforeHandle(theMessage, interceptorStack);
+				if (theMessage == null) {
 					return;
 				}
 			}
-			this.handler.handleMessage(message);
+			this.handler.handleMessage(theMessage);
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				triggerAfterMessageHandled(message, null, interceptorStack);
+				triggerAfterMessageHandled(theMessage, null, interceptorStack);
 			}
 		}
 		catch (Exception ex) {
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				triggerAfterMessageHandled(message, ex, interceptorStack);
+				triggerAfterMessageHandled(theMessage, ex, interceptorStack);
 			}
-			if (ex instanceof MessagingException) {
+			if (ex instanceof MessagingException) {//NOSONAR
 				throw (MessagingException) ex;
 			}
-			String description = "Failed to handle " + message + " to " + this + " in " + this.handler;
-			throw new MessageDeliveryException(message, description, ex);
+			String description = "Failed to handle " + theMessage + " to " + this + " in " + this.handler;
+			throw new MessageDeliveryException(theMessage, description, ex);
 		}
 		catch (Error ex) {//NOSONAR - ok, we re-throw below
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				String description = "Failed to handle " + message + " to " + this + " in " + this.handler;
-				triggerAfterMessageHandled(message,
-						new MessageDeliveryException(message, description, ex),
+				String description = "Failed to handle " + theMessage + " to " + this + " in " + this.handler;
+				triggerAfterMessageHandled(theMessage,
+						new MessageDeliveryException(theMessage, description, ex),
 						interceptorStack);
 			}
 			throw ex;
@@ -126,10 +127,11 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	}
 
 	private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
+		Message<?> theMessage = message;
 		for (ChannelInterceptor interceptor : this.channelInterceptors) {
 			if (interceptor instanceof ExecutorChannelInterceptor) {
 				ExecutorChannelInterceptor executorInterceptor = (ExecutorChannelInterceptor) interceptor;
-				message = executorInterceptor.beforeHandle(message, this.inputChannel, this.handler);
+				theMessage = executorInterceptor.beforeHandle(theMessage, this.inputChannel, this.handler);
 				if (message == null) {
 					if (logger.isDebugEnabled()) {
 						logger.debug(executorInterceptor.getClass().getSimpleName()
@@ -141,7 +143,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 				interceptorStack.add(executorInterceptor);
 			}
 		}
-		return message;
+		return theMessage;
 	}
 
 	private void triggerAfterMessageHandled(Message<?> message, Exception ex,
