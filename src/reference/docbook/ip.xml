@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="ip"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+>
   <title>TCP and UDP Support</title>
   <para>
     Spring Integration provides Channel Adapters for receiving and sending messages over internet protocols. Both UDP
@@ -355,7 +355,7 @@
     <section id="caching-cf">
             <title>TCP Caching Client Connection Factory</title>
             <para>
-              As noted above, TCP sockets cam be 'single-use' (one request/response)
+                As noted above, TCP sockets can be 'single-use' (one request/response)
               or shared. Shared sockets do not perform well with outbound gateways,
               in high-volume environments,
               because the socket can only process one request/response at a time.
@@ -363,7 +363,9 @@
             <para>
               To improve performance, users could use collaborating channel adapters
               instead of gateways, but that requires application-level message
-              correlation. See <xref linkend="ip-correlation" />for more information.
+                correlation. See
+                <xref linkend="ip-correlation"/>
+                for more information.
             </para>
             <para>
               Spring Integration 2.2 introduced a caching client connection factory,

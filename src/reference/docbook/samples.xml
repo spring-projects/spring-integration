@@ -681,12 +681,16 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
         represented as xml.
       </para>
+      <note>
+          This sample shows that the namespace prefix can be whatever you want; while we usually use, `int-xml` for
+          integration XML components, the sample uses `si-xml`.
+      </note>
       <para>
       First the order is split into a number of messages, each one representing a single order item using
         the XPath splitter component.
-          <programlisting language="xml"><![CDATA[<int-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
+          <programlisting language="xml"><![CDATA[<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
               output-channel="stockCheckerChannel" create-documents="true">
-      <int-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem"
+      <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem"
                                 namespace-map="orderNamespaceMap" />
   </int-xml:xpath-splitter>]]></programlisting>
       </para>
@@ -703,7 +707,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
         Where the order item is not in stock the message is transformed using
         xslt into a format suitable for sending to the supplier.
-          <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="outOfStockChannel"
+          <programlisting language="xml"><![CDATA[<si-xml:xslt-transformer input-channel="outOfStockChannel"
   output-channel="resupplyOrderChannel"
   xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>]]></programlisting>
       </para>
