@@ -36,8 +36,6 @@ import org.springframework.messaging.MessagingException;
  */
 public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final ReleasingMessageHandler releasingHandler;
-
 	private final ConcurrentHashMap<Object, BlockingQueue<Message<?>>> suspensions =
 			new ConcurrentHashMap<Object, BlockingQueue<Message<?>>>();
 
@@ -48,22 +46,13 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 	private final CorrelationStrategy correlationStrategy;
 
 	public SuspendingMessageHandler(long timeout) {
-		this(new ReleasingMessageHandler(),
-				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID), timeout);
+		this(new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID), timeout);
 	}
 
-	public SuspendingMessageHandler(ReleasingMessageHandler releaser, long timeout) {
-		this(releaser, new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID),
-				timeout);
-	}
-
-	public SuspendingMessageHandler(ReleasingMessageHandler releaser, CorrelationStrategy correlationStrategy,
+	public SuspendingMessageHandler(CorrelationStrategy correlationStrategy,
 			long timeout) {
 		this.correlationStrategy = correlationStrategy;
 		this.timeout = timeout;
-		this.releasingHandler = releaser;
-		this.releasingHandler.setCorrelationStrategy(this.correlationStrategy);
-		this.releasingHandler.setSuspensions(this.suspensions);
 	}
 
 	@Override
@@ -77,7 +66,7 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 			throw new MessagingException(requestMessage, "Correlation key ("
 					+ key + ") is already in use by " + existing.getName());
 		}
-		BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(this.suspensions, key);
+		BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(key);
 		try {
 			Message<?> release = blockingQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
 			if (release != null) {
@@ -116,47 +105,28 @@ public class SuspendingMessageHandler extends AbstractReplyProducingMessageHandl
 		return result;
 	}
 
-	private static BlockingQueue<Message<?>> createOrObtainQueue(
-			ConcurrentHashMap<Object, BlockingQueue<Message<?>>> suspensions, Object key) {
+	private BlockingQueue<Message<?>> createOrObtainQueue(Object key) {
 		BlockingQueue<Message<?>> blockingQueue = new ArrayBlockingQueue<Message<?>>(1);
-		BlockingQueue<Message<?>> existing = suspensions.putIfAbsent(key, blockingQueue);
+		BlockingQueue<Message<?>> existing = this.suspensions.putIfAbsent(key, blockingQueue);
 		if (existing != null) {
 			blockingQueue = existing;
 		}
 		return blockingQueue;
 	}
 
-	final static class ReleasingMessageHandler extends AbstractMessageHandler {
-
-		private CorrelationStrategy correlationStrategy;
-
-		private ConcurrentHashMap<Object, BlockingQueue<Message<?>>> suspensions;
-
-
-		public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
-			this.correlationStrategy = correlationStrategy;
+	public void release(Message<?> message) {
+		Object key = this.correlationStrategy.getCorrelationKey(message);
+		if (key == null) {
+			throw new MessagingException(message, "Correlation Strategy returned null");
 		}
-
-		public void setSuspensions(ConcurrentHashMap<Object, BlockingQueue<Message<?>>> suspensions) {
-			this.suspensions = suspensions;
-		}
-
-		@Override
-		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Object key = this.correlationStrategy.getCorrelationKey(message);
-			if (key == null) {
-				throw new MessagingException(message, "Correlation Strategy returned null");
-			}
-			BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(this.suspensions, key);
-			synchronized(blockingQueue) {
-				if (!blockingQueue.offer(message)) {
-					this.logger.error("Release message arrived too late: " + message
-							+ " pending message: " + blockingQueue.poll());
-					this.suspensions.remove(key);
-				}
+		BlockingQueue<Message<?>> blockingQueue = createOrObtainQueue(key);
+		synchronized(blockingQueue) {
+			if (!blockingQueue.offer(message)) {
+				this.logger.error("Release message arrived too late: " + message
+						+ " pending message: " + blockingQueue.poll());
+				this.suspensions.remove(key);
 			}
 		}
-
 	}
 
 }

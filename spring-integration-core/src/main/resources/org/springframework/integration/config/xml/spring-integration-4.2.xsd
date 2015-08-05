@@ -1688,7 +1688,7 @@
 				<xsd:element ref="poller" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
-			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="timeout" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -1728,19 +1728,6 @@
 					<xsd:documentation>A SpEL expression which implements correlation decision
 					algorithm to apply to the Message (e.g., payload.getPerson().getId() - correlate
 					 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="release-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Sending a message to this channel releases a thread suspended based on the same
-						correlation.
-					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>

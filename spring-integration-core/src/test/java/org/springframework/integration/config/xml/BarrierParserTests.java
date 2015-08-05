@@ -15,13 +15,16 @@
  */
 package org.springframework.integration.config.xml;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.SuspendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -51,7 +54,10 @@ public class BarrierParserTests {
 	private PollableChannel out;
 
 	@Autowired
-	private PollingConsumer endpoint;
+	private PollingConsumer barrier1;
+
+	@Autowired
+	private PollingConsumer barrier2;
 
 	@Test
 	public void parserTests() {
@@ -59,11 +65,14 @@ public class BarrierParserTests {
 		this.release.send(new GenericMessage<String>("bar"));
 		Message<?> received = out.receive(10000);
 		assertNotNull(received);
-		this.endpoint.stop();
+		this.barrier1.stop();
 
-		SuspendingMessageHandler handler = TestUtils.getPropertyValue(this.endpoint, "handler",
+		SuspendingMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
 				SuspendingMessageHandler.class);
 		assertEquals(10000L, TestUtils.getPropertyValue(handler, "timeout"));
+
+		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"),
+				instanceOf(HeaderAttributeCorrelationStrategy.class));
 	}
 
 }

@@ -40,7 +40,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.SuspendingMessageHandler.ReleasingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -56,8 +55,7 @@ public class SuspendingMessageHandlerTests {
 
 	@Test
 	public void testRequestBeforeReply() throws Exception {
-		ReleasingMessageHandler releaser = new ReleasingMessageHandler();
-		final SuspendingMessageHandler handler = new SuspendingMessageHandler(releaser, 10000);
+		final SuspendingMessageHandler handler = new SuspendingMessageHandler(10000);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -91,7 +89,7 @@ public class SuspendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertNotNull(dupCorrelation.get());
 		assertThat(dupCorrelation.get().getMessage(), Matchers.startsWith("Correlation key (foo) is already in use by"));
-		releaser.handleMessage(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		handler.release(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
 		assertNotNull(received);
 		Object[] result = (Object[]) received.getPayload();
@@ -103,8 +101,7 @@ public class SuspendingMessageHandlerTests {
 
 	@Test
 	public void testReplyBeforeRequest() throws Exception {
-		ReleasingMessageHandler releaser = new ReleasingMessageHandler();
-		final SuspendingMessageHandler handler = new SuspendingMessageHandler(releaser, 10000);
+		final SuspendingMessageHandler handler = new SuspendingMessageHandler(10000);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -113,9 +110,7 @@ public class SuspendingMessageHandlerTests {
 
 			@Override
 			public void run() {
-				ReleasingMessageHandler releaser = TestUtils.getPropertyValue(handler, "releasingHandler",
-						ReleasingMessageHandler.class);
-				releaser.handleMessage(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+				handler.release(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 			}
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
@@ -135,8 +130,7 @@ public class SuspendingMessageHandlerTests {
 
 	@Test
 	public void testLateReply() throws Exception {
-		ReleasingMessageHandler releaser = new ReleasingMessageHandler();
-		final SuspendingMessageHandler handler = new SuspendingMessageHandler(releaser, 0);
+		final SuspendingMessageHandler handler = new SuspendingMessageHandler(0);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -154,9 +148,9 @@ public class SuspendingMessageHandlerTests {
 			Thread.sleep(100);
 		}
 		assertTrue("suspension did not appear in time", n < 100);
-		Log logger = spy(TestUtils.getPropertyValue(handler, "releasingHandler.logger", Log.class));
-		new DirectFieldAccessor(releaser).setPropertyValue("logger", logger);
-		releaser.handleMessage(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		handler.release(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captor.capture());
 		assertThat(captor.getValue(),
@@ -167,8 +161,7 @@ public class SuspendingMessageHandlerTests {
 
 	@Test
 	public void testExceptionReply() throws Exception {
-		ReleasingMessageHandler releaser = new ReleasingMessageHandler();
-		final SuspendingMessageHandler handler = new SuspendingMessageHandler(releaser, 10000);
+		final SuspendingMessageHandler handler = new SuspendingMessageHandler(10000);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -195,7 +188,7 @@ public class SuspendingMessageHandlerTests {
 		}
 		assertTrue("suspension did not appear in time", n < 100);
 		Exception exc = new RuntimeException();
-		releaser.handleMessage(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
+		handler.release(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertSame(exc, exception.get().getCause());
 		assertEquals(0, suspensions.size());
