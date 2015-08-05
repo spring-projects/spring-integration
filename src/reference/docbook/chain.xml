@@ -76,7 +76,7 @@
     The &lt;chain&gt; can be configured as the last 'black-box' consumer of the message flow. For this solution it is
     enough to put at the end of the &lt;chain&gt; some &lt;outbound-channel-adapter&gt;:
     <programlisting language="xml"><![CDATA[<int:chain input-channel="input">
-    <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
+    <int-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
     <int:service-activator ref="someService" method="someMethod"/>
     <int:header-enricher>
         <int:header name="foo" value="bar"/>

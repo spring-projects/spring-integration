@@ -287,14 +287,14 @@
 			If you leave the colon off, the XPath expression will not match. The following
 			XPath Expression will match agains the XML document above:
 		</para>
-		<programlisting language="xml"><![CDATA[<si-xml:xpath-expression expression="/:order/:orderItem"
+		<programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression="/:order/:orderItem"
     ns-prefix="" ns-uri="http://www.example.org/prodcuts"/>]]></programlisting>
 		<para>
 			Of course you can also provide any other arbitrarily chosen namespace prefix.
 			The following XPath expression using the <emphasis>myorder</emphasis>
 			namespace prefix will match also:
 		</para>
-		<programlisting language="xml"><![CDATA[<si-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
+		<programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
     ns-prefix="myorder" ns-uri="http://www.example.org/prodcuts"/>]]></programlisting>
 		<para>
 			It is important to remember that the namespace URI is the really important
@@ -913,7 +913,7 @@
       channels are determined dynamically.
     </para>
     <programlisting language="xml"><![CDATA[<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
-    <si-xml:xpath-expression expression="/order/type"/>
+    <int-xml:xpath-expression expression="/order/type"/>
 </int-xml:xpath-router>]]></programlisting>
 
     <note>
