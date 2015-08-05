@@ -220,7 +220,7 @@ The following XPath Expression will match agains the XML document above:
 
 [source,xml]
 ----
-<si-xml:xpath-expression expression="/:order/:orderItem"
+<int-xml:xpath-expression expression="/:order/:orderItem"
     ns-prefix="" ns-uri="http://www.example.org/prodcuts"/>
 ----
 
@@ -229,7 +229,7 @@ The following XPath expression using the _myorder_ namespace prefix will match a
 
 [source,xml]
 ----
-<si-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
+<int-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
     ns-prefix="myorder" ns-uri="http://www.example.org/prodcuts"/>
 ----
 
@@ -720,7 +720,7 @@ Instead, one or more output channels are determined dynamically.
 [source,xml]
 ----
 <int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
-    <si-xml:xpath-expression expression="/order/type"/>
+    <int-xml:xpath-expression expression="/order/type"/>
 </int-xml:xpath-router>
 ----
 

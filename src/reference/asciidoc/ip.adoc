@@ -268,11 +268,11 @@ As is noted there, such modifications are possible whether or not SSL is being u
 [[caching-cf]]
 ==== TCP Caching Client Connection Factory
 
-As noted above, TCP sockets cam be 'single-use' (one request/response) or shared.
+As noted above, TCP sockets can be 'single-use' (one request/response) or shared.
 Shared sockets do not perform well with outbound gateways, in high-volume environments, because the socket can only process one request/response at a time.
 
 To improve performance, users could use collaborating channel adapters instead of gateways, but that requires application-level message correlation.
-See <<ip-correlation>>for more information.
+See <<ip-correlation>> for more information.
 
 Spring Integration 2.2 introduced a caching client connection factory, where a pool of shared sockets is used, allowing a gateway to process multiple concurrent requests with a pool of shared connections.
 

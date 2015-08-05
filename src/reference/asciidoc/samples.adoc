@@ -510,17 +510,20 @@ NOTE: In addition to experimenting with the poller's concurrency settings, you c
 [[samples-xml-messaging]]
 ==== The XML Messaging Sample
 
-The xml messaging sample in the `org.springframework.integration.samples.xml` illustrates how to use some of the provided components which deal with xml payloads.
+The xml messaging sample in `basic/xml` illustrates how to use some of the provided components which deal with xml payloads.
 The sample uses the idea of processing an order for books represented as xml.
+
+NOTE:This sample shows that the namespace prefix can be whatever you want; while we usually use, `int-xml` for
+integration XML components, the sample uses `si-xml`.
 
 First the order is split into a number of messages, each one representing a single order item using the XPath splitter component.
 [source,xml]
 ----
-<int-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
+<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
               output-channel="stockCheckerChannel" create-documents="true">
-      <int-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem"
+      <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem"
                                 namespace-map="orderNamespaceMap" />
-  </int-xml:xpath-splitter>
+  </si-xml:xpath-splitter>
 ----
 
 A service activator is then used to pass the message into a stock checker POJO.
@@ -540,7 +543,7 @@ In the case where the order item is in stock the message is routed to the wareho
 Where the order item is not in stock the message is transformed using xslt into a format suitable for sending to the supplier.
 [source,xml]
 ----
-<int-xml:xslt-transformer input-channel="outOfStockChannel"
+<si-xml:xslt-transformer input-channel="outOfStockChannel"
   output-channel="resupplyOrderChannel"
   xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
 ----
