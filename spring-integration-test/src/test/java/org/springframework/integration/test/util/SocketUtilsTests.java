@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,20 @@
  */
 package org.springframework.integration.test.util;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertNotEquals;
 
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+
+import javax.net.ServerSocketFactory;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class SocketUtilsTests {
 
@@ -52,6 +60,23 @@ public class SocketUtilsTests {
 		}
 
 		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+	}
+
+	@Test
+	public void testTcpLocalhost() throws Exception {
+		int available = SocketUtils.findAvailableServerSocket();
+		ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(available, 1,
+				InetAddress.getByName("localhost"));
+		assertNotEquals(available, SocketUtils.findAvailableServerSocket(available));
+		ss.close();
+	}
+
+	@Test
+	public void testUdpLocalhost() throws Exception {
+		int available = SocketUtils.findAvailableUdpSocket(2000);
+		DatagramSocket dgs = new DatagramSocket(available, InetAddress.getByName("localhost"));
+		assertNotEquals(available, SocketUtils.findAvailableUdpSocket(available));
+		dgs.close();
 	}
 
 }

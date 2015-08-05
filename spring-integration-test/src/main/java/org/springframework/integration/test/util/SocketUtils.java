@@ -16,6 +16,7 @@
 package org.springframework.integration.test.util;
 
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +104,8 @@ public final class SocketUtils {
 
 		for (int i = seed; i < seed+200; i++) {
 			try {
-				ServerSocket sock = ServerSocketFactory.getDefault().createServerSocket(i);
+				ServerSocket sock = ServerSocketFactory.getDefault().createServerSocket(i, 1,
+						InetAddress.getByName("localhost"));
 				sock.close();
 				openPorts.add(i);
 
@@ -166,7 +168,7 @@ public final class SocketUtils {
 
 		for (int i = seed; i < seed+200; i++) {
 			try {
-				DatagramSocket sock = new DatagramSocket(i);
+				DatagramSocket sock = new DatagramSocket(i, InetAddress.getByName("localhost"));
 				sock.close();
 				Thread.sleep(100);
 
