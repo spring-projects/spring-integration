@@ -56,7 +56,7 @@ For this solution it is enough to put at the end of the <chain> some <outbound-c
 [source,xml]
 ----
 <int:chain input-channel="input">
-    <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
+    <int-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
     <int:service-activator ref="someService" method="someMethod"/>
     <int:header-enricher>
         <int:header name="foo" value="bar"/>
