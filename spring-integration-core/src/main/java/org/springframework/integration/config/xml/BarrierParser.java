@@ -19,9 +19,11 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.SuspendingMessageHandler;
+import org.springframework.integration.handler.BarrierMessageHandler;
+import org.springframework.util.StringUtils;
 
 /**
+ * Parser for {@code <int:barrier />}.
  * @author Gary Russell
  * @since 4.2
  *
@@ -31,10 +33,14 @@ public class BarrierParser extends  AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(SuspendingMessageHandler.class);
+				.genericBeanDefinition(BarrierMessageHandler.class);
 		IntegrationNamespaceUtils.injectConstructorWithAdapter("correlation-strategy",
 				"correlation-strategy-method", "correlation-strategy-expression",
 				"CorrelationStrategy", element, handlerBuilder, null, parserContext);
+		String processor = element.getAttribute("output-processor");
+		if (StringUtils.hasText(processor)) {
+			handlerBuilder.addConstructorArgReference(processor);
+		}
 		handlerBuilder.addConstructorArgValue(element.getAttribute("timeout"));
 		return handlerBuilder;
 	}

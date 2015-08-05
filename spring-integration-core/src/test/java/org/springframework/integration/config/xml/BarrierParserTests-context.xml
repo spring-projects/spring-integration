@@ -20,12 +20,17 @@
 
 	<int:channel id="release" />
 
-	<int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="release" />
+	<int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="triggerAction" />
 
 	<int:barrier id="barrier2" input-channel="nullChannel" timeout="10000" auto-startup="false">
 		<int:poller fixed-delay="1000000" />
 	</int:barrier>
 
-	<int:barrier id="barrier3" input-channel="release" auto-startup="false" timeout="123" />
+	<int:barrier id="barrier3" input-channel="release" auto-startup="false" timeout="123"
+		output-processor="mgp" correlation-strategy="cs" requires-reply="true" />
+
+	<bean id="mgp" class="org.springframework.integration.config.xml.BarrierParserTests$TestMGP" />
+
+	<bean id="cs" class="org.springframework.integration.config.xml.BarrierParserTests$TestCS" />
 
 </beans>

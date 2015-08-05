@@ -24,9 +24,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
+import org.springframework.integration.aggregator.MessageGroupProcessor;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.handler.SuspendingMessageHandler;
+import org.springframework.integration.handler.BarrierMessageHandler;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -59,20 +63,48 @@ public class BarrierParserTests {
 	@Autowired
 	private PollingConsumer barrier2;
 
+	@Autowired
+	private EventDrivenConsumer barrier3;
+
 	@Test
-	public void parserTests() {
+	public void parserTestsWithMessage() {
 		this.in.send(new GenericMessage<String>("foo"));
 		this.release.send(new GenericMessage<String>("bar"));
 		Message<?> received = out.receive(10000);
 		assertNotNull(received);
 		this.barrier1.stop();
+	}
 
-		SuspendingMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
-				SuspendingMessageHandler.class);
+	@Test
+	public void parserFieldPopulationTests() {
+		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
+				BarrierMessageHandler.class);
 		assertEquals(10000L, TestUtils.getPropertyValue(handler, "timeout"));
-
 		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"),
 				instanceOf(HeaderAttributeCorrelationStrategy.class));
+		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.messageGroupProcessor"),
+				instanceOf(TestMGP.class));
+		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy"),
+				instanceOf(TestCS.class));
+
+	}
+
+	public static class TestMGP implements MessageGroupProcessor {
+
+		@Override
+		public Object processMessageGroup(MessageGroup group) {
+			return null;
+		}
+
+	}
+
+	public static class TestCS implements CorrelationStrategy {
+
+		@Override
+		public Object getCorrelationKey(Message<?> message) {
+			return null;
+		}
+
 	}
 
 }
