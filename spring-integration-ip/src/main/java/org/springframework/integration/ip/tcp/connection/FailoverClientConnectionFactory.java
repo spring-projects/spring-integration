@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -177,7 +176,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * This allows for the condition where the current connection is closed,
 		 * the current factory can serve up a new connection, but all other
 		 * factories are down.
-		 * @throws Exception
+		 * @throws Exception if an exception occurs
 		 */
 		private synchronized void findAConnection() throws Exception {
 			boolean success = false;
@@ -191,11 +190,19 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 				try {
 					nextFactory = this.factoryIterator.next();
 					this.delegate = nextFactory.getConnection();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Got " + this.delegate.getConnectionId() + " from " + nextFactory);
+					}
 					this.delegate.registerListener(this);
 					this.currentFactory = nextFactory;
 					success = this.delegate.isOpen();
 				}
-				catch (IOException e) {
+				catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug(nextFactory + " failed with "
+								+ e.toString()
+								+ ", trying another");
+					}
 					if (!this.factoryIterator.hasNext()) {
 						if (retried && lastFactoryToTry == null || lastFactoryToTry == nextFactory) {
 							/*
@@ -240,7 +247,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					this.delegate.send(message);
 					success = true;
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					if (retried && lastFactoryTried == lastFactoryToTry) {
 						logger.error("All connection factories exhausted", e);
 						this.open = false;
