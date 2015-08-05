@@ -26,4 +26,6 @@
 		<int:poller fixed-delay="1000000" />
 	</int:barrier>
 
+	<int:barrier id="barrier3" input-channel="release" auto-startup="false" timeout="123" />
+
 </beans>

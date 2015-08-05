@@ -1666,25 +1666,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:choice minOccurs="1" maxOccurs="unbounded">
-				<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
-					<xsd:complexType>
-						<xsd:complexContent>
-							<xsd:extension base="handlerAdviceChainType">
-								<xsd:attribute name="discard-within-advice" type="xsd:string" default="true">
-									<xsd:annotation>
-										<xsd:documentation><![CDATA[
-					When true (default) any discard action (and exception thrown) will occur
-					within the scope of the advice class(es) in the chain. Otherwise, these actions
-					will occur after the advice chain returns. The advice chain is applied to both
-					the suspender and releaser message handlers.
-										]]></xsd:documentation>
-									</xsd:annotation>
-								</xsd:attribute>
-							</xsd:extension>
-						</xsd:complexContent>
-					</xsd:complexType>
-				</xsd:element>
+			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				<xsd:element ref="poller" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
