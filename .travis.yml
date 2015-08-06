@@ -7,5 +7,5 @@ services:
   - redis-server
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true
-#script:
-#  - ./gradlew build --parallel
+script:
+  - ./gradlew :spring-integration-ip:build -d -Dtest.single=FailoverClientConnectionFactoryTests
