@@ -100,13 +100,16 @@ Sets the host key alias, used when comparing the host key to the known hosts lis
 
 *knownHosts*
 
-Specifies the filename that will be used to create a host key repository.
-The resulting file has the same format as OpenSSH's_known_hosts_ file.
+Specifies the filename that will be used for a host key repository.
+The file has the same format as OpenSSH's _known_hosts_ file and is required and must be pre-populated if
+`allowUnknownKeys` is false.
 
 *password*
 
 The password to authenticate against the remote host.
 If a _password_ is not provided, then the _privateKey_ property is mandatory.
+Overrides the password in a custom `UserInfo`.
+To use that password, leave this as the default `null`.
 
 *port*
 
@@ -158,6 +161,21 @@ Defaults to `0`, which means, that no timeout will occur.
 
 The remote user to use.
 _Mandatory_.
+
+[[sftp-unk-hosts]]
+*allowUnknownKeys*
+
+Set to `true` to allow connections to hosts with unknown (or changed) keys.
+Default 'false' (since 4.2 - defaults to `true` in 4.1.7 and was not configurable before that version).
+Only applied if no `userInfo` is provided.
+If false, a pre-populated knownHosts file is required.
+
+*userInfo*
+
+Set a custom `UserInfo` used during authentication.
+In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
+Also see `allowUnknownHosts`.
+
 
 [[sftp-dsf]]
 === Delegating Session Factory
