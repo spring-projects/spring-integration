@@ -201,8 +201,14 @@ See <<conditional-pollers>> for more information.
 [[x4.2-amqp-changes]]
 ==== AMQP Changes
 
+===== Publisher Confirms
+
 The `<int-amqp:outbound-gateway>` now supports `confirm-correlation-expression` and `confirm-(n)ack-channel`
 attributes with similar purpose as for `<int-amqp:outbound-channel-adapter>`.
+
+For both the outbound channel adapter and gateway, if the correlation data is a `Message<?>`, it will be the basis
+of the message on the ack/nack channel, with the additional header(s) added.
+Previously, any correlation data (including `Message<?>`) was returned as the payload of the ack/nack message.
 
 See <<amqp>> for more information.
 

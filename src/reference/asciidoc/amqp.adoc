@@ -7,24 +7,24 @@
 Spring Integration provides Channel Adapters for receiving and sending messages using the Advanced Message Queuing Protocol (AMQP).
 The following adapters are available:
 
-* Inbound Channel Adapter
-* Outbound Channel Adapter
-* Inbound Gateway
-* Outbound Gateway
+* <<amqp-inbound-channel-adapter,Inbound Channel Adapter>>
+* <<amqp-inbound-gateway,Inbound Gateway>>
+* <<amqp-outbound-channel-adapter,Outbound Channel Adapter>>
+* <<amqp-outbound-gateway,Outbound Gateway>>
 
 Spring Integration also provides a point-to-point Message Channel as well as a publish/subscribe Message Channel backed by AMQP Exchanges and Queues.
 
-In order to provide AMQP support, Spring Integration relies on Spring AMQP (http://www.springsource.org/spring-amqp[http://www.springsource.org/spring-amqp]) which "applies core Spring concepts to the development of AMQP-based messaging solutions".
-Spring AMQP provides similar semantics as Spring JMS (http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html[http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html]).
+In order to provide AMQP support, Spring Integration relies on (http://projects.spring.io/spring-amqp[Spring AMQP])
+which "applies core Spring concepts to the development of AMQP-based messaging solutions".
+Spring AMQP provides similar semantics to (http://docs.spring.io/spring/docs/current/spring-framework-reference/html/jms.html[Spring JMS]).
 
 Whereas the provided AMQP Channel Adapters are intended for unidirectional Messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP Gateways for request/reply operations.
 
 [TIP]
 =====
-Please familiarize yourself with the reference documentation of the Spring AMQP project as well.
+Please familiarize yourself with the
+http://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project as well].
 It provides much more in-depth information regarding Spring's integration with AMQP in general and RabbitMQ in particular.
-
-You can find the documentation at: http://static.springsource.org/spring-amqp/reference/html/[http://static.springsource.org/spring-amqp/reference/html/]
 =====
 [[amqp-inbound-channel-adapter]]
 === Inbound Channel Adapter
@@ -385,11 +385,13 @@ Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the 
 `true`. When a publisher confirm is received, and correlation data is supplied, it is written to either the
 confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type. The payload of the confirm is
 the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true (ack) or false (nack).
-Examples: "headers['myCorrelationData']", "payload".
-_Optional_.
+Examples: "`headers['myCorrelationData']`", "`payload`".
 Starting with _version 4.1_ the `amqp_publishConfirmNackCause` message header has been added.
 It contains the `cause` of a 'nack' for publisher confirms.
-
+Starting with _version 4.2_, if the expression resolves to a `Message<?>` instance (such as "`#this`"), the message
+emitted on the ack/nack channel is based on that message, with the additional header(s) added.
+Previously, a new message was created with the correlation data as its payload, regardless of type.
+_Optional_.
 
 <11> The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
 _Optional, default=nullChannel_.
@@ -407,11 +409,11 @@ _Optional_.
 
 
 <14> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
-_Optional_.
 By default only standard AMQP properties (e.g.
 `contentType`) will be copied to the Spring Integration `MessageHeaders`.
 Any user-defined headers will NOT be copied to the Message by the default`DefaultAmqpHeaderMapper`.
 Not allowed if 'request-header-names' is provided.
+_Optional_.
 
 
 <15> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
@@ -522,10 +524,12 @@ Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the 
 `true`. When a publisher confirm is received, and correlation data is supplied, it is written to either the
 confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type. The payload of the confirm is
 the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true (ack) or false (nack).
+For nacks, an additional header `amqp_publishConfirmNackCause` is provided.
 Examples: "headers['myCorrelationData']", "payload".
+If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message
+emitted on the ack/nack channel is based on that message, with the additional header(s) added.
+Previously, a new message was created with the correlation data as its payload, regardless of type.
 _Optional_.
-Starting with _version 4.1_ the `amqp_publishConfirmNackCause` message header has been added.
-It contains the `cause` of a 'nack' for publisher confirms.
 
 <14> Since _version 4.2_. The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
 _Optional, default=nullChannel_.

@@ -339,7 +339,7 @@ public class AmqpOutboundGatewayParserTests {
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
 			new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-headerMapper-fail-context.xml",
-					this.getClass());
+					this.getClass()).close();;
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
@@ -371,6 +371,19 @@ public class AmqpOutboundGatewayParserTests {
 		assertNotNull(ack);
 		assertEquals("foo", ack.getPayload());
 		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+
+		// test whole message is correlation
+		requestChannel = context.getBean("pcMessageCorrelationRequestChannel", MessageChannel.class);
+		message = MessageBuilder.withPayload("hello")
+				.build();
+		requestChannel.send(message);
+		publisherCallbackChannel.handleAck(0, false);
+		ack = ackChannel.receive(1000);
+		assertNotNull(ack);
+		assertSame(message.getPayload(), ack.getPayload());
+		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+
+		context.close();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
