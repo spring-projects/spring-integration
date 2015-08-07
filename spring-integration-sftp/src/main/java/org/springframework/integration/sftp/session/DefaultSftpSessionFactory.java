@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
@@ -43,10 +48,21 @@ import com.jcraft.jsch.UserInfo;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author David Liu
+ * @author Pat Turner
  *
  * @since 2.0
  */
 public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, SharedSessionCapable {
+
+	private static final Log logger = LogFactory.getLog(DefaultSftpSessionFactory.class);
+
+	private final ReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
+
+	private final UserInfo userInfoWrapper = new UserInfoWrapper();
+
+	private final JSch jsch;
+
+	private final boolean isSharedSession;
 
 	private volatile String host;
 
@@ -80,13 +96,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private volatile Boolean enableDaemonThread;
 
-	private final JSch jsch;
-
-	private final boolean isSharedSession;
-
 	private volatile JSchSessionWrapper sharedJschSession;
 
-	private final ReentrantReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
+	private volatile UserInfo userInfo;
+
+	private volatile boolean allowUnknownKeys = true;
 
 
 	public DefaultSftpSessionFactory() {
@@ -159,8 +173,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * Specifies the filename that will be used to create a host key repository.
-	 * The resulting file has the same format as OpenSSH's known_hosts file.
+	 * Specifies the filename that will be used for a host key repository.
+	 * The file has the same format as OpenSSH's known_hosts file.
+	 * Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
+	 * false (default).
 	 *
 	 * @param knownHosts The known hosts.
 	 *
@@ -311,6 +327,42 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		this.enableDaemonThread = enableDaemonThread;
 	}
 
+	/**
+	 * Provide a {@link UserInfo} which exposes control over dealing with new keys or key
+	 * changes. As Spring Integration will not normally allow user interaction, the
+	 * implementation must respond to Jsch calls in a suitable way.
+	 * <p>
+	 * Jsch calls {@link UserInfo#promptYesNo(String)} when connecting to an unknown host,
+	 * or when a known host's key has changed (see {@link #setKnownHosts(String)
+	 * knownHosts}). Generally, it should return false as returning true will accept all
+	 * new keys or key changes.
+	 * <p>
+	 * If no {@link UserInfo} is provided, the behavior is defined by
+	 * {@link #setAllowUnknownKeys(boolean) allowUnknownKeys}.
+	 * <p>
+	 * If {@link #setPassword(String) setPassword} is invoked with a non-null password, it will
+	 * override any password in the supplied {@link UserInfo}.
+	 *
+	 * @param userInfo the UserInfo.
+	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
+	 * @since 4.1.7
+	 */
+	public void setUserInfo(UserInfo userInfo) {
+		this.userInfo = userInfo;
+	}
+
+	/**
+	 * When no {@link UserInfo} has been provided, set to true to unconditionally allow
+	 * connecting to an unknown host or when a host's key has changed (see
+	 * {@link #setKnownHosts(String) knownHosts}). Default false (since 4.2).
+	 * Set to true if a knownHosts file is not provided.
+	 *
+	 * @param allowUnknownKeys true to allow connecting to unknown hosts.
+	 * @since 4.1.7
+	 */
+	public void setAllowUnknownKeys(boolean allowUnknownKeys) {
+		this.allowUnknownKeys = allowUnknownKeys;
+	}
 
 	@Override
 	public SftpSession getSession() {
@@ -383,7 +435,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (StringUtils.hasText(this.password)) {
 			jschSession.setPassword(this.password);
 		}
-		jschSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
+		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
 			if (proxy != null){
@@ -428,50 +480,119 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * this is a simple, optimistic implementation of the UserInfo interface.
-	 * It returns in the positive where possible and handles interactive authentication
-	 * (i.e. 'Please enter your password: ' prompts are dispatched automatically).
+	 * Wrapper class will delegate calls to a configured {@link UserInfo}, providing
+	 * sensible defaults if null. As the password is configured in this Factory, the
+	 * wrapper will return the factory's configured password and only delegate to the
+	 * UserInfo if null.
+	 * @since 4.1.7
 	 */
-	private static class OptimisticUserInfoImpl implements UserInfo, UIKeyboardInteractive {
+	private class UserInfoWrapper implements UserInfo, UIKeyboardInteractive {
 
-		private final String password;
+		/**
+		 * Convenience to check whether enclosing factory's UserInfo is configured.
+		 * @return true if there's a delegate.
+		 */
+		private boolean hasDelegate() {
+			return getDelegate() != null;
+		}
 
-		public OptimisticUserInfoImpl(String password) {
-			this.password = password;
+		/**
+		 * Convenience to retrieve enclosing factory's UserInfo.
+		 * @return
+		 */
+		private UserInfo getDelegate() {
+			return DefaultSftpSessionFactory.this.userInfo;
 		}
 
 		@Override
 		public String getPassphrase() {
-			return null; // pass
+			if (hasDelegate()) {
+				return getDelegate().getPassphrase();
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UserInfo provided for passphrase, returning: null");
+				}
+				return null;
+			}
 		}
 
 		@Override
 		public String getPassword() {
-			return this.password;
+			if (hasDelegate()) {
+				if (DefaultSftpSessionFactory.this.password != null) {
+					logger.debug("Password is obtained from the factory, not the supplied UserInfo");
+				}
+				else {
+					return getDelegate().getPassword();
+				}
+			}
+			return DefaultSftpSessionFactory.this.password;
 		}
 
 		@Override
-		public boolean promptPassphrase(String string) {
-			return true;
+		public boolean promptPassword(String message) {
+			if (hasDelegate()) {
+				return getDelegate().promptPassword(message);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UserInfo provided - " + message + ", returning: true");
+				}
+				return true;
+			}
 		}
 
 		@Override
-		public boolean promptPassword(String string) {
-			return true;
+		public boolean promptPassphrase(String message) {
+			if (hasDelegate()) {
+				return getDelegate().promptPassphrase(message);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UserInfo provided - " + message + ", returning: true");
+				}
+				return true;
+			}
 		}
 
 		@Override
-		public boolean promptYesNo(String string) {
-			return true;
+		public boolean promptYesNo(String message) {
+			if (hasDelegate()) {
+				return getDelegate().promptYesNo(message);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UserInfo provided - " + message + ", returning:"
+							+ DefaultSftpSessionFactory.this.allowUnknownKeys);
+				}
+				return DefaultSftpSessionFactory.this.allowUnknownKeys;
+			}
 		}
 
 		@Override
-		public void showMessage(String string) {
+		public void showMessage(String message) {
+			if (hasDelegate()) {
+				getDelegate().showMessage(message);
+			}
+			else {
+				logger.debug(message);
+			}
 		}
 
 		@Override
-		public String[] promptKeyboardInteractive(String destination,
-				String name, String instruction, String[] prompt, boolean[] echo) {
+		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
+				boolean[] echo) {
+			if (hasDelegate()) {
+				if (getDelegate() instanceof UIKeyboardInteractive) {
+					return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
+							instruction, prompt, echo);
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("No UserInfo provided - " + destination + ":" + name + ":" + instruction + ":"
+						+ Arrays.asList(prompt) + ":" + Arrays.asList(echo));
+			}
 			return null;
 		}
 	}
