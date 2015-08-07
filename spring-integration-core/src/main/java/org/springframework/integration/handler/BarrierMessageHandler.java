@@ -27,12 +27,13 @@ import org.springframework.integration.aggregator.HeaderAttributeCorrelationStra
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * A message handler that suspends the thread until a message with corresponding
- * correlation is passed into the {@link #triggerAction(Message) triggerAction} method or
+ * correlation is passed into the {@link #trigger(Message) trigger} method or
  * the timeout occurs. Only one thread with a particular correlation (result of invoking
  * the {@link CorrelationStrategy}) can be suspended at a time. If the inbound thread does
  * not arrive before the trigger thread, the latter is suspended until it does, or the
@@ -46,7 +47,7 @@ import org.springframework.util.Assert;
  * @since 4.2
  *
  */
-public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler implements TriggerMessageHandler {
+public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler implements MessageTriggerAction {
 
 	private final ConcurrentMap<Object, SynchronousQueue<Message<?>>> suspensions =
 			new ConcurrentHashMap<Object, SynchronousQueue<Message<?>>>();
@@ -119,14 +120,14 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
-			Message<?> release = syncQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
-			if (release != null) {
-				return processRelease(requestMessage, key, release);
+			Message<?> releaseMessage = syncQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
+			if (releaseMessage != null) {
+				return processRelease(requestMessage, key, releaseMessage);
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException(requestMessage, "Interrupted while waiting for release", e);
+			throw new MessageHandlingException(requestMessage, "Interrupted while waiting for release", e);
 		}
 		finally {
 			this.inProcess.remove(key);
@@ -135,14 +136,14 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 		return null;
 	}
 
-	private Object processRelease(Message<?> requestMessage, Object key, Message<?> release) {
+	private Object processRelease(Message<?> requestMessage, Object key, Message<?> releaseMessage) {
 		this.suspensions.remove(key);
-		if (release.getPayload() instanceof Throwable) {
+		if (releaseMessage.getPayload() instanceof Throwable) {
 			throw new MessagingException(requestMessage, "Releasing flow returned a throwable",
-					(Throwable) release.getPayload());
+					(Throwable) releaseMessage.getPayload());
 		}
 		else {
-			return buildResult(key, requestMessage, release);
+			return buildResult(key, requestMessage, releaseMessage);
 		}
 	}
 
@@ -171,21 +172,22 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	@Override
-	public void triggerAction(Message<?> message) {
+	public void trigger(Message<?> message) {
 		Object key = this.correlationStrategy.getCorrelationKey(message);
 		if (key == null) {
 			throw new MessagingException(message, "Correlation Strategy returned null");
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
-			if (syncQueue != null && !syncQueue.offer(message, timeout, TimeUnit.MILLISECONDS)) {
+			if (!syncQueue.offer(message, timeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new MessagingException(message, e);
+			this.logger.error("Interrupted while waiting for the suspending thread for: " + message);
+			this.suspensions.remove(key);
 		}
 	}
 

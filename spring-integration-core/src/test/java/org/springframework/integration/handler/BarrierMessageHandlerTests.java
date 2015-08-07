@@ -37,15 +37,29 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 /**
@@ -53,7 +67,19 @@ import org.springframework.messaging.MessagingException;
  * @since 4.2
  *
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class BarrierMessageHandlerTests {
+
+	@Autowired
+	private MessageChannel in;
+
+	@Autowired
+	private PollableChannel out;
+
+	@Autowired
+	private MessageChannel release;
 
 	@Test
 	public void testRequestBeforeReply() throws Exception {
@@ -91,7 +117,7 @@ public class BarrierMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertNotNull(dupCorrelation.get());
 		assertThat(dupCorrelation.get().getMessage(), Matchers.startsWith("Correlation key (foo) is already in use by"));
-		handler.triggerAction(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
 		assertNotNull(received);
 		List<?> result = (List<?>) received.getPayload();
@@ -112,7 +138,7 @@ public class BarrierMessageHandlerTests {
 
 			@Override
 			public void run() {
-				handler.triggerAction(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+				handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 			}
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
@@ -152,7 +178,7 @@ public class BarrierMessageHandlerTests {
 		assertTrue("suspension not removed", n < 100);
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
-		handler.triggerAction(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captor.capture());
 		assertThat(captor.getValue(),
@@ -192,10 +218,63 @@ public class BarrierMessageHandlerTests {
 		}
 		assertTrue("suspension did not appear in time", n < 100);
 		Exception exc = new RuntimeException();
-		handler.triggerAction(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
+		handler.trigger(MessageBuilder.withPayload(exc).setCorrelationId("foo").build());
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertSame(exc, exception.get().getCause());
 		assertEquals(0, suspensions.size());
 	}
+
+	@Test
+	public void testJavaConfig() {
+		Message<?> releasing = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
+		this.release.send(releasing);
+		Message<?> suspending = MessageBuilder.withPayload("foo").setCorrelationId("foo").build();
+		this.in.send(suspending);
+		Message<?> out = this.out.receive(10000);
+		assertNotNull(out);
+		assertEquals("[foo, bar]", out.getPayload().toString());
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class Config {
+
+		@Bean
+		public MessageChannel in() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public MessageChannel out() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public MessageChannel release() {
+			return new QueueChannel();
+		}
+
+		@ServiceActivator(inputChannel="in")
+		@Bean
+		public BarrierMessageHandler barrier() {
+			BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
+			barrier.setOutputChannel(out());
+			return barrier;
+		}
+
+		@ServiceActivator (inputChannel="release", poller=@Poller(fixedDelay="0"))
+		@Bean
+		public MessageHandler releaser() {
+			return new MessageHandler() {
+
+				@Override
+				public void handleMessage(Message<?> message) throws MessagingException {
+					barrier().trigger(message);
+				}
+
+			};
+		}
+
+ 	}
 
 }

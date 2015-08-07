@@ -20,7 +20,7 @@
 
 	<int:channel id="release" />
 
-	<int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="triggerAction" />
+	<int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="trigger" />
 
 	<int:barrier id="barrier2" input-channel="nullChannel" timeout="10000" auto-startup="false">
 		<int:poller fixed-delay="1000000" />

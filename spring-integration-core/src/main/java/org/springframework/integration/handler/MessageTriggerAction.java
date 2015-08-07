@@ -25,12 +25,12 @@ import org.springframework.messaging.Message;
  * @since 4.2
  *
  */
-public interface TriggerMessageHandler {
+public interface MessageTriggerAction {
 
 	/**
 	 * Take some action based on the message.
 	 * @param message the message.
 	 */
-	void triggerAction(Message<?> message);
+	void trigger(Message<?> message);
 
 }
