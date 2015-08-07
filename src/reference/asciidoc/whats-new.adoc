@@ -54,6 +54,13 @@ Zookeeper support has been added to the framework to assist when running on a cl
 
 See <<zookeeper>> for more information.
 
+[[x4.2-barrier]]
+==== Thread Barrier
+
+A new thread barrier component is available allowing a thread to be suspended until some asynchronous event occurs.
+
+See <<barrier>> for more information.
+
 [[x4.2-general]]
 === General Changes
 

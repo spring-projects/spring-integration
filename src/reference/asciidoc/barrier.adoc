@@ -1,0 +1,87 @@
+[[barrier]]
+=== Thread Barrier
+
+Sometimes, we need to suspend a message flow thread until some other asynchronous even occurs.
+For example, consider an HTTP request that publishes a message to RabbitMQ.
+We might wish to not reply to the user until the RabbitMQ broker has issued an acknowledgment that the message was
+received.
+
+_version 4.2_ introduced the `<barrier/>` component for this purpose.
+The underlying `MessageHandler` is the `BarrierMessageHandler`; this class also implements
+`MessageTriggerAction` where a message passed to the `trigger()` method releases a corresponding thread in the
+`handleRequestMessage()` method (if present).
+
+The suspended thread and trigger thread are correlated by invoking a `CorrelationStrategy` on the messages.
+When a message is sent to the `input-channel`, the thread is suspended for up to `timeout` milliseconds, waiting for
+a corresponding trigger message.
+The default correlation strategy uses the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header.
+When a trigger message arrives with the same correlation, the thread is released.
+The message sent to the `output-channel` after release is constructed using a `MessageGroupProcessor`.
+By default, the message is a `Collection<?>` of the two payloads and the headers are merged, using a
+`DefaultAggregatingMessageGroupProcessor`.
+
+CAUTION: If the `trigger()` method is invoked first (or after the main thread times out), it will be suspended
+for up to `timeout` waiting for the suspending message to arrive.
+If you do not want to suspend the trigger thread, consider handing off to a `TaskExecutor` instead so its thread
+will be suspended instead.
+
+The `requires-reply` property determines the action if the suspended thread times out before the trigger message
+arrives.
+By default, it is `false` which means the endpoint simply returns null, the flow ends and the thread returns to the
+caller.
+When `true`, a `ReplyRequiredException` is thrown.
+
+You can call the `trigger()` method programmatically (obtain the bean reference using the name `barrier.hander`
+ - where barrier is the bean name of the barrier endpoint) or you can configure
+an `<outbound-channel-adapter/>` to trigger the release.
+
+IMPORTANT: Only one thread can be suspended with the same correlation; the same correlation can be used multiple times
+but only once concurrently.
+
+[source, xml]
+----
+<int:barrier id="barrier1" input-channel="in" output-channel="out"
+        correlation-strategy-expression="headers['myHeader']"
+        output-processor="myOutputProcessor"
+        timeout="10000">
+</int:barrier>
+
+<int:outbound-channel-adapter channel="release" ref="barrier1.handler" method="trigger" />
+----
+
+In this example, a custom header is used for correlation.
+Either the thread sending a message to `in` or the one sending a message to `release` will wait for
+up to 10 seconds until the other arrives.
+When the message is released, the `out` channel will be sent a message combining the result of invoking the
+custom `MessageGroupProcessor` bean `myOutputProcessor`.
+Java configuration is shown below.
+
+[source, java]
+----
+@Configuration
+@EnableIntegration
+public class Config {
+
+    @ServiceActivator(inputChannel="in")
+    @Bean
+    public BarrierMessageHandler barrier() {
+        BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
+        barrier.setOutputChannel(out());
+        return barrier;
+    }
+
+    @ServiceActivator (inputChannel="release")
+    @Bean
+    public MessageHandler releaser() {
+        return new MessageHandler() {
+
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+                barrier().trigger(message);
+            }
+
+        };
+    }
+
+}
+----

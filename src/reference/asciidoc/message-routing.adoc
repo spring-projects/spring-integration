@@ -15,4 +15,6 @@ include::./resequencer.adoc[]
 include::./chain.adoc[]
 
 include::./scatter-gather.adoc[]
+
+include::./barrier.adoc[]
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
