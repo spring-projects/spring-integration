@@ -405,7 +405,11 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 			headers.put(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE, cause);
 		}
 
-		Message<Object> confirmMessage = this.getMessageBuilderFactory().withPayload(userCorrelationData)
+		AbstractIntegrationMessageBuilder<?> builder = userCorrelationData instanceof Message
+				? this.getMessageBuilderFactory().fromMessage((Message<?>) userCorrelationData)
+				: this.getMessageBuilderFactory().withPayload(userCorrelationData);
+
+		Message<?> confirmMessage = builder
 				.copyHeaders(headers)
 				.build();
 		if (ack && this.confirmAckChannel != null) {

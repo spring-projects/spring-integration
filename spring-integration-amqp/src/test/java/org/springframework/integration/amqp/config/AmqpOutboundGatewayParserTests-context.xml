@@ -93,6 +93,19 @@
 
 	<int:channel id="pcRequestChannel"/>
 
+	<rabbit:template id="amqpTemplateConfirmsMC" connection-factory="connectionFactory" reply-timeout="10"/>
+
+	<amqp:outbound-gateway request-channel="pcMessageCorrelationRequestChannel"
+						   reply-channel="fromRabbit"
+						   exchange-name="si.test.exchange"
+						   mapped-request-headers="foo*"
+						   requires-reply="false"
+						   amqp-template="amqpTemplateConfirmsMC"
+						   confirm-correlation-expression="#this"
+						   confirm-ack-channel="ackChannel"/>
+
+	<int:channel id="pcMessageCorrelationRequestChannel"/>
+
 	<int:channel id="ackChannel">
 		<int:queue/>
 	</int:channel>
