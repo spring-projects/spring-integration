@@ -293,6 +293,13 @@ thread context value.
 
 See <<ftp-dsf>> and <<sftp-dsf>> for more information.
 
+===== DefaultSftpSessionFactory
+
+Previously, the `DefaultSftpSessionFactory` allowed connections to unknown hosts.
+This is now configurable (default false).
+
+See <<sftp-unk-hosts>> for more information.
+
 ==== Websocket Changes
 
 `WebSocketHandlerDecoratorFactory` support has been added to the `ServerWebSocketContainer`
