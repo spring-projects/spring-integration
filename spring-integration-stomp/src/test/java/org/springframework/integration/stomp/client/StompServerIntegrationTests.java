@@ -71,7 +71,6 @@ public class StompServerIntegrationTests {
 		int port = SocketUtils.findAvailableTcpPort(61613);
 		activeMQBroker = new BrokerService();
 		activeMQBroker.addConnector("stomp://127.0.0.1:" + port);
-		activeMQBroker.setStartAsync(false);
 		activeMQBroker.setPersistent(false);
 		activeMQBroker.setUseJmx(false);
 		activeMQBroker.getSystemUsage().getMemoryUsage().setLimit(1024 * 1024 * 5);

@@ -25,7 +25,8 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class StompNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-
+		registerBeanDefinitionParser("inbound-channel-adapter", new StompInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new StompOutboundChannelAdapterParser());
 	}
 
 }

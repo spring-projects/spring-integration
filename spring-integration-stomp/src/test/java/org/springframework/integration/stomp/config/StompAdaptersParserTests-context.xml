@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-stomp="http://www.springframework.org/schema/integration/stomp"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/stomp
+			http://www.springframework.org/schema/integration/stomp/spring-integration-stomp.xsd">
+
+	<bean id="stompSessionManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.stomp.StompSessionManager"/>
+	</bean>
+
+	<bean id="stompHeaderMapper" class="org.springframework.integration.stomp.support.StompHeaderMapper"/>
+
+	<int-stomp:inbound-channel-adapter id="defaultInboundAdapter" stomp-session-manager="stompSessionManager"/>
+
+	<int-stomp:inbound-channel-adapter id="customInboundAdapter"
+									   stomp-session-manager="stompSessionManager"
+									   auto-startup="false"
+									   payload-type="java.lang.Integer"
+									   destinations="foo"
+									   role="bar"
+									   mapped-headers="foo, bar"
+									   channel="inboundChannel"
+									   error-channel="errorChannel"
+									   send-timeout="2000"
+									   phase="200"/>
+
+	<int:channel id="inboundChannel"/>
+
+	<!-- Invalid config -->
+
+	<!--<int-stomp:inbound-channel-adapter id="invalidInboundAdapter"
+									   stomp-session-manager="stompSessionManager"
+									   header-mapper="stompHeaderMapper"
+									   mapped-headers="foo, bar"/>-->
+
+	<!-- Invalid config -->
+
+	<int-stomp:outbound-channel-adapter id="defaultOutboundAdapter" stomp-session-manager="stompSessionManager"/>
+
+	<int-stomp:outbound-channel-adapter id="customOutboundAdapter"
+										stomp-session-manager="stompSessionManager"
+										auto-startup="false"
+										phase="100"
+										role="foo"
+										destination="baz"
+										header-mapper="stompHeaderMapper"
+										channel="outboundChannel"/>
+
+	<int:channel id="outboundChannel"/>
+
+	<!-- Invalid config -->
+
+	<!--<int-stomp:outbound-channel-adapter id="invalidOutboundAdapter"
+										stomp-session-manager="stompSessionManager"
+										header-mapper="stompHeaderMapper"
+										mapped-headers="foo, bar"/>-->
+
+	<!-- Invalid config -->
+
+</beans>

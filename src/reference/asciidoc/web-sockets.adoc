@@ -88,7 +88,7 @@ If `useBroker = false` and received message is of `SimpMessageType.CONNECT` type
 
 NOTE: Spring's WebSocket Support allows the configuration of only one Broker Relay, hence we don't require an `AbstractBrokerMessageHandler` reference, it is detected in the Application Context.
 
-For more configuration option see <<web-sockets-namespace>>.
+For more configuration options see <<web-sockets-namespace>>.
 
 [[web-socket-outbound-adapter]]
 === WebSocket Outbound Channel Adapter
@@ -100,7 +100,7 @@ On the client side, the `WebSocketSession` `id` message header isn't required, b
 To use the STOMP sub-protocol, this adapter should be configured with a `StompSubProtocolHandler`.
 Then you can send any STOMP message type to this adapter, using `StompHeaderAccessor.create(StompCommand...)` and a `MessageBuilder`, or just using a `HeaderEnricher` (see <<header-enricher>>).
 
-For more configuration option see below.
+For more configuration options see below.
 
 [[web-sockets-namespace]]
 === WebSockets Namespace Support
@@ -310,9 +310,10 @@ By default `Jackson2SockJsMessageCodec` is used requiring the Jackson library to
 
 
 <1> The component bean name.
-If the `channel` attribute isn't provided, a `DirectChannel` is created and registered with the application context with this `id` attribute as the bean name.
+If the `channel` attribute isn't provided, a `DirectChannel` is created and registered with the application context
+with this `id` attribute as the bean name.
 In this case, the endpoint is registered with the bean name `id + '.adapter'`.
-And the `MessageHandler` is registered with the bean alias `id +'.adapter'`.
+And the `MessageHandler` is registered with the bean alias `id + '.handler'`.
 
 
 <2> Identifies the channel attached to this adapter.
