@@ -57,7 +57,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	private final ReentrantReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
 
-	private final UserInfoWrapper userinfoWrapper = new UserInfoWrapper();
+	private final UserInfo userInfoWrapper = new UserInfoWrapper();
 
 	private final JSch jsch;
 
@@ -172,8 +172,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	/**
-	 * Specifies the filename that will be used to create a host key repository.
-	 * The resulting file has the same format as OpenSSH's known_hosts file.
+	 * Specifies the filename that will be used for a host key repository.
+	 * The file has the same format as OpenSSH's known_hosts file.
+	 * Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
+	 * false (default).
 	 *
 	 * @param knownHosts The known hosts.
 	 *
@@ -331,7 +333,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * <p>
 	 * Jsch calls {@link UserInfo#promptYesNo(String)} when connecting to an unknown host,
 	 * or when a known host's key has changed (see {@link #setKnownHosts(String)
-	 * unknownHosts}). Generally, it should return false as returning true will accept all
+	 * knownHosts}). Generally, it should return false as returning true will accept all
 	 * new keys or key changes.
 	 * <p>
 	 * If no {@link UserInfo} is provided, the behavior is defined by
@@ -351,7 +353,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * When no {@link UserInfo} has been provided, set to true to unconditionally allow
 	 * connecting to an unknown host or when a host's key has changed (see
-	 * {@link #setAllowUnknownKeys(boolean) unknownHosts}). Default false (since 4.2).
+	 * {@link #setKnownHosts(String) knownHosts}). Default false (since 4.2).
+	 * Set to true if a knownHosts file is not provided.
 	 *
 	 * @param allowUnknownKeys true to allow connecting to unknown hosts.
 	 * @since 4.1.7
@@ -431,7 +434,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (StringUtils.hasText(this.password)) {
 			jschSession.setPassword(this.password);
 		}
-		jschSession.setUserInfo(this.userinfoWrapper);
+		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
 			if (proxy != null){
@@ -488,8 +491,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		 * Convenience to check whether enclosing factory's UserInfo is configured.
 		 * @return true if there's a delegate.
 		 */
-		private boolean hasDelegate()
-		{
+		private boolean hasDelegate() {
 			return getDelegate() != null;
 		}
 
@@ -502,8 +504,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 
 		@Override
-		public String getPassphrase()
-		{
+		public String getPassphrase() {
 			if (hasDelegate()) {
 				return getDelegate().getPassphrase();
 			}
@@ -516,8 +517,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 
 		@Override
-		public String getPassword()
-		{
+		public String getPassword() {
 			if (hasDelegate()) {
 				if (DefaultSftpSessionFactory.this.password != null) {
 					logger.debug("Password is obtained from the factory, not the supplied UserInfo");
@@ -530,8 +530,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 
 		@Override
-		public boolean promptPassword(String message)
-		{
+		public boolean promptPassword(String message) {
 			if (hasDelegate()) {
 				return getDelegate().promptPassword(message);
 			}
@@ -544,8 +543,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 
 		@Override
-		public boolean promptPassphrase(String message)
-		{
+		public boolean promptPassphrase(String message) {
 			if (hasDelegate()) {
 				return getDelegate().promptPassphrase(message);
 			}
@@ -582,12 +580,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		}
 
 		@Override
-		public String[] promptKeyboardInteractive(String destination,
-				String name, String instruction, String[] prompt, boolean[] echo) {
+		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
+				boolean[] echo) {
 			if (hasDelegate()) {
 				if (getDelegate() instanceof UIKeyboardInteractive) {
-					return ((UIKeyboardInteractive)getDelegate())
-							.promptKeyboardInteractive(destination, name, instruction, prompt, echo);
+					return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
+							instruction, prompt, echo);
 				}
 			}
 			if (logger.isDebugEnabled()) {
