@@ -185,6 +185,7 @@ public class SftpSessionFactoryTests {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private DefaultSftpSessionFactory createServerAndClient(SshServer server) throws IOException {
 		final int port = SocketUtils.findAvailableServerSocket();
 		server.setPublickeyAuthenticator(new PublickeyAuthenticator() {

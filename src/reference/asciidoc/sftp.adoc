@@ -108,7 +108,7 @@ The resulting file has the same format as OpenSSH's_known_hosts_ file.
 The password to authenticate against the remote host.
 If a _password_ is not provided, then the _privateKey_ property is mandatory.
 Overrides the password in a custom `UserInfo`.
-To use that password, leave this as the default null.
+To use that password, leave this as the default `null`.
 
 *port*
 

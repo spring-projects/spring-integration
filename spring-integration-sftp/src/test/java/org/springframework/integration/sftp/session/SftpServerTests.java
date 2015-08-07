@@ -85,6 +85,7 @@ public class SftpServerTests {
 			f.setPort(port);
 			f.setUser("user");
 			f.setPassword("pass");
+			f.setAllowUnknownKeys(true);
 			Session<LsEntry> session = f.getSession();
 			doTest(server, session);
 		}
@@ -120,6 +121,7 @@ public class SftpServerTests {
 			f.setHost("localhost");
 			f.setPort(port);
 			f.setUser("user");
+			f.setAllowUnknownKeys(true);
 			InputStream stream = new ClassPathResource("id_rsa").getInputStream();
 			f.setPrivateKey(new ByteArrayResource(StreamUtils.copyToByteArray(stream)));
 			Session<LsEntry> session = f.getSession();
