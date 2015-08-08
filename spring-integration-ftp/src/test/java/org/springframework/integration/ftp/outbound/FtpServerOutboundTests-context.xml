@@ -160,4 +160,14 @@
 	<bean id="sortingFilter"
 		class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests$SortingFileListFilter"/>
 
+	<int-ftp:outbound-gateway
+			session-factory="ftpSessionFactory"
+			session-callback="messageSessionCallback"
+			request-channel="inboundCallback"
+			reply-channel="output"/>
+
+	<bean id="messageSessionCallback"
+		  class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests$TestMessageSessionCallback"/>
+
+
 </beans>

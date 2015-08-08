@@ -242,7 +242,7 @@ If you want your Sessions to be cached, simply configure your default Session Fa
 </bean>
 ----
 
-In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in millliseconds).
+In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in milliseconds).
 
 Starting with _Spring Integration version 3.0_, the `CachingConnectionFactory` provides a `resetCache()` method.
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
@@ -644,3 +644,29 @@ For example, here is valid configuration of a logger using Log4J.
 ----
 log4j.category.com.jcraft.jsch=DEBUG
 ----
+
+[[sftp-session-callback]]
+=== MessageSessionCallback
+
+Starting with _Spring Integration version 4.2_, the `MessageSessionCallback<F, T>` implementation can be used to instantiate
+ the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation(s) on the
+ `Session<ChannelSftp.LsEntry>` with the `requestMessage` context.
+It can be used for any non-standard or low-level operation (or several at once) with the SFTP, allowing to get a gain
+from integration flow definition from one side, and _functional_ interface (Lambda) implementation injection from
+another:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sftpChannel")
+public MessageHandler sftpOutboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+    return new SftpOutboundGateway(sessionFactory,
+         (session, requestMessage) -> session.list(requestMessage.getPayload()));
+}
+----
+
+For the XML configuration variant the `<int-sftp:outbound-gateway/>` provides a `session-callback` attribute to allow
+ to specify the `MessageSessionCallback` bean name.
+
+NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
+From Java perspective they are required from different constructor in the `SftpOutboundGateway` class.
