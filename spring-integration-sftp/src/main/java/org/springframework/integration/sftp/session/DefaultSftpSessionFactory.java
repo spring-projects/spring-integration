@@ -126,9 +126,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The url of the host you want connect to. This is a mandatory property.
-	 *
 	 * @param host The host.
-	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
 	public void setHost(String host) {
@@ -139,9 +137,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * The port over which the SFTP connection shall be established. If not specified,
 	 * this value defaults to <code>22</code>. If specified, this properties must
 	 * be a positive number.
-	 *
 	 * @param port The port.
-	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
 	public void setPort(int port) {
@@ -150,9 +146,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The remote user to use. This is a mandatory property.
-	 *
 	 * @param user The user.
-	 *
 	 * @see JSch#getSession(String, String, int)
 	 */
 	public void setUser(String user) {
@@ -161,11 +155,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The password to authenticate against the remote host. If a password is
-	 * not provided, then the {@link DefaultSftpSessionFactory#privateKey} is
+	 * not provided, then a {@link DefaultSftpSessionFactory#setPrivateKey(Resource) privateKey} is
 	 * mandatory.
-	 *
+	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the password is obtained
+	 * from that object.
 	 * @param password The password.
-	 *
 	 * @see com.jcraft.jsch.Session#setPassword(String)
 	 */
 	public void setPassword(String password) {
@@ -175,11 +169,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Specifies the filename that will be used for a host key repository.
 	 * The file has the same format as OpenSSH's known_hosts file.
-	 * Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
-	 * false (default).
-	 *
+	 * <p>
+	 * <b>Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
+	 * false (default).</b>
 	 * @param knownHosts The known hosts.
-	 *
 	 * @see JSch#setKnownHosts(String)
 	 */
 	public void setKnownHosts(String knownHosts) {
@@ -189,14 +182,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows you to set a {@link Resource}, which represents the location of the
 	 * private key used for authenticating against the remote host. If the privateKey
-	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String)}
-	 * property is mandatory.
-	 *
+	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String) password}
+	 * property is mandatory (or {@link #setUserInfo(UserInfo) userInfo} that returns a
+	 * password.
 	 * @param privateKey The private key.
-	 *
 	 * @see JSch#addIdentity(String)
 	 * @see JSch#addIdentity(String, String)
-	 *
 	 */
 	public void setPrivateKey(Resource privateKey) {
 		this.privateKey = privateKey;
@@ -204,9 +195,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The password for the private key. Optional.
-	 *
+	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the passphrase is obtained
+	 * from that object.
 	 * @param privateKeyPassphrase The private key passphrase.
-	 *
 	 * @see JSch#addIdentity(String, String)
 	 */
 	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
@@ -216,9 +207,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Using {@link Properties}, you can set additional configuration settings on
 	 * the underlying JSch {@link com.jcraft.jsch.Session}.
-	 *
 	 * @param sessionConfig The session configuration properties.
-	 *
 	 * @see com.jcraft.jsch.Session#setConfig(Properties)
 	 */
 	public void setSessionConfig(Properties sessionConfig) {
@@ -228,12 +217,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows for specifying a JSch-based {@link Proxy}. If set, then the proxy
 	 * object is used to create the connection to the remote host.
-	 *
 	 * @param proxy The proxy.
-	 *
 	 * @see com.jcraft.jsch.Session#setProxy(Proxy)
 	 */
-	public void setProxy(Proxy proxy){
+	public void setProxy(Proxy proxy) {
 		this.proxy = proxy;
 	}
 
@@ -241,12 +228,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Allows you to pass in a {@link SocketFactory}. The socket factory is used
 	 * to create a socket to the target host. When a {@link Proxy} is used, the
 	 * socket factory is passed to the proxy. By default plain TCP sockets are used.
-	 *
 	 * @param socketFactory The socket factory.
-	 *
 	 * @see com.jcraft.jsch.Session#setSocketFactory(SocketFactory)
 	 */
-	public void setSocketFactory(SocketFactory socketFactory){
+	public void setSocketFactory(SocketFactory socketFactory) {
 		this.socketFactory = socketFactory;
 	}
 
@@ -254,9 +239,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * The timeout property is used as the socket timeout parameter, as well as
 	 * the default connection timeout. Defaults to <code>0</code>, which means,
 	 * that no timeout will occur.
-	 *
 	 * @param timeout The timeout.
-	 *
 	 * @see com.jcraft.jsch.Session#setTimeout(int)
 	 */
 	public void setTimeout(Integer timeout) {
@@ -266,36 +249,30 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows you to set the client version property. It's default depends on the
 	 * underlying JSch version but it will look like <code>SSH-2.0-JSCH-0.1.45</code>
-	 *
 	 * @param clientVersion The client version.
-	 *
 	 * @see com.jcraft.jsch.Session#setClientVersion(String)
 	 */
-	public void setClientVersion(String clientVersion){
+	public void setClientVersion(String clientVersion) {
 		this.clientVersion = clientVersion;
 	}
 
 	/**
 	 * Sets the host key alias, used when comparing the host key to the known
 	 * hosts list.
-	 *
 	 * @param hostKeyAlias The host key alias.
-	 *
 	 * @see com.jcraft.jsch.Session#setHostKeyAlias(String)
 	 */
-	public void setHostKeyAlias(String hostKeyAlias){
+	public void setHostKeyAlias(String hostKeyAlias) {
 		this.hostKeyAlias = hostKeyAlias;
 	}
 
 	/**
 	 * Sets the timeout interval (milliseconds) before a server alive message is
 	 * sent, in case no message is received from the server.
-	 *
 	 * @param serverAliveInterval The server alive interval.
-	 *
 	 * @see com.jcraft.jsch.Session#setServerAliveInterval(int)
 	 */
-	public void setServerAliveInterval(Integer serverAliveInterval){
+	public void setServerAliveInterval(Integer serverAliveInterval) {
 		this.serverAliveInterval = serverAliveInterval;
 	}
 
@@ -303,12 +280,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * Specifies the number of server-alive messages, which will be sent without
 	 * any reply from the server before disconnecting. If not set, this property
 	 * defaults to <code>1</code>.
-	 *
 	 * @param serverAliveCountMax The server alive count max.
-	 *
 	 * @see com.jcraft.jsch.Session#setServerAliveCountMax(int)
 	 */
-	public void setServerAliveCountMax(Integer serverAliveCountMax){
+	public void setServerAliveCountMax(Integer serverAliveCountMax) {
 		this.serverAliveCountMax = serverAliveCountMax;
 	}
 
@@ -318,12 +293,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * underlying {@link com.jcraft.jsch.Session} using
 	 * {@link com.jcraft.jsch.Session#setDaemonThread(boolean)}. There, this
 	 * property will default to <code>false</code>, if not explicitly set.
-	 *
 	 * @param enableDaemonThread true to enable a daemon thread.
-	 *
 	 * @see com.jcraft.jsch.Session#setDaemonThread(boolean)
 	 */
-	public void setEnableDaemonThread(Boolean enableDaemonThread){
+	public void setEnableDaemonThread(Boolean enableDaemonThread) {
 		this.enableDaemonThread = enableDaemonThread;
 	}
 
@@ -342,7 +315,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * <p>
 	 * If {@link #setPassword(String) setPassword} is invoked with a non-null password, it will
 	 * override any password in the supplied {@link UserInfo}.
-	 *
+	 * <p>
+	 * <b>NOTE: When this is provided, the {@link #setPassword(String) password} and
+	 * {@link #setPrivateKeyPassphrase(String) passphrase} are not allowed because those values
+	 * will be obtained from the {@link UserInfo}.</b>
 	 * @param userInfo the UserInfo.
 	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
 	 * @since 4.1.7
@@ -356,7 +332,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * connecting to an unknown host or when a host's key has changed (see
 	 * {@link #setKnownHosts(String) knownHosts}). Default false (since 4.2).
 	 * Set to true if a knownHosts file is not provided.
-	 *
 	 * @param allowUnknownKeys true to allow connecting to unknown hosts.
 	 * @since 4.1.7
 	 */
@@ -369,7 +344,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
-		Assert.isTrue(StringUtils.hasText(this.password) || this.privateKey != null,
+		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
 				"either a password or a private key is required");
 		try {
 			JSchSessionWrapper jschSession;
@@ -421,49 +396,53 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		// private key
 		if (this.privateKey != null) {
 			byte[] keyByteArray = StreamUtils.copyToByteArray(this.privateKey.getInputStream());
-			if (StringUtils.hasText(this.privateKeyPassphrase)) {
-				this.jsch.addIdentity(this.user, keyByteArray, null, this.privateKeyPassphrase.getBytes());
+			String passphrase = this.userInfoWrapper.getPassphrase();
+			if (StringUtils.hasText(passphrase)) {
+				this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
 			}
 			else {
 				this.jsch.addIdentity(this.user, keyByteArray, null, null);
 			}
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
-		if (this.sessionConfig != null){
+		if (this.sessionConfig != null) {
 			jschSession.setConfig(this.sessionConfig);
 		}
-		if (StringUtils.hasText(this.password)) {
-			jschSession.setPassword(this.password);
+		String password = this.userInfoWrapper.getPassword();
+		if (StringUtils.hasText(password)) {
+			jschSession.setPassword(password);
 		}
 		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
-			if (proxy != null){
+			if (proxy != null) {
 				jschSession.setProxy(proxy);
 			}
-			if (socketFactory != null){
+			if (socketFactory != null) {
 				jschSession.setSocketFactory(socketFactory);
 			}
-			if (timeout != null){
+			if (timeout != null) {
 				jschSession.setTimeout(timeout);
 			}
-			if (StringUtils.hasText(clientVersion)){
+			if (StringUtils.hasText(clientVersion)) {
 				jschSession.setClientVersion(clientVersion);
 			}
-			if (StringUtils.hasText(hostKeyAlias)){
+			if (StringUtils.hasText(hostKeyAlias)) {
 				jschSession.setHostKeyAlias(hostKeyAlias);
 			}
-			if (serverAliveInterval != null){
+			if (serverAliveInterval != null) {
 				jschSession.setServerAliveInterval(serverAliveInterval);
 			}
-			if (serverAliveCountMax != null){
+			if (serverAliveCountMax != null) {
 				jschSession.setServerAliveCountMax(serverAliveCountMax);
 			}
-			if (enableDaemonThread != null){
+			if (enableDaemonThread != null) {
 				jschSession.setDaemonThread(enableDaemonThread);
 			}
-		} catch (Exception e) {
-			throw new BeanCreationException("Attempt to set additional properties of the com.jcraft.jsch.Session resulted in error: " + e.getMessage(), e);
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Attempt to set additional properties of " +
+					"the com.jcraft.jsch.Session resulted in error: " + e.getMessage(), e);
 		}
 		return jschSession;
 	}
@@ -498,7 +477,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		/**
 		 * Convenience to retrieve enclosing factory's UserInfo.
-		 * @return
+		 * @return the {@link #userInfo} or null if not present.
 		 */
 		private UserInfo getDelegate() {
 			return DefaultSftpSessionFactory.this.userInfo;
@@ -507,27 +486,25 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		@Override
 		public String getPassphrase() {
 			if (hasDelegate()) {
+				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.privateKeyPassphrase),
+						"When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed");
 				return getDelegate().getPassphrase();
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UserInfo provided for passphrase, returning: null");
-				}
-				return null;
+				return DefaultSftpSessionFactory.this.privateKeyPassphrase;
 			}
 		}
 
 		@Override
 		public String getPassword() {
 			if (hasDelegate()) {
-				if (DefaultSftpSessionFactory.this.password != null) {
-					logger.debug("Password is obtained from the factory, not the supplied UserInfo");
-				}
-				else {
-					return getDelegate().getPassword();
-				}
+				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.password),
+						"When a 'UserInfo' is provided, 'password' is not allowed");
+				return getDelegate().getPassword();
 			}
-			return DefaultSftpSessionFactory.this.password;
+			else {
+				return DefaultSftpSessionFactory.this.password;
+			}
 		}
 
 		@Override
@@ -558,6 +535,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		@Override
 		public boolean promptYesNo(String message) {
+			logger.info(message);
 			if (hasDelegate()) {
 				return getDelegate().promptYesNo(message);
 			}
@@ -582,18 +560,18 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		@Override
 		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
-				boolean[] echo) {
-			if (hasDelegate()) {
-				if (getDelegate() instanceof UIKeyboardInteractive) {
-					return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
-							instruction, prompt, echo);
+		                                          boolean[] echo) {
+			if (hasDelegate() && getDelegate() instanceof UIKeyboardInteractive) {
+				return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
+						instruction, prompt, echo);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
+							+ ":" + Arrays.asList(prompt) + ":" + Arrays.asList(echo));
 				}
+				return null;
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("No UserInfo provided - " + destination + ":" + name + ":" + instruction + ":"
-						+ Arrays.asList(prompt) + ":" + Arrays.asList(echo));
-			}
-			return null;
 		}
 	}
 

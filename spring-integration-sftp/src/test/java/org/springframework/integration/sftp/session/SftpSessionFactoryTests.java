@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.session;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -44,6 +45,7 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.integration.test.util.TestUtils;
 
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.UserInfo;
@@ -118,6 +120,41 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
+	public void testPasswordPassPhraseViaUserInfo() throws Exception {
+		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
+		f.setHost("localhost");
+		f.setPort(9999);
+		f.setUser("user");
+		f.setAllowUnknownKeys(true);
+		UserInfo ui = mock(UserInfo.class);
+		when(ui.getPassword()).thenReturn("pass");
+		when(ui.getPassphrase()).thenReturn("pp").thenReturn(null);
+		f.setUserInfo(ui);
+		UserInfo userInfo = TestUtils.getPropertyValue(f, "userInfoWrapper", UserInfo.class);
+		assertEquals("pass", userInfo.getPassword());
+		f.setPassword("foo");
+		try {
+			userInfo.getPassword();
+			fail("expected Exception");
+		}
+		catch (IllegalStateException e) {
+			assertThat(e.getMessage(), startsWith("When a 'UserInfo' is provided, 'password' is not allowed"));
+		}
+		assertEquals("pp", userInfo.getPassphrase());
+		f.setPrivateKeyPassphrase("bar");
+		try {
+			userInfo.getPassphrase();
+			fail("expected Exception");
+		}
+		catch (IllegalStateException e) {
+			assertThat(e.getMessage(), startsWith("When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed"));
+		}
+		f.setUserInfo(null);
+		assertEquals("foo", userInfo.getPassword());
+		assertEquals("bar", userInfo.getPassphrase());
+	}
+
+	@Test
 	public void testDefaultUserInfoFalse() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
@@ -143,7 +180,7 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
-	public void testCustomtUserInfoFalse() throws Exception {
+	public void testCustomUserInfoFalse() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
 			DefaultSftpSessionFactory f = createServerAndClient(server);
@@ -171,7 +208,7 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
-	public void testCustomtUserInfoTrue() throws Exception {
+	public void testCustomUserInfoTrue() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
 			DefaultSftpSessionFactory f = createServerAndClient(server);

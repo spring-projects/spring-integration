@@ -139,7 +139,7 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-		this.server.stop();
+		this.server.stop(true);
 		this.sftpFolder.delete();
 		this.localFolder.delete();
 	}
