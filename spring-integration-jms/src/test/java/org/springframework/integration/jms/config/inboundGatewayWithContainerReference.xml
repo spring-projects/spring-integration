@@ -17,6 +17,7 @@
 	<jms:inbound-gateway id="gatewayWithContainerReference"
 					 	 container="messageListenerContainer"
 		 		   	 	 request-channel="requestChannel"
+						 role="foo"
 		 		   	 	 auto-startup="false"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">

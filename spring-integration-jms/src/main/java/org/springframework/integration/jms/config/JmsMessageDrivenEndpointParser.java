@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Michael Bannister
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinitionParser {
 
@@ -121,6 +122,13 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		builder.addConstructorArgValue(hasExternalContainer(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
+		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
+		if (StringUtils.hasText(role)) {
+			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
+			}
+			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
 
 	}
@@ -170,8 +178,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
 
-		if (StringUtils.hasText(element.getAttribute("subsription-name"))
-				&& StringUtils.hasText(element.getAttribute("durable-subsription-name"))) {
+		if (StringUtils.hasText(element.getAttribute("subscription-name"))
+				&& StringUtils.hasText(element.getAttribute("durable-subscription-name"))) {
 			parserContext.getReaderContext().error(
 					"Only one of 'subscription-name' or 'durable-subscription-name' is allowed.", element);
 		}

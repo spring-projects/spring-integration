@@ -19,6 +19,7 @@ package org.springframework.integration.jms.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
@@ -31,9 +32,11 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
@@ -42,10 +45,12 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsInboundGatewayParserTests {
 
@@ -315,7 +320,14 @@ public class JmsInboundGatewayParserTests {
 	public void testGatewayWithContainerReference() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"inboundGatewayWithContainerReference.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithContainerReference");
+		JmsMessageDrivenEndpoint gateway =
+				context.getBean("gatewayWithContainerReference", JmsMessageDrivenEndpoint.class);
+		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
+		@SuppressWarnings("unchecked")
+		MultiValueMap<String, SmartLifecycle> lifecycles =
+				TestUtils.getPropertyValue(roleController, "lifecycles", MultiValueMap.class);
+		assertTrue(lifecycles.containsKey("foo"));
+		assertSame(gateway, lifecycles.getFirst("foo"));
 		gateway.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
