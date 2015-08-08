@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.sftp.TestSftpServer;
@@ -62,6 +63,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
 
+import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
@@ -128,6 +130,9 @@ public class SftpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel inboundGetStream;
+
+	@Autowired
+	private DirectChannel inboundCallback;
 
 	@Before
 	@After
@@ -420,6 +425,14 @@ public class SftpServerOutboundTests {
 		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
 	}
 
+	@Test
+	public void testMessageSessionCallback() {
+		this.inboundCallback.send(new GenericMessage<String>("foo"));
+		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertEquals("FOO", receive.getPayload());
+	}
+
 	private void assertLength6(SftpRemoteFileTemplate template) {
 		LsEntry[] files = template.execute(new SessionCallback<LsEntry, LsEntry[]>() {
 
@@ -430,6 +443,16 @@ public class SftpServerOutboundTests {
 		});
 		assertEquals(1, files.length);
 		assertEquals(6, files[0].getAttrs().getSize());
+	}
+
+	private static final class TestMessageSessionCallback
+			implements MessageSessionCallback<LsEntry, Object> {
+
+		@Override
+		public Object doInSession(Session<ChannelSftp.LsEntry> session, Message<?> requestMessage) throws IOException {
+			return ((String) requestMessage.getPayload()).toUpperCase();
+		}
+
 	}
 
 }

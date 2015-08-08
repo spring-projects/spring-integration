@@ -581,7 +581,8 @@ If you want your Sessions to be cached, simply configure your default Session Fa
 </bean>
 ----
 
-In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in millliseconds).
+In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the
+`sessionWaitTimeout` set to 1 second (its value is in milliseconds).
 
 Starting with _Spring Integration version 3.0_, the `CachingConnectionFactory` provides a `resetCache()` method.
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
@@ -594,6 +595,35 @@ Starting with _Spring Integration version 3.0_ a new abstraction is provided ove
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
 In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
-For more information, refer to the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[javadocs for `RemoteFileTemplate`] There is a subclass for FTP: `FtpRemoteFileTemplate`.
+For more information, refer to the
+http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[JavaDocs for `RemoteFileTemplate`].
+There is a subclass for FTP: `FtpRemoteFileTemplate`.
 
 Additional methods were added in _version 4.1_ including `getClientInstance()` which provides access to the underlying `FTPClient` enabling access to low-level APIs.
+
+[[ftp-session-callback]]
+=== MessageSessionCallback
+
+Starting with _Spring Integration version 4.2_, a `MessageSessionCallback<F, T>` implementation can be used with the
+`<int-ftp:outbound-gateway/>` (`FtpOutboundGateway`) to perform any operation(s) on the `Session<FTPFile>` with
+the `requestMessage` context.
+It can be used for any non-standard or low-level FTP operation (or several); for example, allowing access
+from an integration flow definition, and _functional_ interface (Lambda) implementation injection:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "ftpChannel")
+public MessageHandler ftpOutboundGateway(SessionFactory<FTPFile> sessionFactory) {
+    return new FtpOutboundGateway(sessionFactory,
+         (session, requestMessage) -> session.list(requestMessage.getPayload()));
+}
+----
+
+Another example might be to pre- or post- process the file data being sent/retrieved.
+
+When using XML configuration, the `<int-ftp:outbound-gateway/>` provides a `session-callback` attribute to allow you to
+specify the `MessageSessionCallback` bean name.
+
+NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
+When configuring with Java, different constructors are available in the `FtpOutboundGateway` class.

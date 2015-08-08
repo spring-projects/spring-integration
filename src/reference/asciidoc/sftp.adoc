@@ -244,7 +244,7 @@ If you want your Sessions to be cached, simply configure your default Session Fa
 </bean>
 ----
 
-In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in millliseconds).
+In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in milliseconds).
 
 Starting with _Spring Integration version 3.0_, the `CachingConnectionFactory` provides a `resetCache()` method.
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
@@ -646,3 +646,30 @@ For example, here is valid configuration of a logger using Log4J.
 ----
 log4j.category.com.jcraft.jsch=DEBUG
 ----
+
+[[sftp-session-callback]]
+=== MessageSessionCallback
+
+Starting with _Spring Integration version 4.2_, a `MessageSessionCallback<F, T>` implementation can be used with the
+`<int-ftp:outbound-gateway/>` (`FtpOutboundGateway`) to perform any operation(s) on the `Session<FTPFile>` with
+the `requestMessage` context.
+It can be used for any non-standard or low-level FTP operation (or several); for example, allowing access
+from an integration flow definition, and _functional_ interface (Lambda) implementation injection:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sftpChannel")
+public MessageHandler sftpOutboundGateway(SessionFactory<ChannelSftp.LsEntry> sessionFactory) {
+    return new SftpOutboundGateway(sessionFactory,
+         (session, requestMessage) -> session.list(requestMessage.getPayload()));
+}
+----
+
+Another example might be to pre- or post- process the file data being sent/retrieved.
+
+When using XML configuration, the `<int-sftp:outbound-gateway/>` provides a `session-callback` attribute to allow you
+to specify the `MessageSessionCallback` bean name.
+
+NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
+When configuring with Java, different constructors are available in the `SftpOutboundGateway` class.

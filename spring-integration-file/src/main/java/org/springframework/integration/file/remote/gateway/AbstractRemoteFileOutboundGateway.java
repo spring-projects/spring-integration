@@ -39,6 +39,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
@@ -71,7 +72,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	/**
 	 * Enumeration of commands supported by the gateways.
 	 */
-	public static enum Command {
+	public enum Command {
 
 		/**
 		 * List remote files.
@@ -110,7 +111,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 		private String command;
 
-		private Command(String command) {
+		Command(String command) {
 			this.command = command;
 		}
 
@@ -126,13 +127,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			throw new IllegalArgumentException("No Command with value '" + cmd + "'");
 		}
+
 	}
 
 	/**
 	 * Enumeration of options supported by various commands.
 	 *
 	 */
-	public static enum Option {
+	public enum Option {
 
 		/**
 		 * Don't return full file information; just the name (ls).
@@ -181,7 +183,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 		private String option;
 
-		private Option(String option) {
+		Option(String option) {
 			this.option = option;
 		}
 
@@ -197,9 +199,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			throw new IllegalArgumentException("No option with value '" + opt + "'");
 		}
+
 	}
 
 	private final ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
+
+	private final MessageSessionCallback<F, ?> messageSessionCallback;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
 			new ExpressionEvaluatingMessageProcessor<String>(
@@ -226,33 +231,75 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile FileExistsMode fileExistsMode;
 
+	/**
+	 * Construct an instance using the provided session factory and callback for
+	 * performing operations on the session.
+	 * @param sessionFactory the session factory.
+	 * @param messageSessionCallback the callback.
+	 */
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory,
+			MessageSessionCallback<F, ?> messageSessionCallback) {
+		this(new RemoteFileTemplate<F>(sessionFactory), messageSessionCallback);
+	}
+
+	/**
+	 * Construct an instance with the supplied remote file template and callback
+	 * for performing operations on the session.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param messageSessionCallback the callback.
+	 */
+	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate,
+			MessageSessionCallback<F, ?> messageSessionCallback) {
+		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
+		Assert.notNull(messageSessionCallback, "'messageSessionCallback' cannot be null");
+		this.remoteFileTemplate = remoteFileTemplate;
+		this.messageSessionCallback = messageSessionCallback;
+		this.fileNameProcessor = null;
+		this.command = null;
+	}
+
+	/**
+	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
+	 * etc), and an expression to determine the filename.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
 			String expression) {
-		Assert.notNull(sessionFactory, "'sessionFactory' cannot be null");
-		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
-		this.command = Command.toCommand(command);
-		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
-			new SpelExpressionParser().parseExpression(expression));
+		this(sessionFactory, Command.toCommand(command), expression);
 	}
 
-	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command,
-			String expression) {
-		Assert.notNull(sessionFactory, "'sessionFactory' cannot be null");
-		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
-		this.command = command;
-		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
-			new SpelExpressionParser().parseExpression(expression));
+	/**
+	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
+	 * etc), and an expression to determine the filename.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command, String expression) {
+		this(new RemoteFileTemplate<F>(sessionFactory), command, expression);
 	}
 
+	/**
+	 * Construct an instance with the supplied remote file template, a command ('ls',
+	 * 'get' etc), and an expression to determine the filename.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, String command,
 			String expression) {
-		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
-		this.remoteFileTemplate = remoteFileTemplate;
-		this.command = Command.toCommand(command);
-		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
-			new SpelExpressionParser().parseExpression(expression));
+		this(remoteFileTemplate, Command.toCommand(command), expression);
 	}
 
+	/**
+	 * Construct an instance with the supplied remote file template, a command ('ls',
+	 * 'get' etc), and an expression to determine the filename.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
 			String expression) {
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
@@ -260,6 +307,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.command = command;
 		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
 			new SpelExpressionParser().parseExpression(expression));
+		this.messageSessionCallback = null;
 	}
 
 	/**
@@ -366,7 +414,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	@Override
 	protected void doInit() {
-		Assert.notNull(this.command, "command must not be null");
+		Assert.state(this.command != null || this.messageSessionCallback != null,
+				"'command' or 'messageSessionCallback' must be specified.");
 		if (Command.RM.equals(this.command) ||
 				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
@@ -402,10 +451,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		if (Command.MGET.equals(this.command)) {
 			Assert.isTrue(!(this.options.contains(Option.SUBDIRS)),
-					"Cannot use " + Option.SUBDIRS.toString() + " when using 'mget' use " + Option.RECURSIVE.toString() +
-							" to obtain files in subdirectories");
+					"Cannot use " + Option.SUBDIRS.toString() + " when using 'mget' use "
+							+ Option.RECURSIVE.toString() +	" to obtain files in subdirectories");
 		}
-		if (this.getBeanFactory() != null) {
+		if (this.fileNameProcessor != null && getBeanFactory() != null) {
 			this.fileNameProcessor.setBeanFactory(this.getBeanFactory());
 			this.renameProcessor.setBeanFactory(this.getBeanFactory());
 			this.remoteFileTemplate.setBeanFactory(this.getBeanFactory());
@@ -413,25 +462,33 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
-		switch (this.command) {
-		case LS:
-			return doLs(requestMessage);
-		case GET:
-			return doGet(requestMessage);
-		case MGET:
-			return doMget(requestMessage);
-		case RM:
-			return doRm(requestMessage);
-		case MV:
-			return doMv(requestMessage);
-		case PUT:
-			return doPut(requestMessage);
-		case MPUT:
-			return doMput(requestMessage);
-		default:
-			return null;
+	protected Object handleRequestMessage(final Message<?> requestMessage) {
+		if (this.command != null) {
+			switch (this.command) {
+			case LS:
+				return doLs(requestMessage);
+			case GET:
+				return doGet(requestMessage);
+			case MGET:
+				return doMget(requestMessage);
+			case RM:
+				return doRm(requestMessage);
+			case MV:
+				return doMv(requestMessage);
+			case PUT:
+				return doPut(requestMessage);
+			case MPUT:
+				return doMput(requestMessage);
+			}
 		}
+		return this.remoteFileTemplate.execute(new SessionCallback<F, Object>() {
+
+			@Override
+			public Object doInSession(Session<F> session) throws IOException {
+				return messageSessionCallback.doInSession(session, requestMessage);
+			}
+
+		});
 	}
 
 	private Object doLs(Message<?> requestMessage) {

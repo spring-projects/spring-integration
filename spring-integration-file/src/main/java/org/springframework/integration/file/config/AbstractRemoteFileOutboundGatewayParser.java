@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
@@ -53,8 +54,13 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 
 		builder.addConstructorArgValue(templateDefinition);
 
-		builder.addConstructorArgValue(element.getAttribute("command"));
-		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
+		if (element.hasAttribute("session-callback")) {
+			builder.addConstructorArgReference(element.getAttribute("session-callback"));
+		}
+		else {
+			builder.addConstructorArgValue(element.getAttribute("command"));
+			builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");

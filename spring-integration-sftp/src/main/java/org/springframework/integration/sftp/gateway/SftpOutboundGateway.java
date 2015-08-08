@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -33,18 +34,54 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * Outbound Gateway for performing remote file operations via SFTP.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
 
+	/**
+	 * Construct an instance using the provided session factory and callback for
+	 * performing operations on the session.
+	 * @param sessionFactory the session factory.
+	 * @param messageSessionCallback the callback.
+	 */
+	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory,
+			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+		super(sessionFactory, messageSessionCallback);
+	}
+
+	/**
+	 * Construct an instance with the supplied remote file template and callback
+	 * for performing operations on the session.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param messageSessionCallback the callback.
+	 */
+	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate,
+				MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+		super(remoteFileTemplate, messageSessionCallback);
+	}
+
+	/**
+	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
+	 * etc), and an expression to determine the filename.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
 		super(sessionFactory, command, expression);
 	}
 
+	/**
+	 * Construct an instance with the supplied remote file template, a command ('ls',
+	 * 'get' etc), and an expression to determine the filename.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 * @param expression the filename expression.
+	 */
 	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
 		super(remoteFileTemplate, command, expression);
 	}
-
 
 	@Override
 	protected boolean isDirectory(LsEntry file) {

@@ -323,6 +323,14 @@ false).
 
 See <<sftp-unk-hosts>> for more information.
 
+===== MessageSessionCallback
+
+The `MessageSessionCallback<F, T>` has been introduced to perform any custom `Session` operation(s) with the
+`requestMessage` context in the `<int-(s)ftp:outbound-gateway/>`.
+
+See <<ftp-session-callback>> and <<sftp-session-callback>> for more information.
+
+
 ==== Websocket Changes
 
 `WebSocketHandlerDecoratorFactory` support has been added to the `ServerWebSocketContainer`
