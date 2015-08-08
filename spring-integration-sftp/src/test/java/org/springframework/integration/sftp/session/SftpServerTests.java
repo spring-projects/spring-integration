@@ -59,7 +59,6 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpServerTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testUcPw() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
@@ -95,11 +94,20 @@ public class SftpServerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testPubPrivKey() throws Exception {
+		testKeyExchange("id_rsa.pub", "id_rsa", null);
+	}
+
+	@Test
+	public void testPubPrivKeyPassphrase() throws Exception {
+		testKeyExchange("id_rsa_pp.pub", "id_rsa_pp", "secret");
+	}
+
+	private void testKeyExchange(String pubKey, String privKey, String passphrase)
+			throws Exception, IOException, InterruptedException {
 		final int port = SocketUtils.findAvailableServerSocket();
 		SshServer server = SshServer.setUpDefaultServer();
-		final PublicKey allowedKey = decodePublicKey();
+		final PublicKey allowedKey = decodePublicKey(pubKey);
 		try {
 			server.setPublickeyAuthenticator(new PublickeyAuthenticator() {
 
@@ -122,8 +130,9 @@ public class SftpServerTests {
 			f.setPort(port);
 			f.setUser("user");
 			f.setAllowUnknownKeys(true);
-			InputStream stream = new ClassPathResource("id_rsa").getInputStream();
+			InputStream stream = new ClassPathResource(privKey).getInputStream();
 			f.setPrivateKey(new ByteArrayResource(StreamUtils.copyToByteArray(stream)));
+			f.setPrivateKeyPassphrase(passphrase);
 			Session<LsEntry> session = f.getSession();
 			doTest(server, session);
 		}
@@ -132,8 +141,8 @@ public class SftpServerTests {
 		}
 	}
 
-	private PublicKey decodePublicKey() throws Exception {
-		InputStream stream = new ClassPathResource("id_rsa.pub").getInputStream();
+	private PublicKey decodePublicKey(String key) throws Exception {
+		InputStream stream = new ClassPathResource(key).getInputStream();
 		byte[] decodeBuffer = Base64.decodeBase64(StreamUtils.copyToByteArray(stream));
 		ByteBuffer bb = ByteBuffer.wrap(decodeBuffer);
 		int len = bb.getInt();
