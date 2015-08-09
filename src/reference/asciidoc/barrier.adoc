@@ -6,7 +6,7 @@ For example, consider an HTTP request that publishes a message to RabbitMQ.
 We might wish to not reply to the user until the RabbitMQ broker has issued an acknowledgment that the message was
 received.
 
-Since _version 4.2_ Spring Integration introduced the `<barrier/>` component for this purpose.
+Spring Integration _version 4.2_ introduced the `<barrier/>` component for this purpose.
 The underlying `MessageHandler` is the `BarrierMessageHandler`; this class also implements
 `MessageTriggerAction` where a message passed to the `trigger()` method releases a corresponding thread in the
 `handleRequestMessage()` method (if present).
@@ -37,6 +37,7 @@ an `<outbound-channel-adapter/>` to trigger the release.
 
 IMPORTANT: Only one thread can be suspended with the same correlation; the same correlation can be used multiple times
 but only once concurrently.
+An exception is thrown if a second thread arrives with the same correlation.
 
 [source, xml]
 ----
@@ -85,3 +86,7 @@ public class Config {
 
 }
 ----
+
+See the
+https://github.com/spring-projects/spring-integration-samples/tree/master/basic/barrier[barrier sample application]
+for an example of this component.
