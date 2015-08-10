@@ -17,6 +17,16 @@
 	<outbound-gateway update="insert into bars (status, name) values (0, :payload[foo])" request-channel="target"
 		reply-channel="output" data-source="dataSource" keys-generated="true" />
 
+	<beans:bean id="messagePreparedStatementSetter"
+				class="org.springframework.integration.jdbc.config.JdbcOutboundGatewayParserTests$TestMessagePreparedStatementSetter"/>
+
+	<outbound-gateway update="insert into bars (status, name) values (0, ?)"
+					  request-channel="setterRequest"
+					  reply-channel="output"
+					  data-source="dataSource"
+					  request-prepared-statement-setter="messagePreparedStatementSetter"
+					  keys-generated="true" />
+
 	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 
 </beans:beans>
