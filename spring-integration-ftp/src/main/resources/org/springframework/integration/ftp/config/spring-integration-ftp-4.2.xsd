@@ -246,7 +246,7 @@
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 									 minOccurs="0" maxOccurs="1" />
 					</xsd:all>
-					<xsd:attribute name="command" use="required">
+					<xsd:attribute name="command">
 						<xsd:annotation>
 							<xsd:documentation>
 								FTP command.
@@ -255,6 +255,20 @@
 						<xsd:simpleType>
 							<xsd:union memberTypes="int-file:remoteGatewayCommand xsd:string"/>
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="session-callback" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.file.remote.MessageSessionCallback" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The 'MessageSessionCallback' bean reference to perform custom operation(s) on 'Session'
+								with 'requestMessage'.
+							</xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="command-options" type="xsd:string">
 						<xsd:annotation>
@@ -272,7 +286,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="expression" use="required" type="xsd:string">
+					<xsd:attribute name="expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								SpEL expression representing the path in the
@@ -462,8 +476,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="auto-create-local-directory"
-						type="xsd:boolean">
+					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:documentation>
 								Tells this adapter if local directory must be

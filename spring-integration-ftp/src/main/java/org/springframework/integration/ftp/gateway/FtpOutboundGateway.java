@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -32,12 +33,22 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFile> {
 
-	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command,
-			String expression) {
+	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory,
+	                          MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+		super(sessionFactory, messageSessionCallback);
+	}
+
+	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate,
+	                          MessageSessionCallback<FTPFile, ?> messageSessionCallback) {
+		super(remoteFileTemplate, messageSessionCallback);
+	}
+
+	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command, String expression) {
 		super(sessionFactory, command, expression);
 	}
 
@@ -82,7 +93,6 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 			canonicalFiles.add(new FtpFileInfo(file));
 		}
 		return canonicalFiles;
-
 	}
 
 	@Override
@@ -90,6 +100,5 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 		file.setName(directory + file.getName());
 		return file;
 	}
-
 
 }

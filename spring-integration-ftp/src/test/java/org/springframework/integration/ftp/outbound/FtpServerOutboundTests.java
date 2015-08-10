@@ -60,6 +60,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.InputStreamCallback;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
@@ -134,6 +135,9 @@ public class FtpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel inboundGetStream;
+
+	@Autowired
+	private DirectChannel inboundCallback;
 
 	@Before
 	public void setup() {
@@ -535,6 +539,14 @@ public class FtpServerOutboundTests {
 		assertEquals(6, files[0].getSize());
 	}
 
+	@Test
+	public void testMessageSessionCallback() {
+		this.inboundCallback.send(new GenericMessage<String>("foo"));
+		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertEquals("FOO", receive.getPayload());
+	}
+
 	public static class SortingFileListFilter implements FileListFilter<File> {
 
 		@Override
@@ -560,4 +572,15 @@ public class FtpServerOutboundTests {
 		}
 
 	}
+
+	private static final class TestMessageSessionCallback
+			implements MessageSessionCallback<FTPFile, Object> {
+
+		@Override
+		public Object doInSession(Session<FTPFile> session, Message<?> requestMessage) throws IOException {
+			return ((String) requestMessage.getPayload()).toUpperCase();
+		}
+
+	}
+
 }

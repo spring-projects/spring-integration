@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -33,9 +34,20 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * Outbound Gateway for performing remote file operations via SFTP.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
+
+	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory,
+	                           MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+		super(sessionFactory, messageSessionCallback);
+	}
+
+	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate,
+	                           MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+		super(remoteFileTemplate, messageSessionCallback);
+	}
 
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
 		super(sessionFactory, command, expression);
@@ -44,7 +56,6 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
 		super(remoteFileTemplate, command, expression);
 	}
-
 
 	@Override
 	protected boolean isDirectory(LsEntry file) {

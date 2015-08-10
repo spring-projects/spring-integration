@@ -153,4 +153,13 @@
 	<int:service-activator input-channel="markers"
 	  expression="payload.mark.toString().equals('END') ? headers['file_remoteSession'].close() : null"/>
 
+	<int-sftp:outbound-gateway
+			session-factory="sftpSessionFactory"
+			session-callback="messageSessionCallback"
+			request-channel="inboundCallback"
+			reply-channel="output"/>
+
+	<bean id="messageSessionCallback"
+		  class="org.springframework.integration.sftp.outbound.SftpServerOutboundTests$TestMessageSessionCallback"/>
+
 </beans>
