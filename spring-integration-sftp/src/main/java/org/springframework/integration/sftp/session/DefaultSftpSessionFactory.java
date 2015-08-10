@@ -161,8 +161,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The password to authenticate against the remote host. If a password is
-	 * not provided, then the {@link DefaultSftpSessionFactory#privateKey} is
+	 * not provided, then a {@link DefaultSftpSessionFactory#setPrivateKey(Resource) privateKey} is
 	 * mandatory.
+	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the password is obtained
+	 * from that object.
 	 *
 	 * @param password The password.
 	 *
@@ -175,8 +177,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Specifies the filename that will be used for a host key repository.
 	 * The file has the same format as OpenSSH's known_hosts file.
-	 * Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
-	 * false (default).
+	 * <p>
+	 * <b>Required if {@link #setAllowUnknownKeys(boolean) allowUnknownKeys} is
+	 * false (default).</b>
 	 *
 	 * @param knownHosts The known hosts.
 	 *
@@ -189,8 +192,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	/**
 	 * Allows you to set a {@link Resource}, which represents the location of the
 	 * private key used for authenticating against the remote host. If the privateKey
-	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String)}
-	 * property is mandatory.
+	 * is not provided, then the {@link DefaultSftpSessionFactory#setPassword(String) password}
+	 * property is mandatory (or {@link #setUserInfo(UserInfo) userInfo} that returns a
+	 * password.
 	 *
 	 * @param privateKey The private key.
 	 *
@@ -204,6 +208,8 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 	/**
 	 * The password for the private key. Optional.
+	 * Not allowed if {@link #setUserInfo(UserInfo) userInfo} is provided - the passphrase is obtained
+	 * from that object.
 	 *
 	 * @param privateKeyPassphrase The private key passphrase.
 	 *
@@ -342,6 +348,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 * <p>
 	 * If {@link #setPassword(String) setPassword} is invoked with a non-null password, it will
 	 * override any password in the supplied {@link UserInfo}.
+	 * <p>
+	 * <b>NOTE: When this is provided, the {@link #setPassword(String) password} and
+	 * {@link #setPrivateKeyPassphrase(String) passphrase} are not allowed because those values
+	 * will be obtained from the {@link UserInfo}.</b>
 	 *
 	 * @param userInfo the UserInfo.
 	 * @see com.jcraft.jsch.Session#setUserInfo(com.jcraft.jsch.UserInfo)
@@ -369,7 +379,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
-		Assert.isTrue(StringUtils.hasText(this.password) || this.privateKey != null,
+		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
 				"either a password or a private key is required");
 		try {
 			JSchSessionWrapper jschSession;
@@ -421,8 +431,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		// private key
 		if (this.privateKey != null) {
 			byte[] keyByteArray = StreamUtils.copyToByteArray(this.privateKey.getInputStream());
-			if (StringUtils.hasText(this.privateKeyPassphrase)) {
-				this.jsch.addIdentity(this.user, keyByteArray, null, this.privateKeyPassphrase.getBytes());
+			String passphrase = this.userInfoWrapper.getPassphrase();
+			if (StringUtils.hasText(passphrase)) {
+				this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
 			}
 			else {
 				this.jsch.addIdentity(this.user, keyByteArray, null, null);
@@ -432,8 +443,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (this.sessionConfig != null){
 			jschSession.setConfig(this.sessionConfig);
 		}
-		if (StringUtils.hasText(this.password)) {
-			jschSession.setPassword(this.password);
+		String password = this.userInfoWrapper.getPassword();
+		if (StringUtils.hasText(password)) {
+			jschSession.setPassword(password);
 		}
 		jschSession.setUserInfo(this.userInfoWrapper);
 
@@ -507,27 +519,25 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		@Override
 		public String getPassphrase() {
 			if (hasDelegate()) {
+				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.privateKeyPassphrase),
+						"When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed");
 				return getDelegate().getPassphrase();
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("No UserInfo provided for passphrase, returning: null");
-				}
-				return null;
+				return DefaultSftpSessionFactory.this.privateKeyPassphrase;
 			}
 		}
 
 		@Override
 		public String getPassword() {
 			if (hasDelegate()) {
-				if (DefaultSftpSessionFactory.this.password != null) {
-					logger.debug("Password is obtained from the factory, not the supplied UserInfo");
-				}
-				else {
-					return getDelegate().getPassword();
-				}
+				Assert.state(!StringUtils.hasText(DefaultSftpSessionFactory.this.password),
+						"When a 'UserInfo' is provided, 'password' is not allowed");
+				return getDelegate().getPassword();
 			}
-			return DefaultSftpSessionFactory.this.password;
+			else {
+				return DefaultSftpSessionFactory.this.password;
+			}
 		}
 
 		@Override
@@ -558,6 +568,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		@Override
 		public boolean promptYesNo(String message) {
+			logger.info(message);
 			if (hasDelegate()) {
 				return getDelegate().promptYesNo(message);
 			}
@@ -583,17 +594,17 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		@Override
 		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
 				boolean[] echo) {
-			if (hasDelegate()) {
-				if (getDelegate() instanceof UIKeyboardInteractive) {
-					return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
-							instruction, prompt, echo);
+			if (hasDelegate() && getDelegate() instanceof UIKeyboardInteractive) {
+				return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
+						instruction, prompt, echo);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("No UIKeyboardInteractive provided - " + destination + ":" + name + ":" + instruction
+							+ ":" + Arrays.asList(prompt) + ":" + Arrays.asList(echo));
 				}
+				return null;
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("No UserInfo provided - " + destination + ":" + name + ":" + instruction + ":"
-						+ Arrays.asList(prompt) + ":" + Arrays.asList(echo));
-			}
-			return null;
 		}
 	}
 

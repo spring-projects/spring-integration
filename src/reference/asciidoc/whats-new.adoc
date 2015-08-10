@@ -309,8 +309,11 @@ See <<ftp-dsf>> and <<sftp-dsf>> for more information.
 
 ===== DefaultSftpSessionFactory
 
-Previously, the `DefaultSftpSessionFactory` allowed connections to unknown hosts.
+Previously, the `DefaultSftpSessionFactory` unconditionally allowed connections to unknown hosts.
 This is now configurable (default false).
+
+The factory now requires a configured `knownHosts` file unless the `allowUnknownKeys` property is `true` (default
+false).
 
 See <<sftp-unk-hosts>> for more information.
 

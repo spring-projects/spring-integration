@@ -108,8 +108,7 @@ The file has the same format as OpenSSH's _known_hosts_ file and is required and
 
 The password to authenticate against the remote host.
 If a _password_ is not provided, then the _privateKey_ property is mandatory.
-Overrides the password in a custom `UserInfo`.
-To use that password, leave this as the default `null`.
+Not allowed if `userInfo` is set; the password is obtained from that object.
 
 *port*
 
@@ -125,6 +124,7 @@ If the _privateKey_ is not provided, then the _password_ property is mandatory.
 *privateKeyPassphrase*
 
 The password for the private key.
+Not allowed if `userInfo` is set; the passphrase is obtained from that object.
 Optional.
 
 *proxy*
@@ -173,8 +173,10 @@ If false, a pre-populated knownHosts file is required.
 *userInfo*
 
 Set a custom `UserInfo` used during authentication.
-In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
+In particular, be aware that `promptYesNo()` is invoked when an unknown (or changed) host key is received.
 Also see `allowUnknownHosts`.
+When a `UserInfo` is provided, the `password` and private key `passphrase` is obtained from it, and discrete
+`password` and `privateKeyPassprase` properties cannot be set.
 
 
 [[sftp-dsf]]
