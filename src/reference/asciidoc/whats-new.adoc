@@ -77,6 +77,15 @@ Codec-based transformers and message converters are also provided.
 See <<codec>> for more information.
 
 
+[[x4.2-prepared-statement-setter]]
+==== Message PreparedStatement Setter
+
+A new `MessagePreparedStatementSetter` functional interface callback is available for the `JdbcMessageHandler`
+(`<int-jdbc:outbound-gateway>` and `<int-jdbc:outbound-channel-adapter>`) as an alternative for the
+`SqlParameterSourceFactory` to populate parameters on the `PreparedStatement` with the `requestMessage` context.
+
+See <<jdbc-outbound-channel-adapter>> for more information.
+
 [[x4.2-general]]
 === General Changes
 

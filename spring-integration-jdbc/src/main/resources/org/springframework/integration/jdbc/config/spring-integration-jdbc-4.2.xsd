@@ -243,9 +243,23 @@
 									default factory creates a bean
 									property parameter source so the query can specify named
 									parameters like :payload and :headers[foo].
+									This attribute is mutually exclusive with the 'prepared-statement-setter'.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="prepared-statement-setter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a MessagePreparedStatementSetter.
+									This attribute is mutually exclusive with the 'sql-parameter-source-factory'.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.MessagePreparedStatementSetter" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -362,9 +376,23 @@
 									default factory creates a bean
 									property parameter source so the query can specify named
 									parameters like :payload and :headers[foo].
+									This attribute is mutually exclusive with the 'request-prepared-statement-setter'.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-prepared-statement-setter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a MessagePreparedStatementSetter.
+									This attribute is mutually exclusive with the 'request-sql-parameter-source-factory'.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.MessagePreparedStatementSetter" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertEquals;
@@ -17,6 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -34,12 +37,14 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
+import org.springframework.integration.jdbc.MessagePreparedStatementSetter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
@@ -84,19 +89,33 @@ public class JdbcOutboundGatewayParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testKeyGeneration() {
 		setUp("handlingKeyGenerationJdbcOutboundGatewayTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Message<?> reply = messagingTemplate.receive();
 		assertNotNull(reply);
-		@SuppressWarnings("unchecked")
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
 		Object id = payload.get("SCOPE_IDENTITY()");
 		assertNotNull(id);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
 		assertEquals("Wrong id", id, map.get("ID"));
 		assertEquals("Wrong name", "bar", map.get("name"));
+
+		this.jdbcTemplate.execute("DELETE FROM BARS");
+
+		MessageChannel setterRequest = this.context.getBean("setterRequest", MessageChannel.class);
+		setterRequest.send(new GenericMessage<String>("bar2"));
+		reply = messagingTemplate.receive();
+		assertNotNull(reply);
+
+		payload = (Map<String, ?>) reply.getPayload();
+		id = payload.get("SCOPE_IDENTITY()");
+		assertNotNull(id);
+		map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
+		assertEquals("Wrong id", id, map.get("ID"));
+		assertEquals("Wrong name", "bar2", map.get("name"));
 	}
 
 	@Test
@@ -259,4 +278,14 @@ public class JdbcOutboundGatewayParserTests {
 		}
 
 	}
+
+	public static class TestMessagePreparedStatementSetter implements MessagePreparedStatementSetter {
+
+		@Override
+		public void setValues(PreparedStatement ps, Message<?> requestMessage) throws SQLException {
+			ps.setObject(1, requestMessage.getPayload());
+		}
+
+	}
+
 }
