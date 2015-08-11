@@ -570,6 +570,7 @@ public class FailoverClientConnectionFactoryTests {
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
+		TestingUtilities.waitStopListening(server1, 10000L);
 		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
 		outGateway.handleMessage(message);
 		if (!singleUse) {
