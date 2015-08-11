@@ -42,8 +42,10 @@ import org.springframework.util.DefaultPropertiesPersister;
 /**
  * Properties file-based implementation of {@link MetadataStore}. To avoid conflicts
  * each instance should be constructed with the unique key from which unique file name
- * will be generated. The file name will be 'persistentKey' + ".last.entry".
- * Files will be written to the 'java.io.tmpdir' +  "/spring-integration/".
+ * will be generated.
+ * By default, the properties file will be
+ * {@code 'java.io.tmpdir' +  "/spring-integration/metadata-store.properties"},
+ * but the directory and filename are settable.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -63,21 +65,36 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 
 	private String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
 
+	private String fileName = "metadata-store.properties";
+
 	private File file;
 
 	private volatile boolean dirty;
 
-
+	/**
+	 * Set the location for the properties file. Defaults to
+	 * {@code 'java.io.tmpdir' +  "/spring-integration/"}.
+	 * @param baseDirectory the directory.
+	 */
 	public void setBaseDirectory(String baseDirectory) {
 		Assert.hasText(baseDirectory, "'baseDirectory' must be non-empty");
 		this.baseDirectory = baseDirectory;
 	}
 
+	/**
+	 * Set the name of the properties file in {@link #setBaseDirectory(String)}.
+	 * Defaults to {@code metadata-store.properties},
+	 * @param fileName the properties file name.
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		File baseDir = new File(baseDirectory);
+		File baseDir = new File(this.baseDirectory);
 		baseDir.mkdirs();
-		this.file = new File(baseDir, "metadata-store.properties");
+		this.file = new File(baseDir, this.fileName);
 		try {
 			if (!this.file.exists()) {
 				this.file.createNewFile();

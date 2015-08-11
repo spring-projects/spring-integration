@@ -25,7 +25,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.util.Properties;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -38,6 +40,9 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStoreTests {
+
+	@Rule
+	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
 	public void validateWithDefaultBaseDir() throws Exception {
@@ -60,10 +65,25 @@ public class PropertiesPersistingMetadataStoreTests {
 
 	@Test
 	public void validateWithCustomBaseDir() throws Exception {
-		File file = new File("target/foo" + "/metadata-store.properties");
-		file.deleteOnExit();
+		File file = new File(this.folder.getRoot(), "metadata-store.properties");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
-		metadataStore.setBaseDirectory("target/foo");
+		metadataStore.setBaseDirectory(folder.getRoot().getAbsolutePath());
+		metadataStore.afterPropertiesSet();
+		metadataStore.put("foo", "bar");
+		metadataStore.close();
+		assertTrue(file.exists());
+		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
+		assertNotNull(persistentProperties);
+		assertEquals(1, persistentProperties.size());
+		assertEquals("bar", persistentProperties.get("foo"));
+	}
+
+	@Test
+	public void validateWithCustomFileName() throws Exception {
+		File file = new File(this.folder.getRoot(), "foo.properties");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.setBaseDirectory(folder.getRoot().getAbsolutePath());
+		metadataStore.setFileName("foo.properties");
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
 		metadataStore.close();
