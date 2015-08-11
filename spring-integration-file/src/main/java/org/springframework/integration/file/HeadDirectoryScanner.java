@@ -39,8 +39,8 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 
 	public HeadDirectoryScanner(int maxNumberOfFiles) {
 		HeadFilter headFilter = new HeadFilter(maxNumberOfFiles);
-		this.setFilter(headFilter);
 		this.headFilter = headFilter;
+		this.setFilter(headFilter);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 		return true;
 	}
 
-	private void initSource() {
+	private void initSource() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (this.source != null) {
 				return;
@@ -157,6 +157,13 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 					this.source.setFilter(compositeFileListFilter);
 					this.source.setLocker(locker);
 				}
+			}
+			else if (this.locker != null) {
+				CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<File>();
+				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
+				compositeFileListFilter.addFilter(this.locker);
+				this.source.setFilter(compositeFileListFilter);
+				this.source.setLocker(locker);
 			}
 			if (this.scanEachPoll != null) {
 				this.source.setScanEachPoll(this.scanEachPoll);

@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class FileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
@@ -50,10 +51,12 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");
 		String filterBeanName = this.registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
+		if (filterBeanName != null) {
+			builder.addPropertyReference("filter", filterBeanName);
+		}
 		if (lockerBeanName != null) {
 			builder.addPropertyReference("locker", lockerBeanName);
 		}
-		builder.addPropertyReference("filter", filterBeanName);
 
 		return builder.getBeanDefinition();
 	}
@@ -77,11 +80,18 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 	}
 
 	private String registerFilter(Element element, ParserContext parserContext) {
+		String filenamePattern = element.getAttribute("filename-pattern");
+		String filenameRegex = element.getAttribute("filename-regex");
+		String preventDuplicates = element.getAttribute("prevent-duplicates");
+		String ignoreHidden = element.getAttribute("ignore-hidden");
+		if (!StringUtils.hasText(filenamePattern) && !StringUtils.hasText(filenameRegex)
+				&& !StringUtils.hasText(preventDuplicates) && !StringUtils.hasText(ignoreHidden)) {
+			return null;
+		}
 		BeanDefinitionBuilder factoryBeanBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(FileListFilterFactoryBean.class);
 		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(factoryBeanBuilder, element, "filter");
-		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
 			if (element.hasAttribute("filter")) {
 				parserContext.getReaderContext().error(
@@ -89,7 +99,6 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 			factoryBeanBuilder.addPropertyValue("filenamePattern", filenamePattern);
 		}
-		String filenameRegex = element.getAttribute("filename-regex");
 		if (StringUtils.hasText(filenameRegex)) {
 			if (element.hasAttribute("filter")) {
 				parserContext.getReaderContext().error(
