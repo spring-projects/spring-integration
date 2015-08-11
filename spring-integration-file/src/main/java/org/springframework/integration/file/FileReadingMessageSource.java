@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,12 +37,10 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * {@link MessageSource} that creates messages from a file system directory. To
- * prevent messages for certain files, you may supply a
- * {@link FileListFilter}. By
- * default, an
- * {@link AcceptOnceFileListFilter}
- * is used. It ensures files are picked up only once from the directory.
+ * {@link MessageSource} that creates messages from a file system directory.
+ * To prevent messages for certain files, you may supply a {@link FileListFilter}.
+ * By default, an {@link AcceptOnceFileListFilter} is used.
+ * It ensures files are picked up only once from the directory.
  * <p>
  * A common problem with reading files is that a file may be detected before it
  * is ready. The default {@link AcceptOnceFileListFilter}
@@ -64,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File> {
 
@@ -71,12 +70,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
-
-	private volatile File directory;
-
-	private volatile DirectoryScanner scanner = new DefaultDirectoryScanner();
-
-	private volatile boolean autoCreateDirectory = true;
+	private final static ThreadLocal<FileMessageHolder> RESOURCES = new ThreadLocal<FileMessageHolder>();
 
 	/*
 	 * {@link PriorityBlockingQueue#iterator()} throws
@@ -85,9 +79,19 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 */
 	private final Queue<File> toBeReceived;
 
+	private volatile File directory;
+
+	private volatile DirectoryScanner scanner = new DefaultDirectoryScanner();
+
+	private volatile boolean scannerExplicitlySet;
+
+	private volatile boolean autoCreateDirectory = true;
+
 	private volatile boolean scanEachPoll = false;
 
-	private final ThreadLocal<FileMessageHolder> resources = new ThreadLocal<FileMessageHolder>();
+	private FileListFilter<File> filter;
+
+	private FileLocker locker;
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -114,7 +118,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this(null);
 		Assert.isTrue(internalQueueCapacity > 0,
 				"Cannot create a queue with non positive capacity");
-		this.setScanner(new HeadDirectoryScanner(internalQueueCapacity));
+		this.scanner = new HeadDirectoryScanner(internalQueueCapacity);
 	}
 
 	/**
@@ -149,12 +153,14 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Optionally specify a custom scanner, for example the
-	 * {@link org.springframework.integration.file.RecursiveLeafOnlyDirectoryScanner}
+	 * {@link WatchServiceDirectoryScanner}
 	 *
 	 * @param scanner scanner implementation
 	 */
 	public void setScanner(DirectoryScanner scanner) {
+		Assert.notNull(scanner, "'scanner' must not be null.");
 		this.scanner = scanner;
+		this.scannerExplicitlySet = true;
 	}
 
 	/**
@@ -173,21 +179,20 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	/**
-	 * Sets a {@link FileListFilter}. By default a
-	 * {@link org.springframework.integration.file.filters.AbstractFileListFilter}
+	 * Sets a {@link FileListFilter}.
+	 * By default a {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter}
 	 * with no bounds is used. In most cases a customized {@link FileListFilter} will
-	 * be needed to deal with modification and duplication concerns. If multiple
-	 * filters are required a
+	 * be needed to deal with modification and duplication concerns.
+	 * If multiple filters are required a
 	 * {@link org.springframework.integration.file.filters.CompositeFileListFilter}
 	 * can be used to group them together.
 	 * <p>
 	 * <b>The supplied filter must be thread safe.</b>.
-	 *
 	 * @param filter a filter
 	 */
 	public void setFilter(FileListFilter<File> filter) {
 		Assert.notNull(filter, "'filter' must not be null");
-		this.scanner.setFilter(filter);
+		this.filter = filter;
 	}
 
 	/**
@@ -195,12 +200,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * duplicate processing.
 	 * <p>
 	 * <b>The supplied FileLocker must be thread safe</b>
-	 *
 	 * @param locker a locker
 	 */
 	public void setLocker(FileLocker locker) {
 		Assert.notNull(locker, "'fileLocker' must not be null.");
-		this.scanner.setLocker(locker);
+		this.locker = locker;
 	}
 
 	/**
@@ -240,6 +244,15 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				"Source path [" + this.directory + "] does not point to a directory.");
 		Assert.isTrue(this.directory.canRead(),
 				"Source directory [" + this.directory + "] is not readable.");
+		Assert.state(!(this.scannerExplicitlySet && (this.filter != null || this.locker != null)),
+				"The 'filter' and 'locker' options must be present on the provided external 'scanner': "
+						+ this.scanner);
+		if (this.filter != null) {
+			this.scanner.setFilter(this.filter);
+		}
+		if (this.locker != null) {
+			this.scanner.setLocker(this.locker);
+		}
 	}
 
 	public Message<File> receive() throws MessagingException {
@@ -263,11 +276,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}
-			FileMessageHolder resource = this.resources.get();
+			FileMessageHolder resource = RESOURCES.get();
 			if (resource == null) {
-				this.resources.set(new FileMessageHolder());
+				RESOURCES.set(new FileMessageHolder());
 			}
-			this.resources.get().setMessage(message);
+			RESOURCES.get().setMessage(message);
 		}
 		return message;
 	}
