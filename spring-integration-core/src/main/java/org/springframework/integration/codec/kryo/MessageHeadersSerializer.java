@@ -18,12 +18,12 @@ package org.springframework.integration.codec.kryo;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.messaging.MessageHeaders;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * Kryo Serializer for {@link MessageHeaders}.
@@ -48,4 +48,5 @@ class MessageHeadersSerializer extends Serializer<MessageHeaders> {
 		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
 		return new MessageHeaders(headers);
 	}
+
 }

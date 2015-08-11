@@ -1,5 +1,6 @@
 /*
  * Copyright 2015 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.codec.kryo;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.MessageHeaders;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-
 /**
- * Kryo Serializer for {@link MutableMessageHeaders}.
- * @author David Turanski
+ * {@link PojoCodec} configured to encode/decode {@code Message<?>}s.
+ * @author Gary Russell
  * @since 4.2
+ *
  */
-class MutableMessageHeadersSerializer extends MessageHeadersSerializer {
+public class MessageCodec extends PojoCodec {
 
-	@Override
-	public MessageHeaders read(Kryo kryo, Input input, Class<MessageHeaders> type) {
-		@SuppressWarnings("unchecked")
-		Map<String, Object> headers = kryo.readObject(input, HashMap.class);
-		return new MutableMessageHeaders(headers);
+	public MessageCodec() {
+		super(new MessageKryoRegistrar());
 	}
 
 }

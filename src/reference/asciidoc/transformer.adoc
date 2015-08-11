@@ -384,3 +384,8 @@ It is a typical endpoint with input/output channels and a `header-names` attribu
 That attribute accepts the names of the header(s) (delimited by commas if there are multiple)
 that need to be removed.
 So, in the above example the headers named 'lastName' and 'state' will not be present on the outbound Message.
+
+
+==== Codec-Based Transformers
+
+See <<codec>>.

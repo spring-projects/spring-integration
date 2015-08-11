@@ -18,10 +18,10 @@ package org.springframework.integration.codec.kryo;
 import java.util.Arrays;
 import java.util.List;
 
-import com.esotericsoftware.kryo.Registration;
-
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.MessageHeaders;
+
+import com.esotericsoftware.kryo.Registration;
 
 /**
  * Registers common MessageHeader types and Serializers.
@@ -43,4 +43,5 @@ public class MessageKryoRegistrar extends AbstractKryoRegistrar {
 		});
 
 	}
+
 }
