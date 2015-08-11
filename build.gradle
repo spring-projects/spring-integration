@@ -295,6 +295,7 @@ project('spring-integration-core') {
 	}
 
 	dependencies {
+		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
