@@ -16,28 +16,20 @@
 package org.springframework.integration.codec.kryo;
 
 /**
- * {@link PojoCodec} configured to encode/decode {@code Message<?>}s.
+ * Default registration ids for serializers provided by the framework.
+ *
  * @author Gary Russell
  * @since 4.2
  *
  */
-public class MessageCodec extends PojoCodec {
+public final class RegistrationIds {
 
-	/**
-	 * Construct an instance using the default registration ids for messsage
-	 * headers.
-	 */
-	public MessageCodec() {
-		super(new MessageKryoRegistrar());
-	}
+	public final static int DEFAULT_FILE_REGISTRATION_ID = 40;
 
-	/**
-	 * Construct an instance using a custom registrar - usually used if different
-	 * registration ids are required for message headers.
-	 * @param registrar the registrar.
-	 */
-	public MessageCodec(MessageKryoRegistrar registrar) {
-		super(registrar);
-	}
+	public static final int DEFAULT_MESSAGEHEADERS_ID = 41;
+
+	public static final int DEFAULT_MUTABLE_MESSAGEHEADERS_ID = 42;
+
+	private RegistrationIds() {}
 
 }

@@ -20,7 +20,6 @@ import java.io.IOException;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -49,8 +48,7 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
-			Message<?> mm = MutableMessageBuilder.fromMessage(message).build();
-			return this.codec.encode(mm);
+			return this.codec.encode(message);
 		}
 		catch (IOException e) {
 			throw new MessagingException(message, e);
@@ -62,11 +60,14 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 		Assert.isInstanceOf(byte[].class, payload);
 		try {
 			Message<?> decoded = (Message<?>) this.codec.decode((byte[]) payload, messageClass);
-			AbstractIntegrationMessageBuilder<?> builder = MutableMessageBuilder.fromMessage(decoded);
 			if (headers != null) {
+				AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().fromMessage(decoded);
 				builder.copyHeaders(headers);
+				return builder.build();
 			}
-			return builder.build();
+			else {
+				return decoded;
+			}
 		}
 		catch (IOException e) {
 			throw new MessagingException("Failed to decode", e);

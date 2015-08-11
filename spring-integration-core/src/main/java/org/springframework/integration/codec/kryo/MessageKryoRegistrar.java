@@ -26,22 +26,39 @@ import com.esotericsoftware.kryo.Registration;
 /**
  * Registers common MessageHeader types and Serializers.
  * @author David Turanski
+ * @author Gary Russell
  * @since 4.2
  */
 public class MessageKryoRegistrar extends AbstractKryoRegistrar {
 
-	private static int MESSAGEHEADERS_ID = 41;
+	private volatile int messageHeadersRegistrationId = RegistrationIds.DEFAULT_MESSAGEHEADERS_ID;
 
-	private static int MUTABLE_MESSAGEHEADERS_ID = 42;
+	private volatile int mutableMessageHeadersRegistrationId = RegistrationIds.DEFAULT_MUTABLE_MESSAGEHEADERS_ID;
+
+	/**
+	 * Set the registration id for {@code MessageHeaders}.
+	 * @param messageHeadersRegistrationId the id, default 41.
+	 */
+	public void setMessageHeadersRegistrationId(int messageHeadersRegistrationId) {
+		this.messageHeadersRegistrationId = messageHeadersRegistrationId;
+	}
+
+	/**
+	 * Set the registration id for {@code MutableMessageHeaders}.
+	 * @param mutableMessageHeadersRegistrationId the id, default 42.
+	 */
+	public void setMutableMessageHeadersRegistrationId(int mutableMessageHeadersRegistrationId) {
+		this.mutableMessageHeadersRegistrationId = mutableMessageHeadersRegistrationId;
+	}
+
 
 	@Override
 	public List<Registration> getRegistrations() {
-		return Arrays.asList(new Registration[] {
-				new Registration(MessageHeaders.class, new MessageHeadersSerializer(), MESSAGEHEADERS_ID),
+		return Arrays.asList(
+				new Registration(MessageHeaders.class, new MessageHeadersSerializer(),
+						this.messageHeadersRegistrationId),
 				new Registration(MutableMessageHeaders.class, new MutableMessageHeadersSerializer(),
-						MUTABLE_MESSAGEHEADERS_ID)
-		});
-
+						this.mutableMessageHeadersRegistrationId));
 	}
 
 }

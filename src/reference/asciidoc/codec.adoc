@@ -4,15 +4,15 @@
 ==== Introduction
 
 Spring Integration _version 4.2_ introduces the `Codec` abstraction.
-Codecs are used to encode/decode objects to/from byte[].
+Codecs are used to encode/decode objects to/from `byte[]`.
 They are an alternative to Java Serialization.
-One advantage is, typically, objects do not have to implement Serializable
-One implementation, using https://github.com/EsotericSoftware/kryo[Kryo] for serialization is provided but you
+One advantage is, typically, objects do not have to implement `Serializable`.
+One implementation, using https://github.com/EsotericSoftware/kryo[Kryo] for serialization, is provided but you
 can provide your own implementation for use in any of these components:
 
-* EncodingPayloadTransformer
-* DecodingTransformer
-* CodecMessageConverter
+* `EncodingPayloadTransformer`
+* `DecodingTransformer`
+* `CodecMessageConverter`
 
 See their JavaDocs for more information.
 
@@ -36,8 +36,17 @@ transmission.
 ==== Kryo
 
 Currently, this is the only implementation of `Codec`.
-There are two `Codec`s - `PojoCodec` which can be used in the transformers and `MessageCodec` which can be used
+There are two `Codec` s - `PojoCodec` which can be used in the transformers and `MessageCodec` which can be used
 in the `CodecMessageConverter`.
+
+Several custom serializers are provided by the framework:
+
+* `FileSerializer`
+* `MessageHeadersSerializer`
+* `MutableMessageHeadersSerializer`
+
+The first can be used with the `PojoCodec`, by initializing it with the `FileKryoRegistrar`.
+The second and third are used with the `MessageCodec`, which is initialized with the `MessageKryoRegistrar`.
 
 ===== Customizing Kryo
 
@@ -66,6 +75,14 @@ public class AddressSerializer extends Serializer<Address> {
 The `Serializer` interface exposes `Kryo`, `Input`, and `Output` which provide
 complete control over which fields are included and other internal settings as
 described in the https://github.com/EsotericSoftware/kryo[documentation].
+
+NOTE: When registering your custom serializer, you need a registration ID.
+The registration IDs are arbitrary but in our case must be explicitly defined because each Kryo instance across the
+distributed application must use the same IDs.
+Kryo recommends small positive integers, and reserves a few ids (value < 10).
+Spring Integration currently defaults to using 40, 41 and 42 (for the file and message header serializers mentioned
+above); we recommend you start at, say 60, to allow for expansion in the framework.
+These framework defaults can be overridden by configuring the registrars mentioned above.
 
 ====== Using a Custom Kryo Serializer
 
