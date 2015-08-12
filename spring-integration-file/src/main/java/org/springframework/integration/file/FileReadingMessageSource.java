@@ -70,8 +70,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
-	private final static ThreadLocal<FileMessageHolder> RESOURCES = new ThreadLocal<FileMessageHolder>();
-
 	/*
 	 * {@link PriorityBlockingQueue#iterator()} throws
 	 * {@link java.util.ConcurrentModificationException} in Java 5.
@@ -161,6 +159,17 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		Assert.notNull(scanner, "'scanner' must not be null.");
 		this.scanner = scanner;
 		this.scannerExplicitlySet = true;
+	}
+
+	/**
+	 * The {@link #scanner} property accessor to allow to modify its options
+	 * ({@code filter}, {@code locker} etc.) at runtime using the
+	 * {@link FileReadingMessageSource} bean.
+	 * @return the {@link DirectoryScanner} of this {@link FileReadingMessageSource}.
+	 * @since 4.2
+	 */
+	public DirectoryScanner getScanner() {
+		return scanner;
 	}
 
 	/**
@@ -276,11 +285,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}
-			FileMessageHolder resource = RESOURCES.get();
-			if (resource == null) {
-				RESOURCES.set(new FileMessageHolder());
-			}
-			RESOURCES.get().setMessage(message);
 		}
 		return message;
 	}
