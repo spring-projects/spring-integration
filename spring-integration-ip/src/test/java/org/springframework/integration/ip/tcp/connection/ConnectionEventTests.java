@@ -307,11 +307,8 @@ public class ConnectionEventTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		String actual = theEvent.toString();
 		assertThat(actual, containsString("cause=java.net.BindException"));
-		assertThat(actual, containsString("[factory="
-				+ (factory instanceof TcpNetServerConnectionFactory
-				? "tcp-net-server-connection-factory"
-				: "tcp-nio-server-connection-factory")
-				+ ":sf, port=" + port + "]"));
+		assertThat(actual, containsString("source="
+				+ "sf, port=" + port));
 
 		ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);

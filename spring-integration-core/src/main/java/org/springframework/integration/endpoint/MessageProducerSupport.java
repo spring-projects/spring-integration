@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;

@@ -11,12 +11,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.channel.management;
+package org.springframework.integration.support.management;
 
-import org.springframework.integration.support.management.ExponentialMovingAverage;
-import org.springframework.integration.support.management.ExponentialMovingAverageRate;
-import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
-import org.springframework.integration.support.management.MetricsContext;
 
 /**
  * An implementation of {@link MessageChannelMetrics} that aggregates the total response

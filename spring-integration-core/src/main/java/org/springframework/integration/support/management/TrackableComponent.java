@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.history;
+package org.springframework.integration.support.management;
 
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.channel.management;
+package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;

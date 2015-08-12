@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.support.management;
 
-import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 
 /**
  * Factories implementing this interface provide metric objects for message channels and

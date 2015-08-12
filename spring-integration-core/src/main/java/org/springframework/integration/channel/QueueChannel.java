@@ -24,8 +24,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.integration.channel.management.QueueChannelManagement;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.support.management.QueueChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

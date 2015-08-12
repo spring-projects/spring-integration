@@ -21,7 +21,7 @@ import java.util.Deque;
 import java.util.List;
 
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
-import org.springframework.integration.channel.management.PollableChannelManagement;
+import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;

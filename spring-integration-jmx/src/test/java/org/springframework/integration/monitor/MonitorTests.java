@@ -42,7 +42,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
+import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;

@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.management;
+package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.springframework.integration.support.management.ExponentialMovingAverage;
-import org.springframework.integration.support.management.MetricsContext;
-import org.springframework.integration.support.management.Statistics;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
