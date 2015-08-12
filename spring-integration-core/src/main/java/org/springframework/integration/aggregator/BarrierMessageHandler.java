@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.aggregator;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -22,10 +22,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
-import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
-import org.springframework.integration.aggregator.MessageGroupProcessor;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;

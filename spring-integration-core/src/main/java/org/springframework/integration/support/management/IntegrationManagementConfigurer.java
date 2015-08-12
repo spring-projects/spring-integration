@@ -24,9 +24,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.channel.management.MessageChannelMetrics;
-import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 

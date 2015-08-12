@@ -18,7 +18,6 @@ package org.springframework.integration.scattergather;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -27,7 +26,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -38,6 +36,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * The {@link MessageHandler} implementation for the
@@ -67,8 +66,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 		Assert.notNull(scatterChannel);
 		Assert.notNull(gatherer);
 		Class<?> gathererClass = AopUtils.getTargetClass(gatherer);
-		Assert.isAssignable(AggregatingMessageHandler.class, gathererClass,
-				"the 'gatherer' must be an AggregatingMessageHandler instance");
+		checkClass(gathererClass, "org.springframework.integration.aggregator.AggregatingMessageHandler", "gatherer");
 		this.scatterChannel = scatterChannel;
 		this.gatherer = gatherer;
 	}
@@ -76,9 +74,8 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
 		this(new FixedSubscriberChannel(scatterer), gatherer);
 		Assert.notNull(scatterer);
-		Class<?> scatterClass = AopUtils.getTargetClass(scatterer);
-		Assert.isAssignable(RecipientListRouter.class, scatterClass,
-				"the 'scatterer' must be a RecipientListRouter instance");
+		Class<?> scattererClass = AopUtils.getTargetClass(scatterer);
+		checkClass(scattererClass, "org.springframework.integration.router.RecipientListRouter", "scatterer");
 	}
 
 	public void setGatherChannel(MessageChannel gatherChannel) {
@@ -176,6 +173,16 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	@Override
 	public boolean isRunning() {
 		return this.gatherEndpoint == null || this.gatherEndpoint.isRunning();
+	}
+
+	private void checkClass(Class<?> gathererClass, String className, String type) throws LinkageError {
+		Class<?> clazz = null;
+		try {
+			clazz = ClassUtils.forName(className, getClass().getClassLoader());
+		}
+		catch (Exception e) {
+		}
+		Assert.isAssignable(clazz, gathererClass, "the '" + type + "' must be an " + className + " instance");
 	}
 
 }

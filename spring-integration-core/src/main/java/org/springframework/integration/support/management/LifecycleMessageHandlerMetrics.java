@@ -17,7 +17,6 @@
 package org.springframework.integration.support.management;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 

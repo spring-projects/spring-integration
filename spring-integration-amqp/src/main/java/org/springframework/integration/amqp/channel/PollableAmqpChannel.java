@@ -26,7 +26,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
-import org.springframework.integration.channel.management.PollableChannelManagement;
+import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;

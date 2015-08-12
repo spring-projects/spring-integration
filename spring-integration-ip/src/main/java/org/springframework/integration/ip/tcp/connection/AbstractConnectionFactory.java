@@ -888,6 +888,13 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
+	@Override
+	public String toString() {
+		return super.toString()
+				+ (this.host != null ? ", host=" + this.host : "")
+				+ ", port=" + this.port;
+	}
+
 	private class PendingIO {
 
 		private final long failedAt;

@@ -28,26 +28,10 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class TcpConnectionServerExceptionEvent extends IpIntegrationEvent {
 
-	public TcpConnectionServerExceptionEvent(AbstractServerConnectionFactory connectionFactory, Throwable cause) {
+	public TcpConnectionServerExceptionEvent(Object connectionFactory, Throwable cause) {
 		super(connectionFactory, cause);
 		Assert.notNull(cause, "'cause' cannot be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
-	}
-
-	/**
-	 * The connection factory that experienced the exception; examine it to determine the port etc.
-	 * @return the connection factory.
-	 */
-	public AbstractServerConnectionFactory getConnectionFactory() {
-		return (AbstractServerConnectionFactory) getSource();
-	}
-
-	@Override
-	public String toString() {
-		return super.toString() +
-				", [factory=" + getConnectionFactory().getComponentType() +
-				":" + getConnectionFactory().getComponentName() +
-				", port=" + getConnectionFactory().getPort() + "]";
 	}
 
 }

@@ -18,6 +18,7 @@ package org.springframework.integration.history;
 
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;

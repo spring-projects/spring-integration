@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.management;
+package org.springframework.integration.support.management;
 
-import org.springframework.integration.support.management.ExponentialMovingAverage;
-import org.springframework.integration.support.management.MetricsContext;
 
 /**
  * An implementation of {@link org.springframework.integration.support.management.MessageHandlerMetrics}

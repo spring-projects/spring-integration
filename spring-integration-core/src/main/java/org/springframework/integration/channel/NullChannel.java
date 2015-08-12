@@ -20,12 +20,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.channel.management.DefaultMessageChannelMetrics;
-import org.springframework.integration.channel.management.MessageChannelMetrics;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
+import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
+import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;

@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -74,7 +73,7 @@ public interface RecipientListRouterManagement {
 	 * @return an unmodifiable collection of recipients.
 	 */
 	@ManagedAttribute
-	Collection<Recipient> getRecipients();
+	Collection<?> getRecipients();
 
 	/**
 	 * Replace recipient.

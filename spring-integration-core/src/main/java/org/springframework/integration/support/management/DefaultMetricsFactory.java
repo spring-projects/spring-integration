@@ -15,10 +15,6 @@
  */
 package org.springframework.integration.support.management;
 
-import org.springframework.integration.channel.management.AbstractMessageChannelMetrics;
-import org.springframework.integration.channel.management.DefaultMessageChannelMetrics;
-import org.springframework.integration.handler.management.AbstractMessageHandlerMetrics;
-import org.springframework.integration.handler.management.DefaultMessageHandlerMetrics;
 
 
 
