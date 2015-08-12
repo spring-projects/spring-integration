@@ -67,8 +67,6 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private final String updateSql;
-
 	private final PreparedStatementCreator generatedKeysStatementCreator = new PreparedStatementCreator() {
 
 		@Override
@@ -77,6 +75,8 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		}
 
 	};
+
+	private volatile String updateSql;
 
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory;
 
@@ -117,10 +117,21 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		this.keysGenerated = keysGenerated;
 	}
 
+	public void setUpdateSql(String updateSql) {
+		this.updateSql = updateSql;
+	}
+
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
 
+	/**
+	 * Specify a {@link MessagePreparedStatementSetter} to populate parameters on the
+	 * {@link PreparedStatement} with the {@link Message} context.
+	 * <p>This is a low-level alternative to the {@link SqlParameterSourceFactory}.
+	 * @param preparedStatementSetter the {@link MessagePreparedStatementSetter} to set.
+	 * @since 4.2
+	 */
 	public void setPreparedStatementSetter(MessagePreparedStatementSetter preparedStatementSetter) {
 		this.preparedStatementSetter = preparedStatementSetter;
 	}
