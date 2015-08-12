@@ -145,6 +145,15 @@ If you are using the serializers directly within user code, you may have to `flu
 `TcpConnectionServerExceptionEvent` s are now published whenever an unexpected exception occurs on a TCP server socket (also added to 4.1.3, 4.0.7).
 See <<tcp-events>> for more information.
 
+[[x4.2-tcp-server-port]]
+===== TCP Server Port
+
+If a TCP server socket factory is configured to listen on a random port, the actual port chosen by the OS can now
+be obtained using `getPort()`.
+`getServerSocketAddress()` is also available.
+
+See <<connection-factories>> for more information.
+
 [[x4.2-tcp-gw-rto]]
 ===== TCP Gateway Remote Timeout
 

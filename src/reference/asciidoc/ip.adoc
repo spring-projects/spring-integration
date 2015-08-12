@@ -166,6 +166,11 @@ A simple server connection factory that uses `java.net.Socket` connections.
 
 A simple server connection factory that uses `java.nio.channel.SocketChannel` connections.
 
+NOTE: Starting with Spring Integration _version 4.2_, if the server is configured to listen on a random port (0),
+the actual port chosen by the OS can be obtained using `getPort()`.
+Also, `getServerSocketAddress()` is available to get the complete `SocketAddress`.
+See the javadocs for the `TcpServerConnectionFactory` interface for more information.
+
 [source,xml]
 ----
 <int-ip:tcp-connection-factory id="client"

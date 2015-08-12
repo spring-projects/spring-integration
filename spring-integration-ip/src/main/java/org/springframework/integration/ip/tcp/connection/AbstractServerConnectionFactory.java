@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
@@ -32,8 +33,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractServerConnectionFactory
-		extends AbstractConnectionFactory implements SchedulingAwareRunnable, OrderlyShutdownCapable {
+public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory
+		implements TcpServerConnectionFactory, SchedulingAwareRunnable, OrderlyShutdownCapable {
 
 	private static final int DEFAULT_BACKLOG = 5;
 
@@ -58,6 +59,11 @@ public abstract class AbstractServerConnectionFactory
 	@Override
 	public boolean isLongLived() {
 		return true;
+	}
+
+	@Override
+	public SocketAddress getServerSocketAddress() {
+		return null;
 	}
 
 	@Override

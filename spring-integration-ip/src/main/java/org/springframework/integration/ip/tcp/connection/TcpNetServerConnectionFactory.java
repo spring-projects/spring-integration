@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
@@ -54,6 +55,25 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		return "tcp-net-server-connection-factory";
 	}
 
+	@Override
+	public int getPort() {
+		int port = super.getPort();
+		if (port == 0 && this.serverSocket != null) {
+			return this.serverSocket.getLocalPort();
+		}
+		return port;
+	}
+
+	@Override
+	public SocketAddress getServerSocketAddress() {
+		if (this.serverSocket != null) {
+			return this.serverSocket.getLocalSocketAddress();
+		}
+		else {
+			return null;
+		}
+	}
+
 	/**
 	 * If no listener registers, exits.
 	 * Accepts incoming connections and creates TcpConnections for each new connection.
@@ -70,11 +90,11 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			if (getLocalAddress() == null) {
-				theServerSocket = createServerSocket(getPort(), getBacklog(), null);
+				theServerSocket = createServerSocket(super.getPort(), getBacklog(), null);
 			}
 			else {
 				InetAddress whichNic = InetAddress.getByName(getLocalAddress());
-				theServerSocket = createServerSocket(getPort(), getBacklog(), whichNic);
+				theServerSocket = createServerSocket(super.getPort(), getBacklog(), whichNic);
 			}
 			getTcpSocketSupport().postProcessServerSocket(theServerSocket);
 			this.serverSocket = theServerSocket;

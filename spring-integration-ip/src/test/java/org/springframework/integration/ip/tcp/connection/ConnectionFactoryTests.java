@@ -24,6 +24,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +38,9 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.messaging.Message;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -50,7 +51,18 @@ import org.springframework.integration.test.util.SocketUtils;
 public class ConnectionFactoryTests {
 
 	@Test
-	public void testObtainConnectionIds() throws Exception {
+	public void testObtainConnectionIdsNet() throws Exception {
+		TcpNetServerConnectionFactory serverFactory = new TcpNetServerConnectionFactory(0);
+		testObtainConnectionIds(serverFactory);
+	}
+
+	@Test
+	public void testObtainConnectionIdsNio() throws Exception {
+		TcpNioServerConnectionFactory serverFactory = new TcpNioServerConnectionFactory(0);
+		testObtainConnectionIds(serverFactory);
+	}
+
+	public void testObtainConnectionIds(AbstractServerConnectionFactory serverFactory) throws Exception {
 		final List<TcpConnectionEvent> events =
 				Collections.synchronizedList(new ArrayList<TcpConnectionEvent>());
 		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
@@ -62,17 +74,16 @@ public class ConnectionFactoryTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		};
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory serverFactory = new TcpNetServerConnectionFactory(port);
 		serverFactory.setBeanName("serverFactory");
 		serverFactory.setApplicationEventPublisher(publisher);
 		serverFactory = spy(serverFactory);
 		final CountDownLatch serverConnectionInitLatch = new CountDownLatch(1);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Object result = invocation.callRealMethod();
 				serverConnectionInitLatch.countDown();
@@ -83,8 +94,10 @@ public class ConnectionFactoryTests {
 		adapter.setConnectionFactory(serverFactory);
 		adapter.start();
 		TestingUtilities.waitListening(serverFactory, null);
+		int port = serverFactory.getPort();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", port);
 		clientFactory.registerListener(new TcpListener() {
+			@Override
 			public boolean onMessage(Message<?> message) {
 				return false;
 			}
@@ -105,11 +118,13 @@ public class ConnectionFactoryTests {
 		Thread.sleep(1000);
 		clients = clientFactory.getOpenConnectionIds();
 		assertEquals(0, clients.size());
-		assertEquals(6, events.size()); // OPEN, CLOSE, EXCEPTION for each side
+		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 6// OPEN, CLOSE, EXCEPTION for each side
+				: 4; //OPEN, CLOSE
+		assertEquals(expected, events.size());
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
-		assertEquals(7, events.size());
+		assertEquals(expected + 1, events.size());
 
 		try {
 			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
@@ -119,6 +134,13 @@ public class ConnectionFactoryTests {
 		catch (IllegalArgumentException e) {
 			assertTrue("Can only publish events with this as the source".equals(e.getMessage()));
 		}
+
+		SocketAddress address = serverFactory.getServerSocketAddress();
+		if (address instanceof InetSocketAddress) {
+			InetSocketAddress inetAddress = (InetSocketAddress) address;
+			assertEquals(port, inetAddress.getPort());
+		}
+		serverFactory.stop();
 	}
 
 	@SuppressWarnings("serial")

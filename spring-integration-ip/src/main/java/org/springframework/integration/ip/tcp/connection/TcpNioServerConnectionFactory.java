@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
@@ -66,6 +67,34 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		return "tcp-nio-server-connection-factory";
 	}
 
+	@Override
+	public int getPort() {
+		int port = super.getPort();
+		if (port == 0 && this.serverChannel != null) {
+			try {
+				SocketAddress address = this.serverChannel.getLocalAddress();
+				if (address instanceof InetSocketAddress) {
+					port = ((InetSocketAddress) address).getPort();
+				}
+			}
+			catch (IOException e) {
+			}
+		}
+		return port;
+	}
+
+	@Override
+	public SocketAddress getServerSocketAddress() {
+		if (this.serverChannel != null) {
+			try {
+				return this.serverChannel.getLocalAddress();
+			}
+			catch (IOException e) {
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * If no listener registers, exits.
 	 * Accepts incoming connections and creates TcpConnections for each new connection.
@@ -81,11 +110,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			this.serverChannel = ServerSocketChannel.open();
-			int port = getPort();
+			int port = super.getPort();
 			getTcpSocketSupport().postProcessServerSocket(this.serverChannel.socket());
-			if (logger.isInfoEnabled()) {
-				logger.info("Listening on port " + port);
-			}
 			this.serverChannel.configureBlocking(false);
 			if (getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port), Math.abs(getBacklog()));
@@ -93,6 +119,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			else {
 				InetAddress whichNic = InetAddress.getByName(getLocalAddress());
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port), Math.abs(getBacklog()));
+			}
+			if (logger.isInfoEnabled()) {
+				logger.info("Listening on port " + getPort());
 			}
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
