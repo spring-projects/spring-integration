@@ -161,7 +161,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		if (keysGenerated) {
 			if (this.preparedStatementSetter != null) {
 				return this.jdbcOperations.getJdbcOperations().execute(this.generatedKeysStatementCreator,
-						new	PreparedStatementCallback<List<Map<String, Object>>>() {
+						new PreparedStatementCallback<List<Map<String, Object>>>() {
 
 							@Override
 							public List<Map<String, Object>> doInPreparedStatement(PreparedStatement ps)

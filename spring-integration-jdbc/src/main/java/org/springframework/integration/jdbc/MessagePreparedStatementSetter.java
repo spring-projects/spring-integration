@@ -26,7 +26,7 @@ import org.springframework.messaging.Message;
  * The callback to be used with the {@link JdbcMessageHandler}
  * as an alternative to the {@link SqlParameterSourceFactory}.
  * <p>
- * Play the same role as standard {@link PreparedStatementSetter},
+ * Plays the same role as standard {@link PreparedStatementSetter},
  * but with {@code Message<?> requestMessage} context during {@code handleMessage}
  * process in the {@link JdbcMessageHandler}.
  *

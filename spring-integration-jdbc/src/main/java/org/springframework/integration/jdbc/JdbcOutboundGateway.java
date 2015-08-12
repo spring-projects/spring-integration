@@ -179,12 +179,12 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public void setRequestSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		Assert.notNull(this.handler);
+		Assert.notNull(this.handler, "'handler' cannot be null");
 		this.handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
 	}
 
 	public void setRequestPreparedStatementSetter(MessagePreparedStatementSetter requestPreparedStatementSetter) {
-		Assert.notNull(this.handler);
+		Assert.notNull(this.handler, "'handler' cannot be null");
 		this.handler.setPreparedStatementSetter(requestPreparedStatementSetter);
 	}
 

@@ -80,7 +80,7 @@ See <<codec>> for more information.
 ==== Message PreparedStatement Setter
 
 A new `MessagePreparedStatementSetter` functional interface callback is available for the `JdbcMessageHandler`
-(`<int-jdbc:outbound-gateway>` and `<int-jdbc:outbound-channel-adapter>`) as an alternative for the
+(`<int-jdbc:outbound-gateway>` and `<int-jdbc:outbound-channel-adapter>`) as an alternative to the
 `SqlParameterSourceFactory` to populate parameters on the `PreparedStatement` with the `requestMessage` context.
 
 See <<jdbc-outbound-channel-adapter>> for more information.

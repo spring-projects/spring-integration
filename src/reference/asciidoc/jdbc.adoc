@@ -183,20 +183,20 @@ For further information, please also see <<sp-defining-parameter-sources>>
 
 _PreparedStatement Callback_
 
-There are some cases when the flexibility and loosely-coupling of `SqlParameterSourceFactory` isn't enough for the target
+There are some cases when the flexibility and loose-coupling of `SqlParameterSourceFactory` isn't enough for the target
 `PreparedStatement` or we need to do some low-level JDBC work.
-The Spring JDBC module provides enough API to configure the execution environment (e.g. `ConnectionCallback`
-or `PreparedStatementCreator`) and manipulate with parameter values (e.g. `SqlParameterSource`).
-Or even API for low level operations, for example with `StatementCallback`.
+The Spring JDBC module provides APIs to configure the execution environment (e.g. `ConnectionCallback`
+or `PreparedStatementCreator`) and manipulation of parameter values (e.g. `SqlParameterSource`).
+Or even APIs for low level operations, for example `StatementCallback`.
 
-From this perspective starting with _Spring Integration 4.2_ the `MessagePreparedStatementSetter` is available to allow
-to specify parameters on the `PreparedStatement` manually being in the `requestMessage` context.
+Starting with _Spring Integration 4.2_, the `MessagePreparedStatementSetter` is available to allow
+the specification of parameters on the `PreparedStatement` manually, in the `requestMessage` context.
 This class plays exactly the same role as `PreparedStatementSetter` in the standard Spring JDBC API.
-Actually it is invoked directly from the inline `PreparedStatementSetter` implementation, when `JdbcMessageHandler`
-performs its executing on the `JdbcTemplate`.
+Actually it is invoked directly from an inline `PreparedStatementSetter` implementation, when the `JdbcMessageHandler`
+performs invokes `execute` on the `JdbcTemplate`.
 
 This functional interface option is mutually exclusive with `sqlParameterSourceFactory` and can be used as a more
-powerful alternative to populate parameters to the `PreparedStatement` from the `requestMessage`.
+powerful alternative to populate parameters of the `PreparedStatement` from the `requestMessage`.
 For example it is useful when we need to store `File` data to the DataBase `BLOB` column in a stream manner:
 
 [source,java]
@@ -220,8 +220,8 @@ public MessageHandler jdbcMessageHandler(DataSource dataSource) {
 }
 ----
 
-From the XML configuration perspective the `prepared-statement-setter` attribute is available on the
-`<int-jdbc:outbound-channel-adapter>` component, respectively, to specify a  `MessagePreparedStatementSetter`
+From the XML configuration perspective, the `prepared-statement-setter` attribute is available on the
+`<int-jdbc:outbound-channel-adapter>` component, to specify a  `MessagePreparedStatementSetter`
 bean reference.
 
 [[jdbc-outbound-gateway]]
@@ -284,7 +284,7 @@ It can also have a `SqlParameterSourceFactory` injected to control the binding o
 
 Starting with the _version 4.2_ the `request-prepared-statement-setter` attribute is available on the
 `<int-jdbc:outbound-gateway>` as an alternative to the `request-sql-parameter-source-factory`.
-It allows to specify a `MessagePreparedStatementSetter` bean reference, which implements more sophisticated
+It allows you to specify a `MessagePreparedStatementSetter` bean reference, which implements more sophisticated
 `PreparedStatement` preparation before its execution.
 
 See <<jdbc-outbound-channel-adapter>> for more information about `MessagePreparedStatementSetter`.
