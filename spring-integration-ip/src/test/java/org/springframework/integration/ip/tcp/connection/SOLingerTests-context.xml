@@ -58,7 +58,7 @@
 		port="#{tcpIpUtils.findAvailableServerSocket(9400)}"
 		so-timeout="1000"
 		single-use="true"
-		so-linger="1000"
+		so-linger="10000"
 		/>
 
 	<int-ip:tcp-inbound-gateway request-channel="echo"
@@ -70,7 +70,7 @@
 		so-timeout="1000"
 		single-use="true"
 		using-nio="true"
-		so-linger="1000"
+		so-linger="10000"
 		/>
 
 	<int-ip:tcp-inbound-gateway request-channel="echo"

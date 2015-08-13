@@ -16,13 +16,19 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.contains;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -30,16 +36,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 /**
@@ -141,6 +152,74 @@ public class ConnectionFactoryTests {
 			assertEquals(port, inetAddress.getPort());
 		}
 		serverFactory.stop();
+	}
+
+	@Test
+	public void testEarlyCloseNet() throws Exception {
+		AbstractServerConnectionFactory factory = new TcpNetServerConnectionFactory(0);
+		testEarlyClose(factory, "serverSocket", " stopped before accept");
+	}
+
+	@Test
+	public void testEarlyCloseNio() throws Exception {
+		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
+	}
+
+	private void testEarlyClose(final AbstractServerConnectionFactory factory, String property,
+			String message) throws Exception {
+		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		factory.setBeanName("foo");
+		factory.registerListener(mock(TcpListener.class));
+		factory.afterPropertiesSet();
+		Log logger = spy(TestUtils.getPropertyValue(factory, "logger", Log.class));
+		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
+		when(logger.isInfoEnabled()).thenReturn(true);
+		when(logger.isDebugEnabled()).thenReturn(true);
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				latch1.countDown();
+				// wait until the stop nulls the channel
+				latch2.await(10, TimeUnit.SECONDS);
+				return null;
+			}
+		}).when(logger).info(contains("Listening"));
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				latch3.countDown();
+				return null;
+			}
+		}).when(logger).debug(contains(message));
+		factory.start();
+		assertTrue("missing info log", latch1.await(10, TimeUnit.SECONDS));
+		// stop on a different thread because it waits for the executor
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				factory.stop();
+			}
+		});
+		int n = 0;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
+		while (n++ < 200 && accessor.getPropertyValue(property) != null) {
+			Thread.sleep(100);
+		}
+		assertTrue("Stop was not invoked in time", n < 200);
+		latch2.countDown();
+		assertTrue("missing debug log", latch3.await(10, TimeUnit.SECONDS));
+		String expected = "foo, port=" + factory.getPort() + message;
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(logger, atLeast(1)).debug(captor.capture());
+		assertThat(captor.getAllValues(), hasItem(expected));
+		factory.stop();
 	}
 
 	@SuppressWarnings("serial")
