@@ -166,7 +166,7 @@ public class ConnectionFactoryTests {
 		testEarlyClose(factory, "serverChannel", " stopped before registering the server channel");
 	}
 
-	private void testEarlyClose(AbstractServerConnectionFactory factory, String property,
+	private void testEarlyClose(final AbstractServerConnectionFactory factory, String property,
 			String message) throws Exception {
 		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		factory.setBeanName("foo");
