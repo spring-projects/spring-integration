@@ -76,16 +76,13 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public void run() {
 		if (getListener() == null) {
-			logger.info("No listener bound to server connection factory; will not read; exiting...");
+			logger.info(this + " No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
 			this.serverChannel = ServerSocketChannel.open();
 			int port = getPort();
 			getTcpSocketSupport().postProcessServerSocket(this.serverChannel.socket());
-			if (logger.isInfoEnabled()) {
-				logger.info("Listening on port " + port);
-			}
 			this.serverChannel.configureBlocking(false);
 			if (getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port), Math.abs(getBacklog()));
@@ -94,12 +91,21 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				InetAddress whichNic = InetAddress.getByName(getLocalAddress());
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port), Math.abs(getBacklog()));
 			}
+			if (logger.isInfoEnabled()) {
+				logger.info(this + " Listening");
+			}
 			final Selector selector = Selector.open();
-			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-			setListening(true);
-			this.selector = selector;
-			doSelect(this.serverChannel, selector);
-
+			if (this.serverChannel == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug(this + " stopped before registering the server channel");
+				}
+			}
+			else {
+				this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+				setListening(true);
+				this.selector = selector;
+				doSelect(this.serverChannel, selector);
+			}
 		}
 		catch (IOException e) {
 			if (isActive()) {
