@@ -892,7 +892,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public String toString() {
 		return super.toString()
 				+ (this.host != null ? ", host=" + this.host : "")
-				+ ", port=" + this.port;
+				+ ", port=" + getPort();
 	}
 
 	private class PendingIO {

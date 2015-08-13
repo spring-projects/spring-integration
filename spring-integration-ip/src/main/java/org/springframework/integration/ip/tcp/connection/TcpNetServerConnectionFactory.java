@@ -85,7 +85,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	public void run() {
 		ServerSocket theServerSocket = null;
 		if (getListener() == null) {
-			logger.info("No listener bound to server connection factory; will not read; exiting...");
+			logger.info(this + " No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
@@ -99,7 +99,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			getTcpSocketSupport().postProcessServerSocket(theServerSocket);
 			this.serverSocket = theServerSocket;
 			setListening(true);
-			logger.info("Listening on port " + getPort());
+			logger.info(this + " Listening");
 			while (true) {
 				final Socket socket;
 				/*
@@ -107,7 +107,15 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				 *  Not fatal.
 				 */
 				try {
-					socket = serverSocket.accept();
+					if (this.serverSocket == null) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(this + " stopped before accept");
+						}
+						throw new IOException(this + " stopped before accept");
+					}
+					else {
+						socket = this.serverSocket.accept();
+					}
 				}
 				catch (SocketTimeoutException ste) {
 					if (logger.isDebugEnabled()) {
@@ -140,7 +148,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		catch (Exception e) {
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
-				logger.warn("Server Socket closed");
+				logger.info("Server Socket closed");
 			}
 			else if (isActive()) {
 				logger.error("Error on ServerSocket; port = " + getPort(), e);

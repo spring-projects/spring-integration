@@ -16,7 +16,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -68,14 +66,13 @@ public class SOLingerTests {
 	public void configOk() {}
 
 	@Test
-	@Ignore
 	public void finReceivedNet() {
-		finReceived(inCFNet);
+		finReceived(inCFNet, false);
 	}
 
 	@Test
 	public void finReceivedNio() {
-		finReceived(inCFNio);
+		finReceived(inCFNio, false);
 	}
 
 	@Test
@@ -90,16 +87,19 @@ public class SOLingerTests {
 
 	@Test
 	public void finReceivedNetLinger() {
-		finReceived(inCFNetLinger);
+		finReceived(inCFNetLinger, true);
 	}
 
 	@Test
-	@Ignore
 	public void finReceivedNioLinger() {
-		finReceived(inCFNioLinger);
+		finReceived(inCFNioLinger, true);
 	}
 
-	private void finReceived(AbstractServerConnectionFactory inCF) {
+	private void finReceived(AbstractServerConnectionFactory inCF, boolean hasLinger) {
+		/*
+		 * Default (no linger) means the OS may still deliver everything before the
+		 * FIN, but it's not guaranteed.
+		 */
 		int port = inCF.getPort();
 		TestingUtilities.waitListening(inCF, null);
 		try {
@@ -108,12 +108,23 @@ public class SOLingerTests {
 			String test = "Test\r\n";
 			socket.getOutputStream().write(test.getBytes());
 			byte[] buff = new byte[test.length() + 5];
-			readFully(socket.getInputStream(), buff);
-			assertEquals("echo:" + test, new String(buff));
+			try {
+				readFully(socket.getInputStream(), buff);
+				assertEquals("echo:" + test, new String(buff));
+			}
+			catch (SocketException se) {
+				if (hasLinger) {
+					fail("SocketException not expected with SO_LINGER");
+				}
+				else {
+					return;
+				}
+			}
 			int n = socket.getInputStream().read();
 			// we expect an orderly close
 			assertEquals(-1, n);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail("Unexpected Exception  " + e.getMessage());
 		}
@@ -129,15 +140,19 @@ public class SOLingerTests {
 			String test = "Test\r\n";
 			socket.getOutputStream().write(test.getBytes());
 			byte[] buff = new byte[test.length() + 5];
-			readFully(socket.getInputStream(), buff);
-			assertEquals("echo:" + test, new String(buff));
 			try {
+				// with SO_LINGER=0 we may, or may not, get the data
+				// if we do, verify it is as expected, if not, the RST
+				// arrived before the final data.
+				readFully(socket.getInputStream(), buff);
+				assertEquals("echo:" + test, new String(buff));
 				socket.getInputStream().read();
-				fail("Expected IOException");
-			} catch (IOException ioe) {
-				assertTrue(ioe instanceof SocketException);
+				fail("Expected SocketException");
 			}
-		} catch (Exception e) {
+			catch (SocketException se) {
+			}
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail("Unexpected Exception  " + e.getMessage());
 		}
