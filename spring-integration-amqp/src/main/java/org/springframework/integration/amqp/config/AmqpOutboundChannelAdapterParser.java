@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -50,8 +51,10 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			}
 		}
 		builder.addConstructorArgReference(amqpTemplateRef);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name", true);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
+		BeanDefinition exchangeNameExpression =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("exchange-name",
+						"exchange-name-expression", parserContext, element, false);
+		builder.addPropertyValue("exchangeNameExpression", exchangeNameExpression);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-delivery-mode");

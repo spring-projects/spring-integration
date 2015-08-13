@@ -108,21 +108,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * Factory method to return a simple message store that does not
-	 * copy the group in {@link #getMessageGroup(Object)}.
-	 * @param capacity the capacity (0 for unlimited).
-	 * @return the store.
-	 * @since 4.0.1
-	 * @deprecated in 4.1 - copyOnGet is now false by default.
-	 */
-	@Deprecated
-	public static SimpleMessageStore fastMessageStore(int capacity) {
-		SimpleMessageStore store = new SimpleMessageStore(capacity);
-		store.setCopyOnGet(false);
-		return store;
-	}
-
-	/**
 	 * Set to false to disable copying the group in {@link #getMessageGroup(Object)}.
 	 * Starting with 4.1, this is false by default.
 	 * @param copyOnGet True to copy, false to not.

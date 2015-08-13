@@ -373,24 +373,18 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.mputFilter = filter;
 	}
 
-	/**
-	 * @deprecated in favor of {@link #setExpressionRename}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param expression the expression to set.
-	 */
-	@Deprecated
-	public void setRenameExpression(String expression) {
+	public void setRenameExpression(Expression expression) {
 		Assert.notNull(expression, "'expression' cannot be null");
-		setExpressionRename(new SpelExpressionParser().parseExpression(expression));
+		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(expression);
 	}
 
 	/**
-	 * Temporary, will be changed to {@link #setRenameExpression} in a future release.
+	 * @deprecated in favor of {@link #setRenameExpression}.
 	 * @param expression the expression to set.
 	 */
+	@Deprecated
 	public void setExpressionRename(Expression expression) {
-		Assert.notNull(expression, "'expression' cannot be null");
-		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(expression);
+		setRenameExpression(expression);
 	}
 
 	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {

@@ -33,9 +33,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
@@ -59,10 +56,6 @@ import org.springframework.util.StringUtils;
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		implements RabbitTemplate.ConfirmCallback, ReturnCallback,
 		ApplicationListener<ContextRefreshedEvent>, Lifecycle {
-
-	private static final ExpressionParser expressionParser =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
-
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -111,23 +104,17 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.exchangeName = exchangeName;
 	}
 
-	/**
-	 * @deprecated in favor of {@link #setExpressionExchangeName}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param exchangeNameExpression the expression to set.
-	 */
-	@Deprecated
-	public void setExchangeNameExpression(String exchangeNameExpression) {
-		Assert.hasText(exchangeNameExpression);
-		this.exchangeNameExpression = expressionParser.parseExpression(exchangeNameExpression);
+	public void setExchangeNameExpression(Expression exchangeNameExpression) {
+		this.exchangeNameExpression = exchangeNameExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@link #setExchangeNameExpression} in a future release.
+	 * @deprecated in favor of {@link #setExchangeNameExpression}.
 	 * @param exchangeNameExpression the expression to set.
 	 */
+	@Deprecated
 	public void setExpressionExchangeName(Expression exchangeNameExpression) {
-		this.exchangeNameExpression = exchangeNameExpression;
+		setExchangeNameExpression(exchangeNameExpression);
 	}
 
 	public void setRoutingKey(String routingKey) {
@@ -135,46 +122,34 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.routingKey = routingKey;
 	}
 
-	/**
-	 * @deprecated in favor of {@link #setExpressionRoutingKey}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param routingKeyExpression the expression to set.
-	 */
-	@Deprecated
-	public void setRoutingKeyExpression(String routingKeyExpression) {
-		Assert.hasText(routingKeyExpression);
-		setExpressionRoutingKey(expressionParser.parseExpression(routingKeyExpression));
+	public void setRoutingKeyExpression(Expression routingKeyExpression) {
+		this.routingKeyExpression = routingKeyExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@code setRoutingKeyExpression} in a future release.
+	 * @deprecated in favor of {@link #setRoutingKeyExpression}.
 	 * @param routingKeyExpression the expression to set.
 	 */
+	@Deprecated
 	public void setExpressionRoutingKey(Expression routingKeyExpression) {
-		this.routingKeyExpression = routingKeyExpression;
+		setRoutingKeyExpression(routingKeyExpression);
 	}
 
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
 	}
 
-	/**
-	 * @deprecated in favor of {@link #setExpressionConfirmCorrelation}. Will be changed in a future release
-	 * to use {@link Expression} parameter.
-	 * @param confirmCorrelationExpression the expression to set.
-	 */
-	@Deprecated
-	public void setConfirmCorrelationExpression(String confirmCorrelationExpression) {
-		Assert.hasText(confirmCorrelationExpression);
-		setExpressionConfirmCorrelation(expressionParser.parseExpression(confirmCorrelationExpression));
+	public void setConfirmCorrelationExpression(Expression confirmCorrelationExpression) {
+		this.confirmCorrelationExpression = confirmCorrelationExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@code setConfirmCorrelationExpression} in a future release.
+	 * @deprecated in favor of {@link #setConfirmCorrelationExpression}.
 	 * @param confirmCorrelationExpression the expression to set.
 	 */
+	@Deprecated
 	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
-		this.confirmCorrelationExpression = confirmCorrelationExpression;
+		setConfirmCorrelationExpression(this.confirmCorrelationExpression);
 	}
 
 	public void setConfirmAckChannel(MessageChannel ackChannel) {

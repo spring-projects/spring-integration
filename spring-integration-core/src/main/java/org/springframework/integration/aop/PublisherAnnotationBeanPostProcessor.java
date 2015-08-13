@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.integration.annotation.Publisher;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -37,13 +36,12 @@ import org.springframework.util.ClassUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @SuppressWarnings("serial")
 public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		implements BeanPostProcessor, BeanClassLoaderAware, BeanFactoryAware, InitializingBean, Ordered {
-
-	private volatile MessageChannel defaultChannel;
 
 	private volatile String defaultChannelName;
 
@@ -54,18 +52,6 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	private volatile BeanFactory beanFactory;
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
-
-	/**
-	 * Set the default channel where Messages should be sent if the annotation
-	 * itself does not provide a channel.
-	 * @param defaultChannel The default channel.
-	 * @deprecated Use {@link #setDefaultChannelName(String)}
-	 */
-	@Deprecated
-	public void setDefaultChannel(MessageChannel defaultChannel){
-		this.defaultChannel = defaultChannel;
-	}
 
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
@@ -101,12 +87,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	public void afterPropertiesSet(){
 		this.advisor = new PublisherAnnotationAdvisor();
 		this.advisor.setBeanFactory(this.beanFactory);
-		if (this.defaultChannel != null) {
-			this.advisor.setDefaultChannel(this.defaultChannel);
-		}
-		else {
-			this.advisor.setDefaultChannelName(this.defaultChannelName);
-		}
+		this.advisor.setDefaultChannelName(this.defaultChannelName);
 	}
 
 	@Override

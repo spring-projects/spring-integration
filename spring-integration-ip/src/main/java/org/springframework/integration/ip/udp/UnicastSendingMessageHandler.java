@@ -432,14 +432,6 @@ public class UnicastSendingMessageHandler extends
 		this.taskExecutor.execute(this);
 	}
 
-	/**
-	 * @deprecated Use stop() instead.
-	 */
-	@Deprecated
-	public void shutDown() {
-		this.stop();
-	}
-
 	private void closeSocketIfNeeded() {
 		if (socket != null) {
 			socket.close();

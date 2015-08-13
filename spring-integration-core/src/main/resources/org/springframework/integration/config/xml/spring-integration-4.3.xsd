@@ -1612,19 +1612,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="delay-header-name" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					[DEPRECATED]Specify the name of the header that should contain the delay value.
-					This value can either
-					represent the number of milliseconds to delay counting from the current
-					time or it can be an
-					absolute Date until
-					which the Message should be delayed.
-					This attribute is deprecated in favor of an 'expression' attribute or sub-element.
-					</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="scheduler" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -2499,11 +2486,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Optional reference to a JsonObjectMapper instance.
-					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper, or Jackson ObjectMapper
-					implementation is used, depending on the jars on the classpath.
-					Note: for backward compatibility, this attribute can take a reference to the Jackson 1 ObjectMapper bean.
-					This Jackson 1 ObjectMapper backward compatibility is deprecated
-					and will be removed in the Spring Integration 3.1 or above.
+					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -2566,11 +2549,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Optional reference to a JsonObjectMapper instance.
-					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper, or Jackson ObjectMapper
-					implementation is used, depending on the jars on the classpath.
-					Note: for backward compatibility this attribute can take a reference to the Jackson 1 ObjectMapper bean.
-					This Jackson 1 ObjectMapper backward compatibility is deprecated
-					and will be removed in the Spring Integration 3.1 or above.
+					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

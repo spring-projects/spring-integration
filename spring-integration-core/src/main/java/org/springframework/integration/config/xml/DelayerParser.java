@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -23,7 +25,6 @@ import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;delayer&gt; element.
@@ -44,23 +45,21 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 		}
 
 		String defaultDelay = element.getAttribute("default-delay");
-		String delayHeaderName = element.getAttribute("delay-header-name");
 		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
 		Element expressionElement = DomUtils.getChildElementByTagName(element, "expression");
 
 		boolean hasDefaultDelay = StringUtils.hasText(defaultDelay);
-		boolean hasDelayHeaderName = StringUtils.hasText(delayHeaderName);
 		boolean hasExpression = StringUtils.hasText(expression);
 		boolean hasExpressionElement = expressionElement != null;
 
-		if (!(hasDefaultDelay | hasDelayHeaderName | hasExpression | hasExpressionElement)) {
+		if (!(hasDefaultDelay | hasExpression | hasExpressionElement)) {
 			parserContext.getReaderContext()
-					.error("The 'default-delay' or 'delay-header-name', or 'expression' attributes, or 'expression' sub-element should be provided.", element);
+					.error("The 'default-delay' or 'expression' attributes, or 'expression' sub-element should be provided.", element);
 		}
 
-		if ((hasDelayHeaderName & (hasExpression | hasExpressionElement)) | (hasExpression & hasExpressionElement)) {
+		if ((hasExpression | hasExpressionElement) | (hasExpression & hasExpressionElement)) {
 			parserContext.getReaderContext()
-					.error("'delay-header-name', 'expression' attribute and 'expression' sub-element are mutually exclusive.", element);
+					.error("'expression' attribute and 'expression' sub-element are mutually exclusive.", element);
 		}
 
 		builder.addConstructorArgValue(id + ".messageGroupId");
@@ -90,10 +89,6 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 
 		if (expressionBuilder != null) {
 			builder.addPropertyValue("delayExpression", expressionBuilder.getBeanDefinition());
-		}
-
-		if (hasDelayHeaderName) {
-			builder.addPropertyValue("delayHeaderName", delayHeaderName);
 		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");

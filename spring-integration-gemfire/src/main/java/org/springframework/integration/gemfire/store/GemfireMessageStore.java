@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
@@ -28,9 +31,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
-
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
 
 /**
  * Gemfire implementation of the key/value style {@link MessageStore} and
@@ -58,22 +58,9 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 *
 	 * @param messageStoreRegion The region.
 	 */
-	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
+	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
 		cache = null;
 		this.messageStoreRegion = messageStoreRegion;
-	}
-    /**
-     * Provides a cache reference used to create a message store region named
-     * 'messageStoreRegion'
-     *
-     * @param cache The cache.
-     *
-     * @deprecated - use the other constructor and provide a region directly.
-     */
-	@Deprecated
-	public GemfireMessageStore(Cache cache) {
-		Assert.notNull(cache, "'cache' must not be null");
-		this.cache = cache;
 	}
 
 	public void setIgnoreJta(boolean ignoreJta) {
