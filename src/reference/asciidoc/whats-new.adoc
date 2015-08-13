@@ -176,7 +176,8 @@ The annotation now defaults this attribute to 1.
 [[x4.2-api-changes]]
 ==== API Changes
 
-`o.s.integtation.util.FunctionIterator` now requires a `o.s.integration.util.Function` instead of a `reactor.function.Function`.
+`o.s.integration.util.FunctionIterator` now requires a `o.s.integration.util.Function` instead of a
+`reactor.function.Function`.
 This was done to remove an unnecessary hard dependency on Reactor.
 Any uses of this iterator will need to change the import.
 
