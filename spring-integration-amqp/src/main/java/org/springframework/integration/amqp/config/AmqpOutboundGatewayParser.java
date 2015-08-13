@@ -15,6 +15,7 @@ package org.springframework.integration.amqp.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
@@ -50,10 +51,18 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 		builder.addConstructorArgReference(amqpTemplateRef);
 		builder.addPropertyValue("expectReply", true);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name", true);
+		BeanDefinition exchangeNameExpression =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("exchange-name-expression", element);
+		if (exchangeNameExpression != null) {
+			builder.addPropertyValue("exchangeNameExpression", exchangeNameExpression);
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key", true);
+		BeanDefinition routingKeyExpression =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("routing-key-expression", element);
+		if (routingKeyExpression != null) {
+			builder.addPropertyValue("routingKeyExpression", routingKeyExpression);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-delivery-mode");
@@ -61,7 +70,12 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "return-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "confirm-correlation-expression");
+		BeanDefinition confirmCorrelationExpression =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("confirm-correlation-expression", element);
+		if (confirmCorrelationExpression != null) {
+			builder.addPropertyValue("confirmCorrelationExpression", confirmCorrelationExpression);
+		}
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-ack-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-nack-channel");
 

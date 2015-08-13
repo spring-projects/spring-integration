@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -70,7 +71,8 @@ public class RedisOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 
 		if (hasArgumentExpressions) {
-			BeanDefinitionBuilder argumentsBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class)
+			BeanDefinitionBuilder argumentsBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionArgumentsStrategy.class)
 					.addConstructorArgValue(argumentExpressions)
 					.addConstructorArgValue(element.getAttribute("use-command-variable"));
 			builder.addPropertyValue("argumentsStrategy", argumentsBuilder.getBeanDefinition());
@@ -85,9 +87,14 @@ public class RedisOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-expression");
+		BeanDefinition expressionDef =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("command-expression", element);
+		if (expressionDef != null) {
+			builder.addPropertyValue("commandExpression", expressionDef);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "arguments-serializer");
 
 		return builder;
 	}
+
 }

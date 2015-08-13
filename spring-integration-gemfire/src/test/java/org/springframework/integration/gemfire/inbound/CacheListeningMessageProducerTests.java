@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 
@@ -36,12 +37,14 @@ import com.gemstone.gemfire.cache.Region;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class CacheListeningMessageProducerTests {
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
 	@Test
-	@SuppressWarnings("deprecation")
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -55,7 +58,7 @@ public class CacheListeningMessageProducerTests {
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
-		producer.setPayloadExpression("key + '=' + newValue");
+		producer.setPayloadExpression(PARSER.parseExpression("key + '=' + newValue"));
 		producer.setOutputChannel(channel);
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
@@ -68,7 +71,6 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -82,7 +84,7 @@ public class CacheListeningMessageProducerTests {
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
-		producer.setPayloadExpression("newValue");
+		producer.setPayloadExpression(PARSER.parseExpression("newValue"));
 		producer.setOutputChannel(channel);
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
@@ -99,7 +101,6 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -114,7 +115,7 @@ public class CacheListeningMessageProducerTests {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.DESTROYED);
-		producer.setPayloadExpression("oldValue");
+		producer.setPayloadExpression(PARSER.parseExpression("oldValue"));
 		producer.setOutputChannel(channel);
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
@@ -129,7 +130,6 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
@@ -144,7 +144,7 @@ public class CacheListeningMessageProducerTests {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.INVALIDATED);
-		producer.setPayloadExpression("key + ' was ' + oldValue");
+		producer.setPayloadExpression(PARSER.parseExpression("key + ' was ' + oldValue"));
 		producer.setOutputChannel(channel);
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
@@ -164,4 +164,5 @@ public class CacheListeningMessageProducerTests {
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 	}
+
 }

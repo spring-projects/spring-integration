@@ -94,8 +94,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private volatile boolean ignoreExpressionFailures = true;
 
-	private volatile String delayHeaderName;
-
 	private volatile MessageGroupStore messageStore;
 
 	private volatile List<Advice> delayedAdviceChain;
@@ -142,19 +140,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	public void setDefaultDelay(long defaultDelay) {
 		this.defaultDelay = defaultDelay;
-	}
-
-	/**
-	 * Specify the name of the header that should be checked for a delay period
-	 * (in milliseconds) or a Date to delay until. If this property is set, any
-	 * such header value will take precedence over this handler's default delay.
-	 * @deprecated in favor of {@link #delayExpression}
-	 *
-	 * @param delayHeaderName The name of the header.
-	 */
-	@Deprecated
-	public void setDelayHeaderName(String delayHeaderName) {
-		this.delayHeaderName = delayHeaderName;
 	}
 
 	/**
@@ -220,12 +205,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			Assert.isInstanceOf(MessageStore.class, this.messageStore);
-		}
-		if (this.delayHeaderName != null) {
-			logger.warn("'delayHeaderName' is deprecated in favor of 'delayExpression'");
-			if (this.delayExpression == null) {
-				this.delayExpression = expressionParser.parseExpression("headers['" + this.delayHeaderName + "']");
-			}
 		}
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		this.releaseHandler = this.createReleaseMessageTask();

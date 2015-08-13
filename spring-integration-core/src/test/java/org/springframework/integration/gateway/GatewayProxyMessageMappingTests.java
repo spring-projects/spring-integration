@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -214,10 +214,6 @@ public class GatewayProxyMessageMappingTests {
 	public static interface TestGateway {
 
 		void payloadAndHeaderMapWithoutAnnotations(String s, Map<String, Object> map);
-
-		@SuppressWarnings("deprecation")
-		void payloadAndHeaderMapWithAnnotationsDeprecated(@org.springframework.integration.annotation.Payload String s,
-				@org.springframework.integration.annotation.Headers Map<String, Object> map);
 
 		void payloadAndHeaderMapWithAnnotations(@Payload String s, @Headers Map<String, Object> map);
 

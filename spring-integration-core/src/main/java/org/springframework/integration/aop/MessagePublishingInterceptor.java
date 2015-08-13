@@ -90,16 +90,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	}
 
 	/**
-	 * @deprecated Use {@link #setDefaultChannelName(String)}.
-	 * @param defaultChannel the default channel.
-	 */
-	@Deprecated
-	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.messagingTemplate.setDefaultDestination(defaultChannel);
-		this.defaultChannelName = null;
-	}
-
-	/**
 	 * @param defaultChannelName the default channel name.
 	 * @since 4.0.3
 	 */

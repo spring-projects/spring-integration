@@ -72,22 +72,29 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExpressionCommand}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param commandExpression the expression to set.
+	 * @param commandExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
-	@Deprecated
-	public void setCommandExpression(String commandExpression) {
-		Assert.hasText(commandExpression, "'commandExpression' must not be an empty string");
-		setExpressionCommand(PARSER.parseExpression(commandExpression));
+	public void setCommandExpression(Expression commandExpression) {
+		this.commandExpression = commandExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@link #setCommandExpression} in a future release.
-	 * @param commandExpression the expression to set.
+	 * @param commandExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
+	public void setCommandExpressionString(String commandExpression) {
+		Assert.hasText(commandExpression, "'commandExpression' must not be empty");
+		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
+	}
+
+	/**
+	 * @param commandExpression the expression to set.
+	 * @deprecated in favor of {@link #setCommandExpression}.
+	 */
+	@Deprecated
 	public void setExpressionCommand(Expression commandExpression) {
-		this.commandExpression = commandExpression;
+		setCommandExpression(commandExpression);
 	}
 
 	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {

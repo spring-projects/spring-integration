@@ -374,28 +374,47 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExpressionRename}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param expression the expression to set.
+	 * @param renameExpression the expression to use.
+	 * @since 4.3
 	 */
-	@Deprecated
-	public void setRenameExpression(String expression) {
-		Assert.notNull(expression, "'expression' cannot be null");
-		setExpressionRename(new SpelExpressionParser().parseExpression(expression));
+	public void setRenameExpression(Expression renameExpression) {
+		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(renameExpression);
 	}
 
 	/**
-	 * Temporary, will be changed to {@link #setRenameExpression} in a future release.
-	 * @param expression the expression to set.
+	 * @param renameExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
-	public void setExpressionRename(Expression expression) {
-		Assert.notNull(expression, "'expression' cannot be null");
-		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(expression);
+	public void setRenameExpressionString(String renameExpression) {
+		Assert.hasText(renameExpression, "'renameExpression' cannot be empty");
+		setRenameExpression(EXPRESSION_PARSER.parseExpression(renameExpression));
 	}
 
+	/**
+	 * @param expression the expression to set.
+	 * @deprecated in favor of {@link #setRenameExpression}.
+	 */
+	@Deprecated
+	public void setExpressionRename(Expression expression) {
+		setRenameExpression(expression);
+	}
+
+	/**
+	 * @param localFilenameGeneratorExpression the expression to use.
+	 * @since 3.0
+	 */
 	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
 		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
 		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
+	}
+
+	/**
+	 * @param localFilenameGeneratorExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setLocalFilenameGeneratorExpressionString(String localFilenameGeneratorExpression) {
+		Assert.hasText(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be empty");
+		this.localFilenameGeneratorExpression = EXPRESSION_PARSER.parseExpression(localFilenameGeneratorExpression);
 	}
 
 	/**

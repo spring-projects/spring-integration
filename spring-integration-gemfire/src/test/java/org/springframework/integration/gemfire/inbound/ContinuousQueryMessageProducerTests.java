@@ -16,15 +16,16 @@ package org.springframework.integration.gemfire.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import com.gemstone.gemfire.cache.Operation;
 import com.gemstone.gemfire.cache.query.CqEvent;
@@ -37,6 +38,8 @@ import com.gemstone.gemfire.cache.query.internal.CqQueryImpl;
  * @since 2.1
  */
 public class ContinuousQueryMessageProducerTests {
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	ContinuousQueryListenerContainer queryListenerContainer;
 
@@ -87,10 +90,9 @@ public class ContinuousQueryMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testPayloadExpression() {
 		CqEvent cqEvent = event(Operation.CREATE, "hello");
-		cqMessageProducer.setPayloadExpression("newValue.toUpperCase() + ', WORLD'");
+		cqMessageProducer.setPayloadExpression(PARSER.parseExpression("newValue.toUpperCase() + ', WORLD'"));
 		cqMessageProducer.afterPropertiesSet();
 
 		cqMessageProducer.onEvent(cqEvent);
@@ -100,7 +102,7 @@ public class ContinuousQueryMessageProducerTests {
 
 	CqEvent event(final Operation operation, final Object value) {
 
-		CqEvent event = new CqEvent() {
+		return new CqEvent() {
 
 			final CqQuery cq = new CqQueryImpl();
 
@@ -139,8 +141,6 @@ public class ContinuousQueryMessageProducerTests {
 			}
 
 		};
-
-		return event;
 	}
 
 	private static class CqMessageHandler implements MessageHandler {

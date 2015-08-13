@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,9 @@ public class DelayerParserTests {
 		assertEquals(99, delayHandler.getOrder());
 		assertEquals(context.getBean("output"), TestUtils.getPropertyValue(delayHandler, "outputChannel"));
 		assertEquals(new Long(1234), TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class));
-		assertEquals("foo", TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
 		//INT-2243
 		assertNotNull(TestUtils.getPropertyValue(delayHandler, "delayExpression"));
-		assertEquals("headers['foo']", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
+		assertEquals("headers.foo", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
 		assertEquals(new Long(987), TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class));
 		assertNull(TestUtils.getPropertyValue(delayHandler, "taskScheduler"));
 	}
@@ -141,7 +140,6 @@ public class DelayerParserTests {
 	@Test
 	public void testInt2243Expression() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpression.handler", DelayHandler.class);
-		assertNull(TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
 		assertEquals("100", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
 		assertFalse(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class));
 	}
@@ -149,7 +147,6 @@ public class DelayerParserTests {
 	@Test
 	public void testInt2243ExpressionSubElement() {
 		DelayHandler delayHandler = context.getBean("delayerWithExpressionSubElement.handler", DelayHandler.class);
-		assertNull(TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
 		assertEquals("headers.timestamp + 1000", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
 	}
 

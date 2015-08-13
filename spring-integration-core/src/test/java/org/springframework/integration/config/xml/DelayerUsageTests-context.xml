@@ -18,7 +18,7 @@
 			 input-channel="inputA"
 			 output-channel="outputA"
 			 default-delay="1000"
-			 delay-header-name="foo"
+			 expression="headers.foo"
 			 order="99"
 			 send-timeout="1000"/>
 

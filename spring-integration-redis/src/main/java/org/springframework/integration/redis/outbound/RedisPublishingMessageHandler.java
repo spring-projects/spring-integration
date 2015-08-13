@@ -66,17 +66,6 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		this.messageConverter = messageConverter;
 	}
 
-	/**
-	 * @param defaultTopic The default topic.
-	 *
-	 * @deprecated in favor of {@link #setTopicExpression(Expression)} or {@link #setTopic(String)}
-	 */
-	@Deprecated
-	public void setDefaultTopic(String defaultTopic) {
-		Assert.hasText(defaultTopic, "'defaultTopic' must not be an empty string.");
-		this.setTopicExpression(new LiteralExpression(defaultTopic));
-	}
-
 	public void setTopic(String topic) {
 		Assert.hasText(topic, "'topic' must not be an empty string.");
 		this.setTopicExpression(new LiteralExpression(topic));

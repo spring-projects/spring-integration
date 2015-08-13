@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.springframework.integration.gemfire.inbound.CacheListeningMessageProd
 /**
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -34,8 +35,6 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
 
 	private static final String REGION_ATTRIBUTE = "region";
-
-	private static final String PAYLOAD_EXPRESSION_PROPERTY = "payloadExpression";
 
 	private static final String EXPRESSION_ATTRIBUTE = "expression";
 
@@ -48,7 +47,7 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 		BeanDefinitionBuilder listeningMessageProducer =
 				BeanDefinitionBuilder.genericBeanDefinition(CacheListeningMessageProducer.class);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element,
-				EXPRESSION_ATTRIBUTE, PAYLOAD_EXPRESSION_PROPERTY);
+				EXPRESSION_ATTRIBUTE, "payloadExpressionString");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element,
 				CACHE_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 

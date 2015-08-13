@@ -23,18 +23,10 @@ import org.springframework.messaging.MessageHandlingException;
  * Exception that indicates a message has been rejected by a selector.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @SuppressWarnings("serial")
 public class MessageRejectedException extends MessageHandlingException {
-
-	/**
-	 * @param failedMessage the failed {@link Message}
-	 * @deprecated since 4.2 in favor of {@link #MessageRejectedException(Message, String)}
-	 */
-	@Deprecated
-	public MessageRejectedException(Message<?> failedMessage) {
-		super(failedMessage);
-	}
 
 	public MessageRejectedException(Message<?> failedMessage, String description) {
 		super(failedMessage, description);

@@ -33,6 +33,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
@@ -53,6 +55,8 @@ import org.springframework.util.ClassUtils;
  * @since 2.1
  */
 public class OutboundGatewayTests {
+
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 	private final ClassPathXmlApplicationContext context =
 			new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
@@ -77,7 +81,7 @@ public class OutboundGatewayTests {
 	}
 
 	@Test
-	@SuppressWarnings({"unchecked", "deprecation"})
+	@SuppressWarnings("unchecked")
 	public void testExpressionsBeanResolver() throws Exception {
 		ApplicationContext context = mock(ApplicationContext.class);
 		doAnswer(new Answer<Object>() {
@@ -100,9 +104,9 @@ public class OutboundGatewayTests {
 			.thenReturn(evalContext);
 		RabbitTemplate template = mock(RabbitTemplate.class);
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
-		endpoint.setRoutingKeyExpression("@foo");
-		endpoint.setExchangeNameExpression("@bar");
-		endpoint.setConfirmCorrelationExpression("@baz");
+		endpoint.setRoutingKeyExpression(PARSER.parseExpression("@foo"));
+		endpoint.setExchangeNameExpression(PARSER.parseExpression("@bar"));
+		endpoint.setConfirmCorrelationExpressionString("@baz");
 		endpoint.setBeanFactory(context);
 		endpoint.afterPropertiesSet();
 		Message<?> message = new GenericMessage<String>("Hello, world!");
