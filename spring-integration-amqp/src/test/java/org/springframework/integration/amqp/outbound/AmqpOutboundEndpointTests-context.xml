@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="fromRabbit">
+		<int:queue />
+	</int:channel>
+
+	<rabbit:template id="amqpTemplateConfirms" connection-factory="connectionFactory" reply-timeout="10" />
+
+	<amqp:outbound-gateway id="pcGateway"
+						   request-channel="pcRequestChannel"
+						   reply-channel="fromRabbit"
+						   exchange-name=""
+						   routing-key="#{queue.name}"
+						   mapped-request-headers="foo*"
+						   requires-reply="false"
+						   amqp-template="amqpTemplateConfirms"
+						   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
+						   confirm-ack-channel="ackChannel" />
+
+	<int:channel id="pcRequestChannel"/>
+
+	<rabbit:template id="amqpTemplateConfirmsMC" connection-factory="connectionFactory" reply-timeout="10" />
+
+	<amqp:outbound-gateway request-channel="pcMessageCorrelationRequestChannel"
+						   reply-channel="fromRabbit"
+						   exchange-name=""
+						   routing-key="#{queue.name}"
+						   mapped-request-headers="foo*"
+						   requires-reply="false"
+						   amqp-template="amqpTemplateConfirmsMC"
+						   confirm-correlation-expression="#this"
+						   confirm-ack-channel="ackChannel" />
+
+	<int:channel id="pcMessageCorrelationRequestChannel" />
+
+	<int:channel id="ackChannel">
+		<int:queue />
+	</int:channel>
+
+	<rabbit:template id="amqpTemplateConfirmsAdapter" connection-factory="connectionFactory"/>
+
+	<amqp:outbound-channel-adapter id="withPublisherConfirms" channel="pcRequestChannelAdapter"
+								   exchange-name=""
+								   routing-key="#{queue.name}"
+								   mapped-request-headers="foo*"
+								   amqp-template="amqpTemplateConfirmsAdapter"
+								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
+								   confirm-ack-channel="ackChannel" />
+
+	<int:channel id="pcRequestChannelAdapter"/>
+
+	<rabbit:template id="amqpTemplateReturns" connection-factory="connectionFactory" mandatory="true" />
+
+	<amqp:outbound-channel-adapter id="withReturns" channel="returnRequestChannel"
+								   exchange-name=""
+								   routing-key="#{queue.name + queue.name}"
+								   mapped-request-headers="foo*"
+								   amqp-template="amqpTemplateReturns"
+								   return-channel="returnChannel" />
+
+	<int:channel id="returnRequestChannel"/>
+
+	<int:channel id="returnChannel">
+		<int:queue />
+	</int:channel>
+
+	<rabbit:connection-factory id="connectionFactory" 
+		host="localhost" publisher-returns="true" publisher-confirms="true" />
+
+	<rabbit:admin connection-factory="connectionFactory" />
+
+	<rabbit:queue id="queue" />
+	
+</beans>

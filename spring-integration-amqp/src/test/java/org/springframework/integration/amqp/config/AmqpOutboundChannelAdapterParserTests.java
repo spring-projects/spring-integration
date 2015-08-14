@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -48,16 +46,12 @@ import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.amqp.rabbit.support.PublisherCallbackChannel;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.BeansException;
@@ -80,12 +74,14 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
+
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
 
 /**
  * @author Mark Fisher
@@ -187,30 +183,6 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertSame(nullChannel, TestUtils.getPropertyValue(endpoint, "confirmNackChannel"));
 	}
 
-	@Test
-	public void withPublisherConfirms() throws Exception {
-		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
-		Connection mockConnection = mock(Connection.class);
-		Channel mockChannel = mock(Channel.class);
-
-		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
-		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
-		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
-
-		MessageChannel requestChannel = context.getBean("pcRequestChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello")
-				.setHeader("amqp_confirmCorrelationData", "foo")
-				.build();
-		requestChannel.send(message);
-		PollableChannel ackChannel = context.getBean("ackChannel", PollableChannel.class);
-		publisherCallbackChannel.handleAck(0, false);
-		Message<?> ack = ackChannel.receive(1000);
-		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
-	}
-
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void amqpOutboundChannelAdapterWithinChain() {
@@ -251,41 +223,10 @@ public class AmqpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withReturns() throws Exception {
-		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
-		Connection mockConnection = mock(Connection.class);
-		Channel mockChannel = mock(Channel.class);
-
-		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
-		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
-		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
-
-		MessageChannel requestChannel = context.getBean("returnRequestChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello").build();
-		requestChannel.send(message);
-		PollableChannel returnChannel = context.getBean("returnChannel", PollableChannel.class);
-		RabbitTemplate template = context.getBean("amqpTemplateReturns", RabbitTemplate.class);
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put(PublisherCallbackChannel.RETURN_CORRELATION, template.getUUID());
-		BasicProperties properties = mock(BasicProperties.class);
-		when(properties.getHeaders()).thenReturn(headers);
-		when(properties.getContentType()).thenReturn("text/plain");
-		publisherCallbackChannel.handleReturn(123, "reply text", "anExchange", "bar", properties, "hello".getBytes());
-		Message<?> returned = returnChannel.receive(1000);
-		assertNotNull(returned);
-		assertEquals(123, returned.getHeaders().get(AmqpHeaders.RETURN_REPLY_CODE));
-		assertEquals("reply text", returned.getHeaders().get(AmqpHeaders.RETURN_REPLY_TEXT));
-		assertEquals("anExchange", returned.getHeaders().get(AmqpHeaders.RETURN_EXCHANGE));
-		assertEquals("bar", returned.getHeaders().get(AmqpHeaders.RETURN_ROUTING_KEY));
-		assertEquals("hello", returned.getPayload());
-	}
-
-	@Test
 	public void testInt2718FailForOutboundAdapterChannelAttribute() {
 		try {
 			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterWithinChainParserTests-fail-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {
@@ -349,7 +290,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
 			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterParserTests-headerMapper-fail-context.xml",
-					this.getClass());
+					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +

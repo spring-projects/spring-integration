@@ -64,7 +64,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import reactor.Environment;
-import reactor.fn.Functions;
+import reactor.fn.Supplier;
 import reactor.rx.Promise;
 import reactor.rx.Promises;
 
@@ -368,7 +368,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
 			}
 			return Promises.<Object>task((Environment) this.reactorEnvironment,
-					Functions.supplier(new AsyncInvocationTask(invocation)));
+					new Supplier<Object>() {
+
+						@Override
+						public Object get() {
+							return new AsyncInvocationTask(invocation).call();
+						}
+
+					});
 		}
 		return this.doInvoke(invocation, true);
 	}
@@ -637,7 +644,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 
 		@Override
-		public Object call() throws Exception {
+		public Object call() {
 			try {
 				return doInvoke(this.invocation, false);
 			}

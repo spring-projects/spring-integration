@@ -109,7 +109,7 @@
 					<xsd:attribute name="reply-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			Message Channel to which replies should be sent after being received from an AQMP Queue and converted.
+			Message Channel to which replies should be sent after being received from an AMQP Queue and converted.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -501,6 +501,7 @@ property set to TRUE.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
 	<xsd:simpleType name="deliveryModeEnumeration">
@@ -688,7 +689,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	<xsd:attributeGroup name="containerOnlyAttributes">
 		<xsd:annotation>
 			<xsd:documentation>
-	Attributes for a SimpleMesssageListenerContainer's properties other than queues, queueNames, messageListener, and
+	Attributes for a SimpleMessageListenerContainer's properties other than queues, queueNames, messageListener, and
 	autoStartup which may or may not be exposed for configuration depending on what type of component uses this attribute group.
 	This group also does not include any of the properties that are shared with RabbitTemplate, such as channelTransacted,
 	connectionFactory, and messsagePropertiesConverter.
@@ -849,7 +850,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	If 'true', and none of the queues are available on the broker, the container will throw a fatal exception during
 	startup and will stop if the queues are deleted when the container is running (after making 3 attempts to
 	passively declare the queues). If false, the container will not throw an exception and go into recovery mode,
-	attempting to restart according to the 'revcovery-interval'. Default 'true'.
+	attempting to restart according to the 'recovery-interval'. Default 'true'.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
