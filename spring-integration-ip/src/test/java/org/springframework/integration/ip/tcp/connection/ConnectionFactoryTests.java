@@ -136,7 +136,7 @@ public class ConnectionFactoryTests {
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
-		assertEquals(expected + 1, events.size());
+		assertThat(events.size(), greaterThanOrEqualTo(expected + 1));
 
 		try {
 			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
