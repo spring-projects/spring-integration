@@ -239,7 +239,7 @@ If you want your Sessions to be cached, simply configure your default Session Fa
 <bean id="cachingSessionFactory"
     class="org.springframework.integration.file.remote.session.CachingSessionFactory">
     <constructor-arg ref="sftpSessionFactory"/>
-    <property name="sessionCacheSize" value="10"/>
+    <constructor-arg value="10"/>
     <property name="sessionWaitTimeout" value="1000"/>
 </bean>
 ----
