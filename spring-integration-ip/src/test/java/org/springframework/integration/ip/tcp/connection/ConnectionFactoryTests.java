@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -130,8 +131,8 @@ public class ConnectionFactoryTests {
 		clients = clientFactory.getOpenConnectionIds();
 		assertEquals(0, clients.size());
 		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 6// OPEN, CLOSE, EXCEPTION for each side
-				: 4; //OPEN, CLOSE
-		assertEquals(expected, events.size());
+				: 4; //OPEN, CLOSE (but we *might* get exceptions, depending on timing).
+		assertThat(events.size(), greaterThanOrEqualTo(expected));
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
