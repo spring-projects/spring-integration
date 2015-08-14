@@ -15,6 +15,7 @@
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate"
+		auto-startup="false"
 		order="5"
 		return-channel="returnChannel"/>
 
@@ -79,35 +80,5 @@
 							   mapped-request-headers=""
 							   mapped-reply-headers=""/>
 	</int:chain>
-
-	<rabbit:template id="amqpTemplateConfirms" connection-factory="connectionFactory" reply-timeout="10"/>
-
-	<amqp:outbound-gateway request-channel="pcRequestChannel"
-						   reply-channel="fromRabbit"
-						   exchange-name="si.test.exchange"
-						   mapped-request-headers="foo*"
-						   requires-reply="false"
-						   amqp-template="amqpTemplateConfirms"
-						   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
-						   confirm-ack-channel="ackChannel"/>
-
-	<int:channel id="pcRequestChannel"/>
-
-	<rabbit:template id="amqpTemplateConfirmsMC" connection-factory="connectionFactory" reply-timeout="10"/>
-
-	<amqp:outbound-gateway request-channel="pcMessageCorrelationRequestChannel"
-						   reply-channel="fromRabbit"
-						   exchange-name="si.test.exchange"
-						   mapped-request-headers="foo*"
-						   requires-reply="false"
-						   amqp-template="amqpTemplateConfirmsMC"
-						   confirm-correlation-expression="#this"
-						   confirm-ack-channel="ackChannel"/>
-
-	<int:channel id="pcMessageCorrelationRequestChannel"/>
-
-	<int:channel id="ackChannel">
-		<int:queue/>
-	</int:channel>
 
 </beans>

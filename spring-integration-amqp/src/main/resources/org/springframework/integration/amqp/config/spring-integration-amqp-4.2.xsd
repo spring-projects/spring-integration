@@ -501,6 +501,7 @@ property set to TRUE.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
 	<xsd:simpleType name="deliveryModeEnumeration">

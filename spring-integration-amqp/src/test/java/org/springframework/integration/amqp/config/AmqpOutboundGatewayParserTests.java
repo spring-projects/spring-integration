@@ -23,10 +23,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,17 +30,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.connection.Connection;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -56,10 +48,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.util.ReflectionUtils;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Oleg Zhurakousky
@@ -79,6 +68,7 @@ public class AmqpOutboundGatewayParserTests {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		Object edc = context.getBean("rabbitGateway");
+		assertFalse(TestUtils.getPropertyValue(edc, "autoStartup", Boolean.class));
 		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
 		assertEquals(5, gateway.getOrder());
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
@@ -345,45 +335,6 @@ public class AmqpOutboundGatewayParserTests {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
 					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
 		}
-	}
-
-	@Test
-	public void testPublisherConfirms() throws Exception {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
-		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
-		Connection mockConnection = mock(Connection.class);
-		Channel mockChannel = mock(Channel.class);
-
-		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = spy(new PublisherCallbackChannelImpl(mockChannel));
-		doAnswer(new DoesNothing()).when(publisherCallbackChannel).close();
-		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
-
-		MessageChannel requestChannel = context.getBean("pcRequestChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello")
-				.setHeader("amqp_confirmCorrelationData", "foo")
-				.build();
-		requestChannel.send(message);
-		PollableChannel ackChannel = context.getBean("ackChannel", PollableChannel.class);
-		publisherCallbackChannel.handleAck(0, false);
-		Message<?> ack = ackChannel.receive(1000);
-		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
-
-		// test whole message is correlation
-		requestChannel = context.getBean("pcMessageCorrelationRequestChannel", MessageChannel.class);
-		message = MessageBuilder.withPayload("hello")
-				.build();
-		requestChannel.send(message);
-		publisherCallbackChannel.handleAck(0, false);
-		ack = ackChannel.receive(1000);
-		assertNotNull(ack);
-		assertSame(message.getPayload(), ack.getPayload());
-		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
-
-		context.close();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

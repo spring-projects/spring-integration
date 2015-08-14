@@ -147,6 +147,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public boolean flowBlocked() {
 			return false;
 		}
@@ -482,15 +483,18 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public void addFlowListener(FlowListener listener) {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public boolean removeFlowListener(FlowListener listener) {
 			return false;
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public void clearFlowListeners() {
 		}
 

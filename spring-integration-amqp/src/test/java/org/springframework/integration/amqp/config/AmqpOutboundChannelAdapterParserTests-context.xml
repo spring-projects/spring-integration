@@ -46,6 +46,7 @@
 	<amqp:outbound-channel-adapter id="withPublisherConfirms" channel="pcRequestChannel"
 								   exchange-name="outboundchanneladapter.test.1"
 								   mapped-request-headers="foo*"
+								   auto-startup="false"
 								   amqp-template="amqpTemplateConfirms"
 								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
 								   confirm-ack-channel="ackChannel"/>
@@ -53,20 +54,6 @@
 	<int:channel id="pcRequestChannel"/>
 
 	<int:channel id="ackChannel">
-		<int:queue/>
-	</int:channel>
-
-	<rabbit:template id="amqpTemplateReturns" connection-factory="connectionFactory" mandatory="true" />
-
-	<amqp:outbound-channel-adapter id="withReturns" channel="returnRequestChannel"
-								   exchange-name="outboundchanneladapter.test.1"
-								   mapped-request-headers="foo*"
-								   amqp-template="amqpTemplateReturns"
-								   return-channel="returnChannel"/>
-
-	<int:channel id="returnRequestChannel"/>
-
-	<int:channel id="returnChannel">
 		<int:queue/>
 	</int:channel>
 
