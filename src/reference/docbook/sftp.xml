@@ -235,12 +235,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 <bean id="cachingSessionFactory"
     class="org.springframework.integration.file.remote.session.CachingSessionFactory">
     <constructor-arg ref="sftpSessionFactory"/>
-    <property name="sessionCacheSize" value="10"/>
+    <constructor-arg value="10"/>
     <property name="sessionWaitTimeout" value="1000"/>
 </bean>]]></programlisting>
 	<para>
 	In the above example you see a <classname>CachingSessionFactory</classname> created with the
-	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
+	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in milliseconds).
 
   	</para>
 	<para>
