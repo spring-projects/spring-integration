@@ -64,7 +64,6 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import reactor.Environment;
-import reactor.fn.Supplier;
 import reactor.rx.Promise;
 import reactor.rx.Promises;
 
@@ -346,6 +345,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		final Class<?> returnType = invocation.getMethod().getReturnType();
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
@@ -368,14 +368,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
 			}
 			return Promises.<Object>task((Environment) this.reactorEnvironment,
-					new Supplier<Object>() {
-
-						@Override
-						public Object get() {
-							return new AsyncInvocationTask(invocation).call();
-						}
-
-					});
+					reactor.fn.Functions.supplier(new AsyncInvocationTask(invocation)));
 		}
 		return this.doInvoke(invocation, true);
 	}
@@ -644,7 +637,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 
 		@Override
-		public Object call() {
+		public Object call() throws Exception {
 			try {
 				return doInvoke(this.invocation, false);
 			}
