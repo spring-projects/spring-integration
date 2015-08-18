@@ -254,7 +254,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			catch (DestinationResolutionException e) {
 				inputChannel = new DirectChannel();
 				this.beanFactory.registerSingleton(inputChannelName, inputChannel);
-				this.beanFactory.initializeBean(inputChannel, inputChannelName);
 				inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
