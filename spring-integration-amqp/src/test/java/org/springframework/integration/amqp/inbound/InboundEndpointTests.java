@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
@@ -53,7 +52,6 @@ import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
@@ -186,15 +184,7 @@ public class InboundEndpointTests {
 			}
 		}));
 
-		AmqpInboundGateway gateway = new AmqpInboundGateway(container);
-		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
-
-		gateway.setRequestChannel(channel);
-		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.afterPropertiesSet();
-
-		RabbitTemplate rabbitTemplate = Mockito.spy(TestUtils.getPropertyValue(gateway, "amqpTemplate",
-				RabbitTemplate.class));
+		RabbitTemplate rabbitTemplate = Mockito.mock(RabbitTemplate.class);
 
 		Mockito.doAnswer(new Answer<Object>() {
 
@@ -215,13 +205,17 @@ public class InboundEndpointTests {
 		}).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 
-		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(gateway);
-		directFieldAccessor.setPropertyValue("amqpTemplate", rabbitTemplate);
+		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
+		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
+		gateway.setRequestChannel(channel);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setDefaultReplyTo("foo");
+		gateway.afterPropertiesSet();
+
 
 		Object payload = new Foo("bar1");
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
-		amqpMessageProperties.setReplyTo("test");
 		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage =
 				new Jackson2JsonMessageConverter().toMessage(payload, amqpMessageProperties);

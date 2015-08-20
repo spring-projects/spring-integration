@@ -252,9 +252,17 @@ See <<conditional-pollers>> for more information.
 The `<int-amqp:outbound-gateway>` now supports `confirm-correlation-expression` and `confirm-(n)ack-channel`
 attributes with similar purpose as for `<int-amqp:outbound-channel-adapter>`.
 
+===== Correlation Data
+
 For both the outbound channel adapter and gateway, if the correlation data is a `Message<?>`, it will be the basis
 of the message on the ack/nack channel, with the additional header(s) added.
 Previously, any correlation data (including `Message<?>`) was returned as the payload of the ack/nack message.
+
+===== The Inbound Gateway properties
+
+The `<int-amqp:inbound-gateway>` now exposes the `amqp-template` attribute to allow more control over an external bean
+for the reply `RabbitTemplate` or even provide your own `AmqpTemplate` implementation.
+In addition the `default-reply-to` is exposed to be used if request message doesn't have `replyTo` property.
 
 See <<amqp>> for more information.
 
