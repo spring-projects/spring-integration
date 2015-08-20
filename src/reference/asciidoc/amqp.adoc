@@ -227,7 +227,9 @@ The inbound gateway supports all the attributes on the inbound channel adapter (
                           mapped-request-headers="" <4>
                           mapped-reply-headers="" <5>
                           reply-channel="myReplyChannel" <6>
-                          reply-timeout="1000" /> <7>
+                          reply-timeout="1000"  <7>
+                          amqp-template="" <8>
+                          default-reply-to="" /> <9>
 
 ----
 
@@ -267,6 +269,14 @@ _Optional_.
 <7> Used to set the `receiveTimeout` on the underlying `org.springframework.integration.core.MessagingTemplate` for receiving messages from the reply channel.
 If not specified this property will default to "1000" (1 second).
 Only applies if the container thread hands off to another thread before the reply is sent.
+
+<8> The customized `AmqpTemplate` bean reference to have more control for the reply messages to send or you can provide
+an alternative implementation to the `RabbitTemplate`.
+
+<9> The `replyTo` `org.springframework.amqp.core.Address` to be used when the `requestMessage` doesn't have `replyTo`
+property.
+If this option isn't specified, too, the `AmqpInboundGateway` will rely on the provided `AmqpTemplate` during the send
+operation.
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
 

@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
@@ -52,14 +53,33 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
+	private final AmqpTemplate amqpTemplate;
+
+	private final boolean amqpTemplateExplicitlySet;
+
 	private volatile MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
-	private final RabbitTemplate amqpTemplate;
-
+	private Address defaultReplyTo;
 
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
+		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
+	}
+
+	/**
+	 * Construct {@link AmqpInboundGateway} based on the provided {@link AbstractMessageListenerContainer}
+	 * to receive request messages and {@link AmqpTemplate} to send replies.
+	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to receive AMQP messages.
+	 * @param amqpTemplate the {@link AmqpTemplate} to send reply messages.
+	 * @since 4.2
+	 */
+	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
+		this(listenerContainer, amqpTemplate, true);
+	}
+
+	private AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
+	                           boolean amqpTemplateExplicitlySet) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
 				"The listenerContainer provided to an AMQP inbound Gateway " +
@@ -67,19 +87,36 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 						"the adapter needs to configure its own listener implementation.");
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
-		this.amqpTemplate = new RabbitTemplate(this.messageListenerContainer.getConnectionFactory());
+		this.amqpTemplate = amqpTemplate;
+		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
 	}
 
 
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "MessageConverter must not be null");
 		this.amqpMessageConverter = messageConverter;
-		this.amqpTemplate.setMessageConverter(messageConverter);
+		if (!amqpTemplateExplicitlySet) {
+			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+		}
 	}
 
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * The {@code defaultReplyTo} address in the form
+	 * <pre class="code">
+	 * (exchange)/(routingKey)
+	 * </pre>
+	 * if the request message doesn't have {@code replyTo} property.
+	 * @param defaultReplyTo the default {@code replyTo} address to use.
+	 * @since 4.2
+	 * @see Address
+	 */
+	public void setDefaultReplyTo(String defaultReplyTo) {
+		this.defaultReplyTo = new Address(defaultReplyTo);
 	}
 
 	@Override
@@ -102,48 +139,54 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 						getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
 				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
-					// TODO: fallback to a reply address property of this gateway
 					Address replyTo;
 					String replyToProperty = message.getMessageProperties().getReplyTo();
-					// TODO: Use the Address.AMQ_RABBITMQ_REPLY_TO constant when 1.4.3 is the minimum
-					if (replyToProperty.startsWith("amq.rabbitmq.reply-to")) {
-						replyTo = new Address("", replyToProperty);
-					}
-					else {
+					if (replyToProperty != null) {
 						replyTo = new Address(replyToProperty);
 					}
-					Assert.notNull(replyTo, "The replyTo header must not be null on a " +
-							"request Message being handled by the AMQP inbound gateway.");
-					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
-							new MessagePostProcessor() {
+					else {
+						replyTo = AmqpInboundGateway.this.defaultReplyTo;
+					}
 
-								@Override
-								public Message postProcessMessage(Message message) throws AmqpException {
-									MessageProperties messageProperties = message.getMessageProperties();
-									String contentEncoding = messageProperties.getContentEncoding();
-									long contentLength = messageProperties.getContentLength();
-									String contentType = messageProperties.getContentType();
-									headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
-									// clear the replyTo from the original message since we are using it now
-									messageProperties.setReplyTo(null);
-									// reset the content-* properties as determined by the MessageConverter
-									if (StringUtils.hasText(contentEncoding)) {
-										messageProperties.setContentEncoding(contentEncoding);
-									}
-									messageProperties.setContentLength(contentLength);
-									if (contentType != null) {
-										messageProperties.setContentType(contentType);
-									}
-									return message;
-								}
+					MessagePostProcessor messagePostProcessor = new MessagePostProcessor() {
 
-							});
+						@Override
+						public Message postProcessMessage(Message message) throws AmqpException {
+							MessageProperties messageProperties = message.getMessageProperties();
+							String contentEncoding = messageProperties.getContentEncoding();
+							long contentLength = messageProperties.getContentLength();
+							String contentType = messageProperties.getContentType();
+							headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
+							// clear the replyTo from the original message since we are using it now
+							messageProperties.setReplyTo(null);
+							// reset the content-* properties as determined by the MessageConverter
+							if (StringUtils.hasText(contentEncoding)) {
+								messageProperties.setContentEncoding(contentEncoding);
+							}
+							messageProperties.setContentLength(contentLength);
+							if (contentType != null) {
+								messageProperties.setContentType(contentType);
+							}
+							return message;
+						}
+
+					};
+
+					if (replyTo != null) {
+						amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(),
+								reply.getPayload(), messagePostProcessor);
+					}
+					else {
+						amqpTemplate.convertAndSend(reply.getPayload(),	messagePostProcessor);
+					}
 				}
 			}
 
 		});
 		this.messageListenerContainer.afterPropertiesSet();
-		this.amqpTemplate.afterPropertiesSet();
+		if (!amqpTemplateExplicitlySet) {
+			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
+		}
 		super.onInit();
 	}
 

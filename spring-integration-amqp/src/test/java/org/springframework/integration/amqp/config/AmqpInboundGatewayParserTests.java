@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
@@ -88,6 +89,13 @@ public class AmqpInboundGatewayParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
 		assertFalse(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		Object amqpTemplate = context.getBean("amqpTemplate");
+		assertSame(amqpTemplate, TestUtils.getPropertyValue(gateway, "amqpTemplate"));
+//		TODO AMQP-527
+//		assertEquals(new Address("fooExchange/barRoutingKey"), TestUtils.getPropertyValue(gateway, "defaultReplyTo"));
+		Address defaultReplyTo = TestUtils.getPropertyValue(gateway, "defaultReplyTo", Address.class);
+		assertEquals("fooExchange", defaultReplyTo.getExchangeName());
+		assertEquals("barRoutingKey", defaultReplyTo.getRoutingKey());
 	}
 
 	@SuppressWarnings("rawtypes")

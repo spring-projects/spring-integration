@@ -229,6 +229,29 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="amqp-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The AmqpTemplate bean reference to be used for sending replies.
+								Defaults to `RabbitTemplate` based on the provided `ConnectionFactory`.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="default-reply-to">
+						<xsd:annotation>
+							<xsd:documentation>
+								The 'defaultReplyTo' address in the form '(exchange)/(routingKey)'
+								if the request message doesn't have 'replyTo' property.
+								If this property isn't specified too, the gateway relies on
+								the `AmqpTemplate` configuration.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

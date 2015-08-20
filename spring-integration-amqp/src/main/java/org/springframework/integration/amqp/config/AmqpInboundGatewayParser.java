@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,14 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the AMQP 'inbound-gateway' element.
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class AmqpInboundGatewayParser extends AbstractAmqpInboundAdapterParser {
@@ -39,8 +41,13 @@ public class AmqpInboundGatewayParser extends AbstractAmqpInboundAdapterParser {
 
 	@Override
 	protected void configureChannels(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		String amqpTemplateRef = element.getAttribute("amqp-template");
+		if (StringUtils.hasText(amqpTemplateRef)) {
+			builder.addConstructorArgReference(amqpTemplateRef);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-reply-to");
 	}
 
 }

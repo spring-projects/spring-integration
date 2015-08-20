@@ -20,16 +20,22 @@
 
 	<bean id="testConverter" class="org.springframework.integration.amqp.config.AmqpInboundGatewayParserTests$TestConverter"/>
 
+	<bean id="amqpTemplate" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.amqp.core.AmqpTemplate"/>
+	</bean>
+
 	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"
 			connection-factory="rabbitConnectionFactory" message-converter="testConverter"
 			missing-queues-fatal="false"
+			amqp-template="amqpTemplate"
+			default-reply-to="fooExchange/barRoutingKey"
 			auto-startup="false" phase="123"/>
-			
+
 	<si-amqp:inbound-gateway id="withHeaderMapper" request-channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
 		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"
 		mapped-reply-headers="bar*"/>
-		
+
 	<int:channel id="requestChannel"/>
-		
+
 </beans>
