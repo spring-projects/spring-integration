@@ -38,11 +38,16 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable) {
 			Throwable cause = (Throwable) payload;
-			while (cause != null) {
+			while (cause != null && mostSpecificCause == null) {
 				String causeName = cause.getClass().getName();
-				if (this.getChannelMappings().keySet().contains(causeName)) {
-					mostSpecificCause = causeName;
+				for (String channelMappingKey : this.getChannelMappings().keySet()) {
+					Class channelMappingKeyAsClass = Class.forName(channelMappingKey);
+					if (channelMappingKeyAsClass.isInstance(cause.getClass())) {
+						mostSpecificCause = causeName;
+						break;
+					}
 				}
+				
 				cause = cause.getCause();
 			}
 		}
