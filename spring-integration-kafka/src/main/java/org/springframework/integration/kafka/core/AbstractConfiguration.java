@@ -47,8 +47,9 @@ public abstract class AbstractConfiguration implements InitializingBean, Configu
 
 	private int socketTimeout = KafkaConsumerDefaults.SOCKET_TIMEOUT_INT;
 
-	private int fetchMetadataTimeout = KafkaConsumerDefaults.FETCH_METADATA_TIMEOUT;
+	private int backoff = KafkaConsumerDefaults.BACKOFF_INCREMENT_INT;
 
+	private int fetchMetadataTimeout = KafkaConsumerDefaults.FETCH_METADATA_TIMEOUT;
 
 	/**
 	 * The minimum amount of data that a server fetch operation will wait for before returning,
@@ -126,6 +127,18 @@ public abstract class AbstractConfiguration implements InitializingBean, Configu
 		this.socketTimeout = socketTimeout;
 	}
 
+	@Override
+	public int getBackOff() {
+		return backoff;
+	}
+
+	/**
+	 * The retry backoff time for this client
+	 * @param backoff the retry backoff
+	 */
+	public void setBackoff(int backoff) {
+		this.backoff = backoff;
+	}
 
 	/**
 	 * The timeout on fetching metadata (e.g. partition leaders)

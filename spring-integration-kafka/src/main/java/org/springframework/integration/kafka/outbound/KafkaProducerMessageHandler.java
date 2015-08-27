@@ -19,12 +19,10 @@ package org.springframework.integration.kafka.outbound;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * @author Soby Chacko
@@ -58,6 +56,7 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 	}
 
 	/**
+	 * @param partitionExpression an expression that returns a partition id
 	 * @deprecated as of 1.3, {@link #setPartitionIdExpression(Expression)} should be used instead
 	 */
 	@Deprecated

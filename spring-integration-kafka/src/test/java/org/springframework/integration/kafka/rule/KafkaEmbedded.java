@@ -93,6 +93,7 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 			Properties brokerConfigProperties = TestUtils.createBrokerConfig(i, kafkaPorts.get(i),controlledShutdown);
 			brokerConfigProperties.setProperty("replica.socket.timeout.ms","1000");
 			brokerConfigProperties.setProperty("controller.socket.timeout.ms","1000");
+			brokerConfigProperties.setProperty("offsets.topic.replication.factor","1");
 			KafkaServer server = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
 			kafkaServers.add(server);
 		}
