@@ -317,7 +317,7 @@ public class DefaultConnection implements Connection {
 		@Override
 		public Pair<TopicAndPartition, OffsetAndMetadata> value(Partition partition, Long offset) {
 			return Tuples.pair(new TopicAndPartition(partition.getTopic(), partition.getId()),
-					new OffsetAndMetadata(offset, OffsetAndMetadata.NoMetadata(), ErrorMapping.NoError()));
+					new OffsetAndMetadata(offset, OffsetAndMetadata.NoMetadata(), OffsetAndMetadata.InvalidTime()));
 		}
 
 	}

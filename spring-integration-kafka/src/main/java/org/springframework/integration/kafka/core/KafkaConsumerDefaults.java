@@ -42,7 +42,9 @@ public abstract class KafkaConsumerDefaults {
 
 	public static final String FETCH_SIZE = Integer.toString(FETCH_SIZE_INT);
 
-	public static final String BACKOFF_INCREMENT = "1000";
+	public static final int BACKOFF_INCREMENT_INT = 1000;
+
+	public static final String BACKOFF_INCREMENT = Integer.toString(BACKOFF_INCREMENT_INT);
 
 	public static final String QUEUED_CHUNKS_MAX = "100";
 

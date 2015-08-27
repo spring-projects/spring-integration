@@ -26,7 +26,7 @@ import org.springframework.integration.kafka.support.ZookeeperConnect;
 /**
  * @author Marius Bogoevici
  */
-public class KafkaOffsetManagerTests extends AbstractOffsetManagerTests {
+public class KafkaTopicOffsetManagerTests extends AbstractOffsetManagerTests {
 
 	@Override
 	protected OffsetManager createOffsetManager(long referenceTimestamp, String consumerId,

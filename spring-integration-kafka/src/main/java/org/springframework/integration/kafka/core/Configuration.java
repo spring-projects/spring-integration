@@ -67,6 +67,13 @@ public interface Configuration {
 	int getSocketTimeout();
 
 	/**
+	 * The retry backoff for this client
+	 * @return the retry backoff
+	 * @since 1.3
+	 */
+	int getBackOff();
+
+	/**
 	 * The timeout on fetching metadata (e.g. partition leaders)
 	 * @return the fetch metadata timeout
 	 */
@@ -89,5 +96,6 @@ public interface Configuration {
 	 * @return a topic name
 	 */
 	String getDefaultTopic();
+
 
 }
