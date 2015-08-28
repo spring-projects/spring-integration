@@ -259,7 +259,8 @@ Annotations available in Spring Integration include:
 The behavior of each is described in its own chapter or section within this reference.
 
 NOTE: If you are using XML configuration in combination with annotations, the `@MessageEndpoint` annotation is not required.
-If you want to configure a POJO reference from the "ref" attribute of a<service-activator/> element, it is sufficient to provide the method-level annotations.
+If you want to configure a POJO reference from the "ref" attribute of a <service-activator/> element,
+it is sufficient to provide the method-level annotations.
 In that case, the annotation prevents ambiguity even when no "method" attribute exists on the <service-activator/> element.
 
 In most cases, the annotated handler method should not require the `Message` type as its parameter.
@@ -304,8 +305,10 @@ public class FooService {
 }
 ----
 
-NOTE: The value of the annotation can also be a SpEL expression (e.g., 'payload.getCustomerId()') which is quite useful when the name of the header has to be dynamically computed.
-It also provides an optional 'required' property which specifies whether the attribute value must be available within the header.
+NOTE: The value of the annotation can also be a SpEL expression (e.g., `someHeader.toUpperCase()`) which is useful
+when you wish to manipulate the header value before injecting it.
+It also provides an optional 'required' property which specifies whether the attribute value must be available within
+the headers.
 The default value for 'required' is `true`.
 
 For several of these annotations, when a Message-handling method returns a non-null value, the endpoint will attempt to send a reply.
@@ -319,6 +322,7 @@ In addition to the examples shown here, these annotations also support inputChan
 
 [source,java]
 ----
+@Service
 public class FooService {
 
     @ServiceActivator(inputChannel="input", outputChannel="output")
@@ -330,7 +334,9 @@ public class FooService {
 ----
 
 The processing of these annotations creates the same beans (`AbstractEndpoint` s and `MessageHandler` s (or `MessageSource` s for the inbound channel adapter - see below) as with similar xml components.
-The bean names are generated with this pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]` for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
+The bean names are generated with this pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`
+(e.g for the sample above - `fooService.bar.serviceActivator`)
+for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
 The `MessageHandler` s (`MessageSource` s) are also eligible to be tracked by <<message-history>>.
 
 Starting with _version 4.0_, all Messaging Annotations provide `SmartLifecycle` options - `autoStartup` and `phase` to allow endpoint lifecycle control on application context initialization.
@@ -466,6 +472,7 @@ public Object service(Object payload) {
 This allows users to set defaults for various attributes and enables isolation of framework Java dependencies to user annotations, avoiding their use in user classes.
 If the framework finds a method with a user annotation that has a framework meta-annotation, it is treated as if the method was annotated directly with the framework annotation.
 
+[[annotations_on_beans]]
 ==== Annotations on @Beans
 
 Starting with _version 4.0_, Messaging Annotations can be configured on `@Bean` method definitions in `@Configuration` classes, to produce Message Endpoints based on the beans, not methods.
@@ -508,8 +515,20 @@ public class MyFlowConfiguration {
 
 The meta-annotation rules work on `@Bean` methods as well (`@MyServiceActivator` above can be applied to a `@Bean` definition).
 
-NOTE: When using these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate `MessageHandler` (depending on the annotation type), attributes such as `outputChannel, requiresReply` etc, must be set on the `@Bean` itself.
-The only annotation attributes used are `adviceChain, autoStartup, inputChannel, phase, poller`, all other attributes are for the handler.
+NOTE: When using these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate
+`MessageHandler` (depending on the annotation type), attributes such as `outputChannel`, `requiresReply` etc,
+must be set on the `MessageHandler` `@Bean` definition itself.
+The only annotation attributes used are `adviceChain`, `autoStartup`, `inputChannel`, `phase`, `poller`,
+all other attributes are for the handler.
+
+NOTE: The bean names are generated with this algorithm:
+* The `MessageHandler` (`MessageSource`) `@Bean` gets its own standard name from the method name or `name` attribute on
+the `@Bean`.
+This works like there is no Messaging Annotation on the `@Bean` method.
+* The `AbstractEndpoint` bean name is generated with the pattern:
+`[configurationComponentName].[methodName].[decapitalizedAnnotationClassShortName]`.
+For example the endpoint (`SourcePollingChannelAdapter`) for the `consoleSource()` definition above gets a bean name like:
+`myFlowConfiguration.consoleSource.inboundChannelAdapter`.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean; channels are not automatically declared in this case.
 

@@ -140,7 +140,7 @@ subprojects { subproject ->
 		springSocialTwitterVersion = '1.1.0.RELEASE'
 		springRetryVersion = '1.1.2.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.2.0.RELEASE'
-		springWsVersion = '2.2.1.RELEASE'
+		springWsVersion = '2.2.2.RELEASE'
 		xmlUnitVersion = '1.5'
 		xstreamVersion = '1.4.7'
 		zookeeperVersion = '3.4.6'

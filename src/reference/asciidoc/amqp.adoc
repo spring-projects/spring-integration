@@ -598,7 +598,7 @@ Note, previously, the `channel-transacted` was `true` by default, now it changed
 [[amqp-message-headers]]
 === AMQP Message Headers
 
-The Spring Integration AMPQ Adapters will map standard AMQP properties automatically.
+The Spring Integration AMQP Adapters will map standard AMQP properties automatically.
 These properties will be copied by default to and from Spring Integration `MessageHeaders` using the http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[DefaultAmqpHeaderMapper].
 
 Of course, you can pass in your own implementation of AMQP specific header mappers, as the adapters have respective properties to support that.
@@ -606,7 +606,7 @@ Of course, you can pass in your own implementation of AMQP specific header mappe
 Any user-defined headers within the AMQP http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] will NOT be copied to or from an AMQP Message, unless explicitly specified by the _requestHeaderNames_ and/or _replyHeaderNames_ properties of the `DefaultAmqpHeaderMapper`.
 
 TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
-For example, if you need to copy all user-defined headers simply use the wild-card character `*`.
+For example, if you need to copy all user-defined headers simply use the wildcard character `*`, but see the CAUTION below.
 
 Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) allows the `NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ and/or _replyHeaderNames_ properties (in addition to existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
 Note, it is recommended to use the combination like this `STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS` instead of generic `*`, to avoid mapping of _request_ headers to the reply.
@@ -660,6 +660,23 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 * amqp_returnExchange
 
 * amqp_returnRoutingKey
+
+CAUTION: As mentioned above, using a header mapping pattern `*` is a common way to copy all headers.
+However, this can have some unexpected side-effects because certain RabbitMQ proprietary properties/headers will be
+copied as well.
+For example, when you use https://www.rabbitmq.com/federated-exchanges.html[Federation], the received message may have
+a property named `x-received-from` which contains the node that sent the message.
+If you use the wildcard character `*` for the request and reply header mapping on the Inbound Gateway, this header will
+be copied as well,
+which may cause some issues with federation; this reply message may be federated back to the
+sending broker, which will think that a message is looping and is thus silently dropped.
+If you wish to use the convenience of wildcard header mapping, you may need to filter out some headers in the
+downstream flow.
+For example, to avoid copying the `x-received-from` header back to the reply you can use
+`<int:header-filter ... header-names="x-received-from">`
+before sending the reply to the AMQP Inbound Gateway.
+Alternatively, you could explicitly list those properties that you actually want mapped instead of using
+wildcards.
 
 === AMQP Samples
 

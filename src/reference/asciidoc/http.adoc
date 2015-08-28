@@ -558,7 +558,7 @@ If you wish to partially encode some of the URL, this can be achieved using an `
 <http:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
-                                             .encodeWithinQuery('Hellow World!')"/>
+                                             .encodeWithinQuery('Hello World!')"/>
 </http:outbound-gateway>
 ----
 
@@ -784,7 +784,7 @@ On the server side we have the following configuration:
 ----
 <int-http:inbound-channel-adapter id="httpInboundAdapter"
     channel="receiveChannel"
-    name="/inboundAdapter.htm"
+    path="/inboundAdapter.htm"
     supported-methods="GET, POST"/>
 
 <int:channel id="receiveChannel"/>

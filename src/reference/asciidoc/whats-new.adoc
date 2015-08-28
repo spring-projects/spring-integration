@@ -98,7 +98,7 @@ As an alternative to the existing `selector` attribute, the `<wire-tap/>` now su
 
 See <<files>> for more information about these changes.
 
-===== Appending NewLines
+===== Appending New Lines
 
 The `<int-file:outbound-channel-adapter>` and `<int-file:outbound-gateway>` now support an `append-new-line` attribute.
 If set to `true`, a new line is appended to the file after a message is written.
@@ -125,6 +125,11 @@ The `LastModifiedFileListFilter` has been added.
 ===== WatchService Directory Scanner
 
 The `WatchServiceDirectoryScanner` is now available.
+
+===== Persistent File List Filter Changes
+
+The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which, when set to true, will `flush()` the
+metadata store if it implements `Flushable` (e.g. the `PropertiesPersistingMetadataStore`).
 
 [[x4.2-class-package-change]]
 ==== Class Package Change
@@ -279,13 +284,6 @@ The default is now `500 Internal Server Error` instead of `200 OK`.
 
 See <<http-response-statuscode>> for more information.
 
-[[x4.2-file-filter]]
-==== Persistent File List Filter Changes
-
-The `AbstractPersistentFileListFilter` has a new property `flushOnUpdate` which, when set to true, will `flush()` the
-metadata store if it implements `Flushable` (e.g. the `PropertiesPersistingMetadataStore`).
-
-
 [[x4.2-gw]]
 ==== Gateway Changes
 
@@ -310,7 +308,7 @@ New methods (`removeMessagesFromGroup`) have been added to the message store.
 Set the `removeBatchSize` property (default `100`) to adjust the number of messages deleted in each operation.
 Currently, JDBC, Redis and MongoDB message stores support this property.
 
-===== Output MessageGroupProcessor
+===== Output Message Group Processor
 
 When using a `ref` or inner bean for the aggregator, it is now possible to bind a `MessageGroupProcessor` directly.
 In addition, a `SimpleMessageGroupProcessor` is provided that simply returns the collection of messages in the group.
@@ -340,7 +338,7 @@ thread context value.
 
 See <<ftp-dsf>> and <<sftp-dsf>> for more information.
 
-===== DefaultSftpSessionFactory
+===== Default Sftp Session Factory
 
 Previously, the `DefaultSftpSessionFactory` unconditionally allowed connections to unknown hosts.
 This is now configurable (default false).
@@ -350,7 +348,7 @@ false).
 
 See <<sftp-unk-hosts>> for more information.
 
-===== MessageSessionCallback
+===== Message Session Callback
 
 The `MessageSessionCallback<F, T>` has been introduced to perform any custom `Session` operation(s) with the
 `requestMessage` context in the `<int-(s)ftp:outbound-gateway/>`.

@@ -17,11 +17,11 @@ Both require a Spring Web Services `DestinationProvider` for determining the URI
 ----
 
 NOTE: When using the namespace support described below, you will only need to set a URI.
-Internally, the parser will configure a fixed URI DestinationProvider implementation.
-If you do need dynamic resolution of the URI at runtime, however, then the DestinationProvider can provide such behavior as looking up the URI from a registry.
-See the Spring Web Serviceshttp://static.springsource.org/spring-ws/site/apidocs/org/springframework/ws/client/support/destination/DestinationProvider.html[DestinationProvider] JavaDoc for more information about this strategy.
+Internally, the parser will configure a fixed URI `DestinationProvider` implementation.
+If you do need dynamic resolution of the URI at runtime, however, then the `DestinationProvider` can provide such behavior as looking up the URI from a registry.
+See the Spring Web Services http://docs.spring.io/spring-ws/docs/current/api/org/springframework/ws/client/support/destination/DestinationProvider.html[DestinationProvider] JavaDoc for more information about this strategy.
 
-For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://static.springframework.org/spring-ws/site/reference/html/client.html[client access] as well as the chapter covering http://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping].
+For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/client.html[client access] as well as the chapter covering http://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping].
 
 [[webservices-inbound]]
 === Inbound Web Service Gateways
@@ -44,8 +44,26 @@ If the incoming web service message is a SOAP message the SOAP Action header wil
 
 Both gateways implement the Spring Web Services `MessageEndpoint` interface, so they can be configured with a `MessageDispatcherServlet` as per standard Spring Web Services configuration.
 
-For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://static.springframework.org/spring-ws/site/reference/html/server.html[creating a Web Service].
-The chapter coveringhttp://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping] is also applicable again.
+For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/server.html[creating a Web Service].
+The chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping] is also applicable again.
+
+To include the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS
+infrastructure you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target
+`MessageEndpoint` implementations like you do that with normal Spring WS application.
+For this purpose (from Spring Integration perspective), the Spring WS provides these convenient `EndpointMapping`
+implementations:
+
+* `org.springframework.ws.server.endpoint.mapping.UriEndpointMapping`
+* `org.springframework.ws.server.endpoint.mapping.PayloadRootQNameEndpointMapping`
+* `org.springframework.ws.soap.server.endpoint.mapping.SoapActionEndpointMapping`
+* `org.springframework.ws.server.endpoint.mapping.XPathPayloadEndpointMapping`
+
+The beans for these classes must be specified in the application context referencing to the
+`SimpleWebServiceInboundGateway` and/or `MarshallingWebServiceInboundGateway` bean definitions according to the WS
+mapping algorithm.
+
+Please, refer to the http://docs.spring.io/spring-ws/docs/current/reference/html/server.html#server-endpoint-mapping[Endpoint mappings]
+for the more information.
 
 [[webservices-namespace]]
 === Web Service Namespace Support
@@ -109,7 +127,7 @@ This might be useful, for example, when a custom Transformer works against the `
 [[outbound-uri]]
 === Outbound URI Configuration
 
-For all URI-schemes supported by Spring Web Services (http://static.springsource.org/spring-ws/site/reference/html/client.html#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided:
+For all URI-schemes supported by Spring Web Services (http://docs.spring.io/spring-ws/docs/current/reference/html/client.html#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided:
 
 [source,xml]
 ----
@@ -132,7 +150,7 @@ If a `DestinationProvider` is supplied, variable substitution is not supported a
 
 _Controlling URI Encoding_
 
-By default, the URL string is encoded (see http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
+By default, the URL string is encoded (see http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
 In some scenarios with a non-standard URI it is undesirable to perform the encoding.
 Since _version 4.1 _ the `<ws:outbound-gateway/>` provides an `encode-uri` attribute.
 To disable encoding the URL, this attribute should be set to `false` (by default it is `true`).
@@ -142,7 +160,7 @@ If you wish to partially encode some of the URL, this can be achieved using an `
 <ws:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
           <http:uri-variable name="param"
             expression="T(org.apache.commons.httpclient.util.URIUtil)
-                                             .encodeWithinQuery('Hellow World!')"/>
+                                             .encodeWithinQuery('Hello World!')"/>
 </ws:outbound-gateway>
 ----
 
