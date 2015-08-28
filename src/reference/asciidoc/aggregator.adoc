@@ -205,7 +205,7 @@ Partial sequences can be released by using a `MessageGroupStoreReaper` together 
 IMPORTANT: To facilitate discarding of late-arriving messages, the aggregator must maintain state about the group after it has been released.
 This can eventually cause out of memory conditions.
 To avoid such situations, you should consider configuring a `MessageGroupStoreReaper` to remove the group metadata; the expiry parameters should be set to expire groups after it is not expected that late messages will arrive.
-For information about configuring a reaper, see<<reaper>>.
+For information about configuring a reaper, see <<reaper>>.
 
 Spring Integration provides an out-of-the box implementation for `ReleaseStrategy`, the `SequenceSizeReleaseStrategy`.
 This implementation consults the SEQUENCE_NUMBER and SEQUENCE_SIZE headers of each arriving message to decide when a message group is complete and ready to be aggregated.
@@ -694,6 +694,32 @@ All of the configuration options provided by the xml element are also available 
 
 The aggregator can be either referenced explicitly from XML or, if the @MessageEndpoint is defined on the class, detected automatically through classpath scanning.
 
+The Annotation configuration (`@Aggregator` and others) for the Aggregator component makes sense for simple use-case,
+when the logic is enough transparent and most its options are sufficient by default.
+If you need to have a more control over those options from the Java & Annotation configuration consider to move
+everything to the `@Bean` definition for the `AggregatingMessageHandler` and mark its
+`@Bean` method with `@ServiceActivator`:
+
+[source,java]
+----
+@ServiceActivator(inputChannel = "aggregatorChannel")
+@Bean
+public MessageHandler aggregator(MessageGroupStore jdbcMessageGroupStore) {
+     AggregatingMessageHandler aggregator =
+                       new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor(),
+                                                 jdbcMessageGroupStore);
+     aggregator.setOutputChannel(resultsChannel());
+     aggregator.setGroupTimeoutExpression(new ValueExpression<>(500L));
+     aggregator.setTaskScheduler(this.taskScheduler);
+     return aggregator;
+}
+----
+
+See <<aggregator-api>> and <<annotations_on_beans>> for more information.
+
+NOTE: Starting with the _version 4.2_ the `AggregatorFactoryBean` is presented to simplify a bit the Java configuration
+for the `AggregatingMessageHandler`.
+
 [[reaper]]
 ==== Managing State in an Aggregator: MessageGroupStore
 
@@ -729,7 +755,7 @@ public interface MessageGroupStore {
 }
 ----
 
-For more information please refer to the http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[JavaDoc].
+For more information please refer to the http://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html[JavaDoc].
 
 The `MessageGroupStore` accumulates state information in `MessageGroups` while waiting for a release strategy to be triggered, and that event might not ever happen.
 So to prevent stale messages from lingering, and for volatile stores to provide a hook for cleaning up when the application shuts down, the `MessageGroupStore` allows the user to register callbacks to apply to its `MessageGroups` when they expire.
