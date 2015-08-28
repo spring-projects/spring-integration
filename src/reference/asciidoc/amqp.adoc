@@ -598,7 +598,7 @@ Note, previously, the `channel-transacted` was `true` by default, now it changed
 [[amqp-message-headers]]
 === AMQP Message Headers
 
-The Spring Integration AMPQ Adapters will map standard AMQP properties automatically.
+The Spring Integration AMQP Adapters will map standard AMQP properties automatically.
 These properties will be copied by default to and from Spring Integration `MessageHeaders` using the http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[DefaultAmqpHeaderMapper].
 
 Of course, you can pass in your own implementation of AMQP specific header mappers, as the adapters have respective properties to support that.
@@ -660,6 +660,15 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 * amqp_returnExchange
 
 * amqp_returnRoutingKey
+
+IMPORTANT: When you use a https://www.rabbitmq.com/federated-exchanges.html[Federation] the received message may have
+ a property named `x-received-from` which contains the node that sent the message.
+If you use the wild-card character `*` for the reply message on the Inbound Gateway, this header will be copied as well,
+which may cause some issue on your federation, just because this reply message may get federated back to the
+sender broker which thinks that a message is looping and is thus silently dropped because this key contains the
+node that sent the message.
+To avoid copying the `x-received-from` header back to the reply you can use `<int:header filter="x-received-from">`
+ before sending reply to the AMQP Inbound Gateway.
 
 === AMQP Samples
 
