@@ -103,7 +103,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean extractPayloadExplicitlySet = false;
 
-	private volatile String charset = "UTF-8";
+	private volatile Charset charset = Charset.forName("UTF-8");
 
 	private volatile boolean transferCookies = false;
 
@@ -219,7 +219,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setCharset(String charset) {
 		Assert.isTrue(Charset.isSupported(charset), "unsupported charset '" + charset + "'");
-		this.charset = charset;
+		this.charset = Charset.forName(charset);
 	}
 
 	/**
@@ -245,17 +245,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
 		Assert.notNull(expectedResponseType, "'expectedResponseType' must not be null");
-		this.expectedResponseTypeExpression = new LiteralExpression(expectedResponseType.getName());
+		this.expectedResponseTypeExpression = new ValueExpression<Class<?>>(expectedResponseType);
 	}
 
 	/**
 	 * Specify the {@link Expression} to determine the type for the expected response
 	 * The returned value of the expression could be an instance of {@link Class} or
 	 * {@link String} representing a fully qualified class name
-	 *
 	 * @param expectedResponseTypeExpression The expected response type expression.
-	 *
-	 * Also see {@link #setExpectedResponseTypeExpression(Expression)}
+	 * Also see {@link #setExpectedResponseType}
 	 */
 	public void setExpectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
 		this.expectedResponseTypeExpression = expectedResponseTypeExpression;
@@ -452,8 +450,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		// otherwise, we are creating a request with a body and need to deal with the content-type header as well
 		if (httpHeaders.getContentType() == null) {
-			MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-					: this.resolveContentType(payload);
+			MediaType contentType = (payload instanceof String)
+					? resolveContentType((String) payload, this.charset)
+					: resolveContentType(payload);
 			httpHeaders.setContentType(contentType);
 		}
 		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
@@ -511,8 +510,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return !HttpMethod.GET.equals(httpMethod);
 	}
 
-	private MediaType resolveContentType(String content, String charset) {
-		return new MediaType("text", "plain", Charset.forName(charset));
+	private MediaType resolveContentType(String content, Charset charset) {
+		return new MediaType("text", "plain", charset);
 	}
 
 	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<?, ?> simpleMap) {
@@ -602,7 +601,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'; "
 					+ "evaluation resulted in a" + expectedResponseType.getClass() + ".");
 			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)){
-				expectedResponseType = ClassUtils.forName((String) expectedResponseType, ClassUtils.getDefaultClassLoader());
+				expectedResponseType = ClassUtils.forName((String) expectedResponseType,
+						getApplicationContext().getClassLoader());
 			}
 		}
 		return expectedResponseType;

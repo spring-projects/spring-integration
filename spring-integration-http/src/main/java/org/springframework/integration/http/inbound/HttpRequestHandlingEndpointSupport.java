@@ -116,7 +116,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
-	private static boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
+	private static final boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
 							HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 	private static final List<HttpMethod> nonReadableBodyHttpMethods =
@@ -580,8 +580,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			this.evaluationContext = createEvaluationContext();
 		}
 		Object value = this.statusCodeExpression.getValue(this.evaluationContext);
-		HttpStatus httpStatus = buildHttpStatus(value);
-		return httpStatus;
+		return buildHttpStatus(value);
 	}
 
 	/**

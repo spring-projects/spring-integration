@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		if (StringUtils.hasText(headerMapper)) {
 			if (StringUtils.hasText(mappedRequestHeaders)) {
-				parserContext.getReaderContext().error("The 'mappped-request-headers' attribute is not " +
+				parserContext.getReaderContext().error("The 'mapped-request-headers' attribute is not " +
 						"allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
 				return null;
 			}

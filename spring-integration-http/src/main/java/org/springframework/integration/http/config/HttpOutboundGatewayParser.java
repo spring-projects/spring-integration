@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");
 		if (StringUtils.hasText(headerMapper)) {
 			if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
-				parserContext.getReaderContext().error("Neither 'mappped-request-headers' or 'mapped-response-headers' " +
+				parserContext.getReaderContext().error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
 						"attributes are allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
 				return null;
 			}
