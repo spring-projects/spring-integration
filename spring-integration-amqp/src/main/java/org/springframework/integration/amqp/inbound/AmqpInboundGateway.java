@@ -81,6 +81,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate,
 	                           boolean amqpTemplateExplicitlySet) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
+		Assert.notNull(amqpTemplate, "'amqpTemplate' must not be null");
 		Assert.isNull(listenerContainer.getMessageListener(),
 				"The listenerContainer provided to an AMQP inbound Gateway " +
 						"must not have a MessageListener configured since " +
@@ -92,6 +93,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 
+	/**
+	 * Specify the {@link MessageConverter} to convert request and reply to/from {@link Message}.
+	 * If the {@link #amqpTemplate} is explicitly set, this {@link MessageConverter}
+	 * isn't populated there. You must configure that external {@link #amqpTemplate}.
+	 * @param messageConverter the {@link MessageConverter} to use.
+	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "MessageConverter must not be null");
 		this.amqpMessageConverter = messageConverter;
@@ -109,7 +116,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	 * The {@code defaultReplyTo} address in the form
 	 * <pre class="code">
 	 * (exchange)/(routingKey)
-	 * </pre>
+	 * </pr
 	 * if the request message doesn't have {@code replyTo} property.
 	 * @param defaultReplyTo the default {@code replyTo} address to use.
 	 * @since 4.2
@@ -177,7 +184,13 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								reply.getPayload(), messagePostProcessor);
 					}
 					else {
-						amqpTemplate.convertAndSend(reply.getPayload(),	messagePostProcessor);
+						if (!amqpTemplateExplicitlySet) {
+							throw new IllegalStateException("There is no 'replyTo' message property " +
+									"and the `defaultReplyTo` hasn't been configured.");
+						}
+						else {
+							amqpTemplate.convertAndSend(reply.getPayload(),	messagePostProcessor);
+						}
 					}
 				}
 			}

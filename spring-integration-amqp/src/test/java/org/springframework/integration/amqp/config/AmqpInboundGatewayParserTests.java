@@ -91,11 +91,7 @@ public class AmqpInboundGatewayParserTests {
 		assertFalse(TestUtils.getPropertyValue(gateway, "messageListenerContainer.missingQueuesFatal", Boolean.class));
 		Object amqpTemplate = context.getBean("amqpTemplate");
 		assertSame(amqpTemplate, TestUtils.getPropertyValue(gateway, "amqpTemplate"));
-//		TODO AMQP-527
-//		assertEquals(new Address("fooExchange/barRoutingKey"), TestUtils.getPropertyValue(gateway, "defaultReplyTo"));
-		Address defaultReplyTo = TestUtils.getPropertyValue(gateway, "defaultReplyTo", Address.class);
-		assertEquals("fooExchange", defaultReplyTo.getExchangeName());
-		assertEquals("barRoutingKey", defaultReplyTo.getRoutingKey());
+		assertEquals(new Address("fooExchange/barRoutingKey"), TestUtils.getPropertyValue(gateway, "defaultReplyTo"));
 	}
 
 	@SuppressWarnings("rawtypes")

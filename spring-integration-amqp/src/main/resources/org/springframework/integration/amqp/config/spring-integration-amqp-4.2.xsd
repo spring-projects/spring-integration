@@ -246,6 +246,8 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								The 'defaultReplyTo' address in the form '(exchange)/(routingKey)'
+								(or (queueName) - in which case the default exchange will be used
+								with the queue name as the routing key)
 								if the request message doesn't have 'replyTo' property.
 								If this property isn't specified too, the gateway relies on
 								the `AmqpTemplate` configuration.
