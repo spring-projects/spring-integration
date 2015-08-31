@@ -113,11 +113,17 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	/**
-	 * The {@code defaultReplyTo} address in the form
+	 * The {@code defaultReplyTo} address with the form
 	 * <pre class="code">
 	 * (exchange)/(routingKey)
-	 * </pr
-	 * if the request message doesn't have {@code replyTo} property.
+	 * </pre>
+	 * or
+	 * <pre class="code">
+	 * (queueName)
+	 * </pre>
+	 * if the request message doesn't have a {@code replyTo} property.
+	 * The second form uses the default exchange ("") and the queue name as
+	 * the routing key.
 	 * @param defaultReplyTo the default {@code replyTo} address to use.
 	 * @since 4.2
 	 * @see Address

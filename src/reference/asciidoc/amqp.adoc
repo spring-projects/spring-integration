@@ -275,9 +275,11 @@ an alternative implementation to the `RabbitTemplate`.
 
 <9> The `replyTo` `org.springframework.amqp.core.Address` to be used when the `requestMessage` doesn't have `replyTo`
 property.
-If this option isn't specified, too, the `AmqpInboundGateway` will rely on the provided `AmqpTemplate` during the send
-operation or throws `IllegalStateException` for the internal `AmqpTemplate` which is exactly without default
-`exchange` and `routingKey`.
+If this option isn't specified, no `amqp-template` is provided, and no `replyTo` property exists in the request message,
+an `IllegalStateException` is thrown because the reply can't be routed.
+If this option isn't specified, and an external `amqp-template` is provided, no exception will be thrown.
+You __must__ either specify this option, or configure a default `exchange` and `routingKey` on that template,
+if you anticipate cases when no `replyTo` property exists in the request message.
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
 
