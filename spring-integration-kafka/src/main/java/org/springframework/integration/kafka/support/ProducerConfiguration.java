@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.kafka.support;
 
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -36,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author Artem Bilan
  * @since 0.5
  */
 public class ProducerConfiguration<K, V> {
@@ -53,7 +52,7 @@ public class ProducerConfiguration<K, V> {
 		this.producer = producer;
 		GenericConversionService genericConversionService = new GenericConversionService();
 		genericConversionService.addConverter(Object.class, byte[].class, new SerializingConverter());
-		conversionService = genericConversionService;
+		this.conversionService = genericConversionService;
 	}
 
 	public void setConversionService(ConversionService conversionService) {
@@ -80,12 +79,13 @@ public class ProducerConfiguration<K, V> {
 		return this.producer.send(new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload));
 	}
 
-	public Future<RecordMetadata> convertAndSend(String topic, Integer partition, Object messageKey, Object messagePayload) {
-		return this.send(topic, partition, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
+	public Future<RecordMetadata> convertAndSend(String topic, Integer partition, Object messageKey,
+	                                             Object messagePayload) {
+		return send(topic, partition, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
 	}
 
 	public Future<RecordMetadata> convertAndSend(String topic, Object messageKey, Object messagePayload) {
-		return this.send(topic, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
+		return send(topic, convertKeyIfNecessary(messageKey), convertPayloadIfNecessary(messagePayload));
 	}
 
 	private K convertKeyIfNecessary(Object messageKey) {
@@ -94,8 +94,7 @@ public class ProducerConfiguration<K, V> {
 					messageKey.getClass())) {
 				return getProducerMetadata().getKeyClassType().cast(messageKey);
 			}
-			return conversionService.convert(messageKey,
-					producerMetadata.getKeyClassType());
+			return this.conversionService.convert(messageKey, this.producerMetadata.getKeyClassType());
 		}
 		else {
 			return null;
@@ -108,31 +107,24 @@ public class ProducerConfiguration<K, V> {
 					messagePayload.getClass())) {
 				return getProducerMetadata().getValueClassType().cast(messagePayload);
 			}
-			return conversionService.convert(messagePayload,
-					producerMetadata.getValueClassType());
+			return this.conversionService.convert(messagePayload, this.producerMetadata.getValueClassType());
 		}
 		else {
 			return null;
 		}
 	}
 
-	@Override
-	public boolean equals(final Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
-
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+	public void stop() {
+		this.producer.close();
 	}
 
 	@Override
 	public String toString() {
-		return "ProducerConfiguration [producerMetadata=" + this.producerMetadata + "]";
-	}
-
-	public void stop() {
-		this.producer.close();
+		return "ProducerConfiguration{" +
+				"producer=" + this.producer +
+				", producerMetadata=" + this.producerMetadata +
+				", conversionService=" + this.conversionService +
+				'}';
 	}
 
 }
