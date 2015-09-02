@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.support;
 
-import kafka.producer.Partitioner;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.kafka.common.serialization.Serializer;
 
 import org.springframework.util.Assert;
+
+import kafka.producer.Partitioner;
 
 /**
  *
  * @author Soby Chacko
  * @author Rajasekar Elango
  * @author Marius Bogoevici
+ * @author Artem Bilan
  *
  * @since 0.5
  */
@@ -48,7 +49,8 @@ public class ProducerMetadata<K,V> {
 
 	private int batchBytes = 16384;
 
-	public ProducerMetadata(final String topic, Class<K> keyClassType, Class<V> valueClassType, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+	public ProducerMetadata(final String topic, Class<K> keyClassType, Class<V> valueClassType,
+	                        Serializer<K> keySerializer, Serializer<V> valueSerializer) {
 		Assert.notNull(topic, "Topic cannot be null");
 		Assert.notNull(keyClassType, "Key class type serializer cannot be null");
 		Assert.notNull(valueClassType, "Value class type cannot be null");
@@ -108,24 +110,17 @@ public class ProducerMetadata<K,V> {
 	}
 
 	@Override
-	public boolean equals(final Object obj){
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
-
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
-
-	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ProducerMetadata [keyEncoder=").append(keySerializer)
-				.append(", valueEncoder=").append(valueSerializer)
-				.append(", topic=").append(topic)
-				.append(", compressionType=").append(compressionType)
-				.append("batchBytes").append(batchBytes).append("]");
-		return builder.toString();
+		return "ProducerMetadata{" +
+				"keyClassType=" + this.keyClassType +
+				", valueClassType=" + this.valueClassType +
+				", keySerializer=" + this.keySerializer +
+				", valueSerializer=" + this.valueSerializer +
+				", topic='" + this.topic + '\'' +
+				", partitioner=" + this.partitioner +
+				", compressionType=" + this.compressionType +
+				", batchBytes=" + this.batchBytes +
+				'}';
 	}
 
 	public enum CompressionType {
@@ -133,4 +128,5 @@ public class ProducerMetadata<K,V> {
 		gzip,
 		snappy
 	}
+
 }
