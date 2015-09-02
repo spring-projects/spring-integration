@@ -58,6 +58,26 @@ If it does in fact locate that bean, then the support for MultipartFiles will be
 Otherwise, it will fail when trying to map a multipart-file request to a Spring Integration Message.
 For more on Spring's support for MultipartResolvers, refer to the http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
 
+[NOTE]
+====
+If you wish to proxy a `multipart/form-data` to another server, it may be better to keep it in raw form.
+To configure for this situation, do not configure the `multipartResolver` bean, configure the endpoint to expect
+a `byte[]` request, and configure it with a single `MessageConverter` of type `MultipartPassThroughHttpMessageConverter`:
+
+[source, xml]
+----
+<int-http:inbound-gateway
+                  channel="receiveChannel"
+                  path="/inboundAdapter.htm"
+                  request-payload-type="byte[]"
+                  message-converters="converter"
+                  merge-with-default-converters="false"
+                  supported-methods="POST" />
+
+<bean id="converter" class="org.springframework.integration.http.converter.MultipartPassThroughHttpMessageConverter" />
+----
+====
+
 In sending a response to the client there are a number of ways to customize the behavior of the gateway.
 By default the gateway will simply acknowledge that the request was received by sending a 200 status code back.
 It is possible to customize this response by providing a 'viewName' to be resolved by the Spring MVC `ViewResolver`.
