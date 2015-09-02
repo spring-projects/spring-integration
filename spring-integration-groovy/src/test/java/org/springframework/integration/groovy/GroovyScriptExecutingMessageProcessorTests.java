@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.groovy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import groovy.lang.Script;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,6 +44,8 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
+
+import groovy.lang.Script;
 
 /**
  * @author Mark Fisher
@@ -127,7 +128,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
-		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 1000L);
+		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 2000L);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		// should be the original script
 		Object result = processor.processMessage(message);
@@ -139,7 +140,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
 		// sleep some more, past refresh time
-		Thread.sleep(1000L);
+		Thread.sleep(2000L);
 		// now you go the new script
 		resource.setScript("return \"payload is $payload\"");
 		result = processor.processMessage(message);
