@@ -292,6 +292,11 @@ The default is now `500 Internal Server Error` instead of `200 OK`.
 
 See <<http-response-statuscode>> for more information.
 
+===== Form Data
+
+Documentation is provided for when proxying `multipart/form-data` requests.
+See <<http>> for more information.
+
 [[x4.2-gw]]
 ==== Gateway Changes
 
