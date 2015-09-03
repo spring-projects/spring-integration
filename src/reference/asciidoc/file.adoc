@@ -217,6 +217,13 @@ On subsequent polls, files from new creation events are returned.
 If a new subdirectory is added, its creation event is used to walk the new subtree to find existing files, as well
 as registering any new subdirectories found.
 
+NOTE: There is a case with `WatchKey`, when an internal events `queue` isn't drained by the program as quickly as
+the directory modification events occur.
+If the queue size is more than or equal to 512, the `StandardWatchEventKinds.OVERFLOW` is omitted to indicated that
+some file system events may be lost.
+In this case the root directory is re-scanned one more time do not miss any new file or directory.
+To avoid duplications consider to use proper `FileListFilter` like the `AcceptOnceFileListFilter` as default one.
+
 [source, xml]
 ----
 <bean id="wsScanner" class="org.springframework.integration.file.WatchServiceDirectoryScanner">

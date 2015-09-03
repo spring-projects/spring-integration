@@ -31,6 +31,7 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -86,6 +87,34 @@ public class WatchServiceDirectoryScannerTests {
 		assertTrue(accum.contains(foo2));
 		assertTrue(accum.contains(bar2));
 		assertTrue(accum.contains(baz1));
+
+
+		/*See AbstractWatchKey#signalEvent source code:
+			if(var5 >= 512) {
+				var1 = StandardWatchEventKinds.OVERFLOW;
+			}
+		*/
+		List<File> filesForOverflow = new ArrayList<File>(512);
+
+		for (int i = 0; i < 512; i++) {
+			filesForOverflow.add(this.folder.newFile("" + i));
+		}
+
+		files = scanner.listFiles(folder.getRoot());
+
+		assertEquals(512, files.size());
+
+		for (File fileForOverFlow : filesForOverflow) {
+			files.contains(fileForOverFlow);
+		}
+
+		File baz2 = File.createTempFile("baz2", ".txt", baz);
+
+		files = scanner.listFiles(folder.getRoot());
+
+		assertEquals(1, files.size());
+		assertTrue(files.contains(baz2));
+
 		scanner.stop();
 	}
 
