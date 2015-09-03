@@ -33,12 +33,12 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.SmartLifecycle;
 import org.springframework.lang.UsesJava7;
 import org.springframework.util.Assert;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Directory scanner that uses Java 7 {@link WatchService}.
@@ -49,11 +49,16 @@ import org.apache.commons.logging.LogFactory;
  * While initially walking the directory, any subdirectories encountered are registered
  * to watch for creation events.
  * <p>
- * If subdirectories are subsequentially added, they too are walked and registered for
- * new creation events.
+ * If subdirectories are subsequently added, they are walked and registered for
+ * new creation events, too.
+ * <p>
+ * When a {@link StandardWatchEventKinds#OVERFLOW} {@link WatchKey} event is occurred,
+ * the {@link #directory} is rescanned to avoid the loss for any new entries according
+ * to the "missed events" logic around {@link StandardWatchEventKinds#OVERFLOW}.
  *
  * @author Hezi Schrager
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -175,13 +180,31 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 			for (WatchEvent<?> event : key.pollEvents()) {
 				if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
 					Path item = (Path) event.context();
-					File file = new File(
-							((Path) key.watchable()).toAbsolutePath() + File.separator + item.getFileName());
+					File file = new File(((Path) key.watchable()).toAbsolutePath() + File.separator + item.getFileName());
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": " + file);
+					}
 					if (file.isDirectory()) {
 						files.addAll(walkDirectory(file.toPath()));
 					}
 					else {
 						files.add(file);
+					}
+				}
+				else if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": context: " + event.context());
+					}
+					if (event.context() != null && event.context() instanceof Path) {
+						files.addAll(walkDirectory((Path) event.context()));
+					}
+					else {
+						files.addAll(walkDirectory(this.directory));
+					}
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": context: " + event.context());
 					}
 				}
 			}
@@ -199,14 +222,16 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 
 				@Override
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					FileVisitResult fileVisitResult = super.preVisitDirectory(dir, attrs);
 					registerWatch(dir);
-					return super.preVisitDirectory(dir, attrs);
+					return fileVisitResult;
 				}
 
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					FileVisitResult fileVisitResult = super.visitFile(file, attrs);
 					walkedFiles.add(file.toFile());
-					return super.visitFile(file, attrs);
+					return fileVisitResult;
 				}
 
 			});
