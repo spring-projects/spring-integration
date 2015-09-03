@@ -34,6 +34,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.converter.MultipartPassThroughHttpMessageConverter;
 import org.springframework.messaging.Message;
@@ -51,7 +52,8 @@ public class MultipartPassThroughHttpMessageConverterTests {
 	@Test
 	public void testMultiPass() throws Exception {
 		HttpRequestHandlingMessagingGateway gw = new HttpRequestHandlingMessagingGateway(false);
-		gw.setMessageConverters(Collections.singletonList(new MultipartPassThroughHttpMessageConverter()));
+		gw.setMessageConverters(
+				Collections.<HttpMessageConverter<?>> singletonList(new MultipartPassThroughHttpMessageConverter()));
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
