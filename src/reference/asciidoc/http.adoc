@@ -61,8 +61,10 @@ For more on Spring's support for MultipartResolvers, refer to the http://static.
 [NOTE]
 ====
 If you wish to proxy a `multipart/form-data` to another server, it may be better to keep it in raw form.
-To configure for this situation, do not configure the `multipartResolver` bean, configure the endpoint to expect
-a `byte[]` request, and configure it with a single `MessageConverter` of type `MultipartPassThroughHttpMessageConverter`:
+To handle this situation, do not add the `multipartResolver` bean to the context; configure the endpoint to expect
+a `byte[]` request; customize the message converters to include a `ByteArrayHttpMessageConverter`, and
+disable the default multipart converter.
+You may need some other converter(s) for the replies:
 
 [source, xml]
 ----
@@ -70,11 +72,15 @@ a `byte[]` request, and configure it with a single `MessageConverter` of type `M
                   channel="receiveChannel"
                   path="/inboundAdapter.htm"
                   request-payload-type="byte[]"
-                  message-converters="converter"
+                  message-converters="converters"
                   merge-with-default-converters="false"
                   supported-methods="POST" />
 
-<bean id="converter" class="org.springframework.integration.http.converter.MultipartPassThroughHttpMessageConverter" />
+<util:list id="converters">
+    <beans:bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+    <beans:bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+    <beans:bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+</util:list>
 ----
 ====
 

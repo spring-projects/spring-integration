@@ -15,8 +15,10 @@
  */
 package org.springframework.integration.http.inbound;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,9 +36,9 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.http.converter.MultipartPassThroughHttpMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -46,14 +48,14 @@ import org.springframework.web.context.request.RequestContextHolder;
  * @since 4.2
  *
  */
-public class MultipartPassThroughHttpMessageConverterTests {
+public class MultipartAsRawByteArrayTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMultiPass() throws Exception {
 		HttpRequestHandlingMessagingGateway gw = new HttpRequestHandlingMessagingGateway(false);
 		gw.setMessageConverters(
-				Collections.<HttpMessageConverter<?>> singletonList(new MultipartPassThroughHttpMessageConverter()));
+				Collections.<HttpMessageConverter<?>> singletonList(new ByteArrayHttpMessageConverter()));
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
@@ -84,6 +86,7 @@ public class MultipartPassThroughHttpMessageConverterTests {
 		gw.handleRequest(request, mock(HttpServletResponse.class));
 		Message<?> received = requestChannel.receive(10000);
 		assertNotNull(received);
+		assertThat(received.getPayload(), instanceOf(byte[].class));
 		assertEquals("foo", new String((byte[])received.getPayload()));
 	}
 

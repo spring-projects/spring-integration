@@ -294,7 +294,7 @@ See <<http-response-statuscode>> for more information.
 
 ===== Form Data
 
-A new `MultipartPassThroughHttpMessageConverter` is provided for when proxying `multipart/form-data` requests.
+Documentation is provided for when proxying `multipart/form-data` requests.
 See <<http>> for more information.
 
 [[x4.2-gw]]

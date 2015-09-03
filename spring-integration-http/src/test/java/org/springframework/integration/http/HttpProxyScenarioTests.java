@@ -16,9 +16,11 @@
 
 package org.springframework.integration.http;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -41,7 +43,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
@@ -49,6 +50,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -67,6 +69,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class HttpProxyScenarioTests {
 
 	private final HandlerAdapter handlerAdapter = new HttpRequestHandlerAdapter();
@@ -77,6 +80,10 @@ public class HttpProxyScenarioTests {
 	@Autowired
 	@Qualifier("proxyGateway.handler")
 	private HttpRequestExecutingMessageHandler handler;
+
+	@Autowired
+	@Qualifier("proxyGatewaymp.handler")
+	private HttpRequestExecutingMessageHandler handlermp;
 
 	@Autowired
 	private PollableChannel checkHeadersChannel;
@@ -151,6 +158,57 @@ public class HttpProxyScenarioTests {
 
 		assertEquals(ifModifiedSince, headers.get("If-Modified-Since"));
 		assertEquals(ifUnmodifiedSince, headers.get("If-Unmodified-Since"));
+
+		RequestContextHolder.resetRequestAttributes();
+	}
+
+	@Test
+	public void testHttpMultipartProxyScenario() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/testmp");
+
+		request.addHeader("Connection", "Keep-Alive");
+		request.setContentType("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ");
+		request.setContent("foo".getBytes());
+
+		Object handler = this.handlerMapping.getHandler(request).getHandler();
+		assertNotNull(handler);
+
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		RestTemplate template = Mockito.spy(new RestTemplate());
+		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
+			@Override
+			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
+				URI uri = (URI) invocation.getArguments()[0];
+				assertEquals(new URI("http://testServer/testmp"), uri);
+				HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
+				HttpHeaders httpHeaders = httpEntity.getHeaders();
+				assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
+				assertEquals("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ",
+						httpHeaders.getContentType().toString());
+
+				HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
+				assertThat(entity.getBody(), instanceOf(byte[].class));
+				assertEquals("foo", new String((byte[])entity.getBody()));
+
+				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+				responseHeaders.set("Connection", "close");
+				responseHeaders.set("Content-Type", "text/plain");
+				return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
+			}
+		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
+				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
+
+		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
+		dfa.setPropertyValue("restTemplate", template);
+
+		RequestAttributes attributes = new ServletRequestAttributes(request);
+		RequestContextHolder.setRequestAttributes(attributes);
+
+		this.handlerAdapter.handle(request, response, handler);
+
+		assertEquals("close", response.getHeaderValue("Connection"));
+		assertEquals("text/plain", response.getContentType());
 
 		RequestContextHolder.resetRequestAttributes();
 	}

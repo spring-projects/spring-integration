@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration/http"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:beans="http://www.springframework.org/schema/beans"
-			 xmlns:int="http://www.springframework.org/schema/integration"
-			 xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+<beans:beans
+	xmlns="http://www.springframework.org/schema/integration/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<inbound-gateway path="/test" request-channel="testChannel"
 					 payload-expression="T(org.springframework.web.context.request.RequestContextHolder).requestAttributes.request.queryString"/>
@@ -20,5 +23,22 @@
 	<int:channel id="checkHeadersChannel">
 		<int:queue/>
 	</int:channel>
+
+	<inbound-gateway path="/testmp" request-channel="testChannelmp"
+					 merge-with-default-converters="false"
+					 message-converters="converters"
+					 request-payload-type="byte[]" />
+
+	<util:list id="converters">
+		<beans:bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+		<beans:bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+		<beans:bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+	</util:list>
+
+	<int:channel id="testChannelmp"/>
+
+	<outbound-gateway id="proxyGatewaymp" request-channel="testChannelmp"
+					  http-method="POST"
+					  url="http://testServer/testmp"/>
 
 </beans:beans>
