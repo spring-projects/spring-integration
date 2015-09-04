@@ -22,7 +22,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,7 +78,7 @@ public class WatchServiceDirectoryScannerTests {
 		File baz1 = File.createTempFile("baz", ".txt", baz);
 		files = scanner.listFiles(folder.getRoot());
 		int n = 0;
-		List<File> accum = new ArrayList<File>(files);
+		Set<File> accum = new HashSet<File>(files);
 		while (n++ < 300 && accum.size() != 4) {
 			Thread.sleep(100);
 			files = scanner.listFiles(folder.getRoot());
@@ -88,32 +90,40 @@ public class WatchServiceDirectoryScannerTests {
 		assertTrue(accum.contains(bar2));
 		assertTrue(accum.contains(baz1));
 
-
 		/*See AbstractWatchKey#signalEvent source code:
 			if(var5 >= 512) {
 				var1 = StandardWatchEventKinds.OVERFLOW;
 			}
 		*/
-		List<File> filesForOverflow = new ArrayList<File>(512);
+		List<File> filesForOverflow = new ArrayList<File>(600);
 
-		for (int i = 0; i < 512; i++) {
+		for (int i = 0; i < 600; i++) {
 			filesForOverflow.add(this.folder.newFile("" + i));
 		}
 
-		files = scanner.listFiles(folder.getRoot());
+		n = 0;
+		while (n++ < 300 && accum.size() < 604) {
+			Thread.sleep(100);
+			files = scanner.listFiles(folder.getRoot());
+			accum.addAll(files);
+		}
 
-		assertEquals(512, files.size());
+		assertEquals(604, accum.size());
 
 		for (File fileForOverFlow : filesForOverflow) {
-			files.contains(fileForOverFlow);
+			accum.contains(fileForOverFlow);
 		}
 
 		File baz2 = File.createTempFile("baz2", ".txt", baz);
 
-		files = scanner.listFiles(folder.getRoot());
+		n = 0;
+		while (n++ < 300 && accum.size() < 605) {
+			Thread.sleep(100);
+			files = scanner.listFiles(folder.getRoot());
+			accum.addAll(files);
+		}
 
-		assertEquals(1, files.size());
-		assertTrue(files.contains(baz2));
+		assertTrue(accum.contains(baz2));
 
 		scanner.stop();
 	}

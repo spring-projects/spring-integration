@@ -181,6 +181,9 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 				if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
 					Path item = (Path) event.context();
 					File file = new File(((Path) key.watchable()).toAbsolutePath() + File.separator + item.getFileName());
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": " + file);
+					}
 					if (file.isDirectory()) {
 						files.addAll(walkDirectory(file.toPath()));
 					}
@@ -189,11 +192,19 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 					}
 				}
 				else if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": context: " + event.context());
+					}
 					if (event.context() != null && event.context() instanceof Path) {
 						files.addAll(walkDirectory((Path) event.context()));
 					}
 					else {
 						files.addAll(walkDirectory(this.directory));
+					}
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Watch Event: " + event.kind() + ": context: " + event.context());
 					}
 				}
 			}
