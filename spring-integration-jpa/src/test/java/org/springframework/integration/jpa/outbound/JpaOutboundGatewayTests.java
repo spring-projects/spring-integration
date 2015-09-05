@@ -169,4 +169,10 @@ public class JpaOutboundGatewayTests {
 
 	}
 
+	@Test
+	public void testJpaRepositoryAsService() {
+		List<StudentDomain> students = this.studentService.getStudentsUsingJpaRepository("F");
+		Assert.assertEquals(2, students.size());
+	}
+
 }

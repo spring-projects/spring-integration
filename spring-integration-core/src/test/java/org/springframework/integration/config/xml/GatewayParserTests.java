@@ -386,7 +386,7 @@ public class GatewayParserTests {
 		public <T> Future<T> submit(Callable<T> task) {
 			try {
 				Future<?> result = super.submit(task);
-				Message<?> message = (Message<?>) result.get(1, TimeUnit.SECONDS);
+				Message<?> message = (Message<?>) result.get(10, TimeUnit.SECONDS);
 				Message<?> modifiedMessage;
 				if (message == null) {
 					modifiedMessage = MessageBuilder.withPayload("foo")

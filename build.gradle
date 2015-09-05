@@ -133,6 +133,7 @@ subprojects { subproject ->
 		smackVersion = '4.0.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.0.BUILD-SNAPSHOT'
 //		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
+		springDataJpaVersion = '1.8.2.RELEASE'
 		springDataMongoVersion = '1.7.2.RELEASE'
 		springDataRedisVersion = '1.5.2.RELEASE'
 		springGemfireVersion = '1.6.0.RELEASE'
@@ -451,6 +452,8 @@ project('spring-integration-jpa') {
 		compile "org.springframework:spring-orm:$springVersion"
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
+
+		testCompile "org.springframework.data:spring-data-jpa:$springDataJpaVersion"
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"

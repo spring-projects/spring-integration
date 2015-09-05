@@ -243,6 +243,7 @@ public class DelayHandlerTests {
 
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -253,9 +254,10 @@ public class DelayHandlerTests {
 					// won't countDown
 				}
 			}
+
 		}).start();
-		latch.await(50, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
+
+		assertTrue(latch.await(1, TimeUnit.SECONDS));
 	}
 
 	@Test

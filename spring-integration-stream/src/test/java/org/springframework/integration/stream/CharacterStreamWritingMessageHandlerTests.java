@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,6 +201,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		public String toString() {
 			return this.text;
 		}
+
 	}
 
 
@@ -225,7 +226,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 		public void await() {
 			try {
-				this.latch.await(1000, TimeUnit.MILLISECONDS);
+				this.latch.await(10000, TimeUnit.MILLISECONDS);
 				if (latch.getCount() != 0) {
 					throw new RuntimeException("test timeout");
 				}
@@ -234,6 +235,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 				throw new RuntimeException("test latch.await() interrupted");
 			}
 		}
+
 	}
 
 }

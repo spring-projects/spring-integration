@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class DispatchingChannelErrorHandlingTests {
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
-		this.waitForLatch(1000);
+		this.waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertEquals(MessagingException.class, errorMessage.getPayload().getClass());
 		MessagingException exceptionPayload = (MessagingException) errorMessage.getPayload();
@@ -108,7 +108,7 @@ public class DispatchingChannelErrorHandlingTests {
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
-		this.waitForLatch(1000);
+		this.waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertEquals(MessagingException.class, errorMessage.getPayload().getClass());
 		MessagingException exceptionPayload = (MessagingException) errorMessage.getPayload();

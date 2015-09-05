@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms;
 
 import static org.junit.Assert.assertFalse;
@@ -401,6 +402,8 @@ public class OutboundGatewayFunctionTests {
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.setUseReplyContainer(true);
 		gateway.setIdleReplyContainerTimeout(1, TimeUnit.SECONDS);
+		gateway.setRequiresReply(true);
+		gateway.setReceiveTimeout(10000);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
