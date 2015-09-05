@@ -63,7 +63,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	/**
 	 * Determine whether the metadataStore should be flushed on each update (if {@link Flushable}).
 	 * @param flushOnUpdate true to flush.
-	 * @since 1.4.5
+	 * @since 4.1.5
 	 */
 	public void setFlushOnUpdate(boolean flushOnUpdate) {
 		this.flushOnUpdate = flushOnUpdate;

@@ -440,6 +440,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 		}, methodFilter);
 
+		if (candidateMethods.isEmpty() && candidateMessageMethods.isEmpty() && fallbackMethods.isEmpty()
+				&& fallbackMessageMethods.isEmpty()) {
+			findSingleSpecifMethodOnInterfacesIfProxy(targetObject, methodName, candidateMessageMethods,
+					candidateMethods);
+		}
+
 		if (!candidateMethods.isEmpty() || !candidateMessageMethods.isEmpty()) {
 			handlerMethods.put(CANDIDATE_METHODS, candidateMethods);
 			handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
@@ -497,6 +503,62 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		handlerMethods.put(CANDIDATE_METHODS, fallbackMethods);
 		handlerMethods.put(CANDIDATE_MESSAGE_METHODS, fallbackMessageMethods);
 		return handlerMethods;
+	}
+
+	private void findSingleSpecifMethodOnInterfacesIfProxy(final Object targetObject, final String methodName,
+	                                                       Map<Class<?>, HandlerMethod> candidateMessageMethods,
+	                                                       Map<Class<?>, HandlerMethod> candidateMethods) {
+		if (AopUtils.isAopProxy(targetObject)) {
+			final AtomicReference<Method> targetMethod = new AtomicReference<Method>();
+			Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
+			for (Class<?> clazz : interfaces) {
+				ReflectionUtils.doWithMethods(clazz, new MethodCallback() {
+
+					@Override
+					public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+						if (targetMethod.get() != null) {
+							throw new IllegalStateException("Ambiguous method " + methodName + " on " + targetObject);
+						}
+						else {
+							targetMethod.set(method);
+						}
+					}
+
+				}, new MethodFilter() {
+
+					@Override
+					public boolean matches(Method method) {
+						return method.getName().equals(methodName);
+					}
+
+				});
+			}
+			Method method = targetMethod.get();
+			if (method != null) {
+				HandlerMethod handlerMethod = new HandlerMethod(method, this.canProcessMessageList);
+				Class<?> targetParameterType = handlerMethod.getTargetParameterType();
+				if (handlerMethod.isMessageMethod()) {
+					if (candidateMessageMethods.containsKey(targetParameterType)) {
+						throw new IllegalArgumentException("Found more than one method match for type " +
+								"[Message<" + targetParameterType + ">]");
+					}
+					candidateMessageMethods.put(targetParameterType, handlerMethod);
+				}
+				else {
+					if (candidateMethods.containsKey(targetParameterType)) {
+						String exceptionMessage = "Found more than one method match for ";
+						if (Void.class.equals(targetParameterType)) {
+							exceptionMessage += "empty parameter for 'payload'";
+						}
+						else {
+							exceptionMessage += "type [" + targetParameterType + "]";
+						}
+						throw new IllegalArgumentException(exceptionMessage);
+					}
+					candidateMethods.put(targetParameterType, handlerMethod);
+				}
+			}
+		}
 	}
 
 	private Class<?> getTargetClass(Object targetObject) {

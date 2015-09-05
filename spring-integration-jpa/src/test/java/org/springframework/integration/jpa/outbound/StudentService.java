@@ -52,4 +52,7 @@ public interface StudentService {
 	StudentDomain persistStudent2(StudentDomain studentToPersist);
 
 	List<StudentDomain> getStudents(int maxNumberOfRecords);
+
+	List<StudentDomain> getStudentsUsingJpaRepository(String gender);
+
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
 
@@ -103,10 +103,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	@Autowired
 	private MBeanObjectConverter converter;
 
-	@Autowired
-	private MBeanServer mbeanServer;
-
-	private final long testTimeout = 2000L;
+	private final long testTimeout = 20000L;
 
 	@Test
 	public void pollDefaultAdapter() throws Exception {

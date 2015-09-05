@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class PollerWithErrorChannelTests {
 	 * the ErrorMessage will still be forwarded to the 'errorChannel' since exception occurs on
 	 * receive() and not on send()
 	 */
-	public void testWithErrorChannelAsHeader() throws Exception{
+	public void testWithErrorChannelAsHeader() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorHeader", SourcePollingChannelAdapter.class);
 
@@ -61,49 +61,52 @@ public class PollerWithErrorChannelTests {
 	}
 
 	@Test
-	public void testWithErrorChannel() throws Exception{
+	public void testWithErrorChannel() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannel", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(1000));
+		assertNotNull(errorChannel.receive(10000));
 		adapter.stop();
 	}
 
 	@Test
-	public void testWithErrorChannelAndHeader() throws Exception{
+	public void testWithErrorChannelAndHeader() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeader", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(1000));
+		assertNotNull(errorChannel.receive(10000));
 		adapter.stop();
 	}
 
 	@Test
 	// config the same as above but the error wil come from the send
-	public void testWithErrorChannelAndHeaderWithSendFailure() throws Exception{
+	public void testWithErrorChannelAndHeaderWithSendFailure() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeaderErrorOnSend", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("errChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(1000));
+		assertNotNull(errorChannel.receive(10000));
 		adapter.stop();
 	}
 
 	@Test
 	// INT-1952
-	public void testWithErrorChannelAndPollingConsumer() throws Exception{
+	public void testWithErrorChannelAndPollingConsumer() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		MessageChannel serviceWithPollerChannel = ac.getBean("serviceWithPollerChannel", MessageChannel.class);
-		QueueChannel errChannel = ac.getBean("serviceErrorChannel", QueueChannel.class);
+		QueueChannel errorChannel = ac.getBean("serviceErrorChannel", QueueChannel.class);
 		serviceWithPollerChannel.send(new GenericMessage<String>(""));
-		assertNotNull(errChannel.receive(1000));
+		assertNotNull(errorChannel.receive(10000));
 	}
 
-	public static class SampleService{
+	public static class SampleService {
+
 		public String withSuccess(){
 			return "hello";
 		}
+
 	}
+
 }

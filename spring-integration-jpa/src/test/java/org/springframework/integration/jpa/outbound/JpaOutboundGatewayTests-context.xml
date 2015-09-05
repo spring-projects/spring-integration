@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jpa="http://www.springframework.org/schema/integration/jpa"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-		xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation=
-	"http://www.springframework.org/schema/beans          http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jpa="http://www.springframework.org/schema/integration/jpa"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:sd-jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation=
+			   "http://www.springframework.org/schema/beans          http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/integration     http://www.springframework.org/schema/integration/spring-integration.xsd
 	http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd
-	http://www.springframework.org/schema/jdbc            http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 	http://www.springframework.org/schema/data/jpa        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-	http://www.springframework.org/schema/task            http://www.springframework.org/schema/task/spring-task.xsd">
+	http://www.springframework.org/schema/data/jpa   http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<sd-jpa:repositories base-package="org.springframework.integration.jpa.outbound"/>
+
+	<int:service-activator input-channel="jpaInputChannel" ref="studentRepository" method="findByGender"/>
 
 	<import resource="BaseJpaPollingChannelAdapterTests-context.xml"/>
 
@@ -33,6 +35,7 @@
 		<int:method name="persistStudent2"          request-channel="updatingGatewayInsideChain" />
 		<int:method name="getAllStudentsFromGivenRecord" request-channel="getStudentsFromGivenRecordChannel"/>
 		<int:method name="getStudents" request-channel="getStudentsWithMaxNumberOfRecordsChannel"/>
+		<int:method name="getStudentsUsingJpaRepository" request-channel="jpaInputChannel"/>
 	</int:gateway>
 
 	<int:channel id="studentReplyChannel"/>
