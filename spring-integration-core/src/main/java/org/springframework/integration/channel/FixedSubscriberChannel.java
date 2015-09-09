@@ -72,7 +72,7 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 		catch (RuntimeException e) {
 			if (e instanceof MessagingException &&
 					((MessagingException) e).getFailedMessage() == null) {
-				throw new MessagingException(message, e);
+				throw new MessagingException(message, "Failed to handle Message", e);
 			}
 			else {
 				throw e;

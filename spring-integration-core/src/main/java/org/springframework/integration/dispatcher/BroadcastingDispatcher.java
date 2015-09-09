@@ -230,7 +230,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
 				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) {
-					throw new MessagingException(message, e);
+					throw new MessagingException(message, "Failed to handle Message", e);
 				}
 				throw e;
 			}

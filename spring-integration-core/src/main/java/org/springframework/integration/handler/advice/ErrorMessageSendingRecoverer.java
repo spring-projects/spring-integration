@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,8 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, B
 					"RetryContext: " + context.toString());
 		}
 		else if (!(lastThrowable instanceof MessagingException)) {
-			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"), lastThrowable);
+			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"),
+					lastThrowable.getMessage(), lastThrowable);
 		}
 		if (logger.isDebugEnabled()) {
 			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
@@ -89,5 +90,7 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, B
 		public RetryExceptionNotAvailableException(Message<?> message, String description) {
 			super(message, description);
 		}
+
 	}
+
 }

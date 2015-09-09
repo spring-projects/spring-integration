@@ -93,7 +93,7 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 			}
 		}
 		catch (Exception e) {
-			throw new MessagingException(message, e);
+			throw new MessagingException(message, "Failed to send Message", e);
 		}
 	}
 

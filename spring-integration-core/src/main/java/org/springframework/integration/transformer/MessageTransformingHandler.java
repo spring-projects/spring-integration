@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			if (e instanceof MessageTransformationException) {
 				throw (MessageTransformationException) e;
 			}
-			throw new MessageTransformationException(message, e);
+			throw new MessageTransformationException(message, "Failed to transform Message", e);
 		}
 	}
 

@@ -46,9 +46,9 @@ import org.springframework.util.Assert;
  * is not used, but multiple concurrent connections can be used if the connection factory uses
  * single-use connections. For true asynchronous bi-directional communication, a pair of
  * inbound / outbound channel adapters should be used.
+ *
  * @author Gary Russell
  * @since 2.0
- *
  */
 public class TcpInboundGateway extends MessagingGatewaySupport implements
 		TcpListener, TcpSender, ClientModeCapable, OrderlyShutdownCapable {
@@ -148,7 +148,8 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		ApplicationEventPublisher applicationEventPublisher = cf.getApplicationEventPublisher();
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(
-				new TcpConnectionFailedCorrelationEvent(this, connectionId, new MessagingException(message)));
+				new TcpConnectionFailedCorrelationEvent(this, connectionId,
+						new MessagingException(message, "Connection not found to process reply.")));
 		}
 	}
 
@@ -156,8 +157,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	 * @return true if the associated connection factory is listening.
 	 */
 	public boolean isListening() {
-		return this.serverConnectionFactory == null ? false
-				: this.serverConnectionFactory.isListening();
+		return this.serverConnectionFactory != null && this.serverConnectionFactory.isListening();
 	}
 
 	/**

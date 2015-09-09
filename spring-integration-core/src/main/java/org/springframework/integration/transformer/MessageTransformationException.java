@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * Base Exception type for Message transformation errors.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @SuppressWarnings("serial")
 public class MessageTransformationException extends MessagingException {
@@ -35,8 +36,14 @@ public class MessageTransformationException extends MessagingException {
 		super(message, description);
 	}
 
+	/**
+	 * @param message the failed {@link Message}
+	 * @param cause the cause {@link Throwable}
+	 * @deprecated since 4.2 in favor of {@link MessageTransformationException(Message, String, Throwable)}.
+	 */
+	@Deprecated
 	public MessageTransformationException(Message<?> message, Throwable cause) {
-		super(message, cause);
+		this(message, cause.getMessage(), cause);
 	}
 
 	public MessageTransformationException(String description, Throwable cause) {

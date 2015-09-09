@@ -50,7 +50,7 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 			return this.codec.encode(message);
 		}
 		catch (IOException e) {
-			throw new MessagingException(message, e);
+			throw new MessagingException(message, "Failed to encode Message", e);
 		}
 	}
 

@@ -106,7 +106,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {
-			this.publishConnectionExceptionEvent(new MessagingException(message, e));
+			this.publishConnectionExceptionEvent(new MessagingException(message, "Failed TCP serialization", e));
 			this.closeConnection(true);
 			throw e;
 		}
