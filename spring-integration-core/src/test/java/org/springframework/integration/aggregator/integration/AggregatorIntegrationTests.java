@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -56,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class AggregatorIntegrationTests {
 
 	@Autowired
@@ -88,13 +90,15 @@ public class AggregatorIntegrationTests {
 	@Autowired
 	private QueueChannel errors;
 
-	@Test//(timeout=5000)
+	@Test
 	public void testVanillaAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			input.send(new GenericMessage<Integer>(i, headers));
 		}
-		assertEquals(0 + 1 + 2 + 3 + 4, output.receive(1000).getPayload());
+		Message<?> receive = output.receive(10000);
+		assertNotNull(receive);
+		assertEquals(1 + 2 + 3 + 4, receive.getPayload());
 	}
 
 	@Test
