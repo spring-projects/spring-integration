@@ -53,10 +53,10 @@ infrastructure you should add the `EndpointMapping` definition between `MessageD
 For this purpose (from Spring Integration perspective), the Spring WS provides these convenient `EndpointMapping`
 implementations:
 
-* `org.springframework.ws.server.endpoint.mapping.UriEndpointMapping`
-* `org.springframework.ws.server.endpoint.mapping.PayloadRootQNameEndpointMapping`
-* `org.springframework.ws.soap.server.endpoint.mapping.SoapActionEndpointMapping`
-* `org.springframework.ws.server.endpoint.mapping.XPathPayloadEndpointMapping`
+* `o.s.ws.server.endpoint.mapping.UriEndpointMapping`
+* `o.s.ws.server.endpoint.mapping.PayloadRootQNameEndpointMapping`
+* `o.s.ws.soap.server.endpoint.mapping.SoapActionEndpointMapping`
+* `o.s.ws.server.endpoint.mapping.XPathPayloadEndpointMapping`
 
 The beans for these classes must be specified in the application context referencing to the
 `SimpleWebServiceInboundGateway` and/or `MarshallingWebServiceInboundGateway` bean definitions according to the WS
