@@ -15,7 +15,9 @@
  */
 package org.springframework.integration.support.management;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,10 +28,18 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gary Russell
@@ -71,6 +81,30 @@ public class IntegrationManagementConfigurerTests {
 		assertFalse(channel.isLoggingEnabled());
 		assertFalse(handler.isLoggingEnabled());
 		assertFalse(source.isLoggingEnabled());
+	}
+
+	@Test
+	public void testEmptyAnnotation() {
+		AnnotationConfigApplicationContext ctx =
+				new AnnotationConfigApplicationContext(ConfigEmptyAnnotation.class);
+		AbstractMessageChannel channel = ctx.getBean("channel", AbstractMessageChannel.class);
+		assertTrue(channel.isCountsEnabled());
+		assertTrue(channel.isStatsEnabled());
+		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"),
+				instanceOf(DefaultMessageChannelMetrics.class));
+		ctx.close();
+	}
+
+	@Configuration
+	@EnableIntegration
+	@EnableIntegrationManagement
+	public static class ConfigEmptyAnnotation {
+
+		@Bean
+		public MessageChannel channel() {
+			return new DirectChannel();
+		}
+
 	}
 
 }

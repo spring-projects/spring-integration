@@ -55,7 +55,7 @@ public @interface EnableIntegrationManagement {
 	 * components. Overrides {@link #defaultCountsEnabled()} for matching bean names.
 	 * @return the patterns.
 	 */
-	String[] countsEnabled() default "";
+	String[] countsEnabled() default "*";
 
 	/**
 	 * A list of simple patterns for component names for which message statistics will be
@@ -74,7 +74,7 @@ public @interface EnableIntegrationManagement {
 	 * components.
 	 * @return the patterns.
 	 */
-	String[] statsEnabled() default "";
+	String[] statsEnabled() default "*";
 
 	/**
 	 * The default setting for enabling counts when a bean name is not matched by
