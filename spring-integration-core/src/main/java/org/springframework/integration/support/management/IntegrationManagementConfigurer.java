@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.support.management;
 
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -51,7 +53,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	private Boolean defaultStatsEnabled = false;
 
-	private MetricsFactory metricsFactory = new DefaultMetricsFactory();
+	private MetricsFactory metricsFactory;
 
 	private String metricsFactoryBeanName;
 
@@ -72,6 +74,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	/**
 	 * Set a metrics factory.
+	 * Has a precedence over {@link #metricsFactoryBeanName}.
+	 * Defaults to {@link DefaultMetricsFactory}.
 	 * @param metricsFactory the factory.
 	 * @since 4.2
 	 */
@@ -79,6 +83,12 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		this.metricsFactory = metricsFactory;
 	}
 
+	/**
+	 * Set a metrics factory bean name.
+	 * Is used if {@link #metricsFactory} isn't specified.
+	 * @param metricsFactory the factory.
+	 * @since 4.2
+	 */
 	public void setMetricsFactoryBeanName(String metricsFactory) {
 		this.metricsFactoryBeanName = metricsFactory;
 	}
@@ -117,7 +127,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	 * @param enabledStatsPatterns the patterns.
 	 */
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
-		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
+		Assert.notEmpty(enabledStatsPatterns, "enabledStatsPatterns must not be empty");
 		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
 	}
 
@@ -175,8 +185,11 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (this.metricsFactoryBeanName != null) {
+		if (this.metricsFactory == null && StringUtils.hasText(this.metricsFactoryBeanName)) {
 			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
+		}
+		if (this.metricsFactory == null) {
+			this.metricsFactory = new DefaultMetricsFactory();
 		}
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
