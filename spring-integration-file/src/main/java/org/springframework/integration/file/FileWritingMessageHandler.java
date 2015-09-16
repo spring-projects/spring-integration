@@ -51,9 +51,9 @@ import org.springframework.util.StringUtils;
 /**
  * A {@link MessageHandler} implementation that writes the Message payload to a
  * file. If the payload is a File object, it will copy the File to the specified
- * destination directory. If the payload is a byte array or String, it will write
- * it directly. Otherwise, the payload type is unsupported, and an Exception
- * will be thrown.
+ * destination directory. If the payload is a byte array, a String or an
+ * InputStream it will be written directly. Otherwise, the payload type is
+ * unsupported, and an Exception will be thrown.
  * <p>
  * To append a new-line after each write, set the
  * {@link #setAppendNewLine(boolean) appendNewLine} flag to 'true'. It is 'false' by default.
