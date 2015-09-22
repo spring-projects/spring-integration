@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -117,7 +118,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	 * @param enabledStatsPatterns the patterns.
 	 */
 	public void setEnabledStatsPatterns(String[] enabledStatsPatterns) {
-		Assert.notEmpty(enabledStatsPatterns, "componentNamePatterns must not be empty");
+		Assert.notEmpty(enabledStatsPatterns, "enabledStatsPatterns must not be empty");
 		this.enabledStatsPatterns = Arrays.copyOf(enabledStatsPatterns, enabledStatsPatterns.length);
 	}
 
@@ -175,7 +176,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (this.metricsFactoryBeanName != null) {
+		if (StringUtils.hasText(this.metricsFactoryBeanName)) {
 			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
 		}
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
