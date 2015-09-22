@@ -67,7 +67,7 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 	}
 
 	@Override
-	public Message<?> afterReceive(Message<?> result, MessageSource<?> aource) {
+	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
 		if (result == null) {
 			this.trigger.setPeriod(this.idlePollPeriod);
 		}
