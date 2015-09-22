@@ -193,7 +193,7 @@ Starting with _Spring Integration 4.2_, the `MessagePreparedStatementSetter` is 
 the specification of parameters on the `PreparedStatement` manually, in the `requestMessage` context.
 This class plays exactly the same role as `PreparedStatementSetter` in the standard Spring JDBC API.
 Actually it is invoked directly from an inline `PreparedStatementSetter` implementation, when the `JdbcMessageHandler`
-performs invokes `execute` on the `JdbcTemplate`.
+invokes `execute` on the `JdbcTemplate`.
 
 This functional interface option is mutually exclusive with `sqlParameterSourceFactory` and can be used as a more
 powerful alternative to populate parameters of the `PreparedStatement` from the `requestMessage`.
