@@ -67,6 +67,10 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		catch (NoSuchBeanDefinitionException e) {
 			// Skip the @Bean for farther endpoint processing.
 			// Mainly by the @Conditional reason.
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("The bean for method [" + method + "] doesn't exist. " +
+						"Mainly by the @Conditional reason.");
+			}
 			return null;
 		}
 

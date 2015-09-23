@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -88,6 +90,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
 
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
@@ -130,6 +134,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			catch (NoSuchBeanDefinitionException e) {
 				// Skip the @Bean for farther endpoint processing.
 				// Mainly by the @Conditional reason.
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("The bean for method [" + method + "] doesn't exist. " +
+							"Mainly by the @Conditional reason.");
+				}
 				return null;
 			}
 		}
