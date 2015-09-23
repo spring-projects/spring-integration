@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -31,6 +33,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.annotation.Bean;
@@ -87,6 +90,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected static final String SEND_TIMEOUT_ATTRIBUTE = "sendTimeout";
 
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
@@ -122,6 +127,20 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
+		if (this.beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			try {
+				resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				// Skip the @Bean for farther endpoint processing.
+				// Mainly by the @Conditional reason.
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("The bean for method [" + method + "] doesn't exist. " +
+							"Mainly by the @Conditional reason.");
+				}
+				return null;
+			}
+		}
 		MessageHandler handler = createHandler(bean, method, annotations);
 		setAdviceChainIfPresent(beanName, annotations, handler);
 		if (handler instanceof Orderable) {

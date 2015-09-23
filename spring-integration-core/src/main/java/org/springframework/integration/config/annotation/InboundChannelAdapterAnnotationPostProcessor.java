@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -59,7 +60,19 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		String channelName = MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
 		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
 
-		MessageSource<?> messageSource = this.createMessageSource(bean, beanName, method);
+		MessageSource<?> messageSource = null;
+		try {
+			messageSource = createMessageSource(bean, beanName, method);
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			// Skip the @Bean for farther endpoint processing.
+			// Mainly by the @Conditional reason.
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("The bean for method [" + method + "] doesn't exist. " +
+						"Mainly by the @Conditional reason.");
+			}
+			return null;
+		}
 
 		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
 

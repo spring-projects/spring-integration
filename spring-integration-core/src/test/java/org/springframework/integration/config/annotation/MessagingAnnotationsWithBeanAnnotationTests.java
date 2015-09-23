@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -36,16 +37,20 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
 import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
+import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
@@ -93,6 +98,22 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Resource(name="collector")
 	private List<Message<?>> collector;
 
+	@Autowired(required = false)
+	@Qualifier("skippedMessageHandler")
+	private MessageHandler skippedMessageHandler;
+
+	@Autowired(required = false)
+	@Qualifier("skippedChannel")
+	private MessageChannel skippedChannel;
+
+	@Autowired(required = false)
+	@Qualifier("skippedChannel2")
+	private MessageChannel skippedChannel2;
+
+	@Autowired(required = false)
+	@Qualifier("skippedMessageSource")
+	private MessageSource<?> skippedMessageSource;
+
 	@Test
 	public void testMessagingAnnotationsFlow() {
 		this.sourcePollingChannelAdapter.start();
@@ -113,6 +134,11 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			assertThat(messageHistoryString, Matchers.containsString("serviceChannel"));
 			assertThat(messageHistoryString, Matchers.not(Matchers.containsString("discardChannel")));
 		}
+
+		assertNull(this.skippedMessageHandler);
+		assertNull(this.skippedChannel);
+		assertNull(this.skippedChannel2);
+		assertNull(this.skippedMessageSource);
 	}
 
 	@Test
@@ -235,6 +261,38 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 					collector.add(message);
 				}
 			};
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "skippedChannel")
+		@Splitter(inputChannel = "skippedChannel2")
+		@Router(inputChannel = "skippedChannel3")
+		@Transformer(inputChannel = "skippedChannel4")
+		@Filter(inputChannel = "skippedChannel5")
+		@Profile("foo")
+		public MessageHandler skippedMessageHandler() {
+			return System.out::println;
+		}
+
+		@Bean
+		@BridgeFrom("skippedChannel6")
+		@Profile("foo")
+		public MessageChannel skippedChannel1() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@BridgeTo
+		@Profile("foo")
+		public MessageChannel skippedChannel2() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@InboundChannelAdapter("serviceChannel")
+		@Profile("foo")
+		public MessageSource<?> skippedMessageSource() {
+			return () -> new GenericMessage<>("foo");
 		}
 
 	}

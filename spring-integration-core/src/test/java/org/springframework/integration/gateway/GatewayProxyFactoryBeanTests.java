@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ public class GatewayProxyFactoryBeanTests {
 				}
 			});
 		}
-		latch.await(10, TimeUnit.SECONDS);
+		latch.await(30, TimeUnit.SECONDS);
 		for (int i = 0; i < numRequests; i++) {
 			assertEquals("test-" + i + "!!!", results[i]);
 		}

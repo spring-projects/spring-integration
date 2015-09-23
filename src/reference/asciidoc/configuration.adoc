@@ -16,7 +16,7 @@ Direct usage of the API is of course always an option, but we expect that most u
 === Namespace Support
 
 Spring Integration components can be configured with XML elements that map directly to the terminology and concepts of enterprise integration.
-In many cases, the element names match those of thehttp://www.eaipatterns.com[Enterprise Integration Patterns].
+In many cases, the element names match those of the http://www.eaipatterns.com[Enterprise Integration Patterns].
 
 To enable Spring Integration's core namespace support within your Spring configuration files, add the following namespace reference and schema mapping in your top-level 'beans' element:
 
@@ -531,6 +531,20 @@ For example the endpoint (`SourcePollingChannelAdapter`) for the `consoleSource(
 `myFlowConfiguration.consoleSource.inboundChannelAdapter`.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean; channels are not automatically declared in this case.
+
+NOTE: With Java & Annotation configuration we can use any `@Conditional` (e.g. `@Profile`) definition on the `@Bean`
+method level, meaning to skip the bean registration by some condition reason:
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "skippedChannel")
+@Profile("foo")
+public MessageHandler skipped() {
+	return System.out::println;
+}
+----
+Together with the existing Spring Container logic, the Messaging Endpoint bean, based on the `@ServiceActivator`
+ annotation, won't be registered as well.
 
 ==== Creating a Bridge with Annotations
 
