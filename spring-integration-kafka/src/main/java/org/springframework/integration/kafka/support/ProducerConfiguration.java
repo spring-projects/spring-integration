@@ -125,7 +125,7 @@ public class ProducerConfiguration<K, V> {
 
 	private V convertPayloadIfNecessary(Object messagePayload) {
 		if (messagePayload != null) {
-			if (getProducerMetadata().getKeyClassType().isAssignableFrom(
+			if (getProducerMetadata().getValueClassType().isAssignableFrom(
 					messagePayload.getClass())) {
 				return getProducerMetadata().getValueClassType().cast(messagePayload);
 			}
