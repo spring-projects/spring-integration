@@ -107,6 +107,11 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 	}
 
 	@Override
+	public String getComponentType() {
+		return "barrier";
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object key = this.correlationStrategy.getCorrelationKey(requestMessage);
 		if (key == null) {

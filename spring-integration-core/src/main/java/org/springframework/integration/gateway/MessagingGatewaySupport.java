@@ -16,6 +16,8 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -28,6 +30,7 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -47,7 +50,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
+public abstract class MessagingGatewaySupport extends AbstractEndpoint
+		implements TrackableComponent, MessageSourceMetrics {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -61,6 +65,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
 	private final boolean errorOnTimeout;
+
+	private final AtomicLong messageCount = new AtomicLong();
 
 	private volatile MessageChannel requestChannel;
 
@@ -82,6 +88,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	private volatile boolean initialized;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
+
+	private volatile String managedType;
+
+	private volatile String managedName;
+
+	private volatile boolean countsEnabled;
+
+	private volatile boolean loggingEnabled = true;
 
 
 	/**
@@ -219,8 +233,58 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	@Override
+	public int getMessageCount() {
+		return (int) this.messageCount.get();
+	}
+
+	@Override
+	public long getMessageCountLong() {
+		return this.messageCount.get();
+	}
+
+	@Override
+	public void setManagedName(String name) {
+		this.managedName = name;
+	}
+
+	@Override
+	public String getManagedName() {
+		return this.managedName;
+	}
+
+	@Override
+	public void setManagedType(String type) {
+		this.managedType = type;
+	}
+
+	@Override
+	public String getManagedType() {
+		return this.managedType;
+	}
+
+	@Override
 	public String getComponentType() {
 		return "gateway";
+	}
+
+	@Override
+	public void setLoggingEnabled(boolean enabled) {
+		this.loggingEnabled = enabled;
+	}
+
+	@Override
+	public boolean isLoggingEnabled() {
+		return this.loggingEnabled;
+	}
+
+	@Override
+	public void setCountsEnabled(boolean countsEnabled) {
+		this.countsEnabled = countsEnabled;
+	}
+
+	@Override
+	public boolean isCountsEnabled() {
+		return this.countsEnabled;
 	}
 
 	@Override
@@ -292,6 +356,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		Assert.state(requestChannel != null,
 				"send is not supported, because no request channel has been configured");
 		try {
+			if (this.countsEnabled) {
+				this.messageCount.incrementAndGet();
+			}
 			this.messagingTemplate.convertAndSend(requestChannel, object, this.historyWritingPostProcessor);
 		}
 		catch (Exception e) {
@@ -336,6 +403,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		Object reply = null;
 		Throwable error = null;
 		try {
+			if (this.countsEnabled) {
+				this.messageCount.incrementAndGet();
+			}
 			if (shouldConvert) {
 				reply = this.messagingTemplate.convertSendAndReceive(requestChannel, object, null,
 						this.historyWritingPostProcessor);
@@ -460,6 +530,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (this.replyMessageCorrelator != null) {
 			this.replyMessageCorrelator.stop();
 		}
+	}
+
+	@Override
+	public void reset() {
+		this.messageCount.set(0);
 	}
 
 
