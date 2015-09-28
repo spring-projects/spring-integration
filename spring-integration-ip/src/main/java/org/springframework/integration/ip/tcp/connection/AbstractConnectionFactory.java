@@ -595,8 +595,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 								logger.warn("Timing out TcpNioConnection " +
 										    connection.getConnectionId());
 							}
-							connection.publishConnectionExceptionEvent(new SocketTimeoutException("Timing out connection"));
+							SocketTimeoutException exception = new SocketTimeoutException("Timing out connection");
+							connection.publishConnectionExceptionEvent(exception);
 							connection.timeout();
+							connection.sendExceptionToListener(exception);
 						}
 					}
 				}

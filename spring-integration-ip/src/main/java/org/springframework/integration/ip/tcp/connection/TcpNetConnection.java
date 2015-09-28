@@ -249,8 +249,8 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 									 e.getClass().getSimpleName() +
 								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 					}
-					this.sendExceptionToListener(e);
 				}
+				this.sendExceptionToListener(e);
 			}
 		}
 		return doClose;
