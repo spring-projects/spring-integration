@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.setReplyChannel(replyChannel);
 		TestApplicationContext applicationContext = TestUtils.createTestApplicationContext();
 		this.messagingGateway.setBeanFactory(applicationContext);
+		this.messagingGateway.setCountsEnabled(true);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 		applicationContext.refresh();
@@ -83,6 +84,7 @@ public class MessagingGatewayTests {
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(true);
 		this.messagingGateway.send(messageMock);
 		Mockito.verify(requestChannel).send(messageMock, 1000L);
+		assertEquals(1, this.messagingGateway.getMessageCount());
 	}
 
 	@Test(expected=MessageDeliveryException.class)
