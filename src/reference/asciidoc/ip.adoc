@@ -213,10 +213,10 @@ The `ByteArrayStxEtxSerializer`, converts a byte array to a stream of bytes prec
 The `ByteArrayLengthHeaderSerializer`, converts a byte array to a stream of bytes preceded by a binary length in network byte order (big endian).
 This a very efficient deserializer because it does not have to parse every byte looking for a termination character sequence.
 It can also be used for payloads containing binary data; the above serializers only support text in the payload.
-The default size of the length header is 4 bytes (Integer), allowing for messages up to 2**31-1 bytes.
-However, the length header can be a single byte (unsigned) for messages up to 255 bytes, or an unsigned short (2 bytes) for messages up to 2**16 bytes.
+The default size of the length header is 4 bytes (Integer), allowing for messages up to (2^31 - 1) bytes.
+However, the length header can be a single byte (unsigned) for messages up to 255 bytes, or an unsigned short (2 bytes) for messages up to (2^16 - 1) bytes.
 If you need any other format for the header, you can subclass this class and provide implementations for the readHeader and writeHeader methods.
-The absolute maximum data size supported is 2**31-1 bytes.
+The absolute maximum data size supported is (2^31 - 1) bytes.
 
 The `ByteArrayRawSerializer`, converts a byte array to a stream of bytes and adds no additional message demarcation data; with this (de)serializer, the end of a message is indicated by the client closing the socket in an orderly fashion.
 When using this serializer, message reception will hang until the client closes the socket, or a timeout occurs; a timeout will NOT result in a message.
