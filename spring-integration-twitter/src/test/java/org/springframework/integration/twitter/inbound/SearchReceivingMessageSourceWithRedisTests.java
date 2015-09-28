@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,8 +95,10 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 	@Test
 	@RedisAvailable
 	public void testPollForTweetsThreeResultsWithRedisMetadataStore() throws Exception {
-		MetadataStore metadataStore = TestUtils.getPropertyValue(this.twitterSearchAdapter, "source.metadataStore", MetadataStore.class);
-		assertTrue("Exptected metadataStore to be an instance of RedisMetadataStore", metadataStore instanceof RedisMetadataStore);
+		MetadataStore metadataStore = TestUtils.getPropertyValue(this.twitterSearchAdapter, "source.metadataStore",
+				MetadataStore.class);
+		assertTrue("Expected metadataStore to be an instance of RedisMetadataStore",
+				metadataStore instanceof RedisMetadataStore);
 		assertSame(this.metadataStore, metadataStore);
 
 		assertEquals("twitterSearchAdapter.74", metadataKey);
@@ -144,9 +146,12 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 
 			final SearchOperations so = mock(SearchOperations.class);
 
-			final Tweet tweet3 = new Tweet(3L, "first", new GregorianCalendar(2013, 2, 20).getTime(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
-			final Tweet tweet1 = new Tweet(1L, "first", new GregorianCalendar(2013, 0, 20).getTime(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
-			final Tweet tweet2 = new Tweet(2L, "first", new GregorianCalendar(2013, 1, 20).getTime(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
+			final Tweet tweet3 = new Tweet(3L, "3", "first", new GregorianCalendar(2013, 2, 20).getTime(), "fromUser",
+					"profileImageUrl", 888L, 999L, "languageCode", "source");
+			final Tweet tweet1 = new Tweet(1L, "1", "first", new GregorianCalendar(2013, 0, 20).getTime(), "fromUser",
+					"profileImageUrl", 888L, 999L, "languageCode", "source");
+			final Tweet tweet2 = new Tweet(2L, "2", "first", new GregorianCalendar(2013, 1, 20).getTime(), "fromUser",
+					"profileImageUrl", 888L, 999L, "languageCode", "source");
 
 			final List<Tweet> tweets = new ArrayList<Tweet>();
 

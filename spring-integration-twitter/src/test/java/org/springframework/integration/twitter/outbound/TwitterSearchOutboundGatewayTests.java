@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 	@Test
 	public void testStringQuery() {
-		Tweet tweet = new Tweet(1L, "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
+		Tweet tweet = new Tweet(1L, "1", "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(new Answer<SearchResults>() {
@@ -104,7 +104,7 @@ public class TwitterSearchOutboundGatewayTests {
 	public void testStringQueryCustomLimit() {
 		this.gateway.setSearchArgsExpression(new SpelExpressionParser()
 				.parseExpression("{payload, 30}"));
-		Tweet tweet = new Tweet(1L, "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
+		Tweet tweet = new Tweet(1L, "1", "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(new Answer<SearchResults>() {
@@ -131,7 +131,7 @@ public class TwitterSearchOutboundGatewayTests {
 	public void testStringQueryCustomExpression() {
 		this.gateway.setSearchArgsExpression(new SpelExpressionParser()
 				.parseExpression("{'bar', 1, 2, 3}"));
-		Tweet tweet = new Tweet(1L, "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
+		Tweet tweet = new Tweet(1L, "1", "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(new Answer<SearchResults>() {
@@ -158,7 +158,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 	@Test
 	public void testSearchParamsQuery() {
-		Tweet tweet = new Tweet(1L, "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
+		Tweet tweet = new Tweet(1L, "1", "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		final SearchParameters parameters = new SearchParameters("bar");
@@ -185,7 +185,7 @@ public class TwitterSearchOutboundGatewayTests {
 	public void testSearchParamsQueryCustomExpression() {
 		this.gateway.setSearchArgsExpression(new SpelExpressionParser()
 				.parseExpression("new SearchParameters('foo' + payload).count(5).sinceId(11)"));
-		Tweet tweet = new Tweet(1L, "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
+		Tweet tweet = new Tweet(1L, "1", "foo", new Date(), "bar", "baz", 0L, 0L, "qux", "fiz");
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(new Answer<SearchResults>() {

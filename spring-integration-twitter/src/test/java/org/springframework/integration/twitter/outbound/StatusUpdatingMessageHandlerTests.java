@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors
+ * Copyright 2002-2015 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.twitter.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -98,11 +99,12 @@ public class StatusUpdatingMessageHandlerTests {
 				.build());
 
 		Mockito.verify(timelineOperations).updateStatus(argument.capture());
-		MultiValueMap<String, Object> requestParameters = argument.getValue().toRequestParameters();
+		TweetData tweetData = argument.getValue();
+		MultiValueMap<String, Object> requestParameters = tweetData.toRequestParameters();
 		assertEquals("bar", requestParameters.getFirst("status"));
-		assertEquals(media, requestParameters.getFirst("media"));
-
-
+		assertNull(requestParameters.getFirst("media"));
+		MultiValueMap<String, Object> uploadMediaParameters = tweetData.toUploadMediaParameters();
+		assertEquals(media, uploadMediaParameters.getFirst("media"));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,9 +150,12 @@ public class SearchReceivingMessageSourceTests {
 
 		final SearchOperations so = mock(SearchOperations.class);
 
-		final Tweet tweet1 = new Tweet(1L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
-		final Tweet tweet2 = new Tweet(2L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
-		final Tweet tweet3 = new Tweet(3L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
+		final Tweet tweet1 = new Tweet(1L, "1", "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
+				"languageCode", "source");
+		final Tweet tweet2 = new Tweet(2L, "2",  "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
+				"languageCode", "source");
+		final Tweet tweet3 = new Tweet(3L, "3", "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
+				"languageCode", "source");
 
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 
