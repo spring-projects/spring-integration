@@ -247,8 +247,8 @@ public class TcpNetConnection extends TcpConnectionSupport {
 									 e.getClass().getSimpleName() +
 								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 					}
-					this.sendExceptionToListener(e);
 				}
+				this.sendExceptionToListener(e);
 			}
 		}
 		return doClose;
