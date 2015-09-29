@@ -274,6 +274,52 @@ Only then is the poll operation considered complete, and the poller will wait fo
 You can alternatively set the 'max-messages-per-poll' value to a positive value indicating the upward limit of Messages to be created from files with each poll.
 For example, a value of 10 means that on each poll it will attempt to process no more than 10 files.
 
+==== Recovering from Failures
+
+It is important to understand the architecture of the adapter.
+There is a file synchronizer which fetches the files, and a `FileReadingMessageSource` to emit a message for each
+synchronized file.
+As discussed above, there are two filters involved.
+The `filter` attribute (and patterns) refers to the remote (FTP) file list - to avoid fetching files that have already
+been fetched.
+The `local-filter` is used by the `FileReadingMessageSource` to determine which files are to be sent as messages.
+
+The synchronizer lists the remote files and consults its filter; the files are then transferred.
+If an IO error occurs during file transfer, any files that have already been added to the filter are removed so they
+are eligible to be re-fetched on the next poll.
+This only applies if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
+
+If, after synchronizing the files, an error occurs on the downstream flow processing a file, there is __no__ automatic
+rollback of the filter so the failed file will __not__ be reprocessed by default.
+
+If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate
+the removal of the failed file from the filter.
+This will work for any `ResettableFileListFilter`.
+
+[source, xml]
+----
+<int-ftp:inbound-channel-adapter id="ftpAdapter"
+		session-factory="ftpSessionFactory"
+		channel="requestChannel"
+		remote-directory-expression="'/sftpSource'"
+		local-directory="file:myLocalDir"
+		auto-create-local-directory="true"
+		filename-pattern="*.txt"
+		local-filter="acceptOnceFilter">
+	<int:poller fixed-rate="1000">
+		<int:transactional synchronization-factory="syncFactory" />
+	</int:poller>
+</int-ftp:inbound-channel-adapter>
+
+<bean id="acceptOnceFilter" class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-rollback expression="@acceptOnceFilter.remove(payload)" />
+</int:transaction-synchronization-factory>
+
+<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+----
+
 [[ftp-outbound]]
 === FTP Outbound Channel Adapter
 

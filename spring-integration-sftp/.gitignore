@@ -1,3 +1,4 @@
 local-test-dir/*.test
+local-test-dir/rollback/*.txt
 remote-target-dir/*foo*
 remote-target-dir/*test*

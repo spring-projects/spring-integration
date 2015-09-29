@@ -1,1 +1,1 @@
-Don't delete. This directory is used by test cases
+don't delete this dir used for testing
