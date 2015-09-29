@@ -101,11 +101,12 @@ public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> imple
 	}
 
 	@Override
-	public void remove(F fileToRemove) {
-		this.seenSet.remove(fileToRemove);
+	public boolean remove(F fileToRemove) {
+		boolean removed = this.seenSet.remove(fileToRemove);
 		if (this.seen != null) {
 			this.seen.remove(fileToRemove);
 		}
+		return removed;
 	}
 
 }

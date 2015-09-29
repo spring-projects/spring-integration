@@ -32,7 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
- * @since 4.2
+ * @since 4.1.7
  *
  */
 @ContextConfiguration
@@ -69,8 +69,7 @@ public class RollbackLocalFilterTests {
 			if (this.shouldCrash.compareAndSet(false, true)) {
 				throw new RuntimeException("foo");
 			}
-			this.
-			file = in;
+			this.file = in;
 		}
 	}
 

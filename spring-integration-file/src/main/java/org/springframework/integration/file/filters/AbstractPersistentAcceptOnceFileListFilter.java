@@ -108,9 +108,10 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	}
 
 	@Override
-	public void remove(F fileToRemove) {
-		this.store.remove(buildKey(fileToRemove));
+	public boolean remove(F fileToRemove) {
+		String removed = this.store.remove(buildKey(fileToRemove));
 		flushIfNeeded();
+		return removed != null;
 	}
 
 	@Override

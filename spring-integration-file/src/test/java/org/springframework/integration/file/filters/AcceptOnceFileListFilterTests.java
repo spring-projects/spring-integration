@@ -80,7 +80,8 @@ public class AcceptOnceFileListFilterTests {
 	@Test
 	public void testRollbackComposite() {
 		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
-		CompositeFileListFilter<String> composite = new CompositeFileListFilter<>(Collections.singletonList(filter));
+		CompositeFileListFilter<String> composite = new CompositeFileListFilter<String>(
+				Collections.singletonList(filter));
 		doTestRollback(composite);
 	}
 
