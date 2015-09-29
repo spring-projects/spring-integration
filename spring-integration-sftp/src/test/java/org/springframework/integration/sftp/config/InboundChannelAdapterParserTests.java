@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,17 +31,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Oleg Zhurakousky
@@ -57,16 +58,17 @@ public class InboundChannelAdapterParserTests {
 
 	@Test
 	public void testAutoStartup() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("SftpInboundAutostartup-context.xml", this.getClass());
 
 		SourcePollingChannelAdapter adapter = context.getBean("sftpAutoStartup", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isRunning());
+		context.close();
 	}
 
 	@Test
 	public void testWithLocalFiles() throws Exception{
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("src/main/resources").exists());
 
@@ -90,43 +92,48 @@ public class InboundChannelAdapterParserTests {
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
-		assertTrue(TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
+		assertTrue(TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class)
+				.contains(acceptAllFilter));
+		context.close();
 	}
 
 	@Test
 	public void testAutoChannel() {
-		ApplicationContext context =
+		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		// Auto-created channel
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
-		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter",
+				SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		context.close();
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
 	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
 	public void testFailWithFilePatternAndFilter() throws Exception{
 		assertTrue(!new File("target/bar").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml", this.getClass()).close();
 	}
 
 	@Test @Ignore
 	public void testLocalFilesAreFound() throws Exception{
 		assertTrue(new File("target").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass()).close();
 		assertTrue(new File("target").exists());
 	}
 
 	@Test
 	public void testLocalDirAutoCreated() throws Exception{
 		assertFalse(new File("foo").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass()).close();
 		assertTrue(new File("foo").exists());
 	}
 
 	@Test(expected=BeanCreationException.class)
 	public void testLocalDirAutoCreateFailed() throws Exception{
-		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail-autocreate.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail-autocreate.xml",
+				this.getClass()).close();
 	}
 
 	@After
