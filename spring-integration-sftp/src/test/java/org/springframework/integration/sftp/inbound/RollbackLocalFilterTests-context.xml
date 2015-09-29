@@ -10,7 +10,7 @@
 	<int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
-			remote-directory-expression="'/sftpSource'"
+			remote-directory="/sftpSource"
 			local-directory="file:local-test-dir/rollback"
 			auto-create-local-directory="true"
 			filename-pattern="sftpSource1.txt"
