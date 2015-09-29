@@ -11,7 +11,7 @@ Some of these are also capable of sending reply Messages.
 Sending Messages is quite straightforward.
 As shown above in <<channel>>, it's easy to _send_ a Message to a Message Channel.
 However, receiving is a bit more complicated.
-The main reason is that there are two types of consumers:http://www.eaipatterns.com/PollingConsumer.html[Polling Consumers] and http://www.eaipatterns.com/EventDrivenConsumer.html[Event Driven Consumers].
+The main reason is that there are two types of consumers: http://www.eaipatterns.com/PollingConsumer.html[Polling Consumers] and http://www.eaipatterns.com/EventDrivenConsumer.html[Event Driven Consumers].
 
 Of the two, Event Driven Consumers are much simpler.
 Without any need to manage and schedule a separate poller thread, they are essentially just listeners with a callback method.
@@ -187,7 +187,8 @@ If this attribute is set, none of the following attributes must be specified: `f
 
 <2> By setting this attribute to _true_, it is possible to define exactly one (1) global default poller.
 An exception is raised if more than one default poller is defined in the application context.
-Any endpoints connected to a PollableChannel (PollingConsumer) or any SourcePollingChannelAdapter that does not have any explicitly configured poller will then use the global default Poller._Optional_.
+Any endpoints connected to a PollableChannel (PollingConsumer) or any SourcePollingChannelAdapter that does not have any explicitly configured poller will then use the global default Poller.
+_Optional_.
 Defaults to `false`.
 
 
@@ -223,7 +224,7 @@ If not specified it defaults to 1000 (milliseconds).
 
 <9> Bean reference to another top-level poller.
 The `ref` attribute must not be present on the top-level `poller` element.
-However, if this attribute is set, none of the following attributes must be specified: `fixed-rate`, `trigger`, `cron`, `fixed-deleay`.
+However, if this attribute is set, none of the following attributes must be specified: `fixed-rate`, `trigger`, `cron`, `fixed-delay`.
 
 
 <10> Provides the ability to reference a custom _task executor_.
@@ -412,7 +413,7 @@ However, you can define your own implementation of the `org.springframework.sche
 You could even use the PeriodicTrigger as a starting point.
 Then, you can add a setter for the interval (period), or you could even embed your own throttling logic within the trigger itself if desired.
 The _period_ property will be used with each call to _nextExecutionTime_ to schedule the next poll.
-To use this custom trigger within pollers, declare the bean defintion of the custom Trigger in your application context and inject the dependency into your Poller configuration using the `trigger` attribute, which references the custom Trigger bean instance.
+To use this custom trigger within pollers, declare the bean definition of the custom Trigger in your application context and inject the dependency into your Poller configuration using the `trigger` attribute, which references the custom Trigger bean instance.
 You can now obtain a reference to the Trigger bean and the polling interval can be changed between polls.
 
 For an example, please see the Spring Integration Samples project.
@@ -545,7 +546,7 @@ One of the ways to handle this is to set the `queue-capacity` attribute of the T
 value.
 You can also manage it by specifying what to do with messages that can not be queued by setting the `rejection-policy` attribute of the Task Executor (e.g., DISCARD).
 In other words, there are certain details you must understand with regard to configuring the TaskExecutor.
-Please refer to - _Section 25 - Task Execution and Scheduling_ of the Spring reference manual for more detail on the subject.
+Please refer to http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] of the Spring reference manual for more detail on the subject.
 
 [[endpoint-inner]]
 ==== Endpoint Inner Beans
