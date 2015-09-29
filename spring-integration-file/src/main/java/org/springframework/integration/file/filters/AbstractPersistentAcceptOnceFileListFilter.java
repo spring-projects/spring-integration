@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends AbstractFileListFilter<F>
-		implements ReversibleFileListFilter<F>, Closeable {
+		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>,  Closeable {
 
 	protected final ConcurrentMetadataStore store;
 
@@ -102,10 +102,15 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 				rollingBack = true;
 			}
 			if (rollingBack) {
-				this.store.remove(buildKey(fileToRollback));
-				flushIfNeeded();
+				remove(fileToRollback);
 			}
 		}
+	}
+
+	@Override
+	public void remove(F fileToRemove) {
+		this.store.remove(buildKey(fileToRemove));
+		flushIfNeeded();
 	}
 
 	@Override

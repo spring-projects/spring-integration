@@ -359,6 +359,52 @@ If you need a custom filter implementation simply include a reference in your ad
 
 ----
 
+==== Recovering from Failures
+
+It is important to understand the architecture of the adapter.
+There is a file synchronizer which fetches the files, and a `FileReadingMessageSource` to emit a message for each
+synchronized file.
+As discussed above, there are two filters involved.
+The `filter` attribute (and patterns) refers to the remote (SFTP) file list - to avoid fetching files that have already
+been fetched.
+The `local-filter` is used by the `FileReadingMessageSource` to determine which files are to be sent as messages.
+
+The synchronizer lists the remote files and consults its filter; the files are then transferred.
+If an IO error occurs during file transfer, any files that have already been added to the filter are removed so they
+are eligible to be re-fetched on the next poll.
+This only applies if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
+
+If, after synchronizing the files, an error occurs on the downstream flow processing a file, there is _no_ automatic
+rollback of the filter so the failed file will _not_ be reprocessed by default.
+
+If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate
+the removal of the failed file from the filter.
+This will work for any `ResettableFileListFilter`.
+
+[source, xml]
+----
+<int-sftp:inbound-channel-adapter id="sftpAdapter"
+		session-factory="sftpSessionFactory"
+		channel="requestChannel"
+		remote-directory-expression="'/sftpSource'"
+		local-directory="file:myLocalDir"
+		auto-create-local-directory="true"
+		filename-pattern="*.txt"
+		local-filter="acceptOnceFilter">
+	<int:poller fixed-rate="1000">
+		<int:transactional synchronization-factory="syncFactory" />
+	</int:poller>
+</int-sftp:inbound-channel-adapter>
+
+<bean id="acceptOnceFilter" class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-rollback expression="@acceptOnceFilter.remove(payload)" />
+</int:transaction-synchronization-factory>
+
+<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+----
+
 [[sftp-outbound]]
 === SFTP Outbound Channel Adapter
 

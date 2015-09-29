@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  *
  * @param <F> The type that will be filtered.
  */
-public class CompositeFileListFilter<F> implements FileListFilter<F>, Closeable {
+public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, Closeable {
 
 	private final Set<FileListFilter<F>> fileFilters;
 
@@ -109,6 +109,15 @@ public class CompositeFileListFilter<F> implements FileListFilter<F>, Closeable 
 			results.retainAll(currentResults);
 		}
 		return results;
+	}
+
+	@Override
+	public void rollback(F file, List<F> files) {
+		for (FileListFilter<F> fileFilter : this.fileFilters) {
+			if (fileFilter instanceof ReversibleFileListFilter) {
+				((ReversibleFileListFilter<F>) fileFilter).rollback(file, files);
+			}
+		}
 	}
 
 }

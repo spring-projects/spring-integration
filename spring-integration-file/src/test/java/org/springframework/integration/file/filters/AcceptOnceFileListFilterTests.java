@@ -24,6 +24,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -74,6 +75,13 @@ public class AcceptOnceFileListFilterTests {
 	public void testRollback() {
 		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
 		doTestRollback(filter);
+	}
+
+	@Test
+	public void testRollbackComposite() {
+		AcceptOnceFileListFilter<String> filter = new AcceptOnceFileListFilter<String>();
+		CompositeFileListFilter<String> composite = new CompositeFileListFilter<>(Collections.singletonList(filter));
+		doTestRollback(composite);
 	}
 
 	protected void doTestRollback(ReversibleFileListFilter<String> filter) {
