@@ -42,7 +42,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -86,8 +85,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	@Test
 	public void testCopyFileToLocalDir() throws Exception {
-		File localDirectoy = new File("test");
-		assertFalse(localDirectoy.exists());
+		File localDirectory = new File("test");
+		assertFalse(localDirectory.exists());
 
 		TestSftpSessionFactory ftpSessionFactory = new TestSftpSessionFactory();
 		ftpSessionFactory.setUser("kermit");
@@ -114,7 +113,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 		SftpInboundFileSynchronizingMessageSource ms = new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
-		ms.setLocalDirectory(localDirectoy);
+		ms.setLocalDirectory(localDirectory);
 		ms.setBeanFactory(mock(BeanFactory.class));
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.test$"));
@@ -138,7 +137,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertNull(nothing);
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
-		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
+		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory);
 
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
@@ -199,6 +198,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 				throw new RuntimeException("Failed to create mock sftp session", e);
 			}
 		}
+		
 	}
 
 }

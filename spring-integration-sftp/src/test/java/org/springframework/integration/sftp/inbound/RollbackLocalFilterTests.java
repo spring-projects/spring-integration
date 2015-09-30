@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.inbound;
 
 import static org.junit.Assert.assertEquals;
@@ -29,16 +30,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.1.7
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class RollbackLocalFilterTests {
 
 	@BeforeClass
@@ -73,11 +77,12 @@ public class RollbackLocalFilterTests {
 		}
 
 		public void handle(File in) {
-			latch.countDown();
 			if (this.shouldCrash.compareAndSet(false, true)) {
+				latch.countDown();
 				throw new RuntimeException("foo");
 			}
 			this.file = in;
+			latch.countDown();
 		}
 	}
 
