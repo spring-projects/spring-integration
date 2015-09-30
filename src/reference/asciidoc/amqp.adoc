@@ -201,9 +201,9 @@ For this reason, you must define the container using a normal Spring `<bean/>` d
 
 <bean id="container"
  class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
-	<property name="connectionFactory" ref="connectionFactory" />
-	<property name="queueNames" value="foo.queue" />
-	<property name="defaultRequeueRejected" value="false"/>
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="queueNames" value="foo.queue" />
+    <property name="defaultRequeueRejected" value="false"/>
 </bean>
 ----
 =====
@@ -212,6 +212,83 @@ IMPORTANT: Even though the Spring Integration JMS and AMQP support is very simil
 The JMS Inbound Channel Adapter is using a JmsDestinationPollingSource under the covers and expects a configured Poller.
 The AMQP Inbound Channel Adapter on the other side uses a`SimpleMessageListenerContainer` and is message driven.
 In that regard it is more similar to the JMS Message Driven Channel Adapter.
+
+==== Configuring with JavaConfig
+
+The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(AmqpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public MessageChannel amqpInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public AmqpInboundChannelAdapter inbound(SimpleMessageListenerContainer listenerContainer,
+            @Qualifier("amqpInputChannel") MessageChannel channel) {
+        AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
+        adapter.setOutputChannel(channel);
+        return adapter;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueueNames("foo");
+        container.setConcurrentConsumers(2);
+        // ...
+        return container;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel="amqpInputChannel")
+    public MessageHandler handler() {
+        return new MessageHandler() {
+
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+                System.out.println(message.getPayload());
+            }
+
+        };
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(AmqpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow amqpInbound(ConnectionFactory connectionFactory) {
+        return IntegrationFlows.from(Amqp.inboundAdapter(connectionFactory, "foo"))
+                .handle(m -> System.out.println(m.getPayload()))
+                .get();
+    }
+
+}
+----
 
 [[amqp-inbound-gateway]]
 === Inbound Gateway
@@ -282,6 +359,84 @@ You __must__ either specify this option, or configure a default `exchange` and `
 if you anticipate cases when no `replyTo` property exists in the request message.
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
+
+==== Configuring with JavaConfig
+
+The following Spring Boot application provides an example of configuring the inbound gateway using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(AmqpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public MessageChannel amqpInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public AmqpInboundGateway inbound(SimpleMessageListenerContainer listenerContainer,
+            @Qualifier("amqpInputChannel") MessageChannel channel) {
+        AmqpInboundGateway gateway = new AmqpInboundGateway(listenerContainer);
+        gateway.setRequestChannel(channel);
+        gateway.setDefaultReplyTo("bar");
+        return gateway;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+        container.setQueueNames("foo");
+        container.setConcurrentConsumers(2);
+        // ...
+        return container;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel="amqpInputChannel")
+    public MessageHandler handler() {
+        return new AbstractReplyProducingMessageHandler() {
+
+            @Override
+            protected Object handleRequestMessage(Message<?> requestMessage) {
+                return "reply to " + requestMessage.getPayload();
+            }
+
+        };
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound gateway using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(AmqpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean // return the upper cased payload
+    public IntegrationFlow amqpInboundGateway(ConnectionFactory connectionFactory) {
+        return IntegrationFlows.from(Amqp.inboundGateway(connectionFactory, "foo"))
+                .transform(String.class, String::toUpperCase)
+                .get();
+    }
+
+}
+----
 
 [[amqp-inbound-ack]]
 === Inbound Endpoint Acknowledge Mode
