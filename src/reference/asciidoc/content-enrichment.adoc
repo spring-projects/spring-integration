@@ -128,6 +128,52 @@ As you can see, by using SpEL for such simple cases, we no longer have to provid
 All we need is the _expression_ attribute configured with a valid SpEL expression.
 The 'payload' and 'headers' variables are bound to the SpEL Evaluation Context, giving you full access to the incoming Message.
 
+===== Configuring a Header Enricher with Java Configuration
+
+The following are some examples of Java Configuration for header enrichers:
+
+[source, java]
+----
+@Bean
+@Transformer(inputChannel="enrichHeadersChannel", outputChannel="emailChannel")
+public HeaderEnricher enrichHeaders() {
+    Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd =
+            Collections.singletonMap("emailUrl", new StaticHeaderValueMessageProcessor<>(this.imapUrl));
+    HeaderEnricher enricher = new HeaderEnricher(headersToAdd);
+    return enricher;
+}
+
+@Bean
+@Transformer(inputChannel="enrichHeadersChannel", outputChannel="emailChannel")
+public HeaderEnricher enrichHeaders() {
+	Map<String, HeaderValueMessageProcessor<?>> headersToAdd = new HashMap<>();
+	headersToAdd.put("emailUrl", new StaticHeaderValueMessageProcessor<String>(this.imapUrl));
+	Expression expression = new SpelExpressionParser().parseExpression("payload.from[0].toString()");
+	headersToAdd.put("from", new ExpressionEvaluatingHeaderValueMessageProcessor<>(expression, String.class));
+	HeaderEnricher enricher = new HeaderEnricher(headersToAdd);
+	return enricher;
+}
+----
+
+The first adds a single literal header.
+The second adds two headers - a literal header and one based on a SpEL expression.
+
+===== Configuring a Header Enricher with the Java DSL
+
+The following is an example of Java DSL Configuration for a header enricher:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow enrichHeadersInFlow() {
+    return f -> f
+                ...
+                .enrichHeaders(h -> h.header("emailUrl", this.emailUrl)
+                                     .headerExpression("from", "payload.from[0].toString()"))
+                .handle(...);
+}
+----
+
 [[header-channel-registry]]
 ===== Header Channel Registry
 

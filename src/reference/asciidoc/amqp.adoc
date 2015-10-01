@@ -217,7 +217,7 @@ The JMS Inbound Channel Adapter is using a JmsDestinationPollingSource under the
 The AMQP Inbound Channel Adapter on the other side uses a`SimpleMessageListenerContainer` and is message driven.
 In that regard it is more similar to the JMS Message Driven Channel Adapter.
 
-==== Configuring with JavaConfig
+==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
 [source, java]
@@ -365,7 +365,7 @@ if you anticipate cases when no `replyTo` property exists in the request message
 
 See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
 
-==== Configuring with JavaConfig
+==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the inbound gateway using Java configuration:
 [source, java]
@@ -608,7 +608,7 @@ Using a `return-channel` requires a `RabbitTemplate` with the `mandatory` proper
 When using multiple outbound endpoints with returns, a separate `RabbitTemplate` is needed for each endpoint.
 =====
 
-==== Configuring with JavaConfig
+==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the outbound adapter using Java configuration:
 [source, java]
@@ -816,7 +816,7 @@ When using multiple outbound endpoints with returns, a separate `RabbitTemplate`
 IMPORTANT: The underlying `AmqpTemplate` has a default `replyTimeout` of 5 seconds.
 If you require a longer timeout, it must be configured on the `template`.
 
-==== Configuring with JavaConfig
+==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the outbound gateway using Java configuration:
 [source, java]
@@ -941,7 +941,7 @@ There is no "pollable" option for a publish-subscribe-channel; it must be messag
 Starting with _version 4.1_ AMQP Backed Message Channels, alongside with `channel-transacted`, support `template-channel-transacted` to separate `transactional` configuration for the `AbstractMessageListenerContainer` and for the `RabbitTemplate`.
 Note, previously, the `channel-transacted` was `true` by default, now it changed to `false` as standard default value for the `AbstractMessageListenerContainer`.
 
-==== Configuring with JavaConfig
+==== Configuring with Java Configuration
 
 The following provides an example of configuring the channels using Java configuration:
 
