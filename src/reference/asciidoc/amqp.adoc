@@ -602,6 +602,85 @@ Using a `return-channel` requires a `RabbitTemplate` with the `mandatory` proper
 When using multiple outbound endpoints with returns, a separate `RabbitTemplate` is needed for each endpoint.
 =====
 
+==== Configuring with JavaConfig
+
+The following Spring Boot application provides an example of configuring the outbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+         ConfigurableApplicationContext context = new SpringApplicationBuilder(AmqpJavaApplication.class)
+                .web(false)
+                .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         gateway.sendToRabbit("foo");
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel="amqpOutboundChannel")
+    public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
+        AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
+        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+        return outbound;
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @MessagingGateway(defaultRequestChannel="amqpOutboundChannel")
+    public interface MyGateway {
+
+        void sendToRabbit(String data);
+
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the outbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+         ConfigurableApplicationContext context = new SpringApplicationBuilder(AmqpJavaApplication.class)
+                    .web(false)
+                    .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         gateway.sendToRabbit("foo");
+    }
+
+    @Bean
+    public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
+        return IntegrationFlows.from(amqpOutboundChannel())
+                .handle(Amqp.outboundAdapter(amqpTemplate)
+                            .routingKey("foo")) // default exchange - route to queue 'foo'
+                .get();
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @MessagingGateway(defaultRequestChannel="amqpOutboundChannel")
+    public interface MyGateway {
+
+        void sendToRabbit(String data);
+
+    }
+----
+
 [[amqp-outbound-gateway]]
 === Outbound Gateway
 
@@ -727,6 +806,93 @@ When using multiple outbound endpoints with returns, a separate `RabbitTemplate`
 IMPORTANT: The underlying `AmqpTemplate` has a default `replyTimeout` of 5 seconds.
 If you require a longer timeout, it must be configured on the `template`.
 
+==== Configuring with JavaConfig
+
+The following Spring Boot application provides an example of configuring the outbound gateway using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+         ConfigurableApplicationContext context = new SpringApplicationBuilder(AmqpJavaApplication.class)
+                .web(false)
+                .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         String reply = gateway.sendToRabbit("foo");
+         System.out.println(reply);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel="amqpOutboundChannel")
+    public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate amqpTemplate) {
+        AmqpOutboundEndpoint outbound = new AmqpOutboundEndpoint(amqpTemplate);
+        outbound.setExpectReply(true);
+        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+        return outbound;
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @MessagingGateway(defaultRequestChannel="amqpOutboundChannel")
+    public interface MyGateway {
+
+        String sendToRabbit(String data);
+
+    }
+
+}
+----
+
+Notice that the only difference between the outbound adapter and outbound gateway configuration is the setting of the
+`expectReply` property.
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the outbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class AmqpJavaApplication {
+
+    public static void main(String[] args) {
+         ConfigurableApplicationContext context = new SpringApplicationBuilder(AmqpJavaApplication.class)
+                    .web(false)
+                    .run(args);
+         RabbitTemplate template = context.getBean(RabbitTemplate.class);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         String reply = gateway.sendToRabbit("foo");
+         System.out.println(reply);
+    }
+
+    @Bean
+    public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate) {
+        return IntegrationFlows.from(amqpOutboundChannel())
+                .handle(Amqp.outboundGateway(amqpTemplate)
+                        .routingKey("foo")) // default exchange - route to queue 'foo'
+                .get();
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @MessagingGateway(defaultRequestChannel="amqpOutboundChannel")
+    public interface MyGateway {
+
+        String sendToRabbit(String data);
+
+    }
+}
+----
+
 [[amqp-channels]]
 === AMQP Backed Message Channels
 
@@ -762,6 +928,77 @@ There is no "pollable" option for a publish-subscribe-channel; it must be messag
 
 Starting with _version 4.1_ AMQP Backed Message Channels, alongside with `channel-transacted`, support `template-channel-transacted` to separate `transactional` configuration for the `AbstractMessageListenerContainer` and for the `RabbitTemplate`.
 Note, previously, the `channel-transacted` was `true` by default, now it changed to `false` as standard default value for the `AbstractMessageListenerContainer`.
+
+==== Configuring with JavaConfig
+
+The following provides an example of configuring the channels using Java configuration:
+
+[source, java]
+----
+@Bean
+public AmqpChannelFactoryBean pollable(ConnectionFactory connectionFactory) {
+    AmqpChannelFactoryBean factoryBean = new AmqpChannelFactoryBean();
+    factoryBean.setConnectionFactory(connectionFactory);
+    factoryBean.setQueueName("foo");
+    factoryBean.setPubSub(false);
+    return factoryBean;
+}
+
+@Bean
+public AmqpChannelFactoryBean messageDriven(ConnectionFactory connectionFactory) {
+    AmqpChannelFactoryBean factoryBean = new AmqpChannelFactoryBean(true);
+    factoryBean.setConnectionFactory(connectionFactory);
+    factoryBean.setQueueName("bar");
+    factoryBean.setPubSub(false);
+    return factoryBean;
+}
+
+@Bean
+public AmqpChannelFactoryBean pubSub(ConnectionFactory connectionFactory) {
+    AmqpChannelFactoryBean factoryBean = new AmqpChannelFactoryBean(true);
+    factoryBean.setConnectionFactory(connectionFactory);
+    factoryBean.setQueueName("baz");
+    factoryBean.setPubSub(false);
+    return factoryBean;
+}
+----
+
+==== Configuring with the Java DSL
+
+The following provides an example of configuring the channels using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow pollableInFlow(ConnectionFactory connectionFactory) {
+    return IntegrationFlows.from(...)
+            ...
+            .channel(Amqp.pollableChannel(connectionFactory)
+                    .queueName("foo"))
+            ...
+            .get();
+}
+
+@Bean
+public IntegrationFlow messageDrivenInFow(ConnectionFactory connectionFactory) {
+    return IntegrationFlows.from(...)
+            ...
+            .channel(Amqp.channel(connectionFactory)
+                    .queueName("bar"))
+            ...
+            .get();
+}
+
+@Bean
+public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
+    return IntegrationFlows.from(...)
+            ...
+            .channel(Amqp.publisSubscribeChannel(connectionFactory)
+                    .queueName("baz"))
+            ...
+            .get();
+}
+----
 
 [[amqp-message-headers]]
 === AMQP Message Headers
