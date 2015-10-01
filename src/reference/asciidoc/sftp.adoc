@@ -25,10 +25,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
 See <<sftp-session-caching>>.
 
-Before configuring SFTP adapters, you must configure an _SFTP Session
-			Factory_.
-You can configure the _SFTP Session
-			Factory_ via a regular bean definition:
+Before configuring SFTP adapters, you must configure an _SFTP Session Factory_.
+You can configure the _SFTP Session Factory_ via a regular bean definition:
 
 [source,xml]
 ----
@@ -195,7 +193,7 @@ Convenience methods have been added so this can easily be done from a message fl
 <bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
     <constructor-arg>
         <bean class="o.s.i.file.remote.session.DefaultSessionFactoryLocator">
-		    <!-- delegate factories here -->
+            <!-- delegate factories here -->
         </bean>
     </constructor-arg>
 </bean>
@@ -269,18 +267,18 @@ The _SFTP Inbound Channel Adapter_ is a special listener that will connect to th
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
-  			session-factory="sftpSessionFactory"
-			channel="requestChannel"
-			filename-pattern="*.txt"
-			remote-directory="/foo/bar"
-			preserve-timestamp="true"
-			local-directory="file:target/foo"
-			auto-create-local-directory="true"
-			local-filename-generator-expression="#this.toUpperCase() + '.a'"
-			local-filter="myFilter"
-			temporary-file-suffix=".writing"
-			delete-remote-files="false">
-		<int:poller fixed-rate="1000"/>
+              session-factory="sftpSessionFactory"
+            channel="requestChannel"
+            filename-pattern="*.txt"
+            remote-directory="/foo/bar"
+            preserve-timestamp="true"
+            local-directory="file:target/foo"
+            auto-create-local-directory="true"
+            local-filename-generator-expression="#this.toUpperCase() + '.a'"
+            local-filter="myFilter"
+            temporary-file-suffix=".writing"
+            delete-remote-files="false">
+        <int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>
 ----
 
@@ -346,12 +344,12 @@ If you need a custom filter implementation simply include a reference in your ad
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
-			channel="receiveChannel"
-			session-factory="sftpSessionFactory"
-			filter="customFilter"
-			local-directory="file:/local-test-dir"
-			remote-directory="/remote-test-dir">
-		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
+            channel="receiveChannel"
+            session-factory="sftpSessionFactory"
+            filter="customFilter"
+            local-directory="file:/local-test-dir"
+            remote-directory="/remote-test-dir">
+        <int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 </int-sftp:inbound-channel-adapter>
 
 <bean id="customFilter" class="org.foo.CustomFilter"/>
@@ -384,25 +382,27 @@ This will work for any `ResettableFileListFilter`.
 [source, xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapter"
-		session-factory="sftpSessionFactory"
-		channel="requestChannel"
-		remote-directory-expression="'/sftpSource'"
-		local-directory="file:myLocalDir"
-		auto-create-local-directory="true"
-		filename-pattern="*.txt"
-		local-filter="acceptOnceFilter">
-	<int:poller fixed-rate="1000">
-		<int:transactional synchronization-factory="syncFactory" />
-	</int:poller>
+        session-factory="sftpSessionFactory"
+        channel="requestChannel"
+        remote-directory-expression="'/sftpSource'"
+        local-directory="file:myLocalDir"
+        auto-create-local-directory="true"
+        filename-pattern="*.txt"
+        local-filter="acceptOnceFilter">
+    <int:poller fixed-rate="1000">
+        <int:transactional synchronization-factory="syncFactory" />
+    </int:poller>
 </int-sftp:inbound-channel-adapter>
 
-<bean id="acceptOnceFilter" class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
+<bean id="acceptOnceFilter"
+    class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
 
 <int:transaction-synchronization-factory id="syncFactory">
-	<int:after-rollback expression="@acceptOnceFilter.remove(payload)" />
+    <int:after-rollback expression="@acceptOnceFilter.remove(payload)" />
 </int:transaction-synchronization-factory>
 
-<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+<bean id="transactionManager"
+    class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
 
 [[sftp-outbound]]
@@ -627,12 +627,12 @@ Here is an example of a gateway configured for an ls command...
 [source,xml]
 ----
 <int-ftp:outbound-gateway id="gateway1"
-		session-factory="ftpSessionFactory"
-		request-channel="inbound1"
-		command="ls"
-		command-options="-1"
-		expression="payload"
-		reply-channel="toSplitter"/>
+        session-factory="ftpSessionFactory"
+        request-channel="inbound1"
+        command="ls"
+        command-options="-1"
+        expression="payload"
+        reply-channel="toSplitter"/>
 
 ----
 
