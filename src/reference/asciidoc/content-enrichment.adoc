@@ -110,9 +110,8 @@ as well as point to a Groovy script:
 
 *SpEL Support*
 
-In Spring Integration 2.0 we have introduced the convenience of the http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html[Spring Expression Language (SpEL)] to help configure many different components.
-The _Header
-	        Enricher_ is one of them.
+In Spring Integration 2.0 we have introduced the convenience of the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[Spring Expression Language (SpEL)] to help configure many different components.
+The _Header Enricher_ is one of them.
 Looking again at the POJO example above, you can see that the computation logic to determine the header value is actually pretty simple.
 A natural question would be: "is there a simpler way to accomplish this?".
 That is where SpEL shows its true power.
@@ -127,6 +126,54 @@ That is where SpEL shows its true power.
 As you can see, by using SpEL for such simple cases, we no longer have to provide a separate class and configure it in the application context.
 All we need is the _expression_ attribute configured with a valid SpEL expression.
 The 'payload' and 'headers' variables are bound to the SpEL Evaluation Context, giving you full access to the incoming Message.
+
+===== Configuring a Header Enricher with Java Configuration
+
+The following are some examples of Java Configuration for header enrichers:
+
+[source, java]
+----
+@Bean
+@Transformer(inputChannel = "enrichHeadersChannel", outputChannel = "emailChannel")
+public HeaderEnricher enrichHeaders() {
+    Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd =
+            Collections.singletonMap("emailUrl",
+                      new StaticHeaderValueMessageProcessor<>(this.imapUrl));
+    HeaderEnricher enricher = new HeaderEnricher(headersToAdd);
+    return enricher;
+}
+
+@Bean
+@Transformer(inputChannel="enrichHeadersChannel", outputChannel="emailChannel")
+public HeaderEnricher enrichHeaders() {
+	Map<String, HeaderValueMessageProcessor<?>> headersToAdd = new HashMap<>();
+	headersToAdd.put("emailUrl", new StaticHeaderValueMessageProcessor<String>(this.imapUrl));
+	Expression expression = new SpelExpressionParser().parseExpression("payload.from[0].toString()");
+	headersToAdd.put("from",
+	             new ExpressionEvaluatingHeaderValueMessageProcessor<>(expression, String.class));
+	HeaderEnricher enricher = new HeaderEnricher(headersToAdd);
+	return enricher;
+}
+----
+
+The first adds a single literal header.
+The second adds two headers - a literal header and one based on a SpEL expression.
+
+===== Configuring a Header Enricher with the Java DSL
+
+The following is an example of Java DSL Configuration for a header enricher:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow enrichHeadersInFlow() {
+    return f -> f
+                ...
+                .enrichHeaders(h -> h.header("emailUrl", this.emailUrl)
+                                     .headerExpression("from", "payload.from[0].toString()"))
+                .handle(...);
+}
+----
 
 [[header-channel-registry]]
 ===== Header Channel Registry
@@ -263,7 +310,8 @@ For instance the following SpEL expressions (among others) are possible:
 
 
 <7> Channel where a reply Message is expected.
-This is optional; typically the auto-generated temporary reply channel is sufficient._Optional_.
+This is optional; typically the auto-generated temporary reply channel is sufficient.
+_Optional_.
 
 
 <8> Channel to which an `ErrorMessage` will be sent if an `Exception` occurs downstream of the `request-channel`.
@@ -275,7 +323,8 @@ _Optional_.
 <9> Maximum amount of time in milliseconds to wait when sending a message to the channel, if such channel may block.
 For example, a Queue Channel can block until space is available, if its maximum capacity has been reached.
 Internally the send timeout is set on the `MessagingTemplate` and ultimately applied when invoking the send operation on the `MessageChannel`.
-By default the send timeout is set to '-1', which may cause the send operation on the `MessageChannel`, depending on the implementation, to block indefinitely._Optional_.
+By default the send timeout is set to '-1', which may cause the send operation on the `MessageChannel`, depending on the implementation, to block indefinitely.
+_Optional_.
 
 
 <10> Boolean value indicating whether any payload that implements `Cloneable` should be cloned prior to sending the Message to the request chanenl for acquiring the enriching data.
@@ -284,7 +333,8 @@ Default is `false`.
 _Optional_.
 
 
-<11> Allows you to configure a Message Poller if this endpoint is a Polling Consumer._Optional_.
+<11> Allows you to configure a Message Poller if this endpoint is a Polling Consumer.
+_Optional_.
 
 
 <12> Each `property` sub-element provides the name of a property (via the mandatory `name` attribute).
@@ -371,7 +421,7 @@ The reply contains a full `User` object, which is ultimately added to the `Map` 
 _How can I enrich payloads with static information without using a request channel?_
 
 Here is an example that does not use a request channel at all, but solely enriches the message's payload with static values.
-But please be aware that the word 'static' is used loosly here.
+But please be aware that the word 'static' is used loosely here.
 You can still use SpEL expressions for setting those values.
 
 [source,xml]
