@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public final class UpperBound {
 	 * indefinitely.
 	 *
 	 * @param timeoutInMilliseconds The time to wait until a permit is available.
-	 * @return true if a permit is aquired.
+	 * @return true if a permit is acquired.
 	 */
 	public boolean tryAcquire(long timeoutInMilliseconds) {
 		if (this.semaphore != null) {
