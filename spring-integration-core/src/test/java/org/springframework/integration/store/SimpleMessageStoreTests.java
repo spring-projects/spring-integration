@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,12 +28,13 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.esotericsoftware.minlog.Log;
 
 /**
  * @author Iwein Fuld
@@ -58,6 +60,132 @@ public class SimpleMessageStoreTests {
 		store.addMessage(testMessage1);
 		store.addMessage(testMessage2);
 	}
+	
+    //BUG
+    @Test()
+    public void shouldReleaseCapacity() {
+        SimpleMessageStore store = new SimpleMessageStore(1);
+        Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+        Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+        store.addMessage(testMessage1);
+        try {
+            store.addMessage(testMessage2);
+            fail("Should have thrown");
+        } catch (Exception e) {
+        }
+        store.removeMessage(testMessage2.getHeaders().getId());
+        try {
+            store.addMessage(testMessage2);
+            fail("Should have thrown");
+        } catch (Exception e) {
+            //expected
+        }
+        store.removeMessage(testMessage1.getHeaders().getId());
+        store.addMessage(testMessage2);
+
+    }
+	
+    @Test()
+    public void shouldWaitIfCapacity() {
+        final SimpleMessageStore store2 = new SimpleMessageStore(1,1,1000);
+        final Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+        final Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+        Thread t = new Thread() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public void run() {
+                // Simuluate a blocked consumer
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Unexepected",e);
+
+                }
+                Message<String> t1 = (Message<String>)store2.removeMessage(testMessage1.getHeaders().getId());
+                assertEquals(testMessage1,t1);
+                // Make sure we yield to allow the second message to be added
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Unexepected",e);
+
+                }
+                Message<String> t2 = (Message<String>)store2.removeMessage(testMessage2.getHeaders().getId());
+                assertEquals(testMessage2,t2);
+                
+            }
+            
+        };
+        store2.addMessage(testMessage1);
+        t.start();
+        store2.addMessage(testMessage2);
+        // Wait for both messages to be taken and compared
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Unexepected",e);
+
+        }
+    }
+
+    @Test(expected = MessagingException.class)
+    public void shouldTimeoutAfterWaitIfCapacity() {
+        Thread t = null;
+        try {
+            final SimpleMessageStore store2 = new SimpleMessageStore(1,1,10);
+            final Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+            final Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+            t = new Thread() {
+    
+                @SuppressWarnings("unchecked")
+                @Override
+                public void run() {
+                    // Simuluate a blocked consumer
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    Message<String> t1 = (Message<String>)store2.removeMessage(testMessage1.getHeaders().getId());
+                    assertEquals(testMessage1,t1);
+                    // Make sure we yield to allow the second message to be added
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    fail("Should have timed out in store2.addMessage(testMessage2)");
+                    
+                }
+                
+            };
+            store2.addMessage(testMessage1);
+            t.start();
+            // This should throw
+            store2.addMessage(testMessage2);
+            fail("Should have thrown already");
+            // Wait for both messages to be taken and compared
+        } finally {
+            try {
+                if (t != null) {
+                    t.join();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Unexepected",e);
+    
+            }
+        }
+    }
+
 
 	@Test(expected = MessagingException.class)
 	public void shouldNotHoldMoreThanGroupCapacity() {
@@ -67,6 +195,110 @@ public class SimpleMessageStoreTests {
 		store.addMessageToGroup("foo", testMessage1);
 		store.addMessageToGroup("foo", testMessage2);
 	}
+	
+    @Test()
+    public void shouldWaitIfGroupCapacity() {
+        final SimpleMessageStore store2 = new SimpleMessageStore(1,1,1000);
+        final Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+        final Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+        Thread t = new Thread() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public void run() {
+                try {
+                    // Simuluate a blocked consumer
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    store2.removeMessageFromGroup("foo",testMessage1);
+                    // Make sure we yield to allow the second message to be added
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    store2.removeMessageFromGroup("foo",testMessage2);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    fail("Unexpected exception "+ e.getMessage());
+                }
+                
+            }
+            
+        };
+        store2.addMessageToGroup("foo",testMessage1);
+        t.start();
+        store2.addMessageToGroup("foo",testMessage2);
+        // Wait for both messages to be taken and compared
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Unexepected",e);
+
+        }
+    }
+	
+    @Test(expected = MessagingException.class)
+    public void shouldTimeoutAfterWaitIfGroupCapacity() {
+        Thread t = null;
+        try {
+            final SimpleMessageStore store2 = new SimpleMessageStore(1,1,10);
+            final Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+            final Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+            t = new Thread() {
+    
+                @SuppressWarnings("unchecked")
+                @Override
+                public void run() {
+                    // Simuluate a blocked consumer
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    store2.removeMessageFromGroup("foo",testMessage1);
+                    // Make sure we yield to allow the second message to be added
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexepected",e);
+    
+                    }
+                    fail("Should have timed out in store2.addMessage(testMessage2)");
+                    
+                }
+                
+            };
+            store2.addMessage(testMessage1);
+            t.start();
+            // This should throw
+            store2.addMessage(testMessage2);
+            fail("Should have thrown already");
+            // Wait for both messages to be taken and compared
+        } finally {
+            try {
+                if (t != null) {
+                    t.join();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Unexepected",e);
+    
+            }
+        }
+    }
+    
 
 	@Test
 	public void shouldHoldCapacityExactly() {
@@ -76,6 +308,29 @@ public class SimpleMessageStoreTests {
 		store.addMessage(testMessage1);
 		store.addMessage(testMessage2);
 	}
+	//BUG
+    @Test()
+    public void shouldReleaseGroupCapacity() {
+        SimpleMessageStore store = new SimpleMessageStore(0, 1);
+        Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+        Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+        store.addMessageToGroup("foo", testMessage1);
+        try {
+            store.addMessageToGroup("foo", testMessage2);
+            fail("Should have thrown");
+        } catch (Exception e) {
+        }
+        store.removeMessageFromGroup("foo", testMessage2);
+        try {
+            store.addMessageToGroup("foo", testMessage2);
+            fail("Should have thrown");
+        } catch (Exception e) {
+        }
+        store.removeMessageFromGroup("foo", testMessage1);
+        store.addMessageToGroup("foo", testMessage2);
+
+    }
+
 
 	@Test
 	public void shouldListByCorrelation() throws Exception {

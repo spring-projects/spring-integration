@@ -58,6 +58,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	private volatile boolean isUsed;
 
 	private volatile boolean copyOnGet = false;
+	
+	private final int maxWaitInMilliseconds;
+	
+	private final static int DEFAULT_MAX_WAIT_IN_MILLISECONDS = 0;
+
+	private final static int DEFAULT_CAPACITY = 0;
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -72,23 +78,51 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public SimpleMessageStore(int individualCapacity, int groupCapacity) {
 		this(individualCapacity, groupCapacity, new DefaultLockRegistry());
 	}
+    /**
+     * See {@link #SimpleMessageStore(int, int)}.
+     *
+     * @since @TODO
+     * @param individualCapacity The message capacity.
+     * @param groupCapacity The capacity of each group.
+     * @param maxDelayInMilliseconds The time to wait if the store is at max capacity
+     * 
+     */
+    public SimpleMessageStore(int individualCapacity, int groupCapacity, int maxDelayInMilliseconds) {
+        this(individualCapacity, groupCapacity, maxDelayInMilliseconds, new DefaultLockRegistry());
+    }
+	
+    /**
+     * Also allows the provision of a custom {@link LockRegistry}
+     * rather than using the default.
+     *
+     * @param individualCapacity The message capacity.
+     * @param groupCapacity The capacity of each group.
+     * @param lockRegistry The lock registry.
+     */
+    public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
+        this(individualCapacity, groupCapacity, DEFAULT_MAX_WAIT_IN_MILLISECONDS, lockRegistry);
+    }
 
+	
 	/**
 	 * See {@link #SimpleMessageStore(int, int)}.
 	 * Also allows the provision of a custom {@link LockRegistry}
 	 * rather than using the default.
 	 *
+	 * @since @TODO
 	 * @param individualCapacity The message capacity.
 	 * @param groupCapacity The capacity of each group.
+     * @param maxDelayInMilliseconds The time to wait if the store is at max capacity
 	 * @param lockRegistry The lock registry.
 	 */
-	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
+	public SimpleMessageStore(int individualCapacity, int groupCapacity, int maxWaitInMilliseconds, LockRegistry lockRegistry) {
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
 		this.groupIdToMessageGroup = new ConcurrentHashMap<Object, SimpleMessageGroup>();
 		this.individualUpperBound = new UpperBound(individualCapacity);
 		this.groupUpperBound = new UpperBound(groupCapacity);
 		this.lockRegistry = lockRegistry;
+		this.maxWaitInMilliseconds = maxWaitInMilliseconds;
 	}
 
 	/**
@@ -104,7 +138,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * Creates a SimpleMessageStore with unlimited capacity
 	 */
 	public SimpleMessageStore() {
-		this(0);
+		this(DEFAULT_CAPACITY);
 	}
 
 	/**
@@ -147,7 +181,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
 		this.isUsed = true;
-		if (!individualUpperBound.tryAcquire(0)) {
+		if (!individualUpperBound.tryAcquire(maxWaitInMilliseconds)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
@@ -163,8 +197,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> removeMessage(UUID key) {
 		if (key != null) {
-			individualUpperBound.release();
-			return this.idToMessage.remove(key);
+			Message<?> retval = this.idToMessage.remove(key);
+			if (retval != null) {
+	            individualUpperBound.release();
+			}
+			return retval;
 		}
 		else {
 			return null;
@@ -196,7 +233,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
-		if (!groupUpperBound.tryAcquire(0)) {
+		if (!groupUpperBound.tryAcquire(maxWaitInMilliseconds)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
@@ -255,7 +292,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message from the MessageGroup");
-				group.remove(messageToRemove);
+				if (group.remove(messageToRemove)) {
+	                groupUpperBound.release();
+				};
 				group.setLastModified(System.currentTimeMillis());
 				return group;
 			}
