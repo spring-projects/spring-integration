@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.store;
 
 import static org.junit.Assert.assertEquals;
@@ -118,9 +119,9 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testPriority() {
 		for (int i = 0; i < 10; i++) {
-			Message<Integer> message = MessageBuilder.withPayload(i).setPriority(i).build();
-			this.testChannel3.send(message);
-			this.testChannel3.send(message);
+			this.testChannel3.send(MessageBuilder.withPayload(i).setPriority(i).build());
+			//We need unique messages
+			this.testChannel3.send(MessageBuilder.withPayload(i).setPriority(i).build());
 		}
 		this.testChannel3.send(MessageBuilder.withPayload(99).setPriority(199).build());
 		this.testChannel3.send(MessageBuilder.withPayload(98).build());

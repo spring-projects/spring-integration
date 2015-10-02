@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -161,7 +160,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		for (MessageDocument document : messageDocuments) {
 			messages.add(document.getMessage());
 		}
-		SimpleMessageGroup group = new SimpleMessageGroup(messages, groupId, createdTime, complete);
+		MessageGroup group = getMessageGroupFactory().create(messages, groupId, createdTime, complete);
 		group.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
 		group.setLastModified(lastModifiedTime);
 
@@ -201,6 +200,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(final Object groupId, final Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");

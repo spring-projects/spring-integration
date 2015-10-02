@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import java.util.Collection;
 
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 
 /**
@@ -59,13 +60,19 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
-		this.messageStore.completeGroup(messageGroup.getGroupId());
+		Object groupId = messageGroup.getGroupId();
+		this.messageStore.completeGroup(groupId);
 
 		if (this.expireGroupsUponCompletion) {
 			remove(messageGroup);
 		}
 		else {
-			this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), messageGroup.getMessages());
+			if (this.messageStore instanceof SimpleMessageStore) {
+				((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
+			}
+			else {
+				this.messageStore.removeMessagesFromGroup(groupId, messageGroup.getMessages());
+			}
 		}
 	}
 

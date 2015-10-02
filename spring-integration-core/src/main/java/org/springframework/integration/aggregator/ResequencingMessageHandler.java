@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import java.util.Collection;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.messaging.Message;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
@@ -69,7 +71,6 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
-
 		int size = messageGroup.getMessages().size();
 		int sequenceSize = 0;
 		Message<?> message = messageGroup.getOne();
@@ -81,13 +82,20 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 			remove(messageGroup);
 		}
 		else {
-			if (completedMessages != null){
-				int lastReleasedSequenceNumber = this.findLastReleasedSequenceNumber(messageGroup.getGroupId(), completedMessages);
-				messageStore.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), lastReleasedSequenceNumber);
-				this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), completedMessages);
+			Object groupId = messageGroup.getGroupId();
+			if (completedMessages != null) {
+				int lastReleasedSequenceNumber = findLastReleasedSequenceNumber(groupId, completedMessages);
+				this.messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
+				if (this.messageStore instanceof SimpleMessageStore
+						&& completedMessages.size() == messageGroup.size()) {
+					((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
+				}
+				else {
+					this.messageStore.removeMessagesFromGroup(groupId, completedMessages);
+				}
 			}
 			if (timeout) {
-				this.messageStore.completeGroup(messageGroup.getGroupId());
+				this.messageStore.completeGroup(groupId);
 			}
 		}
 	}

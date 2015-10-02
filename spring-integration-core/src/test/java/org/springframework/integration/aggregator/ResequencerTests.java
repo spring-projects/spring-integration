@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,21 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -36,10 +41,8 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * @author Marius Bogoevici
@@ -48,6 +51,7 @@ import org.junit.Test;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ResequencerTests {
 
@@ -166,10 +170,12 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
+		// INT-3846
+		this.resequencer.setMessageStore(new SimpleMessageStore(3));
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
-		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
-		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
+		Message<?> message1 = createMessage("123", "ABC", 4, 4, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 4, 2, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 4, 1, replyChannel); // release 2 after this one
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
@@ -191,6 +197,26 @@ public class ResequencerTests {
 		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
 		assertEquals(new Integer(4), new IntegrationMessageHeaderAccessor(reply4).getSequenceNumber());
+	}
+
+	@Test
+	public void testResequencingWithCapacity() throws InterruptedException {
+		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
+		// INT-3846
+		this.resequencer.setMessageStore(new SimpleMessageStore(3, 2));
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 4, 4, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 4, 2, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 4, 1, replyChannel);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message2);
+		try {
+			this.resequencer.handleMessage(message3);
+			fail("Expected exception");
+		}
+		catch (MessagingException e) {
+			assertThat(e.getMessage(), containsString("out of capacity (2) for group 'ABC'"));
+		}
 	}
 
 	@Test
