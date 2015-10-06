@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +37,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -85,6 +85,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		ApplicationListener<ContextRefreshedEvent> {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser();
+
+	private final Object simpleMessageStoreMonitor = new Object();
 
 	private final String messageGroupId;
 
@@ -331,7 +333,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private void doReleaseMessage(Message<?> message) {
 		if (removeDelayedMessageFromMessageStore(message)) {
-			this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
+			if (!(this.messageStore instanceof SimpleMessageStore)) {
+				this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
+			}
 			this.handleMessageInternal(message);
 		}
 		else {
@@ -344,9 +348,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
 		if (this.messageStore instanceof SimpleMessageStore) {
-			SimpleMessageGroup messageGroup =
-					(SimpleMessageGroup) this.messageStore.getMessageGroup(this.messageGroupId);
-			return messageGroup.remove(message);
+			synchronized (this.simpleMessageStoreMonitor) {
+				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
+				if (messages.contains(message)) {
+					this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
 		}
 		else {
 			return ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null;

@@ -255,7 +255,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 					return;
 				}
 
-				this.groupToUpperBound.remove(groupId).release(this.groupCapacity);
+				this.groupToUpperBound.remove(groupId);
 				this.groupIdToMessageGroup.remove(groupId);
 			}
 			finally {
