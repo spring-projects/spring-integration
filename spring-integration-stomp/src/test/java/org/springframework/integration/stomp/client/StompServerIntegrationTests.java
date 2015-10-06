@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -46,6 +47,7 @@ import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -58,9 +60,13 @@ import org.springframework.util.SocketUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
  */
 public class StompServerIntegrationTests {
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	private static BrokerService activeMQBroker;
 
@@ -140,6 +146,14 @@ public class StompServerIntegrationTests {
 		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive12.getPayload());
 		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) receive22.getPayload());
 
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SEND, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+		assertArrayEquals("Hello, Client#1!".getBytes(), (byte[]) stompReceiptEvent.getMessage().getPayload());
+
 		Lifecycle stompInboundChannelAdapter2 = context2.getBean("stompInboundChannelAdapter", Lifecycle.class);
 		stompInboundChannelAdapter2.stop();
 
@@ -152,6 +166,13 @@ public class StompServerIntegrationTests {
 		assertNull(receive23);
 
 		stompInboundChannelAdapter2.start();
+
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("???".getBytes()));
 
