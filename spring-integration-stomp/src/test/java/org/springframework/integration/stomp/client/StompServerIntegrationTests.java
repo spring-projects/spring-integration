@@ -153,6 +153,20 @@ public class StompServerIntegrationTests {
 
 		stompInboundChannelAdapter2.start();
 
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SEND, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
+		stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
+		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
+		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+
 		stompOutputChannel1.send(new GenericMessage<byte[]>("???".getBytes()));
 
 		Message<?> receive24 = stompInputChannel2.receive(10000);

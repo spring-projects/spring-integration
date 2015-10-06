@@ -23,6 +23,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
  * The {@link StompIntegrationEvent} for the STOMP {@code RECEIPT} Frames or lost receipts.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
  * @see org.springframework.integration.stomp.inbound.StompInboundChannelAdapter
  * @see org.springframework.integration.stomp.outbound.StompMessageHandler
@@ -72,4 +73,11 @@ public class StompReceiptEvent extends StompIntegrationEvent {
 	public void setMessage(Message<?> message) {
 		this.message = message;
 	}
+
+	@Override
+	public String toString() {
+		return "StompReceiptEvent [destination=" + destination + ", receiptId=" + receiptId + ", stompCommand="
+				+ stompCommand + ", lost=" + lost + ", message=" + message + "]";
+	}
+
 }
