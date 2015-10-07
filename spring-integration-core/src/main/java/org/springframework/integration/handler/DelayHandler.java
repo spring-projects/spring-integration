@@ -86,8 +86,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
-	private final Object simpleMessageStoreMonitor = new Object();
-
 	private final String messageGroupId;
 
 	private volatile long defaultDelay;
@@ -348,7 +346,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
 		if (this.messageStore instanceof SimpleMessageStore) {
-			synchronized (this.simpleMessageStoreMonitor) {
+			synchronized (this.messageGroupId) {
 				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
 				if (messages.contains(message)) {
 					this.messageStore.removeMessageFromGroup(this.messageGroupId, message);

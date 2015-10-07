@@ -226,11 +226,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 					this.groupToUpperBound.putIfAbsent(groupId, new UpperBound(this.groupCapacity));
 				}
+				lock.unlock();
 				if (!this.groupToUpperBound.get(groupId).tryAcquire(this.upperBoundTimeout)) {
 					throw new MessagingException(this.getClass().getSimpleName()
 							+ " was out of capacity at for individual group, " +
 							"try constructing it with a larger capacity.");
 				}
+				lock.lockInterruptibly();
 				group.add(message);
 				this.groupIdToMessageGroup.get(groupId).setLastModified(System.currentTimeMillis());
 				return group;
@@ -251,10 +253,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				if (!groupIdToMessageGroup.containsKey(groupId)) {
-					return;
-				}
-
 				this.groupToUpperBound.remove(groupId);
 				this.groupIdToMessageGroup.remove(groupId);
 			}
@@ -278,7 +276,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message from the MessageGroup");
 				if (group.remove(messageToRemove)) {
-					this.groupToUpperBound.get(groupId).release();
+					UpperBound upperBound = this.groupToUpperBound.get(groupId);
+					Assert.state(upperBound != null, "'upperBound' must not be null.");
+					upperBound.release();
 					group.setLastModified(System.currentTimeMillis());
 				}
 				return group;
@@ -303,6 +303,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message(s) from the MessageGroup");
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);
+				Assert.state(upperBound != null, "'upperBound' must not be null.");
 				boolean modified = false;
 				for (Message<?> messageToRemove : messages) {
 					if (group.remove(messageToRemove)) {
