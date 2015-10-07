@@ -80,7 +80,15 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				 *  Not fatal.
 				 */
 				try {
-					socket = serverSocket.accept();
+					if (this.serverSocket == null) {
+						if (logger.isDebugEnabled()) {
+							logger.debug(this + " stopped before accept");
+						}
+						throw new IOException(this + " stopped before accept");
+					}
+					else {
+						socket = this.serverSocket.accept();
+					}
 				}
 				catch (SocketTimeoutException ste) {
 					if (logger.isDebugEnabled()) {

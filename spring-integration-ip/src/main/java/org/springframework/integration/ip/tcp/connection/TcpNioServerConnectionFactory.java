@@ -92,11 +92,17 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 						Math.abs(this.getBacklog()));
 			}
 			final Selector selector = Selector.open();
-			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-			this.setListening(true);
-			this.selector = selector;
-			doSelect(this.serverChannel, selector);
-
+			if (this.serverChannel == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug(this + " stopped before registering the server channel");
+				}
+			}
+			else {
+				this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+				setListening(true);
+				this.selector = selector;
+				doSelect(this.serverChannel, selector);
+			}
 		}
 		catch (IOException e) {
 			this.close();
