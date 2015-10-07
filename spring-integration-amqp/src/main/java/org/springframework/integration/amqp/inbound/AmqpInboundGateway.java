@@ -105,6 +105,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					// TODO: fallback to a reply address property of this gateway
 					Address replyTo;
 					String replyToProperty = message.getMessageProperties().getReplyTo();
+					Assert.notNull(replyToProperty, "The replyTo header must not be null on a " +
+							"request Message being handled by the AMQP inbound gateway.");
 					// TODO: Use the Address.AMQ_RABBITMQ_REPLY_TO constant when 1.4.3 is the minimum
 					if (replyToProperty.startsWith("amq.rabbitmq.reply-to")) {
 						replyTo = new Address("", replyToProperty);
@@ -112,8 +114,6 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					else {
 						replyTo = new Address(replyToProperty);
 					}
-					Assert.notNull(replyTo, "The replyTo header must not be null on a " +
-							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
 							new MessagePostProcessor() {
 
