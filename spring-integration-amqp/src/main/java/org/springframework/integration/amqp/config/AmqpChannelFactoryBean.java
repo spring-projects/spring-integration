@@ -60,9 +60,11 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
-public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel> implements SmartLifecycle, DisposableBean, BeanNameAware {
+public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel> implements SmartLifecycle,
+		DisposableBean, BeanNameAware {
 
 	private volatile AbstractAmqpChannel channel;
 
@@ -71,8 +73,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	private final boolean messageDriven;
 
 	private final AmqpTemplate amqpTemplate = new RabbitTemplate();
-
-	private volatile SimpleMessageListenerContainer container;
 
 	private volatile AmqpAdmin amqpAdmin;
 
@@ -98,7 +98,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private volatile Integer prefetchCount;
 
-	private volatile Boolean isPubSub;
+	private volatile boolean isPubSub;
 
 	private volatile Long receiveTimeout;
 
@@ -315,13 +315,13 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	@Override
 	protected AbstractAmqpChannel createInstance() throws Exception {
 		if (this.messageDriven) {
-			this.container = this.createContainer();
+			SimpleMessageListenerContainer container = this.createContainer();
 			if (this.amqpTemplate instanceof InitializingBean) {
 				((InitializingBean) this.amqpTemplate).afterPropertiesSet();
 			}
 			if (this.isPubSub) {
 				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
-						this.beanName, this.container, this.amqpTemplate);
+						this.beanName, container, this.amqpTemplate);
 				if (this.exchange != null) {
 					pubsub.setExchange(this.exchange);
 				}
@@ -332,7 +332,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			}
 			else {
 				PointToPointSubscribableAmqpChannel p2p = new PointToPointSubscribableAmqpChannel(
-						this.beanName, this.container, this.amqpTemplate);
+						this.beanName, container, this.amqpTemplate);
 				if (StringUtils.hasText(this.queueName)) {
 					p2p.setQueueName(this.queueName);
 				}
@@ -343,8 +343,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			}
 		}
 		else {
-			Assert.isTrue(!Boolean.TRUE.equals(this.isPubSub),
-					"An AMQP 'publish-subscribe-channel' must be message-driven.");
+			Assert.isTrue(!this.isPubSub, "An AMQP 'publish-subscribe-channel' must be message-driven.");
 			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate);
 			if (this.amqpAdmin != null) {
 				pollable.setAmqpAdmin(this.amqpAdmin);
@@ -428,8 +427,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.channel instanceof SmartLifecycle) ?
-				((SmartLifecycle) this.channel).isAutoStartup() : false;
+		return (this.channel instanceof SmartLifecycle) && ((SmartLifecycle) this.channel).isAutoStartup();
 	}
 
 	@Override
@@ -440,8 +438,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	@Override
 	public boolean isRunning() {
-		return (this.channel instanceof Lifecycle) ?
-				((Lifecycle) this.channel).isRunning() : false;
+		return (this.channel instanceof Lifecycle) && ((Lifecycle) this.channel).isRunning();
 	}
 
 	@Override
