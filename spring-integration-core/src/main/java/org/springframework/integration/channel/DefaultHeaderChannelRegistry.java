@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.channel;
 
 import java.util.Date;
@@ -211,17 +212,15 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	 * Cancel the scheduled reap task and run immediately; then reschedule.
 	 */
 	@Override
-	public void runReaper() {
-		synchronized(this) {
-			this.reaperScheduledFuture.cancel(false);
-			this.reaperScheduledFuture = null;
+	public synchronized void runReaper() {
+		if (this.reaperScheduledFuture != null) {
+			this.reaperScheduledFuture.cancel(true);
 		}
 		this.run();
 	}
 
 	@Override
-	public void run() {
-		this.reaperScheduledFuture = null;
+	public synchronized void run() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Reaper started; channels size=" + this.channels.size());
 		}
@@ -236,12 +235,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 				iterator.remove();
 			}
 		}
-		synchronized (this) {
-			if (this.reaperScheduledFuture == null) {
-				this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
-						new Date(System.currentTimeMillis() + this.reaperDelay));
-			}
-		}
+		this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
+				new Date(System.currentTimeMillis() + this.reaperDelay));
 		if (logger.isTraceEnabled()) {
 			logger.trace("Reaper completed; channels size=" + this.channels.size());
 		}
