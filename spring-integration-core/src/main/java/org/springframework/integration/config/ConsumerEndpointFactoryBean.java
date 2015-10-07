@@ -159,23 +159,30 @@ public class ConsumerEndpointFactoryBean
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		try {
-			if (!this.beanName.startsWith("org.springframework")) {
-				MessageHandler targetHandler = this.handler;
-				if (AopUtils.isAopProxy(targetHandler)) {
-					Object target = ((Advised) targetHandler).getTargetSource().getTarget();
-					if (target instanceof MessageHandler) {
-						targetHandler = (MessageHandler) target;
+		if (this.beanName == null) {
+			logger.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
+					"Consider specifying the 'beanName' property on this ConsumerEndpointFactoryBean.");
+		}
+		else {
+			try {
+				if (!this.beanName.startsWith("org.springframework")) {
+					MessageHandler targetHandler = this.handler;
+					if (AopUtils.isAopProxy(targetHandler)) {
+						Object target = ((Advised) targetHandler).getTargetSource().getTarget();
+						if (target instanceof MessageHandler) {
+							targetHandler = (MessageHandler) target;
+						}
+					}
+					if (targetHandler instanceof IntegrationObjectSupport) {
+						((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
 					}
 				}
-				if (targetHandler instanceof IntegrationObjectSupport) {
-					((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
-				}
 			}
-		} catch (Exception e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not set component name for handler "
-						+ this.handler + " for " + this.beanName + " :" + e.getMessage());
+			catch (Exception e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Could not set component name for handler "
+							+ this.handler + " for " + this.beanName + " :" + e.getMessage());
+				}
 			}
 		}
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
