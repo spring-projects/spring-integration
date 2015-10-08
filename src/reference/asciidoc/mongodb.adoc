@@ -107,11 +107,11 @@ The default name for the collection stored by the `ConfigurableMongoDbMessageSto
 It is recommended to use this implementation for robust and flexible solutions when messages contain complex data types.
 
 [[mongodb-priority-channel-message-store]]
-==== MongodDB Channel Message Store
+==== MongoDB Channel Message Store
 
 Starting with _version 4.0_, the new `MongoDbChannelMessageStore` has been introduced; it is an optimized `MessageGroupStore` for use in `QueueChannel` s.
 With `priorityEnabled = true`, it can be used in `<int:priority-queue>` s to achieve _priority_ order polling for persisted messages.
-The _priority_ MonogDB document field is populated from the `IntegrationMessageHeaderAccessor.PRIORITY` (`priority`) message header.
+The _priority_ MongoDB document field is populated from the `IntegrationMessageHeaderAccessor.PRIORITY` (`priority`) message header.
 
 In addition, all MongoDB `MessageStore` s now have a `sequence` field for MessageGroup documents.
 The `sequence` value is the result of an `$inc` operation for a simple `sequence` document from the same collection, which is created on demand.
@@ -141,9 +141,9 @@ To configure that scenario, simply extend one message store bean from the other:
 ----
 
 [[mongodb-metadata-store]]
-==== MongodDB Metadata Store
+==== MongoDB Metadata Store
 
-As of _Spring Integration 4.2_, a new MongodDB-based `MetadataStore` (<<metadata-store>>) implementation is available.
+As of _Spring Integration 4.2_, a new MongoDB-based `MetadataStore` (<<metadata-store>>) implementation is available.
 The `MongoDbMetadataStore` can be used to maintain metadata state across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
