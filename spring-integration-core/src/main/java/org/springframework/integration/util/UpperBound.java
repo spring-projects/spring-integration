@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public final class UpperBound {
@@ -97,4 +99,9 @@ public final class UpperBound {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + "[Permits = " +
+				(this.semaphore != null ? this.semaphore.availablePermits() : "UNLIMITED") + "]";
+	}
 }

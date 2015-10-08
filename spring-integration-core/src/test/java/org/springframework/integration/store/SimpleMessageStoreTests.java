@@ -147,7 +147,7 @@ public class SimpleMessageStoreTests {
 
 	@Test
 	public void shouldWaitIfGroupCapacity() throws InterruptedException {
-		final SimpleMessageStore store2 = new SimpleMessageStore(1, 2, 1000);
+		final SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 1000);
 		final Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		final Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
 

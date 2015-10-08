@@ -216,35 +216,40 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
-		UpperBound upperBound = this.groupToUpperBound.get(groupId);
-		if (upperBound != null) {
-			if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
-				throw new MessagingException(this.getClass().getSimpleName()
-						+ " was out of capacity at for individual group, " +
-						"try constructing it with a larger capacity.");
-			}
-		}
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {
 			lock.lockInterruptibly();
+			boolean unlocked = false;
 			try {
+				UpperBound upperBound;
 				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				if (group == null) {
 					group = new SimpleMessageGroup(groupId);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
-
-				}
-				if (upperBound == null) {
 					upperBound = new UpperBound(this.groupCapacity);
 					upperBound.tryAcquire(-1);
+					this.groupToUpperBound.putIfAbsent(groupId, upperBound);
 				}
-				this.groupToUpperBound.putIfAbsent(groupId, upperBound);
+				else {
+					upperBound = this.groupToUpperBound.get(groupId);
+					Assert.state(upperBound != null, "'upperBound' must not be null.");
+					lock.unlock();
+					if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
+						unlocked = true;
+						throw new MessagingException(this.getClass().getSimpleName()
+								+ " was out of capacity at for individual group, " +
+								"try constructing it with a larger capacity.");
+					}
+					lock.lockInterruptibly();
+				}
 				group.add(message);
 				group.setLastModified(System.currentTimeMillis());
 				return group;
 			}
 			finally {
-				lock.unlock();
+				if (!unlocked) {
+					lock.unlock();
+				}
 			}
 		}
 		catch (InterruptedException e) {
