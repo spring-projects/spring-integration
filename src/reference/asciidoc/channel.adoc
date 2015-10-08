@@ -505,6 +505,38 @@ Since _version 4.0_, it is recommended that `QueueChannel` s are configured to u
 These are generally optimized for this use, when compared with a general message store.
 If the `ChannelMessageStore` is a `ChannelPriorityMessageStore` the messages will be received in FIFO within priority order.
 The notion of priority is determined by the message store implementation.
+For example the Java Configuration for the <<mongodb-priority-channel-message-store>>:
+
+[source,java]
+----
+@Bean
+public BasicMessageGroupStore mongoDbChannelMessageStore(MongoDbFactory mongoDbFactory) {
+    MongoDbChannelMessageStore store = new MongoDbChannelMessageStore(mongoDbFactory);
+    store.setPriorityEnabled(true);
+    return store;
+}
+
+@Bean
+public PollableChannel priorityQueue(BasicMessageGroupStore mongoDbChannelMessageStore) {
+   return new QueueChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
+}
+----
+
+NOTE: Pay attention to the `MessageGroupQueue` class.
+That is a `BlockingQueue` implementation to utilize the `MessageGroupStore` operations.
+
+The same with Java DSL may look like:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow priorityFlow(PriorityCapableChannelMessageStore mongoDbChannelMessageStore) {
+    return IntegrationFlows.from((Channels c) ->
+            c.priority("priorityChannel", mongoDbChannelMessageStore, "priorityGroup"))
+            ....
+            .get();
+}
+----
 
 Another option to customize the QueueChannel environment is provided by the `ref` attribute of the `<int:queue>` sub-element.
 This attribute implies the reference to any `java.util.Queue` implementation.
