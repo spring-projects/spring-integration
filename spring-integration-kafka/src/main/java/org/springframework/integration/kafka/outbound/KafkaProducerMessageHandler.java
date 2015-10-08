@@ -42,7 +42,7 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 
 	private volatile Expression messageKeyExpression;
 
-	private volatile Expression partitionExpression;
+	private volatile Expression partitionIdExpression;
 
 	@SuppressWarnings("unchecked")
 	public KafkaProducerMessageHandler(final KafkaProducerContext kafkaProducerContext) {
@@ -57,8 +57,8 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 		this.messageKeyExpression = messageKeyExpression;
 	}
 
-	public void setPartitionExpression(Expression partitionExpression) {
-		this.partitionExpression = partitionExpression;
+	public void setPartitionIdExpression(Expression partitionIdExpression) {
+		this.partitionIdExpression = partitionIdExpression;
 	}
 
 	public KafkaProducerContext getKafkaProducerContext() {
@@ -77,8 +77,8 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
 				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
 
-		Integer partitionId = this.partitionExpression != null ?
-				this.partitionExpression.getValue(this.evaluationContext, message, Integer.class)
+		Integer partitionId = this.partitionIdExpression != null ?
+				this.partitionIdExpression.getValue(this.evaluationContext, message, Integer.class)
 				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
 
 		Object messageKey = this.messageKeyExpression != null

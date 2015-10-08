@@ -19,7 +19,9 @@
 										channel="inputToKafka"
 										order="3"
 										topic="foo"
-										message-key-expression="'bar'">
+										message-key-expression="'bar'"
+										partition-id-expression="2"
+										>
 		<int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
 	</int-kafka:outbound-channel-adapter>
 
