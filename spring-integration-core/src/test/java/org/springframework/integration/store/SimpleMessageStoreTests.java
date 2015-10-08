@@ -175,7 +175,7 @@ public class SimpleMessageStoreTests {
 
 	@Test(expected = MessagingException.class)
 	public void shouldTimeoutAfterWaitIfGroupCapacity() {
-		SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 10);
+		SimpleMessageStore store2 = new SimpleMessageStore(1, 1, 1);
 		store2.addMessageToGroup("foo", MessageBuilder.withPayload("foo").build());
 		// This should throw
 		store2.addMessageToGroup("foo", MessageBuilder.withPayload("bar").build());

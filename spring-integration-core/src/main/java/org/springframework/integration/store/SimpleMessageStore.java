@@ -216,6 +216,14 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		UpperBound upperBound = this.groupToUpperBound.get(groupId);
+		if (upperBound != null) {
+			if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
+				throw new MessagingException(this.getClass().getSimpleName()
+						+ " was out of capacity at for individual group, " +
+						"try constructing it with a larger capacity.");
+			}
+		}
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {
 			lock.lockInterruptibly();
@@ -224,17 +232,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				if (group == null) {
 					group = new SimpleMessageGroup(groupId);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
-					this.groupToUpperBound.putIfAbsent(groupId, new UpperBound(this.groupCapacity));
+
 				}
-				lock.unlock();
-				if (!this.groupToUpperBound.get(groupId).tryAcquire(this.upperBoundTimeout)) {
-					throw new MessagingException(this.getClass().getSimpleName()
-							+ " was out of capacity at for individual group, " +
-							"try constructing it with a larger capacity.");
+				if (upperBound == null) {
+					upperBound = new UpperBound(this.groupCapacity);
+					upperBound.tryAcquire(-1);
 				}
-				lock.lockInterruptibly();
+				this.groupToUpperBound.putIfAbsent(groupId, upperBound);
 				group.add(message);
-				this.groupIdToMessageGroup.get(groupId).setLastModified(System.currentTimeMillis());
+				group.setLastModified(System.currentTimeMillis());
 				return group;
 			}
 			finally {
@@ -253,8 +259,12 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				this.groupToUpperBound.remove(groupId);
-				this.groupIdToMessageGroup.remove(groupId);
+				SimpleMessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
+				if (messageGroup != null) {
+					UpperBound upperBound = this.groupToUpperBound.remove(groupId);
+					Assert.state(upperBound != null, "'upperBound' must not be null.");
+					upperBound.release(this.groupCapacity);
+				}
 			}
 			finally {
 				lock.unlock();
