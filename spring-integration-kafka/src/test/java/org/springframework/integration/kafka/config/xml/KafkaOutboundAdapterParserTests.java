@@ -59,6 +59,7 @@ public class KafkaOutboundAdapterParserTests {
 		assertEquals(messageHandler.getOrder(), 3);
 		assertEquals("foo", TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue"));
 		assertEquals("'bar'", TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression"));
+		assertEquals("2", TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression"));
 		KafkaProducerContext producerContext = messageHandler.getKafkaProducerContext();
 		assertNotNull(producerContext);
 		assertEquals(producerContext.getProducerConfigurations().size(), 2);

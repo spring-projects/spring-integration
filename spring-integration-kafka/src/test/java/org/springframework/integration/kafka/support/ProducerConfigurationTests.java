@@ -18,9 +18,12 @@ package org.springframework.integration.kafka.support;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
+import kafka.producer.Partitioner;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Assert;
@@ -39,7 +42,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import kafka.serializer.DefaultEncoder;
-import kafka.serializer.StringEncoder;
 
 /**
  * @author Soby Chacko
@@ -240,6 +242,65 @@ public class ProducerConfigurationTests {
 
 		Assert.assertEquals("test message", payloadObj);
 		Assert.assertEquals(capturedKeyMessage.topic(), "test");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSendMessageWithNonDefaultKeyAndValueEncodersSpecifyingPartition() throws Exception {
+		final ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>("test", String.class, String.class, new StringSerializer(), new StringSerializer());
+		final Producer<String, String> producer = Mockito.mock(Producer.class);
+
+		final ProducerConfiguration<String, String> configuration =
+				new ProducerConfiguration<String, String>(producerMetadata, producer);
+
+		configuration.send("test", 1, "key", "test message");
+
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
+
+		final ArgumentCaptor<ProducerRecord<String, String>> argument =
+				(ArgumentCaptor<ProducerRecord<String, String>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
+		Mockito.verify(producer).send(argument.capture());
+
+		final ProducerRecord<String, String> capturedKeyMessage = argument.getValue();
+
+		Assert.assertEquals(capturedKeyMessage.key(), "key");
+		Assert.assertEquals(capturedKeyMessage.value(), "test message");
+		Assert.assertEquals(capturedKeyMessage.topic(), "test");
+		Assert.assertEquals(capturedKeyMessage.partition().intValue(), 1);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSendMessageWithNonDefaultKeyAndValueEncodersCustomPartitioner() throws Exception {
+		Partitioner customPartitioner = Mockito.mock(Partitioner.class);
+		final ProducerMetadata<String, String> producerMetadata = new ProducerMetadata<String, String>("test", String.class, String.class, new StringSerializer(), new StringSerializer());
+		producerMetadata.setPartitioner(customPartitioner);
+		final Producer<String, String> producer = Mockito.mock(Producer.class);
+
+		final ProducerConfiguration<String, String> configuration =
+				new ProducerConfiguration<String, String>(producerMetadata, producer);
+
+		ArrayList<PartitionInfo> partitionInfos = new ArrayList<>();
+		partitionInfos.add(Mockito.mock(PartitionInfo.class));
+		Mockito.when(producer.partitionsFor("test")).thenReturn(partitionInfos);
+		Mockito.when(customPartitioner.partition("key", 1)).thenReturn(4);
+
+		configuration.send("test", null, "key", "test message");
+
+		Mockito.verify(producer, Mockito.times(1)).send(Mockito.any(ProducerRecord.class));
+
+		final ArgumentCaptor<ProducerRecord<String, String>> argument =
+				(ArgumentCaptor<ProducerRecord<String, String>>) (Object)
+						ArgumentCaptor.forClass(ProducerRecord.class);
+		Mockito.verify(producer).send(argument.capture());
+
+		final ProducerRecord<String, String> capturedKeyMessage = argument.getValue();
+
+		Assert.assertEquals(capturedKeyMessage.key(), "key");
+		Assert.assertEquals(capturedKeyMessage.value(), "test message");
+		Assert.assertEquals(capturedKeyMessage.topic(), "test");
+		Assert.assertEquals(capturedKeyMessage.partition().intValue(), 4);
 	}
 
 	/**
