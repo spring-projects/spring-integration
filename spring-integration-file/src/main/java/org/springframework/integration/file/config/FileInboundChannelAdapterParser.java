@@ -84,23 +84,26 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String filenameRegex = element.getAttribute("filename-regex");
 		String preventDuplicates = element.getAttribute("prevent-duplicates");
 		String ignoreHidden = element.getAttribute("ignore-hidden");
-		if (!StringUtils.hasText(filenamePattern) && !StringUtils.hasText(filenameRegex)
+		String filter = element.getAttribute("filter");
+		if (!StringUtils.hasText(filter) && !StringUtils.hasText(filenamePattern) && !StringUtils.hasText(filenameRegex)
 				&& !StringUtils.hasText(preventDuplicates) && !StringUtils.hasText(ignoreHidden)) {
 			return null;
 		}
 		BeanDefinitionBuilder factoryBeanBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(FileListFilterFactoryBean.class);
 		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(factoryBeanBuilder, element, "filter");
+		if (StringUtils.hasText(filter)) {
+			factoryBeanBuilder.addPropertyReference("filter", filter);
+		}
 		if (StringUtils.hasText(filenamePattern)) {
-			if (element.hasAttribute("filter")) {
+			if (StringUtils.hasText(filter)) {
 				parserContext.getReaderContext().error(
 						"At most one of 'filter' and 'filename-pattern' may be provided.", element);
 			}
 			factoryBeanBuilder.addPropertyValue("filenamePattern", filenamePattern);
 		}
 		if (StringUtils.hasText(filenameRegex)) {
-			if (element.hasAttribute("filter")) {
+			if (StringUtils.hasText(filter)) {
 				parserContext.getReaderContext().error(
 						"At most one of 'filter' and 'filename-regex' may be provided.", element);
 			}

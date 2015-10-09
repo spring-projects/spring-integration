@@ -21,6 +21,13 @@
 		</integration:poller>
 	</inbound-channel-adapter>
 
+	<inbound-channel-adapter id="inboundWithJustFilter"
+							 directory="${java.io.tmpdir}"
+							 filter="filter"
+							 auto-startup="false">
+		<integration:poller fixed-rate="5000" />
+	</inbound-channel-adapter>
+
 	<integration:channel id="successChannel" />
 
 	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean">

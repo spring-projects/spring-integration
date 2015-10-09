@@ -16,24 +16,34 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,26 +55,42 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FileInboundChannelAdapterParserTests {
 
 	@Autowired(required = true)
 	private ApplicationContext context;
 
 	@Autowired
-	private FileReadingMessageSource source;
+	@Qualifier("inputDirPoller.adapter.source")
+	private FileReadingMessageSource inputDirPollerSource;
+
+	@Autowired
+	@Qualifier("inboundWithJustFilter.adapter.source")
+	private FileReadingMessageSource inboundWithJustFilterSource;
+
+	@Autowired
+	private FileListFilter<File> filter;
 
 	private DirectFieldAccessor accessor;
 
 	@Before
 	public void init() {
-		accessor = new DirectFieldAccessor(source);
+		accessor = new DirectFieldAccessor(inputDirPollerSource);
 	}
 
 	@Test
 	public void channelName() throws Exception {
-		context.getBean("inputDirPoller");
 		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
 		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
+	}
+
+	@Test
+	public void justFilter() throws Exception {
+		Iterator<?> filterIterator = TestUtils
+				.getPropertyValue(this.inboundWithJustFilterSource, "scanner.filter.fileFilters", Set.class).iterator();
+		assertThat(filterIterator.next(), instanceOf(IgnoreHiddenFileListFilter.class));
+		assertSame(this.filter, filterIterator.next());
 	}
 
 	@Test
@@ -103,6 +129,7 @@ public class FileInboundChannelAdapterParserTests {
 
 	static class TestComparator implements Comparator<File> {
 
+		@Override
 		public int compare(File f1, File f2) {
 			return 0;
 		}
