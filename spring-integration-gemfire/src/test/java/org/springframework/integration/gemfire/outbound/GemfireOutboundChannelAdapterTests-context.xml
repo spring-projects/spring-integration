@@ -8,19 +8,24 @@
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-	
+
 	<gfe:cache />
+
 	<gfe:replicated-region id="region1"/>
-	
+
 	<gfe:replicated-region id="region2"/>
-	
+
 	<int-gfe:outbound-channel-adapter id="cacheChannel1" region="region1"/>
-	
+
+	<bean id="bar" class="java.lang.String">
+		<constructor-arg value="bar"/>
+	</bean>
+
 	<int-gfe:outbound-channel-adapter id="cacheChannel2" region="region2" order="19">
 		<int-gfe:cache-entries>
-			<entry key="payload.toUpperCase()" value="payload.toLowerCase()"/> 
-			<entry key="'foo'" value="'bar'"/> 
-		</int-gfe:cache-entries>		 
+			<entry key="payload.toUpperCase()" value="payload.toLowerCase()"/>
+			<entry key="'foo'" value="@bar"/>
+		</int-gfe:cache-entries>
 	</int-gfe:outbound-channel-adapter>
 
 	<int:chain input-channel="cacheChainChannel">
