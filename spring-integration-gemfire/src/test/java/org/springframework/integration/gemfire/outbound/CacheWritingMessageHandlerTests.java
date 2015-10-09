@@ -17,6 +17,7 @@
 package org.springframework.integration.gemfire.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,9 +25,13 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.gemstone.gemfire.cache.Cache;
@@ -36,6 +41,8 @@ import com.gemstone.gemfire.cache.Region;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class CacheWritingMessageHandlerTests {
@@ -50,7 +57,11 @@ public class CacheWritingMessageHandlerTests {
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		assertEquals(0, region.size());
+
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("foo", "bar");
 		Message<?> message = MessageBuilder.withPayload(map).build();
@@ -60,14 +71,15 @@ public class CacheWritingMessageHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void ExpressionsWriteToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		RegionFactoryBean<String, Object> regionFactoryBean = new RegionFactoryBean<String, Object>() {};
 		regionFactoryBean.setName("test.expressionsWriteToCache");
 		regionFactoryBean.setCache(cache);
 		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
+		Region<String, Object> region = regionFactoryBean.getObject();
 		assertEquals(0, region.size());
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
 
@@ -75,12 +87,23 @@ public class CacheWritingMessageHandlerTests {
 		expressions.put("'foo'", "'bar'");
 		expressions.put("payload.toUpperCase()", "headers['bar'].toUpperCase()");
 		handler.setCacheEntries(expressions);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 
-		Message<?> message = MessageBuilder.withPayload("foo").copyHeaders(Collections.singletonMap("bar", "bar")).build();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.copyHeaders(Collections.singletonMap("bar", "bar"))
+				.build();
 		handler.handleMessage(message);
 		assertEquals(2, region.size());
 		assertEquals("BAR", region.get("FOO"));
 		assertEquals("bar", region.get("foo"));
+
+		handler.setCacheEntryExpressions(Collections.<Expression, Expression>singletonMap(new LiteralExpression("baz"),
+				new LiteralExpression("qux")));
+
+		handler.handleMessage(new GenericMessage<String>("test"));
+		assertEquals(3, region.size());
+		assertEquals("qux", region.get("baz"));
 	}
 
 }
