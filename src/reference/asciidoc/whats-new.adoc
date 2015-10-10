@@ -26,3 +26,9 @@ If you have such configuration, simply remove the `reply-channel`.
 The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been
 seen is now available using the XML namespace.
 See <<imap-seen>> for more information.
+
+==== JMS Changes
+
+The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its
+`toString()` method.
+See <<jms-header-mapping>> for more information.

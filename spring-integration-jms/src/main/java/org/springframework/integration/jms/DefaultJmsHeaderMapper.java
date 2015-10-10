@@ -144,21 +144,28 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 				if (StringUtils.hasText(headerName) && !headerName.startsWith(JmsHeaders.PREFIX)
 						&& jmsMessage.getObjectProperty(headerName) == null) {
 					Object value = entry.getValue();
-					if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
-						try {
-							String propertyName = this.fromHeaderName(headerName);
-							jmsMessage.setObjectProperty(propertyName, value);
-						}
-						catch (Exception e) {
-							if (headerName.startsWith("JMSX")
-									|| headerName.equals(IntegrationMessageHeaderAccessor.PRIORITY)) {
-								if (logger.isTraceEnabled()) {
-									logger.trace("skipping reserved header, it cannot be set by client: " + headerName);
+					if (value != null) {
+						if (SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
+							try {
+								String propertyName = this.fromHeaderName(headerName);
+								jmsMessage.setObjectProperty(propertyName, value);
+							}
+							catch (Exception e) {
+								if (headerName.startsWith("JMSX")
+										|| headerName.equals(IntegrationMessageHeaderAccessor.PRIORITY)) {
+									if (logger.isTraceEnabled()) {
+										logger.trace("skipping reserved header, it cannot be set by client: "
+												+ headerName);
+									}
+								}
+								else if (logger.isWarnEnabled()) {
+									logger.warn("failed to map Message header '" + headerName + "' to JMS property", e);
 								}
 							}
-							else if (logger.isWarnEnabled()) {
-								logger.warn("failed to map Message header '" + headerName + "' to JMS property", e);
-							}
+						}
+						else if (IntegrationMessageHeaderAccessor.CORRELATION_ID.equals(headerName)) {
+							String propertyName = fromHeaderName(headerName);
+							jmsMessage.setObjectProperty(propertyName, value.toString());
 						}
 					}
 				}
