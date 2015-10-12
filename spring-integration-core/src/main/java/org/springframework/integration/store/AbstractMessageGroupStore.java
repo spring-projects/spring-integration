@@ -24,7 +24,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -39,7 +38,6 @@ import org.springframework.messaging.Message;
  * @since 2.0
  */
 @ManagedResource
-@IntegrationManagedResource
 public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageGroupStore
 		implements MessageGroupStore, Iterable<MessageGroup>, BeanFactoryAware {
 

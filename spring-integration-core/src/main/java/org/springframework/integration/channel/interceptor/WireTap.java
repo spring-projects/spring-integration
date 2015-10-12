@@ -22,7 +22,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -40,7 +39,6 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 @ManagedResource
-@IntegrationManagedResource
 public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, VetoCapableInterceptor {
 
 	private static final Log logger = LogFactory.getLog(WireTap.class);

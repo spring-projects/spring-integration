@@ -13,8 +13,10 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
-	<context:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
 	<context:mbean-server/>
+
+	<context:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
+
 	<jmx:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
 
 	<si:message-history/>
@@ -26,7 +28,7 @@
 			object-name="test.publisher:name=publisher"
 			default-notification-type="default.type">
 		<jmx:request-handler-advice-chain>
-			<bean class="org.springframework.integration.jmx.config.NotificationPublishingChannelAdapterParserTests$FooADvice"/>
+			<bean class="org.springframework.integration.jmx.config.NotificationPublishingChannelAdapterParserTests.FooAdvice"/>
 		</jmx:request-handler-advice-chain>
 	</jmx:notification-publishing-channel-adapter>
 
