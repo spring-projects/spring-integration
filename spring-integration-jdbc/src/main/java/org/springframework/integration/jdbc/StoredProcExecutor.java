@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -33,7 +34,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
@@ -68,7 +68,6 @@ import com.google.common.cache.LoadingCache;
  *
  */
 @ManagedResource
-@IntegrationManagedResource
 public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private static final boolean guavaPresent = ClassUtils.isPresent("com.google.common.cache.LoadingCache",

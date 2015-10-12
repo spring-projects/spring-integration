@@ -55,7 +55,6 @@ import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
@@ -97,7 +96,6 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  */
 @ManagedResource
-@IntegrationManagedResource
 public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean, BeanFactoryAware {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);

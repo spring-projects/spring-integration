@@ -114,7 +114,6 @@ import org.springframework.util.StringValueResolver;
  * @author Artem Bilan
  */
 @ManagedResource
-@IntegrationManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
 		EmbeddedValueResolverAware {
 
