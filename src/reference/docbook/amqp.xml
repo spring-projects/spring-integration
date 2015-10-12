@@ -560,7 +560,7 @@ public Object handle(@Payload String payload, @Header(AmqpHeaders.CHANNEL) Chann
                            exchange-name-expression=""]]><co        id="amqp-outbound-gateway-adapter-xml-4d-co" linkends="amqp-outbound-gateway-adapter-xml-4d" /><![CDATA[
                            order="1"]]><co                          id="amqp-outbound-gateway-adapter-xml-5-co" linkends="amqp-outbound-gateway-adapter-xml-5" /><![CDATA[
                            reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
-                           reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6a-co" linkends="amqp-outbound-gateway-adapter-xml-6a" /><![CDATA[
+                           reply-timeout=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6a-co" linkends="amqp-outbound-gateway-adapter-xml-6a" /><![CDATA[
                            requires-reply=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6b-co" linkends="amqp-outbound-gateway-adapter-xml-6b" /><![CDATA[
                            routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[
                            routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
