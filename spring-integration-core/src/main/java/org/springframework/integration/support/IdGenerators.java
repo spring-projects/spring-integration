@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.util.IdGenerator;
 
 
 /**
- * Alterative {@link IdGenerator} implementations.
+ * Alternative {@link IdGenerator} implementations.
  *
  * @author Andy Wilkinson
  * @since 4.0
@@ -45,8 +45,14 @@ public class IdGenerators {
     }
 
 	/**
-	 * Begins with 1; incremented on each use.
-	 *
+	 * Based on the two {@link AtomicLong}s, for {@code topBits} and {@code bottomBits},
+	 * respectively.
+	 * Begins with {0, 1}; incremented on each use.
+	 * <p>
+	 * Note: after the {@code 2^63-1} generations the duplicate {@link UUID}
+	 * can be returned in the multi-threaded environment.
+	 * The chance of such a value still being in the system is exceedingly small.
+	 * If your system might be impacted by that, you should choose another {@link IdGenerator}.
 	 */
     public static class SimpleIncrementingIdGenerator implements IdGenerator {
 
@@ -58,10 +64,13 @@ public class IdGenerators {
         public UUID generateId() {
             long bottomBits = this.bottomBits.incrementAndGet();
             if (bottomBits == 0) {
-                this.topBits.incrementAndGet();
+	            return new UUID(this.topBits.incrementAndGet(), bottomBits);
             }
-            return new UUID(this.topBits.get(), bottomBits);
+	        else {
+	            return new UUID(this.topBits.get(), bottomBits);
+            }
         }
 
     }
+
 }
