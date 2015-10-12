@@ -703,7 +703,7 @@ A configuration sample for an AMQP Outbound Gateway is shown below.
                            exchange-name-expression="" <5>
                            order="1" <6>
                            reply-channel="" <7>
-                           reply-channel="" <8>
+                           reply-timeout="" <8>
                            requires-reply="" <9>
                            routing-key="" <10>
                            routing-key-expression="" <11>
