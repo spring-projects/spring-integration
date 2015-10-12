@@ -16,7 +16,6 @@
 
 package org.springframework.integration.metadata;
 
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -31,7 +30,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @since 2.0
  */
 @ManagedResource
-@IntegrationManagedResource
 public interface MetadataStore {
 
 	/**
