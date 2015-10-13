@@ -22,11 +22,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Clone of {@link ManagedResource} limiting beans thus annotated so that they
- * will only be exported by the {@code IntegrationMBeanExporter}.
+ * will only be exported by the {@code IntegrationMBeanExporter} and prevented
+ * from being exported by other MBeanExporters (if present).
  *
  * @author Gary Russell
  * @since 4.2
@@ -43,8 +45,10 @@ public @interface IntegrationManagedResource {
 	 * attribute, for simple default usage.
 	 * @return the value.
 	 */
+	@AliasFor("objectName")
 	String value() default "";
 
+	@AliasFor("value")
 	String objectName() default "";
 
 	String description() default "";

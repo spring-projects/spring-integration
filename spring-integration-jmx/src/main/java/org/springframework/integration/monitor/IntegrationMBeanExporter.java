@@ -25,8 +25,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.management.Descriptor;
 import javax.management.DynamicMBean;
 import javax.management.JMException;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.modelmbean.ModelMBean;
 
@@ -36,6 +38,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.annotation.AnnotationBeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -71,9 +74,10 @@ import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.metadata.InvalidMetadataException;
+import org.springframework.jmx.export.metadata.JmxAttributeSource;
+import org.springframework.jmx.export.metadata.ManagedResource;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -83,7 +87,6 @@ import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
-import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
@@ -113,7 +116,7 @@ import org.springframework.util.StringValueResolver;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@ManagedResource
+@org.springframework.jmx.export.annotation.ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
 		EmbeddedValueResolverAware {
 
@@ -121,7 +124,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
-	private final AnnotationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
+	private final IntegrationJmxAttributeSource attributeSource = new IntegrationJmxAttributeSource();
 
 	private ApplicationContext applicationContext;
 
@@ -155,17 +158,15 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private final Properties objectNameStaticProperties = new Properties();
 
-	private final MetadataMBeanInfoAssembler assembler = new MetadataMBeanInfoAssembler(attributeSource);
+	private final MetadataMBeanInfoAssembler assembler = new IntegrationMetadataMBeanInfoAssembler(attributeSource);
 
-	private final MetadataNamingStrategy defaultNamingStrategy = new MetadataNamingStrategy(attributeSource);
+	private final MetadataNamingStrategy defaultNamingStrategy = new IntegrationMetadataNamingStrategy(attributeSource);
 
 	private String[] componentNamePatterns = { "*" };
 
 	private volatile long shutdownDeadline;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
-
-	private StringValueResolver embeddedValueResolver;
 
 
 	public IntegrationMBeanExporter() {
@@ -221,7 +222,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@Override
 	public void setEmbeddedValueResolver(StringValueResolver resolver) {
-		this.embeddedValueResolver = resolver;
+		this.attributeSource.setValueResolver(resolver);
 	}
 
 	@Override
@@ -1067,28 +1068,62 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		return ReflectionUtils.getField(field, target);
 	}
 
-	private class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
+	private static Object extractManagedBean(Object managedBean) {
+		if (managedBean instanceof LifecycleMessageHandlerMetrics
+				|| managedBean instanceof LifecycleMessageSourceMetrics) {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(managedBean);
+			return accessor.getPropertyValue("delegate");
+		}
+		return managedBean;
+	}
+
+	private static class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
+
+		private StringValueResolver valueResolver;
+
+		void setValueResolver(StringValueResolver valueResolver) {
+			this.valueResolver = valueResolver;
+		}
 
 		@Override
-		public org.springframework.jmx.export.metadata.ManagedResource getManagedResource(Class<?> beanClass)
-				throws InvalidMetadataException {
-			IntegrationManagedResource ann =
-					AnnotationUtils.getAnnotation(beanClass, IntegrationManagedResource.class);
+		public ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
+			IntegrationManagedResource ann = AnnotationUtils.getAnnotation(beanClass, IntegrationManagedResource.class);
 			if (ann == null) {
 				return null;
 			}
-			org.springframework.jmx.export.metadata.ManagedResource managedResource =
-					new org.springframework.jmx.export.metadata.ManagedResource();
-			AnnotationBeanUtils.copyPropertiesToBean(ann, managedResource,
-					IntegrationMBeanExporter.this.embeddedValueResolver);
-			if (!"".equals(ann.value()) && !StringUtils.hasLength(managedResource.getObjectName())) {
-				String value = ann.value();
-				if (IntegrationMBeanExporter.this.embeddedValueResolver != null) {
-					value = IntegrationMBeanExporter.this.embeddedValueResolver.resolveStringValue(value);
-				}
-				managedResource.setObjectName(value);
-			}
+			ManagedResource managedResource = new ManagedResource();
+			AnnotationBeanUtils.copyPropertiesToBean(ann, managedResource, this.valueResolver);
 			return managedResource;
+		}
+	}
+
+	private static class IntegrationMetadataMBeanInfoAssembler extends MetadataMBeanInfoAssembler {
+
+		public IntegrationMetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
+			super(attributeSource);
+		}
+
+		@Override
+		protected String getDescription(Object managedBean, String beanKey) {
+			return super.getDescription(extractManagedBean(managedBean), beanKey);
+		}
+
+		@Override
+		protected void populateMBeanDescriptor(Descriptor desc, Object managedBean, String beanKey) {
+			super.populateMBeanDescriptor(desc, extractManagedBean(managedBean), beanKey);
+		}
+
+	}
+
+	private static class IntegrationMetadataNamingStrategy extends MetadataNamingStrategy {
+
+		public IntegrationMetadataNamingStrategy(JmxAttributeSource attributeSource) {
+			super(attributeSource);
+		}
+
+		@Override
+		public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
+			return super.getObjectName(extractManagedBean(managedBean), beanKey);
 		}
 
 	}
