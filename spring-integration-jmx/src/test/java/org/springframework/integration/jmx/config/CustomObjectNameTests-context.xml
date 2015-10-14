@@ -4,9 +4,11 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
 	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<context:mbean-server id="mbs"/>
@@ -24,6 +26,8 @@
 		<prop key="customRouterName">custom:type=MessageRouter,name=foo</prop>
 	</util:properties>
 
+	<tx:annotation-driven />
+
 	<bean id="customChannel"
 		class="org.springframework.integration.jmx.config.CustomObjectNameTests.ChannelWithCustomObjectName"/>
 
@@ -38,5 +42,8 @@
 
 	<bean id="standardHandler"
 		class="org.springframework.integration.jmx.config.CustomObjectNameTests.HandlerWithStandardObjectName"/>
+
+	<bean id="txConfig"
+		class="org.springframework.integration.jmx.config.CustomObjectNameTests.TxConfig"/>
 
 </beans>

@@ -14,6 +14,8 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
 import java.util.List;
@@ -27,16 +29,21 @@ import javax.management.ObjectName;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Gary Russell
@@ -49,6 +56,9 @@ public class CustomObjectNameTests {
 
 	@Autowired
 	private MBeanServer server;
+
+	@Autowired
+	private MessageHandler customHandler;
 
 	@Test
 	public void testCustomMBeanRegistration() throws Exception {
@@ -87,6 +97,7 @@ public class CustomObjectNameTests {
 		assertEquals("test.custom:type=MessageHandler,name=standardHandler,bean=handler", name.toString());
 		name = iterator.next();
 		assertEquals("test.custom:type=MessageHandler,name=errorLogger,bean=internal", name.toString());
+		assertTrue(AopUtils.isJdkDynamicProxy(this.customHandler));
 	}
 
 	@IntegrationManagedResource(objectName="${customChannelName}", description="custom channel")
@@ -102,10 +113,11 @@ public class CustomObjectNameTests {
 	@IntegrationManagedResource(objectName="${customHandlerName}", description="custom handler",
 			currencyTimeLimit=1000, log=true, logFile="foo", persistLocation="bar", persistName="baz", persistPeriod=10,
 			persistPolicy="Never")
+	@Transactional
 	public static class HandlerWithCustomObjectName extends AbstractMessageHandler {
 
 		@Override
-		protected void handleMessageInternal(Message<?> message) throws Exception {
+		public void handleMessageInternal(Message<?> message) throws Exception {
 		}
 
 	}
@@ -140,6 +152,15 @@ public class CustomObjectNameTests {
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
+		}
+
+	}
+
+	public static class TxConfig {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return mock(PlatformTransactionManager.class);
 		}
 
 	}
