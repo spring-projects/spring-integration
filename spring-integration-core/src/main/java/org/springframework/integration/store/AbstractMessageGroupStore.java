@@ -107,7 +107,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	@Override
-	public int expireMessageGroups(long timeout) {
+	public synchronized int expireMessageGroups(long timeout) {
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;
 		for (MessageGroup group : this) {

@@ -13,6 +13,7 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.integration.store.MessageGroup;
@@ -65,7 +66,8 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 			remove(messageGroup);
 		}
 		else {
-			this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), messageGroup.getMessages());
+			this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(),
+					new ArrayList<Message<?>>(messageGroup.getMessages()));
 		}
 	}
 

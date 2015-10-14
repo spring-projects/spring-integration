@@ -197,7 +197,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
-			return new SimpleMessageGroup(groupId);
+			return new SimpleMessageGroup(groupId, true);
 		}
 		if (this.copyOnGet) {
 			return copy(group);
@@ -209,9 +209,22 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected MessageGroup copy(MessageGroup group) {
-		SimpleMessageGroup simpleMessageGroup = new SimpleMessageGroup(group);
-		simpleMessageGroup.setLastModified(group.getLastModified());
-		return simpleMessageGroup;
+		Lock lock = this.lockRegistry.obtain(group.getGroupId());
+		try {
+			lock.lockInterruptibly();
+			try {
+				SimpleMessageGroup simpleMessageGroup = new SimpleMessageGroup(group, true);
+				simpleMessageGroup.setLastModified(group.getLastModified());
+				return simpleMessageGroup;
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Interrupted while obtaining lock", e);
+		}
 	}
 
 	@Override
@@ -224,7 +237,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				UpperBound upperBound;
 				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				if (group == null) {
-					group = new SimpleMessageGroup(groupId);
+					group = new SimpleMessageGroup(groupId, true);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 					upperBound = new UpperBound(this.groupCapacity);
 					upperBound.tryAcquire(-1);

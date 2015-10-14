@@ -13,6 +13,7 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -84,7 +85,8 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 			if (completedMessages != null){
 				int lastReleasedSequenceNumber = this.findLastReleasedSequenceNumber(messageGroup.getGroupId(), completedMessages);
 				messageStore.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), lastReleasedSequenceNumber);
-				this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), completedMessages);
+				this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(),
+						new ArrayList<Message<?>>(completedMessages));
 			}
 			if (timeout) {
 				this.messageStore.completeGroup(messageGroup.getGroupId());

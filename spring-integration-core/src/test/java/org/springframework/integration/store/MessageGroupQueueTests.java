@@ -16,6 +16,11 @@
 
 package org.springframework.integration.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -27,15 +32,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Dave Syer
@@ -92,17 +92,15 @@ public class MessageGroupQueueTests {
 	}
 
 	@Test
-	@Ignore
 	public void testConcurrentAccess() throws Exception {
 		doTestConcurrentAccess(50, 20, new HashSet<String>());
 	}
 
 	@Test
-	@Ignore
 	public void testConcurrentAccessUniqueResults() throws Exception {
 		doTestConcurrentAccess(50, 20, null);
 	}
-	
+
 	private void doTestConcurrentAccess(int concurrency, final int maxPerTask, final Set<String> set) throws Exception {
 
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
@@ -163,7 +161,7 @@ public class MessageGroupQueueTests {
 		assertEquals(0, queue.size());
 		messageGroupStore.expireMessageGroups(-10000);
 		assertEquals(Integer.MAX_VALUE, queue.remainingCapacity());
-		
+
 		executorService.shutdown();
 
 	}

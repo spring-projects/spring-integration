@@ -39,7 +39,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object groupId;
 
-	private final Set<Message<?>> messages = Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
+	private final Set<Message<?>> messages;
 
 	private final long timestamp;
 
@@ -50,7 +50,11 @@ public class SimpleMessageGroup implements MessageGroup {
 	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
-		this(Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false);
+		this(groupId, false);
+	}
+
+	public SimpleMessageGroup(Object groupId, boolean unsynchronized) {
+		this(Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false, unsynchronized);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
@@ -59,19 +63,34 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
 	                          boolean complete) {
+		this(messages, groupId, timestamp, complete, false);
+	}
+
+	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
+	                          boolean complete, boolean unsynchronized) {
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
+		if (unsynchronized) {
+			this.messages = new LinkedHashSet<Message<?>>();
+		}
+		else {
+			this.messages = Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
+		}
 		for (Message<?> message : messages) {
-			if (message != null){ //see INT-2666
+			if (message != null) { //see INT-2666
 				addMessage(message);
 			}
 		}
 	}
 
 	public SimpleMessageGroup(MessageGroup messageGroup) {
+		this(messageGroup, false);
+	}
+
+	public SimpleMessageGroup(MessageGroup messageGroup, boolean unsynchronized) {
 		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(),
-				messageGroup.isComplete());
+				messageGroup.isComplete(), unsynchronized);
 	}
 
 	@Override
