@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,31 +15,35 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 /**
- * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id. The
- * group will grow during its lifetime, when messages are <code>add</code>ed to it. This MessageGroup is thread safe.
+ * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id.
+ * The group will grow during its lifetime, when messages are <code>add</code>ed to it.
+ * This MessageGroup is thread safe.
  *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object groupId;
 
-	public final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
-
-	private volatile int lastReleasedMessageSequence;
+	private final Set<Message<?>> messages = Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
 
 	private final long timestamp;
+
+	private volatile int lastReleasedMessageSequence;
 
 	private volatile long lastModified;
 
@@ -53,7 +57,8 @@ public class SimpleMessageGroup implements MessageGroup {
 		this(messages, groupId, System.currentTimeMillis(), false);
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp, boolean complete) {
+	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
+	                          boolean complete) {
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
@@ -65,7 +70,8 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public SimpleMessageGroup(MessageGroup messageGroup) {
-		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(), messageGroup.isComplete());
+		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(),
+				messageGroup.isComplete());
 	}
 
 	@Override
@@ -101,7 +107,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	private boolean addMessage(Message<?> message) {
-		return this.messages.offer(message);
+		return this.messages.add(message);
 	}
 
 	@Override
@@ -143,8 +149,8 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Message<?> getOne() {
-		Message<?> one = messages.peek();
-		return one;
+		Iterator<Message<?>> iterator = this.messages.iterator();
+		return iterator.hasNext() ? iterator.next() : null;
 	}
 
 	public void clear(){
@@ -160,4 +166,5 @@ public class SimpleMessageGroup implements MessageGroup {
 				", lastModified=" + lastModified +
 				'}';
 	}
+
 }
