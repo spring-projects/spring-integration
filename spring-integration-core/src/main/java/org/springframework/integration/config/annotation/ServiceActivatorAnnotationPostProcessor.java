@@ -21,11 +21,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -43,8 +42,8 @@ import org.springframework.util.StringUtils;
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
-	public ServiceActivatorAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public ServiceActivatorAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "requiresReply", "adviceChain"));
 	}
 
@@ -78,7 +77,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
 		if (StringUtils.hasText(requiresReply)) {
-			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.environment.resolvePlaceholders(requiresReply)));
+			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply)));
 		}
 
 		this.setOutputChannelIfPresent(annotations, serviceActivator);

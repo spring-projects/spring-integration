@@ -20,12 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.core.MessageSource;
@@ -46,8 +45,8 @@ import org.springframework.util.Assert;
 public class InboundChannelAdapterAnnotationPostProcessor extends
 		AbstractMethodAnnotationPostProcessor<InboundChannelAdapter> {
 
-	public InboundChannelAdapterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public InboundChannelAdapterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 	@Override

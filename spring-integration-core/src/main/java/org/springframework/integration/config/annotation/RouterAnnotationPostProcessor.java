@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
@@ -45,8 +44,8 @@ import org.springframework.util.StringUtils;
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
-	public RouterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public RouterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 		this.messageHandlerAttributes.addAll(Arrays.<String>asList("defaultOutputChannel", "applySequence",
 				"ignoreSendFailures", "resolutionRequired", "channelMappings", "prefix", "suffix"));
 	}
@@ -85,13 +84,13 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 		String applySequence = MessagingAnnotationUtils.resolveAttribute(annotations, "applySequence", String.class);
 		if (StringUtils.hasText(applySequence)) {
-			router.setApplySequence(Boolean.parseBoolean(this.environment.resolvePlaceholders(applySequence)));
+			router.setApplySequence(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(applySequence)));
 		}
 
 		String ignoreSendFailures = MessagingAnnotationUtils.resolveAttribute(annotations, "ignoreSendFailures",
 				String.class);
 		if (StringUtils.hasText(ignoreSendFailures)) {
-			router.setIgnoreSendFailures(Boolean.parseBoolean(this.environment.resolvePlaceholders(ignoreSendFailures)));
+			router.setIgnoreSendFailures(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(ignoreSendFailures)));
 		}
 
 		if (this.routerAttributesProvided(annotations)) {
@@ -101,7 +100,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 			String resolutionRequired = MessagingAnnotationUtils.resolveAttribute(annotations, "resolutionRequired",
 					String.class);
 			if (StringUtils.hasText(resolutionRequired)) {
-				String resolutionRequiredValue = this.environment.resolvePlaceholders(resolutionRequired);
+				String resolutionRequiredValue = this.beanFactory.resolveEmbeddedValue(resolutionRequired);
 				if (StringUtils.hasText(resolutionRequiredValue)) {
 					methodInvokingRouter.setResolutionRequired(Boolean.parseBoolean(resolutionRequiredValue));
 				}
@@ -109,12 +108,12 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 			String prefix = MessagingAnnotationUtils.resolveAttribute(annotations, "prefix", String.class);
 			if (StringUtils.hasText(prefix)) {
-				methodInvokingRouter.setPrefix(this.environment.resolvePlaceholders(prefix));
+				methodInvokingRouter.setPrefix(this.beanFactory.resolveEmbeddedValue(prefix));
 			}
 
 			String suffix = MessagingAnnotationUtils.resolveAttribute(annotations, "suffix", String.class);
 			if (StringUtils.hasText(suffix)) {
-				methodInvokingRouter.setSuffix(this.environment.resolvePlaceholders(suffix));
+				methodInvokingRouter.setSuffix(this.beanFactory.resolveEmbeddedValue(suffix));
 			}
 
 			String[] channelMappings = MessagingAnnotationUtils.resolveAttribute(annotations, "channelMappings",

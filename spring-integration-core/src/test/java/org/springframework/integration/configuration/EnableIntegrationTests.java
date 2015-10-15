@@ -618,7 +618,7 @@ public class EnableIntegrationTests {
 	@ComponentScan
 	@IntegrationComponentScan
 	@EnableIntegration
-	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
+//	INT-3853 @PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
 	@EnableMessageHistory({"input", "publishedChannel", "annotationTestService*"})
 	public static class ContextConfiguration {
 
@@ -853,10 +853,12 @@ public class EnableIntegrationTests {
 	@EnableReactor
 	public static class ContextConfiguration2 {
 
+		/*
+		INT-3853
 		@Bean
 		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 			return new PropertySourcesPlaceholderConfigurer();
-		}
+		}*/
 
 		@Bean
 		public MessageChannel sendAsyncChannel() {
