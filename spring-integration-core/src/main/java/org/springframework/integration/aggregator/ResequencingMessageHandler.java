@@ -13,12 +13,13 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 
 /**
@@ -70,7 +71,6 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
-
 		int size = messageGroup.getMessages().size();
 		int sequenceSize = 0;
 		Message<?> message = messageGroup.getOne();
@@ -82,14 +82,21 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 			remove(messageGroup);
 		}
 		else {
-			if (completedMessages != null){
-				int lastReleasedSequenceNumber = this.findLastReleasedSequenceNumber(messageGroup.getGroupId(), completedMessages);
-				messageStore.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), lastReleasedSequenceNumber);
-				this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(),
-						new ArrayList<Message<?>>(completedMessages));
+			Object groupId = messageGroup.getGroupId();
+			if (completedMessages != null) {
+				int lastReleasedSequenceNumber = findLastReleasedSequenceNumber(groupId, completedMessages);
+				this.messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
+				if (this.messageStore instanceof SimpleMessageStore
+						&& completedMessages.containsAll(messageGroup.getMessages())) {
+					((SimpleMessageGroup) messageGroup).clear();
+					((SimpleMessageGroup) messageGroup).setLastModified(System.currentTimeMillis());
+				}
+				else {
+					this.messageStore.removeMessagesFromGroup(groupId, completedMessages);
+				}
 			}
 			if (timeout) {
-				this.messageStore.completeGroup(messageGroup.getGroupId());
+				this.messageStore.completeGroup(groupId);
 			}
 		}
 	}
