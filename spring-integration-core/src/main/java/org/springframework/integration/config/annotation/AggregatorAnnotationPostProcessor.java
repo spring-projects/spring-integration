@@ -20,8 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
@@ -44,8 +43,8 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
-	public AggregatorAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public AggregatorAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 
@@ -81,7 +80,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 				"sendPartialResultsOnExpiry", String.class);
 		if (sendPartialResultsOnExpiry != null) {
 			handler.setSendPartialResultOnExpiry(
-					Boolean.parseBoolean(this.environment.resolvePlaceholders(sendPartialResultsOnExpiry)));
+					Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(sendPartialResultsOnExpiry)));
 		}
 		handler.setBeanFactory(this.beanFactory);
 		return handler;

@@ -39,10 +39,8 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -75,18 +73,16 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
-		InitializingBean, EnvironmentAware, SmartInitializingSingleton {
+		InitializingBean, SmartInitializingSingleton {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile ConfigurableListableBeanFactory beanFactory;
-
-	private Environment environment;
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
-	private final MultiValueMap<String, String> lazyLifecyleRoles = new LinkedMultiValueMap<String, String>();
+	private final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
+
+	private ConfigurableListableBeanFactory beanFactory;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -96,22 +92,17 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
 	}
 
 	@Override
@@ -125,7 +116,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		try {
 			roleController = beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
 					SmartLifecycleRoleController.class);
-			for (Entry<String, List<String>> entry : this.lazyLifecyleRoles.entrySet()) {
+			for (Entry<String, List<String>> entry : this.lazyLifecycleRoles.entrySet()) {
 				roleController.addLifecyclesToRole(entry.getKey(), entry.getValue());
 			}
 		}
@@ -180,9 +171,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
 									String.class);
 							if (StringUtils.hasText(autoStartup)) {
-								if (environment != null) {
-									autoStartup = environment.resolvePlaceholders(autoStartup);
-								}
+									autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
 								if (StringUtils.hasText(autoStartup)) {
 									endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 								}
@@ -190,9 +179,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 							String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 							if (StringUtils.hasText(phase)) {
-								if (environment != null) {
-									phase = environment.resolvePlaceholders(phase);
-								}
+									phase = beanFactory.resolveEmbeddedValue(phase);
 								if (StringUtils.hasText(phase)) {
 									endpoint.setPhase(Integer.parseInt(phase));
 								}
@@ -205,7 +192,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 							Role role = AnnotationUtils.findAnnotation(method, Role.class);
 							if (role != null) {
-								lazyLifecyleRoles.add(role.value(), endpointBeanName);
+								lazyLifecycleRoles.add(role.value(), endpointBeanName);
 							}
 						}
 					}

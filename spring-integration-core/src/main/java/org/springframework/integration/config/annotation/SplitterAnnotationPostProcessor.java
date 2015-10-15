@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
@@ -42,8 +41,8 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Splitter> {
 
-	public SplitterAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public SplitterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 		this.messageHandlerAttributes.addAll(Arrays.<String>asList("outputChannel", "applySequence", "adviceChain"));
 	}
 
@@ -75,7 +74,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 		}
 
 		if (StringUtils.hasText(applySequence)) {
-			String applySequenceValue = this.environment.resolvePlaceholders(applySequence);
+			String applySequenceValue = this.beanFactory.resolveEmbeddedValue(applySequence);
 			if (StringUtils.hasText(applySequenceValue)) {
 				splitter.setApplySequence(Boolean.parseBoolean(applySequenceValue));
 			}

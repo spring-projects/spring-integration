@@ -89,8 +89,8 @@ public class EnableMBeanExportTests {
 		assertThat(componentNamePatterns, arrayContaining("input", "inputX", "in*"));
 		String[] enabledCounts = TestUtils.getPropertyValue(this.configurer, "enabledCountsPatterns", String[].class);
 		assertThat(enabledCounts, arrayContaining("foo", "bar", "baz"));
-		String[] enabledStatts = TestUtils.getPropertyValue(this.configurer, "enabledStatsPatterns", String[].class);
-		assertThat(enabledStatts, arrayContaining("qux", "!*"));
+		String[] enabledStats = TestUtils.getPropertyValue(this.configurer, "enabledStatsPatterns", String[].class);
+		assertThat(enabledStats, arrayContaining("qux", "!*"));
 		assertFalse(TestUtils.getPropertyValue(this.configurer, "defaultLoggingEnabled", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultCountsEnabled", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.configurer, "defaultStatsEnabled", Boolean.class));
@@ -153,7 +153,8 @@ public class EnableMBeanExportTests {
 
 	}
 
-	public static class EnvironmentApplicationContextInitializer implements ApplicationContextInitializer<GenericApplicationContext> {
+	public static class EnvironmentApplicationContextInitializer
+			implements ApplicationContextInitializer<GenericApplicationContext> {
 
 		@Override
 		public void initialize(GenericApplicationContext applicationContext) {
