@@ -49,6 +49,10 @@ public class ProducerMetadata<K,V> {
 
 	private int batchBytes = 16384;
 
+	private int sendTimeout = 0;
+
+	private boolean sync = false;
+
 	public ProducerMetadata(final String topic, Class<K> keyClassType, Class<V> valueClassType,
 	                        Serializer<K> keySerializer, Serializer<V> valueSerializer) {
 		Assert.notNull(topic, "Topic cannot be null");
@@ -109,6 +113,22 @@ public class ProducerMetadata<K,V> {
 		return valueClassType;
 	}
 
+	public int getSendTimeout() {
+		return sendTimeout;
+	}
+
+	public void setSendTimeout(int sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
+	public boolean isSync() {
+		return sync;
+	}
+
+	public void setSync(boolean sync) {
+		this.sync = sync;
+	}
+
 	@Override
 	public String toString() {
 		return "ProducerMetadata{" +
@@ -120,6 +140,8 @@ public class ProducerMetadata<K,V> {
 				", partitioner=" + this.partitioner +
 				", compressionType=" + this.compressionType +
 				", batchBytes=" + this.batchBytes +
+				", sync=" + this.sync +
+				", sendTimeout=" + this.sendTimeout +
 				'}';
 	}
 
@@ -128,5 +150,4 @@ public class ProducerMetadata<K,V> {
 		gzip,
 		snappy
 	}
-
 }

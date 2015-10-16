@@ -16,12 +16,15 @@
 
 package org.springframework.integration.kafka.support;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-
+import org.apache.kafka.common.KafkaException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.serializer.support.SerializingConverter;
@@ -35,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author Martin Dam
  * @since 0.5
  */
 public class ProducerConfiguration<K, V> {
@@ -76,7 +80,25 @@ public class ProducerConfiguration<K, V> {
 
 	public Future<RecordMetadata> send(String topic, Integer partition, K messageKey, V messagePayload) {
 		String targetTopic = StringUtils.hasText(topic) ? topic : this.producerMetadata.getTopic();
-		return this.producer.send(new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload));
+		Future<RecordMetadata> future = this.producer.send(new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload));
+
+		if (!producerMetadata.isSync()) {
+			return future;
+		}
+		else {
+			try {
+				if (producerMetadata.getSendTimeout() <= 0) {
+					future.get();
+				}
+				else {
+					future.get(producerMetadata.getSendTimeout(), TimeUnit.MILLISECONDS);
+				}
+			}
+			catch (InterruptedException | ExecutionException | TimeoutException e) {
+				throw new KafkaException(e);
+			}
+			return future;
+		}
 	}
 
 	public Future<RecordMetadata> convertAndSend(String topic, Integer partition, Object messageKey,
