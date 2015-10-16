@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
@@ -141,16 +142,24 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		// create a clean instance of
 		SimpleMessageGroup messageGroup = normalizeSimpleMessageGroup(rawGroup);
 
+
+		Message<?> actualMessageToRemove = null;
+
 		for (Message<?> message : rawGroup.getMessages()) {
 			if (message.getHeaders().getId().equals(messageToRemove.getHeaders().getId())){
-				rawGroup.remove(message);
+				actualMessageToRemove = message;
+				break;
 			}
 		}
-		removeMessage(messageToRemove.getHeaders().getId());
-		rawGroup.setLastModified(System.currentTimeMillis());
 
-		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
-		messageGroup = getSimpleMessageGroup(getMessageGroup(groupId));
+		if (actualMessageToRemove != null) {
+			rawGroup.remove(actualMessageToRemove);
+			removeMessage(messageToRemove.getHeaders().getId());
+			rawGroup.setLastModified(System.currentTimeMillis());
+
+			doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
+			messageGroup = getSimpleMessageGroup(getMessageGroup(groupId));
+		}
 
 		return messageGroup;
 	}
