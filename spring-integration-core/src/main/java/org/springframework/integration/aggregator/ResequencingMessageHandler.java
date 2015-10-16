@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
@@ -87,7 +88,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 				int lastReleasedSequenceNumber = findLastReleasedSequenceNumber(groupId, completedMessages);
 				this.messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
 				if (this.messageStore instanceof SimpleMessageStore
-						&& completedMessages.containsAll(messageGroup.getMessages())) {
+						&& completedMessages.size() == messageGroup.size()) {
 					((SimpleMessageGroup) messageGroup).clear();
 					((SimpleMessageGroup) messageGroup).setLastModified(System.currentTimeMillis());
 				}
