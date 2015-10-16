@@ -127,6 +127,11 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 					"compression-type");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
 					"batch-bytes");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
+					"sync");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
+					"send-timeout");
+
 			AbstractBeanDefinition producerMetadataBeanDefinition = producerMetadataBuilder.getBeanDefinition();
 
 			String producerPropertiesBean = parentElem.getAttribute("producer-properties");
