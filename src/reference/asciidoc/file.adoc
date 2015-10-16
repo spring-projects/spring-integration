@@ -46,7 +46,7 @@ The `AcceptOnceFileListFilter` ensures files are picked up only once from the di
 [NOTE]
 =====
 The `AcceptOnceFileListFilter` stores its state in memory.
-If you wish the state to survive a system restart, consider using the`FileSystemPersistentAcceptOnceFileListFilter` instead.
+If you wish the state to survive a system restart, consider using the `FileSystemPersistentAcceptOnceFileListFilter` instead.
 This filter stores the accepted file names in a `MetadataStore` implementation (<<metadata-store>>).
 This filter matches on the filename and modified time.
 
@@ -281,11 +281,11 @@ public class FileReadingJavaApplication {
     }
 
     @Bean
-    @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixed-rate = "5000"))
+    @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixed-delay = "1000"))
     public MessageSource<File> fileReadingMessageSource() {
          FileReadingMessageSource source = new FileReadingMessageSource();
          source.setDirectory(new File(INBOUND_PATH));
-         source.setFilter(new AcceptOnceFileListFilter<>());
+         source.setFilter(new SimplePatternFileListFilter("*.txt"));
          return source;
     }
 
@@ -316,12 +316,11 @@ public class FileReadingJavaApplication {
     @Bean
     public IntegrationFlow fileReadingFlow() {
          return IntegrationFlows
-                  .from(s -> s.file(new File(INBOUND_PATH)).patternFilter("*.txt"),
+                  .from(s -> s.file(new File(INBOUND_PATH))
+                              .patternFilter("*.txt"),
                           e -> e.poller(Pollers.fixedDelay(1000)))
                   .transform(Transformers.fileToString())
-                  .aggregate(a -> a.correlationExpression("1")
-                          .releaseStrategy(g -> g.size() == 25))
-                  .channel(MessageChannels.queue("fileReadingResultChannel"))
+                  .channel("processFileChannel")
                   .get();
         }
 
@@ -334,8 +333,8 @@ public class FileReadingJavaApplication {
 Another popular use case is to get 'lines' from the end (or tail) of a file, capturing new lines when they are added.
 Two implementations are provided; the first, `OSDelegatingFileTailingMessageProducer`, uses the native `tail` command (on operating systems that have one).
 This is likely the most efficient implementation on those platforms.
-For operating systems that do not have a `tail` command, the second implementation `ApacheCommonsFileTailingMessageProducer` which uses the Apache `commons-io
-            Tailer` class.
+For operating systems that do not have a `tail` command, the second implementation `ApacheCommonsFileTailingMessageProducer`
+which uses the Apache `commons-io` `Tailer` class.
 
 In both cases, file system events, such as files being unavailable etc, are published as `ApplicationEvent` s using the normal Spring event publishing mechanism.
 Examples of such events are:
@@ -596,13 +595,14 @@ public class FileWritingJavaApplication {
                               .web(false)
                               .run(args);
              MyGateway gateway = context.getBean(MyGateway.class);
-             gateway.writeToFile("foo.txt", "foo");
+             gateway.writeToFile("foo.txt", new File(tmpDir.getRoot(), "fileWritingFlow"), "foo");
     }
 
     @Bean
     @ServiceActivator(inputChannel = "writeToFileChannel")
     public MessageHandler fileWritingMessageHandler() {
-         FileWritingMessageHandler handler = new FileWritingMessageHandler("/usr/integration/files");
+         Expression directoryExpression = new SpelExpressionParser().parseExpression("headers.directory");
+         FileWritingMessageHandler handler = new FileWritingMessageHandler(directoryExpression);
          handler.setFileExistsMode(FileExistsMode.APPEND);
          return handler;
     }
@@ -610,7 +610,8 @@ public class FileWritingJavaApplication {
     @MessagingGateway(defaultRequestChannel = "writeToFileChannel")
     public interface MyGateway {
 
-        void writeToFile(@Header(FileHeaders.FILENAME) String fileName, String data);
+        void writeToFile(@Header(FileHeaders.FILENAME) String fileName,
+                       @Header(FileHeaders.FILENAME) File directory, String data);
 
     }
 }
@@ -631,7 +632,7 @@ public class FileWritingJavaApplication {
                          .web(false)
                          .run(args);
         MessageChannel fileWritingInput = context.getBean("fileWritingInput", MessageChannel.class);
-        fileWritingInput.send(new GenericMessage<>("bar"));
+        fileWritingInput.send(new GenericMessage<>("foo"));
     }
 
     @Bean
