@@ -18,7 +18,6 @@ import java.util.Collection;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 
@@ -89,8 +88,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 				this.messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
 				if (this.messageStore instanceof SimpleMessageStore
 						&& completedMessages.size() == messageGroup.size()) {
-					((SimpleMessageGroup) messageGroup).clear();
-					((SimpleMessageGroup) messageGroup).setLastModified(System.currentTimeMillis());
+					((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
 				}
 				else {
 					this.messageStore.removeMessagesFromGroup(groupId, completedMessages);

@@ -17,7 +17,6 @@ import java.util.Collection;
 
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 
@@ -61,18 +60,18 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
-		this.messageStore.completeGroup(messageGroup.getGroupId());
+		Object groupId = messageGroup.getGroupId();
+		this.messageStore.completeGroup(groupId);
 
 		if (this.expireGroupsUponCompletion) {
 			remove(messageGroup);
 		}
 		else {
 			if (this.messageStore instanceof SimpleMessageStore) {
-				((SimpleMessageGroup) messageGroup).clear();
-				((SimpleMessageGroup) messageGroup).setLastModified(System.currentTimeMillis());
+				((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
 			}
 			else {
-				this.messageStore.removeMessagesFromGroup(messageGroup.getGroupId(), messageGroup.getMessages());
+				this.messageStore.removeMessagesFromGroup(groupId, messageGroup.getMessages());
 			}
 		}
 	}

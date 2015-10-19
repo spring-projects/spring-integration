@@ -430,4 +430,28 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		return this.getMessageGroup(groupId).getOne();
 	}
 
+	public void clearMessageGroup(Object groupId) {
+		Lock lock = this.lockRegistry.obtain(groupId);
+		try {
+			lock.lockInterruptibly();
+			try {
+				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+						"can not be located while attempting to complete the MessageGroup");
+				group.clear();
+				group.setLastModified(System.currentTimeMillis());
+				UpperBound upperBound = this.groupToUpperBound.get(groupId);
+				Assert.state(upperBound != null, "'upperBound' must not be null.");
+				upperBound.release(this.groupCapacity);
+			}
+			finally {
+				lock.unlock();
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Interrupted while obtaining lock", e);
+		}
+	}
+
 }
