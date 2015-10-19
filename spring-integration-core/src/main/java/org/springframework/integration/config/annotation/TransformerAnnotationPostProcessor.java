@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
@@ -39,8 +38,8 @@ import org.springframework.messaging.MessageHandler;
  */
 public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Transformer> {
 
-	public TransformerAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public TransformerAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 

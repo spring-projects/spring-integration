@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -42,8 +41,8 @@ import org.springframework.util.StringUtils;
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
-	public ServiceActivatorAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
-		super(beanFactory, environment);
+	public ServiceActivatorAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 
@@ -75,7 +74,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		String requiresReply = MessagingAnnotationUtils.resolveAttribute(annotations, "requiresReply", String.class);
 		if (StringUtils.hasText(requiresReply)) {
-			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.environment.resolvePlaceholders(requiresReply)));
+			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply)));
 		}
 
 		this.setOutputChannelIfPresent(annotations, serviceActivator);
