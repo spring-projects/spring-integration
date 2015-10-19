@@ -27,7 +27,6 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.GenericTypeResolver;
@@ -36,7 +35,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
@@ -81,18 +79,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final ConversionService conversionService;
 
-	protected final Environment environment;
-
 	protected final DestinationResolver<MessageChannel> channelResolver;
 
 	protected final Class<T> annotationType;
 
 	@SuppressWarnings("unchecked")
-	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory, Environment environment) {
+	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
-		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
-				"'beanFactory' must be instanceOf ConfigurableListableBeanFactory");
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.beanFactory = beanFactory;
 		ConversionService conversionService = this.beanFactory.getConversionService();
 		if (conversionService != null) {
 			this.conversionService = conversionService;
@@ -100,7 +94,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		else {
 			this.conversionService = new DefaultConversionService();
 		}
-		this.environment = environment;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 				MethodAnnotationPostProcessor.class);
@@ -242,10 +235,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String ref = poller.value();
 			String triggerRef = poller.trigger();
 			String executorRef = poller.taskExecutor();
-			String fixedDelayValue = this.environment.resolvePlaceholders(poller.fixedDelay());
-			String fixedRateValue = this.environment.resolvePlaceholders(poller.fixedRate());
-			String maxMessagesPerPollValue = this.environment.resolvePlaceholders(poller.maxMessagesPerPoll());
-			String cron = this.environment.resolvePlaceholders(poller.cron());
+			String fixedDelayValue = this.beanFactory.resolveEmbeddedValue(poller.fixedDelay());
+			String fixedRateValue = this.beanFactory.resolveEmbeddedValue(poller.fixedRate());
+			String maxMessagesPerPollValue = this.beanFactory.resolveEmbeddedValue(poller.maxMessagesPerPoll());
+			String cron = this.beanFactory.resolveEmbeddedValue(poller.cron());
 
 			if (StringUtils.hasText(ref)) {
 				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) &&

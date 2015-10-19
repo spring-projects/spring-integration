@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -537,7 +537,7 @@ public class EnableIntegrationTests {
 	@ComponentScan
 	@IntegrationComponentScan
 	@EnableIntegration
-	@PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
+//	INT-3853 @PropertySource("classpath:org/springframework/integration/configuration/EnableIntegrationTests.properties")
 	@EnableMessageHistory({"input", "publishedChannel", "*AnnotationTestService*"})
 	public static class ContextConfiguration {
 
@@ -769,10 +769,12 @@ public class EnableIntegrationTests {
 	@EnableAsync
 	public static class ContextConfiguration2 {
 
+		/*
+		INT-3853
 		@Bean
 		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 			return new PropertySourcesPlaceholderConfigurer();
-		}
+		}*/
 
 		@Bean
 		public MessageChannel sendAsyncChannel() {

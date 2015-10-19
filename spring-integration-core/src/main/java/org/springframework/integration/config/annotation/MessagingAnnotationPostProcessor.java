@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,13 +70,11 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
-		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent>, EnvironmentAware {
+		InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ConfigurableListableBeanFactory beanFactory;
-
-	private Environment environment;
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
@@ -96,22 +94,17 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory, this.environment));
-		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory, this.environment));
+		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
 	}
 
 	@Override
@@ -153,9 +146,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
 									String.class);
 							if (StringUtils.hasText(autoStartup)) {
-								if (environment != null) {
-									autoStartup = environment.resolvePlaceholders(autoStartup);
-								}
+								autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
 								if (StringUtils.hasText(autoStartup)) {
 									endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 								}
@@ -163,9 +154,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 							String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 							if (StringUtils.hasText(phase)) {
-								if (environment != null) {
-									phase = environment.resolvePlaceholders(phase);
-								}
+								phase = beanFactory.resolveEmbeddedValue(phase);
 								if (StringUtils.hasText(phase)) {
 									endpoint.setPhase(Integer.parseInt(phase));
 								}
