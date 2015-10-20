@@ -100,8 +100,8 @@ public class SOLingerTests {
 		 * Default (no linger) means the OS may still deliver everything before the
 		 * FIN, but it's not guaranteed.
 		 */
-		int port = inCF.getPort();
 		TestingUtilities.waitListening(inCF, null);
+		int port = inCF.getPort();
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 			socket.setSoTimeout(10000);
@@ -132,8 +132,8 @@ public class SOLingerTests {
 	}
 
 	private void rstReceived(AbstractServerConnectionFactory inCF) {
-		int port = inCF.getPort();
 		TestingUtilities.waitListening(inCF, null);
+		int port = inCF.getPort();
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 			socket.setSoTimeout(10000);

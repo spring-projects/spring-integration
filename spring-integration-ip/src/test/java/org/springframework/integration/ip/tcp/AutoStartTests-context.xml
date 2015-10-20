@@ -10,6 +10,7 @@
 	<ip:tcp-connection-factory id="cfS1"
 		type="server"
 		port="0"
+		local-address="localhost"
 		lookup-host="false"
 		/>
 
