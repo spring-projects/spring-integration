@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Dave Turanski
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -325,7 +326,8 @@ public class ChainParserTests {
 	@Test(expected = BeanCreationException.class) //INT-2275
 	public void invalidNestedChainWithLoggingChannelAdapter() {
 		try {
-			new ClassPathXmlApplicationContext("invalidNestedChainWithOutboundChannelAdapter-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("invalidNestedChainWithOutboundChannelAdapter-context.xml",
+					this.getClass()).close();
 			fail("BeanCreationException is expected!");
 		}
 		catch (BeansException e) {
@@ -338,7 +340,8 @@ public class ChainParserTests {
 
 	@Test //INT-2605
 	public void checkSmartLifecycleConfig() {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("ChainParserSmartLifecycleAttributesTest.xml", this.getClass());
+		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"ChainParserSmartLifecycleAttributesTest.xml", this.getClass());
 		AbstractEndpoint chainEndpoint = ctx.getBean("chain", AbstractEndpoint.class);
 		assertEquals(false, chainEndpoint.isAutoStartup());
 		assertEquals(256, chainEndpoint.getPhase());
@@ -349,6 +352,7 @@ public class ChainParserTests {
 		//INT-3108
 		MessageHandler serviceActivator = ctx.getBean("chain$child.sa-within-chain.handler", MessageHandler.class);
 		assertTrue(TestUtils.getPropertyValue(serviceActivator, "requiresReply", Boolean.class));
+		ctx.close();
 	}
 
 	@Test
@@ -406,7 +410,7 @@ public class ChainParserTests {
 
 		assertTrue(handlers.get(1) instanceof ServiceActivatingHandler);
 		assertEquals("headerEnricherChain$child#1", TestUtils.getPropertyValue(handlers.get(1), "componentName"));
-		assertNull(TestUtils.getPropertyValue(handlers.get(1), "beanName"));
+		assertEquals("headerEnricherChain$child#1.handler", TestUtils.getPropertyValue(handlers.get(1), "beanName"));
 		assertFalse(this.beanFactory.containsBean("headerEnricherChain$child#1.handler"));
 
 	}

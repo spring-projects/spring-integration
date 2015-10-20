@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,7 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		BeanComponentDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element,
 				parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		BeanDefinitionBuilder builder;
-
-		builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorFactoryBean.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorFactoryBean.class);
 		BeanMetadataElement processor = null;
 
 		if (innerHandlerDefinition != null || StringUtils.hasText(ref)) {
@@ -60,24 +58,25 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 			else {
 				processor = new RuntimeBeanReference(ref);
 			}
-			builder.addConstructorArgValue(processor);
+			builder.addPropertyValue("processorBean", processor);
 		}
 		else {
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
 				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
 				adapterBuilder.addConstructorArgValue(expression);
-				builder.addConstructorArgValue(adapterBuilder.getBeanDefinition());
+				builder.addPropertyValue("processorBean", adapterBuilder.getBeanDefinition());
 			}
 			else {
-				builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class)
-						.getBeanDefinition());
+				builder.addPropertyValue("processorBean", BeanDefinitionBuilder
+						.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class).getBeanDefinition());
 			}
 		}
 
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.addConstructorArgValue(method);
+			builder.addPropertyValue("methodName", method);
 		}
 
 		this.doParse(builder, element, processor, parserContext);

@@ -2,10 +2,10 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="outputChannel">
 		<queue capacity="5"/>
@@ -36,7 +36,22 @@
 		correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
 		send-partial-result-on-expiry="true"
-		expire-groups-upon-timeout="false"/>
+		expire-groups-upon-completion="true"
+		expire-groups-upon-timeout="false"
+		empty-group-min-timeout="123"
+		group-timeout="456"
+		lock-registry="lockRegistry"
+		scheduler="scheduler"
+		message-store="store"
+		order="5">
+			<expire-advice-chain/>
+	</aggregator>
+
+	<beans:bean id="lockRegistry" class="org.springframework.integration.support.locks.DefaultLockRegistry"/>
+
+	<task:scheduler id="scheduler"/>
+
+	<beans:bean id="store" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 	<channel id="aggregatorWithExpressionsInput"/>
 	<channel id="aggregatorWithExpressionsOutput"/>

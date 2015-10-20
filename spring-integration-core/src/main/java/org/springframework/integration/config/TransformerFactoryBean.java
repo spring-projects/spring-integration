@@ -88,4 +88,9 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 		return true; // Any AMPH can be a transformer
 	}
 
+	@Override
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
+		return MessageTransformingHandler.class;
+	}
+
 }

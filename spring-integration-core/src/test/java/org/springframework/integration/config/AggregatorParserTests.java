@@ -18,12 +18,15 @@ package org.springframework.integration.config;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +42,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
@@ -52,6 +56,7 @@ import org.springframework.integration.aggregator.SimpleMessageGroupProcessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -191,6 +196,16 @@ public class AggregatorParserTests {
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));
 		assertFalse(TestUtils.getPropertyValue(consumer, "expireGroupsUponTimeout", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(consumer, "expireGroupsUponCompletion", Boolean.class));
+		assertEquals(123L, TestUtils.getPropertyValue(consumer, "minimumTimeoutForEmptyGroups"));
+		assertEquals("456", TestUtils.getPropertyValue(consumer, "groupTimeoutExpression", Expression.class)
+				.getExpressionString());
+		assertSame(this.context.getBean(LockRegistry.class), TestUtils.getPropertyValue(consumer, "lockRegistry"));
+		assertSame(this.context.getBean("scheduler"), TestUtils.getPropertyValue(consumer, "taskScheduler"));
+		assertSame(this.context.getBean("store"), TestUtils.getPropertyValue(consumer, "messageStore"));
+		assertEquals(5, TestUtils.getPropertyValue(consumer, "order"));
+		assertNotNull(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain"));
+
 	}
 
 	@Test
@@ -211,14 +226,26 @@ public class AggregatorParserTests {
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void testMissingMethodOnAggregator() {
-		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass()).close();
+			fail("Expected exception");
+		}
+		catch (BeanCreationException e) {
+			assertThat(e.getMessage(), containsString("Adder] has no eligible methods"));
+		}
 	}
 
-	@Test(expected = BeanCreationException.class)
-	public void testDuplicateReleaseStrategyDefinition() {
-		context = new ClassPathXmlApplicationContext("ReleaseStrategyMethodWithMissingReference.xml", this.getClass());
+	@Test
+	public void testMissingReleaseStrategyDefinition() {
+		try {
+			new ClassPathXmlApplicationContext("ReleaseStrategyMethodWithMissingReference.xml", this.getClass()).close();
+			fail("Expected exception");
+		}
+		catch (BeanCreationException e) {
+			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy' is defined"));
+		}
 	}
 
 	@Test
@@ -271,9 +298,15 @@ public class AggregatorParserTests {
 		assertEquals(11l, reply.getPayload());
 	}
 
-	@Test(expected = BeanCreationException.class)
+	@Test
 	public void testAggregatorWithInvalidReleaseStrategyMethod() {
-		context = new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass()).close();
+			fail("Expected exception");
+		}
+		catch (BeanCreationException e) {
+			assertThat(e.getMessage(), containsString("TestReleaseStrategy] has no eligible methods"));
+		}
 	}
 
 	@Test
@@ -292,9 +325,15 @@ public class AggregatorParserTests {
 		assertEquals(60000L, minimumTimeoutForEmptyGroups.longValue());
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
+	@Test
 	public void testAggregatorFailureIfMutuallyExclusivityPresent() {
-		this.context = new ClassPathXmlApplicationContext("aggregatorParserFailTests.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("aggregatorParserFailTests.xml", this.getClass()).close();
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertThat(e.getMessage(), containsString(
+					"Exactly one of the 'release-strategy' or 'release-strategy-expression' attribute is allowed."));
+		}
 	}
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,

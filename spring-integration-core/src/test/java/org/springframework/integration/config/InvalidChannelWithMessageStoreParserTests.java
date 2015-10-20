@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -35,7 +36,7 @@ public class InvalidChannelWithMessageStoreParserTests {
 	public void testRefAndStoreIllegal() throws Exception {
 		exception.expect(BeanDefinitionParsingException.class);
 		exception.expectMessage(Matchers.containsString("'message-store' attribute is not allowed"));
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass()).close();
 	}
 
 }

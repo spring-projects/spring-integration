@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -23,12 +26,19 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Marius Bogoevici
+ * @author Gary Russell
  */
 public class CorrelationStrategyInvalidConfigurationTests {
 
-    @Test(expected = BeanCreationException.class)
+    @Test
     public void testCorrelationStrategyWithVoidReturningMethods() throws Exception {
-        new ClassPathXmlApplicationContext("correlationStrategyWithVoidMethods.xml", CorrelationStrategyInvalidConfigurationTests.class);
+		try {
+			new ClassPathXmlApplicationContext("correlationStrategyWithVoidMethods.xml",
+				CorrelationStrategyInvalidConfigurationTests.class).close();
+		}
+		catch (BeanCreationException e) {
+			assertThat(e.getMessage(), containsString("MessageCountReleaseStrategy] has no eligible methods"));
+		}
     }
 
     public static class VoidReturningCorrelationStrategy {

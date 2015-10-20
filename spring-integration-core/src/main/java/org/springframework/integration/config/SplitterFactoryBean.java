@@ -146,4 +146,9 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		}
 	}
 
+	@Override
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
+		return AbstractMessageSplitter.class;
+	}
+
 }
