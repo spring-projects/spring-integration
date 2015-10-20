@@ -20,25 +20,29 @@
 
 	<ip:tcp-connection-factory id="crLfServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27000)}"
+		local-address="localhost"
 		serializer="crLfSerializer"
 		deserializer="crLfSerializer"/>
 
 	<ip:tcp-connection-factory id="stxEtxServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7100)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27100)}"
+		local-address="localhost"
 		serializer="stxEtxSerializer"
 		deserializer="stxEtxSerializer"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7200)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27200)}"
+		local-address="localhost"
 		serializer="lengthHeaderSerializer"
 		deserializer="lengthHeaderSerializer"/>
 
 	<ip:tcp-connection-factory id="javaSerialServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7300)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27300)}"
+		local-address="localhost"
 		serializer="javaSerializer"
 		deserializer="javaDeserializer"/>
 
@@ -72,28 +76,32 @@
 
 	<ip:tcp-connection-factory id="crLfServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27400)}"
+		local-address="localhost"
 		serializer="crLfSerializer"
 		deserializer="crLfSerializer"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="stxEtxServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7500)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(17500)}"
+		local-address="localhost"
 		serializer="stxEtxSerializer"
 		deserializer="stxEtxSerializer"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7600)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27600)}"
+		local-address="localhost"
 		serializer="lengthHeaderSerializer"
 		deserializer="lengthHeaderSerializer"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="javaSerialServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(7700)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(27700)}"
+		local-address="localhost"
 		serializer="javaSerializer"
 		deserializer="javaDeserializer"
 		using-nio="true"/>

@@ -7,11 +7,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<int-ip:tcp-connection-factory id="inCFNet"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9000)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		/>
@@ -21,7 +19,7 @@
 
 	<int-ip:tcp-connection-factory id="inCFNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9100)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		using-nio="true"
@@ -32,7 +30,7 @@
 
 	<int-ip:tcp-connection-factory id="inCFNetRst"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9200)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		so-linger="0"
@@ -43,7 +41,7 @@
 
 	<int-ip:tcp-connection-factory id="inCFNioRst"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9300)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		using-nio="true"
@@ -55,7 +53,7 @@
 
 	<int-ip:tcp-connection-factory id="inCFNetLinger"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9400)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		so-linger="10000"
@@ -66,7 +64,7 @@
 
 	<int-ip:tcp-connection-factory id="inCFNioLinger"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(9500)}"
+		port="0"
 		so-timeout="1000"
 		single-use="true"
 		using-nio="true"

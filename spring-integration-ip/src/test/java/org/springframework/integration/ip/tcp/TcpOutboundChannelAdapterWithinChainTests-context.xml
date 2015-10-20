@@ -14,7 +14,8 @@
 		type="server"
 		so-timeout="60000"
 		deserializer=""
-		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"/>
+		port="#{tcpIpUtils.findAvailableServerSocket(27800)}"
+		local-address="localhost"/>
 
 	<int-ip:tcp-inbound-channel-adapter
 		connection-factory="scf"
