@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,8 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 		else {
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
 				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
 				adapterBuilder.addConstructorArgValue(expression);
 				builder.addPropertyValue("processorBean", adapterBuilder.getBeanDefinition());
 			}

@@ -19,13 +19,7 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -37,8 +31,8 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -48,20 +42,11 @@ import org.springframework.scheduling.TaskScheduler;
  * @since 4.2
  *
  */
-public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<AggregatingMessageHandler>
-		implements ApplicationContextAware, BeanNameAware, ApplicationEventPublisherAware {
+public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<AggregatingMessageHandler> {
 
 	private Object processorBean;
 
 	private String methodName;
-
-	private ApplicationContext applicationContext;
-
-	private String beanName;
-
-	private ApplicationEventPublisher applicationEventPublisher;
-
-	private AggregatingMessageHandler aggregator;
 
 	private Boolean expireGroupsUponCompletion;
 
@@ -70,8 +55,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private String outputChannelName;
 
 	private AbstractMessageHandlerMetrics metrics;
-
-	private DestinationResolver<MessageChannel> channelResolver;
 
 	private Boolean statsEnabled;
 
@@ -101,21 +84,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private Boolean expireGroupsUponTimeout;
 
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
-	@Override
-	public void setBeanName(String name) {
-		this.beanName = name;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
 	}
@@ -138,10 +106,6 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	public void setMetrics(AbstractMessageHandlerMetrics metrics) {
 		this.metrics = metrics;
-	}
-
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		this.channelResolver = channelResolver;
 	}
 
 	public void setStatsEnabled(Boolean statsEnabled) {
@@ -207,108 +171,92 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 			outputProcessor = (MessageGroupProcessor) this.processorBean;
 		}
 		else {
-			if (this.methodName == null) {
+			if (!StringUtils.hasText(this.methodName)) {
 				outputProcessor = new MethodInvokingMessageGroupProcessor(this.processorBean);
 			}
 			else {
 				outputProcessor = new MethodInvokingMessageGroupProcessor(this.processorBean, this.methodName);
 			}
 		}
-		this.aggregator = new AggregatingMessageHandler(outputProcessor);
-
-		if (this.applicationContext != null) {
-			this.aggregator.setApplicationContext(this.applicationContext);
-		}
-
-		if (this.applicationEventPublisher != null) {
-			this.aggregator.setApplicationEventPublisher(applicationEventPublisher);
-		}
-
-		if (this.beanName != null) {
-			this.aggregator.setBeanName(this.beanName);
-		}
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(outputProcessor);
 
 		if (this.expireGroupsUponCompletion != null) {
-			this.aggregator.setExpireGroupsUponCompletion(this.expireGroupsUponCompletion);
+			aggregator.setExpireGroupsUponCompletion(this.expireGroupsUponCompletion);
 		}
 
 		if (this.sendTimeout != null) {
-			this.aggregator.setSendTimeout(this.sendTimeout);
+			aggregator.setSendTimeout(this.sendTimeout);
 		}
 
 		if (this.outputChannelName != null) {
-			this.aggregator.setOutputChannelName(this.outputChannelName);
+			aggregator.setOutputChannelName(this.outputChannelName);
 		}
 
 		if (this.metrics != null) {
-			this.aggregator.configureMetrics(this.metrics);
-		}
-
-		if (this.channelResolver != null) {
-			this.aggregator.setChannelResolver(this.channelResolver);
+			aggregator.configureMetrics(this.metrics);
 		}
 
 		if (this.statsEnabled != null) {
-			this.aggregator.setStatsEnabled(this.statsEnabled);
+			aggregator.setStatsEnabled(this.statsEnabled);
 		}
 
 		if (this.countsEnabled != null) {
-			this.aggregator.setCountsEnabled(this.countsEnabled);
+			aggregator.setCountsEnabled(this.countsEnabled);
 		}
 
 		if (this.lockRegistry != null) {
-			this.aggregator.setLockRegistry(this.lockRegistry);
+			aggregator.setLockRegistry(this.lockRegistry);
 		}
 
 		if (this.messageStore != null) {
-			this.aggregator.setMessageStore(this.messageStore);
+			aggregator.setMessageStore(this.messageStore);
 		}
 
 		if (this.correlationStrategy != null) {
-			this.aggregator.setCorrelationStrategy(this.correlationStrategy);
+			aggregator.setCorrelationStrategy(this.correlationStrategy);
 		}
 
 		if (this.releaseStrategy != null) {
-			this.aggregator.setReleaseStrategy(this.releaseStrategy);
+			aggregator.setReleaseStrategy(this.releaseStrategy);
 		}
 
 		if (this.groupTimeoutExpression != null) {
-			this.aggregator.setGroupTimeoutExpression(this.groupTimeoutExpression);
+			aggregator.setGroupTimeoutExpression(this.groupTimeoutExpression);
 		}
 
 		if (this.forceReleaseAdviceChain != null) {
-			this.aggregator.setForceReleaseAdviceChain(this.forceReleaseAdviceChain);
+			aggregator.setForceReleaseAdviceChain(this.forceReleaseAdviceChain);
 		}
 
 		if (this.taskScheduler != null) {
-			this.aggregator.setTaskScheduler(this.taskScheduler);
+			aggregator.setTaskScheduler(this.taskScheduler);
 		}
 
 		if (this.discardChannel != null) {
-			this.aggregator.setDiscardChannel(this.discardChannel);
+			aggregator.setDiscardChannel(this.discardChannel);
 		}
 
 		if (this.discardChannelName != null) {
-			this.aggregator.setDiscardChannelName(this.discardChannelName);
+			aggregator.setDiscardChannelName(this.discardChannelName);
 		}
 
 		if (this.sendPartialResultOnExpiry != null) {
-			this.aggregator.setSendPartialResultOnExpiry(this.sendPartialResultOnExpiry);
+			aggregator.setSendPartialResultOnExpiry(this.sendPartialResultOnExpiry);
 		}
 
 		if (this.minimumTimeoutForEmptyGroups != null) {
-			this.aggregator.setMinimumTimeoutForEmptyGroups(this.minimumTimeoutForEmptyGroups);
+			aggregator.setMinimumTimeoutForEmptyGroups(this.minimumTimeoutForEmptyGroups);
 		}
 
 		if (this.expireGroupsUponTimeout != null) {
-			this.aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
+			aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
 		}
 
-		return this.aggregator;
+		return aggregator;
 	}
 
 	@Override
-	public Class<? extends MessageHandler> getObjectType() {
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
 		return AggregatingMessageHandler.class;
 	}
 

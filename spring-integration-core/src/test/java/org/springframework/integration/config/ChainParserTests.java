@@ -410,7 +410,7 @@ public class ChainParserTests {
 
 		assertTrue(handlers.get(1) instanceof ServiceActivatingHandler);
 		assertEquals("headerEnricherChain$child#1", TestUtils.getPropertyValue(handlers.get(1), "componentName"));
-		assertNull(TestUtils.getPropertyValue(handlers.get(1), "beanName"));
+		assertEquals("headerEnricherChain$child#1.handler", TestUtils.getPropertyValue(handlers.get(1), "beanName"));
 		assertFalse(this.beanFactory.containsBean("headerEnricherChain$child#1.handler"));
 
 	}

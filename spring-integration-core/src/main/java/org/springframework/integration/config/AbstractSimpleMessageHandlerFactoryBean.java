@@ -24,8 +24,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageProducer;
@@ -33,6 +38,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -44,7 +50,8 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
-		implements FactoryBean<MessageHandler>, BeanFactoryAware {
+		implements FactoryBean<MessageHandler>, ApplicationContextAware, BeanFactoryAware, BeanNameAware,
+		ApplicationEventPublisherAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -64,8 +71,31 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private volatile String componentName;
 
-	public AbstractSimpleMessageHandlerFactoryBean() {
-		super();
+	private ApplicationContext applicationContext;
+
+	private String beanName;
+
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private DestinationResolver<MessageChannel> channelResolver;
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		this.channelResolver = channelResolver;
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -113,9 +143,19 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				// There was a problem when this method was called already
 				return null;
 			}
-			handler = createHandler();
-			if (handler instanceof BeanFactoryAware) {
-				((BeanFactoryAware) handler).setBeanFactory(getBeanFactory());
+			this.handler = createHandler();
+			if (this.handler instanceof ApplicationContextAware && this.applicationContext != null) {
+				((ApplicationContextAware) this.handler).setApplicationContext(this.applicationContext);
+			}
+			if (this.handler instanceof BeanFactoryAware && getBeanFactory() != null) {
+				((BeanFactoryAware) this.handler).setBeanFactory(getBeanFactory());
+			}
+			if (this.handler instanceof BeanNameAware && this.beanName != null) {
+				((BeanNameAware) this.handler).setBeanName(this.beanName);
+			}
+			if (this.handler instanceof ApplicationEventPublisherAware && this.applicationEventPublisher != null) {
+				((ApplicationEventPublisherAware) this.handler)
+						.setApplicationEventPublisher(this.applicationEventPublisher);
 			}
 			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
 				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
@@ -124,8 +164,13 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (actualHandler == null) {
 				actualHandler = this.handler;
 			}
-			if (actualHandler instanceof IntegrationObjectSupport && this.componentName != null) {
-				((IntegrationObjectSupport) actualHandler).setComponentName(this.componentName);
+			if (actualHandler instanceof IntegrationObjectSupport) {
+				if (this.componentName != null) {
+					((IntegrationObjectSupport) actualHandler).setComponentName(this.componentName);
+				}
+				if (this.channelResolver != null) {
+					((IntegrationObjectSupport) actualHandler).setChannelResolver(this.channelResolver);
+				}
 			}
 			if (!CollectionUtils.isEmpty(this.adviceChain)) {
 				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
@@ -163,6 +208,15 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		if (this.handler != null) {
 			return this.handler.getClass();
 		}
+		return getPreCreationHandlerType();
+	}
+
+	/**
+	 * Subclasses can override this to return a more specific type before handler creation.
+	 * After handler creation, the actual type is used.
+	 * @return the type.
+	 */
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
 		return MessageHandler.class;
 	}
 

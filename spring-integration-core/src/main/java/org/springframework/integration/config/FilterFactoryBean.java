@@ -141,4 +141,9 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 						&& this.discardWithinAdvice == null);
 	}
 
+	@Override
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
+		return MessageFilter.class;
+	}
+
 }

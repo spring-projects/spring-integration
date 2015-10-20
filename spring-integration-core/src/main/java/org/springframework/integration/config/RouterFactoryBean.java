@@ -147,4 +147,9 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 				&& this.ignoreSendFailures == null;
 	}
 
+	@Override
+	protected Class<? extends MessageHandler> getPreCreationHandlerType() {
+		return AbstractMessageRouter.class;
+	}
+
 }
