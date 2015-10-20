@@ -26,7 +26,8 @@
 
 	<ip:tcp-connection-factory id="crLfServer2"
 							   type="server"
-							   port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
+							   port="#{tcpIpUtils.findAvailableServerSocket(27900)}"
+							   local-address="localhost"
 							   serializer="crLfSerializer"
 							   deserializer="crLfSerializer"/>
 
@@ -37,6 +38,9 @@
 							   serializer="crLfSerializer"
 							   deserializer="crLfSerializer"/>
 
+	<ip:tcp-inbound-gateway id="gatewayCrLf2"
+		connection-factory="crLfServer2"
+		request-channel="toSA" />
 
 	<int:chain input-channel="tcpOutboundGatewayInsideChain" output-channel="replyChannel">
 		<ip:tcp-outbound-gateway id="tcp-outbound-gateway-within-chain" connection-factory="crLfClient2"/>

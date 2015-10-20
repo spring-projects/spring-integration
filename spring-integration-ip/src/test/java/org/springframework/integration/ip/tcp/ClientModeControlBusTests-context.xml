@@ -20,6 +20,7 @@
 		type="server"
 		using-nio="true"
 		port="#{tcpIpUtils.findAvailableServerSocket(12000)}"
+		local-address="localhost"
 		lookup-host="false"
 		so-timeout="20000"
 	/>
