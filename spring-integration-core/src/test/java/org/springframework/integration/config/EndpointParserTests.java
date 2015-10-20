@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class EndpointParserTests {
 
@@ -43,6 +44,7 @@ public class EndpointParserTests {
 		channel.send(new GenericMessage<String>("test"));
 		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
+		context.close();
 	}
 
 }

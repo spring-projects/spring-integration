@@ -36,6 +36,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -48,128 +49,267 @@ import org.springframework.scheduling.TaskScheduler;
  *
  */
 public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<AggregatingMessageHandler>
-				implements ApplicationContextAware, BeanNameAware, ApplicationEventPublisherAware {
+		implements ApplicationContextAware, BeanNameAware, ApplicationEventPublisherAware {
 
-	private final AggregatingMessageHandler aggregator;
+	private Object processorBean;
 
-	public AggregatorFactoryBean(Object processor) {
-		this(processor, null);
-	}
+	private String methodName;
 
-	public AggregatorFactoryBean(Object processor, String methodName) {
-		MessageGroupProcessor outputProcessor;
-		if (processor instanceof MessageGroupProcessor) {
-			outputProcessor = (MessageGroupProcessor) processor;
-		}
-		else {
-			if (methodName == null) {
-				outputProcessor = new MethodInvokingMessageGroupProcessor(processor);
-			}
-			else {
-				outputProcessor = new MethodInvokingMessageGroupProcessor(processor, methodName);
-			}
-		}
-		this.aggregator = new AggregatingMessageHandler(outputProcessor);
-	}
+	private ApplicationContext applicationContext;
 
-	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
-		this.aggregator.setExpireGroupsUponCompletion(expireGroupsUponCompletion);
-	}
+	private String beanName;
 
-	public void setSendTimeout(long sendTimeout) {
-		this.aggregator.setSendTimeout(sendTimeout);
-	}
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	public void setOutputChannelName(String outputChannelName) {
-		this.aggregator.setOutputChannelName(outputChannelName);
-	}
+	private AggregatingMessageHandler aggregator;
 
-	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
-		this.aggregator.configureMetrics(metrics);
+	private Boolean expireGroupsUponCompletion;
+
+	private Long sendTimeout;
+
+	private String outputChannelName;
+
+	private AbstractMessageHandlerMetrics metrics;
+
+	private DestinationResolver<MessageChannel> channelResolver;
+
+	private Boolean statsEnabled;
+
+	private Boolean countsEnabled;
+
+	private LockRegistry lockRegistry;
+
+	private MessageGroupStore messageStore;
+
+	private CorrelationStrategy correlationStrategy;
+
+	private ReleaseStrategy releaseStrategy;
+
+	private Expression groupTimeoutExpression;
+
+	private List<Advice> forceReleaseAdviceChain;
+
+	private TaskScheduler taskScheduler;
+
+	private MessageChannel discardChannel;
+
+	private String discardChannelName;
+
+	private Boolean sendPartialResultOnExpiry;
+
+	private Long minimumTimeoutForEmptyGroups;
+
+	private Boolean expireGroupsUponTimeout;
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
-	public final void setBeanName(String beanName) {
-		this.aggregator.setBeanName(beanName);
+	public void setBeanName(String name) {
+		this.beanName = name;
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.aggregator.setApplicationContext(applicationContext);
+		this.applicationContext = applicationContext;
+	}
+
+	public void setProcessorBean(Object processorBean) {
+		this.processorBean = processorBean;
+	}
+
+	public void setMethodName(String methodName) {
+		this.methodName = methodName;
+	}
+
+	public void setExpireGroupsUponCompletion(Boolean expireGroupsUponCompletion) {
+		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
+	}
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
+	}
+
+	public void setMetrics(AbstractMessageHandlerMetrics metrics) {
+		this.metrics = metrics;
 	}
 
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
-		this.aggregator.setChannelResolver(channelResolver);
+		this.channelResolver = channelResolver;
 	}
 
-	public void setStatsEnabled(boolean statsEnabled) {
-		this.aggregator.setStatsEnabled(statsEnabled);
+	public void setStatsEnabled(Boolean statsEnabled) {
+		this.statsEnabled = statsEnabled;
 	}
 
-	public void setCountsEnabled(boolean countsEnabled) {
-		this.aggregator.setCountsEnabled(countsEnabled);
+	public void setCountsEnabled(Boolean countsEnabled) {
+		this.countsEnabled = countsEnabled;
 	}
 
 	public void setLockRegistry(LockRegistry lockRegistry) {
-		this.aggregator.setLockRegistry(lockRegistry);
+		this.lockRegistry = lockRegistry;
 	}
 
-	public void setMessageStore(MessageGroupStore store) {
-		this.aggregator.setMessageStore(store);
+	public void setMessageStore(MessageGroupStore messageStore) {
+		this.messageStore = messageStore;
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
-		this.aggregator.setCorrelationStrategy(correlationStrategy);
+		this.correlationStrategy = correlationStrategy;
 	}
 
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
-		this.aggregator.setReleaseStrategy(releaseStrategy);
+		this.releaseStrategy = releaseStrategy;
 	}
 
 	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
-		this.aggregator.setGroupTimeoutExpression(groupTimeoutExpression);
+		this.groupTimeoutExpression = groupTimeoutExpression;
 	}
 
 	public void setForceReleaseAdviceChain(List<Advice> forceReleaseAdviceChain) {
-		this.aggregator.setForceReleaseAdviceChain(forceReleaseAdviceChain);
+		this.forceReleaseAdviceChain = forceReleaseAdviceChain;
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		this.aggregator.setTaskScheduler(taskScheduler);
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.aggregator.setApplicationEventPublisher(applicationEventPublisher);
+		this.taskScheduler = taskScheduler;
 	}
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
-		this.aggregator.setDiscardChannel(discardChannel);
+		this.discardChannel = discardChannel;
 	}
 
 	public void setDiscardChannelName(String discardChannelName) {
-		this.aggregator.setDiscardChannelName(discardChannelName);
+		this.discardChannelName = discardChannelName;
 	}
 
-	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
-		this.aggregator.setSendPartialResultOnExpiry(sendPartialResultOnExpiry);
+	public void setSendPartialResultOnExpiry(Boolean sendPartialResultOnExpiry) {
+		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
 	}
 
-	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
-		this.aggregator.setMinimumTimeoutForEmptyGroups(minimumTimeoutForEmptyGroups);
+	public void setMinimumTimeoutForEmptyGroups(Long minimumTimeoutForEmptyGroups) {
+		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
 	}
 
-	public void setReleasePartialSequences(boolean releasePartialSequences) {
-		this.aggregator.setReleasePartialSequences(releasePartialSequences);
-	}
-
-	public void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
-		this.aggregator.setExpireGroupsUponTimeout(expireGroupsUponTimeout);
+	public void setExpireGroupsUponTimeout(Boolean expireGroupsUponTimeout) {
+		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
 	}
 
 	@Override
 	protected AggregatingMessageHandler createHandler() {
+		MessageGroupProcessor outputProcessor;
+		if (this.processorBean instanceof MessageGroupProcessor) {
+			outputProcessor = (MessageGroupProcessor) this.processorBean;
+		}
+		else {
+			if (this.methodName == null) {
+				outputProcessor = new MethodInvokingMessageGroupProcessor(this.processorBean);
+			}
+			else {
+				outputProcessor = new MethodInvokingMessageGroupProcessor(this.processorBean, this.methodName);
+			}
+		}
+		this.aggregator = new AggregatingMessageHandler(outputProcessor);
+
+		if (this.applicationContext != null) {
+			this.aggregator.setApplicationContext(this.applicationContext);
+		}
+
+		if (this.applicationEventPublisher != null) {
+			this.aggregator.setApplicationEventPublisher(applicationEventPublisher);
+		}
+
+		if (this.beanName != null) {
+			this.aggregator.setBeanName(this.beanName);
+		}
+
+		if (this.expireGroupsUponCompletion != null) {
+			this.aggregator.setExpireGroupsUponCompletion(this.expireGroupsUponCompletion);
+		}
+
+		if (this.sendTimeout != null) {
+			this.aggregator.setSendTimeout(this.sendTimeout);
+		}
+
+		if (this.outputChannelName != null) {
+			this.aggregator.setOutputChannelName(this.outputChannelName);
+		}
+
+		if (this.metrics != null) {
+			this.aggregator.configureMetrics(this.metrics);
+		}
+
+		if (this.channelResolver != null) {
+			this.aggregator.setChannelResolver(this.channelResolver);
+		}
+
+		if (this.statsEnabled != null) {
+			this.aggregator.setStatsEnabled(this.statsEnabled);
+		}
+
+		if (this.countsEnabled != null) {
+			this.aggregator.setCountsEnabled(this.countsEnabled);
+		}
+
+		if (this.lockRegistry != null) {
+			this.aggregator.setLockRegistry(this.lockRegistry);
+		}
+
+		if (this.messageStore != null) {
+			this.aggregator.setMessageStore(this.messageStore);
+		}
+
+		if (this.correlationStrategy != null) {
+			this.aggregator.setCorrelationStrategy(this.correlationStrategy);
+		}
+
+		if (this.releaseStrategy != null) {
+			this.aggregator.setReleaseStrategy(this.releaseStrategy);
+		}
+
+		if (this.groupTimeoutExpression != null) {
+			this.aggregator.setGroupTimeoutExpression(this.groupTimeoutExpression);
+		}
+
+		if (this.forceReleaseAdviceChain != null) {
+			this.aggregator.setForceReleaseAdviceChain(this.forceReleaseAdviceChain);
+		}
+
+		if (this.taskScheduler != null) {
+			this.aggregator.setTaskScheduler(this.taskScheduler);
+		}
+
+		if (this.discardChannel != null) {
+			this.aggregator.setDiscardChannel(this.discardChannel);
+		}
+
+		if (this.discardChannelName != null) {
+			this.aggregator.setDiscardChannelName(this.discardChannelName);
+		}
+
+		if (this.sendPartialResultOnExpiry != null) {
+			this.aggregator.setSendPartialResultOnExpiry(this.sendPartialResultOnExpiry);
+		}
+
+		if (this.minimumTimeoutForEmptyGroups != null) {
+			this.aggregator.setMinimumTimeoutForEmptyGroups(this.minimumTimeoutForEmptyGroups);
+		}
+
+		if (this.expireGroupsUponTimeout != null) {
+			this.aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
+		}
+
 		return this.aggregator;
+	}
+
+	@Override
+	public Class<? extends MessageHandler> getObjectType() {
+		return AggregatingMessageHandler.class;
 	}
 
 }

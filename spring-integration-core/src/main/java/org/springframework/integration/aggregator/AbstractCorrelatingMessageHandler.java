@@ -24,6 +24,10 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
+import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -51,10 +55,6 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
-import org.aopalliance.aop.Advice;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -282,6 +282,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
 	}
 
+	/**
+	 * Set {@code releasePartialSequences} on an underlying
+	 * {@link SequenceSizeReleaseStrategy}.
+	 * @param releasePartialSequences true to allow release.
+	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}

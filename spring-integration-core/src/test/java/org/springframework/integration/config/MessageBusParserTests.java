@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,28 +36,31 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Gary Russell
  */
 public class MessageBusParserTests {
 
 	@Test
 	public void testErrorChannelReference() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannel.xml", this.getClass());
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
 		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
+		context.close();
 	}
 
 	@Test
 	public void testDefaultErrorChannel() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
 		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
+		context.close();
 	}
 
 	@Test
 	public void testMulticasterIsSyncByDefault() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		SimpleApplicationEventMulticaster multicaster = (SimpleApplicationEventMulticaster)
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
@@ -69,6 +72,7 @@ public class MessageBusParserTests {
 		else {
 			assertNull(taskExecutor);
 		}
+		context.close();
 	}
 
 	@Test
@@ -86,6 +90,7 @@ public class MessageBusParserTests {
 		else {
 			assertNull(taskExecutor);
 		}
+		context.close();
 	}
 
 	@Test
@@ -98,6 +103,7 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		assertEquals(ThreadPoolTaskExecutor.class, taskExecutor.getClass());
+		context.close();
 	}
 
 	@Test
@@ -106,6 +112,7 @@ public class MessageBusParserTests {
 				"messageBusWithTaskScheduler.xml", this.getClass());
 		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
 		assertEquals(StubTaskScheduler.class, scheduler.getClass());
+		context.close();
 	}
 
 	@Test
@@ -114,6 +121,7 @@ public class MessageBusParserTests {
 				"messageBusWithTaskScheduler.xml", this.getClass());
 		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
 		assertEquals(scheduler, IntegrationContextUtils.getTaskScheduler(context));
+		context.close();
 	}
 
 }
