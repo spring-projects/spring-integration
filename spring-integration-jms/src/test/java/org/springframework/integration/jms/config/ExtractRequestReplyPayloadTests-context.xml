@@ -1,39 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-		http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xmlns:jms="http://www.springframework.org/schema/jms"
-	xmlns:task="http://www.springframework.org/schema/task">
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<int:channel id="outboundChannel"/>
-	
+
 	<int:channel id="replyChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int-jms:outbound-gateway id="outboundGateway"
-							  request-channel="outboundChannel" 
-	                          request-destination="extractRecRepQueue"
-	                          reply-channel="replyChannel"
-	                          receive-timeout="3000"
-	                          reply-timeout="3000"/>
-	 
-                     
-    <int-jms:inbound-gateway id="inboundGateway"
-                             request-destination="extractRecRepQueue" 
-                             request-channel="jmsInputChannel"
-                             request-timeout="3000"
-                             reply-timeout="3000"/>
-                             
+							  request-channel="outboundChannel"
+							  request-destination="extractRecRepQueue"
+							  reply-channel="replyChannel"
+							  receive-timeout="10000"
+							  reply-timeout="10000"/>
+
+
+	<int-jms:inbound-gateway id="inboundGateway"
+							 request-destination="extractRecRepQueue"
+							 request-channel="jmsInputChannel"
+							 request-timeout="10000"
+							 reply-timeout="10000"/>
+
 	<int:channel id="jmsInputChannel"/>
-	                     
-    <bean id="extractRecRepQueue" class="org.apache.activemq.command.ActiveMQQueue">
+
+	<bean id="extractRecRepQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="request.queue.req.rep"/>
 	</bean>
 	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">

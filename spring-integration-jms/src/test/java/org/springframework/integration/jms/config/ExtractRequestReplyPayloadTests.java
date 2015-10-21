@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
 
 import static org.hamcrest.Matchers.instanceOf;
@@ -48,16 +49,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author ozhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
- *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class ExtractRequestReplyPayloadTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration",
-			"org.springframework.jms");
 
 	@Rule
 	public TestName testName = new TestName();
@@ -81,7 +77,7 @@ public class ExtractRequestReplyPayloadTests {
 	ChannelPublishingJmsMessageListener inboundGateway;
 
 	@Test
-	public void testOutboundInboundDefault(){
+	public void testOutboundInboundDefault() {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -98,7 +94,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundInboundDefaultIsTx(){
+	public void testOutboundInboundDefaultIsTx() {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -107,6 +103,7 @@ public class ExtractRequestReplyPayloadTests {
 
 		final AtomicBoolean failOnce = new AtomicBoolean();
 		MessageHandler handler = new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
@@ -117,6 +114,7 @@ public class ExtractRequestReplyPayloadTests {
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
+
 		};
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
@@ -127,7 +125,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundBothFalseInboundDefault(){
+	public void testOutboundBothFalseInboundDefault() {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -144,7 +142,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundDefaultInboundBothFalse() throws Exception{
+	public void testOutboundDefaultInboundBothFalse() throws Exception {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -160,7 +158,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundDefaultInboundReplyTrueRequestFalse(){
+	public void testOutboundDefaultInboundReplyTrueRequestFalse() {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -176,7 +174,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundDefaultInboundReplyFalseRequestTrue(){
+	public void testOutboundDefaultInboundReplyFalseRequestTrue() {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -192,7 +190,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundRequestTrueReplyFalseInboundDefault(){
+	public void testOutboundRequestTrueReplyFalseInboundDefault() {
 		this.outboundGateway.setExtractRequestPayload(true);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -208,7 +206,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testOutboundRequestFalseReplyTrueInboundDefault(){
+	public void testOutboundRequestFalseReplyTrueInboundDefault() {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(true);
 
@@ -224,7 +222,7 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	@Test
-	public void testAllFalse() throws Exception{
+	public void testAllFalse() throws Exception {
 		this.outboundGateway.setExtractRequestPayload(false);
 		this.outboundGateway.setExtractReplyPayload(false);
 
@@ -240,7 +238,8 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	private MessageHandler echoInboundStringHandler() {
-		MessageHandler handler = new MessageHandler() {
+		return new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
@@ -248,12 +247,13 @@ public class ExtractRequestReplyPayloadTests {
 				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
+
 		};
-		return handler;
 	}
 
 	private MessageHandler unwrapObjectMessageAndEchoHandler() {
-		MessageHandler handler = new MessageHandler() {
+		return new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertThat(message.getPayload(), instanceOf(javax.jms.ObjectMessage.class));
@@ -268,12 +268,13 @@ public class ExtractRequestReplyPayloadTests {
 				}
 				template.send(origMessage);
 			}
+
 		};
-		return handler;
 	}
 
 	private MessageHandler unwrapTextMessageAndEchoHandler() {
-		MessageHandler handler = new MessageHandler() {
+		return new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertThat(message.getPayload(), instanceOf(javax.jms.TextMessage.class));
@@ -288,8 +289,8 @@ public class ExtractRequestReplyPayloadTests {
 				}
 				template.send(new GenericMessage<String>(payload));
 			}
+
 		};
-		return handler;
 	}
 
 }
