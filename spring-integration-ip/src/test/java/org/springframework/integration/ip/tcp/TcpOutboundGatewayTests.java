@@ -81,6 +81,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class TcpOutboundGatewayTests {
@@ -390,15 +391,18 @@ public class TcpOutboundGatewayTests {
 			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
 				@Override
 				public Integer call() throws Exception {
-					// increase the timeout after the first send
-					if (j > 0) {
-						gateway.setRemoteTimeout(5000);
+					try {
+						gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 					}
-					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
+					finally {
+						// increase the timeout after the first send
+						if (j > 0) {
+							gateway.setRemoteTimeout(5000);
+						}
+					}
 					return j;
 				}
 			}));
-			Thread.sleep(50);
 		}
 		// wait until the server side has processed both requests
 		assertTrue(serverLatch.await(10, TimeUnit.SECONDS));

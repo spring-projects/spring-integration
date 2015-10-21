@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +37,7 @@ import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -49,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -102,20 +105,25 @@ public class ControlBusTests {
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		Message<?> result = this.output.receive(0);
 		assertNotNull(result);
+		// No channels in the registry
 		assertEquals(0, result.getPayload());
-		this.registry.setReaperDelay(10);
 		this.registry.channelToChannelName(new DirectChannel());
+		// Sleep a bit to be sure that we aren't reaped by registry TTL as 60000
+		Thread.sleep(100);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertNotNull(result);
 		assertEquals(1, result.getPayload());
-		Thread.sleep(100);
+		// Some DirectFieldAccessor magic to modify 'expireAt' to the past to avoid timing issues on high-loaded build
+		Object messageChannelWrapper =
+				TestUtils.getPropertyValue(this.registry, "channels", Map.class).values().iterator().next();
+		DirectFieldAccessor dfa = new DirectFieldAccessor(messageChannelWrapper);
+		dfa.setPropertyValue("expireAt", System.currentTimeMillis() - 60000);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.runReaper()");
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertNotNull(result);
 		assertEquals(0, result.getPayload());
-		this.registry.setReaperDelay(60000);
 	}
 
 	@Test
