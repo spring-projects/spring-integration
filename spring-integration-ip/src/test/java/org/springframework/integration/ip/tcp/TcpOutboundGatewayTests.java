@@ -57,14 +57,19 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
@@ -383,26 +388,41 @@ public class TcpOutboundGatewayTests {
 		QueueChannel replyChannel = new QueueChannel();
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
-		gateway.setRemoteTimeout(500);
+
+		ValueExpression<Long> remoteTimeoutExpression = Mockito.spy(new ValueExpression<Long>(500L));
+
+		final AtomicBoolean remoteTimeoutUsed = new AtomicBoolean();
+
+		Mockito.doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				if (!remoteTimeoutUsed.getAndSet(true)) {
+					// increase the timeout after the first send
+					gateway.setRemoteTimeout(5000);
+				}
+				return invocation.callRealMethod();
+			}
+
+		}).when(remoteTimeoutExpression)
+				.getValue(Mockito.any(EvaluationContext.class), Matchers.any());
+
+		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
 		@SuppressWarnings("unchecked")
 		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
+		final CountDownLatch secondMessageLatch = new CountDownLatch(1);
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
 			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
+
 				@Override
 				public Integer call() throws Exception {
-					try {
-						gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
-					}
-					finally {
-						// increase the timeout after the first send
-						if (j > 0) {
-							gateway.setRemoteTimeout(5000);
-						}
-					}
+					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 					return j;
 				}
+
 			}));
+
 		}
 		// wait until the server side has processed both requests
 		assertTrue(serverLatch.await(10, TimeUnit.SECONDS));

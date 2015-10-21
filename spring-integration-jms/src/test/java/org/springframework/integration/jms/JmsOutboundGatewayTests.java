@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms;
 
 import static org.junit.Assert.assertEquals;
@@ -64,8 +65,8 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2.4
- *
  */
 public class JmsOutboundGatewayTests {
 
@@ -81,8 +82,8 @@ public class JmsOutboundGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		assertEquals("JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(gateway) +
-				".replyListener",
-			TestUtils.getPropertyValue(gateway, "replyContainer.beanName"));
+						".replyListener",
+				TestUtils.getPropertyValue(gateway, "replyContainer.beanName"));
 	}
 
 	@Test
@@ -94,15 +95,17 @@ public class JmsOutboundGatewayTests {
 		gateway.setUseReplyContainer(true);
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
 		final List<Throwable> errors = new ArrayList<Throwable>();
-		ErrorHandlingTaskExecutor errorHandlingTaskExecutor = new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), new ErrorHandler() {
+		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
+				new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), new ErrorHandler() {
 
-			@Override
-			public void handleError(Throwable t) {
-				logger.info("Error:", t);
-				errors.add(t);
-				throw new RuntimeException(t);
-			}
-		});
+					@Override
+					public void handleError(Throwable t) {
+						logger.info("Error:", t);
+						errors.add(t);
+						throw new RuntimeException(t);
+					}
+
+				});
 		replyContainerProperties.setTaskExecutor(errorHandlingTaskExecutor);
 		replyContainerProperties.setRecoveryInterval(100L);
 		gateway.setReplyContainerProperties(replyContainerProperties);
@@ -115,7 +118,9 @@ public class JmsOutboundGatewayTests {
 			public Connection answer(InvocationOnMock invocation) throws Throwable {
 				int theCount = connectionAttempts.incrementAndGet();
 				if (theCount > 1 && theCount < 4) {
-					throw new JmsException("bar") {};
+					throw new JmsException("bar") {
+
+					};
 				}
 				return connection;
 			}
@@ -134,7 +139,9 @@ public class JmsOutboundGatewayTests {
 			public Message answer(InvocationOnMock invocation) throws Throwable {
 				int theCount = count.incrementAndGet();
 				if (theCount > 1 && theCount < 4) {
-					throw new JmsException("foo") {};
+					throw new JmsException("foo") {
+
+					};
 				}
 				if (theCount > 4) {
 					Thread.sleep(100);
@@ -190,7 +197,7 @@ public class JmsOutboundGatewayTests {
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		final Message request = template.receive(requestQ);
 		assertNotNull(request);
@@ -205,7 +212,7 @@ public class JmsOutboundGatewayTests {
 			}
 		};
 		template.send(replyQ, reply);
-		org.springframework.messaging.Message<?> received = queueChannel.receive(10000);
+		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());
 		gateway.stop();
@@ -240,7 +247,7 @@ public class JmsOutboundGatewayTests {
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
 		final Message request = template.receive(requestQ);
 		assertNotNull(request);
@@ -255,7 +262,7 @@ public class JmsOutboundGatewayTests {
 			}
 		};
 		template.send(replyQ, reply);
-		org.springframework.messaging.Message<?> received = queueChannel.receive(10000);
+		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());
 		connectionFactory1.destroy();
