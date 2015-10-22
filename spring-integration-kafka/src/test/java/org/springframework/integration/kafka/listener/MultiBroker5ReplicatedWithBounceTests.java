@@ -45,7 +45,6 @@ import org.springframework.integration.kafka.rule.KafkaEmbedded;
 /**
  * @author Marius Bogoevici
  */
-@Ignore
 public class MultiBroker5ReplicatedWithBounceTests extends AbstractMessageListenerContainerTests {
 
 	@Rule

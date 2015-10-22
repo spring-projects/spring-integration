@@ -72,7 +72,9 @@ public interface Connection {
 	 * @param topics the topics whose partitions we query for
 	 * @return broker addresses, indexed by {@link Partition}
 	 * @throws ConsumerException the ConsumerException if any underlying error
+	 * @deprecated as of 1.3, only {@link ConnectionFactory#getLeaders(Iterable)} should be used
 	 */
+	@Deprecated
 	Result<BrokerAddress> findLeaders(String... topics) throws ConsumerException;
 
 
