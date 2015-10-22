@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.util;
 import java.util.List;
 import java.util.Properties;
 
+import kafka.common.LeaderNotAvailableException;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -141,6 +142,9 @@ public class TopicUtils {
 					for (PartitionMetadata partitionMetadata : partitionMetadatas) {
 						if (partitionMetadata.errorCode() != ErrorMapping.NoError()) {
 							throw (Exception) ErrorMapping.exceptionFor(partitionMetadata.errorCode());
+						}
+						if (partitionMetadata.leader() == null) {
+							throw new LeaderNotAvailableException();
 						}
 					}
 					return topicMetadata;
