@@ -33,6 +33,7 @@ import com.gs.collections.impl.multimap.list.SynchronizedPutFastListMultimap;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ import org.springframework.integration.kafka.rule.KafkaEmbedded;
 /**
  * @author Marius Bogoevici
  */
-
+@Ignore
 public class MultiBroker5ReplicatedWithBounceTests extends AbstractMessageListenerContainerTests {
 
 	@Rule
