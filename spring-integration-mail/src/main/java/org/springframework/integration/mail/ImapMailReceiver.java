@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.mail;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
@@ -197,7 +199,15 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
 		Folder folder = this.getFolder();
 		if (folder.isOpen()) {
-			return searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+			Message[] messageArray = searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+			// INT-3859
+			List<Message> messages = new ArrayList<Message>();
+			for (Message message : messageArray) {
+				if (message != null) {
+					messages.add(message);
+				}
+			}
+			return messages.toArray(new Message[messages.size()]);
 		}
 		throw new MessagingException("Folder is closed");
 	}
