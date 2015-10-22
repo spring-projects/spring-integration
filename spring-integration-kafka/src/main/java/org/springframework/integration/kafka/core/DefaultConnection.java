@@ -240,6 +240,7 @@ public class DefaultConnection implements Connection {
 	 * @see Connection#findLeaders(String...)
 	 */
 	@Override
+	@Deprecated
 	public Result<BrokerAddress> findLeaders(String... topics) throws ConsumerException {
 		TopicMetadataRequest topicMetadataRequest =
 				new TopicMetadataRequest(Arrays.asList(topics), createCorrelationId());
