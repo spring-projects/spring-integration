@@ -388,7 +388,7 @@ Like all `MessagingException` s, this payload has `failedMessage` and `cause` pr
 
 When an exception is thrown in the scope of the advice, by default, that exception is thrown to caller after any
 `failureExpression` is evaluated.
-If you wish to suppress throwning the exception, set the `trapException` property to `true`.
+If you wish to suppress throwing the exception, set the `trapException` property to `true`.
 
 [[custom-advice]]
 ==== Custom Advice Classes
