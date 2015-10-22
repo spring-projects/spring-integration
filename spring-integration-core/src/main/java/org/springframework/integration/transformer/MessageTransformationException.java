@@ -39,7 +39,7 @@ public class MessageTransformationException extends MessagingException {
 	/**
 	 * @param message the failed {@link Message}
 	 * @param cause the cause {@link Throwable}
-	 * @deprecated since 4.2 in favor of {@link MessageTransformationException(Message, String, Throwable)}.
+	 * @deprecated since 4.2 in favor of {@link #MessageTransformationException(Message, String, Throwable)}.
 	 */
 	@Deprecated
 	public MessageTransformationException(Message<?> message, Throwable cause) {
