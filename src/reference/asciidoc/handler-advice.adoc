@@ -386,6 +386,10 @@ For the successful case, the message sent to the_successChannel_ is an `AdviceMe
 A message sent to the _failureChannel_ (when the handler throws an excecption) is an ErrorMessage with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
 Like all `MessagingException` s, this payload has `failedMessage` and `cause` properties, as well as an additional property `evaluationResult`, containing the result of the expression evaluation.
 
+When an exception is thrown in the scope of the advice, by default, that exception is thrown to caller after any
+`failureExpression` is evaluated.
+If you wish to suppress throwning the exception, set the `trapException` property to `true`.
+
 [[custom-advice]]
 ==== Custom Advice Classes
 
