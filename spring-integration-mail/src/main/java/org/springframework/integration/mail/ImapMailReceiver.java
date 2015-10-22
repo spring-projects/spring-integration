@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.mail;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.Flags;
@@ -51,6 +53,7 @@ import com.sun.mail.imap.IMAPMessage;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -189,13 +192,35 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
 		Folder folder = this.getFolder();
 		if (folder.isOpen()) {
-			Message[] messages = searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+			Message[] messages = nullSafeMessages(searchTerm != null ? folder.search(searchTerm) : folder.getMessages());
 			for (Message message : messages) {
 				((IMAPMessage) message).setPeek(true);
 			}
 			return messages;
 		}
 		throw new MessagingException("Folder is closed");
+	}
+
+	private Message[] nullSafeMessages(Message[] messageArray) {
+		boolean hasNulls = false;
+		for (Message message : messageArray) {
+			if (message == null) {
+				hasNulls = true;
+				break;
+			}
+		}
+		if (!hasNulls) {
+			return messageArray;
+		}
+		else {
+			List<Message> messages = new ArrayList<Message>();
+			for (Message message : messageArray) {
+				if (message != null) {
+					messages.add(message);
+				}
+			}
+			return messages.toArray(new Message[messages.size()]);
+		}
 	}
 
 	private SearchTerm compileSearchTerms(Flags supportedFlags) {
