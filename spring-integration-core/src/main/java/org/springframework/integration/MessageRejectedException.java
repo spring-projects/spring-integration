@@ -29,7 +29,7 @@ public class MessageRejectedException extends MessageHandlingException {
 
 	/**
 	 * @param failedMessage the failed {@link Message}
-	 * @deprecated since 4.2 in favor of {@link MessageRejectedException(Message, String)}
+	 * @deprecated since 4.2 in favor of {@link #MessageRejectedException(Message, String)}
 	 */
 	@Deprecated
 	public MessageRejectedException(Message<?> failedMessage) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,7 +147,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
+		@Deprecated
 		public boolean flowBlocked() {
 			return false;
 		}
@@ -483,18 +483,18 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
+		@Deprecated
 		public void addFlowListener(FlowListener listener) {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
+		@Deprecated
 		public boolean removeFlowListener(FlowListener listener) {
 			return false;
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
+		@Deprecated
 		public void clearFlowListeners() {
 		}
 
