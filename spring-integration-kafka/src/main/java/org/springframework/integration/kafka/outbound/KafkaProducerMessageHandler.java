@@ -57,6 +57,14 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 		this.messageKeyExpression = messageKeyExpression;
 	}
 
+	/**
+	 * @deprecated as of 1.3, {@link #setPartitionIdExpression(Expression)} should be used instead
+	 */
+	@Deprecated
+	public void setPartitionExpression(Expression partitionExpression) {
+		setPartitionIdExpression(partitionExpression);
+	}
+
 	public void setPartitionIdExpression(Expression partitionIdExpression) {
 		this.partitionIdExpression = partitionIdExpression;
 	}
