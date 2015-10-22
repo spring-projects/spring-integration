@@ -399,7 +399,7 @@ public class TcpOutboundGatewayTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				if (!remoteTimeoutUsed.getAndSet(true)) {
 					// increase the timeout after the first send
-					gateway.setRemoteTimeout(5000);
+					gateway.setRemoteTimeout(10000);
 				}
 				return invocation.callRealMethod();
 			}
@@ -408,9 +408,10 @@ public class TcpOutboundGatewayTests {
 				.getValue(Mockito.any(EvaluationContext.class), Matchers.any());
 
 		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
+
 		@SuppressWarnings("unchecked")
 		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
-		final CountDownLatch secondMessageLatch = new CountDownLatch(1);
+
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
 			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
