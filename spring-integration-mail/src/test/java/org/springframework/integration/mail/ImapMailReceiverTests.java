@@ -870,6 +870,53 @@ public class ImapMailReceiverTests {
 		assertTrue(exec.isShutdown());
 	}
 
+	@Test
+	public void testNullMessages() throws Exception {
+		Message message1 = mock(Message.class);
+		Message message2 = mock(Message.class);
+		final Message[] messages1 = new Message[] { null, null, message1 };
+		final Message[] messages2 = new Message[] { message2 };
+		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
+		class TestReceiver extends ImapMailReceiver {
+
+			private boolean firstDone;
+
+			public TestReceiver() {
+				setSearchTermStrategy(searchTermStrategy);
+			}
+
+			@Override
+			protected Folder getFolder() {
+				Folder folder = mock(Folder.class);
+				when(folder.isOpen()).thenReturn(true);
+				try {
+					when(folder.getMessages())
+							.thenReturn(!this.firstDone ? messages1 : messages2);
+				}
+				catch (MessagingException e) {
+				}
+				return folder;
+			}
+
+			@Override
+			public Message[] receive() throws MessagingException {
+				Message[] messages = searchForNewMessages();
+				this.firstDone = true;
+				return messages;
+			}
+
+
+		};
+		ImapMailReceiver receiver = new TestReceiver();
+		Message[] received = receiver.receive();
+		assertEquals(1, received.length);
+		assertSame(message1, received[0]);
+		received = receiver.receive();
+		assertEquals(1, received.length);
+		assertSame(messages2, received);
+		assertSame(message2, received[0]);
+	}
+
 	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {
 		taskScheduler.setPoolSize(5);
 		taskScheduler.initialize();
