@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,6 +63,8 @@ public class MBeanRegistrationTests {
 		// System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
+		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=testGateway"), null);
+		assertEquals(server.toString(), 1, names.size());
 	}
 
 	@Test
@@ -81,6 +84,10 @@ public class MBeanRegistrationTests {
 		public String get() {
 			return "foo";
 		}
+	}
+
+	public static class MyMessagingGateway extends MessagingGatewaySupport {
+
 	}
 
 }

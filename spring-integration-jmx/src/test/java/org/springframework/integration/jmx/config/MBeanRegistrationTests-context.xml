@@ -31,4 +31,6 @@
 		<int:filter id="f1" expression="true"/>
 	</int:chain>
 
+	<bean id="testGateway" class="org.springframework.integration.jmx.config.MBeanRegistrationTests.MyMessagingGateway" />
+
 </beans>

@@ -50,6 +50,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
@@ -981,11 +982,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		for (String beanName : names) {
 			endpoint = this.applicationContext.getBean(beanName);
 			Object field = null;
-			try {
-				field = extractTarget(getField(endpoint, "source"));
+			if (monitor instanceof MessagingGatewaySupport && endpoint == monitor) {
+				field = monitor;
 			}
-			catch (Exception e) {
-				logger.trace("Could not get source from bean = " + beanName);
+			else {
+				try {
+					field = extractTarget(getField(endpoint, "source"));
+				}
+				catch (Exception e) {
+					logger.trace("Could not get source from bean = " + beanName);
+				}
 			}
 			if (field == monitor) {
 				name = beanName;
