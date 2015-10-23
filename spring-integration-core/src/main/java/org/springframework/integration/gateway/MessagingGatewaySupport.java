@@ -315,7 +315,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
-	protected MessageChannel getRequestChannel() {
+	public MessageChannel getRequestChannel() {
 		if (this.requestChannelName != null) {
 			synchronized (this) {
 				if (this.requestChannelName != null) {

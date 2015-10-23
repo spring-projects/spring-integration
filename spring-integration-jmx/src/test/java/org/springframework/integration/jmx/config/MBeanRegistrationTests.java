@@ -63,7 +63,7 @@ public class MBeanRegistrationTests {
 		// System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
-		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=testGateway"), null);
+		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=org.springframework.integration.MyGateway"), null);
 		assertEquals(server.toString(), 1, names.size());
 	}
 

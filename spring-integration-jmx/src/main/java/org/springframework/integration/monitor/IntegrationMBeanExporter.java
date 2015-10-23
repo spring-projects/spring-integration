@@ -993,6 +993,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 					logger.trace("Could not get source from bean = " + beanName);
 				}
 			}
+
 			if (field == monitor) {
 				name = beanName;
 				endpointName = beanName;
@@ -1016,12 +1017,20 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 					}
 				}
 			}
-			Object field = getField(target, "outputChannel");
-			if (field != null) {
-				if (!anonymousSourceCounters.containsKey(field)) {
-					anonymousSourceCounters.put(field, new AtomicLong());
+
+			Object outputChannel = null;
+			if (target instanceof MessagingGatewaySupport) {
+				outputChannel = ((MessagingGatewaySupport) target).getRequestChannel();
+			}
+			else {
+				outputChannel = getField(target, "outputChannel");
+			}
+
+			if (outputChannel != null) {
+				if (!anonymousSourceCounters.containsKey(outputChannel)) {
+					anonymousSourceCounters.put(outputChannel, new AtomicLong());
 				}
-				AtomicLong count = anonymousSourceCounters.get(field);
+				AtomicLong count = anonymousSourceCounters.get(outputChannel);
 				long total = count.incrementAndGet();
 				String suffix = "";
 				/*
@@ -1030,7 +1039,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				if (total > 1) {
 					suffix = "#" + total;
 				}
-				name = field + suffix;
+				name = outputChannel + suffix;
 				source = "anonymous";
 			}
 		}
