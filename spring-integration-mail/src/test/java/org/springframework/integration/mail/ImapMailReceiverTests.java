@@ -58,14 +58,10 @@ import org.apache.commons.logging.Log;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPMessage;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -91,6 +87,9 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
 
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPMessage;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -98,7 +97,7 @@ import org.springframework.util.FileCopyUtils;
  */
 public class ImapMailReceiverTests {
 
-	@Rule
+//	@Rule
 	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	private final AtomicInteger failed = new AtomicInteger(0);
@@ -866,8 +865,8 @@ public class ImapMailReceiverTests {
 
 	@Test
 	public void testNullMessages() throws Exception {
-		Message message1 = mock(Message.class);
-		Message message2 = mock(Message.class);
+		Message message1 = mock(IMAPMessage.class);
+		Message message2 = mock(IMAPMessage.class);
 		final Message[] messages1 = new Message[] { null, null, message1 };
 		final Message[] messages2 = new Message[] { message2 };
 		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
