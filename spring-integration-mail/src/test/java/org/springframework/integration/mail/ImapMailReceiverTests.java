@@ -866,8 +866,8 @@ public class ImapMailReceiverTests {
 
 	@Test
 	public void testNullMessages() throws Exception {
-		Message message1 = mock(Message.class);
-		Message message2 = mock(Message.class);
+		Message message1 = mock(IMAPMessage.class);
+		Message message2 = mock(IMAPMessage.class);
 		final Message[] messages1 = new Message[] { null, null, message1 };
 		final Message[] messages2 = new Message[] { message2 };
 		final SearchTermStrategy searchTermStrategy = mock(SearchTermStrategy.class);
