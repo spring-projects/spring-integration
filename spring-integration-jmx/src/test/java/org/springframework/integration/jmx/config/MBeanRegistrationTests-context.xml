@@ -15,20 +15,23 @@
 	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="test.MBeanRegistration"/>
 
 	<context:mbean-server id="mbs" />
-	
+
 	<context:mbean-export server="mbs" default-domain="test.MBeanRegistration"/>
 
 	<int:channel id="testChannel" />
-	
+
 	<int:service-activator id="service" input-channel="testChannel" method="get">
 		<bean class="org.springframework.integration.jmx.config.MBeanRegistrationTests$Source"/>
 	</int:service-activator>
-	
+
 	<int:logging-channel-adapter id="logger" channel="testChannel"/>
-	
+
 	<int:chain id="chain" input-channel="chainin">
 		<int:transformer id="t1" expression="'foo'"/>
 		<int:filter id="f1" expression="true"/>
 	</int:chain>
+
+	<bean id="org.springframework.integration.MyGateway"
+		  class="org.springframework.integration.jmx.config.MBeanRegistrationTests.MyMessagingGateway" />
 
 </beans>

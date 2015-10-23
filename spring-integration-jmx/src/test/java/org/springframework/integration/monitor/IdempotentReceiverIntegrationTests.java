@@ -28,7 +28,6 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
@@ -76,6 +75,7 @@ import com.hazelcast.core.HazelcastInstance;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 @ContextConfiguration
@@ -185,7 +185,9 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public static MBeanServerFactoryBean mBeanServer() {
-			return new MBeanServerFactoryBean();
+			MBeanServerFactoryBean mBeanServerFactoryBean = new MBeanServerFactoryBean();
+			mBeanServerFactoryBean.setLocateExistingServerIfPossible(true);
+			return mBeanServerFactoryBean;
 		}
 
 		@Bean

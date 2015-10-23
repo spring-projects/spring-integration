@@ -128,7 +128,9 @@ public class ScatterGatherHandlerIntegrationTests {
 
 		@Bean
 		public static MBeanServerFactoryBean mBeanServer() {
-			return new MBeanServerFactoryBean();
+			MBeanServerFactoryBean mBeanServerFactoryBean = new MBeanServerFactoryBean();
+			mBeanServerFactoryBean.setLocateExistingServerIfPossible(true);
+			return mBeanServerFactoryBean;
 		}
 
 		@Bean
