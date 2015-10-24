@@ -46,6 +46,7 @@
                                               batch-bytes="9876"
                                               partitioner="partitioner"
                                               conversion-service="conversionService"
+                                              producer-listener="producerListener"
                                            compression-type="none"/>
         </int-kafka:producer-configurations>
     </int-kafka:producer-context>
@@ -53,6 +54,8 @@
     <bean id="valueEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder">
             <constructor-arg value="java.lang.String" />
     </bean>
+
+    <bean id="producerListener" class="org.springframework.integration.kafka.support.LoggingProducerListener"/>
 
     <bean id="stringSerializer" class="org.apache.kafka.common.serialization.StringSerializer"/>
 

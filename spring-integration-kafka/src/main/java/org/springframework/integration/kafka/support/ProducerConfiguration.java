@@ -49,6 +49,8 @@ public class ProducerConfiguration<K, V> {
 
 	private ConversionService conversionService;
 
+	private ProducerListener producerListener;
+
 	public ProducerConfiguration(ProducerMetadata<K, V> producerMetadata, Producer<K, V> producer) {
 		Assert.notNull(producerMetadata);
 		Assert.notNull(producer);
@@ -62,6 +64,10 @@ public class ProducerConfiguration<K, V> {
 	public void setConversionService(ConversionService conversionService) {
 		Assert.notNull(conversionService, "Conversion service must not be null");
 		this.conversionService = conversionService;
+	}
+
+	public void setProducerListener(ProducerListener producerListener) {
+		this.producerListener = producerListener;
 	}
 
 	public ProducerMetadata<K, V> getProducerMetadata() {
@@ -85,9 +91,18 @@ public class ProducerConfiguration<K, V> {
 			partition = this.getProducerMetadata().getPartitioner().partition(messageKey,
 					this.producer.partitionsFor(targetTopic).size());
 		}
-		Future<RecordMetadata> future =
-				this.producer.send(new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload));
 
+		ProducerRecord<K, V> record = new ProducerRecord<>(targetTopic, partition, messageKey, messagePayload);
+		Future<RecordMetadata> future;
+		if (producerListener == null) {
+			future = this.producer.send(record);
+		}
+		else {
+			ProducerListenerInvokingCallback callback =
+					new ProducerListenerInvokingCallback(targetTopic, partition, messageKey, messagePayload,
+							producerListener);
+			future = this.producer.send(record, callback);
+		}
 		if (!producerMetadata.isSync()) {
 			return future;
 		}

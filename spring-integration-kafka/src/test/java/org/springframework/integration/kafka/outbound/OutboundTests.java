@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,6 +55,7 @@ import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
+import org.springframework.integration.kafka.support.ProducerListener;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
@@ -89,6 +92,7 @@ public class OutboundTests {
 	public void tearDown() {
 		try {
 			AdminUtils.deleteTopic(kafkaRule.getZkClient(), TOPIC);
+			AdminUtils.deleteTopic(kafkaRule.getZkClient(), TOPIC2);
 		}
 		catch (Exception e) {
 		}
@@ -156,7 +160,7 @@ public class OutboundTests {
 	}
 
 	@Test
-	public void testHeaderRouting() throws Exception {
+	public void testHeaderRoutingAndAsyncCallback() throws Exception {
 
 		// create the topic
 
@@ -196,7 +200,24 @@ public class OutboundTests {
 
 		kafkaMessageListenerContainer.start();
 
-		KafkaProducerContext producerContext = createProducerContext();
+		int expectedDeliveryConfirmations = 4;
+		final List<RecordMetadata> results = new ArrayList<RecordMetadata>();
+		final CountDownLatch sendResultLatch = new CountDownLatch(expectedDeliveryConfirmations);
+		ProducerListener listener = new ProducerListener() {
+
+			@Override
+			public void onSuccess(String topic, Integer partition, Object key, Object value, RecordMetadata recordMetadata) {
+				results.add(recordMetadata);
+				sendResultLatch.countDown();
+			}
+
+			@Override
+			public void onError(String topic, Integer partition, Object key, Object value, Exception exception) {
+				sendResultLatch.countDown();
+			}
+		};
+
+		KafkaProducerContext producerContext = createProducerContext(listener);
 		KafkaProducerMessageHandler handler
 				= new KafkaProducerMessageHandler(producerContext);
 
@@ -226,9 +247,12 @@ public class OutboundTests {
 				.setHeader("bar", TOPIC2)
 				.build());
 
+		assertTrue(sendResultLatch.await(10, TimeUnit.SECONDS));
+		assertThat(results.size(), equalTo(expectedDeliveryConfirmations));
+
 		producerContext.stop();
 
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		latch.await(10000, TimeUnit.MILLISECONDS);
 		assertThat(latch.getCount(), equalTo(0L));
 		// messages are routed to both topics
 		assertThat(payloadsByTopic.keysView(), hasItem(TOPIC));
@@ -309,17 +333,24 @@ public class OutboundTests {
 	}
 
 	private KafkaProducerContext createProducerContext() throws Exception {
+		return createProducerContext(null);
+	}
+
+	private KafkaProducerContext createProducerContext(ProducerListener producerListener) throws Exception {
 		KafkaProducerContext kafkaProducerContext = new KafkaProducerContext();
 		Encoder<String> encoder = new StringEncoder();
 		ProducerMetadata<String, String> producerMetadata =
 				new ProducerMetadata<String, String>(TOPIC, String.class, String.class,
 						new EncoderAdaptingSerializer<>(encoder), new EncoderAdaptingSerializer<>(encoder));
 		Properties props = new Properties();
-		props.put("linger.ms", "15000");
+		if (producerListener == null) {
+			props.put("linger.ms", "15000");
+		}
 		ProducerFactoryBean<String, String> producer =
 				new ProducerFactoryBean<>(producerMetadata, kafkaRule.getBrokersAsString(), props);
 		ProducerConfiguration<String, String> config =
 				new ProducerConfiguration<>(producerMetadata, producer.getObject());
+		config.setProducerListener(producerListener);
 		Map<String, ProducerConfiguration<?, ?>> producerConfigurationMap =
 				Collections.<String, ProducerConfiguration<?, ?>>singletonMap(TOPIC, config);
 		kafkaProducerContext.setProducerConfigurations(producerConfigurationMap);

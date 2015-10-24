@@ -157,6 +157,8 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 							.addConstructorArgValue(producerFactoryBeanDefinition);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerConfigurationBuilder, producerConfiguration,
 					"conversion-service");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerConfigurationBuilder, producerConfiguration,
+					"producer-listener");
 			producerConfigurationsMap.put(producerConfiguration.getAttribute("topic"),
 					producerConfigurationBuilder.getBeanDefinition());
 		}

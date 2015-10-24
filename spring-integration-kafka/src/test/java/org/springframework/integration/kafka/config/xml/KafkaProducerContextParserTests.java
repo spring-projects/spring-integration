@@ -36,9 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.integration.kafka.rule.KafkaEmbedded;
+import org.springframework.integration.kafka.rule.KafkaRule;
 import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
+import org.springframework.integration.kafka.support.ProducerListener;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.test.util.TestUtils;
@@ -55,7 +58,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class KafkaProducerContextParserTests {
 
 	@ClassRule
-	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
+	public static KafkaRule kafkaRule = new KafkaEmbedded(1);
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -107,6 +110,10 @@ public class KafkaProducerContextParserTests {
 		final ConversionService conversionService = appContext.getBean("conversionService", ConversionService.class);
 		ConversionService configuredConversionService = (ConversionService) directFieldAccessor2.getPropertyValue("conversionService");
 		assertSame(conversionService, configuredConversionService);
+
+		final ProducerListener producerListener = appContext.getBean("producerListener", ProducerListener.class);
+		ProducerListener configuredProducerListener = (ProducerListener) directFieldAccessor2.getPropertyValue("producerListener");
+		assertSame(producerListener, configuredProducerListener);
 
 		assertEquals(9876,producerConfigurationTest2.getProducerMetadata().getBatchBytes());
 
