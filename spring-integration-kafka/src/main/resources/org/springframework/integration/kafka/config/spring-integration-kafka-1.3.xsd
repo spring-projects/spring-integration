@@ -189,6 +189,18 @@
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
+									<xsd:attribute name="producer-listener" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<xsd:documentation>
+													Listener for notifying when a message has been sent or has failed.
+												</xsd:documentation>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="org.springframework.integration.kafka.support.ProducerListener"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
 									<xsd:attribute name="compression-type" use="optional" type="xsd:string">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
