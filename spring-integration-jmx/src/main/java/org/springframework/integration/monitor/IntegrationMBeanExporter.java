@@ -1020,16 +1020,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 			Object outputChannel = null;
 			if (target instanceof MessagingGatewaySupport) {
-				outputChannel = getField(target, "requestChannel"); // don't use getter
-				if (outputChannel == null) {
-					outputChannel = getField(target, "requestChannelName");
-				}
+				outputChannel = ((MessagingGatewaySupport) target).getRequestChannel();
 			}
 			else {
 				outputChannel = getField(target, "outputChannel");
-				if (outputChannel == null) {
-					outputChannel = getField(target, "outputChannelName");
-				}
 			}
 
 			if (outputChannel != null) {

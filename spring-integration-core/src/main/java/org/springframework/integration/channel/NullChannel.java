@@ -225,4 +225,9 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		return this.receive();
 	}
 
+	@Override
+	public String toString() {
+		return (this.beanName != null) ? this.beanName : super.toString();
+	}
+
 }

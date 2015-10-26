@@ -29,10 +29,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,11 +54,11 @@ public class MessagingGatewayMetricsTests {
 
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
-		System.out.println(server);
 		Set<ObjectName> names = this.server
 				.queryNames(new ObjectName("org.springframework.integration:*,name=testGateway"), null);
 		assertEquals(1, names.size());
-		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=foo"), null);
+		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,type=MessageSource,name=foo"),
+				null);
 		assertEquals(1, names.size());
 		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=foo#2"), null);
 		assertEquals(1, names.size());
@@ -64,7 +66,7 @@ public class MessagingGatewayMetricsTests {
 
 	@Configuration
 	@EnableIntegration
-	@EnableIntegrationMBeanExport
+	@EnableIntegrationMBeanExport(server = "server")
 	public static class ContextConfiguration {
 
 		@Bean
@@ -79,6 +81,11 @@ public class MessagingGatewayMetricsTests {
 			};
 		}
 
+		@Bean
+		public MessageChannel foo() {
+			return new NullChannel();
+		}
+
 		@Bean(name="org.springframework.integration.foo1")
 		public MessagingGatewaySupport anonymous1() {
 			MessagingGatewaySupport messagingGatewaySupport = new MessagingGatewaySupport() {
@@ -89,7 +96,7 @@ public class MessagingGatewayMetricsTests {
 				}
 
 			};
-			messagingGatewaySupport.setRequestChannelName("foo");
+			messagingGatewaySupport.setRequestChannel(foo());
 			return messagingGatewaySupport;
 		}
 
