@@ -52,7 +52,13 @@ public class MessagingGatewayMetricsTests {
 
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
-		Set<ObjectName> names = server.queryNames(new ObjectName("org.springframework.integration:*,name=testGateway"), null);
+		System.out.println(server);
+		Set<ObjectName> names = this.server
+				.queryNames(new ObjectName("org.springframework.integration:*,name=testGateway"), null);
+		assertEquals(1, names.size());
+		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=foo"), null);
+		assertEquals(1, names.size());
+		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=foo#2"), null);
 		assertEquals(1, names.size());
 	}
 
@@ -71,6 +77,34 @@ public class MessagingGatewayMetricsTests {
 				}
 
 			};
+		}
+
+		@Bean(name="org.springframework.integration.foo1")
+		public MessagingGatewaySupport anonymous1() {
+			MessagingGatewaySupport messagingGatewaySupport = new MessagingGatewaySupport() {
+
+				@Override
+				protected void onInit() throws Exception {
+
+				}
+
+			};
+			messagingGatewaySupport.setRequestChannelName("foo");
+			return messagingGatewaySupport;
+		}
+
+		@Bean(name="org.springframework.integration.foo2")
+		public MessagingGatewaySupport anonymous2() {
+			MessagingGatewaySupport messagingGatewaySupport = new MessagingGatewaySupport() {
+
+				@Override
+				protected void onInit() throws Exception {
+
+				}
+
+			};
+			messagingGatewaySupport.setRequestChannelName("foo");
+			return messagingGatewaySupport;
 		}
 
 		@Bean
