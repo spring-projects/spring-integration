@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
@@ -268,8 +269,7 @@ Certificate fingerprints:
 	@Test
 	public void testNetClientAndServerSSL() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(port);
+		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(sslContextSupport);
@@ -289,7 +289,7 @@ Certificate fingerprints:
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
-		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
+		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		client.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		client.start();
 
@@ -303,8 +303,7 @@ Certificate fingerprints:
 	@Test
 	public void testNetClientAndServerSSLDifferentContexts() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(port);
+		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport serverTcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(serverSslContextSupport);
@@ -323,7 +322,7 @@ Certificate fingerprints:
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
-		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
+		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks", "client.truststore.ks",
 				"secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
@@ -340,8 +339,7 @@ Certificate fingerprints:
 	@Test
 	public void testNioClientAndServerSSL() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(port);
+		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
@@ -363,7 +361,7 @@ Certificate fingerprints:
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
-		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", port);
+		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
 			@Override
@@ -384,8 +382,7 @@ Certificate fingerprints:
 	@Test
 	public void testNioClientAndServerSSLDifferentContextsLargeDataWithReply() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(port);
+		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport = new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
@@ -415,7 +412,7 @@ Certificate fingerprints:
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
-		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", port);
+		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport = new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
