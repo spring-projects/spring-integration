@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileToChannelIntegrationTests {
 
-	@Autowired File inputDirectory;
+	@Autowired
+	File inputDirectory;
 
 	@Autowired
 	PollableChannel fileMessages;
@@ -50,36 +52,24 @@ public class FileToChannelIntegrationTests {
 	@Autowired
 	PollableChannel resultChannel;
 
-	@Test//(timeout = 2000)
+	@Test
 	public void fileMessageToChannel() throws Exception {
 		File file = File.createTempFile("test", null, inputDirectory);
 		file.setLastModified(System.currentTimeMillis() - 1000);
-		Message<File> received = receiveFileMessage();
-		while (received == null) {
-			Thread.sleep(50);
-			received = receiveFileMessage();
-		}
-		assertNotNull(received.getPayload());
-		Message<?> result = resultChannel.receive(10000);
+
+		Message<?> received = this.fileMessages.receive(10000);
+		assertNotNull(received);
+		Message<?> result = this.resultChannel.receive(10000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(!file.exists());
 	}
 
-	@SuppressWarnings("unchecked")
-	private Message<File> receiveFileMessage() {
-		return (Message<File>) fileMessages.receive();
-	}
-
-	@Test(timeout = 2000)
+	@Test
 	public void directoryExhaustion() throws Exception {
 		File.createTempFile("test", null, inputDirectory).setLastModified(System.currentTimeMillis() - 1000);
-		Message<File> received = receiveFileMessage();
-		while (received == null) {
-			Thread.sleep(5);
-			received = receiveFileMessage();
-		}
-		assertNotNull(received.getPayload());
+		Message<?> received = this.fileMessages.receive(10000);
+		assertNotNull(received);
 		assertNull(fileMessages.receive(200));
 	}
 
