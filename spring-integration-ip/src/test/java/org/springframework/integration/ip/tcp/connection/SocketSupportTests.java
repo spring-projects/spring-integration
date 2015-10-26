@@ -39,6 +39,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -301,6 +302,7 @@ Certificate fingerprints:
 	}
 
 	@Test
+	@Ignore
 	public void testNetClientAndServerSSLDifferentContexts() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
