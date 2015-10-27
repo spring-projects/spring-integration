@@ -20,18 +20,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import com.gs.collections.api.block.procedure.Procedure;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
+import com.gs.collections.api.block.procedure.Procedure;
 import com.gs.collections.api.block.procedure.Procedure2;
 import com.gs.collections.api.map.MutableMap;
 import com.gs.collections.impl.factory.Maps;
@@ -42,6 +38,7 @@ import com.gs.collections.impl.factory.Maps;
  * from the same partition are being processed in their original order.
  *
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 class ConcurrentMessageListenerDispatcher {
 
@@ -72,7 +69,8 @@ class ConcurrentMessageListenerDispatcher {
 	private MutableMap<Partition, QueueingMessageListenerInvoker> delegates;
 
 	public ConcurrentMessageListenerDispatcher(Object delegateListener, ErrorHandler errorHandler,
-											   Collection<Partition> partitions, OffsetManager offsetManager, int consumers, int queueSize, Executor taskExecutor) {
+											   Collection<Partition> partitions, OffsetManager offsetManager,
+											   int consumers, int queueSize, Executor taskExecutor) {
 		Assert.isTrue
 				(delegateListener instanceof MessageListener
 								|| delegateListener instanceof AcknowledgingMessageListener,
@@ -86,7 +84,7 @@ class ConcurrentMessageListenerDispatcher {
 		this.errorHandler = errorHandler;
 		this.partitions = partitions;
 		this.offsetManager = offsetManager;
-		this.consumers = consumers;
+		this.consumers = Math.min(partitions.size(), consumers);
 		this.queueSize = queueSize;
 		this.taskExecutor = taskExecutor;
 	}
@@ -121,7 +119,8 @@ class ConcurrentMessageListenerDispatcher {
 		List<QueueingMessageListenerInvoker> delegateList = new ArrayList<QueueingMessageListenerInvoker>(consumers);
 		for (int i = 0; i < consumers; i++) {
 			QueueingMessageListenerInvoker queueingMessageListenerInvoker =
-					new QueueingMessageListenerInvoker(queueSize, offsetManager, delegateListener, errorHandler, taskExecutor);
+					new QueueingMessageListenerInvoker(queueSize, offsetManager, delegateListener, errorHandler,
+							taskExecutor);
 			delegateList.add(queueingMessageListenerInvoker);
 		}
 
