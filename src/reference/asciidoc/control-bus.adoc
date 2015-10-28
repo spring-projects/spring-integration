@@ -18,7 +18,8 @@ It takes a message, compiles the body to an expression, adds some context, and t
 The default context supports any method that has been annotated with @ManagedAttribute or @ManagedOperation.
 It also supports the methods on Spring's Lifecycle interface, and it supports methods that are used to configure several of Spring's TaskExecutor and TaskScheduler implementations.
 The simplest way to ensure that your own methods are available to the Control Bus is to use the @ManagedAttribute and/or @ManagedOperation annotations.
-Since those are also used for exposing methods to a JMX MBean registry, it's a convenient by-product (often the same types of operations you want to expose to the Control Bus would be reasonable for exposing via JMS).
+Since those are also used for exposing methods to a JMX MBean registry, it's a convenient by-product (often the same
+types of operations you want to expose to the Control Bus would be reasonable for exposing via JMX).
 Resolution of any particular instance within the application context is achieved in the typical SpEL syntax.
 Simply provide the bean name with the SpEL prefix for beans (@).
 For example, to execute a method on a Spring Bean a client could send a message to the operation channel as follows:
