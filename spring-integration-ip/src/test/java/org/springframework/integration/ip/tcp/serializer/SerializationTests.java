@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.core.serializer.DefaultSerializer;
-import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -43,9 +42,9 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteLengthHeader() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -80,9 +79,9 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteStxEtx() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -117,9 +116,9 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteCrLf() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -154,9 +153,9 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteRaw() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -191,9 +190,9 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteSerialized() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {

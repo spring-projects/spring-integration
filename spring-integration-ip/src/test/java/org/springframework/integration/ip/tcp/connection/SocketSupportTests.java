@@ -47,7 +47,6 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -123,23 +122,7 @@ public class SocketSupportTests {
 
 	@Test
 	public void testNioClientAndServer() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioClientConnectionFactory clientConnectionFactory = new TcpNioClientConnectionFactory("localhost", port);
-		final AtomicInteger ppSocketCountClient = new AtomicInteger();
-		final AtomicInteger ppServerSocketCountClient = new AtomicInteger();
-		TcpSocketSupport clientSocketSupport = new TcpSocketSupport() {
-			@Override
-			public void postProcessSocket(Socket socket) {
-				ppSocketCountClient.incrementAndGet();
-			}
-			@Override
-			public void postProcessServerSocket(ServerSocket serverSocket) {
-				ppServerSocketCountClient.incrementAndGet();
-			}
-		};
-		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
-		clientConnectionFactory.start();
-		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(port);
+		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(0);
 		serverConnectionFactory.registerListener(new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
@@ -163,6 +146,23 @@ public class SocketSupportTests {
 		serverConnectionFactory.setTcpSocketSupport(serverSocketSupport);
 		serverConnectionFactory.start();
 		TestingUtilities.waitListening(serverConnectionFactory, null);
+
+		TcpNioClientConnectionFactory clientConnectionFactory = new TcpNioClientConnectionFactory("localhost",
+				serverConnectionFactory.getPort());
+		final AtomicInteger ppSocketCountClient = new AtomicInteger();
+		final AtomicInteger ppServerSocketCountClient = new AtomicInteger();
+		TcpSocketSupport clientSocketSupport = new TcpSocketSupport() {
+			@Override
+			public void postProcessSocket(Socket socket) {
+				ppSocketCountClient.incrementAndGet();
+			}
+			@Override
+			public void postProcessServerSocket(ServerSocket serverSocket) {
+				ppServerSocketCountClient.incrementAndGet();
+			}
+		};
+		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
+		clientConnectionFactory.start();
 		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, ppServerSocketCountClient.get());
@@ -170,6 +170,9 @@ public class SocketSupportTests {
 
 		assertEquals(1, ppServerSocketCountServer.get());
 		assertEquals(1, ppSocketCountServer.get());
+
+		clientConnectionFactory.stop();
+		serverConnectionFactory.stop();
 	}
 
 	/*

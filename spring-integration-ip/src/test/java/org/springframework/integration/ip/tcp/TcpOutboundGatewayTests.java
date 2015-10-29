@@ -78,7 +78,6 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -99,8 +98,6 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
@@ -108,7 +105,7 @@ public class TcpOutboundGatewayTests {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
 					serverSocket.set(server);
 					latch.countDown();
 					List<Socket> sockets = new ArrayList<Socket>();
@@ -129,12 +126,14 @@ public class TcpOutboundGatewayTests {
 				}
 			}
 		});
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
+				serverSocket.get().getLocalPort());
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
 		ccf.start();
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		QueueChannel replyChannel = new QueueChannel();
@@ -166,14 +165,15 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	public void testGoodNetMultiplex() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 10);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+					serverSocket.set(server);
 					latch.countDown();
 					int i = 0;
 					Socket socket = server.accept();
@@ -190,13 +190,14 @@ public class TcpOutboundGatewayTests {
 				}
 			}
 		});
-		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
+				serverSocket.get().getLocalPort());
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		QueueChannel replyChannel = new QueueChannel();
@@ -216,18 +217,20 @@ public class TcpOutboundGatewayTests {
 		}
 		done.set(true);
 		gateway.stop();
+		serverSocket.get().close();
 	}
 
 	@Test
 	public void testGoodNetTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+					serverSocket.set(server);
 					latch.countDown();
 					int i = 0;
 					Socket socket = server.accept();
@@ -238,20 +241,22 @@ public class TcpOutboundGatewayTests {
 						Thread.sleep(1000);
 						oos.writeObject("Reply" + (i++));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
 				}
 			}
 		});
-		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
+				serverSocket.get().getLocalPort());
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		gateway.setRequestTimeout(1);
@@ -297,23 +302,28 @@ public class TcpOutboundGatewayTests {
 		}
 		done.set(true);
 		gateway.stop();
+		serverSocket.get().close();
 	}
 
 	@Test
 	public void testGoodNetGWTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = buildCF(port);
 		ccf.start();
-		testGoodNetGWTimeoutGuts(port, ccf);
+		testGoodNetGWTimeoutGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testGoodNetGWTimeoutCached() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = buildCF(port);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
 		cccf.start();
-		testGoodNetGWTimeoutGuts(port, cccf);
+		testGoodNetGWTimeoutGuts(port, cccf, serverSocket);
+		serverSocket.close();
 	}
 
 	private AbstractClientConnectionFactory buildCF(final int port) {
@@ -331,8 +341,8 @@ public class TcpOutboundGatewayTests {
 	 * own response, not that for the first.
 	 * @throws Exception
 	 */
-	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf)
-			throws InterruptedException {
+	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
+			final ServerSocket server) throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*
@@ -347,7 +357,6 @@ public class TcpOutboundGatewayTests {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
 					int i = 0;
 					while (!done.get()) {
@@ -397,11 +406,13 @@ public class TcpOutboundGatewayTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (!remoteTimeoutUsed.getAndSet(true)) {
+				if (remoteTimeoutUsed.getAndSet(true)) {
 					// increase the timeout after the first send
-					gateway.setRemoteTimeout(10000);
+					return 10000L;
 				}
-				return invocation.callRealMethod();
+				else {
+					return 500L;
+				}
 			}
 
 		}).when(remoteTimeoutExpression)
@@ -458,7 +469,7 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	public void testCachingFailover() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
@@ -468,7 +479,8 @@ public class TcpOutboundGatewayTests {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+					serverSocket.set(server);
 					latch.countDown();
 					while (!done.get()) {
 						Socket socket = server.accept();
@@ -504,7 +516,8 @@ public class TcpOutboundGatewayTests {
 		when(factory1.getConnection()).thenReturn(mockConn1);
 		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
 
-		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port);
+		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
+				serverSocket.get().getLocalPort());
 		factory2.setSerializer(new DefaultSerializer());
 		factory2.setDeserializer(new DefaultDeserializer());
 		factory2.setSoTimeout(10000);
@@ -535,11 +548,12 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		gateway.stop();
 		verify(mockConn1).send(Mockito.any(Message.class));
+		serverSocket.get().close();
 	}
 
 	@Test
 	public void testFailoverCached() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
@@ -549,7 +563,8 @@ public class TcpOutboundGatewayTests {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+					serverSocket.set(server);
 					latch.countDown();
 					while (!done.get()) {
 						Socket socket = server.accept();
@@ -587,7 +602,8 @@ public class TcpOutboundGatewayTests {
 		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
 
-		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port);
+		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost",
+				serverSocket.get().getLocalPort());
 		factory2.setSerializer(new DefaultSerializer());
 		factory2.setDeserializer(new DefaultDeserializer());
 		factory2.setSoTimeout(10000);
@@ -619,6 +635,7 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		gateway.stop();
 		verify(mockConn1).send(Mockito.any(Message.class));
+		serverSocket.get().close();
 	}
 
 	public TcpConnectionSupport makeMockConnection() {
@@ -629,31 +646,36 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	public void testNetGWPropagatesSocketClose() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketCloseGuts(port, ccf);
+		testGWPropagatesSocketCloseGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testNioGWPropagatesSocketClose() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketCloseGuts(port, ccf);
+		testGWPropagatesSocketCloseGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testCachedGWPropagatesSocketClose() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
@@ -661,12 +683,14 @@ public class TcpOutboundGatewayTests {
 		ccf.setSingleUse(false);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
 		cccf.start();
-		testGWPropagatesSocketCloseGuts(port, cccf);
+		testGWPropagatesSocketCloseGuts(port, cccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testFailoverGWPropagatesSocketClose() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
@@ -675,10 +699,12 @@ public class TcpOutboundGatewayTests {
 		FailoverClientConnectionFactory focf = new FailoverClientConnectionFactory(
 				Collections.singletonList(ccf));
 		focf.start();
-		testGWPropagatesSocketCloseGuts(port, focf);
+		testGWPropagatesSocketCloseGuts(port, focf, serverSocket);
+		serverSocket.close();
 	}
 
-	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf) throws Exception {
+	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf,
+			final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
@@ -690,7 +716,6 @@ public class TcpOutboundGatewayTests {
 			public void run() {
 				List<Socket> sockets = new ArrayList<Socket>();
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
 					while (!done.get()) {
 						Socket socket = server.accept();
@@ -752,54 +777,62 @@ public class TcpOutboundGatewayTests {
 
 	@Test
 	public void testNetGWPropagatesSocketTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf);
+		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testNioGWPropagatesSocketTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(false);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf);
+		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testNetGWPropagatesSocketTimeoutSingleUse() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf);
+		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
 	@Test
 	public void testNioGWPropagatesSocketTimeoutSingleUse() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = serverSocket.getLocalPort();
 		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(100);
 		ccf.setSingleUse(true);
 		ccf.start();
-		testGWPropagatesSocketTimeoutGuts(port, ccf);
+		testGWPropagatesSocketTimeoutGuts(port, ccf, serverSocket);
+		serverSocket.close();
 	}
 
-	private void testGWPropagatesSocketTimeoutGuts(final int port, AbstractClientConnectionFactory ccf)
-			throws Exception {
+	private void testGWPropagatesSocketTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
+			final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 
@@ -809,7 +842,6 @@ public class TcpOutboundGatewayTests {
 			public void run() {
 				List<Socket> sockets = new ArrayList<Socket>();
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
 					while (!done.get()) {
 						sockets.add(server.accept());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
@@ -47,7 +48,6 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -61,14 +61,14 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
@@ -93,13 +93,13 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetNotSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -118,18 +118,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetClientMode() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		ccf.setSingleUse(false);
-		TcpInboundGateway gateway = new TcpInboundGateway();
-		gateway.setConnectionFactory(ccf);
-		final QueueChannel channel = new QueueChannel();
-		gateway.setRequestChannel(channel);
-		gateway.setClientMode(true);
-		gateway.setRetryInterval(10000);
-		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.afterPropertiesSet();
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
+		final AtomicInteger port = new AtomicInteger();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
@@ -138,7 +127,8 @@ public class TcpInboundGatewayTests {
 			@Override
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 10);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+					port.set(server.getLocalPort());
 					latch1.countDown();
 					Socket socket = server.accept();
 					socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
@@ -161,6 +151,17 @@ public class TcpInboundGatewayTests {
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port.get());
+		ccf.setSingleUse(false);
+		TcpInboundGateway gateway = new TcpInboundGateway();
+		gateway.setConnectionFactory(ccf);
+		final QueueChannel channel = new QueueChannel();
+		gateway.setRequestChannel(channel);
+		gateway.setClientMode(true);
+		gateway.setRetryInterval(10000);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.afterPropertiesSet();
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(1);
 		taskScheduler.initialize();
@@ -180,13 +181,13 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
+		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -212,13 +213,13 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioNotSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
+		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -240,8 +241,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testErrorFlow() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(0);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
@@ -257,6 +257,7 @@ public class TcpInboundGatewayTests {
 		gateway.setErrorChannel(errorChannel);
 		scf.start();
 		TestingUtilities.waitListening(scf, 20000L);
+		int port = scf.getPort();
 		final SubscribableChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
