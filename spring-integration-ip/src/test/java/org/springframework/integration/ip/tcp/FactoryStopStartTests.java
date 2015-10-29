@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package org.springframework.integration.ip.tcp;
 
 import org.junit.Test;
+
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
-import org.springframework.integration.test.util.SocketUtils;
 
 
 /**
@@ -30,8 +30,7 @@ public class FactoryStopStartTests {
 
 	@Test
 	public void testRestart() {
-		int port = SocketUtils.findAvailableServerSocket();
-		AbstractServerConnectionFactory factory = new TcpNetServerConnectionFactory(port);
+		AbstractServerConnectionFactory factory = new TcpNetServerConnectionFactory(0);
 		factory.setSoTimeout(10000);
 		factory.start();
 		factory.stop();

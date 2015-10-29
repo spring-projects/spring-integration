@@ -47,7 +47,6 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -55,7 +54,6 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Gary Russell
  * @since 2.2
- *
  */
 public class SocketSupportTests {
 
@@ -99,13 +97,16 @@ public class SocketSupportTests {
 		when(factory.createServerSocket(0, 5)).thenReturn(serverSocket);
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		when(serverSocket.accept()).thenReturn(socket).then(new Answer<Socket> (){
+		when(serverSocket.accept()).thenReturn(socket).then(new Answer<Socket>() {
+
 			@Override
 			public Socket answer(InvocationOnMock invocation) throws Throwable {
 				latch1.countDown();
 				latch2.await(10, TimeUnit.SECONDS);
 				return null;
-			}});
+			}
+
+		});
 		TcpSocketSupport socketSupport = mock(TcpSocketSupport.class);
 
 		TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(0);
@@ -123,46 +124,55 @@ public class SocketSupportTests {
 
 	@Test
 	public void testNioClientAndServer() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioClientConnectionFactory clientConnectionFactory = new TcpNioClientConnectionFactory("localhost", port);
-		final AtomicInteger ppSocketCountClient = new AtomicInteger();
-		final AtomicInteger ppServerSocketCountClient = new AtomicInteger();
-		TcpSocketSupport clientSocketSupport = new TcpSocketSupport() {
-			@Override
-			public void postProcessSocket(Socket socket) {
-				ppSocketCountClient.incrementAndGet();
-			}
-			@Override
-			public void postProcessServerSocket(ServerSocket serverSocket) {
-				ppServerSocketCountClient.incrementAndGet();
-			}
-		};
-		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
-		clientConnectionFactory.start();
-		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(port);
+		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(0);
 		serverConnectionFactory.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
 				return false;
 			}
+
 		});
 		final AtomicInteger ppSocketCountServer = new AtomicInteger();
 		final AtomicInteger ppServerSocketCountServer = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
 		TcpSocketSupport serverSocketSupport = new TcpSocketSupport() {
+
 			@Override
 			public void postProcessSocket(Socket socket) {
 				ppSocketCountServer.incrementAndGet();
 				latch.countDown();
 			}
+
 			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
 				ppServerSocketCountServer.incrementAndGet();
 			}
+
 		};
 		serverConnectionFactory.setTcpSocketSupport(serverSocketSupport);
 		serverConnectionFactory.start();
 		TestingUtilities.waitListening(serverConnectionFactory, null);
+
+		TcpNioClientConnectionFactory clientConnectionFactory = new TcpNioClientConnectionFactory("localhost",
+				serverConnectionFactory.getPort());
+		final AtomicInteger ppSocketCountClient = new AtomicInteger();
+		final AtomicInteger ppServerSocketCountClient = new AtomicInteger();
+		TcpSocketSupport clientSocketSupport = new TcpSocketSupport() {
+
+			@Override
+			public void postProcessSocket(Socket socket) {
+				ppSocketCountClient.incrementAndGet();
+			}
+
+			@Override
+			public void postProcessServerSocket(ServerSocket serverSocket) {
+				ppServerSocketCountClient.incrementAndGet();
+			}
+
+		};
+		clientConnectionFactory.setTcpSocketSupport(clientSocketSupport);
+		clientConnectionFactory.start();
 		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, ppServerSocketCountClient.get());
@@ -170,6 +180,9 @@ public class SocketSupportTests {
 
 		assertEquals(1, ppServerSocketCountServer.get());
 		assertEquals(1, ppSocketCountServer.get());
+
+		clientConnectionFactory.stop();
+		serverConnectionFactory.stop();
 	}
 
 	/*
@@ -273,18 +286,21 @@ Certificate fingerprints:
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
-		DefaultTcpNetSSLSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(sslContextSupport);
+		DefaultTcpNetSSLSocketFactorySupport tcpSocketFactorySupport =
+				new DefaultTcpNetSSLSocketFactorySupport(sslContextSupport);
 		tcpSocketFactorySupport.afterPropertiesSet();
 		server.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
 				messages.add(message);
 				latch.countDown();
 				return false;
 			}
+
 		});
 		server.setMapper(new SSLMapper());
 		server.start();
@@ -308,26 +324,30 @@ Certificate fingerprints:
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
-		DefaultTcpNetSSLSocketFactorySupport serverTcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(serverSslContextSupport);
+		DefaultTcpNetSSLSocketFactorySupport serverTcpSocketFactorySupport =
+				new DefaultTcpNetSSLSocketFactorySupport(serverSslContextSupport);
 		serverTcpSocketFactorySupport.afterPropertiesSet();
 		server.setTcpSocketFactorySupport(serverTcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
 				messages.add(message);
 				latch.countDown();
 				return false;
 			}
+
 		});
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks", "client.truststore.ks",
-				"secret", "secret");
-		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
+		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
+				"client.truststore.ks", "secret", "secret");
+		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
+				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		clientTcpSocketFactorySupport.afterPropertiesSet();
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
 		client.start();
@@ -345,19 +365,22 @@ Certificate fingerprints:
 		DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
-		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
+		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
+				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
 		tcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		server.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
-				System.out.println("Server" + message);
+//				System.out.println("Server" + message);
 				messages.add(message);
 				latch.countDown();
 				return false;
 			}
+
 		});
 		server.setMapper(new SSLMapper());
 		server.start();
@@ -366,11 +389,13 @@ Certificate fingerprints:
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
-				System.out.println("Client" + message);
+//				System.out.println("Client" + message);
 				return false;
 			}
+
 		});
 		client.start();
 
@@ -387,7 +412,8 @@ Certificate fingerprints:
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
-		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport = new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
+		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
 		serverTcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
@@ -395,18 +421,21 @@ Certificate fingerprints:
 		final Replier replier = new Replier();
 		server.registerSender(replier);
 		server.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
-				System.out.println("Server:" + message);
+//				System.out.println("Server:" + message);
 				messages.add(message);
 				try {
 					replier.send(message);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 				latch.countDown();
 				return false;
 			}
+
 		});
 		ByteArrayCrLfSerializer deserializer = new ByteArrayCrLfSerializer();
 		deserializer.setMaxMessageSize(120000);
@@ -417,17 +446,20 @@ Certificate fingerprints:
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
-		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport = new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
 		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
+
 			@Override
 			public boolean onMessage(Message<?> message) {
-				System.out.println("Client:" + message);
+//				System.out.println("Client:" + message);
 				messages.add(message);
 				latch.countDown();
 				return false;
 			}
+
 		});
 		client.setDeserializer(deserializer);
 		client.start();
@@ -464,6 +496,7 @@ Certificate fingerprints:
 			sslEngine.beginHandshake();
 			this.connection.send(message);
 		}
+
 	}
 
 	private static class SSLMapper extends TcpMessageMapper {
