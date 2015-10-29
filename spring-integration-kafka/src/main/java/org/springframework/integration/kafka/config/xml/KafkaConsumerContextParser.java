@@ -48,6 +48,8 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @since 0.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override

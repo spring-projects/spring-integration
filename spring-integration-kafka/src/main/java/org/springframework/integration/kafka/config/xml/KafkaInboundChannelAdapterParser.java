@@ -15,14 +15,14 @@
  */
 package org.springframework.integration.kafka.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * The Kafka Inbound Channel adapter parser
@@ -31,11 +31,14 @@ import org.w3c.dom.Element;
  * @since 0.5
  *
  */
+@Deprecated
 public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+
 	@Override
+	@SuppressWarnings("deprecation")
 	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
 		final BeanDefinitionBuilder highLevelConsumerMessageSourceBuilder =
-						BeanDefinitionBuilder.genericBeanDefinition(KafkaHighLevelConsumerMessageSource.class);
+						BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.inbound.KafkaHighLevelConsumerMessageSource.class);
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(highLevelConsumerMessageSourceBuilder, element, "kafka-decoder");
 

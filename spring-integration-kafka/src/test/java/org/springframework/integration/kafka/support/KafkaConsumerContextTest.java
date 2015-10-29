@@ -32,6 +32,8 @@ import org.springframework.messaging.Message;
  * @author Soby Chacko
  * @since 0.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaConsumerContextTest<K, V> {
 
 	@Test

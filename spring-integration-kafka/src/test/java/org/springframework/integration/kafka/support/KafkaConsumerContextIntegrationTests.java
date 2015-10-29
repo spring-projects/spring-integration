@@ -49,6 +49,8 @@ import kafka.consumer.ConsumerConfig;
  * @author Gary Russell
  * @since 1.2.2
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaConsumerContextIntegrationTests {
 
 	private static final String TOPIC = "springIntegrationTestInbound";

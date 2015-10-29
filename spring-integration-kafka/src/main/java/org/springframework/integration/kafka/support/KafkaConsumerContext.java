@@ -31,7 +31,10 @@ import org.springframework.util.CollectionUtils;
  * @author Ilayaperumal Gopinathan
  * @since 0.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaConsumerContext<K, V> implements DisposableBean {
+
 	private Map<String, ConsumerConfiguration<K, V>> consumerConfigurations;
 
 	private String consumerTimeout = KafkaConsumerDefaults.CONSUMER_TIMEOUT;

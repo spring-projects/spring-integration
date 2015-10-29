@@ -15,19 +15,20 @@
  */
 package org.springframework.integration.kafka.inbound;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.messaging.Message;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Soby Chacko
  * @since 0.5
- *
+ * @deprecated since 1.3 in favor of {@link KafkaMessageDrivenChannelAdapter}
  */
+@Deprecated
 public class KafkaHighLevelConsumerMessageSource<K,V> extends IntegrationObjectSupport implements MessageSource<Map<String, Map<Integer, List<Object>>>> {
 
 	private final KafkaConsumerContext<K,V> kafkaConsumerContext;

@@ -133,7 +133,9 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
-													Custom implementation of a Kafka Encoder for encoding message values. This option is deprecated, 'value-serializer' is the recommended option.
+													[DEPRECATED]
+													Custom implementation of a Kafka Encoder for encoding message values.
+													This option is deprecated, 'value-serializer' is the recommended option.
 												</xsd:documentation>
 												<tool:annotation kind="ref">
 													<tool:expected-type type="kafka.serializer.Encoder"/>
@@ -157,7 +159,9 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
+													[DEPRECATED]
 													Custom implementation of a Kafka Encoder for encoding message keys.
+													This option is deprecated, 'key-serializer' is the recommended option.
 												</xsd:documentation>
 												<tool:annotation kind="ref">
 													<tool:expected-type type="kafka.serializer.Encoder"/>
@@ -267,6 +271,7 @@
 	<xsd:element name="consumer-context">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
+					[DEPRECATED]
                     Defines a producer context.
                 ]]></xsd:documentation>
 		</xsd:annotation>
@@ -423,8 +428,11 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
+				[DEPRECATED]
 				The definition for the Spring Integration Kafka
 				Inbound Channel Adapter.
+				This High Level Consumer Adapter is deprecated in favor of
+				message-driven-channel-adapter - based on the Simple Consumer API.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

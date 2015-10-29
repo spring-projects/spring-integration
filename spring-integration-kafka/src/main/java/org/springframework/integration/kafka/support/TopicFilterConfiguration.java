@@ -25,6 +25,7 @@ import kafka.consumer.Whitelist;
  * @author Artem Bilan
  * @since 0.5
  */
+@Deprecated
 public class TopicFilterConfiguration {
 
 	private final int numberOfStreams;

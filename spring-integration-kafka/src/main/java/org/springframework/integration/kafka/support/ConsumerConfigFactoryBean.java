@@ -17,19 +17,23 @@ package org.springframework.integration.kafka.support;
 
 import java.util.Properties;
 
-import kafka.consumer.ConsumerConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.FactoryBean;
 
+import kafka.consumer.ConsumerConfig;
+
 /**
  * @author Soby Chacko
  * @since 0.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class ConsumerConfigFactoryBean<K,V> implements FactoryBean<ConsumerConfig> {
 
 	private static final Log LOGGER = LogFactory.getLog(ConsumerConfigFactoryBean.class);
+
 	private final ConsumerMetadata<K,V> consumerMetadata;
 	private final ZookeeperConnect zookeeperConnect;
     private Properties consumerProperties = new Properties();

@@ -15,15 +15,16 @@
  */
 package org.springframework.integration.kafka.support;
 
-import kafka.message.MessageAndMetadata;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import kafka.message.MessageAndMetadata;
 
 /**
  * @author Soby Chacko
  * @since 0.5
  */
+@Deprecated
 public class MessageLeftOverTracker<K,V> {
 	private final List<MessageAndMetadata<K,V>> messageLeftOverFromPreviousPoll = new ArrayList<MessageAndMetadata<K,V>>();
 

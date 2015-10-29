@@ -39,7 +39,10 @@ import kafka.message.MessageAndMetadata;
  * @author Artem Bilan
  * @since 0.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class ConsumerConfiguration<K, V> {
+
 	private static final Log LOGGER = LogFactory.getLog(ConsumerConfiguration.class);
 
 	private final ConsumerMetadata<K, V> consumerMetadata;

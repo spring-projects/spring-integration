@@ -19,13 +19,9 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.kafka.rule.KafkaRunning;
-import org.springframework.integration.kafka.support.ConsumerConfiguration;
-import org.springframework.integration.kafka.support.ConsumerMetadata;
-import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -35,6 +31,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaMultiConsumerContextParserTests<K,V> {
 
 	@ClassRule
@@ -46,30 +44,43 @@ public class KafkaMultiConsumerContextParserTests<K,V> {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMultiConsumerContexts() {
-		final KafkaConsumerContext<K,V> consumerContext1 = appContext.getBean("consumerContext1", KafkaConsumerContext.class);
+		final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> consumerContext1 =
+				appContext.getBean("consumerContext1",
+						org.springframework.integration.kafka.support.KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext1);
-		final KafkaConsumerContext<K,V> consumerContext2 = appContext.getBean("consumerContext2", KafkaConsumerContext.class);
+		final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> consumerContext2 =
+				appContext.getBean("consumerContext2",
+						org.springframework.integration.kafka.support.KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext2);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testConsumerContextConfigurations() {
-		final KafkaConsumerContext<K,V> consumerContext = appContext.getBean("consumerContext1", KafkaConsumerContext.class);
+		final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> consumerContext =
+				appContext.getBean("consumerContext1",
+				org.springframework.integration.kafka.support.KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext);
-		final ConsumerConfiguration<K,V> cc = consumerContext.getConsumerConfiguration("default1");
-		final ConsumerMetadata<K,V> cm = cc.getConsumerMetadata();
+		final org.springframework.integration.kafka.support.ConsumerConfiguration<K,V> cc =
+				consumerContext.getConsumerConfiguration("default1");
+		final org.springframework.integration.kafka.support.ConsumerMetadata<K,V> cm = cc.getConsumerMetadata();
 		Assert.assertTrue(cm.getTopicStreamMap().get("test1") == 3);
 		Assert.assertTrue(cm.getTopicStreamMap().get("test2") == 4);
 		Assert.assertNotNull(cm);
-		final ConsumerConfiguration<K,V> cc2 =  consumerContext.getConsumerConfiguration("default2");
-		final ConsumerMetadata<K,V> cm2 = cc2.getConsumerMetadata();
+		final org.springframework.integration.kafka.support.ConsumerConfiguration<K,V> cc2 =
+				consumerContext.getConsumerConfiguration("default2");
+		final org.springframework.integration.kafka.support.ConsumerMetadata<K,V> cm2 =
+				cc2.getConsumerMetadata();
 		Assert.assertTrue(cm2.getTopicStreamMap().get("test3") == 1);
 		Assert.assertNotNull(cm2);
-		final KafkaConsumerContext<K,V> consumerContext2 = appContext.getBean("consumerContext2", KafkaConsumerContext.class);
+		final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> consumerContext2 =
+				appContext.getBean("consumerContext2",
+						org.springframework.integration.kafka.support.KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext2);
-		final ConsumerConfiguration<K,V> otherCC = consumerContext2.getConsumerConfiguration("default1");
-		final ConsumerMetadata<K,V> otherCM = otherCC.getConsumerMetadata();
+		final org.springframework.integration.kafka.support.ConsumerConfiguration<K,V> otherCC =
+				consumerContext2.getConsumerConfiguration("default1");
+		final org.springframework.integration.kafka.support.ConsumerMetadata<K,V> otherCM =
+				otherCC.getConsumerMetadata();
 		Assert.assertTrue(otherCM.getTopicStreamMap().get("test4") == 3);
 	}
 }

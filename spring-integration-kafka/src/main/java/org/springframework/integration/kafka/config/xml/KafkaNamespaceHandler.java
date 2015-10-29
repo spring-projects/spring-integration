@@ -28,6 +28,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class KafkaNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void init() {
 		registerBeanDefinitionParser("zookeeper-connect", new ZookeeperConnectParser());
 		registerBeanDefinitionParser("inbound-channel-adapter", new KafkaInboundChannelAdapterParser());

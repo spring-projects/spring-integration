@@ -19,7 +19,6 @@ package org.springframework.integration.kafka.config.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import kafka.consumer.Blacklist;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -30,12 +29,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.kafka.rule.KafkaRunning;
-import org.springframework.integration.kafka.support.ConsumerConfiguration;
-import org.springframework.integration.kafka.support.ConsumerMetadata;
-import org.springframework.integration.kafka.support.KafkaConsumerContext;
-import org.springframework.integration.kafka.support.TopicFilterConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import kafka.consumer.Blacklist;
 
 /**
  * @author Soby Chacko
@@ -45,6 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaConsumerContextParserTests<K, V> {
 
 	@ClassRule
@@ -56,13 +55,16 @@ public class KafkaConsumerContextParserTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConsumerContextConfiguration() {
-		final KafkaConsumerContext<K, V> consumerContext = appContext.getBean("consumerContext",
-				KafkaConsumerContext.class);
+		final org.springframework.integration.kafka.support.KafkaConsumerContext<K, V> consumerContext =
+				appContext.getBean("consumerContext",
+						org.springframework.integration.kafka.support.KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext);
-		ConsumerConfiguration<K, V> cc = consumerContext.getConsumerConfiguration("default1");
-		ConsumerMetadata<K, V> cm = cc.getConsumerMetadata();
+		org.springframework.integration.kafka.support.ConsumerConfiguration<K, V> cc
+				= consumerContext.getConsumerConfiguration("default1");
+		org.springframework.integration.kafka.support.ConsumerMetadata<K, V> cm = cc.getConsumerMetadata();
 		assertNotNull(cm);
-		TopicFilterConfiguration topicFilterConfiguration = cm.getTopicFilterConfiguration();
+		org.springframework.integration.kafka.support.TopicFilterConfiguration topicFilterConfiguration =
+				cm.getTopicFilterConfiguration();
 		assertEquals("foo : 10", topicFilterConfiguration.toString());
 		assertThat(topicFilterConfiguration.getTopicFilter(), Matchers.instanceOf(Blacklist.class));
 	}

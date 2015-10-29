@@ -17,16 +17,18 @@ package org.springframework.integration.kafka.support;
 
 import java.util.Map;
 
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
+
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
 
 /**
  * @author Soby Chacko
  * @author Rajasekar Elango
  * @since 0.5
  */
+@Deprecated
 public class ConsumerMetadata<K,V> implements InitializingBean {
 
 	//High level consumer defaults
