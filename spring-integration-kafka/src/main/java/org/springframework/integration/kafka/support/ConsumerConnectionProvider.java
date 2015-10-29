@@ -22,6 +22,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
  * @author Soby Chacko
  * @since 0.5
  */
+@Deprecated
 public class ConsumerConnectionProvider {
 
 	private final ConsumerConfig consumerConfig;
