@@ -311,8 +311,7 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testFailoverCachedRealClose() throws Exception {
-		int port1 = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
+		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(new TcpListener() {
@@ -325,8 +324,8 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
-		int port2 = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
+		int port1 = server1.getPort();
+		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
@@ -339,6 +338,7 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
+		int port2 = server2.getPort();
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
 		factory1.registerListener(new TcpListener() {
@@ -407,8 +407,7 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testFailoverCachedRealBadHost() throws Exception {
-		int port1 = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
+		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(new TcpListener() {
@@ -421,8 +420,8 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
-		int port2 = SocketUtils.findAvailableServerSocket();
-		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
+		int port1 = server1.getPort();
+		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
@@ -435,6 +434,7 @@ public class FailoverClientConnectionFactoryTests {
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
+		int port2 = server2.getPort();
 
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
