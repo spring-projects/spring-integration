@@ -20,8 +20,19 @@
 										order="3"
 										topic="foo"
 										message-key-expression="'bar'"
+										partition-id-expression="2">
+		<int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
+	</int-kafka:outbound-channel-adapter>
+
+	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapterWithHeaderRoutingDisabled"
+										kafka-producer-context-ref="kafkaProducerContext"
+										auto-startup="false"
+										channel="inputToKafka"
+										order="3"
+										topic="foo"
+										message-key-expression="'bar'"
 										partition-id-expression="2"
-										>
+										enable-header-routing="false">
 		<int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
 	</int-kafka:outbound-channel-adapter>
 

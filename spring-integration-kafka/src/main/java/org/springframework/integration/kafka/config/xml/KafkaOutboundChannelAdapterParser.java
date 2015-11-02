@@ -67,6 +67,9 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 			kafkaProducerMessageHandlerBuilder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
 		}
 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(kafkaProducerMessageHandlerBuilder, element,
+				"enable-header-routing");
+
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
 	}
 

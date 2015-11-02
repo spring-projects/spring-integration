@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
  * @author Soby Chacko
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Marius Bogoevici
  * @since 0.5
  */
 public class KafkaProducerMessageHandler extends AbstractMessageHandler {
@@ -36,15 +37,29 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 
 	private EvaluationContext evaluationContext;
 
+	private boolean enableHeaderRouting = true;
+
 	private volatile Expression topicExpression;
 
 	private volatile Expression messageKeyExpression;
 
 	private volatile Expression partitionIdExpression;
 
-	@SuppressWarnings("unchecked")
 	public KafkaProducerMessageHandler(final KafkaProducerContext kafkaProducerContext) {
 		this.kafkaProducerContext = kafkaProducerContext;
+	}
+
+	/**
+	 * Enable the use of headers for determining the target topic and partition of outbound messages. By default it is
+	 * set to true, but it can be disabled when those values are produced by upstream components that read messages
+	 * from Kafka sources themselves.
+	 * @param enableHeaderRouting whether the topic and destination headers should be considered
+	 * @since 1.3
+	 * @see KafkaHeaders#TOPIC
+	 * @see KafkaHeaders#PARTITION_ID
+	 */
+	public void setEnableHeaderRouting(boolean enableHeaderRouting) {
+		this.enableHeaderRouting = enableHeaderRouting;
 	}
 
 	public void setTopicExpression(Expression topicExpression) {
@@ -82,11 +97,12 @@ public class KafkaProducerMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		String topic = this.topicExpression != null ?
 				this.topicExpression.getValue(this.evaluationContext, message, String.class)
-				: message.getHeaders().get(KafkaHeaders.TOPIC, String.class);
+				//TODO revise the headers fallback behavior in favor of just expression
+				: (this.enableHeaderRouting ? message.getHeaders().get(KafkaHeaders.TOPIC, String.class) : null);
 
 		Integer partitionId = this.partitionIdExpression != null ?
 				this.partitionIdExpression.getValue(this.evaluationContext, message, Integer.class)
-				: message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class);
+				: (this.enableHeaderRouting ? message.getHeaders().get(KafkaHeaders.PARTITION_ID, Integer.class) : null);
 
 		Object messageKey = this.messageKeyExpression != null
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
