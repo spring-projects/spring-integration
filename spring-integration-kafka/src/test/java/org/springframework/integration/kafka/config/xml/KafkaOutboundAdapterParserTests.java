@@ -27,7 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.integration.kafka.rule.KafkaRunning;
+import org.springframework.integration.kafka.rule.KafkaEmbedded;
+import org.springframework.integration.kafka.rule.KafkaRule;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,25 +45,32 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class KafkaOutboundAdapterParserTests {
 
 	@ClassRule
-	public static KafkaRunning kafkaRunning = KafkaRunning.isRunning();
+	public static KafkaRule kafkaRunning = new KafkaEmbedded(1);
 
 	@Autowired
 	private ApplicationContext appContext;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testOutboundAdapterConfiguration() {
 		PollingConsumer pollingConsumer = this.appContext.getBean("kafkaOutboundChannelAdapter", PollingConsumer.class);
-		KafkaProducerMessageHandler messageHandler = this.appContext.getBean(KafkaProducerMessageHandler.class);
+		KafkaProducerMessageHandler messageHandler
+				= this.appContext.getBean("org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler#0",
+				KafkaProducerMessageHandler.class);
 		assertNotNull(pollingConsumer);
 		assertNotNull(messageHandler);
 		assertEquals(messageHandler.getOrder(), 3);
 		assertEquals("foo", TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue"));
 		assertEquals("'bar'", TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression"));
 		assertEquals("2", TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression"));
+		assertEquals(true, TestUtils.getPropertyValue(messageHandler, "enableHeaderRouting"));
 		KafkaProducerContext producerContext = messageHandler.getKafkaProducerContext();
 		assertNotNull(producerContext);
 		assertEquals(producerContext.getProducerConfigurations().size(), 2);
+
+		KafkaProducerMessageHandler messageHandler2
+				= this.appContext.getBean("org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler#1",
+				KafkaProducerMessageHandler.class);
+		assertEquals(false, TestUtils.getPropertyValue(messageHandler2, "enableHeaderRouting"));
 	}
 
 }
