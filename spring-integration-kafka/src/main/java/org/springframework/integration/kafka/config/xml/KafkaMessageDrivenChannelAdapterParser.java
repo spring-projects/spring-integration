@@ -85,7 +85,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "max-fetch");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "stop-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "queue-size");
-
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "auto-commit-on-error");
 			builder.addConstructorArgValue(containerBuilder.getBeanDefinition());
 		}
 

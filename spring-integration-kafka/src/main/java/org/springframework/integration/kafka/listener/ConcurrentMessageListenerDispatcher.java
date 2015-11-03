@@ -68,9 +68,12 @@ class ConcurrentMessageListenerDispatcher {
 
 	private MutableMap<Partition, QueueingMessageListenerInvoker> delegates;
 
+	private boolean autoCommitOnError;
+
 	public ConcurrentMessageListenerDispatcher(Object delegateListener, ErrorHandler errorHandler,
 											   Collection<Partition> partitions, OffsetManager offsetManager,
-											   int consumers, int queueSize, Executor taskExecutor) {
+											   int consumers, int queueSize, Executor taskExecutor,
+											   boolean autoCommitOnError) {
 		Assert.isTrue
 				(delegateListener instanceof MessageListener
 								|| delegateListener instanceof AcknowledgingMessageListener,
@@ -87,6 +90,7 @@ class ConcurrentMessageListenerDispatcher {
 		this.consumers = Math.min(partitions.size(), consumers);
 		this.queueSize = queueSize;
 		this.taskExecutor = taskExecutor;
+		this.autoCommitOnError = autoCommitOnError;
 	}
 
 	public void start() {
@@ -120,7 +124,7 @@ class ConcurrentMessageListenerDispatcher {
 		for (int i = 0; i < consumers; i++) {
 			QueueingMessageListenerInvoker queueingMessageListenerInvoker =
 					new QueueingMessageListenerInvoker(queueSize, offsetManager, delegateListener, errorHandler,
-							taskExecutor);
+							taskExecutor, autoCommitOnError);
 			delegateList.add(queueingMessageListenerInvoker);
 		}
 
