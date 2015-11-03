@@ -21,16 +21,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.kafka.core.KafkaMessage;
-import org.springframework.integration.kafka.core.Partition;
-import org.springframework.util.Assert;
-
 import com.gs.collections.api.block.procedure.Procedure;
 import com.gs.collections.api.block.procedure.Procedure2;
 import com.gs.collections.api.map.MutableMap;
 import com.gs.collections.impl.factory.Maps;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.integration.kafka.core.Partition;
+import org.springframework.util.Assert;
 
 /**
  * Dispatches {@link KafkaMessage}s to a {@link MessageListener}. Messages may be
@@ -71,14 +71,12 @@ class ConcurrentMessageListenerDispatcher {
 	private boolean autoCommitOnError;
 
 	public ConcurrentMessageListenerDispatcher(Object delegateListener, ErrorHandler errorHandler,
-											   Collection<Partition> partitions, OffsetManager offsetManager,
-											   int consumers, int queueSize, Executor taskExecutor,
-											   boolean autoCommitOnError) {
-		Assert.isTrue
-				(delegateListener instanceof MessageListener
-								|| delegateListener instanceof AcknowledgingMessageListener,
-						"Either a " + MessageListener.class.getName() + " or a "
-								+ AcknowledgingMessageListener.class.getName() + " must be provided");
+			Collection<Partition> partitions, OffsetManager offsetManager, int consumers, int queueSize,
+			Executor taskExecutor, boolean autoCommitOnError) {
+		Assert.isTrue(
+				delegateListener instanceof MessageListener || delegateListener instanceof AcknowledgingMessageListener,
+				"Either a " + MessageListener.class.getName() + " or a " + AcknowledgingMessageListener.class.getName()
+						+ " must be provided");
 		Assert.notEmpty(partitions, "A set of partitions must be provided");
 		Assert.isTrue(consumers <= partitions.size(),
 				"The number of consumers must be smaller or equal to the number of partitions");
@@ -120,17 +118,16 @@ class ConcurrentMessageListenerDispatcher {
 
 	private void initializeAndStartDispatching() {
 		// allocate delegate instances index them
-		List<QueueingMessageListenerInvoker> delegateList = new ArrayList<QueueingMessageListenerInvoker>(consumers);
+		List<QueueingMessageListenerInvoker> delegateList = new ArrayList<>(consumers);
 		for (int i = 0; i < consumers; i++) {
-			QueueingMessageListenerInvoker queueingMessageListenerInvoker =
-					new QueueingMessageListenerInvoker(queueSize, offsetManager, delegateListener, errorHandler,
-							taskExecutor, autoCommitOnError);
+			QueueingMessageListenerInvoker queueingMessageListenerInvoker = new QueueingMessageListenerInvoker(
+					queueSize, offsetManager, delegateListener, errorHandler, taskExecutor, autoCommitOnError);
 			delegateList.add(queueingMessageListenerInvoker);
 		}
 
 		// evenly distribute partitions across delegates
-		delegates = Maps.mutable.of();
 		int i = 0;
+		delegates = Maps.mutable.of();
 		for (Partition partition : partitions) {
 			delegates.put(partition, delegateList.get((i++) % consumers));
 		}

@@ -24,6 +24,13 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.api.block.function.Function2;
+import com.gs.collections.api.tuple.Pair;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.tuple.Tuples;
+import com.gs.collections.impl.utility.LazyIterate;
+import com.gs.collections.impl.utility.MapIterate;
 import kafka.api.FetchRequestBuilder;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.cluster.Broker;
@@ -45,18 +52,10 @@ import kafka.javaapi.TopicMetadataResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
 import kafka.message.MessageAndOffset;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.util.Assert;
 
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.api.block.function.Function2;
-import com.gs.collections.api.tuple.Pair;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.tuple.Tuples;
-import com.gs.collections.impl.utility.LazyIterate;
-import com.gs.collections.impl.utility.MapIterate;
+import org.springframework.util.Assert;
 
 /**
  * A connection to a Kafka broker.
@@ -123,8 +122,8 @@ public class DefaultConnection implements Connection {
 		ResultBuilder<KafkaMessageBatch> resultBuilder = new ResultBuilder<KafkaMessageBatch>();
 		for (final FetchRequest request : requests) {
 			Partition partition = request.getPartition();
-			if (log.isDebugEnabled()) {
-				log.debug("Reading from " + partition + "@" + request.getOffset());
+			if (log.isTraceEnabled()) {
+				log.trace("Reading from " + partition + "@" + request.getOffset());
 			}
 			short errorCode = fetchResponse.errorCode(partition.getTopic(), partition.getId());
 			if (ErrorMapping.NoError() == errorCode) {

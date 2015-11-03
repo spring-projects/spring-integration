@@ -17,14 +17,20 @@
 
 package org.springframework.integration.kafka.rule;
 
-import static scala.collection.JavaConversions.asScalaBuffer;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.gs.collections.api.block.function.Function;
+import com.gs.collections.impl.list.mutable.FastList;
+import com.gs.collections.impl.utility.ListIterate;
+import kafka.admin.AdminUtils$;
+import kafka.api.PartitionMetadata;
+import kafka.api.TopicMetadata;
+import kafka.cluster.Broker;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.server.NotRunning;
@@ -34,10 +40,14 @@ import kafka.utils.TestZKUtils;
 import kafka.utils.Utils;
 import kafka.utils.ZKStringSerializer$;
 import kafka.zk.EmbeddedZookeeper;
-
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
+import org.apache.kafka.common.protocol.Errors;
 import org.junit.rules.ExternalResource;
+import scala.collection.JavaConversions;
+import scala.collection.Map;
+import scala.collection.Set;
+
 import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -45,18 +55,14 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-import scala.collection.JavaConversions;
-
-import com.gs.collections.api.block.function.Function;
-import com.gs.collections.impl.list.mutable.FastList;
-import com.gs.collections.impl.utility.ListIterate;
-
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
  */
 @SuppressWarnings("serial")
 public class KafkaEmbedded extends ExternalResource implements KafkaRule {
+
+	public static final long METADATA_PROPAGATION_TIMEOUT = 10000L;
 
 	private int count;
 
@@ -154,6 +160,11 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		return zookeeper.connectString();
 	}
 
+	public BrokerAddress getBrokerAddress(int i) {
+		KafkaServer kafkaServer = this.kafkaServers.get(i);
+		return new BrokerAddress(kafkaServer.config().hostName(),kafkaServer.config().port());
+	}
+
 	@Override
 	public BrokerAddress[] getBrokerAddresses() {
 		return ListIterate.collect(this.kafkaServers,
@@ -184,8 +195,36 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 	public void bounce(int index, boolean waitForPropagation) {
 		kafkaServers.get(index).shutdown();
 		if (waitForPropagation) {
-			TestUtils.waitUntilMetadataIsPropagated(asScalaBuffer(kafkaServers), "test-topic", 0, 5000L);
+			long initialTime = System.currentTimeMillis();
+			boolean canExit = false;
+			do {
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {
+					break;
+				}
+				canExit = true;
+				Map<String, Properties> topicProperties = AdminUtils$.MODULE$.fetchAllTopicConfigs(getZkClient());
+				Set<TopicMetadata> topicMetadatas =
+						AdminUtils$.MODULE$.fetchTopicMetadataFromZk(topicProperties.keySet(), getZkClient());
+				for (TopicMetadata topicMetadata : JavaConversions.asJavaCollection(topicMetadatas)) {
+					if (Errors.forCode(topicMetadata.errorCode()).exception() == null) {
+						for (PartitionMetadata partitionMetadata :
+								JavaConversions.asJavaCollection(topicMetadata.partitionsMetadata())) {
+							Collection<Broker> inSyncReplicas = JavaConversions.asJavaCollection(partitionMetadata.isr());
+							for (Broker broker : inSyncReplicas) {
+								if (broker.id() == index) {
+									canExit = false;
+								}
+							}
+						}
+					}
+				}
+			}
+			while (!canExit && (System.currentTimeMillis() - initialTime < METADATA_PROPAGATION_TIMEOUT));
 		}
+
 	}
 
 	public void bounce(int index) {
@@ -212,11 +251,42 @@ public class KafkaEmbedded extends ExternalResource implements KafkaRule {
 		retryTemplate.execute(new RetryCallback<Void, Exception>() {
 			@Override
 			public Void doWithRetry(RetryContext context) throws Exception {
-				System.out.println("Retrying restart");
 				kafkaServers.get(index).startup();
 				return null;
 			}
 		});
+	}
+
+	public void waitUntilSynced(String topic, int brokerId) {
+		long initialTime = System.currentTimeMillis();
+		boolean canExit = false;
+		do {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				break;
+			}
+			canExit = true;
+			TopicMetadata topicMetadata = AdminUtils$.MODULE$.fetchTopicMetadataFromZk(topic, getZkClient());
+			if (Errors.forCode(topicMetadata.errorCode()).exception() == null) {
+				for (PartitionMetadata partitionMetadata :
+						JavaConversions.asJavaCollection(topicMetadata.partitionsMetadata())) {
+					Collection<Broker> isr = JavaConversions.asJavaCollection(partitionMetadata.isr());
+					boolean containsIndex = false;
+					for (Broker broker : isr) {
+						if (broker.id() == brokerId) {
+							containsIndex = true;
+						}
+					}
+					if (!containsIndex) {
+						canExit = false;
+					}
+
+				}
+			}
+		}
+		while (!canExit && (System.currentTimeMillis() - initialTime < METADATA_PROPAGATION_TIMEOUT));
 	}
 
 	@Override

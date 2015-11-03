@@ -34,7 +34,9 @@ import kafka.utils.VerifiableProperties;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.integration.kafka.core.BrokerAddressListConfiguration;
 import org.springframework.integration.kafka.core.ConnectionFactory;
+import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.rule.KafkaEmbedded;
@@ -43,10 +45,10 @@ import org.springframework.integration.kafka.rule.KafkaEmbedded;
  * @author Marius Bogoevici
  */
 
-public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerTests {
+public class NewBrokerRecoveryTests extends AbstractMessageListenerContainerTests {
 
 	@Rule
-	public KafkaEmbedded kafkaEmbeddedBrokerRule = new KafkaEmbedded(1);
+	public KafkaEmbedded kafkaEmbeddedBrokerRule = new KafkaEmbedded(2);
 
 	@Override
 	public KafkaEmbedded getKafkaRule() {
@@ -57,10 +59,15 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 	public void testCompleteShutdown() throws Exception {
 		int partitionCount = 1;
 
-		createTopic(TEST_TOPIC, partitionCount, 1, 1);
+		createTopic(TEST_TOPIC, partitionCount, 2, 2);
 
-		ConnectionFactory connectionFactory = getKafkaBrokerConnectionFactory();
-		ArrayList<Partition> readPartitions = new ArrayList<Partition>();
+		// stop one Kafka instance - the partition is now underreplicated and only one
+		kafkaEmbeddedBrokerRule.bounce(0);
+
+		// connect to the live broker only
+		ConnectionFactory connectionFactory =
+				new DefaultConnectionFactory(new BrokerAddressListConfiguration(kafkaEmbeddedBrokerRule.getBrokerAddress(1)));
+		ArrayList<Partition> readPartitions = new ArrayList<>();
 		readPartitions.add(new Partition(TEST_TOPIC, 0));
 		final KafkaMessageListenerContainer kafkaMessageListenerContainer =
 				new KafkaMessageListenerContainer(connectionFactory,
@@ -68,9 +75,8 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 		kafkaMessageListenerContainer.setMaxFetch(100);
 		kafkaMessageListenerContainer.setConcurrency(1);
 
-		final int expectedMessageCount = 100;
-
-		createMessageSender("none").send(createMessages(10, TEST_TOPIC,partitionCount));
+		final int expectedMessageCount = 200;
+		createMessageSender("none", 1).send(createMessagesInRange(0, 49, TEST_TOPIC, partitionCount));
 
 		final MutableListMultimap<Integer, KeyedMessageWithOffset> receivedData =
 				new SynchronizedPutFastListMultimap<Integer, KeyedMessageWithOffset>();
@@ -92,18 +98,30 @@ public class SingleBrokerRecoveryTests extends AbstractMessageListenerContainerT
 
 		kafkaMessageListenerContainer.start();
 
-		// stop Kafka
-		kafkaEmbeddedBrokerRule.bounce(0, false);
+		// now start sending messages again
+		createMessageSender("none", 1).send(createMessagesInRange(50, 99, TEST_TOPIC, partitionCount));
 
-		// sleep one second to let things settle
-		Thread.sleep(1000);
-
-		// restart Kafka
+		// start the other Kafka instance
 		kafkaEmbeddedBrokerRule.restart(0);
-		kafkaEmbeddedBrokerRule.waitUntilSynced(TEST_TOPIC,0);
+		// sleep to let the brokers sync up
+		kafkaEmbeddedBrokerRule.waitUntilSynced(TEST_TOPIC, 0);
+		// bounce the other server
+		kafkaEmbeddedBrokerRule.bounce(1);
 
 		// now start sending messages again
-		createMessageSender("none").send(createMessages(90, TEST_TOPIC,partitionCount));
+		createMessageSender("none", 0).send(createMessagesInRange(100, 149, TEST_TOPIC, partitionCount));
+
+		// stop the other Kafka instance
+		kafkaEmbeddedBrokerRule.restart(1);
+		// sleep to let the brokers sync up
+		kafkaEmbeddedBrokerRule.waitUntilSynced(TEST_TOPIC, 1);
+
+		// bounce the other server
+		kafkaEmbeddedBrokerRule.bounce(0);
+
+		// now start sending messages again
+		createMessageSender("none", 1).send(createMessagesInRange(149, 199, TEST_TOPIC, partitionCount));
+
 
 		latch.await(50, TimeUnit.SECONDS);
 		kafkaMessageListenerContainer.stop();
