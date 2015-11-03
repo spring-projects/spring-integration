@@ -127,6 +127,8 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 
 	private final MutableMultimap<BrokerAddress, Partition> partitionsByBrokerMap = Multimaps.mutable.set.with();
 
+	private boolean autoCommitOnError = false;
+
 	public KafkaMessageListenerContainer(ConnectionFactory connectionFactory, Partition... partitions) {
 		Assert.notNull(connectionFactory, "A connection factory must be supplied");
 		Assert.notEmpty(partitions, "A list of partitions must be provided");
@@ -250,12 +252,32 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 	 * @param queueSize the queue size
 	 */
 	public void setQueueSize(int queueSize) {
-		Assert.isTrue(queueSize > 0 && Integer.bitCount(queueSize) == 1, "'queueSize' must be a positive number and a power of 2");
+		Assert.isTrue(queueSize > 0 && Integer.bitCount(queueSize) == 1,
+				"'queueSize' must be a positive number and a power of 2");
 		this.queueSize = queueSize;
 	}
 
 	public void setMaxFetch(int maxFetch) {
 		this.maxFetch = maxFetch;
+	}
+
+	/**
+	 * Whether offsets should be auto acknowledged even when exceptions are thrown during processing. This setting
+	 * is effective only in auto acknowledged mode. When set to true, all received messages will be acknowledged,
+	 * and when set to false only the offset of the last successfully processed message is persisted, even if the
+	 * component will try to continue processing incoming messages. In the latter case, it is possible that
+	 * a successful message will commit an offset after a series of failures, so the component should rely on
+	 * the `errorHandler` to capture failures.
+	 *
+	 * @param autoCommitOnError false if offsets should be committed only for successful messages
+	 * @since 1.3
+	 */
+	public void setAutoCommitOnError(boolean autoCommitOnError) {
+		this.autoCommitOnError = autoCommitOnError;
+	}
+
+	public boolean isAutoCommitOnError() {
+		return autoCommitOnError;
 	}
 
 	@Override
@@ -301,7 +323,8 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 				ImmutableList<Partition> partitionsAsList = Lists.immutable.with(partitions);
 				this.fetchOffsets = new ConcurrentHashMap<Partition, Long>(partitionsAsList.toMap(passThru, getOffset));
 				this.messageDispatcher = new ConcurrentMessageListenerDispatcher(messageListener, errorHandler,
-						Arrays.asList(partitions), offsetManager, concurrency, queueSize, dispatcherTaskExecutor);
+						Arrays.asList(partitions), offsetManager, concurrency, queueSize, dispatcherTaskExecutor,
+						autoCommitOnError);
 				this.messageDispatcher.start();
 				partitionsByBrokerMap.clear();
 				partitionsByBrokerMap.putAll(partitionsAsList.groupBy(getLeader));
@@ -470,7 +493,7 @@ public class KafkaMessageListenerContainer implements SmartLifecycle {
 			public boolean isLongLived() {
 				return true;
 			}
-			
+
 			@Override
 			public void run() {
 				// fetch can complete successfully or unsuccessfully

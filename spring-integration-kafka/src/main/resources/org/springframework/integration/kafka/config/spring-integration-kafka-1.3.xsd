@@ -759,9 +759,18 @@
 			<xsd:attribute name="auto-commit" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						When 'true', the adapter automatically commits the offset. When 'false', the adapter
-						inserts a 'kafka_acknowledgment` header allowing the user to manually commit the offset
-						using the `Acknowledgment.acknowledge()` method. Default 'true'.
+						When 'true', the adapter automatically commits the offset (also see `auto-commit-on-error`).
+						When 'false', the adapter inserts a 'kafka_acknowledgment` header allowing the user to manually
+						commit the offset using the `Acknowledgment.acknowledge()` method. Default 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-commit-on-error" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						When 'true', the adapter automatically auto-commits only the offsets of successfully processed
+						messages if `auto-commit` is set to true. This means that only the offset of the last
+						successfully processed message is committed.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

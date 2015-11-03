@@ -114,7 +114,8 @@
 			topics="${topics:foo,bar}"
 			use-context-message-builder="false"
 			set-id="true"
-			set-timestamp="true" />
+			set-timestamp="true"
+			auto-commit-on-error="true"/>
 
 	<!-- Invalid config
 
