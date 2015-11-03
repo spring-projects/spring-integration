@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hamcrest.Matchers;
+import org.junit.Test;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -52,9 +55,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-
-import org.hamcrest.Matchers;
-import org.junit.Test;
 
 /**
  * @author Gary Russell
@@ -87,10 +87,10 @@ public class ParentContextTests {
 		Object parentEvaluationContextFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
 		Map<?, ?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions",
 				Map.class);
-		assertEquals(3, parentFunctions.size());
+		assertEquals(4, parentFunctions.size());
 		Object jsonPath = parentFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
-		assertThat((Method) jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
+		assertThat(jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
 		assertEquals(2, evalContexts.size());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");
@@ -99,8 +99,9 @@ public class ParentContextTests {
 		Object childEvaluationContextFactoryBean = child.getBean(IntegrationEvaluationContextFactoryBean.class);
 		Map<?, ?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions",
 				Map.class);
-		assertEquals(4, childFunctions.size());
+		assertEquals(5, childFunctions.size());
 		assertTrue(childFunctions.containsKey("barParent"));
+		assertTrue(childFunctions.containsKey("fooFunc"));
 		jsonPath = childFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
 		assertThat((Method) jsonPath, Matchers.not(Matchers.isOneOf(JsonPathUtils.class.getMethods())));
@@ -117,9 +118,10 @@ public class ParentContextTests {
 
 		Map<String, Object> variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(0),
 				"variables");
-		assertEquals(3, variables.size());
+		assertEquals(4, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("fooFunc"));
 		assertTrue(variables.containsKey("jsonPath"));
 
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
@@ -128,9 +130,10 @@ public class ParentContextTests {
 		assertTrue(propertyAccessors.contains(parentPropertyAccessorOverride));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(1), "variables");
-		assertEquals(3, variables.size());
+		assertEquals(4, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("fooFunc"));
 		assertTrue(variables.containsKey("jsonPath"));
 
 		propertyAccessors = evalContexts.get(2).getPropertyAccessors();
@@ -142,9 +145,10 @@ public class ParentContextTests {
 		assertTrue(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(2), "variables");
-		assertEquals(4, variables.size());
+		assertEquals(5, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("fooFunc"));
 		assertTrue(variables.containsKey("barChild"));
 		assertTrue(variables.containsKey("jsonPath"));
 

@@ -21,6 +21,16 @@
 
 	<bean class="org.springframework.integration.expression.ParentContextTests$Foo" />
 
+	<bean id="integrationEvaluationContext"
+		  class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
+		<property name="functions">
+			<map>
+				<entry key="fooFunc"
+					   value="#{T(org.springframework.integration.expression.ParentContextTests$Bar).getMethod('bar', T(Object))}"/>
+			</map>
+		</property>
+	</bean>
+
 	<int:spel-function id="bar" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
 
 	<int:spel-function id="barParent" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>

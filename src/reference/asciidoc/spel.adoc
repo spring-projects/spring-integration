@@ -57,7 +57,7 @@ In the above example, the custom function is a static method `calc` on class `My
 Say you have a `Message` with a payload that has a type `MyFoo` on which you need to perform some action to create a `MyBar` object from it, and you then want to invoke a custom function `calc` on that object.
 
 The standard property accessors wouldn't know how to get a `MyBar` from a `MyFoo` so you could write and configure a custom property accessor to do so.
-So, your final expression might be`"#barcalc(payload.myBar)"`.
+So, your final expression might be `"#barcalc(payload.myBar)"`.
 
 The factory bean has another property `typeLocator` which allows you to customize the `TypeLocator` used during SpEL evaluation.
 This might be necessary when running in some environments that use a non-standard `ClassLoader`.

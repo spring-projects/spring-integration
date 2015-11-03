@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	}
 
 	public Map<String, PropertyAccessor> getPropertyAccessors() {
-		return propertyAccessors;
+		return this.propertyAccessors;
 	}
 
 	public void setFunctions(Map<String, Method> functionsArg) {
@@ -109,6 +109,10 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 		Assert.notNull(functionsArg, "'functions' must not be null.");
 		Assert.noNullElements(functionsArg.values().toArray(), "'functions' cannot have null values.");
 		this.functions = new LinkedHashMap<String, Method>(functionsArg);
+	}
+
+	public Map<String, Method> getFunctions() {
+		return this.functions;
 	}
 
 	public void setTypeLocator(TypeLocator typeLocator) {
@@ -134,7 +138,8 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 			}
 
 			try {
-				SpelPropertyAccessorRegistrar propertyAccessorRegistrar = this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
+				SpelPropertyAccessorRegistrar propertyAccessorRegistrar =
+						this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
 				for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors().entrySet()) {
 					if (!this.propertyAccessors.containsKey(entry.getKey())) {
 						this.propertyAccessors.put(entry.getKey(), entry.getValue());
@@ -155,6 +160,12 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 				for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
 					if (!this.propertyAccessors.containsKey(entry.getKey())) {
 						this.propertyAccessors.put(entry.getKey(), entry.getValue());
+					}
+				}
+
+				for (Entry<String, Method> entry : parentFactoryBean.getFunctions().entrySet()) {
+					if (!this.functions.containsKey(entry.getKey())) {
+						this.functions.put(entry.getKey(), entry.getValue());
 					}
 				}
 			}
