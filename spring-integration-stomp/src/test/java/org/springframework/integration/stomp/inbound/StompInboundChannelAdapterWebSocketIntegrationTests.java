@@ -27,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,6 +48,7 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
@@ -88,6 +91,9 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class StompInboundChannelAdapterWebSocketIntegrationTests {
+
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework");
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
