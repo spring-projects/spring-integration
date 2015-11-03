@@ -36,6 +36,12 @@ public interface ConnectionFactory {
 	Connection connect(BrokerAddress brokerAddress);
 
 	/**
+	 * Close the connection to the broker
+	 * @param brokerAddress brokerAddress
+	 */
+	void disconnect(BrokerAddress brokerAddress);
+
+	/**
 	 * Retrieve the leaders for a set of partitions.
 	 * @param partitions whose leaders are queried
 	 * @return the broker associated with the provided topic and partition

@@ -24,13 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.api.block.predicate.Predicate;
 import com.gs.collections.api.partition.PartitionIterable;
@@ -38,12 +31,17 @@ import com.gs.collections.impl.block.factory.Functions;
 import com.gs.collections.impl.map.mutable.UnifiedMap;
 import com.gs.collections.impl.utility.Iterate;
 import com.gs.collections.impl.utility.ListIterate;
-
 import kafka.client.ClientUtils$;
 import kafka.common.ErrorMapping;
 import kafka.javaapi.TopicMetadata;
 import kafka.javaapi.TopicMetadataResponse;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import scala.collection.JavaConversions;
+
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ConnectionFactory}
@@ -60,8 +58,8 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 
 	private final Configuration configuration;
 
-	private final AtomicReference<MetadataCache> metadataCacheHolder =
-			new AtomicReference<MetadataCache>(new MetadataCache(Collections.<TopicMetadata>emptySet()));
+	private final AtomicReference<MetadataCache> metadataCacheHolder = new AtomicReference<MetadataCache>(
+			new MetadataCache(Collections.<TopicMetadata>emptySet()));
 
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -169,26 +167,34 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 	public void refreshMetadata(Collection<String> topics) {
 		try {
 			this.lock.writeLock().lock();
-			for (Connection connection : this.kafkaBrokersCache) {
-				connection.close();
-			}
-			String brokerAddressesAsString =
-					ListIterate.collect(this.configuration.getBrokerAddresses(), Functions.getToString())
-							.makeString(",");
-			TopicMetadataResponse topicMetadataResponse =
-					new TopicMetadataResponse(
-							ClientUtils$.MODULE$.fetchTopicMetadata(
-									JavaConversions.asScalaSet(new HashSet<String>(topics)),
-									ClientUtils$.MODULE$.parseBrokerList(brokerAddressesAsString),
-									this.configuration.getClientId(), this.configuration.getFetchMetadataTimeout(), 0));
-			PartitionIterable<TopicMetadata> selectWithoutErrors = Iterate.partition(topicMetadataResponse.topicsMetadata(),
-					errorlessTopicMetadataPredicate);
+			String brokerAddressesAsString = ListIterate
+					.collect(this.configuration.getBrokerAddresses(), Functions.getToString()).makeString(",");
+			TopicMetadataResponse topicMetadataResponse = new TopicMetadataResponse(ClientUtils$.MODULE$
+					.fetchTopicMetadata(JavaConversions.asScalaSet(new HashSet<String>(topics)),
+							ClientUtils$.MODULE$.parseBrokerList(brokerAddressesAsString),
+							this.configuration.getClientId(), this.configuration.getFetchMetadataTimeout(), 0));
+			PartitionIterable<TopicMetadata> selectWithoutErrors = Iterate
+					.partition(topicMetadataResponse.topicsMetadata(), errorlessTopicMetadataPredicate);
 			this.metadataCacheHolder.set(this.metadataCacheHolder.get().merge(selectWithoutErrors.getSelected()));
 			if (log.isInfoEnabled()) {
 				for (TopicMetadata topicMetadata : selectWithoutErrors.getRejected()) {
 					log.info(String.format("No metadata could be retrieved for '%s'", topicMetadata.topic()),
 							ErrorMapping.exceptionFor(topicMetadata.errorCode()));
 				}
+			}
+		}
+		finally {
+			this.lock.writeLock().unlock();
+		}
+	}
+
+	@Override
+	public void disconnect(BrokerAddress brokerAddress) {
+		try {
+			this.lock.writeLock().lock();
+			Connection connection = this.kafkaBrokersCache.get(brokerAddress);
+			if (connection != null) {
+				connection.close();
 			}
 		}
 		finally {

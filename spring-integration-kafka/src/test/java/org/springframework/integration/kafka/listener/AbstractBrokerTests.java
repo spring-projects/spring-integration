@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.gs.collections.api.RichIterable;
 import com.gs.collections.api.block.function.Function2;
@@ -38,11 +38,13 @@ import kafka.utils.TestUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.After;
+import org.junit.Assert;
 import scala.collection.JavaConversions;
 import scala.collection.Map;
 import scala.collection.immutable.List$;
@@ -65,6 +67,8 @@ public abstract class AbstractBrokerTests {
 	private static final Log log = LogFactory.getLog(AbstractBrokerTests.class);
 
 	public static final String TEST_TOPIC = "test-topic";
+
+	private static final long SEND_TIMEOUT = 10000;
 
 	public abstract KafkaRule getKafkaRule();
 
@@ -136,6 +140,16 @@ public abstract class AbstractBrokerTests {
 		return new Sender<>(producer);
 	}
 
+	public Sender<String, String> createMessageSender(String compression, int brokerIndex) {
+		Properties producerConfig = new Properties();
+		producerConfig.setProperty("bootstrap.servers", getKafkaRule().getBrokerAddresses()[brokerIndex].toString());
+		producerConfig.setProperty("compression.type", compression);
+		KafkaProducer<String, String> producer = new KafkaProducer<>(producerConfig,
+				new EncoderAdaptingSerializer<>(new StringEncoder()),
+				new EncoderAdaptingSerializer<>(new StringEncoder()));
+		return new Sender<>(producer);
+	}
+
 	public ConnectionFactory getKafkaBrokerConnectionFactory() throws Exception {
 		DefaultConnectionFactory connectionFactory = new DefaultConnectionFactory(getKafkaConfiguration());
 		connectionFactory.afterPropertiesSet();
@@ -175,21 +189,30 @@ public abstract class AbstractBrokerTests {
 		}
 
 		public void send(Collection<ProducerRecord<K,V>> records) {
-			Future<RecordMetadata> lastFuture = null;
+			final CountDownLatch sendLatch = new CountDownLatch(records.size());
+			final ArrayList<Exception> exceptions = new ArrayList<>();
 			for (ProducerRecord<K, V> record : records) {
-					lastFuture = producer.send(record);
+					producer.send(record, new Callback() {
+						@Override
+						public void onCompletion(RecordMetadata metadata, Exception exception) {
+							sendLatch.countDown();
+							if (exception != null) {
+								exceptions.add(exception);
+							}
+						}
+					});
 			}
-			// only block if there is at least one message to be sent
-			if (lastFuture != null) {
-				try {
-					// block until the last message has been sent, so we make this deterministic
-					lastFuture.get();
-				} catch (InterruptedException e) {
-					// not being able to confirm that all messages have been sent, fail the test
-					throw new RuntimeException(e);
-				} catch (ExecutionException e) {
-					throw new RuntimeException(e);
+			try {
+				sendLatch.await(SEND_TIMEOUT, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			if (exceptions.size() > 0) {
+				for (Exception exception : exceptions) {
+					log.error("Error while sending messages:", exception);
 				}
+				Assert.fail("Cannot send messages");
 			}
 		}
 	}
