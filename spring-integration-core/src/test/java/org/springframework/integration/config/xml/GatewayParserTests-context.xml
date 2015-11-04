@@ -15,6 +15,10 @@
 		<queue capacity="100"/>
 	</channel>
 
+	<channel id="otherRequestChannel">
+		<queue capacity="100"/>
+	</channel>
+
 	<gateway id="oneWay"
 			 service-interface="org.springframework.integration.gateway.TestService"
 			 default-request-channel="requestChannel"/>
@@ -71,6 +75,21 @@
 			 default-request-channel="requestChannel"
 			 default-reply-channel="replyChannel"
 			 async-executor="testExecutor"/>
+
+	<gateway id="methodOverride"
+			 service-interface="org.springframework.integration.gateway.TestService"
+			 default-request-channel="requestChannel"
+			 default-reply-channel="replyChannel"
+			 async-executor="testExecutor">
+		<default-header name="baz" value="qux"/>
+		<method name="oneWay" request-channel="otherRequestChannel"
+							  request-timeout="456" 
+							  reply-timeout="123"
+							  payload-expression="'fiz'"
+							  reply-channel="foo">
+			<header name="foo" value="bar"/>
+		</method>
+	</gateway>
 
 	<!-- no assertions for this. The fact that this config does not result in error is sufficient -->
 	<gateway id="defaultConfig" default-request-channel="nullChannel"/>

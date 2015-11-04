@@ -25,6 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -45,6 +46,8 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.gateway.GatewayMethodMetadata;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.gateway.TestService.MyCompletableFuture;
@@ -83,6 +86,24 @@ public class GatewayParserTests {
 		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		Message<?> result = channel.receive(1000);
 		assertEquals("foo", result.getPayload());
+	}
+
+	@Test
+	public void testOneWayOverride() {
+		TestService service = (TestService) context.getBean("methodOverride");
+		service.oneWay("foo");
+		PollableChannel channel = (PollableChannel) context.getBean("otherRequestChannel");
+		Message<?> result = channel.receive(1000);
+		assertEquals("fiz", result.getPayload());
+		assertEquals("bar", result.getHeaders().get("foo"));
+		assertEquals("qux", result.getHeaders().get("baz"));
+		GatewayProxyFactoryBean fb = context.getBean("&methodOverride", GatewayProxyFactoryBean.class);
+		Map<?,?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap", Map.class);
+		GatewayMethodMetadata meta = (GatewayMethodMetadata) methods.get("oneWay");
+		assertNotNull(meta);
+		assertEquals("456", meta.getRequestTimeout());
+		assertEquals("123", meta.getReplyTimeout());
+		assertEquals("foo", meta.getReplyChannelName());
 	}
 
 	@Test

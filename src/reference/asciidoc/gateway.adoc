@@ -34,12 +34,19 @@ Namespace support is also provided which allows you to configure such an interfa
 <int:gateway id="cafeService"
          service-interface="org.cafeteria.Cafe"
          default-request-channel="requestChannel"
+         default-reply-timeout="10000"
          default-reply-channel="replyChannel"/>
 ----
 
 With this configuration defined, the "cafeService" can now be injected into other beans, and the code that invokes the methods on that proxied instance of the Cafe interface has no awareness of the Spring Integration API.
 The general approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.).
 See the "Samples" Appendix for an example that uses this "gateway" element (in the Cafe demo).
+
+The defaults in the configuration above are applied to all methods on the gateway interface; if a reply timeout is not
+specified, the calling thread will wait indefinitely for a reply.
+See <<gateway-no-response>>.
+
+The defaults can be overridden for individual methods; see <<gateway-configuration-annotations>>.
 
 [[gateway-default-reply-channel]]
 ==== Setting the Default Reply Channel
@@ -64,8 +71,6 @@ You need a named channel in order to configure a Channel Interceptor.
 [[gateway-configuration-annotations]]
 ==== Gateway Configuration with Annotations and/or XML
 
-The reason that the attributes on the 'gateway' element are named 'default-request-channel' and 'default-reply-channel' is that you may also provide per-method channel references by using the`@Gateway` annotation.
-
 [source,java]
 ----
 public interface Cafe {
@@ -78,7 +83,8 @@ public interface Cafe {
 
 You may alternatively provide such content in `method` sub-elements if you prefer XML configuration (see the next paragraph).
 
-It is also possible to pass values to be interpreted as Message headers on the Message that is created and sent to the request channel by using the @Header annotation:
+It is also possible to pass values to be interpreted as Message headers on the Message that is created and sent to the
+request channel by using the `@Header` annotation:
 
 [source,java]
 ----
@@ -105,7 +111,8 @@ If you prefer the XML approach of configuring Gateway methods, you can provide _
 
 You can also provide individual headers per method invocation via XML.
 This could be very useful if the headers you want to set are static in nature and you don't want to embed them in the gateway's method signature via `@Header` annotations.
-For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes will be done based on what type of request was initiated (single quote or all quotes). Determining the type of the request by evaluating what gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a java artifact),  but expressing your intention (meta information) via Message headers is natural in a Messaging architecture.
+For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes will be done based on what type of request was initiated (single quote or all quotes).
+Determining the type of the request by evaluating what gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a java artifact),  but expressing your intention (meta information) via Message headers is natural in a Messaging architecture.
 
 [source,xml]
 ----
@@ -254,7 +261,6 @@ The following compares the two approaches for configuring the same gateway:
 
 [source,java]
 ----
-
 @MessagingGateway(name = "myGateway", defaultRequestChannel = "inputC",
 		  defaultHeaders = @GatewayHeader(name = "calledMethod",
 		                           expression="#gatewayMethod.name"))
@@ -263,7 +269,7 @@ public interface TestGateway {
    @Gateway(requestChannel = "inputA", replyTimeout = 2, requestTimeout = 200)
    String echo(String payload);
 
-   @Gateway(requestChannel = "inputB, headers = @GatewayHeader(name = "foo", value="bar"))
+   @Gateway(requestChannel = "inputB", headers = @GatewayHeader(name = "foo", value="bar"))
    String echoUpperCase(String payload);
 
    String echoViaDefault(String payload);
@@ -312,9 +318,9 @@ If a method has no argument and no return value, but does contain a payload expr
 ==== Error Handling
 
 Of course, the Gateway invocation might result in errors.
-By default any error that has occurred downstream will be re-thrown as a`MessagingException` (RuntimeException) upon the Gateway's method invocation.
+By default any error that has occurred downstream will be re-thrown as a `MessagingException` (`RuntimeException`) upon the Gateway's method invocation.
 However there are times when you may want to simply log the error rather than propagating it, or you may want to treat an Exception as a valid reply, by mapping it to a Message that will conform to some "error message" contract that the caller understands.
-To accomplish this, our Gateway provides support for a Message Channel dedicated to the errors via the_error-channel_ attribute.
+To accomplish this, the Gateway provides support for a Message Channel dedicated to the errors via the _error-channel_ attribute.
 In the example below, you can see that a 'transformer' is used to create a reply Message from the Exception.
 
 [source,xml]
@@ -332,7 +338,7 @@ In the example below, you can see that a 'transformer' is used to create a reply
 The _exceptionTransformer_ could be a simple POJO that knows how to create the expected error response objects.
 That would then be the payload that is sent back to the caller.
 Obviously, you could do many more elaborate things in such an "error flow" if necessary.
-It might involve routers (including Spring Integration's ErrorMessageExceptionTypeRouter), filters, and so on.
+It might involve routers (including Spring Integration's `ErrorMessageExceptionTypeRouter`), filters, and so on.
 Most of the time, a simple 'transformer' should be sufficient, however.
 
 Alternatively, you might want to only log the Exception (or send it somewhere asynchronously).
@@ -355,6 +361,21 @@ One of the ways of handling this situation is via an Asynchronous Gateway (expla
 Another way of handling it is to explicitly set the reply-timeout attribute.
 That way, the gateway will not hang any longer than the time specified by the reply-timeout and will return 'null' if that timeout does elapse.
 Finally, you might want to consider setting downstream flags such as 'requires-reply' on a service-activator or 'throw-exceptions-on-rejection' on a filter. These options will be discussed in more detail in the final section of this chapter.
+
+NOTE: If the downstream flow returns an `ErrorMessage`, its `payload` (a `Throwable`) is treated as a regular downstream
+error: if there is an `error-channel` configured, it will be sent there, to the error flow; otherwise the payload is
+thrown to the caller of gateway.
+Similarly, if the error flow on the `error-channel` returns an `ErrorMessage` its payload is thrown to the caller.
+The same applies to any message with a `Throwable` payload.
+This can be useful in async situations when when there is a need propagate an `Exception` directly to the caller.
+To achieve this you can either return an `Exception` as the `reply` from some service, or simply throw it.
+Generally, even with an async flow, the framework will take care of propagating an exception thrown by the
+downstream flow back to the gateway.
+The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex]
+sample demonstrates both techniques to return the exception to the caller.
+It emulates a Socket IO error to the waiting thread using an `aggregator` with `group-timeout` (see <<agg-and-group-to>>)
+and `MessagingTimeoutException` reply on the discard flow.
+
 
 [[async-gateway]]
 ==== Asynchronous Gateway
@@ -402,7 +423,7 @@ Future<Integer> result = mathService.multiplyByTwo(number);
 int finalResult =  result.get(1000, TimeUnit.SECONDS);
 ----
 
-For a more detailed example, please refer to the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/async-gateway[_async-gateway_] sample distributed within the Spring Integration samples.
+For a more detailed example, please refer to the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/async-gateway[_async-gateway_] sample distributed within the Spring Integration samples.
 
 ===== ListenableFuture
 
@@ -614,13 +635,14 @@ promise.consume(new Consumer<Invoice>() {
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
+[[gateway-no-response]]
 ==== Gateway behavior when no response arrives
 
 As it was explained earlier, the Gateway provides a convenient way of interacting with a Messaging system via POJO method invocations, but realizing that a typical method invocation, which is generally expected to always return (even with an Exception), might not always map one-to-one to message exchanges (e.g., a reply message might not arrive - which is equivalent to a method not returning).
 It is important to go over several scenarios especially in the Sync Gateway case and understand the default behavior of the Gateway and how to deal with these scenarios to make the Sync Gateway behavior more predictable regardless of the outcome of the message flow that was initialed from such Gateway.
 
 There are certain attributes that could be configured to make Sync Gateway behavior more predictable, but some of them might not always work as you might have expected.
-One of them is _reply-timeout_.
+One of them is _reply-timeout_ (at the method level or _default-reply-timeout_ at the gateway level).
 So, lets look at the _reply-timeout_ attribute and see how it can/can't influence the behavior of the Sync Gateway in various scenarios.
 We will look at single-threaded scenario (all components downstream are connected via Direct Channel) and multi-threaded scenarios (e.g., somewhere downstream you may have Pollable or Executor Channel which breaks single-thread boundary)
 
@@ -664,3 +686,9 @@ NOTE: * _reply-timeout_ is unbounded for _<gateway/>_ elements (created by the G
 Inbound gateways for external integration (ws, http, etc.) share many characteristics and attributes with these gateways.
 However, for those inbound gateways, the default _reply-timeout_ is 1000 milliseconds (1 second).
 If a downstream async handoff is made to another thread, you may need to increase this attribute to allow enough time for the flow to complete before the gateway times out.
+
+IMPORTANT: It is important to understand that the timer starts when the thread returns to the gateway, i.e. when the
+flow completes or a message is handed off to another thread.
+At that time, the calling thread starts waiting for the reply.
+If the flow was completely synchronous, the reply will be immediately available; for asynchronous flows, the thread
+will wait for up to this time.
