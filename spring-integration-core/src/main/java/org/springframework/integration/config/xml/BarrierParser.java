@@ -44,6 +44,7 @@ public class BarrierParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.injectConstructorWithAdapter("correlation-strategy",
 				"correlation-strategy-method", "correlation-strategy-expression",
 				"CorrelationStrategy", element, handlerBuilder, null, parserContext);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "requires-reply");
 		return handlerBuilder;
 	}
 

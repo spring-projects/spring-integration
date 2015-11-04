@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,13 +84,13 @@ public class BarrierParserTests {
 		BarrierMessageHandler handler = TestUtils.getPropertyValue(this.barrier1, "handler",
 				BarrierMessageHandler.class);
 		assertEquals(10000L, TestUtils.getPropertyValue(handler, "timeout"));
+		assertTrue(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class));
 		assertThat(TestUtils.getPropertyValue(this.barrier2, "handler.correlationStrategy"),
 				instanceOf(HeaderAttributeCorrelationStrategy.class));
 		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.messageGroupProcessor"),
 				instanceOf(TestMGP.class));
 		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy"),
 				instanceOf(TestCS.class));
-
 	}
 
 	public static class TestMGP implements MessageGroupProcessor {

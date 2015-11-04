@@ -9,7 +9,8 @@
 		<int:queue />
 	</int:channel>
 
-	<int:barrier id="barrier1" input-channel="in" output-channel="out" correlation-strategy-expression="'foo'" 
+	<int:barrier id="barrier1" input-channel="in" output-channel="out" correlation-strategy-expression="'foo'"
+				requires-reply="true"
 				timeout="10000">
 		<int:poller fixed-delay="100" />
 	</int:barrier>

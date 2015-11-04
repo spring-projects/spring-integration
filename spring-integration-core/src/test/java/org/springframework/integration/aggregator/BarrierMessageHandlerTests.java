@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -46,12 +47,12 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -192,6 +193,23 @@ public class BarrierMessageHandlerTests {
 		assertEquals(0, suspensions.size());
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 		assertEquals(0, suspensions.size());
+	}
+
+	@Test
+	public void testRequiresReply() throws Exception {
+		final BarrierMessageHandler handler = new BarrierMessageHandler(0);
+		QueueChannel outputChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setRequiresReply(true);
+		handler.afterPropertiesSet();
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+			fail("exception expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(ReplyRequiredException.class));
+		}
 	}
 
 	@Test
