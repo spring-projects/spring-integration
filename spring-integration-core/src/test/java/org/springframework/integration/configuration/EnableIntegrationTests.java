@@ -43,8 +43,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -262,6 +269,28 @@ public class EnableIntegrationTests {
 	@Autowired
 	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
+
+	@Rule
+	public TestName testName = new TestName();
+
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private final Logger loggerToAdjust = LogManager.getLogger("org.springframework.integration");
+
+	private Level oldCategory;
+
+	@Before
+	public void beforeTest() {
+		this.oldCategory = loggerToAdjust.getEffectiveLevel();
+		this.loggerToAdjust.setLevel(Level.TRACE);
+		this.logger.debug("!!!! Starting the test: " + this.testName.getMethodName() + " !!!!");
+	}
+
+	@After
+	public void afterTest() {
+		logger.debug("!!!! Finish the test: " + this.testName.getMethodName() + " !!!!");
+		this.loggerToAdjust.setLevel(this.oldCategory);
+	}
 
 	@Test
 	public void testAnnotatedServiceActivator() {

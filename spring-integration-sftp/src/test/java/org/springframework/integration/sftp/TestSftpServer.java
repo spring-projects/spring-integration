@@ -34,18 +34,16 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.1
  *
  */
 public class TestSftpServer implements InitializingBean, DisposableBean {
 
 	private final SshServer server = SshServer.setUpDefaultServer();
-
-	private final int port = SocketUtils.findAvailableTcpPort();
 
 	private final TemporaryFolder sftpFolder;
 
@@ -130,7 +128,7 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 			}
 
 		});
-		server.setPort(port);
+		server.setPort(0);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 		this.server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
 		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.getAbsolutePath()));
@@ -175,7 +173,7 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 	public DefaultSftpSessionFactory getSessionFactory() {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
 		factory.setHost("localhost");
-		factory.setPort(this.port);
+		factory.setPort(this.server.getPort());
 		factory.setUser("foo");
 		factory.setPassword("foo");
 		factory.setAllowUnknownKeys(true);

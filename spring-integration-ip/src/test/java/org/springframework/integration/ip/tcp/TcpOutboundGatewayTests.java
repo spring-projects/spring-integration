@@ -55,21 +55,21 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.junit.rules.TestName;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
@@ -91,10 +91,22 @@ import org.springframework.messaging.support.GenericMessage;
 public class TcpOutboundGatewayTests {
 
 	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
-			"org.springframework.integration.ip.tcp");
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration");
+
+	@Rule
+	public TestName testName = new TestName();
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	@Before
+	public void beforeTest() {
+		logger.debug("!!!! Starting the test: " + this.testName.getMethodName() + " !!!!");
+	}
+
+	@After
+	public void afterTest() {
+		logger.debug("!!!! Finish the test: " + this.testName.getMethodName() + " !!!!");
+	}
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
@@ -102,6 +114,7 @@ public class TcpOutboundGatewayTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -125,6 +138,7 @@ public class TcpOutboundGatewayTests {
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -169,6 +183,7 @@ public class TcpOutboundGatewayTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -183,12 +198,14 @@ public class TcpOutboundGatewayTests {
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject("Reply" + (i++));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -226,6 +243,7 @@ public class TcpOutboundGatewayTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -248,6 +266,7 @@ public class TcpOutboundGatewayTests {
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -267,12 +286,14 @@ public class TcpOutboundGatewayTests {
 		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>(){
+			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
+
 				@Override
 				public Integer call() throws Exception {
 					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 					return 0;
 				}
+
 			}));
 		}
 		Set<String> replies = new HashSet<String>();
@@ -280,10 +301,12 @@ public class TcpOutboundGatewayTests {
 		for (int i = 0; i < 2; i++) {
 			try {
 				results[i].get();
-			} catch (ExecutionException e) {
+			}
+			catch (ExecutionException e) {
 				if (timeouts > 0) {
 					fail("Unexpected " + e.getMessage());
-				} else {
+				}
+				else {
 					assertNotNull(e.getCause());
 					assertTrue(e.getCause() instanceof MessageTimeoutException);
 				}
@@ -342,7 +365,7 @@ public class TcpOutboundGatewayTests {
 	 * @throws Exception
 	 */
 	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
-			final ServerSocket server) throws InterruptedException {
+	                                      final ServerSocket server) throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*
@@ -389,6 +412,7 @@ public class TcpOutboundGatewayTests {
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -398,25 +422,10 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 
-		ValueExpression<Long> remoteTimeoutExpression = Mockito.spy(new ValueExpression<Long>(500L));
+		Expression remoteTimeoutExpression = Mockito.mock(Expression.class);
 
-		final AtomicBoolean remoteTimeoutUsed = new AtomicBoolean();
-
-		Mockito.doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (remoteTimeoutUsed.getAndSet(true)) {
-					// increase the timeout after the first send
-					return 10000L;
-				}
-				else {
-					return 500L;
-				}
-			}
-
-		}).when(remoteTimeoutExpression)
-				.getValue(Mockito.any(EvaluationContext.class), Matchers.any());
+		when(remoteTimeoutExpression.getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class),
+				Mockito.eq(Long.class))).thenReturn(500L, 10000L);
 
 		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
 
@@ -507,6 +516,7 @@ public class TcpOutboundGatewayTests {
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 
@@ -591,6 +601,7 @@ public class TcpOutboundGatewayTests {
 					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 
@@ -704,7 +715,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf,
-			final ServerSocket server) throws Exception {
+	                                             final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
@@ -744,9 +755,11 @@ public class TcpOutboundGatewayTests {
 					try {
 						socket.close();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -832,7 +845,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	private void testGWPropagatesSocketTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
-			final ServerSocket server) throws Exception {
+	                                               final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 
@@ -856,9 +869,11 @@ public class TcpOutboundGatewayTests {
 					try {
 						socket.close();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
+
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
