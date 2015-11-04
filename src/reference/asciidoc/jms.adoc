@@ -287,6 +287,115 @@ for a short time after it finishes).
 
 See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
 
+==== Gateway Reply Correlation
+
+The following describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies
+to only its requests), depending on how the gateway is configured.
+See the next section for complete description of the attributes discussed here.
+
+*1. No `reply-destination*` properties; no `<reply-listener>`*
+
+A `TemporaryQueue` is created for each request, and deleted when the request is complete (successfully or otherwise).
+`correlation-key` is irrelevant.
+
+*2. A `reply-destination*` property is provided; no `<reply-listener/>`; no `correlation-key`*
+
+The `JMSCorrelationID` equal to the outgoing message id is used as a message selector for the consumer:
+
+    messageSelector = "JMSCorrelationID = '" + messageId + "'"
+
+The responding system is expected to return the inbound `JMSMessageID` in the reply `JMSCorrelationID` - this is a
+common pattern and is implemented by the Spring Integration inbound gateway as well as Spring's
+`MessageListenerAdapter` for message-driven POJOs.
+
+NOTE: when using this configuration, you should not use a topic for replies; the reply may be lost.
+
+*3. A `reply-destination*` property is provided; no `<reply-listener/>`; `correlation-key="JMSCorrelationID"`*
+
+The gateway generates a unique correlation id and inserts it in the `JMSCorrelationID` header.
+The message selector is:
+
+    messageSelector = "JMSCorrelationID = '" + uniqueId + "'"
+
+The responding system is expected to return the inbound `JMSCorrelationID` in the reply `JMSCorrelationID` - this is a
+common pattern and is implemented by the Spring Integration inbound gateway as well as Spring's
+`MessageListenerAdapter` for message-driven POJOs.
+
+*4. A `reply-destination*` property is provided; no `<reply-listener/>`; `correlation-key="myCorrelationHeader"`*
+
+The gateway generates a unique correlation id and inserts it in the `myCorrelationHeader` message property.
+The `correlation-key` can be any user-defined value; the message selector is:
+
+    messageSelector = "myCorrelationHeader = '" + uniqueId + "'"
+
+The responding system is expected to return the inbound `myCorrelationHeader` in the reply `myCorrelationHeader`.
+
+*5. A `reply-destination*` property is provided; no `<reply-listener/>`; `correlation-key="JMSCorrelationID*"`*
+
+(Note the `*` in the correlation key)
+
+The gateway uses the value in the `jms_correlationId` header (if present) from the request message, and inserts it in
+the `JMSCorrelationID` header.
+The message selector is:
+
+    messageSelector = "JMSCorrelationID = '" + headers['jms_correlationId'] + "'"
+
+The user must ensure this value is unique.
+
+If the header does not exist, the gateway behaves as in `3.` above.
+
+The responding system is expected to return the inbound `JMSCorrelationID` in the reply `JMSCorrelationID` - this is a
+common pattern and is implemented by the Spring Integration inbound gateway as well as Spring's
+`MessageListenerAdapter` for message-driven POJOs.
+
+*6. No `reply-destination*` properties; with `<reply-listener>`*
+
+A temporary queue is created and used for all replies from this gateway instance.
+No correlation data is needed in the message but the outgoing `JMSMessageID` is used internally in the gateway to
+direct the reply to the correct requesting thread.
+
+*7. A `reply-destination*` property is provided; with `<reply-listener>`, no `correlation-key`*
+
+__NOT ALLOWED__
+
+The `<reply-listener/>` configuration is ignored and the gateway behaves as in `2.` above.
+A warning log message is written indicating this situation.
+
+*8. A `reply-destination*` property is provided; with `<reply-listener>`, `correlation-key="JMSCorrelationID"`*
+
+The gateway has a unique correlation id and inserts it, together with an incrementing value in the `JMSCorrelationID`
+header (`gatewayId + "_" + ++seq`).
+The message selector is:
+
+    messageSelector = "JMSCorrelationID LIKE '" + gatewayId%'"
+
+The responding system is expected to return the inbound `JMSCorrelationID` in the reply `JMSCorrelationID` - this is a
+common pattern and is implemented by the Spring Integration inbound gateway as well as Spring's
+`MessageListenerAdapter` for message-driven POJOs.
+Since each gateway has a unique id, each instance only gets its own replies; the complete correlation data is used
+to route the reply to the correct requesting thread.
+
+*9. A `reply-destination*` property is provided; with `<reply-listener/>`; `correlation-key="myCorrelationHeader"`*
+
+The gateway has a unique correlation id and inserts it, together with an incrementing value in the `myCorrelationHeader`
+property (`gatewayId + "_" + ++seq`).
+The `correlation-key` can be any user-defined value; and the message selector is:
+
+    messageSelector = "myCorrelationHeader LIKE '" + gatewayId%'"
+
+The responding system is expected to return the inbound `myCorrelationHeader` in the reply `myCorrelationHeader`.
+Since each gateway has a unique id, each instance only gets its own replies; the complete correlation data is used
+to route the reply to the correct requesting thread.
+
+*10. A `reply-destination*` property is provided; with `<reply-listener/>`; `correlation-key="JMSCorrelationID*"`*
+
+(Note the `*` in the correlation key)
+
+__NOT ALLOWED__
+
+User-supplied correlation ids are not permitted with a reply listener; the gateway will not initialize with this
+configuration.
+
 [[jms-og-attributes]]
 ==== Attribute Reference
 
