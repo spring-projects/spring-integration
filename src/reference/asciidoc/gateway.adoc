@@ -64,7 +64,8 @@ You need a named channel in order to configure a Channel Interceptor.
 [[gateway-configuration-annotations]]
 ==== Gateway Configuration with Annotations and/or XML
 
-The reason that the attributes on the 'gateway' element are named 'default-request-channel' and 'default-reply-channel' is that you may also provide per-method channel references by using the`@Gateway` annotation.
+The reason that the attributes on the 'gateway' element are named 'default-request-channel' and 'default-reply-channel'
+is that you may also provide per-method channel references by using the `@Gateway` annotation.
 
 [source,java]
 ----
@@ -78,7 +79,8 @@ public interface Cafe {
 
 You may alternatively provide such content in `method` sub-elements if you prefer XML configuration (see the next paragraph).
 
-It is also possible to pass values to be interpreted as Message headers on the Message that is created and sent to the request channel by using the @Header annotation:
+It is also possible to pass values to be interpreted as Message headers on the Message that is created and sent to the
+request channel by using the `@Header` annotation:
 
 [source,java]
 ----
@@ -105,7 +107,8 @@ If you prefer the XML approach of configuring Gateway methods, you can provide _
 
 You can also provide individual headers per method invocation via XML.
 This could be very useful if the headers you want to set are static in nature and you don't want to embed them in the gateway's method signature via `@Header` annotations.
-For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes will be done based on what type of request was initiated (single quote or all quotes). Determining the type of the request by evaluating what gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a java artifact),  but expressing your intention (meta information) via Message headers is natural in a Messaging architecture.
+For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes will be done based on what type of request was initiated (single quote or all quotes).
+Determining the type of the request by evaluating what gateway method was invoked, although possible, would violate the separation of concerns paradigm (the method is a java artifact),  but expressing your intention (meta information) via Message headers is natural in a Messaging architecture.
 
 [source,xml]
 ----
@@ -312,9 +315,9 @@ If a method has no argument and no return value, but does contain a payload expr
 ==== Error Handling
 
 Of course, the Gateway invocation might result in errors.
-By default any error that has occurred downstream will be re-thrown as a`MessagingException` (RuntimeException) upon the Gateway's method invocation.
+By default any error that has occurred downstream will be re-thrown as a `MessagingException` (`RuntimeException`) upon the Gateway's method invocation.
 However there are times when you may want to simply log the error rather than propagating it, or you may want to treat an Exception as a valid reply, by mapping it to a Message that will conform to some "error message" contract that the caller understands.
-To accomplish this, our Gateway provides support for a Message Channel dedicated to the errors via the_error-channel_ attribute.
+To accomplish this, our Gateway provides support for a Message Channel dedicated to the errors via the _error-channel_ attribute.
 In the example below, you can see that a 'transformer' is used to create a reply Message from the Exception.
 
 [source,xml]
@@ -332,7 +335,7 @@ In the example below, you can see that a 'transformer' is used to create a reply
 The _exceptionTransformer_ could be a simple POJO that knows how to create the expected error response objects.
 That would then be the payload that is sent back to the caller.
 Obviously, you could do many more elaborate things in such an "error flow" if necessary.
-It might involve routers (including Spring Integration's ErrorMessageExceptionTypeRouter), filters, and so on.
+It might involve routers (including Spring Integration's `ErrorMessageExceptionTypeRouter`), filters, and so on.
 Most of the time, a simple 'transformer' should be sufficient, however.
 
 Alternatively, you might want to only log the Exception (or send it somewhere asynchronously).
@@ -355,6 +358,18 @@ One of the ways of handling this situation is via an Asynchronous Gateway (expla
 Another way of handling it is to explicitly set the reply-timeout attribute.
 That way, the gateway will not hang any longer than the time specified by the reply-timeout and will return 'null' if that timeout does elapse.
 Finally, you might want to consider setting downstream flags such as 'requires-reply' on a service-activator or 'throw-exceptions-on-rejection' on a filter. These options will be discussed in more detail in the final section of this chapter.
+
+NOTE: If the downstream flow returns an `ErrorMessage`, its `payload` (an `Exception`) is treated as a regular downstream
+ error: if there is an `error-channel` configured, it will be sent there, to the error flow; otherwise it is thrown
+ to the caller of gateway.
+The same re-throw process is done for the `ErrorMessage` returned from the error flow on the `error-channel`.
+This can be useful in async situations when we need propagate `Exception` directly to the caller, bypassing any
+error handling.
+To achieve this goal there is just enough to return an `Exception` as a `reply` from some service, instead of throwing it.
+The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex]
+sample demonstrates this technique to emulate Socket IO error to the waiting thread using `aggregator` `group-timeout` (see <<agg-and-group-to>>)
+and `MessagingTimeoutException` reply on the discard flow.
+
 
 [[async-gateway]]
 ==== Asynchronous Gateway
@@ -402,7 +417,7 @@ Future<Integer> result = mathService.multiplyByTwo(number);
 int finalResult =  result.get(1000, TimeUnit.SECONDS);
 ----
 
-For a more detailed example, please refer to the https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/async-gateway[_async-gateway_] sample distributed within the Spring Integration samples.
+For a more detailed example, please refer to the https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/async-gateway[_async-gateway_] sample distributed within the Spring Integration samples.
 
 ===== ListenableFuture
 
