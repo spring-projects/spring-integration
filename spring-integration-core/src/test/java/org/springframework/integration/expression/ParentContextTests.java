@@ -90,7 +90,7 @@ public class ParentContextTests {
 		assertEquals(4, parentFunctions.size());
 		Object jsonPath = parentFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
-		assertThat(jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
+		assertThat((Method) jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
 		assertEquals(2, evalContexts.size());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");

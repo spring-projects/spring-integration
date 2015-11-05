@@ -80,7 +80,14 @@ The `DefaultPahoMessageConverter` can be configured to return the raw `byte[]` i
 NOTE: Starting with _version 4.1_ the url can be omitted and, instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
 This enables, for example, connection to a highly available (HA) cluster.
 
+Starting with _version 4.2.2_, an `MqttSubscribedEvent` is published when the adapter successfully subscribes to the
+topic(s).
+`MqttConnectionFailedEvent` s are published when the connection/subscription fails.
+These events can be received by a bean that implements `ApplicationListener`.
 
+Also, a new property `recoveryInterval` controls the interval at which the adapter will attempt to reconnect after
+a failure; it defaults to `10000ms`  (ten seconds).
+This is not currently available using XML configuration.
 
 ==== Adding/Removing Topics at Runtime
 
