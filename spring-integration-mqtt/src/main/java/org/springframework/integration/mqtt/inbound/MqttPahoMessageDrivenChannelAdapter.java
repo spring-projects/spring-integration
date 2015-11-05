@@ -25,8 +25,12 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -39,9 +43,11 @@ import org.springframework.util.Assert;
  *
  */
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
-		implements MqttCallback {
+		implements MqttCallback, ApplicationEventPublisherAware {
 
 	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+
+	private static final int DEFAULT_RECOVERY_INTERVAL = 10000;
 
 	private final MqttPahoClientFactory clientFactory;
 
@@ -53,6 +59,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
+	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden
@@ -101,6 +110,24 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	public void setCompletionTimeout(int completionTimeout) {
 		this.completionTimeout = completionTimeout;
+	}
+
+	/**
+	 * The time (ms) to wait between reconnection attempts. Default
+	 * {@value #DEFAULT_RECOVERY_INTERVAL}.
+	 * @param recoveryInterval the interval.
+	 * @since 4.2.2
+	 */
+	public void setRecoveryInterval(int recoveryInterval) {
+		this.recoveryInterval = recoveryInterval;
+	}
+
+	/**
+	 * @since 4.2.2
+	 */
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -186,18 +213,21 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-		this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+		this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), getClientId());
 		this.client.setCallback(this);
 
 		this.topicLock.lock();
 		try {
 			this.client.connect(connectionOptions)
 					.waitForCompletion(this.completionTimeout);
-			this.client.subscribe(this.getTopic(), this.getQos())
+			this.client.subscribe(getTopic(), getQos())
 					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
-			logger.error("Error connecting or subscribing to " + Arrays.asList(this.getTopic()), e);
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
+			}
+			logger.error("Error connecting or subscribing to " + Arrays.asList(getTopic()), e);
 			this.client.disconnect()
 					.waitForCompletion(this.completionTimeout);
 			throw e;
@@ -208,10 +238,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		if (this.client.isConnected()) {
 			this.connected = true;
 			if (this.reconnectFuture != null) {
-				this.cancelReconnect();
+				cancelReconnect();
 			}
+			String message = "Connected and subscribed to " + Arrays.asList(getTopic());
 			if (logger.isDebugEnabled()) {
-				logger.debug("Connected and subscribed to " + Arrays.asList(this.getTopic()));
+				logger.debug(message);
+			}
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 			}
 		}
 	}
@@ -241,7 +275,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 						logger.error("Exception while connecting and subscribing", e);
 					}
 				}
-			}, 10000);
+			}, this.recoveryInterval);
 		}
 		catch (Exception e) {
 			logger.error("Failed to schedule reconnect", e);
@@ -253,6 +287,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.logger.error("Lost connection:" + cause.getMessage() + "; retrying...");
 		this.connected = false;
 		this.scheduleReconnect();
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+		}
 	}
 
 	@Override
