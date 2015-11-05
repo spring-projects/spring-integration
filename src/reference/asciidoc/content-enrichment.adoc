@@ -63,7 +63,7 @@ See <<routing-slip>> for more information.
 *POJO Support*
 
 Often a header value cannot be defined statically and has to be determined dynamically based on some content in the Message.
-That is why_Header Enricher_ allows you to also specify a bean reference using the `ref` and `method` attribute.
+That is why _Header Enricher_ allows you to also specify a bean reference using the `ref` and `method` attribute.
 The specified method will calculate the header value.
 Let's look at the following configuration:
 
