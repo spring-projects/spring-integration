@@ -64,6 +64,7 @@ public class ImapIdleIntegrationTests {
 		doAnswer(new Answer<Object>() { // ensures that waitFornewMessages call blocks after a first execution
 			// to emulate the behavior of IDLE
 
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				if (block.get()) {
 					Thread.sleep(5000);
@@ -103,7 +104,7 @@ public class ImapIdleIntegrationTests {
 		assertTrue(txProcessorLatch.await(10, TimeUnit.SECONDS));
 
 		adapter.stop();
-		context.destroy();
+		context.close();
 
 	}
 

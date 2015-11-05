@@ -313,9 +313,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				NotTerm notFlagged = null;
 				if (folder.getPermanentFlags().contains(Flags.Flag.USER)) {
 					logger.debug("This email server does not support RECENT flag, but it does support " +
-							"USER flags which will be used to prevent duplicates during email fetch.");
+							"USER flags which will be used to prevent duplicates during email fetch." +
+							" This receiver instance uses flag:" + getUserFlag());
 					Flags siFlags = new Flags();
-					siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
+					siFlags.add(getUserFlag());
 					notFlagged = new NotTerm(new FlagTerm(siFlags, true));
 				}
 				else {

@@ -153,10 +153,18 @@ IMPORTANT: If your username contains the '@' character use '%40' instead of '@' 
 </util:properties>
 ----
 
-By default, the `ImapMailReceiver` will search for Messages based on the default `SearchTerm` which is _All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
-been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)_.
-Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable via the `SearchTermStrategy` which you can inject via the `search-term-strategy` attribute.
-`SearchTermStrategy` is a simple strategy interface with a single method that allows you to create an instance of the `SearchTerm` that will be used by the `ImapMailReceiver`.
+[[search-term]]
+By default, the `ImapMailReceiver` will search for Messages based on the default `SearchTerm` which is _All mails that
+are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
+been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not
+supported)_.
+The custom user flag is `spring-integration-mail-adapter` but can be configured.
+Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable via the `SearchTermStrategy`
+which you can inject via the `search-term-strategy` attribute.
+`SearchTermStrategy` is a simple strategy interface with a single method that allows you to create an instance of the
+`SearchTerm` that will be used by the `ImapMailReceiver`.
+
+See <<imap-seen>> regarding message flagging.
 
 [source,java]
 ----
@@ -244,6 +252,22 @@ Otherwise, if the downstream channels are synchronous, any such exception will s
 NOTE: Beginning with the 3.0 release, the IMAP idle adapter emits application events (specifically `ImapIdleExceptionEvent` s) when exceptions occur.
 This allows applications to detect and act on those exceptions.
 The events can be obtained using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
+
+[[imap-seen]]
+=== Marking IMAP Messages When \Recent is Not Supported
+
+If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
+
+In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user
+flag (`spring-integration-mail-adapter` by default) as long as the server supports user flags.
+If not, `Flag.FLAGGED` is set to `true`.
+These flags are applied regardless of the `shouldMarkMessagesRead` setting.
+
+As discussed in <<search-term>>, the default `SearchTermStrategy` will ignore messages so flagged.
+
+Starting with _version 4.2.2_, the name of the user flag can be set using `setUserFlag` on the `MailReciever` - this
+allows multiple receivers to use a different flag (as long as the mail server supports user flags).
+Changing the user flag is not currently supported by the XML namespace.
 
 [[mail-filtering]]
 === Email Message Filtering
