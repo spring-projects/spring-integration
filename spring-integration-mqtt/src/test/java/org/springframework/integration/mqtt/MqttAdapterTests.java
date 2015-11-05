@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 package org.springframework.integration.mqtt;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -30,6 +32,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,6 +45,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttToken;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -47,9 +54,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory.Will;
+import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
+import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
+import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.messaging.Message;
@@ -196,10 +207,20 @@ public class MqttAdapterTests {
 
 		final MqttToken token = mock(MqttToken.class);
 		final AtomicBoolean connectCalled = new AtomicBoolean();
+		final AtomicBoolean failConnection = new AtomicBoolean();
+		final CountDownLatch waitToFail = new CountDownLatch(1);
+		final CountDownLatch failInProcess = new CountDownLatch(1);
+		final CountDownLatch goodConnection = new CountDownLatch(2);
+		final MqttException reconnectException = new MqttException(MqttException.REASON_CODE_SERVER_CONNECT_ERROR);
 		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
+				if (failConnection.get()) {
+					failInProcess.countDown();
+					waitToFail.await(10, TimeUnit.SECONDS);
+					throw reconnectException;
+				}
 				MqttConnectOptions options = (MqttConnectOptions) invocation.getArguments()[0];
 				assertEquals(23, options.getConnectionTimeout());
 				assertEquals(45, options.getKeepAliveInterval());
@@ -211,10 +232,12 @@ public class MqttAdapterTests {
 				assertEquals("bar", new String(options.getWillMessage().getPayload()));
 				assertEquals(2, options.getWillMessage().getQos());
 				connectCalled.set(true);
+				goodConnection.countDown();
 				return token;
 			}
 		}).when(client).connect(any(MqttConnectOptions.class));
 		doReturn(token).when(client).subscribe(any(String[].class), any(int[].class));
+		doReturn(token).when(client).disconnect();
 
 		final AtomicReference<MqttCallback> callback = new AtomicReference<MqttCallback>();
 		doAnswer(new Answer<Object>() {
@@ -228,13 +251,26 @@ public class MqttAdapterTests {
 
 		when(client.isConnected()).thenReturn(true);
 
-		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory, "baz");
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("foo", "bar", factory,
+				"baz", "fix");
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.setBeanFactory(mock(BeanFactory.class));
+		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
+		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<MqttIntegrationEvent>();
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				events.add((MqttIntegrationEvent) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(applicationEventPublisher).publishEvent(any(MqttIntegrationEvent.class));
+		adapter.setApplicationEventPublisher(applicationEventPublisher);
+		adapter.setRecoveryInterval(500);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
@@ -246,6 +282,35 @@ public class MqttAdapterTests {
 		Message<?> outMessage = outputChannel.receive(0);
 		assertNotNull(outMessage);
 		assertEquals("qux", outMessage.getPayload());
+
+		MqttIntegrationEvent event = events.poll(10, TimeUnit.SECONDS);
+		assertThat(event, instanceOf(MqttSubscribedEvent.class));
+		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+
+		// lose connection and make first reconnect fail
+		failConnection.set(true);
+		RuntimeException e = new RuntimeException("foo");
+		adapter.connectionLost(e);
+
+		event = events.poll(10, TimeUnit.SECONDS);
+		assertThat(event, instanceOf(MqttConnectionFailedEvent.class));
+		assertSame(event.getCause(), e);
+
+		assertTrue(failInProcess.await(10, TimeUnit.SECONDS));
+		waitToFail.countDown();
+		failConnection.set(false);
+		event = events.poll(10, TimeUnit.SECONDS);
+		assertThat(event, instanceOf(MqttConnectionFailedEvent.class));
+		assertSame(event.getCause(), reconnectException);
+
+		// reconnect can now succeed; however, we might have other failures on a slow server (500ms retry).
+		assertTrue(goodConnection.await(10, TimeUnit.SECONDS));
+		int n = 0;
+		while (!(event instanceof MqttSubscribedEvent) && n++ < 20) {
+			event = events.poll(10, TimeUnit.SECONDS);
+		}
+		assertThat(event, instanceOf(MqttSubscribedEvent.class));
+		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
 	}
 
 }
