@@ -54,11 +54,22 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
-	public final static String SI_USER_FLAG = "spring-integration-mail-adapter";
+	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
+
+	/**
+	 * Default user flag for marking messages as seen by this receiver:
+	 * {@value #DEFAULT_SI_USER_FLAG}.
+	 * @deprecated - this constant will be removed in 4.3; see
+	 * {@link #setUserFlag(String)} and {@link #DEFAULT_SI_USER_FLAG}
+	 */
+	@Deprecated
+	public final static String SI_USER_FLAG = DEFAULT_SI_USER_FLAG;
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final URLName url;
+
+	private final Object folderMonitor = new Object();
 
 	private volatile String protocol;
 
@@ -84,8 +95,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	protected volatile boolean initialized;
 
-	private final Object folderMonitor = new Object();
-
+	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -184,6 +194,20 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	protected boolean shouldDeleteMessages() {
 		return this.shouldDeleteMessages;
+	}
+
+	protected String getUserFlag() {
+		return userFlag;
+	}
+
+	/**
+	 * Set the name of the flag to use to flag messages when the server does
+	 * not support \Recent but supports user flags; default {@value #DEFAULT_SI_USER_FLAG}.
+	 * @param userFlag the flag.
+	 * @since 4.2.2
+	 */
+	public void setUserFlag(String userFlag) {
+		this.userFlag = userFlag;
 	}
 
 	protected Folder getFolder() {
@@ -316,15 +340,17 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			if (!recentFlagSupported){
 				if (flags != null && flags.contains(Flags.Flag.USER)){
 					if (logger.isDebugEnabled()){
-						logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
+						logger.debug("USER flags are supported by this mail server. Flagging message with '"
+										+ this.userFlag + "' user flag");
 					}
 					Flags siFlags = new Flags();
-					siFlags.add(SI_USER_FLAG);
+					siFlags.add(this.userFlag);
 					message.setFlags(siFlags, true);
 				}
 				else {
 					if (logger.isDebugEnabled()){
-						logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
+						logger.debug("USER flags are not supported by this mail server. "
+								+ "Flagging message with system flag");
 					}
 					message.setFlag(Flags.Flag.FLAGGED, true);
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -210,6 +212,13 @@ public class PoorMansMailServer {
 		}
 
 		@Override
+		public void resetServer() {
+			super.resetServer();
+			this.seen = false;
+			this.idled = false;
+		}
+
+		@Override
 		protected MailHandler mailHandler(Socket socket) {
 			return new ImapHandler(socket);
 		}
@@ -255,19 +264,18 @@ public class PoorMansMailServer {
 							else {
 								write("* OK");
 							}
+							write("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)]"); // \* - user flags allowed
 							write(tag + "OK SELECT completed");
 						}
 						else if (line.endsWith("EXAMINE INBOX")) {
 							write(tag + "OK");
 						}
 						else if (line.endsWith("SEARCH FROM bar@baz UNSEEN ALL")) {
-							if (seen) {
-								write("* SEARCH");
-							}
-							else {
-								write("* SEARCH 1");
-							}
-							write(tag + "OK SEARCH completed");
+							searchReply(tag);
+						}
+						else if (line.endsWith("SEARCH NOT (DELETED) NOT (SEEN) NOT (KEYWORD testSIUserFlag) ALL")) {
+							searchReply(tag);
+							assertions.add("searchWithUserFlag");
 						}
 						else if (line.contains("FETCH 1 (ENVELOPE")) {
 							write("* 1 FETCH (RFC822.SIZE 6909 INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
@@ -312,6 +320,10 @@ public class PoorMansMailServer {
 						else if (line.contains("NOOP")) {
 							write(tag + "OK NOOP completed");
 						}
+						else if(line.endsWith("STORE 1 +FLAGS (testSIUserFlag)")) {
+							write(tag + "OK STORE completed");
+							assertions.add("storeUserFlag");
+						}
 						else if (line.endsWith("IDLE")) {
 							write("+ idling");
 							idleTag = tag;
@@ -341,6 +353,16 @@ public class PoorMansMailServer {
 				}
 			}
 
+			public void searchReply(String tag) throws IOException {
+				if (seen) {
+					write("* SEARCH");
+				}
+				else {
+					write("* SEARCH 1");
+				}
+				write(tag + "OK SEARCH completed");
+			}
+
 		}
 
 	}
@@ -350,6 +372,8 @@ public class PoorMansMailServer {
 		private final ServerSocket socket;
 
 		private final ExecutorService exec = Executors.newCachedThreadPool();
+
+		protected final Set<String> assertions = new HashSet<String>();
 
 		protected final List<String> messages = new ArrayList<String>();
 
@@ -361,12 +385,24 @@ public class PoorMansMailServer {
 			exec.execute(this);
 		}
 
+		public int getPort() {
+			return this.socket.getLocalPort();
+		}
+
 		public boolean isListening() {
 			return listening;
 		}
 
 		public List<String> getMessages() {
 			return messages;
+		}
+
+		public void resetServer() {
+			this.assertions.clear();
+		}
+
+		public boolean assertReceived(String assertion) {
+			return this.assertions.contains(assertion);
 		}
 
 		@Override
