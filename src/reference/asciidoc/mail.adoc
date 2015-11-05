@@ -15,12 +15,12 @@ It delegates to a configured instance of Spring's `JavaMailSender`:
 
 `MailSendingMessageHandler` has various mapping strategies that use Spring's `MailMessage` abstraction.
 If the received Message's payload is already a `MailMessage` instance, it will be sent directly.
-Therefore, it is generally recommended to precede this consumer with a Transformer for non-trivial MailMessage construction requirements.
+Therefore, it is generally recommended to precede this consumer with a Transformer for non-trivial `MailMessage` construction requirements.
 However, a few simple Message mapping strategies are supported out-of-the-box.
 For example, if the message payload is a byte array, then that will be mapped to an attachment.
 For simple text-based emails, you can provide a String-based Message payload.
 In that case, a MailMessage will be created with that String as the text content.
-If you are working with a Message payload type whose toString() method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
+If you are working with a Message payload type whose `toString()`` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
 
 The outbound MailMessage may also be configured with certain values from the `MessageHeaders`.
 If available, values will be mapped to the outbound mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
@@ -36,7 +36,7 @@ The header names are defined by the following constants:
 ----
 
 NOTE: `MailHeaders` also allows you to override corresponding `MailMessage` values.
-For example: If `MailMessage.to` is set to 'foo@bar.com' and `MailHeaders.TO` Message header is provided it will take precedence and override the corresponding value in `MailMessage`
+For example: If `MailMessage.to` is set to 'foo@bar.com' and `MailHeaders.TO` Message header is provided it will take precedence and override the corresponding value in `MailMessage`.
 
 [[mail-inbound]]
 === Mail-Receiving Channel Adapter
@@ -86,7 +86,8 @@ Alternatively, provide the host, username, and password:
     host="somehost" username="someuser" password="somepassword"/>
 ----
 
-NOTE: Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a <poller> sub-element should be provided with either an interval-trigger or cron-trigger.
+NOTE: Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`,
+a `<poller>` sub-element should be provided (see ).
 
 When using the namespace support, a _header-enricher_ Message Transformer is also available.
 This simplifies the application of the headers mentioned above to any Message prior to sending to the Mail Outbound Channel Adapter.
@@ -153,10 +154,18 @@ IMPORTANT: If your username contains the '@' character use '%40' instead of '@' 
 </util:properties>
 ----
 
-By default, the `ImapMailReceiver` will search for Messages based on the default `SearchTerm` which is _All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
-been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)_.
-Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable via the `SearchTermStrategy` which you can inject via the `search-term-strategy` attribute.
-`SearchTermStrategy` is a simple strategy interface with a single method that allows you to create an instance of the `SearchTerm` that will be used by the `ImapMailReceiver`.
+[[search-term]]
+By default, the `ImapMailReceiver` will search for Messages based on the default `SearchTerm` which is _All mails that
+are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
+been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not
+supported)_.
+The custom user flag is `spring-integration-mail-adapter` but can be configured.
+Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable via the `SearchTermStrategy`
+which you can inject via the `search-term-strategy` attribute.
+`SearchTermStrategy` is a simple strategy interface with a single method that allows you to create an instance of the
+`SearchTerm` that will be used by the `ImapMailReceiver`.
+
+See <<imap-seen>> regarding message flagging.
 
 [source,java]
 ----
@@ -206,24 +215,27 @@ Again, below notes are based on GMAIL.
 With Java Mail 1.4.1 if `mail.imaps.timeout` property is set for a relatively short period of time (e.g., ~ 5 min) then `IMAPFolder.idle()` will throw `FolderClosedException` after this timeout.
 However if this property is not set (should be indefinite) the behavior that was observed is that `IMAPFolder.idle()` method never returns nor it throws an exception.
 It will however reconnect automatically if connection was lost for a short period of time (e.g., under 10 min), but if connection was lost for a long period of time (e.g., over 10 min), then`IMAPFolder.idle()` will not throw `FolderClosedException` nor it will re-establish connection and will remain in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter.
-So the only way to make re-connect to work with Java Mail 1.4.1 is to set `mail.imaps.timeout` property explicitly to some value, but it also means that such value shoudl be relatively short (under 10 min) and the connection should be re-estabished relatively quickly.
+So the only way to make re-connect to work with Java Mail 1.4.1 is to set `mail.imaps.timeout` property explicitly to some value, but it also means that such value should be relatively short (under 10 min) and the connection should be re-established relatively quickly.
 Again, it may be different with other providers.
 With Java Mail 1.4.3 there was significant improvements to the API ensuring that there will always be a condition which will force `IMAPFolder.idle()` method to return via `StoreClosedException` or `FolderClosedException` or simply return, thus allowing us to proceed with auto-reconnect.
 Currently auto-reconnect will run infinitely making attempts to reconnect every 10 sec.
 
-IMPORTANT: In both configurations `channel` and `should-delete-messages` are the _REQUIRED_     attributes.
+IMPORTANT: In both configurations `channel` and `should-delete-messages` are the _REQUIRED_ attributes.
 The important thing to understand is why `should-delete-messages` is required.
-    The issue is with the POP3 protocol, which does NOT have any knowledge of messages that were READ.
-It can only know what's been read      within a single session.
-This means that when your POP3 mail adapter is running, emails are successfully consumed as as they become available during each poll     and no single email message will be delivered more then once.
-However, as soon as you restart your adapter and begin a new session     all the email messages that might have been retrieved in the previous session will be retrieved again.
+The issue is with the POP3 protocol, which does NOT have any knowledge of messages that were READ.
+It can only know what's been read within a single session.
+This means that when your POP3 mail adapter is running, emails are successfully consumed as as they become available during each poll
+and no single email message will be delivered more then once.
+However, as soon as you restart your adapter and begin a new session all the email messages that might have been retrieved in the previous session will be retrieved again.
 That is the nature of POP3.
-Some might argue     that `should-delete-messages` should be TRUE by default.
-In other words, there are two valid and mutually exclusive use cases      which make it very hard to pick a single "best" default.
-You may want to configure your adapter as the only email receiver in which     case you want to be able to restart such adapter without fear that messages that were delivered before will not be redelivered again.      In this case setting `should-delete-messages` to TRUE would make most sense.
-However, you may have another use case where      you may want to have multiple adapters that simply monitor email servers and their content.
-In other words you just want to 'peek but not touch'.      Then setting `should-delete-messages` to FALSE would be much more appropriate.
-So since it is hard to choose what should be     the right default value for the `should-delete-messages` attribute, we simply made it a required attribute, to be set by the user.
+Some might argue that `should-delete-messages` should be TRUE by default.
+In other words, there are two valid and mutually exclusive use cases which make it very hard to pick a single "best" default.
+You may want to configure your adapter as the only email receiver in which case you want to be able to restart such adapter without fear that messages that were delivered before will not be redelivered again.
+In this case setting `should-delete-messages` to TRUE would make most sense.
+However, you may have another use case where you may want to have multiple adapters that simply monitor email servers and their content.
+In other words you just want to 'peek but not touch'.
+Then setting `should-delete-messages` to FALSE would be much more appropriate.
+So since it is hard to choose what should be the right default value for the `should-delete-messages` attribute, we simply made it a required attribute, to be set by the user.
 Leaving it up to the user also means, you will be less likely to end up with unintended behavior.
 
 NOTE: When configuring a polling email adapter's _should-mark-messages-as-read_ attribute, be aware of the protocol you are configuring to retrieve messages.
@@ -237,13 +249,29 @@ This can cause messages to be lost.
 You may wish to consider using transaction synchronization instead - see <<mail-tx-sync>>
 =====
 
-The <imap-idle-channel-adapter/> also accepts the 'error-channel' attribute.
+The `<imap-idle-channel-adapter/>` also accepts the 'error-channel' attribute.
 If a downstream exception is thrown and an 'error-channel' is specified, a MessagingException message containing the failed message and original exception, will be sent to this channel.
 Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a warning by the channel adapter.
 
 NOTE: Beginning with the 3.0 release, the IMAP idle adapter emits application events (specifically `ImapIdleExceptionEvent` s) when exceptions occur.
 This allows applications to detect and act on those exceptions.
 The events can be obtained using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
+
+[[imap-seen]]
+=== Marking IMAP Messages When \Recent is Not Supported
+
+If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
+
+In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user
+flag (`spring-integration-mail-adapter` by default) as long as the server supports user flags.
+If not, `Flag.FLAGGED` is set to `true`.
+These flags are applied regardless of the `shouldMarkMessagesRead` setting.
+
+As discussed in <<search-term>>, the default `SearchTermStrategy` will ignore messages so flagged.
+
+Starting with _version 4.2.2_, the name of the user flag can be set using `setUserFlag` on the `MailReceiver` - this
+allows multiple receivers to use a different flag (as long as the mail server supports user flags).
+Changing the user flag is not currently supported by the XML namespace.
 
 [[mail-filtering]]
 === Email Message Filtering
@@ -286,8 +314,8 @@ In other while our adapter may peek at the email it also lets the email server k
 === Transaction Synchronization
 
 Transaction synchronization for inbound adapters allows you to take different actions after a transaction commits, or rolls back.
-Transaction synchronization is enabled by adding a <transactional/> element to the poller for the polled <inbound-adapter/>, or to the <imap-idle-inbound-adapter/>.
-Even if there is no 'real' transaction involved, you can still enable this feature by using a`PseudoTransactionManager` with the <transactional/> element.
+Transaction synchronization is enabled by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>`, or to the `<imap-idle-inbound-adapter/>`.
+Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
 For more information, see <<transaction-synchronization>>.
 
 Because of the many different mail servers, and specifically the limitations that some have, at this time we only provide a strategy for these transaction synchronizations.

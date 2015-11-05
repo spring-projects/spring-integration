@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.mail.Flags;
@@ -45,7 +46,21 @@ public class ImapMailSearchTermsTests {
 
 	@Test
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
+		String userFlag = AbstractMailReceiver.DEFAULT_SI_USER_FLAG;
 		ImapMailReceiver receiver = new ImapMailReceiver();
+		validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(userFlag, receiver);
+	}
+
+	@Test
+	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsCustom() throws Exception {
+		String userFlag = "foo";
+		ImapMailReceiver receiver = new ImapMailReceiver();
+		receiver.setUserFlag(userFlag);
+		validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(userFlag, receiver);
+	}
+
+	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlagsGuts(String userFlag, ImapMailReceiver receiver)
+			throws NoSuchFieldException, IllegalAccessException, InvocationTargetException {
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 
@@ -62,9 +77,10 @@ public class ImapMailSearchTermsTests {
 		assertTrue(searchTerms instanceof NotTerm);
 		NotTerm notTerm = (NotTerm) searchTerms;
 		Flags siFlags = new Flags();
-		siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
-		notTerm.getTerm().equals(siFlags);
+		siFlags.add(userFlag);
+		assertEquals(siFlags, ((FlagTerm)notTerm.getTerm()).getFlags());
 	}
+
 	@Test
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
@@ -91,7 +107,7 @@ public class ImapMailSearchTermsTests {
 		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.ANSWERED));
 		notTerm = (NotTerm) terms[1];
 		Flags siFlags = new Flags();
-		siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
+		siFlags.add(AbstractMailReceiver.DEFAULT_SI_USER_FLAG);
 		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(siFlags));
 	}
 
@@ -114,4 +130,5 @@ public class ImapMailSearchTermsTests {
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
 		assertTrue(searchTerms instanceof NotTerm);
 	}
+
 }

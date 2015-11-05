@@ -81,7 +81,6 @@ import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExcep
 import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -103,9 +102,7 @@ public class ImapMailReceiverTests {
 
 	private final AtomicInteger failed = new AtomicInteger(0);
 
-	private final static int imapIdlePort = SocketUtils.findAvailableServerSocket();
-
-	private final static ImapServer imapIdleServer = PoorMansMailServer.imap(imapIdlePort);
+	private final static ImapServer imapIdleServer = PoorMansMailServer.imap(0);
 
 
 	@BeforeClass
@@ -123,15 +120,9 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleWithServer() throws Exception {
-		Properties mailProps = new Properties();
-		mailProps.put("mail.debug", "true");
-		mailProps.put("mail.imap.connectionpool.debug", "true");
-		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdlePort + "/INBOX");
-		receiver.setJavaMailProperties(mailProps);
-		receiver.setMaxFetchSize(1);
-		receiver.setShouldDeleteMessages(false);
-		receiver.setShouldMarkMessagesAsRead(true);
+	public void testIdleWithServerCustomSearch() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
 		receiver.setSearchTermStrategy(new SearchTermStrategy() {
 
 			@Override
@@ -146,9 +137,30 @@ public class ImapMailReceiverTests {
 				}
 			}
 		});
+		testIdleWithServerGuts(receiver);
+	}
+
+	@Test
+	public void testIdleWithServerDefaultSearch() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
+		testIdleWithServerGuts(receiver);
+		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
+	}
+
+	public void testIdleWithServerGuts(ImapMailReceiver receiver) throws MessagingException {
+		imapIdleServer.resetServer();
+		Properties mailProps = new Properties();
+		mailProps.put("mail.debug", "true");
+		mailProps.put("mail.imap.connectionpool.debug", "true");
+		receiver.setJavaMailProperties(mailProps);
+		receiver.setMaxFetchSize(1);
+		receiver.setShouldDeleteMessages(false);
+		receiver.setShouldMarkMessagesAsRead(true);
 		receiver.setCancelIdleInterval(8);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		setUpScheduler(receiver, taskScheduler);
+		receiver.setUserFlag("testSIUserFlag");
 		receiver.afterPropertiesSet();
 		Log logger = spy(TestUtils.getPropertyValue(receiver, "logger", Log.class));
 		new DirectFieldAccessor(receiver).setPropertyValue("logger", logger);
@@ -167,6 +179,7 @@ public class ImapMailReceiverTests {
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
 		taskScheduler.shutdown();
+		assertTrue(imapIdleServer.assertReceived("storeUserFlag"));
 	}
 
 	@Test
@@ -464,9 +477,9 @@ public class ImapMailReceiverTests {
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accesor = new DirectFieldAccessor((invocation.getMock()));
+				DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
                 IMAPFolder folder = mock(IMAPFolder.class);
-				accesor.setPropertyValue("folder", folder);
+				accessor.setPropertyValue("folder", folder);
 				when(folder.hasNewMessages()).thenReturn(true);
 				return null;
 			}
