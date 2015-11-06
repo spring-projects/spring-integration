@@ -69,7 +69,7 @@ A common problem with reading files is that a file may be detected before it is 
 The default `AcceptOnceFileListFilter` does not prevent this.
 In most cases, this can be prevented if the file-writing process renames each file as soon as it is ready for reading.
 A filename-pattern or filename-regex filter that accepts only files that are ready (e.g.
-based on a known suffix), composed with the default`AcceptOnceFileListFilter` allows for this.
+based on a known suffix), composed with the default `AcceptOnceFileListFilter` allows for this.
 The `CompositeFileListFilter` enables the composition.
 [source,xml]
 ----
@@ -77,6 +77,7 @@ The `CompositeFileListFilter` enables the composition.
     class="org.springframework.integration.file.FileReadingMessageSource"
     p:inputDirectory="${input.directory}"
     p:filter-ref="compositeFilter"/>
+
 <bean id="compositeFilter"
     class="org.springframework.integration.file.filters.CompositeFileListFilter">
     <constructor-arg>
@@ -103,6 +104,25 @@ to, say, network glitches.
     <property name="age" value="120" />
 </bean>
 ----
+
+*The directory scanning and polling*
+
+The `FileReadingMessageSource` doesn't produce messages for files from the directory immediately.
+It uses an internal queue for 'eligible files' returned by the `scanner`.
+The `scanEachPoll` option is used to ensure that the internal queue is refreshed with the latest input directory
+content on each poll.
+By default (`scanEachPoll = false`), the `FileReadingMessageSource` empties its queue before scanning the directory
+again.
+This default behavior is particularly useful to reduce scans of large numbers of files in a directory.
+However, in cases where custom ordering is required, it is important to consider the effects of setting this flag to
+`true`; the order in which files are processed may not be as expected.
+By default, files in the queue are processed in their natural (`path`) order.
+New files added by a scan, even when the queue already has files, are inserted in the appropriate position to maintain
+that natural order.
+To customize the order, the `FileReadingMessageSource` can accept a `Comparator<File>` as a constructor argument.
+It is used by the internal (`PriorityBlockingQueue`) to reorder its content according to the business requirements.
+Therefore, to process files in a specific order, you should provide a comparator to the `FileReadingMessageSource`,
+rather than ordering the list produced by a custom `DirectoryScanner`.
 
 [[file-namespace-support]]
 ==== Namespace Support
@@ -144,7 +164,7 @@ Within this namespace you can reduce the `FileReadingMessageSource` and wrap it 
     filename-regex="test[0-9]+\.txt" />
 ----
 
-The first channel adapter example is relying on the default `FileListFilter`s:
+The first channel adapter example is relying on the default `FileListFilter` s:
 
 * `IgnoreHiddenFileListFilter` (Do not process hidden files)
 * `AcceptOnceFileListFilter` (Prevents duplication)
@@ -184,7 +204,7 @@ A custom locker you can configure like this:
 
 NOTE: When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a lock before the file is allowed to be received.
 *It will not assume the responsibility to unlock the file.* If you have processed the file and keeping the locks hanging around you have a memory leak.
-If this is a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
+If this is a problem in your case you should call `FileLocker.unlock(File file)` yourself at the appropriate time.
 
 When filtering and locking files is not enough it might be needed to control the way files are listed entirely.
 To implement this type of requirement you can use an implementation of `DirectoryScanner`.
