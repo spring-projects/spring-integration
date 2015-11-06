@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import static org.junit.Assert.assertSame;
 
 import java.util.Map;
 
-import kafka.producer.Partitioner;
-import kafka.serializer.Encoder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.Assert;
@@ -38,7 +36,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.kafka.rule.KafkaEmbedded;
 import org.springframework.integration.kafka.rule.KafkaRule;
-import org.springframework.integration.kafka.rule.KafkaRunning;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerListener;
@@ -47,6 +44,8 @@ import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import kafka.serializer.Encoder;
 
 /**
  * @author Soby Chacko
@@ -104,9 +103,6 @@ public class KafkaProducerContextParserTests {
 		assertSame(stringSerializer, producerConfigurationTest2.getProducerMetadata().getKeySerializer());
 		assertSame(stringSerializer, producerConfigurationTest2.getProducerMetadata().getValueSerializer());
 
-		final Partitioner partitioner = appContext.getBean("partitioner", Partitioner.class);
-		assertSame(partitioner, producerConfigurationTest2.getProducerMetadata().getPartitioner());
-
 		final ConversionService conversionService = appContext.getBean("conversionService", ConversionService.class);
 		ConversionService configuredConversionService = (ConversionService) directFieldAccessor2.getPropertyValue("conversionService");
 		assertSame(conversionService, configuredConversionService);
@@ -119,6 +115,8 @@ public class KafkaProducerContextParserTests {
 
 		assertFalse(TestUtils.getPropertyValue(producerContext, "autoStartup", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(producerContext, "phase"));
+
+		assertEquals("windows-1251", producerConfigurationTest2.getProducerMetadata().getCharset().name());
 	}
 
 	public static class StubConversionService implements ConversionService {

@@ -216,7 +216,10 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<xsd:documentation>
+													[DEPRECATED]
 													Custom Kafka key partitioner.
+													Deprecated in favor of 'partition-id' ('partition-id-expression')
+													on the 'outbound-channel-adapter'.
 												</xsd:documentation>
 												<tool:annotation kind="ref">
 													<tool:expected-type type="kafka.producer.Partitioner"/>
@@ -242,6 +245,14 @@
 										<xsd:annotation>
 											<xsd:documentation>
 												If sync=true, specify timeout in milliseconds. 0 or below indicate forever (default)
+											</xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="charset" use="optional" type="xsd:string">
+										<xsd:annotation>
+											<xsd:documentation>
+												The character encoding to preform String to/from byte[] conversion
+												instead of general (de)serialization. Defaults to UTF8.
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>

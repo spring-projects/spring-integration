@@ -30,13 +30,6 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.kafka.support.ConsumerConfigFactoryBean;
-import org.springframework.integration.kafka.support.ConsumerConfiguration;
-import org.springframework.integration.kafka.support.ConsumerConnectionProvider;
-import org.springframework.integration.kafka.support.ConsumerMetadata;
-import org.springframework.integration.kafka.support.KafkaConsumerContext;
-import org.springframework.integration.kafka.support.MessageLeftOverTracker;
-import org.springframework.integration.kafka.support.TopicFilterConfiguration;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -54,7 +47,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 
 	@Override
 	protected Class<?> getBeanClass(final Element element) {
-		return KafkaConsumerContext.class;
+		return org.springframework.integration.kafka.support.KafkaConsumerContext.class;
 	}
 
 	@Override
@@ -70,9 +63,9 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 		Map<String, BeanMetadataElement> consumerConfigurationsMap = new ManagedMap<String, BeanMetadataElement>();
 		for (final Element consumerConfiguration : DomUtils.getChildElementsByTagName(consumerConfigurations, "consumer-configuration")) {
 			final BeanDefinitionBuilder consumerConfigurationBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerConfiguration.class);
+					BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.ConsumerConfiguration.class);
 			final BeanDefinitionBuilder consumerMetadataBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerMetadata.class);
+					BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.ConsumerMetadata.class);
 
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(consumerMetadataBuilder, consumerConfiguration,
 					"group-id");
@@ -105,7 +98,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 
 			if (topicFilter != null) {
 				BeanDefinition topicFilterConfigurationBeanDefinition =
-						BeanDefinitionBuilder.genericBeanDefinition(TopicFilterConfiguration.class)
+						BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.TopicFilterConfiguration.class)
 								.addConstructorArgValue(topicFilter.getAttribute("pattern"))
 								.addConstructorArgValue(topicFilter.getAttribute("streams"))
 								.addConstructorArgValue(topicFilter.getAttribute("exclude"))
@@ -122,7 +115,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 			final String consumerPropertiesBean = parentElem.getAttribute("consumer-properties");
 
 			final BeanDefinitionBuilder consumerConfigFactoryBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerConfigFactoryBean.class);
+					BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.ConsumerConfigFactoryBean.class);
 			consumerConfigFactoryBuilder.addConstructorArgValue(consumerMetadataBeanDefintiion);
 
 			if (StringUtils.hasText(zookeeperConnectBean)) {
@@ -137,14 +130,14 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 					consumerConfigFactoryBuilder.getBeanDefinition();
 
 			BeanDefinitionBuilder consumerConnectionProviderBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConsumerConnectionProvider.class);
+					BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.ConsumerConnectionProvider.class);
 			consumerConnectionProviderBuilder.addConstructorArgValue(consumerConfigFactoryBuilderBeanDefinition);
 
 			AbstractBeanDefinition consumerConnectionProviderBuilderBeanDefinition =
 					consumerConnectionProviderBuilder.getBeanDefinition();
 
 			BeanDefinitionBuilder messageLeftOverBeanDefinitionBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(MessageLeftOverTracker.class);
+					BeanDefinitionBuilder.genericBeanDefinition(org.springframework.integration.kafka.support.MessageLeftOverTracker.class);
 			AbstractBeanDefinition messageLeftOverBeanDefinition =
 					messageLeftOverBeanDefinitionBuilder.getBeanDefinition();
 

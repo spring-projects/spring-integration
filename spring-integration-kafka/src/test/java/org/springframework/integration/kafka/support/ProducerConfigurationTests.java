@@ -21,6 +21,8 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
 import kafka.producer.Partitioner;
+import kafka.serializer.DefaultEncoder;
+
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
@@ -30,7 +32,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder;
 import org.springframework.integration.kafka.test.utils.NonSerializableTestKey;
@@ -41,11 +42,10 @@ import org.springframework.integration.kafka.util.EncoderAdaptingSerializer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
-import kafka.serializer.DefaultEncoder;
-
 /**
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Marius Bogoevici
  * @since 0.5
  */
 public class ProducerConfigurationTests {
@@ -154,9 +154,7 @@ public class ProducerConfigurationTests {
 
 		final byte[] keyBytes = capturedKeyMessage.key();
 
-		final ByteArrayInputStream keyInputStream = new ByteArrayInputStream(keyBytes);
-		final ObjectInputStream keyObjectInputStream = new ObjectInputStream(keyInputStream);
-		final Object keyObj = keyObjectInputStream.readObject();
+		String keyObj = new String(keyBytes);
 
 		Assert.assertEquals("key", keyObj);
 		Assert.assertEquals(capturedKeyMessage.value(), tp);
@@ -195,11 +193,8 @@ public class ProducerConfigurationTests {
 
 		final byte[] payloadBytes = capturedKeyMessage.value();
 
-		final ByteArrayInputStream payloadBis = new ByteArrayInputStream(payloadBytes);
-		final ObjectInputStream payloadOis = new ObjectInputStream(payloadBis);
-		final Object payloadObj = payloadOis.readObject();
-
-		Assert.assertEquals("test message", payloadObj);
+		String payload = new String(payloadBytes);
+		Assert.assertEquals("test message", payload);
 
 		Assert.assertEquals(capturedKeyMessage.topic(), "test");
 	}
@@ -228,19 +223,13 @@ public class ProducerConfigurationTests {
 		final ProducerRecord<byte[], byte[]> capturedKeyMessage = argument.getValue();
 		final byte[] keyBytes = capturedKeyMessage.key();
 
-		final ByteArrayInputStream keyBis = new ByteArrayInputStream(keyBytes);
-		final ObjectInputStream keyOis = new ObjectInputStream(keyBis);
-		final Object keyObj = keyOis.readObject();
-
-		Assert.assertEquals("key", keyObj);
+		String key = new String(keyBytes);
+		Assert.assertEquals("key", key);
 
 		final byte[] payloadBytes = capturedKeyMessage.value();
 
-		final ByteArrayInputStream payloadBis = new ByteArrayInputStream(payloadBytes);
-		final ObjectInputStream payloadOis = new ObjectInputStream(payloadBis);
-		final Object payloadObj = payloadOis.readObject();
-
-		Assert.assertEquals("test message", payloadObj);
+		String payload = new String(payloadBytes);
+		Assert.assertEquals("test message", payload);
 		Assert.assertEquals(capturedKeyMessage.topic(), "test");
 	}
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.kafka.support;
 
+import java.nio.charset.Charset;
+
 import org.apache.kafka.common.serialization.Serializer;
 
 import org.springframework.util.Assert;
@@ -52,6 +54,8 @@ public class ProducerMetadata<K,V> {
 	private int sendTimeout = 0;
 
 	private boolean sync = false;
+
+	private Charset charset = Charset.forName("UTF8");
 
 	public ProducerMetadata(final String topic, Class<K> keyClassType, Class<V> valueClassType,
 	                        Serializer<K> keySerializer, Serializer<V> valueSerializer) {
@@ -129,6 +133,20 @@ public class ProducerMetadata<K,V> {
 		this.sync = sync;
 	}
 
+	public Charset getCharset() {
+		return charset;
+	}
+
+	/**
+	 * The character encoding to preform {@code String <-> byte[]} conversion
+	 * instead of general (de)serialization.
+	 * @param charset the charset encoding to use.
+	 * @since 1.3
+	 */
+	public void setCharset(Charset charset) {
+		this.charset = charset;
+	}
+
 	@Override
 	public String toString() {
 		return "ProducerMetadata{" +
@@ -142,6 +160,7 @@ public class ProducerMetadata<K,V> {
 				", batchBytes=" + this.batchBytes +
 				", sync=" + this.sync +
 				", sendTimeout=" + this.sendTimeout +
+				", charset=" + this.charset +
 				'}';
 	}
 
@@ -150,4 +169,5 @@ public class ProducerMetadata<K,V> {
 		gzip,
 		snappy
 	}
+
 }

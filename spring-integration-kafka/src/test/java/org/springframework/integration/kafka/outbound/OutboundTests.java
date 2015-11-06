@@ -35,6 +35,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -133,7 +135,7 @@ public class OutboundTests {
 		KafkaProducerMessageHandler handler =
 				new KafkaProducerMessageHandler(producerContext);
 
-		handler.handleMessage(MessageBuilder.withPayload("foo" + suffix)
+		handler.handleMessage(MessageBuilder.withPayload(("foo" + suffix).getBytes())
 				.setHeader(KafkaHeaders.MESSAGE_KEY, "3")
 				.setHeader(KafkaHeaders.TOPIC, TOPIC)
 				.build());
@@ -298,15 +300,28 @@ public class OutboundTests {
 
 		kafkaMessageListenerContainer.start();
 
-		KafkaProducerContext producerContext = createProducerContext();
-		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(producerContext);
+		KafkaProducerContext kafkaProducerContext = new KafkaProducerContext();
+		ProducerMetadata<String, byte[]> producerMetadata =
+				new ProducerMetadata<>(TOPIC, String.class, byte[].class,
+						new StringSerializer(), new ByteArraySerializer());
+		Properties props = new Properties();
+		ProducerFactoryBean<String, byte[]> producer =
+				new ProducerFactoryBean<>(producerMetadata, kafkaRule.getBrokersAsString(), props);
+		ProducerConfiguration<String, byte[]> config =
+				new ProducerConfiguration<>(producerMetadata, producer.getObject());
+
+		Map<String, ProducerConfiguration<?, ?>> producerConfigurationMap =
+				Collections.<String, ProducerConfiguration<?, ?>>singletonMap(TOPIC, config);
+		kafkaProducerContext.setProducerConfigurations(producerConfigurationMap);
+
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(kafkaProducerContext);
 
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		handler.handleMessage(MessageBuilder.withPayload("fooTopic1" + suffix).build());
 
-		producerContext.stop();
+		kafkaProducerContext.stop();
 
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertThat(latch.getCount(), equalTo(0L));

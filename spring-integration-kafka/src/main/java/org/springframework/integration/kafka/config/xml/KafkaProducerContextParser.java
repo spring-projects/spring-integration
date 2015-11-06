@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Soby Chacko
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 0.5
  */
 public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionParser {
@@ -120,7 +121,7 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 			if (StringUtils.hasText(producerConfiguration.getAttribute("partitioner"))) {
 				if (log.isWarnEnabled()) {
 					log.warn("'partitioner' is a deprecated option. Use the 'kafka_partitionId' message header or " +
-							"the partition argument in the send() or convertAndSend() methods");
+							"the 'partition-id' (or 'partition-id-expression') attribute.");
 				}
 			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
@@ -131,6 +132,8 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 					"sync");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
 					"send-timeout");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration,
+					"charset");
 
 			AbstractBeanDefinition producerMetadataBeanDefinition = producerMetadataBuilder.getBeanDefinition();
 
