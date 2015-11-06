@@ -44,9 +44,9 @@
                                               key-serializer="stringSerializer"
                                               value-serializer="stringSerializer"
                                               batch-bytes="9876"
-                                              partitioner="partitioner"
                                               conversion-service="conversionService"
                                               producer-listener="producerListener"
+											  charset="cp1251"
                                            compression-type="none"/>
         </int-kafka:producer-configurations>
     </int-kafka:producer-context>
@@ -59,7 +59,6 @@
 
     <bean id="stringSerializer" class="org.apache.kafka.common.serialization.StringSerializer"/>
 
-    <bean id="partitioner" class="org.springframework.integration.kafka.support.DefaultPartitioner"/>
-
     <bean id="conversionService" class="org.springframework.integration.kafka.config.xml.KafkaProducerContextParserTests.StubConversionService"/>
+
 </beans>

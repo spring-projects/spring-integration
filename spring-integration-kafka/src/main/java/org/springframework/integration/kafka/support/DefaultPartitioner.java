@@ -24,6 +24,7 @@ import kafka.utils.Utils;
  *
  * This class is for internal use only and therefore is at default access level
  */
+@Deprecated
 class DefaultPartitioner implements Partitioner {
 	/**
 	 * Uses the key to calculate a partition bucket id for routing
