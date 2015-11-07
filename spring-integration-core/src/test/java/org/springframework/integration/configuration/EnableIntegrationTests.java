@@ -43,15 +43,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -66,8 +59,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.annotation.Aggregator;
@@ -106,6 +97,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -143,7 +135,7 @@ import reactor.spring.context.config.EnableReactor;
 		classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class EnableIntegrationTests {
+public class EnableIntegrationTests extends LogAdjustingTestSupport {
 
 	@Autowired
 	private ApplicationContext context;
@@ -269,28 +261,6 @@ public class EnableIntegrationTests {
 	@Autowired
 	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
-
-	@Rule
-	public TestName testName = new TestName();
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private final Logger loggerToAdjust = LogManager.getLogger("org.springframework.integration");
-
-	private Level oldCategory;
-
-	@Before
-	public void beforeTest() {
-		this.oldCategory = loggerToAdjust.getEffectiveLevel();
-		this.loggerToAdjust.setLevel(Level.TRACE);
-		this.logger.debug("!!!! Starting the test: " + this.testName.getMethodName() + " !!!!");
-	}
-
-	@After
-	public void afterTest() {
-		logger.debug("!!!! Finish the test: " + this.testName.getMethodName() + " !!!!");
-		this.loggerToAdjust.setLevel(this.oldCategory);
-	}
 
 	@Test
 	public void testAnnotatedServiceActivator() {

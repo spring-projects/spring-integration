@@ -52,6 +52,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -68,7 +69,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @since 2.2.4
  */
-public class JmsOutboundGatewayTests {
+public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 
 	final Log logger = LogFactory.getLog(this.getClass());
 
@@ -212,6 +213,7 @@ public class JmsOutboundGatewayTests {
 			}
 		};
 		template.send(replyQ, reply);
+		logger.debug("Sent reply: " + reply);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());
@@ -262,6 +264,7 @@ public class JmsOutboundGatewayTests {
 			}
 		};
 		template.send(replyQ, reply);
+		logger.debug("Sent reply to: " + replyQ);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());

@@ -52,14 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -77,7 +70,7 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -88,25 +81,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Artem Bilan
  * @since 2.0
  */
-public class TcpOutboundGatewayTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration");
-
-	@Rule
-	public TestName testName = new TestName();
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	@Before
-	public void beforeTest() {
-		logger.debug("!!!! Starting the test: " + this.testName.getMethodName() + " !!!!");
-	}
-
-	@After
-	public void afterTest() {
-		logger.debug("!!!! Finish the test: " + this.testName.getMethodName() + " !!!!");
-	}
+public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
