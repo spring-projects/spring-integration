@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,8 +133,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		this.connectIfNeeded();
+		connectIfNeeded();
 		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		if (topic == null && this.defaultTopic == null) {
@@ -144,7 +145,14 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
 	}
 
-	protected abstract void connectIfNeeded();
+	/**
+	 * Invoked before {@link #publish(String, Object, Message)}.
+	 * @deprecated subclasses should check the connection in
+	 * {@link #publish(String, Object, Message)}.
+	 */
+	@Deprecated
+	protected void connectIfNeeded() {
+	}
 
 	protected abstract void publish(String topic, Object mqttMessage, Message<?> message) throws Exception;
 
