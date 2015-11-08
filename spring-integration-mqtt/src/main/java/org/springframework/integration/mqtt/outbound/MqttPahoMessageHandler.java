@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,41 +154,37 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		}
 	}
 
-	private synchronized void doConnect() throws MqttException {
+	private synchronized MqttAsyncClient checkConnection() throws MqttException {
 		if (this.client != null && !this.client.isConnected()) {
 			this.client.close();
 			this.client = null;
 		}
 		if (this.client == null) {
-			MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
-			Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
-					"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-			this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
-			incrementClientInstance();
-			this.client.setCallback(this);
-			this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Client connected");
-			}
-		}
-	}
-
-	@Override
-	protected void connectIfNeeded() {
-		if (this.client == null || !this.client.isConnected()) {
 			try {
-				this.doConnect();
+				MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+				Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
+						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
+				MqttAsyncClient client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+				incrementClientInstance();
+				client.setCallback(this);
+				client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
+				this.client = client;
+				if (logger.isDebugEnabled()) {
+					logger.debug("Client connected");
+				}
 			}
 			catch (MqttException e) {
 				throw new MessagingException("Failed to connect", e);
 			}
 		}
+		return this.client;
 	}
 
 	@Override
 	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		IMqttDeliveryToken token = this.client.publish(topic, (MqttMessage) mqttMessage);
+		MqttAsyncClient client = checkConnection();
+		IMqttDeliveryToken token = client.publish(topic, (MqttMessage) mqttMessage);
 		if (!this.async) {
 			token.waitForCompletion(this.completionTimeout);
 		}
@@ -208,7 +204,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
-	public void connectionLost(Throwable cause) {
+	public synchronized void connectionLost(Throwable cause) {
 		logger.error("Lost connection; will attempt reconnect on next request");
 		this.client = null;
 	}
