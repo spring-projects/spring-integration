@@ -16,6 +16,39 @@
 
 package org.springframework.integration.stomp.config;
 
+import java.net.ConnectException;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
+import org.springframework.integration.stomp.StompSessionManager;
+import org.springframework.integration.stomp.event.StompExceptionEvent;
+import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
+import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
+
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,29 +56,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.stomp.StompSessionManager;
-import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
-import org.springframework.integration.support.SmartLifecycleRoleController;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.MultiValueMap;
 
 /**
  * @author Artem Bilan
@@ -164,8 +176,42 @@ public class StompAdaptersParserTests {
 		List<SmartLifecycle> bars = lifecycles.get("bar");
 		bars.contains(this.customInboundAdapter);
 		assertTrue(lifecycles.containsKey("foo"));
-		List<SmartLifecycle> foos = lifecycles.get("bar");
 		bars.contains(this.customOutboundAdapter);
+	}
+
+	@Test
+	public void testStompSessionManagerReconnect() throws Exception {
+		Reactor2TcpStompClient stompClient = new Reactor2TcpStompClient();
+		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
+		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
+
+		final BlockingQueue<ApplicationEvent> stompExceptionEvents = new LinkedBlockingQueue<ApplicationEvent>();
+
+		sessionManager.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				stompExceptionEvents.add(event);
+			}
+
+			@Override
+			public void publishEvent(Object event) {
+
+			}
+
+		});
+		sessionManager.afterPropertiesSet();
+
+		ApplicationEvent event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
+		assertNotNull(event);
+		assertThat(event, instanceOf(StompExceptionEvent.class));
+		StompExceptionEvent stompExceptionEvent = (StompExceptionEvent) event;
+		assertThat(stompExceptionEvent.getCause(), instanceOf(ConnectException.class));
+		assertNotNull(TestUtils.getPropertyValue(sessionManager, "reconnectFuture"));
+
+		event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
+		assertNotNull(event);
+		sessionManager.destroy();
 	}
 
 }

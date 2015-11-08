@@ -16,13 +16,6 @@
 
 package org.springframework.integration.stomp.client;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,6 +43,7 @@ import org.springframework.integration.support.converter.PassThruMessageConverte
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
@@ -57,6 +51,16 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.SocketUtils;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Artem Bilan
@@ -97,7 +101,7 @@ public class StompServerIntegrationTests {
 	}
 
 	@Test
-	public void testStompAdapters() {
+	public void testStompAdapters() throws Exception {
 		ConfigurableApplicationContext context1 = new AnnotationConfigApplicationContext(ContextConfiguration.class);
 		ConfigurableApplicationContext context2 = new AnnotationConfigApplicationContext(ContextConfiguration.class);
 
@@ -179,6 +183,41 @@ public class StompServerIntegrationTests {
 		Message<?> receive24 = stompInputChannel2.receive(10000);
 		assertNotNull(receive24);
 		assertArrayEquals("???".getBytes(), (byte[]) receive24.getPayload());
+
+		activeMQBroker.stop();
+
+		try {
+			stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
+			fail("MessageDeliveryException is expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getMessage(), containsString("isn't connected to StompSession"));
+		}
+
+		activeMQBroker.start(false);
+
+		StompMessageHandler stompMessageHandler1 = context1.getBean("stompMessageHandler", StompMessageHandler.class);
+		StompMessageHandler stompMessageHandler2 = context2.getBean("stompMessageHandler", StompMessageHandler.class);
+
+		int n = 0;
+		while (!stompMessageHandler1.isRunning() && n++ < 100) {
+			Thread.sleep(100);
+		}
+
+		assertTrue(n < 10);
+
+		n = 0;
+		while (!stompMessageHandler2.isRunning() && n++ < 100) {
+			Thread.sleep(100);
+		}
+
+		assertTrue(n < 10);
+
+		stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
+		Message<?> receive25 = stompInputChannel2.receive(10000);
+		assertNotNull(receive25);
+		assertArrayEquals("foo".getBytes(), (byte[]) receive25.getPayload());
 
 		context1.close();
 		context2.close();

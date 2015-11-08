@@ -38,6 +38,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.simp.stomp.ConnectionLostException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -195,8 +196,13 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	@Override
 	protected void doStop() {
-		for (StompSession.Subscription subscription : this.subscriptions.values()) {
-			subscription.unsubscribe();
+		try {
+			for (StompSession.Subscription subscription : this.subscriptions.values()) {
+				subscription.unsubscribe();
+			}
+		}
+		catch (Exception e) {
+			logger.warn("The exception during unsubscribtion.", e);
 		}
 		this.subscriptions.clear();
 		this.stompSessionManager.disconnect(this.stompSessionHandler);
@@ -262,7 +268,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		}
 		else {
 			logger.warn("The StompInboundChannelAdapter [" + getComponentName() +
-					"] hasn't been connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
+					"] ins't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 	}
 
@@ -294,6 +300,9 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
+			if (exception instanceof ConnectionLostException) {
+				StompInboundChannelAdapter.this.stompSession = null;
+			}
 			logger.error("STOMP transport error for session: [" + session + "]", exception);
 		}
 

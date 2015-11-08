@@ -32,12 +32,14 @@ import org.springframework.integration.stomp.support.StompHeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.simp.stomp.ConnectionLostException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -104,9 +106,11 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
-		if (!this.isRunning()) {
+		if (!this.isRunning() || !this.stompSessionManager.isConnected()) {
+			this.running = false;
+			this.stompSession = null;
 			throw new MessageDeliveryException(message, "The StompMessageHandler [" + getComponentName() +
-					"] hasn't been connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
+					"] isn't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
 		}
 
 		StompHeaders stompHeaders = new StompHeaders();
@@ -161,8 +165,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 	@Override
 	public void stop() {
-		this.stompSessionManager.disconnect(this.sessionHandler);
 		this.running = false;
+		this.stompSessionManager.disconnect(this.sessionHandler);
 	}
 
 	@Override
@@ -200,8 +204,22 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 
 		@Override
+		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
+		                            Throwable exception) {
+			Message<byte[]> message = MessageBuilder.createMessage(payload,
+					StompHeaderAccessor.create(command, headers).getMessageHeaders());
+			logger.error("The exception for session [" + session + "] on message [" + message + "]", exception);
+		}
+
+		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
-			logger.error("STOMP transport error for session: [" + session + "]", exception);
+			if (exception instanceof ConnectionLostException) {
+				StompMessageHandler.this.running = false;
+				StompMessageHandler.this.stompSession = null;
+			}
+			else {
+				logger.error("STOMP transport error for session: [" + session + "]", exception);
+			}
 		}
 
 	}
