@@ -45,10 +45,8 @@ import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.Trigger;
 
 /**
  * @author Gary Russell
@@ -66,6 +64,7 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testLeader() throws Exception {
+		assertFalse(this.adapter.isRunning());
 		LeaderEventPublisher publisher = publisher();
 		DefaultCandidate candidate1 = new DefaultCandidate("foo", "sitest");
 		LeaderInitiator initiator1 = new LeaderInitiator(this.client, candidate1, "/sitest");
@@ -78,10 +77,10 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 		AbstractLeaderEvent event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnGrantedEvent.class));
-		event.getContext().yield();
 
 		assertTrue(this.adapter.isRunning());
 
+		event.getContext().yield();
 		event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnRevokedEvent.class));
@@ -122,19 +121,11 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
 	private SourcePollingChannelAdapter buildChannelAdapter() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		adapter.setSource(new MessageSource<String>() {
-
-			@Override
-			public Message<String> receive() {
-				return new GenericMessage<String>("foo");
-			}
-		});
+		adapter.setSource(mock(MessageSource.class));
 		adapter.setOutputChannel(new QueueChannel());
-		adapter.setTrigger(new PeriodicTrigger(10000));
+		adapter.setTrigger(mock(Trigger.class));
 		adapter.setBeanFactory(mock(BeanFactory.class));
-		ThreadPoolTaskScheduler sched = new ThreadPoolTaskScheduler();
-		sched.afterPropertiesSet();
-		adapter.setTaskScheduler(sched);
+		adapter.setTaskScheduler(mock(TaskScheduler.class));
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
