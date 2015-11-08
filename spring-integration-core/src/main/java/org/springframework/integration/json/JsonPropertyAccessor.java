@@ -18,18 +18,18 @@ package org.springframework.integration.json;
 
 import java.io.IOException;
 
-import org.springframework.expression.AccessException;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.PropertyAccessor;
-import org.springframework.expression.TypedValue;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.springframework.expression.AccessException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypedValue;
+import org.springframework.util.Assert;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
@@ -116,7 +116,13 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 			return new TypedValue(wrap(container.get(index)));
 		}
 		else {
-			return new TypedValue(wrap(container.get(name)));
+			JsonNode json = container.get(name);
+			if (json != null) {
+				return new TypedValue(wrap(json));
+			}
+			else {
+				return null;
+			}
 		}
 	}
 
