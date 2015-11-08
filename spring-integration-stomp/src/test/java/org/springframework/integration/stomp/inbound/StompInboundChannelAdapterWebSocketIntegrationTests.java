@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -46,8 +47,10 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
@@ -96,7 +99,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework");
 
 	@Value("#{server.serverContext}")
-	private ApplicationContext serverContext;
+	private ConfigurableApplicationContext serverContext;
 
 	@Autowired
 	@Qualifier("stompInputChannel")
@@ -114,7 +117,11 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 	private StompInboundChannelAdapter stompInboundChannelAdapter;
 
 	@Test
-	public void testWebSocketStompClient() throws InterruptedException {
+	public void testWebSocketStompClient() throws Exception {
+		Message<?> eventMessage = this.stompEvents.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+
 		Message<?> receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
@@ -165,6 +172,27 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertThat(throwable, instanceOf(MessageHandlingException.class));
 		assertThat(throwable.getCause(), instanceOf(MessageConversionException.class));
 		assertThat(throwable.getMessage(), containsString("No suitable converter, payloadType=interface java.util.Map"));
+
+		this.serverContext.close();
+
+		eventMessage = this.stompEvents.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompConnectionFailedEvent.class));
+
+		this.serverContext.refresh();
+
+		do {
+			eventMessage = this.stompEvents.receive(10000);
+			assertNotNull(eventMessage);
+		}
+		while (!(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
+
+		waitForSubscribe("myTopic");
+
+		messagingTemplate = this.serverContext.getBean("brokerMessagingTemplate", SimpMessagingTemplate.class);
+		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
+		receive = this.errorChannel.receive(10000);
+		assertNotNull(receive);
 	}
 
 	private void waitForSubscribe(String destination) throws InterruptedException {
@@ -225,6 +253,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			WebSocketStompSessionManager webSocketStompSessionManager =
 					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
+			webSocketStompSessionManager.setRecoveryInterval(1000);
 			StompHeaders stompHeaders = new StompHeaders();
 			stompHeaders.setHeartbeat(new long[] {10000, 10000});
 			webSocketStompSessionManager.setConnectHeaders(stompHeaders);
