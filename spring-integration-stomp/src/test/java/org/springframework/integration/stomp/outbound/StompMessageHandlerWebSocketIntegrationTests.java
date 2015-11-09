@@ -104,10 +104,6 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 	private ApplicationContext serverContext;
 
 	@Autowired
-	@Qualifier("stompMessageHandler")
-	private MessageHandler stompMessageHandler;
-
-	@Autowired
 	@Qualifier("webSocketOutputChannel")
 	private MessageChannel webSocketOutputChannel;
 
@@ -117,12 +113,6 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 
 	@Test
 	public void testStompMessageHandler() throws InterruptedException {
-		int n = 0;
-		while (TestUtils.getPropertyValue(this.stompMessageHandler, "stompSession") == null && n++ < 100) {
-			Thread.sleep(100);
-		}
-		assertTrue(n < 100);
-
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setDestination("/app/simple");
 		Message<String> message = MessageBuilder.withPayload("foo").setHeaders(headers).build();

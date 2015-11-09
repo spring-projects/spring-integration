@@ -78,6 +78,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private volatile boolean autoReceipt;
 
+	private volatile boolean connecting;
+
 	private volatile boolean connected;
 
 	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
@@ -129,11 +131,13 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private void connect() {
+		this.connecting = true;
 		this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
 
 			@Override
 			public void onFailure(Throwable e) {
+				AbstractStompSessionManager.this.connecting = false;
 				logger.error("STOMP connect error.", e);
 				scheduleReconnect();
 				if (applicationEventPublisher != null) {
@@ -144,8 +148,10 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 			@Override
 			public void onSuccess(StompSession stompSession) {
+				AbstractStompSessionManager.this.connecting = false;
 				stompSession.setAutoReceipt(isAutoReceiptEnabled());
 				AbstractStompSessionManager.this.connected = true;
+				AbstractStompSessionManager.this.reconnectFuture = null;
 			}
 
 		});
@@ -194,6 +200,13 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	@Override
 	public void connect(StompSessionHandler handler) {
 		this.compositeStompSessionHandler.addHandler(handler);
+		if (!isConnected() && !this.connecting) {
+			if (this.reconnectFuture != null) {
+				this.reconnectFuture.cancel(true);
+				this.reconnectFuture = null;
+			}
+			connect();
+		}
 	}
 
 	@Override

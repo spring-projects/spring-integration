@@ -19,7 +19,7 @@ package org.springframework.integration.stomp.client;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -59,7 +59,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -69,8 +68,8 @@ import static org.junit.Assert.fail;
  */
 public class StompServerIntegrationTests {
 
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+	@ClassRule
+	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	private static BrokerService activeMQBroker;
 
@@ -192,27 +191,14 @@ public class StompServerIntegrationTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getMessage(), containsString("isn't connected to StompSession"));
+			assertThat(e.getMessage(), containsString("could not deliver message"));
 		}
 
 		activeMQBroker.start(false);
 
-		StompMessageHandler stompMessageHandler1 = context1.getBean("stompMessageHandler", StompMessageHandler.class);
-		StompMessageHandler stompMessageHandler2 = context2.getBean("stompMessageHandler", StompMessageHandler.class);
-
-		int n = 0;
-		while (!stompMessageHandler1.isRunning() && n++ < 100) {
-			Thread.sleep(100);
-		}
-
-		assertTrue(n < 10);
-
-		n = 0;
-		while (!stompMessageHandler2.isRunning() && n++ < 100) {
-			Thread.sleep(100);
-		}
-
-		assertTrue(n < 10);
+		do {
+			eventMessage = stompEvents2.receive(10000);
+		} while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
 		Message<?> receive25 = stompInputChannel2.receive(10000);
@@ -231,6 +217,7 @@ public class StompServerIntegrationTests {
 		public StompSessionManager stompSessionManager() {
 			Reactor2TcpStompSessionManager stompSessionManager = new Reactor2TcpStompSessionManager(stompClient);
 			stompSessionManager.setAutoReceipt(true);
+			stompSessionManager.setRecoveryInterval(500);
 			return stompSessionManager;
 		}
 
@@ -252,6 +239,7 @@ public class StompServerIntegrationTests {
 		public MessageHandler stompMessageHandler() {
 			StompMessageHandler handler = new StompMessageHandler(stompSessionManager());
 			handler.setDestination("/topic/myTopic");
+			handler.setConnectTimeout(1000);
 			return handler;
 		}
 

@@ -16,6 +16,9 @@
 
 package org.springframework.integration.stomp.outbound;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.Lifecycle;
@@ -44,17 +47,22 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractMessageHandler} implementation to send messages to STOMP destinations.
- *
  * @author Artem Bilan
  * @since 4.2
  */
 public class StompMessageHandler extends AbstractMessageHandler implements ApplicationEventPublisherAware, Lifecycle {
 
+	private static final int DEFAULT_CONNECT_TIMEOUT = 3000;
+
 	private final StompSessionHandler sessionHandler = new IntegrationOutboundStompSessionHandler();
 
 	private final StompSessionManager stompSessionManager;
 
+	private final Semaphore connectSemaphore = new Semaphore(0);
+
 	private volatile StompSession stompSession;
+
+	private volatile Throwable transportError;
 
 	private volatile boolean running;
 
@@ -65,6 +73,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	private EvaluationContext evaluationContext;
 
 	private ApplicationEventPublisher applicationEventPublisher;
+
+	private volatile long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
 	public StompMessageHandler(StompSessionManager stompSessionManager) {
 		Assert.notNull(stompSessionManager, "'stompSessionManager' is required.");
@@ -84,6 +94,10 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	public void setHeaderMapper(HeaderMapper<StompHeaders> headerMapper) {
 		Assert.notNull(headerMapper, "'headerMapper' must not be null.");
 		this.headerMapper = headerMapper;
+	}
+
+	public void setConnectTimeout(long connectTimeout) {
+		this.connectTimeout = connectTimeout;
 	}
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
@@ -106,12 +120,13 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
-		if (!this.isRunning() || !this.stompSessionManager.isConnected()) {
-			this.running = false;
-			this.stompSession = null;
-			throw new MessageDeliveryException(message, "The StompMessageHandler [" + getComponentName() +
-					"] isn't connected to StompSession. Check the state of [" + this.stompSessionManager + "]");
+		try {
+			connectIfNecessary();
 		}
+		catch (Throwable throwable) {
+			throw new MessageDeliveryException(message, "The [" + this + "] could not deliver message." , throwable);
+		}
+		StompSession stompSession = this.stompSession;
 
 		StompHeaders stompHeaders = new StompHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), stompHeaders);
@@ -122,7 +137,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 			stompHeaders.setDestination(destination);
 		}
 
-		final StompSession.Receiptable receiptable = this.stompSession.send(stompHeaders, message.getPayload());
+		final StompSession.Receiptable receiptable = stompSession.send(stompHeaders, message.getPayload());
 		if (receiptable.getReceiptId() != null) {
 			final String destination = stompHeaders.getDestination();
 			if (this.applicationEventPublisher != null) {
@@ -158,15 +173,35 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 	}
 
+	private void connectIfNecessary() throws Throwable {
+		String errorMessage = "Failed to obtain StompSession during timeout: " + this.connectTimeout;
+		if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
+			synchronized (this.connectSemaphore) {
+				if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
+					this.stompSessionManager.connect(this.sessionHandler);
+					if (!this.connectSemaphore.tryAcquire(this.connectTimeout, TimeUnit.MILLISECONDS)
+							|| this.stompSession == null) {
+						if (this.transportError != null) {
+							throw this.transportError;
+						}
+						else {
+							throw new ConnectionLostException(errorMessage);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	@Override
 	public void start() {
-		this.stompSessionManager.connect(this.sessionHandler);
+		this.running = true;
 	}
 
 	@Override
 	public void stop() {
-		this.running = false;
 		this.stompSessionManager.disconnect(this.sessionHandler);
+		this.running = false;
 	}
 
 	@Override
@@ -174,13 +209,12 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		return this.running;
 	}
 
-
 	private class IntegrationOutboundStompSessionHandler extends StompSessionHandlerAdapter {
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			StompMessageHandler.this.stompSession = session;
-			StompMessageHandler.this.running = true;
+			StompMessageHandler.this.connectSemaphore.release();
 		}
 
 		@Override
@@ -212,9 +246,9 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 
 		@Override
-		public void handleTransportError(StompSession session, Throwable exception) {
+		public synchronized void handleTransportError(StompSession session, Throwable exception) {
+			StompMessageHandler.this.transportError = exception;
 			if (exception instanceof ConnectionLostException) {
-				StompMessageHandler.this.running = false;
 				StompMessageHandler.this.stompSession = null;
 			}
 			else {
