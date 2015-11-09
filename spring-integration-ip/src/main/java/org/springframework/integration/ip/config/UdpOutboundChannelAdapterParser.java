@@ -54,6 +54,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
 					".UnicastSendingMessageHandler");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+					IpAdapterParserUtils.VIA_UDP_INBOUND_CHANNEL_ADAPTER);
 		}
 		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,

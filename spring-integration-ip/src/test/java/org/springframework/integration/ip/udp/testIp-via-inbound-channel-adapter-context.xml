@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:ip="http://www.springframework.org/schema/integration/ip"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ip
+			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+	<channel id="inputChannel">
+		<queue capacity="1"/>
+	</channel>
+
+	<ip:udp-inbound-channel-adapter id="udpInboundReceiverChannelAdapter"
+									channel="inputChannel"
+									local-address="localhost"
+									port="11111"
+									multicast="false"
+									check-length="false"
+									receive-buffer-size="1024"
+									pool-size="10"
+			/>
+
+	<channel id="outputChannel"/>
+
+	<ip:udp-outbound-channel-adapter id="udpOut"
+									 check-length="true"
+									 multicast="false"
+									 via-udp-inbound-channel-adapter="udpInboundReceiverChannelAdapter"
+									 channel="outputChannel"/>
+</beans:beans>

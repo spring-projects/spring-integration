@@ -92,6 +92,8 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
+	static final String VIA_UDP_INBOUND_CHANNEL_ADAPTER = "via-udp-inbound-channel-adapter";
+
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
 
 	public static final String REQUEST_TIMEOUT = "request-timeout";
@@ -146,6 +148,11 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
+	 * Asserts that a host attribute is supplied unless
+	 * {@link #VIA_UDP_INBOUND_CHANNEL_ADAPTER} option is used (then host is set to
+	 * {@link #VIA_UDP_INBOUND_CHANNEL_ADAPTER} and ignored by UDP Inbound Channel
+	 * Adapter).
+	 *
 	 * @param element The element.
 	 * @param builder The builder.
 	 * @param parserContext The parser context.
@@ -153,9 +160,15 @@ public abstract class IpAdapterParserUtils {
 	public static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
+		String viaInboundAdapter = element.getAttribute(IpAdapterParserUtils
+				.VIA_UDP_INBOUND_CHANNEL_ADAPTER);
 		if (!StringUtils.hasText(host)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
-					+ " is required for IP outbound channel adapters", element);
+			if (StringUtils.hasText(viaInboundAdapter)) {
+				host = VIA_UDP_INBOUND_CHANNEL_ADAPTER;
+			} else {
+				parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
+						+ " is required for IP outbound channel adapters", element);
+			}
 		}
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
@@ -174,7 +187,10 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
-	 * Asserts that a port attribute is supplied.
+	 * Asserts that a port attribute is supplied unless
+	 * {@link #VIA_UDP_INBOUND_CHANNEL_ADAPTER} option is used (then port value is set to
+	 * zero and ignored).
+	 *
 	 * @param element The element.
 	 * @param parserContext The parser context.
 	 * @return The value of the attribute.
@@ -182,9 +198,15 @@ public abstract class IpAdapterParserUtils {
 	 */
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
+		String viaInboundAdapter = element.getAttribute(IpAdapterParserUtils
+				.VIA_UDP_INBOUND_CHANNEL_ADAPTER);
 		if (!StringUtils.hasText(port)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
-					" is required for IP channel adapters", element);
+			if (StringUtils.hasText(viaInboundAdapter)) {
+				port = "0";
+			} else {
+				parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
+						" is required for IP channel adapters", element);
+			}
 		}
 		return port;
 	}
