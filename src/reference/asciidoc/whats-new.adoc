@@ -43,3 +43,7 @@ for more information.
 
 A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
 See <<tcp-events>> for more information.
+
+The `destination-expression` and `socket-expression` are now available for the `<int-ip:udp-outbound-channel-adapter>`.
+See <<udp-adapters>> for more information.
+

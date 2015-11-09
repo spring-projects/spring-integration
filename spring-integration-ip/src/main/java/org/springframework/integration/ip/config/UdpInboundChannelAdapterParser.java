@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -24,12 +26,12 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Channel Adapter that receives UDP datagram packets and maps them to Messages.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -52,11 +54,6 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		return builder.getBeanDefinition();
 	}
 
-	/**
-	 * @param element
-	 * @param builder
-	 * @param parserContext
-	 */
 	private void addPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
@@ -82,8 +79,7 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 			builder.addConstructorArgValue(mcAddress);
 		}
 		addPortToConstructor(element, builder, parserContext);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.CHECK_LENGTH, true);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.CHECK_LENGTH);
 		return builder;
 	}
 

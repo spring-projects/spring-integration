@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +35,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.MessageRejectedException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -50,6 +54,8 @@ import org.springframework.util.Assert;
  * a UDP acknowledgment to confirm delivery.
  *
  * @author Gary Russell
+ * @author Marcin Pilaczynski
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
@@ -57,8 +63,9 @@ public class UnicastSendingMessageHandler extends
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	private volatile DatagramSocket socket;
+	private final Expression destinationExpression;
 
+	private volatile DatagramSocket socket;
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
@@ -90,6 +97,10 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile boolean taskExecutorSet;
 
+	private Expression socketExpression;
+
+	private EvaluationContext evaluationContext;
+
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
 	 * @param host Destination host.
@@ -99,6 +110,37 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
+		this.destinationExpression = null;
+	}
+
+	/**
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to determine
+	 * the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination at runtime.
+	 *                              Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * @since 4.3
+	 */
+	public UnicastSendingMessageHandler(String destinationExpression) {
+		super("", 0);
+		Assert.hasText(destinationExpression, "'destinationExpression' cannot be null or empty");
+		this.mapper.setLengthCheck(false);
+		this.mapper.setAcknowledge(false);
+		this.destinationExpression = EXPRESSION_PARSER.parseExpression(destinationExpression);
+	}
+
+	/**
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to determine
+	 * the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination at runtime.
+	 *                              Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * @since 4.3
+	 */
+	public UnicastSendingMessageHandler(Expression destinationExpression) {
+		super("", 0);
+		Assert.notNull(destinationExpression, "'destinationExpression' cannot be null");
+		this.mapper.setLengthCheck(false);
+		this.mapper.setAcknowledge(false);
+		this.destinationExpression = destinationExpression;
 	}
 
 	/**
@@ -111,6 +153,7 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		this.mapper.setLengthCheck(lengthCheck);
 		this.mapper.setAcknowledge(false);
+		this.destinationExpression = null;
 	}
 
 	/**
@@ -129,6 +172,7 @@ public class UnicastSendingMessageHandler extends
 	                                    int ackPort,
 	                                    int ackTimeout) {
 		super(host, port);
+		this.destinationExpression = null;
 		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
 				ackTimeout);
 	}
@@ -151,6 +195,7 @@ public class UnicastSendingMessageHandler extends
 	                                    int ackPort,
 	                                    int ackTimeout) {
 		super(host, port);
+		this.destinationExpression = null;
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
 				ackTimeout);
 	}
@@ -179,6 +224,7 @@ public class UnicastSendingMessageHandler extends
 				Executor executor = Executors
 						.newSingleThreadExecutor(new ThreadFactory() {
 							private final AtomicInteger n = new AtomicInteger();
+
 							@Override
 							public Thread newThread(Runnable runner) {
 								Thread thread = new Thread(runner);
@@ -186,6 +232,7 @@ public class UnicastSendingMessageHandler extends
 								thread.setDaemon(true);
 								return thread;
 							}
+
 						});
 				this.taskExecutor = executor;
 			}
@@ -203,30 +250,26 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	public void handleMessageInternal(Message<?> message)
-			throws MessageRejectedException, MessageHandlingException,
+	public void handleMessageInternal(Message<?> message) throws MessageHandlingException,
 			MessageDeliveryException {
 		if (this.acknowledge) {
-			Assert.state(this.isRunning(), "When 'acknowlege' is enabled, adapter must be running");
+			Assert.state(this.isRunning(), "When 'acknowledge' is enabled, adapter must be running");
 			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
 		String messageId = message.getHeaders().getId().toString();
 		try {
-			DatagramPacket packet;
-			if (this.waitForAck) {
+			boolean waitForAck = this.waitForAck;
+			if (waitForAck) {
 				countdownLatch = new CountDownLatch(ackCounter);
 				this.ackControl.put(messageId, countdownLatch);
 			}
-			packet = this.mapper.fromMessage(message);
-			this.send(packet);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
-			}
-			if (this.waitForAck) {
+			convertAndSend(message);
+			if (waitForAck) {
 				try {
 					if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
-						throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
+						throw new MessagingException(message, "Failed to receive UDP Ack in "
+								+ this.ackTimeout + " millis");
 					}
 				}
 				catch (InterruptedException e) {
@@ -275,10 +318,41 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	protected void send(DatagramPacket packet) throws Exception {
-		DatagramSocket socket = this.getSocket();
-		packet.setSocketAddress(this.getDestinationAddress());
+	protected void convertAndSend(Message<?> message) throws Exception {
+		DatagramSocket socket;
+		if (this.socketExpression != null) {
+			socket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);
+		}
+		else {
+			socket = getSocket();
+		}
+		SocketAddress destinationAddress;
+		if (this.destinationExpression != null) {
+			Object destination = this.destinationExpression.getValue(this.evaluationContext, message);
+			if (destination instanceof String) {
+				destination = new URI((String) destination);
+			}
+			if (destination instanceof URI) {
+				URI uri = (URI) destination;
+				destination = new InetSocketAddress(uri.getHost(), uri.getPort());
+			}
+			if (destination instanceof SocketAddress) {
+				destinationAddress = (SocketAddress) destination;
+			}
+			else {
+				throw new IllegalStateException("'destinationExpression' must evaluate to String, URI " +
+						"or SocketAddress. Gotten [" + destination + "].");
+			}
+		}
+		else {
+			destinationAddress = getDestinationAddress();
+		}
+		DatagramPacket packet = this.mapper.fromMessage(message);
+		packet.setSocketAddress(destinationAddress);
 		socket.send(packet);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
+		}
 	}
 
 	protected void setSocket(DatagramSocket socket) {
@@ -346,6 +420,22 @@ public class UnicastSendingMessageHandler extends
 		this.ackCounter = ackCounter;
 	}
 
+	/**
+	 * @param socketExpression the socket expression to determine the target socket at runtime.
+	 * @since 4.3
+	 */
+	public void setSocketExpression(Expression socketExpression) {
+		this.socketExpression = socketExpression;
+	}
+
+	/**
+	 * @param socketExpression the socket SpEL expression to determine the target socket at runtime.
+	 * @since 4.3
+	 */
+	public void setSocketExpressionString(String socketExpression) {
+		this.socketExpression = EXPRESSION_PARSER.parseExpression(socketExpression);
+	}
+
 	@Override
 	public String getComponentType(){
 		return "ip:udp-outbound-channel-adapter";
@@ -381,7 +471,11 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.mapper.setBeanFactory(this.getBeanFactory());
+		this.mapper.setBeanFactory(getBeanFactory());
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
+		if (this.socketExpression != null) {
+			Assert.state(!this.acknowledge, "'acknowledge' must be false when using a socket expression");
+		}
 	}
 
 	protected void setSocketAttributes(DatagramSocket socket) throws SocketException {

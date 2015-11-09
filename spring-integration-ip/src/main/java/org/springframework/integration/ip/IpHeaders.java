@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package org.springframework.integration.ip;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
 public final class IpHeaders {
@@ -45,6 +46,11 @@ public final class IpHeaders {
 	 * The remote port for a UDP packet.
 	 */
 	public static final String PORT = IP + "port";
+
+	/**
+	 * The remote address for a UDP packet.
+	 */
+	public static final String PACKET_ADDRESS = IP + "packetAddress";
 
 	/**
 	 * The remote ip address to which UDP application-level acks will be sent. The

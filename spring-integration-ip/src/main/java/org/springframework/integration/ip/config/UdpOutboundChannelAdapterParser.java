@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package org.springframework.integration.ip.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
+import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
+ * @author Marcin Pilaczynski
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.udp";
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
@@ -42,8 +45,7 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("true")) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-					".MulticastSendingMessageHandler");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(MulticastSendingMessageHandler.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
 					element, IpAdapterParserUtils.MIN_ACKS_SUCCESS,
 					"minAcksForSuccess");
@@ -52,20 +54,14 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 					"timeToLive");
 		}
 		else {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-					".UnicastSendingMessageHandler");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(UnicastSendingMessageHandler.class);
 		}
-		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.CHECK_LENGTH, true);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.ACK, true);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.ACK_HOST, false);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.ACK_PORT, false);
-		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
-				element, IpAdapterParserUtils.ACK_TIMEOUT, false);
+		IpAdapterParserUtils.addDestinationConfigToConstructor(element, builder, parserContext);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.CHECK_LENGTH);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK_HOST);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK_PORT);
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, IpAdapterParserUtils.ACK_TIMEOUT);
 		String ack = element.getAttribute(IpAdapterParserUtils.ACK);
 		if (ack.equals("true")) {
 			if (!StringUtils.hasText(element
@@ -86,6 +82,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TASK_EXECUTOR);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				"socket-expression", "socketExpressionString");
 		return builder;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -53,6 +55,7 @@ import org.springframework.messaging.SubscribableChannel;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Marcin Pilaczynski
  * @since 2.0
  *
  */
@@ -326,12 +329,30 @@ public class UdpChannelAdapterTests {
 		adapter.stop();
 	}
 
+	@Test
+	public void testSocketExpression() throws Exception {
+		ConfigurableApplicationContext context =
+				new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml", getClass());
+		UnicastReceivingChannelAdapter adapter = context.getBean(UnicastReceivingChannelAdapter.class);
+		SocketTestUtils.waitListening(adapter);
+		int receiverServerPort = adapter.getPort();
+		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
+		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
+		DatagramSocket socket = new DatagramSocket();
+		socket.send(packet);
+		socket.receive(packet);
+		assertEquals("FOO", new String(packet.getData()));
+		assertEquals(receiverServerPort, packet.getPort());
+		context.close();
+	}
+
 	private class FailingService {
+
 		@SuppressWarnings("unused")
 		public String serviceMethod(byte[] bytes) {
 			throw new RuntimeException("Failed");
 		}
-	}
 
+	}
 
 }
