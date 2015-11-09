@@ -168,20 +168,19 @@ public class BarrierMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
+		final CountDownLatch latch = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 
 			@Override
 			public void run() {
 				handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+				latch.countDown();
 			}
 
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
-		int n = 0;
-		while (n++ < 100 && suspensions.size() != 0) {
-			Thread.sleep(100);
-		}
-		assertTrue("suspension not removed", n < 100);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals("suspension not removed", 0, suspensions.size());
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
 		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
