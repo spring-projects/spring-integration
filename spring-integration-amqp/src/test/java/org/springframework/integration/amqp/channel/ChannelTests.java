@@ -39,6 +39,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -58,7 +59,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
-public class ChannelTests {
+public class ChannelTests extends LogAdjustingTestSupport {
 
 	@ClassRule
 	public static final BrokerRunning brokerIsRunning = BrokerRunning.isRunning();
@@ -68,6 +69,10 @@ public class ChannelTests {
 
 	@Autowired
 	private CachingConnectionFactory factory;
+
+	public ChannelTests() {
+		super("org.springframework.integration", "org.springframework.integration.amqp", "org.springframework.amqp");
+	}
 
 	@Test
 	public void pubSubLostConnectionTest() throws Exception {
