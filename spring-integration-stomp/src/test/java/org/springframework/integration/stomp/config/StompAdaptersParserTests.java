@@ -38,6 +38,7 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -181,7 +182,8 @@ public class StompAdaptersParserTests {
 
 	@Test
 	public void testStompSessionManagerReconnect() throws Exception {
-		Reactor2TcpStompClient stompClient = new Reactor2TcpStompClient();
+		Reactor2TcpStompClient stompClient =
+				new Reactor2TcpStompClient("localhost", SocketUtils.findAvailableServerSocket());
 		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
 		sessionManager.setRecoveryInterval(500);
