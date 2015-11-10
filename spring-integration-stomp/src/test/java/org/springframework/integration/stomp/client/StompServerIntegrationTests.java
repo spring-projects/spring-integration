@@ -16,10 +16,18 @@
 
 package org.springframework.integration.stomp.client;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -37,10 +45,10 @@ import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -52,24 +60,12 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.SocketUtils;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @since 4.2
  */
 public class StompServerIntegrationTests {
-
-	@ClassRule
-	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	private static BrokerService activeMQBroker;
 
@@ -115,10 +111,18 @@ public class StompServerIntegrationTests {
 
 		Message<?> eventMessage = stompEvents1.receive(10000);
 		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+
+		eventMessage = stompEvents1.receive(10000);
+		assertNotNull(eventMessage);
 		assertThat(eventMessage.getPayload(), instanceOf(StompReceiptEvent.class));
 		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) eventMessage.getPayload();
 		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
 		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
+
+		eventMessage = stompEvents2.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
 
 		eventMessage = stompEvents2.receive(10000);
 		assertNotNull(eventMessage);
@@ -191,14 +195,23 @@ public class StompServerIntegrationTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageDeliveryException.class));
+			System.out.println("MessageDeliveryException:" + e.getMessage());
 			assertThat(e.getMessage(), containsString("could not deliver message"));
 		}
 
 		activeMQBroker.start(false);
 
 		do {
+			eventMessage = stompEvents1.receive(10000);
+			assertNotNull(eventMessage);
+		}
+		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
+
+		do {
 			eventMessage = stompEvents2.receive(10000);
-		} while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
+			assertNotNull(eventMessage);
+		}
+		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
 
 		stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
 		Message<?> receive25 = stompInputChannel2.receive(10000);

@@ -48,6 +48,7 @@ import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
@@ -115,6 +116,10 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 	@Test
 	public void testWebSocketStompClient() throws InterruptedException {
+		Message<?> eventMessage = this.stompEvents.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+
 		Message<?> receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));

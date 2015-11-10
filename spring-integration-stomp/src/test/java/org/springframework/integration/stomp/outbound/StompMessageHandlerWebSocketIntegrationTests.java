@@ -54,6 +54,7 @@ import org.springframework.integration.stomp.WebSocketStompSessionManager;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
@@ -97,7 +98,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @DirtiesContext
 public class StompMessageHandlerWebSocketIntegrationTests {
 
-	@ClassRule
+//	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Value("#{server.serverContext}")
@@ -121,8 +122,12 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
 		assertTrue(controller.latch.await(10, TimeUnit.SECONDS));
 
-		// Simple Broker Relay doesn't support RECEIPT Frame, so we check here the 'lost' StompReceiptEvent
 		Message<?> receive = this.stompEvents.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+
+		// Simple Broker Relay doesn't support RECEIPT Frame, so we check here the 'lost' StompReceiptEvent
+		receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
 		StompReceiptEvent stompReceiptEvent = (StompReceiptEvent) receive.getPayload();
@@ -185,13 +190,16 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 			WebSocketStompSessionManager webSocketStompSessionManager =
 					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
+			webSocketStompSessionManager.setRecoveryInterval(1000);
 			return webSocketStompSessionManager;
 		}
 
 		@Bean
 		@ServiceActivator(inputChannel = "webSocketOutputChannel")
 		public MessageHandler stompMessageHandler(StompSessionManager stompSessionManager) {
-			return new StompMessageHandler(stompSessionManager);
+			StompMessageHandler stompMessageHandler = new StompMessageHandler(stompSessionManager);
+			stompMessageHandler.setConnectTimeout(10000);
+			return stompMessageHandler;
 		}
 
 		@Bean

@@ -35,6 +35,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.support.SmartLifecycleRoleController;
@@ -186,7 +187,7 @@ public class StompAdaptersParserTests {
 				new Reactor2TcpStompClient("localhost", SocketUtils.findAvailableServerSocket());
 		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
-		sessionManager.setRecoveryInterval(500);
+		sessionManager.setRecoveryInterval(1000);
 
 		final BlockingQueue<ApplicationEvent> stompExceptionEvents = new LinkedBlockingQueue<ApplicationEvent>();
 
@@ -203,18 +204,18 @@ public class StompAdaptersParserTests {
 			}
 
 		});
-		sessionManager.afterPropertiesSet();
+
+		sessionManager.start();
 
 		ApplicationEvent event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
 		assertNotNull(event);
-		assertThat(event, instanceOf(StompExceptionEvent.class));
-		StompExceptionEvent stompExceptionEvent = (StompExceptionEvent) event;
-		assertThat(stompExceptionEvent.getCause(), instanceOf(ConnectException.class));
-		assertNotNull(TestUtils.getPropertyValue(sessionManager, "reconnectFuture"));
+		assertThat(event, instanceOf(StompConnectionFailedEvent.class));
+		StompConnectionFailedEvent stompConnectionFailedEvent = (StompConnectionFailedEvent) event;
+		assertThat(stompConnectionFailedEvent.getCause(), instanceOf(ConnectException.class));
 
 		event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
 		assertNotNull(event);
-		sessionManager.destroy();
+		sessionManager.stop();
 	}
 
 }

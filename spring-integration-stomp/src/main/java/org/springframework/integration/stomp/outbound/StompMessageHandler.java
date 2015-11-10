@@ -96,6 +96,13 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * Specify the the timeout in milliseconds to wait for the STOMP session establishment.
+	 * Must be greater than
+	 * {@link org.springframework.integration.stomp.AbstractStompSessionManager#setRecoveryInterval(int)}.
+	 * @param connectTimeout the timeout to use.
+	 * @since 4.2.2
+	 */
 	public void setConnectTimeout(long connectTimeout) {
 		this.connectTimeout = connectTimeout;
 	}
@@ -212,7 +219,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	private class IntegrationOutboundStompSessionHandler extends StompSessionHandlerAdapter {
 
 		@Override
-		public synchronized void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+			StompMessageHandler.this.transportError = null;
 			StompMessageHandler.this.stompSession = session;
 			StompMessageHandler.this.connectSemaphore.release();
 		}

@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.stomp.StompSessionManager;
@@ -191,6 +192,9 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	@Override
 	protected void doStart() {
+		if (this.stompSessionManager instanceof Lifecycle) {
+			((Lifecycle) this.stompSessionManager).start();
+		}
 		this.stompSessionManager.connect(this.stompSessionHandler);
 	}
 
