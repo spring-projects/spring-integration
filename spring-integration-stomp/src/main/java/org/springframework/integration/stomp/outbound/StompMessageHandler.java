@@ -173,23 +173,23 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 	}
 
-	private void connectIfNecessary() throws Throwable {
-		String errorMessage = "Failed to obtain StompSession during timeout: " + this.connectTimeout;
-		if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
-			synchronized (this.connectSemaphore) {
-				if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
-					this.stompSessionManager.connect(this.sessionHandler);
-					if (!this.connectSemaphore.tryAcquire(this.connectTimeout, TimeUnit.MILLISECONDS)
-							|| this.stompSession == null) {
-						if (this.transportError != null) {
-							throw this.transportError;
-						}
-						else {
-							throw new ConnectionLostException(errorMessage);
-						}
+	private StompSession connectIfNecessary() throws Throwable {
+		synchronized (this.sessionHandler) {
+			if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
+				this.stompSessionManager.disconnect(this.sessionHandler);
+				this.stompSessionManager.connect(this.sessionHandler);
+				if (!this.connectSemaphore.tryAcquire(this.connectTimeout, TimeUnit.MILLISECONDS)
+						|| this.stompSession == null) {
+					if (this.transportError != null) {
+						throw this.transportError;
+					}
+					else {
+						throw new ConnectionLostException("Failed to obtain StompSession during timeout: "
+								+ this.connectTimeout);
 					}
 				}
 			}
+			return this.stompSession;
 		}
 	}
 
@@ -200,8 +200,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 	@Override
 	public void stop() {
-		this.stompSessionManager.disconnect(this.sessionHandler);
 		this.running = false;
+		this.stompSessionManager.disconnect(this.sessionHandler);
 	}
 
 	@Override
@@ -212,7 +212,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	private class IntegrationOutboundStompSessionHandler extends StompSessionHandlerAdapter {
 
 		@Override
-		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+		public synchronized void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			StompMessageHandler.this.stompSession = session;
 			StompMessageHandler.this.connectSemaphore.release();
 		}

@@ -184,6 +184,7 @@ public class StompAdaptersParserTests {
 		Reactor2TcpStompClient stompClient = new Reactor2TcpStompClient();
 		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
+		sessionManager.setRecoveryInterval(500);
 
 		final BlockingQueue<ApplicationEvent> stompExceptionEvents = new LinkedBlockingQueue<ApplicationEvent>();
 
