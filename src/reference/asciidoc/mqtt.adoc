@@ -86,7 +86,7 @@ topic(s).
 These events can be received by a bean that implements `ApplicationListener`.
 
 Also, a new property `recoveryInterval` controls the interval at which the adapter will attempt to reconnect after
-a failure; it defaults to `10000ms`  (ten seconds).
+a failure; it defaults to `10000ms` (ten seconds).
 This is not currently available using XML configuration.
 
 ==== Adding/Removing Topics at Runtime
@@ -100,6 +100,54 @@ Stopping/starting the adapter has no effect on the topic list (it does *not* rev
 The changes are not retained beyond the life cycle of the application context; a new application context will revert to the configured settings.
 
 Changing the topics while the adapter is stopped (or disconnected from the broker) will take effect the next time a connection is established.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class MqttJavaApplication {
+
+    public static void main(String[] args) {
+    	new SpringApplicationBuilder(MqttJavaApplication.class)
+    			.web(false)
+    			.run(args);
+    }
+
+    @Bean
+    public MessageChannel mqttInputChannel() {
+    	return new DirectChannel();
+    }
+
+    @Bean
+    public MessageProducer inbound() {
+    	MqttPahoMessageDrivenChannelAdapter adapter =
+    			new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "testClient",
+    			                                 "topic1", "topic2");
+    	adapter.setCompletionTimeout(5000);
+    	adapter.setConverter(new DefaultPahoMessageConverter());
+    	adapter.setQos(1);
+    	adapter.setOutputChannel(mqttInputChannel());
+    	return adapter;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttInputChannel")
+    public MessageHandler handler() {
+    	return new MessageHandler() {
+
+    		@Override
+    		public void handleMessage(Message<?> message) throws MessagingException {
+    			System.out.println(message.getPayload());
+    		}
+
+    	};
+    }
+
+}
+----
+
 
 [[mqtt-outbound]]
 === Outbound Channel Adapter
@@ -146,7 +194,7 @@ The default `DefaultPahoMessageConverter` recognizes the following headers: +
 Not allowed if a custom `converter` is supplied.
 
 
-<6> The default value of the retained flag (used if no `mqtt_retaind` header is found).
+<6> The default value of the retained flag (used if no `mqtt_retained` header is found).
 Not allowed if a custom `converter` is supplied.
 
 
@@ -165,3 +213,55 @@ Default: `false`.
 
 NOTE: Starting with _version 4.1_ the url can be omitted and, instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
 This enables, for example, connection to a highly available (HA) cluster.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the outbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class MqttJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+        		new SpringApplicationBuilder(MqttJavaApplication.class)
+        				.web(false)
+        				.run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToMqtt("foo");
+    }
+
+    @Bean
+    public MqttPahoClientFactory mqttClientFactory() {
+        DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
+        factory.setServerURIs("tcp://host1:1883", "tcp://host2:1883");
+        factory.setUserName("username");
+        factory.setPassword("password");
+        return factory;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttOutboundChannel")
+    public MessageHandler mqttOutbound() {
+        MqttPahoMessageHandler messageHandler =
+                       new MqttPahoMessageHandler("testClient", mqttClientFactory());
+        messageHandler.setAsync(true);
+        messageHandler.setDefaultTopic("testTopic");
+        return messageHandler;
+    }
+
+    @Bean
+    public MessageChannel mqttOutboundChannel() {
+        return new DirectChannel();
+    }
+
+    @MessagingGateway(defaultRequestChannel = "mqttOutboundChannel")
+    public interface MyGateway {
+
+        void sendToMqtt(String data);
+
+    }
+
+}
+----
