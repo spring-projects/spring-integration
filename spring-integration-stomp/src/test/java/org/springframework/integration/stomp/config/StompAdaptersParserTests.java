@@ -16,7 +16,6 @@
 
 package org.springframework.integration.stomp.config;
 
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,37 +23,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
-import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.support.SmartLifecycleRoleController;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -178,43 +165,6 @@ public class StompAdaptersParserTests {
 		bars.contains(this.customInboundAdapter);
 		assertTrue(lifecycles.containsKey("foo"));
 		bars.contains(this.customOutboundAdapter);
-	}
-
-	@Test
-	public void testStompSessionManagerReconnect() throws Exception {
-		Reactor2TcpStompClient stompClient =
-				new Reactor2TcpStompClient("localhost", SocketUtils.findAvailableServerSocket());
-		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
-		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
-		sessionManager.setRecoveryInterval(100);
-
-		final BlockingQueue<ApplicationEvent> stompExceptionEvents = new LinkedBlockingQueue<ApplicationEvent>();
-
-		sessionManager.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				stompExceptionEvents.add(event);
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
-		});
-
-		sessionManager.start();
-
-		ApplicationEvent event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
-		assertNotNull(event);
-		assertThat(event, instanceOf(StompConnectionFailedEvent.class));
-		StompConnectionFailedEvent stompConnectionFailedEvent = (StompConnectionFailedEvent) event;
-		assertThat(stompConnectionFailedEvent.getCause(), instanceOf(ConnectException.class));
-
-		event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
-		assertNotNull(event);
-		sessionManager.destroy();
 	}
 
 }

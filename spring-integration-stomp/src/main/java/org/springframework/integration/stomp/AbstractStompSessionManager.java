@@ -190,6 +190,10 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private void scheduleReconnect(Throwable e) {
+		if (this.reconnectFuture != null) {
+			this.reconnectFuture.cancel(true);
+			this.reconnectFuture = null;
+		}
 		this.connecting = this.connected = false;
 		logger.error("STOMP connect error.", e);
 		if (this.applicationEventPublisher != null) {
