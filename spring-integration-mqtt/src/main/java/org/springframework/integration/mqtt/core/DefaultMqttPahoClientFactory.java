@@ -26,6 +26,8 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+import org.springframework.util.Assert;
+
 /**
  * Creates a default {@link MqttClient} and a set of options as configured.
  *
@@ -87,8 +89,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	/**
 	 * Will be used to set the "Last Will and Testament" (LWT) for the connection.
 	 * @param will The will.
-	 *
-	 * @see MqttConnectOptions
+	 * @see MqttConnectOptions#setWill
 	 */
 	public void setWill(Will will) {
 		this.will = will;
@@ -104,7 +105,8 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 * @see MqttConnectOptions#setServerURIs(String[])
 	 * @since 4.1
 	 */
-	public void setServerURIs(String[] serverURIs) {
+	public void setServerURIs(String... serverURIs) {
+		Assert.notNull(serverURIs, "'serverURIs' must not be null.");
 		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
 	}
 
