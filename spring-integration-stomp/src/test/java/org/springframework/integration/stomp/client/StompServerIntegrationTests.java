@@ -43,6 +43,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
@@ -189,13 +190,18 @@ public class StompServerIntegrationTests {
 
 		activeMQBroker.stop();
 
+		do {
+			eventMessage = stompEvents1.receive(10000);
+			assertNotNull(eventMessage);
+		}
+		while (!(eventMessage.getPayload() instanceof StompConnectionFailedEvent));
+
 		try {
 			stompOutputChannel1.send(new GenericMessage<byte[]>("foo".getBytes()));
 			fail("MessageDeliveryException is expected");
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageDeliveryException.class));
-			System.out.println("MessageDeliveryException:" + e.getMessage());
 			assertThat(e.getMessage(), containsString("could not deliver message"));
 		}
 

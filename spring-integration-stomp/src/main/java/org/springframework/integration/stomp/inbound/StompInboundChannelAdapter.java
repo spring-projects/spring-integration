@@ -200,6 +200,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 	@Override
 	protected void doStop() {
+		this.stompSessionManager.disconnect(this.stompSessionHandler);
 		try {
 			for (StompSession.Subscription subscription : this.subscriptions.values()) {
 				subscription.unsubscribe();
@@ -209,7 +210,6 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			logger.warn("The exception during unsubscribtion.", e);
 		}
 		this.subscriptions.clear();
-		this.stompSessionManager.disconnect(this.stompSessionHandler);
 	}
 
 	private void subscribeDestination(final String destination) {

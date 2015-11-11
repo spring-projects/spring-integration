@@ -16,6 +16,17 @@
 
 package org.springframework.integration.stomp.config;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.net.ConnectException;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +47,6 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
-import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.SocketUtils;
@@ -49,17 +59,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
-
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Artem Bilan
@@ -187,7 +186,7 @@ public class StompAdaptersParserTests {
 				new Reactor2TcpStompClient("localhost", SocketUtils.findAvailableServerSocket());
 		stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 		Reactor2TcpStompSessionManager sessionManager = new Reactor2TcpStompSessionManager(stompClient);
-		sessionManager.setRecoveryInterval(1000);
+		sessionManager.setRecoveryInterval(100);
 
 		final BlockingQueue<ApplicationEvent> stompExceptionEvents = new LinkedBlockingQueue<ApplicationEvent>();
 
@@ -215,7 +214,7 @@ public class StompAdaptersParserTests {
 
 		event = stompExceptionEvents.poll(10, TimeUnit.SECONDS);
 		assertNotNull(event);
-		sessionManager.stop();
+		sessionManager.destroy();
 	}
 
 }

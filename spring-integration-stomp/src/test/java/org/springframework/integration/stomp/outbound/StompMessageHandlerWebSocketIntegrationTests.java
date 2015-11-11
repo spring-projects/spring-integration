@@ -98,7 +98,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @DirtiesContext
 public class StompMessageHandlerWebSocketIntegrationTests {
 
-//	@ClassRule
+	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Value("#{server.serverContext}")

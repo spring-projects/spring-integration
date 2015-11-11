@@ -22,6 +22,7 @@ package org.springframework.integration.stomp.event;
  * @author Artem Bilan
  * @since 4.2.2
  */
+@SuppressWarnings("serial")
 public class StompSessionConnectedEvent extends StompIntegrationEvent {
 
 	public StompSessionConnectedEvent(Object source) {

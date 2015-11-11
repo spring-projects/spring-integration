@@ -76,7 +76,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private boolean running = false;
 
-	private int phase = Integer.MAX_VALUE;
+	private int phase = Integer.MAX_VALUE / 2;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -190,7 +190,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private void scheduleReconnect(Throwable e) {
-		this.connecting = false;
+		this.connecting = this.connected = false;
 		logger.error("STOMP connect error.", e);
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(

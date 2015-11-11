@@ -130,8 +130,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		try {
 			connectIfNecessary();
 		}
-		catch (Throwable throwable) {
-			throw new MessageDeliveryException(message, "The [" + this + "] could not deliver message." , throwable);
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "The [" + this + "] could not deliver message." , e);
 		}
 		StompSession stompSession = this.stompSession;
 
@@ -180,7 +180,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 	}
 
-	private StompSession connectIfNecessary() throws Throwable {
+	private StompSession connectIfNecessary() throws Exception {
 		synchronized (this.sessionHandler) {
 			if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
 				this.stompSessionManager.disconnect(this.sessionHandler);
@@ -188,7 +188,12 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 				if (!this.connectSemaphore.tryAcquire(this.connectTimeout, TimeUnit.MILLISECONDS)
 						|| this.stompSession == null) {
 					if (this.transportError != null) {
-						throw this.transportError;
+						if (this.transportError instanceof ConnectionLostException) {
+							throw (ConnectionLostException) this.transportError;
+						}
+						else {
+							throw new ConnectionLostException(this.transportError.getMessage());
+						}
 					}
 					else {
 						throw new ConnectionLostException("Failed to obtain StompSession during timeout: "
