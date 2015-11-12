@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.jms;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,6 +40,9 @@ import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
@@ -134,7 +136,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private final String gatewayCorrelation = UUID.randomUUID().toString();
 
 	private final Map<String, LinkedBlockingQueue<javax.jms.Message>> replies =
-			new HashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
+			new ConcurrentHashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
 
 	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies =
 			new ConcurrentHashMap<String, JmsOutboundGateway.TimedReply>();
@@ -1051,6 +1053,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			LinkedBlockingQueue<javax.jms.Message> queue = this.replies.get(correlationId);
 			if (queue == null) {
 				if (this.correlationKey != null) {
+					Log debugLogger = LogFactory.getLog("si.jmsgateway.debug");
+					if (debugLogger.isDebugEnabled()) {
+						Object siMessage = this.messageConverter.fromMessage(message);
+						debugLogger.debug("No pending reply for " + siMessage + " with correlationId: "
+								+ correlationId + " pending replies: " + this.replies.keySet());
+					}
 					throw new RuntimeException("No sender waiting for reply");
 				}
 				synchronized (this.earlyOrLateReplies) {
@@ -1079,7 +1087,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private class GatewayReplyListenerContainer extends DefaultMessageListenerContainer {
 
-		private Destination replyDestination;
+		private volatile Destination replyDestination;
 
 		@Override
 		protected Destination resolveDestinationName(Session session, String destinationName) throws JMSException {
