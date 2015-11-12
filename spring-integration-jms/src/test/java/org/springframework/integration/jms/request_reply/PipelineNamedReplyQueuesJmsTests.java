@@ -18,9 +18,11 @@ package org.springframework.integration.jms.request_reply;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +41,8 @@ import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
