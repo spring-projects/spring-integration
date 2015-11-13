@@ -126,7 +126,8 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 */
 	@Test
 	public void testPipeline4() throws Exception{
-		this.test("pipeline-named-queue-04.xml");
+		int timeouts = this.test("pipeline-named-queue-04.xml", 30000);
+		assertEquals(0, timeouts);
 	}
 
 	/**
@@ -205,7 +206,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 			logger.info("Success: " + successCounter.get());
 			logger.info("Timeout: " + timeoutCounter.get());
 			logger.info("Failure: " + failureCounter.get());
-			if (timeoutCounter.get() > 0) {
+			if (timeoutCounter.get() > 0 && context.containsBean("capture")) {
 				logger.info(context.getBean(Capture.class).messages);
 			}
 			context.close();
