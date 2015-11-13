@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,13 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -117,7 +116,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 */
 	@Test
 	public void testPipeline3a() throws Exception{
-		int timeouts = this.test("pipeline-named-queue-03a.xml", 20000);
+		int timeouts = this.test("pipeline-named-queue-03a.xml", 50000);
 		assertEquals(0, timeouts);
 	}
 
@@ -127,7 +126,8 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 */
 	@Test
 	public void testPipeline4() throws Exception{
-		this.test("pipeline-named-queue-04.xml");
+		int timeouts = this.test("pipeline-named-queue-04.xml", 30000);
+		assertEquals(0, timeouts);
 	}
 
 	/**
@@ -171,19 +171,23 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 			final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			final CountDownLatch latch = new CountDownLatch(requests);
 
-			for (int i = 0; i < requests; i++) {
+			for (int i = 1000000; i < 1000000 + requests * 100000; i += 100000) {
 				final int y = i;
 				executor.execute(new Runnable() {
+					@Override
 					public void run() {
 						try {
 							assertEquals(y + offset, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
 							successCounter.incrementAndGet();
-						} catch (MessageTimeoutException e) {
+						}
+						catch (MessageTimeoutException e) {
 							timeoutCounter.incrementAndGet();
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							t.printStackTrace();
 							failureCounter.incrementAndGet();
-						} finally {
+						}
+						finally {
 							latch.countDown();
 						}
 					}
@@ -202,7 +206,22 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 			logger.info("Success: " + successCounter.get());
 			logger.info("Timeout: " + timeoutCounter.get());
 			logger.info("Failure: " + failureCounter.get());
-			context.destroy();
+			if (timeoutCounter.get() > 0 && context.containsBean("capture")) {
+				logger.info(context.getBean(Capture.class).messages);
+			}
+			context.close();
 		}
 	}
+
+	public static class Capture {
+
+		private final BlockingQueue<String> messages = new LinkedBlockingQueue<String>();
+
+		public Message<?> capture(Message<?> message) {
+			messages.add("\n[" + Thread.currentThread().getName() + "] " + message);
+			return message;
+		}
+
+	}
+
 }
