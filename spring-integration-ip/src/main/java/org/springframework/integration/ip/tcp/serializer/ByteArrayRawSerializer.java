@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.serializer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketTimeoutException;
 
 /**
  * A byte array (de)serializer that does nothing with the payload; sends it raw.
@@ -28,12 +29,34 @@ import java.io.OutputStream;
  * Because the socket must be closed to indicate message end, this (de)serializer
  * can only be used by uni-directional (non-collaborating) channel adapters, and
  * not by gateways.
+ * <p>
+ * Prior to 4.2.2, when using NIO, a timeout caused whatever had been partially
+ * received to be emitted as a message.
+ * <p>
+ * Now, a {@link SocketTimeoutException} is thrown. To revert to the previous
+ * behavior, set the {@code treatTimeoutAsEndOfMessage} constructor argument to true.
  *
  * @author Gary Russell
  * @since 2.0.3
  *
  */
 public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
+
+	private final boolean treatTimeoutAsEndOfMessage;
+
+	public ByteArrayRawSerializer() {
+		this(false);
+	}
+
+	/**
+	 * Treat socket timeouts as a normal EOF and emit the (possibly partial)
+	 * message.
+	 * @param treatTimeoutAsEndOfMessage true to emit a message after a timeout.
+	 * @since 4.2.2
+	 */
+	public ByteArrayRawSerializer(boolean treatTimeoutAsEndOfMessage) {
+		this.treatTimeoutAsEndOfMessage = treatTimeoutAsEndOfMessage;
+	}
 
 	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream)
@@ -51,7 +74,15 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 		}
 		try {
 			while (bite >= 0) {
-				bite = inputStream.read();
+				try {
+					bite = inputStream.read();
+				}
+				catch (SocketTimeoutException e) {
+					if (!this.treatTimeoutAsEndOfMessage) {
+						throw e;
+					}
+					bite = -1;
+				}
 				if (bite < 0) {
 					if (n == 0) {
 						throw new SoftEndOfStreamException("Stream closed between payloads");
