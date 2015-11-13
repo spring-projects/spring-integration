@@ -19,25 +19,45 @@ package org.springframework.integration.ip.tcp.serializer;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
+import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.tcp.TcpInboundGateway;
+import org.springframework.integration.ip.tcp.TcpOutboundGateway;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -45,6 +65,9 @@ import org.springframework.integration.ip.util.SocketTestUtils;
  * @since 2.0
  */
 public class DeserializationTests {
+
+	@Rule
+	public LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	@Test
 	public void testReadLength() throws Exception {
@@ -322,6 +345,144 @@ public class DeserializationTests {
 			assertThat(e.getMessage(), containsString(expectedMessage));
 		}
 		return event.get();
+	}
+
+	@Test
+	public void TestTimeoutWithCustomDeserializer() throws Exception {
+		testTimeoutWhileDecoding(new CustomDeserializer(), "\u0000\u0002\u0000\u0005reply");
+	}
+
+	@Test
+	public void TestTimeoutWithRawDeserializer() throws Exception {
+		testTimeoutWhileDecoding(new ByteArrayRawSerializer(), "reply");
+	}
+
+	public void testTimeoutWhileDecoding(AbstractByteArraySerializer deserializer, String reply) throws Exception {
+		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+		TcpNioServerConnectionFactory serverNio = new TcpNioServerConnectionFactory(0);
+		ByteArrayLengthHeaderSerializer lengthHeaderSerializer = new ByteArrayLengthHeaderSerializer(1);
+		serverNio.setDeserializer(lengthHeaderSerializer);
+		serverNio.setSerializer(serializer);
+		serverNio.afterPropertiesSet();
+		TcpInboundGateway in = new TcpInboundGateway();
+		in.setConnectionFactory(serverNio);
+		QueueChannel serverSideChannel = new QueueChannel();
+		in.setRequestChannel(serverSideChannel);
+		in.setBeanFactory(mock(BeanFactory.class));
+		in.afterPropertiesSet();
+		in.start();
+		TestingUtilities.waitListening(serverNio, null);
+		TcpNioClientConnectionFactory clientNio = new TcpNioClientConnectionFactory("localhost", serverNio.getPort());
+		clientNio.setSerializer(serializer);
+		clientNio.setDeserializer(deserializer);
+		clientNio.setSoTimeout(1000);
+		clientNio.afterPropertiesSet();
+		final TcpOutboundGateway out = new TcpOutboundGateway();
+		out.setConnectionFactory(clientNio);
+		QueueChannel outputChannel = new QueueChannel();
+		out.setOutputChannel(outputChannel);
+		out.setRemoteTimeout(60000);
+		out.setBeanFactory(mock(BeanFactory.class));
+		out.afterPropertiesSet();
+		out.start();
+		Runnable command = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					out.handleMessage(MessageBuilder.withPayload("\u0004Test").build());
+				}
+				catch (Exception e) {
+				}
+			}
+		};
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+
+		Message<?> message;
+
+		// short reply should not be received.
+		exec.execute(command);
+		message = serverSideChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Test", new String((byte[]) message.getPayload()));
+		String shortReply = reply.substring(0, reply.length() - 1);
+		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(shortReply));
+		message = outputChannel.receive(6000);
+		assertNull(message);
+
+		// good message should be received
+		if ((deserializer instanceof ByteArrayRawSerializer)) { // restore old behavior
+			clientNio.setDeserializer(new ByteArrayRawSerializer(true));
+		}
+		exec.execute(command);
+		message = serverSideChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Test", new String((byte[]) message.getPayload()));
+		((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>(reply));
+		message = outputChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals(reply, new String(((byte[]) message.getPayload())));
+	}
+
+	private static class CustomDeserializer extends AbstractByteArraySerializer {
+
+		@Override
+		public byte[] deserialize(InputStream inputStream) throws IOException {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Available to read:" + inputStream.available());
+			}
+
+			byte[] header = new byte[2];
+			header[0] = (byte) inputStream.read();
+			if (header[0] < 0) {
+				throw new SoftEndOfStreamException("Stream closed between payloads");
+			}
+
+			header[1] = (byte) inputStream.read();
+			if (header[1] < 0) {
+				checkClosure(-1);
+			}
+
+			ByteBuffer headerBB = ByteBuffer.wrap(header);
+			int val = headerBB.getShort();
+
+			byte[] length = new byte[val];
+			for (int i = 0; i < val; i++) {
+				length[i] = (byte) inputStream.read();
+			}
+
+			headerBB = ByteBuffer.wrap(length);
+			int messageLength;
+			if (val == 2) {
+				messageLength = headerBB.getShort();
+			}
+			else if (val == 4) {
+				messageLength = headerBB.getInt();
+			}
+			else {
+				throw new IOException("Unexpected count of bytes that holds message length");
+			}
+
+			byte[] answer = new byte[messageLength];
+			for (int i = 0; i < messageLength; i++) {
+				int bite = inputStream.read();
+				if (bite < 0) {
+					checkClosure(-1);
+				}
+				answer[i] = (byte) bite;
+			}
+
+			ByteBuffer b = ByteBuffer.allocate(2 + val + messageLength);
+			b.put(header);
+			b.put(length);
+			b.put(answer);
+			return b.array();
+		}
+
+		@Override
+		public void serialize(byte[] object, OutputStream outputStream) throws IOException {
+		}
+
 	}
 
 }
