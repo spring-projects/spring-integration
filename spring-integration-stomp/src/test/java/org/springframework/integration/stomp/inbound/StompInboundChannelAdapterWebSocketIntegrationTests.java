@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -241,7 +240,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		}
 
 		@Bean
-		public WebSocketStompClient stompClient(TaskScheduler taskScheduler) {
+		public WebSocketStompClient stompClient(@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 			webSocketStompClient.setTaskScheduler(taskScheduler);
