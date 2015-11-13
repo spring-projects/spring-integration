@@ -164,7 +164,6 @@ public class StompAdaptersParserTests {
 		List<SmartLifecycle> bars = lifecycles.get("bar");
 		bars.contains(this.customInboundAdapter);
 		assertTrue(lifecycles.containsKey("foo"));
-		List<SmartLifecycle> foos = lifecycles.get("bar");
 		bars.contains(this.customOutboundAdapter);
 	}
 

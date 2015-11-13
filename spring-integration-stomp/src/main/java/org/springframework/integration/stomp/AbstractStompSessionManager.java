@@ -19,16 +19,19 @@ package org.springframework.integration.stomp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.stomp.event.StompExceptionEvent;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
+import org.springframework.messaging.simp.stomp.ConnectionLostException;
 import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -43,9 +46,9 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * Base {@link StompSessionManager} implementation to manage a single {@link StompSession}
  * over its {@link ListenableFuture} from the target implementation of this class.
  * <p>
- * The connection to the {@link StompSession} is made during {@link #afterPropertiesSet()}.
+ * The connection to the {@link StompSession} is made during {@link #start()}.
  * <p>
- * The {@link #destroy()} lifecycle method manages {@link StompSession#disconnect()}.
+ * The {@link #stop()} lifecycle method manages {@link StompSession#disconnect()}.
  * <p>
  * The {@link #connect(StompSessionHandler)} and {@link #disconnect(StompSessionHandler)} method
  * implementations populate/remove the provided {@link StompSessionHandler} to/from an internal
@@ -53,18 +56,27 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * to the provided {@link StompSessionHandler}s.
  * This {@link AbstractStompSessionManager.CompositeStompSessionHandler} is used for the
  * {@link StompSession} connection.
- *
  * @author Artem Bilan
  * @since 4.2
  */
 public abstract class AbstractStompSessionManager implements StompSessionManager, ApplicationEventPublisherAware,
-		InitializingBean, DisposableBean, BeanNameAware {
+		SmartLifecycle, DisposableBean, BeanNameAware {
+
+	private static final long DEFAULT_RECOVERY_INTERVAL = 10000;
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
 
+	private final Object lifecycleMonitor = new Object();
+
 	protected final StompClientSupport stompClient;
+
+	private boolean autoStartup = false;
+
+	private boolean running = false;
+
+	private int phase = Integer.MAX_VALUE / 2;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -74,7 +86,13 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private volatile boolean autoReceipt;
 
+	private volatile boolean connecting;
+
 	private volatile boolean connected;
+
+	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private volatile ScheduledFuture<?> reconnectFuture;
 
 	private String name;
 
@@ -111,50 +129,160 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		this.name = name;
 	}
 
+	/**
+	 * @param recoveryInterval the reconnect interval in milliseconds in case of lost connection.
+	 * @since 4.2.2
+	 */
+	public void setRecoveryInterval(int recoveryInterval) {
+		this.recoveryInterval = recoveryInterval;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	public long getRecoveryInterval() {
+		return recoveryInterval;
+	}
+
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	private void connect() {
+		this.connecting = true;
 		this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
 
 			@Override
 			public void onFailure(Throwable e) {
-				logger.error("STOMP connect error.", e);
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(
-							new StompExceptionEvent(AbstractStompSessionManager.this, e));
-				}
+				scheduleReconnect(e);
 			}
 
 			@Override
 			public void onSuccess(StompSession stompSession) {
-				stompSession.setAutoReceipt(autoReceipt);
 				AbstractStompSessionManager.this.connected = true;
+				AbstractStompSessionManager.this.connecting = false;
+				stompSession.setAutoReceipt(isAutoReceiptEnabled());
+				if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
+					AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
+							new StompSessionConnectedEvent(this));
+				}
+				AbstractStompSessionManager.this.reconnectFuture = null;
 			}
 
 		});
 	}
 
+	private void scheduleReconnect(Throwable e) {
+		if (this.reconnectFuture != null) {
+			this.reconnectFuture.cancel(true);
+			this.reconnectFuture = null;
+		}
+		this.connecting = this.connected = false;
+		logger.error("STOMP connect error.", e);
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(
+					new StompConnectionFailedEvent(this, e));
+		}
+
+		this.reconnectFuture = this.stompClient.getTaskScheduler()
+				.scheduleWithFixedDelay(new Runnable() {
+
+					@Override
+					public void run() {
+						connect();
+					}
+
+				}, this.recoveryInterval);
+	}
+
 	@Override
-	public void destroy() throws Exception {
-		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
-
-			@Override
-			public void onFailure(Throwable ex) {
-				AbstractStompSessionManager.this.connected = false;
+	public void destroy() {
+		if (this.stompSessionListenableFuture != null) {
+			if (this.reconnectFuture != null) {
+				this.reconnectFuture.cancel(false);
+				this.reconnectFuture = null;
 			}
+			this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
 
-			@Override
-			public void onSuccess(StompSession session) {
-				session.disconnect();
-				AbstractStompSessionManager.this.connected = false;
+				@Override
+				public void onFailure(Throwable ex) {
+					AbstractStompSessionManager.this.connected = false;
+				}
+
+				@Override
+				public void onSuccess(StompSession session) {
+					session.disconnect();
+					AbstractStompSessionManager.this.connected = false;
+				}
+
+			});
+			this.stompSessionListenableFuture = null;
+		}
+	}
+
+	@Override
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!isRunning()) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Starting " + getClass().getSimpleName());
+				}
+				connect();
+				this.running = true;
 			}
+		}
+	}
 
-		});
+	@Override
+	public void stop(Runnable callback) {
+		synchronized (this.lifecycleMonitor) {
+			stop();
+			if (callback != null) {
+				callback.run();
+			}
+		}
+	}
+
+	@Override
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (isRunning()) {
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("Stopping " + getClass().getSimpleName());
+				}
+				destroy();
+			}
+		}
 	}
 
 	@Override
 	public void connect(StompSessionHandler handler) {
 		this.compositeStompSessionHandler.addHandler(handler);
+		if (!isConnected() && !this.connecting) {
+			if (this.reconnectFuture != null) {
+				this.reconnectFuture.cancel(true);
+				this.reconnectFuture = null;
+			}
+			connect();
+		}
 	}
 
 	@Override
@@ -177,18 +305,16 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	protected abstract ListenableFuture<StompSession> doConnect(StompSessionHandler handler);
 
 
-	private static class CompositeStompSessionHandler extends StompSessionHandlerAdapter {
+	private class CompositeStompSessionHandler extends StompSessionHandlerAdapter {
 
 		private final List<StompSessionHandler> delegates =
 				Collections.synchronizedList(new ArrayList<StompSessionHandler>());
 
 		private volatile StompSession session;
 
-		private volatile StompHeaders connectedHeaders;
-
 		void addHandler(StompSessionHandler delegate) {
 			if (this.session != null) {
-				delegate.afterConnected(this.session, this.connectedHeaders);
+				delegate.afterConnected(this.session, getConnectHeaders());
 			}
 			synchronized (this.delegates) {
 				this.delegates.add(delegate);
@@ -204,7 +330,6 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			this.session = session;
-			this.connectedHeaders = connectedHeaders;
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.afterConnected(session, connectedHeaders);
@@ -214,7 +339,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
-				Throwable exception) {
+		                            Throwable exception) {
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleException(session, command, headers, payload, exception);
@@ -224,6 +349,10 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
+			if (exception instanceof ConnectionLostException) {
+				this.session = null;
+				scheduleReconnect(exception);
+			}
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleTransportError(session, exception);
