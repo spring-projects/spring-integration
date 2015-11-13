@@ -125,7 +125,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -138,7 +138,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", 100).build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -151,7 +151,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", -7000).build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -164,7 +164,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "not a number").build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -177,7 +177,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
-		this.waitForLatch(3000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -190,7 +190,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
-		this.waitForLatch(3000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -203,7 +203,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", nullDate).build();
 		input.send(message);
-		this.waitForLatch(3000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -216,9 +216,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", future).build();
 		input.send(message);
-		this.waitForLatch(50);
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertSame(Thread.currentThread(), resultHandler.lastThread);
+		waitForLatch(100);
 	}
 
 	@Test
@@ -229,7 +227,7 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "20").build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
@@ -257,7 +255,7 @@ public class DelayHandlerTests {
 
 		}).start();
 
-		assertTrue(latch.await(1, TimeUnit.SECONDS));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -310,16 +308,18 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
+
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10")
 				.setErrorChannel(errorChannel).build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
@@ -344,16 +344,18 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
+
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10")
 				.setErrorChannelName(errorChannelName).build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
@@ -376,15 +378,17 @@ public class DelayHandlerTests {
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				throw new UnsupportedOperationException("intentional test failure");
 			}
+
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10").build();
 		input.send(message);
-		this.waitForLatch(1000);
+		waitForLatch(10000);
 		Message<?> errorMessage = resultHandler.lastMessage;
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
@@ -425,7 +429,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setBeanFactory(mock(BeanFactory.class));
 		this.startDelayerHandler();
 
-		assertTrue(this.latch.await(10, TimeUnit.SECONDS));
+		waitForLatch(10000);
 
 		assertSame(message.getPayload(), this.resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), this.resultHandler.lastThread);
