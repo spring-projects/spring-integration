@@ -86,6 +86,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private volatile long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
 
+	private volatile boolean timedOut;
+
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel The socketChannel.
@@ -497,6 +499,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * Close the socket due to timeout.
 	 */
 	void timeout() {
+		this.timedOut = true;
 		this.closeConnection(true);
 	}
 
@@ -644,10 +647,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		public int read(byte[] b, int off, int len) throws IOException {
 			Assert.notNull(b, "byte[] cannot be null");
 			if (off < 0 || len < 0 || len > b.length - off) {
-			    throw new IndexOutOfBoundsException();
+				throw new IndexOutOfBoundsException();
 			}
 			else if (len == 0) {
-			    return 0;
+				return 0;
 			}
 
 			int n = 0;
@@ -670,12 +673,18 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		@Override
 		public synchronized int read() throws IOException {
 			if (this.isClosed && available.get() == 0) {
+				if (TcpNioConnection.this.timedOut) {
+					throw new SocketTimeoutException("Connection has timed out");
+				}
 				return -1;
 			}
 			if (this.currentBuffer == null) {
 				this.currentBuffer = getNextBuffer();
 				this.currentOffset = 0;
 				if (this.currentBuffer == null) {
+					if (TcpNioConnection.this.timedOut) {
+						throw new SocketTimeoutException("Connection has timed out");
+					}
 					return -1;
 				}
 			}
