@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.store;
 
 import static org.junit.Assert.assertEquals;
@@ -98,7 +99,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertEquals("Barak Obama", storedMessage.getPayload().getName());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	@RedisAvailable
 	public void testAddNonSerializableObjectMessage(){
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
@@ -120,6 +121,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertNotNull(retrievedMessage);
 		assertEquals("Hello Redis", retrievedMessage.getPayload());
 	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
@@ -173,31 +175,42 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
+		messageStore.removeMessageGroup("X");
 	}
 
 	@SuppressWarnings("serial")
-	public static class Person implements Serializable{
+	public static class Person implements Serializable {
+
 		private Address address;
-		public Address getAddress() {
-			return address;
-		}
-		public void setAddress(Address address) {
-			this.address = address;
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
+
 		private String name;
+
 		public Person(Address address, String name){
 			this.address = address;
 			this.name = name;
 		}
+
+		public Address getAddress() {
+			return address;
+		}
+
+		public void setAddress(Address address) {
+			this.address = address;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
 	}
+
 	@SuppressWarnings("serial")
-	public static class Address implements Serializable{
+	public static class Address implements Serializable {
+
 		private String address;
 
 		public String getAddress() {
@@ -207,9 +220,11 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		public void setAddress(String address) {
 			this.address = address;
 		}
-	}
-
-	public static class Foo{
 
 	}
+
+	public static class Foo {
+
+	}
+
 }
