@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.rx.Promise;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
@@ -63,8 +64,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import reactor.rx.Promise;
 
 /**
  * @author Mark Fisher
@@ -196,7 +195,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("asyncCompletable", TestService.class);
 		CompletableFuture<String> result = service.completable("foo").thenApply(String::toUpperCase);
-		String reply = result.get(1, TimeUnit.SECONDS);
+		String reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("FOO", reply);
 		assertThat(thread.get().getName(), startsWith("testExec-"));
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor"));

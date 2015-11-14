@@ -405,7 +405,7 @@ public class OutboundGatewayFunctionTests {
 		gateway.setUseReplyContainer(true);
 		gateway.setIdleReplyContainerTimeout(1, TimeUnit.SECONDS);
 		gateway.setRequiresReply(true);
-		gateway.setReceiveTimeout(10000);
+		gateway.setReceiveTimeout(20000);
 		gateway.afterPropertiesSet();
 		gateway.start();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -413,7 +413,7 @@ public class OutboundGatewayFunctionTests {
 			public void run() {
 				JmsTemplate template = new JmsTemplate();
 				template.setConnectionFactory(getTemplateConnectionFactory());
-				template.setReceiveTimeout(10000);
+				template.setReceiveTimeout(20000);
 				receiveAndSend(template);
 				receiveAndSend(template);
 			}

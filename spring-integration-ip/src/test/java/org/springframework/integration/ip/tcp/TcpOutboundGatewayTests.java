@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -71,6 +72,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -82,6 +84,9 @@ import org.springframework.messaging.support.GenericMessage;
  * @since 2.0
  */
 public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
+
+	@ClassRule
+	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
@@ -367,7 +372,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 								logger.debug("Read " + request);
 								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 								if (i < 2) {
-									Thread.sleep(1000);
+									Thread.sleep(2000);
 								}
 								oos.writeObject(request.replace("Test", "Reply"));
 								logger.debug("Replied to " + request);
@@ -400,7 +405,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		Expression remoteTimeoutExpression = Mockito.mock(Expression.class);
 
 		when(remoteTimeoutExpression.getValue(Mockito.any(EvaluationContext.class), Mockito.any(Message.class),
-				Mockito.eq(Long.class))).thenReturn(500L, 10000L);
+				Mockito.eq(Long.class))).thenReturn(50L, 10000L);
 
 		gateway.setRemoteTimeoutExpression(remoteTimeoutExpression);
 
@@ -421,7 +426,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 
 		}
 		// wait until the server side has processed both requests
-		assertTrue(serverLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(serverLatch.await(30, TimeUnit.SECONDS));
 		List<String> replies = new ArrayList<String>();
 		int timeouts = 0;
 		for (int i = 0; i < 2; i++) {

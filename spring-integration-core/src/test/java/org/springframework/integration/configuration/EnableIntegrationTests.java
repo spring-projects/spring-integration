@@ -262,6 +262,10 @@ public class EnableIntegrationTests extends LogAdjustingTestSupport {
 	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
 
+	public EnableIntegrationTests() {
+		super("org.springframework.integration", "org.springframework");
+	}
+
 	@Test
 	public void testAnnotatedServiceActivator() {
 		assertEquals(10L, TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"));

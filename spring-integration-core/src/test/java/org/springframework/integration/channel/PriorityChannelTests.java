@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -236,22 +237,23 @@ public class PriorityChannelTests {
 	public void testTimeoutElapses() throws InterruptedException {
 		final PriorityChannel channel = new PriorityChannel(1);
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
-		final CountDownLatch latch = new CountDownLatch(1);
-		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
+
 			@Override
 			public void run() {
 				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10));
-				latch.countDown();
 			}
+
 		});
 		assertFalse(sentSecondMessage.get());
-		Thread.sleep(1000);
-		Message<?> message1 = channel.receive();
+
+		executor.shutdown();
+		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+		Message<?> message1 = channel.receive(10000);
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
-		latch.await(10000, TimeUnit.MILLISECONDS);
 		assertFalse(sentSecondMessage.get());
 		assertNull(channel.receive(0));
 	}
@@ -286,22 +288,21 @@ public class PriorityChannelTests {
 	public void testIndefiniteTimeout() throws InterruptedException {
 		final PriorityChannel channel = new PriorityChannel(1);
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
-		final CountDownLatch latch = new CountDownLatch(1);
-		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
 				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1));
-				latch.countDown();
 			}
 		});
 		assertFalse(sentSecondMessage.get());
 		Thread.sleep(500);
-		Message<?> message1 = channel.receive();
+		Message<?> message1 = channel.receive(1000);
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		executor.shutdown();
+		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
 		assertTrue(sentSecondMessage.get());
 		Message<?> message2 = channel.receive();
 		assertNotNull(message2);
@@ -322,9 +323,11 @@ public class PriorityChannelTests {
 			String s2 = (String) message2.getPayload();
 			return s1.compareTo(s2);
 		}
+
 	}
 
 	public static class FooHeaderComparator implements Comparator<Message<?>> {
+
 		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
 			Integer foo1 = (Integer) message1.getHeaders().get("foo");
@@ -333,6 +336,7 @@ public class PriorityChannelTests {
 			foo2 = foo2 != null ? foo2 : 0;
 			return foo2.compareTo(foo1);
 		}
+
 	}
 
 }

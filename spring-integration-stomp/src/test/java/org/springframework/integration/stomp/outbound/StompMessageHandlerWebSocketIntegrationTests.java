@@ -55,6 +55,7 @@ import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
@@ -96,7 +97,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @ContextConfiguration(classes = StompMessageHandlerWebSocketIntegrationTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class StompMessageHandlerWebSocketIntegrationTests {
+public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTestSupport {
 
 	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
@@ -111,6 +112,10 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 	@Autowired
 	@Qualifier("stompEvents")
 	private PollableChannel stompEvents;
+
+	public StompMessageHandlerWebSocketIntegrationTests() {
+		super("org.springframework", "org.springframework.integration.stomp");
+	}
 
 	@Test
 	public void testStompMessageHandler() throws InterruptedException {
