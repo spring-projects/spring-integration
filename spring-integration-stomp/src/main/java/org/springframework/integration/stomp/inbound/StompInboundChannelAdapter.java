@@ -39,7 +39,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.simp.stomp.ConnectionLostException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -304,10 +303,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
-			if (exception instanceof ConnectionLostException) {
-				StompInboundChannelAdapter.this.stompSession = null;
-			}
-			logger.error("STOMP transport error for session: [" + session + "]", exception);
+			StompInboundChannelAdapter.this.stompSession = null;
 		}
 
 	}

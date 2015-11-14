@@ -349,6 +349,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
+			logger.error("STOMP transport error for session: [" + session + "]", exception);
 			if (exception instanceof ConnectionLostException) {
 				this.session = null;
 				scheduleReconnect(exception);

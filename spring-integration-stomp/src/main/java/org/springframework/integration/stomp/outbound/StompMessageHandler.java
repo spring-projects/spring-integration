@@ -261,12 +261,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		@Override
 		public synchronized void handleTransportError(StompSession session, Throwable exception) {
 			StompMessageHandler.this.transportError = exception;
-			if (exception instanceof ConnectionLostException) {
-				StompMessageHandler.this.stompSession = null;
-			}
-			else {
-				logger.error("STOMP transport error for session: [" + session + "]", exception);
-			}
+			StompMessageHandler.this.stompSession = null;
 		}
 
 	}
