@@ -54,6 +54,8 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPMessage;
 import org.apache.commons.logging.Log;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -86,9 +88,6 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
-
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -129,8 +128,7 @@ public class ImapMailReceiverTests {
 			public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
 				try {
 					FromTerm fromTerm = new FromTerm(new InternetAddress("bar@baz"));
-					AndTerm andTerm = new AndTerm(fromTerm, new FlagTerm(new Flags(Flags.Flag.SEEN), false));
-					return andTerm;
+					return new AndTerm(fromTerm, new FlagTerm(new Flags(Flag.SEEN), false));
 				}
 				catch (AddressException e) {
 					throw new RuntimeException(e);
@@ -171,11 +169,11 @@ public class ImapMailReceiverTests {
 		adapter.start();
 		@SuppressWarnings("unchecked")
 		org.springframework.messaging.Message<MimeMessage> received =
-				(org.springframework.messaging.Message<MimeMessage>) channel.receive(6000);
+				(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
 		assertNotNull(received);
 		assertNotNull(received.getPayload().getReceivedDate());
 		assertTrue(received.getPayload().getLineCount() > -1);
-		assertNotNull(channel.receive(6000)); // new message after idle
+		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
 		taskScheduler.shutdown();

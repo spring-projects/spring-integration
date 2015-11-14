@@ -25,6 +25,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,15 +35,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -55,6 +57,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Tony Falabella
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
@@ -99,6 +102,9 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	MessageChannel usageChannelConcurrent;
+
+	@Autowired
+	CountDownLatch fileWriteLatch;
 
 	private volatile static int adviceCalled;
 
@@ -313,7 +319,8 @@ public class FileOutboundChannelAdapterParserTests {
 			usageChannelConcurrent.send(new GenericMessage<String>(bString));
 		}
 
-		Thread.sleep(2000);
+		assertTrue(this.fileWriteLatch.await(10, TimeUnit.SECONDS));
+
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		int beginningIndex = 0;
 		for (int i = 0; i < 2; i++) {

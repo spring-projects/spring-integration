@@ -33,6 +33,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import reactor.Environment;
+import reactor.fn.Consumer;
+import reactor.rx.Promise;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Gateway;
@@ -46,10 +49,6 @@ import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
-
-import reactor.Environment;
-import reactor.rx.Promise;
-import reactor.fn.Consumer;
 
 /**
  * @author Mark Fisher
@@ -82,7 +81,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
 		long start = System.currentTimeMillis();
-		Object result = f.get(1000, TimeUnit.MILLISECONDS);
+		Object result = f.get(10000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue(elapsed >= 200);
 		assertNotNull(result);
@@ -109,7 +108,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
 		try {
-			f.get(1000, TimeUnit.MILLISECONDS);
+			f.get(10000, TimeUnit.MILLISECONDS);
 			fail("Expected Exception");
 		}
 		catch (ExecutionException e) {
@@ -167,7 +166,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		CustomFuture f = service.returnCustomFuture("foo");
-		String result = f.get(1000, TimeUnit.MILLISECONDS);
+		String result = f.get(10000, TimeUnit.MILLISECONDS);
 		assertEquals("foobar", result);
 		assertEquals(Thread.currentThread(), f.thread);
 	}
@@ -188,7 +187,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		CustomFuture f = (CustomFuture) service.returnCustomFutureWithTypeFuture("foo");
-		String result = f.get(1000, TimeUnit.MILLISECONDS);
+		String result = f.get(10000, TimeUnit.MILLISECONDS);
 		assertEquals("foobar", result);
 		assertEquals(Thread.currentThread(), f.thread);
 	}
@@ -219,7 +218,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<String> f = service.returnString("foo");
 		long start = System.currentTimeMillis();
-		Object result = f.get(1000, TimeUnit.MILLISECONDS);
+		Object result = f.get(10000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue(elapsed >= 200 - safety);
 		assertNotNull(result);
@@ -239,7 +238,7 @@ public class AsyncGatewayTests {
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<?> f = service.returnSomething("foo");
 		long start = System.currentTimeMillis();
-		Object result = f.get(1000, TimeUnit.MILLISECONDS);
+		Object result = f.get(10000, TimeUnit.MILLISECONDS);
 		long elapsed = System.currentTimeMillis() - start;
 		assertTrue(elapsed >= 200 - safety);
 		assertTrue(result instanceof String);
@@ -260,7 +259,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<Message<?>> promise = service.returnMessagePromise("foo");
-		Object result = promise.await(1, TimeUnit.SECONDS);
+		Object result = promise.await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -277,7 +276,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<String> promise = service.returnStringPromise("foo");
-		Object result = promise.await(1, TimeUnit.SECONDS);
+		Object result = promise.await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", result);
 	}
 
@@ -294,7 +293,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<?> promise = service.returnSomethingPromise("foo");
-		Object result = promise.await(1, TimeUnit.SECONDS);
+		Object result = promise.await(10, TimeUnit.SECONDS);
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
@@ -324,7 +323,7 @@ public class AsyncGatewayTests {
 			}
 		});
 
-		latch.await(1, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", result.get());
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private volatile CountDownLatch connectionLatch;
 
-	private WebSocketSession clientSession;
+	private volatile WebSocketSession clientSession;
 
 	private volatile Throwable openConnectionException;
 
@@ -106,7 +106,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	 */
 	@Override
 	public WebSocketSession getSession(String sessionId) {
-		if (this.isRunning()) {
+		if (isRunning()) {
 			try {
 				this.connectionLatch.await(this.connectionTimeout, TimeUnit.SECONDS);
 			}
@@ -146,9 +146,11 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	}
 
 	@Override
-	public void start() {
-		this.connectionLatch = new CountDownLatch(1);
-		this.connectionManager.start();
+	public synchronized void start() {
+		if (!isRunning()) {
+			this.connectionLatch = new CountDownLatch(1);
+			this.connectionManager.start();
+		}
 	}
 
 	@Override

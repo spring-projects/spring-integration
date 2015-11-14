@@ -51,6 +51,7 @@ import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
@@ -92,10 +93,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @ContextConfiguration(classes = StompInboundChannelAdapterWebSocketIntegrationTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class StompInboundChannelAdapterWebSocketIntegrationTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework");
+public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdjustingTestSupport {
 
 	@Value("#{server.serverContext}")
 	private ConfigurableApplicationContext serverContext;
@@ -114,6 +112,10 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 	@Autowired
 	private StompInboundChannelAdapter stompInboundChannelAdapter;
+
+	public StompInboundChannelAdapterWebSocketIntegrationTests() {
+		super("org.springframework", "org.springframework.integration.stomp");
+	}
 
 	@Test
 	public void testWebSocketStompClient() throws Exception {
@@ -240,7 +242,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		}
 
 		@Bean
-		public WebSocketStompClient stompClient(@Qualifier("taskScheduler") TaskScheduler taskScheduler) {
+		public WebSocketStompClient stompClient(TaskScheduler taskScheduler) {
 			WebSocketStompClient webSocketStompClient = new WebSocketStompClient(webSocketClient());
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 			webSocketStompClient.setTaskScheduler(taskScheduler);

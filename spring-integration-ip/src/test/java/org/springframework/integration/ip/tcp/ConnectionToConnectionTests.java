@@ -130,7 +130,9 @@ public class ConnectionToConnectionTests {
 		int serverCloses = 0;
 		int clientExceptions = 0;
 		Message<TcpConnectionEvent> eventMessage;
-		while ((eventMessage = (Message<TcpConnectionEvent>) events.receive(1000)) != null) {
+		int i = 0;
+		while (i++ < (expectExceptionOnClose ? 600 : 400)
+				&& (eventMessage = (Message<TcpConnectionEvent>) events.receive(10000)) != null) {
 			TcpConnectionEvent event = eventMessage.getPayload();
 			if (event.getConnectionFactoryName().startsWith("client")) {
 				if (event instanceof TcpConnectionOpenEvent) {

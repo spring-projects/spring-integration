@@ -81,7 +81,7 @@
 	</bean>
 
 	<int:outbound-channel-adapter channel="second" expression="@successfulLatch.countDown()">
-		<int:poller fixed-delay="1000">
+		<int:poller fixed-delay="100">
 			<int:transactional transaction-manager="transactionManager"/>
 		</int:poller>
 	</int:outbound-channel-adapter>

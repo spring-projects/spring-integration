@@ -18,6 +18,7 @@ package org.springframework.integration.stomp;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
@@ -190,26 +191,27 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private void scheduleReconnect(Throwable e) {
-		if (this.reconnectFuture != null) {
-			this.reconnectFuture.cancel(true);
-			this.reconnectFuture = null;
-		}
 		this.connecting = this.connected = false;
 		logger.error("STOMP connect error.", e);
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
 					new StompConnectionFailedEvent(this, e));
 		}
+		// cancel() after the publish in case we are on that thread; a send to a QueueChannel would fail.
+		if (this.reconnectFuture != null) {
+			this.reconnectFuture.cancel(true);
+			this.reconnectFuture = null;
+		}
 
 		this.reconnectFuture = this.stompClient.getTaskScheduler()
-				.scheduleWithFixedDelay(new Runnable() {
+				.schedule(new Runnable() {
 
 					@Override
 					public void run() {
 						connect();
 					}
 
-				}, this.recoveryInterval);
+				}, new Date(System.currentTimeMillis() + this.recoveryInterval));
 	}
 
 	@Override
@@ -349,6 +351,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
+			logger.error("STOMP transport error for session: [" + session + "]", exception);
 			if (exception instanceof ConnectionLostException) {
 				this.session = null;
 				scheduleReconnect(exception);
