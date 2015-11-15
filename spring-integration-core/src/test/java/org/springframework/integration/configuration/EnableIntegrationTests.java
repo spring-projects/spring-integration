@@ -26,7 +26,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -46,7 +49,10 @@ import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -262,12 +268,19 @@ public class EnableIntegrationTests extends LogAdjustingTestSupport {
 	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
 
+	@Autowired
+	private CountDownLatch inputReceiveLatch;
+
 	public EnableIntegrationTests() {
 		super("org.springframework.integration", "org.springframework");
 	}
 
 	@Test
-	public void testAnnotatedServiceActivator() {
+	public void testAnnotatedServiceActivator() throws Exception {
+		this.serviceActivatorEndpoint.setReceiveTimeout(10000);
+		this.serviceActivatorEndpoint.start();
+		assertTrue(this.inputReceiveLatch.await(10, TimeUnit.SECONDS));
+
 		assertEquals(10L, TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "maxMessagesPerPoll"));
 
 		Trigger trigger = TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "trigger", Trigger.class);
@@ -276,8 +289,25 @@ public class EnableIntegrationTests extends LogAdjustingTestSupport {
 		assertFalse(TestUtils.getPropertyValue(trigger, "fixedRate", Boolean.class));
 
 		assertTrue(this.annotationTestService.isRunning());
+		Log logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", Log.class));
+		when(logger.isDebugEnabled()).thenReturn(true);
+		final CountDownLatch pollerInterruptedLatch = new CountDownLatch(1);
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				pollerInterruptedLatch.countDown();
+				invocation.callRealMethod();
+				return null;
+			}
+		}).when(logger).debug("Received no Message during the poll, returning 'false'");
+		new DirectFieldAccessor(this.serviceActivatorEndpoint).setPropertyValue("logger", logger);
+
 		this.serviceActivatorEndpoint.stop();
 		assertFalse(this.annotationTestService.isRunning());
+
+		// wait until the service activator's poller is interrupted.
+		assertTrue(pollerInterruptedLatch.await(10, TimeUnit.SECONDS));
 		this.serviceActivatorEndpoint.start();
 		assertTrue(this.annotationTestService.isRunning());
 
@@ -626,8 +656,20 @@ public class EnableIntegrationTests extends LogAdjustingTestSupport {
 	public static class ContextConfiguration {
 
 		@Bean
+		public CountDownLatch inputReceiveLatch() {
+			return new CountDownLatch(1);
+		}
+
+		@Bean
 		public QueueChannel input() {
-			return new QueueChannel();
+			return new QueueChannel() {
+
+				@Override
+				protected Message<?> doReceive(long timeout) {
+					inputReceiveLatch().countDown();
+					return super.doReceive(timeout);
+				}
+			};
 		}
 
 		@Bean
@@ -1060,7 +1102,7 @@ public class EnableIntegrationTests extends LogAdjustingTestSupport {
 		private boolean running;
 
 		@Override
-		@ServiceActivator(inputChannel = "input", outputChannel = "output",
+		@ServiceActivator(inputChannel = "input", outputChannel = "output", autoStartup = "false",
 				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
