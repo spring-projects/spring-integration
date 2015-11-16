@@ -20,7 +20,7 @@
 	<bean id="testTrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger"/>
 
 	<int:bridge input-channel="input" output-channel="next">
-		<int:poller trigger="testTrigger" />
+		<int:poller trigger="testTrigger" receive-timeout="10000" />
 	</int:bridge>
 
 	<int:service-activator input-channel="next">
