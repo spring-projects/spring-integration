@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-4.2.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-4.2.xsd
-http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-4.2.xsd
+http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-4.3.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-4.3.xsd
+http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-4.3.xsd
