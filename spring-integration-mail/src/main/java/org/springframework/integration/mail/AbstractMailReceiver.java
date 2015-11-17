@@ -52,20 +52,15 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
-
-	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
+public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
 	/**
 	 * Default user flag for marking messages as seen by this receiver:
 	 * {@value #DEFAULT_SI_USER_FLAG}.
-	 * @deprecated - this constant will be removed in 4.3; see
-	 * {@link #setUserFlag(String)} and {@link #DEFAULT_SI_USER_FLAG}
 	 */
-	@Deprecated
-	public final static String SI_USER_FLAG = DEFAULT_SI_USER_FLAG;
+	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final URLName url;
 
@@ -155,7 +150,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	protected Properties getJavaMailProperties() {
-		return javaMailProperties;
+		return this.javaMailProperties;
 	}
 
 	/**
@@ -197,7 +192,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	protected String getUserFlag() {
-		return userFlag;
+		return this.userFlag;
 	}
 
 	/**
@@ -286,7 +281,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				if (logger.isInfoEnabled()) {
 					logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
 				}
-				Message[] messages = this.searchForNewMessages();
+				Message[] messages = searchForNewMessages();
 				if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
 					Message[] reducedMessages = new Message[this.maxFetchSize];
 					System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
@@ -296,16 +291,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					logger.debug("found " + messages.length + " new messages");
 				}
 				if (messages.length > 0) {
-					this.fetchMessages(messages);
+					fetchMessages(messages);
 				}
 
 				if (logger.isDebugEnabled()) {
 					logger.debug("Received " + messages.length + " messages");
 				}
 
-				Message[] filteredMessages = this.filterMessagesThruSelector(messages);
+				Message[] filteredMessages = filterMessagesThruSelector(messages);
 
-				this.postProcessFilteredMessages(filteredMessages);
+				postProcessFilteredMessages(filteredMessages);
 
 				return filteredMessages;
 			}
@@ -316,10 +311,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
-		this.setMessageFlags(filteredMessages);
+		setMessageFlags(filteredMessages);
 
-		if (this.shouldDeleteMessages()) {
-			this.deleteMessages(filteredMessages);
+		if (shouldDeleteMessages()) {
+			deleteMessages(filteredMessages);
 		}
 		// Copy messages to cause an eager fetch
 		for (int i = 0; i < filteredMessages.length; i++) {
@@ -331,7 +326,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private void setMessageFlags(Message[] filteredMessages) throws MessagingException {
 		boolean recentFlagSupported = false;
 
-		Flags flags = this.getFolder().getPermanentFlags();
+		Flags flags = getFolder().getPermanentFlags();
 
 		if (flags != null){
 			recentFlagSupported = flags.contains(Flags.Flag.RECENT);
@@ -355,7 +350,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					message.setFlag(Flags.Flag.FLAGGED, true);
 				}
 			}
-			this.setAdditionalFlags(message);
+			setAdditionalFlags(message);
 		}
 	}
 
@@ -438,7 +433,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		this.initialized = true;
 	}
 

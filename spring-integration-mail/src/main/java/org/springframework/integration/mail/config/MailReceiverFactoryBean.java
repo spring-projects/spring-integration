@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 1.0.3
  */
 public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean, BeanFactoryAware {
@@ -73,6 +74,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	private volatile Expression selectorExpression;
 
 	private volatile SearchTermStrategy searchTermStrategy;
+
+	private volatile String userFlag;
 
 	private volatile BeanFactory beanFactory;
 
@@ -120,11 +123,16 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		this.searchTermStrategy = searchTermStrategy;
 	}
 
+	public void setUserFlag(String userFlag) {
+		this.userFlag = userFlag;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
+	@Override
 	public MailReceiver getObject() throws Exception {
 		if (this.receiver == null) {
 			this.receiver = this.createReceiver();
@@ -132,10 +140,12 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		return this.receiver;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		return (this.receiver != null) ? this.receiver.getClass() : MailReceiver.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}
@@ -165,7 +175,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		AbstractMailReceiver receiver = isPop3 ? new Pop3MailReceiver(this.storeUri) : new ImapMailReceiver(this.storeUri);
 		if (this.session != null) {
 			Assert.isNull(this.javaMailProperties, "JavaMail Properties are not allowed when a Session has been provided.");
-			Assert.isNull(this.authenticator, "A JavaMail Authenticator is not allowed when a Session has been provied.");
+			Assert.isNull(this.authenticator, "A JavaMail Authenticator is not allowed when a Session has been provided.");
 			receiver.setSession(this.session);
 		}
 		if (this.searchTermStrategy != null) {
@@ -185,6 +195,9 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
 		receiver.setSelectorExpression(selectorExpression);
+		if (StringUtils.hasText(this.userFlag)) {
+			receiver.setUserFlag(this.userFlag);
+		}
 
 		if (isPop3) {
 			if (this.isShouldMarkMessagesAsRead() && this.logger.isWarnEnabled()) {
@@ -201,6 +214,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		return receiver;
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		if (this.receiver != null && this.receiver instanceof DisposableBean) {
 			((DisposableBean) this.receiver).destroy();

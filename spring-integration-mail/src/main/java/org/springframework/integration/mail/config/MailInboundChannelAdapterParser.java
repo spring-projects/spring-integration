@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,7 +28,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;inbound-channel-adapter&gt; element of Spring Integration's 'mail' namespace.
@@ -52,6 +53,7 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "store-uri");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "protocol");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "search-term-strategy");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "user-flag");
 		String session = element.getAttribute("session");
 		if (StringUtils.hasText(session)) {
 			if (element.hasAttribute("java-mail-properties") || element.hasAttribute("authenticator")) {

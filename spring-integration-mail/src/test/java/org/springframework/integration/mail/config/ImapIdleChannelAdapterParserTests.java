@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,16 @@ import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -120,6 +121,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertEquals(2, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+		assertEquals("flagged", receiverAccessor.getPropertyValue("userFlag"));
 	}
 
 	@Test
@@ -191,6 +193,7 @@ public class ImapIdleChannelAdapterParserTests {
 	}
 	public static class TestSearchTermStrategy implements SearchTermStrategy {
 
+		@Override
 		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
 			return null;
 		}

@@ -20,3 +20,9 @@ It was completely ignored; the gateway's reply goes to the next chain element, o
 if the gateway is the last element.
 This condition is now detected and disallowed.
 If you have such configuration, simply remove the `reply-channel`.
+
+==== Mail Changes
+
+The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been
+seen is now available using the XML namespace.
+See <<imap-seen>> for more information.
