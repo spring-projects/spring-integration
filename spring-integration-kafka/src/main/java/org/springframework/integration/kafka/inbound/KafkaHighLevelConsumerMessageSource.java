@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.messaging.Message;
 
 /**
@@ -29,11 +28,12 @@ import org.springframework.messaging.Message;
  * @deprecated since 1.3 in favor of {@link KafkaMessageDrivenChannelAdapter}
  */
 @Deprecated
+@SuppressWarnings("deprecation")
 public class KafkaHighLevelConsumerMessageSource<K,V> extends IntegrationObjectSupport implements MessageSource<Map<String, Map<Integer, List<Object>>>> {
 
-	private final KafkaConsumerContext<K,V> kafkaConsumerContext;
+	private final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> kafkaConsumerContext;
 
-	public KafkaHighLevelConsumerMessageSource(final KafkaConsumerContext<K,V> kafkaConsumerContext) {
+	public KafkaHighLevelConsumerMessageSource(final org.springframework.integration.kafka.support.KafkaConsumerContext<K,V> kafkaConsumerContext) {
 		this.kafkaConsumerContext = kafkaConsumerContext;
 	}
 
