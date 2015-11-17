@@ -253,6 +253,16 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="user-flag" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify the user flag to mark messages read by the adapter when the mail store does not support
+	the RECENT flag but does support user flags (keywords). This flag is set regardless of the
+	'should-mark-messages-as-read' attribute. It can be used in the 'search-term-strategy' (and
+	is by default) to ignore already processed messages. Default: 'spring-integration-mail-adapter'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="mail-to-string-transformer">

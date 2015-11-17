@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "search-term-strategy");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "user-flag");
 		Object source = parserContext.extractSource(element);
 		String uri = element.getAttribute("store-uri");
 		if (StringUtils.hasText(uri)) {
