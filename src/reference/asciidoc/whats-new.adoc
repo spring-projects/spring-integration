@@ -13,3 +13,10 @@ development process.
 [[x4.3-general]]
 === General Changes
 
+==== Outbound Gateway within Chain
+
+Previously, it was possible to specify a `reply-channel` on an outbound gateway within a chain.
+It was completely ignored; the gateway's reply goes to the next chain element, or to the chain's output channel
+if the gateway is the last element.
+This condition is now detected and disallowed.
+If you have such configuration, simply remove the `reply-channel`.

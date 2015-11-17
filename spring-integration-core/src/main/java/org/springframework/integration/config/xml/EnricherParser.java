@@ -201,4 +201,9 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
+	@Override
+	protected boolean replyChannelInChainAllowed(Element element) {
+		return true;
+	}
+
 }
