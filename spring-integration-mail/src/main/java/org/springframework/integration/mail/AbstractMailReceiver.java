@@ -54,16 +54,11 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
-	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
-
 	/**
 	 * Default user flag for marking messages as seen by this receiver:
 	 * {@value #DEFAULT_SI_USER_FLAG}.
-	 * @deprecated - this constant will be removed in 4.3; see
-	 * {@link #setUserFlag(String)} and {@link #DEFAULT_SI_USER_FLAG}
 	 */
-	@Deprecated
-	public final static String SI_USER_FLAG = DEFAULT_SI_USER_FLAG;
+	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 

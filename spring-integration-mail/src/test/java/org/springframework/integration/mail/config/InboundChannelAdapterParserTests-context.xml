@@ -91,9 +91,9 @@
 	<mail:inbound-channel-adapter id="imapWithoutStoreUri" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false"/>
 
 	<mail:imap-idle-channel-adapter id="imapIdleWithoutStoreUri" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
-	
+
 	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadTrue" channel="testChannel" protocol="pop3" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="true"/>
-	
+
 	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadFalse" channel="testChannel" protocol="pop3" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="false"/>
 
     <mail:inbound-channel-adapter id="imapShouldMarkAsReadTrue" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="true"/>
@@ -106,7 +106,8 @@
 
 	<!--  INT-2800 -->
 
-	<mail:inbound-channel-adapter id="imapWithSearch" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false"
+	<mail:inbound-channel-adapter id="imapWithSearch" channel="testChannel" protocol="imap"
+		should-delete-messages="false" auto-startup="false" user-flag="flagged"
 		search-term-strategy="searchTermStrategy"/>
 
 	<bean id="searchTermStrategy" class="org.mockito.Mockito" factory-method="mock">

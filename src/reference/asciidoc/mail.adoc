@@ -271,7 +271,7 @@ As discussed in <<search-term>>, the default `SearchTermStrategy` will ignore me
 
 Starting with _version 4.2.2_, the name of the user flag can be set using `setUserFlag` on the `MailReceiver` - this
 allows multiple receivers to use a different flag (as long as the mail server supports user flags).
-Changing the user flag is not currently supported by the XML namespace.
+The attribute `user-flag` is available when configuring the adapter with the namespace.
 
 [[mail-filtering]]
 === Email Message Filtering
