@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,11 +95,18 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		boolean hasInputChannelAttribute = element.hasAttribute(inputChannelAttributeName);
 		if (parserContext.isNested()) {
+			String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 			if (hasInputChannelAttribute) {
-				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
 						+ "' attribute isn't allowed for a nested (e.g. inside a <chain/>) endpoint element: "
 						+ elementDescription + ".", element);
+			}
+			if (!replyChannelInChainAllowed(element)) {
+				if (StringUtils.hasText(element.getAttribute("reply-channel"))) {
+					parserContext.getReaderContext().error("The 'reply-channel' attribute isn't"
+							+ " allowed for a nested (e.g. inside a <chain/>) outbound gateway element: "
+							+ elementDescription + ".", element);
+				}
 			}
 			return handlerBeanDefinition;
 		}
@@ -166,6 +173,21 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		return null;
+	}
+
+	/**
+	 * Override to allow 'reply-channel' within a chain, for components where it
+	 * makes sense (e.g. enricher). Default is false for outbound gateways, else true.
+	 * @return true to allow a reply channel attribute within a chain.
+	 */
+	protected boolean replyChannelInChainAllowed(Element element) {
+		String localName = element.getLocalName();
+		if (localName == null) {
+			return true;
+		}
+		else {
+			return !localName.contains("outbound-gateway");
+		}
 	}
 
 }
