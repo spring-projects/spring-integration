@@ -182,7 +182,12 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	 */
 	protected boolean replyChannelInChainAllowed(Element element) {
 		String localName = element.getLocalName();
-		return localName.contains("outbound-gateway") ? false : true;
+		if (localName == null) {
+			return true;
+		}
+		else {
+			return !localName.contains("outbound-gateway");
+		}
 	}
 
 }
