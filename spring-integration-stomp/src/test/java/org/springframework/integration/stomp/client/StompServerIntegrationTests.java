@@ -214,7 +214,7 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 		activeMQBroker.start(false);
 
 		do {
-			eventMessage = stompEvents1.receive(10000);
+			eventMessage = stompEvents1.receive(20000);
 			assertNotNull(eventMessage);
 		}
 		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
