@@ -32,7 +32,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
-import org.springframework.messaging.simp.stomp.ConnectionLostException;
 import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -352,10 +351,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
 			logger.error("STOMP transport error for session: [" + session + "]", exception);
-			if (exception instanceof ConnectionLostException) {
-				this.session = null;
-				scheduleReconnect(exception);
-			}
+			this.session = null;
+			scheduleReconnect(exception);
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleTransportError(session, exception);
