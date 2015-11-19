@@ -20,12 +20,15 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +37,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.listener.BlockingQueueConsumer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +78,11 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		super("org.springframework.integration", "org.springframework.integration.amqp", "org.springframework.amqp");
 	}
 
+	@After
+	public void tearDown() {
+		new RabbitAdmin(this.factory).deleteExchange("si.fanout.foo");
+	}
+
 	@Test
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
@@ -88,14 +97,34 @@ public class ChannelTests extends LogAdjustingTestSupport {
 				}
 			}
 		});
-		channel.send(new GenericMessage<String>("foo"));
+		this.channel.send(new GenericMessage<String>("foo"));
 		latch.await(10, TimeUnit.SECONDS);
 		latch.reset();
+		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils
+				.getPropertyValue(this.channel, "container.consumers", Map.class).keySet().iterator().next();
 		factory.destroy();
-		channel.send(new GenericMessage<String>("bar"));
+		waitForNewConsumer(this.channel, consumer);
+		this.channel.send(new GenericMessage<String>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
-		channel.destroy();
+		this.channel.destroy();
 		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
+	}
+
+	private void waitForNewConsumer(PublishSubscribeAmqpChannel channel, BlockingQueueConsumer consumer)
+			throws Exception {
+		BlockingQueueConsumer newConsumer = (BlockingQueueConsumer) TestUtils
+				.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
+		int n = 0;
+		boolean newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
+				"consumerTags", Map.class).size() > 0;
+		while (n++ < 100 && !newConsumerIsConsuming) {
+			Thread.sleep(100);
+			newConsumer = (BlockingQueueConsumer) TestUtils
+					.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
+			newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
+					"consumerTags", Map.class).size() > 0;
+		}
+		assertTrue("Failed to restart consumer", n < 100);
 	}
 
 	/*
@@ -144,6 +173,10 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		channelFactoryBean.afterPropertiesSet();
 		channel = channelFactoryBean.getObject();
 		assertThat(channel, instanceOf(PublishSubscribeAmqpChannel.class));
+
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.factory);
+		rabbitAdmin.deleteQueue("testChannel");
+		rabbitAdmin.deleteExchange("si.fanout.testChannel");
 	}
 
 }

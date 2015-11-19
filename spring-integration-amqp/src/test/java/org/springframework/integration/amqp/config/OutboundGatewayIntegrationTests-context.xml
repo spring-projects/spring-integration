@@ -12,11 +12,11 @@
 
 	<rabbit:admin connection-factory="connectionFactory" />
 
-	<rabbit:queue name="si.test.queue" />
+	<rabbit:queue name="si.ob.gw.integration" auto-delete="true" />
 
-	<rabbit:direct-exchange name="si.test.exchange">
+	<rabbit:direct-exchange name="si.ob.gw.integration.ex" auto-delete="true">
 		<rabbit:bindings>
-			<rabbit:binding queue="si.test.queue" key="si.test.binding"/>
+			<rabbit:binding queue="si.ob.gw.integration" key="si.ob.gw.integration"/>
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
 
@@ -28,13 +28,13 @@
 
 	<amqp:outbound-gateway request-channel="toRabbit"
 		reply-channel="fromRabbit"
-		exchange-name="si.test.exchange"
-		routing-key="si.test.binding"
+		exchange-name="si.ob.gw.integration.ex"
+		routing-key="si.ob.gw.integration"
 		amqp-template="amqpTemplate"/>
 
 	<amqp:inbound-gateway request-channel="amqpIn"
 		connection-factory="connectionFactory"
-		queue-names="si.test.queue"/>
+		queue-names="si.ob.gw.integration"/>
 
 	<transformer input-channel="amqpIn" expression="payload.toUpperCase()"/>
 

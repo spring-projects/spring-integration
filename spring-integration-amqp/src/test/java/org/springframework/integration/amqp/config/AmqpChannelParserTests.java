@@ -32,6 +32,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class AmqpChannelParserTests {
 
 	@Autowired
