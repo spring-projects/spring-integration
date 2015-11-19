@@ -329,7 +329,7 @@ public class AmqpOutboundGatewayParserTests {
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
 			new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-headerMapper-fail-context.xml",
-					this.getClass()).close();;
+					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +

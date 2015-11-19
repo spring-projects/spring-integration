@@ -448,13 +448,13 @@ public class CachingClientConnectionFactoryTests {
 	public void integrationTest() throws Exception {
 		TestingUtilities.waitListening(serverCf, null);
 		outbound.send(new GenericMessage<String>("Hello, world!"));
-		Message<?> m = inbound.receive(1000);
+		Message<?> m = inbound.receive(10000);
 		assertNotNull(m);
 		String connectionId = m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 
 		// assert we use the same connection from the pool
 		outbound.send(new GenericMessage<String>("Hello, world!"));
-		m = inbound.receive(1000);
+		m = inbound.receive(10000);
 		assertNotNull(m);
 		assertEquals(connectionId, m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class));
 	}

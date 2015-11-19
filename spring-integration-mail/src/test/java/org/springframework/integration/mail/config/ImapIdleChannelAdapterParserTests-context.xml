@@ -18,7 +18,7 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
-	
+
 	<integration:message-history/>
 
 	<context:property-placeholder properties-ref="configProperties"/>
@@ -36,21 +36,22 @@
 			channel="channel"
 			auto-startup="false"
 			should-delete-messages="true"/>
-			
+
 	<mail:imap-idle-channel-adapter id="simpleAdapterWithErrorChannel"
 			store-uri="imap:foo"
 			channel="channel"
 			error-channel="errorChannel"
 			auto-startup="false"
 			should-delete-messages="true"/>
-			
+
 	<mail:imap-idle-channel-adapter id="simpleAdapterMarkAsRead"
 			store-uri="imap:foo"
 			channel="channel"
 			auto-startup="false"
 			should-delete-messages="true"
+			user-flag="flagged"
 			should-mark-messages-as-read="true"/>
-			
+
 	<mail:imap-idle-channel-adapter id="simpleAdapterMarkAsReadFalse"
 			store-uri="imap:foo"
 			channel="channel"
@@ -63,9 +64,9 @@
 			channel="channel"
 			auto-startup="false"
 			java-mail-properties="javaMailProperties"
-			should-delete-messages="${mail.delete}"	
+			should-delete-messages="${mail.delete}"
 			search-term-strategy="searchTermStrategy"/>
-			
+
 	<mail:imap-idle-channel-adapter id="transactionalAdapter"
 			store-uri="imap:foo"
 			channel="channel"

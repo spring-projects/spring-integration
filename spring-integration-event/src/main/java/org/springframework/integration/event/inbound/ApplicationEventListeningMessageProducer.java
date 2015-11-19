@@ -56,6 +56,10 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	private volatile long stoppedAt;
 
+	public ApplicationEventListeningMessageProducer() {
+		setPhase(Integer.MAX_VALUE / 2 - 1000);
+	}
+
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
 	 * this adapter should send to the message channel. By default, all event

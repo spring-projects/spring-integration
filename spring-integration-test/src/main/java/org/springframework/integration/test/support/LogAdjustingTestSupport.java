@@ -15,6 +15,10 @@
  */
 package org.springframework.integration.test.support;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
@@ -45,21 +49,37 @@ public class LogAdjustingTestSupport {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Logger loggerToAdjust = LogManager.getLogger("org.springframework.integration");
+	private final Collection<Logger> loggersToAdjust = new ArrayList<Logger>();
 
-	private Level oldCategory;
+	private final Collection<Level> oldCategories = new ArrayList<Level>();
+
+
+	public LogAdjustingTestSupport() {
+		this("org.springframework.integration");
+	}
+
+	public LogAdjustingTestSupport(String... loggersToAdjust) {
+		for (String loggerToAdjust : loggersToAdjust) {
+			this.loggersToAdjust.add(LogManager.getLogger(loggerToAdjust));
+		}
+	}
 
 	@Before
 	public void beforeTest() {
-		this.oldCategory = loggerToAdjust.getEffectiveLevel();
-		this.loggerToAdjust.setLevel(Level.TRACE);
+		for (Logger loggerToAdjust : this.loggersToAdjust) {
+			this.oldCategories.add(loggerToAdjust.getEffectiveLevel());
+			loggerToAdjust.setLevel(Level.TRACE);
+		}
 		this.logger.debug("!!!! Starting test: " + this.testName.getMethodName() + " !!!!");
 	}
 
 	@After
 	public void afterTest() {
 		logger.debug("!!!! Finished test: " + this.testName.getMethodName() + " !!!!");
-		this.loggerToAdjust.setLevel(this.oldCategory);
+		Iterator<Level> oldCategory = this.oldCategories.iterator();
+		for (Logger loggerToAdjust : this.loggersToAdjust) {
+			loggerToAdjust.setLevel(oldCategory.next());
+		}
 	}
 
 }

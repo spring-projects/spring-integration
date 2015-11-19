@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/stomp"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/stomp"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.3.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's STOMP adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will receive STOMP Messages using the provided
+				'StompSessionManager'.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="stompAdapterType">
+					<xsd:attribute name="destinations">
+						<xsd:annotation>
+							<xsd:documentation>
+								Comma-separated list of STOMP destination names to subscribe.
+								The list of destinations (and therefore subscriptions) can be modified at runtime
+								through the 'addDestination()' and 'removeDestination()' '@ManagedOperation's.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel">
+						<xsd:annotation>
+							<xsd:documentation>
+								Message Channel to which error Messages should be sent.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="send-timeout">
+						<xsd:annotation>
+							<xsd:documentation>
+								Maximum amount of time in milliseconds to wait when sending a message
+								to the channel if such channel may block.
+								For example, a Queue Channel can block until space is available
+								if its maximum capacity has been reached.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="payload-type" default="java.lang.String">
+						<xsd:annotation>
+							<xsd:documentation source="java:java.lang.Class">
+								Fully qualified name of the java type for the target 'payload'
+								to convert from the incoming Stomp Message.
+								Defaults to 'java.lang.String'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will send a STOMP Message to the provided
+				'StompSessionManager'.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="stompAdapterType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1"/>
+					</xsd:choice>
+					<xsd:attribute name="destination">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name of the destination to which STOMP Messages will be sent.
+								Mutually exclusive with the 'destination-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="destination-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to be evaluated at runtime against each Spring Integration Message as
+								the root object.
+								Mutually exclusive with the 'destination'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="stompAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Base type for the 'inbound-channel-adapter' and 'outbound-channel-adapter' elements.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="stomp-session-manager" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The reference to the 'StompSessionManager' bean, which encapsulates the low-level
+					connection and StompSession handling operations. Required.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+								type="org.springframework.integration.stomp.StompSessionManager"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="header-mapper">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a bean implementing 'HeaderMapper' that maps Spring Integration MessageHeaders to/from
+					STOMP frame headers.
+					This is mutually exclusive with 'mapped-headers'.
+					Defaults to StompHeaderMapper.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type=" org.springframework.integration.mapping.HeaderMapper"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapped-headers">
+			<xsd:annotation>
+				<xsd:documentation>
+					Comma-separated list of names of STOMP Headers to be mapped from/to the STOMP frame headers.
+					This can only be provided if the 'header-mapper' reference is not being set directly.
+					The values in this list can also be simple patterns to be matched against
+					the header names (e.g. "foo*" or "*foo").
+					Special tokens 'STOMP_INBOUND_HEADERS' and 'STOMP_OUTBOUND_HEADERS' represent
+					all the standard STOMP headers (content-length, receipt, heart-beat etc)
+					for the inbound and outbound channel adapters respectively;
+					they are included by default.
+					If you wish to add your own headers, you must also include these tokens if you wish the
+					standard headers to also be mapped or provide your own 'HeaderMapper'
+					implementation using 'header-mapper'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+	</xsd:complexType>
+
+</xsd:schema>

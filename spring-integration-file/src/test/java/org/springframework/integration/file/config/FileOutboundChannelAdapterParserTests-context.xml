@@ -93,12 +93,24 @@
 	<si:channel id="usageChannelConcurrent">
 		<si:dispatcher task-executor="executor"/>
 	</si:channel>
+
+
 	<file:outbound-channel-adapter channel="usageChannelConcurrent"
 								   filename-generator-expression="'fileToAppendConcurrent.txt'"
 								   mode="APPEND"
-								   directory="test"/>
+								   directory="test">
+		<file:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice">
+				<property name="onSuccessExpression" value="@fileWriteLatch.countDown()"/>
+			</bean>
+		</file:request-handler-advice-chain>
+	</file:outbound-channel-adapter>
 
 	<bean id="customFileNameGenerator" class="org.springframework.integration.file.config.CustomFileNameGenerator"/>
+
+	<bean id="fileWriteLatch" class="java.util.concurrent.CountDownLatch">
+		<constructor-arg value="2"/>
+	</bean>
 
 	<context:property-placeholder/>
 

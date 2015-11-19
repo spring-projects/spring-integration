@@ -16,10 +16,13 @@
 
 package org.springframework.integration.jms.config;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -249,6 +252,12 @@ public class JmsOutboundGatewayParserTests {
 		String result = gateway.echo("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		assertEquals("hello", result);
+		JmsOutboundGateway gw1 = context.getBean("chain1$child.gateway.handler", JmsOutboundGateway.class);
+		MessageChannel out = TestUtils.getPropertyValue(gw1, "outputChannel", MessageChannel.class);
+		assertThat(out.getClass().getSimpleName(), equalTo("ReplyForwardingMessageChannel"));
+		JmsOutboundGateway gw2 = context.getBean("chain2$child.gateway.handler", JmsOutboundGateway.class);
+		out = TestUtils.getPropertyValue(gw2, "outputChannel", MessageChannel.class);
+		assertThat(out.getClass().getName(), containsString("MessageHandlerChain$"));
 		context.close();
 	}
 

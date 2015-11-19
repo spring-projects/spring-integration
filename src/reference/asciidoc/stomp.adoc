@@ -86,10 +86,10 @@ For more information, see the JavaDocs of those classes and the `mapped-headers`
 === STOMP Integration Events
 
 Many STOMP operations are asynchronous, including error handling.
-For example, STOMP has a `RECEIPT` server frame that is returned when a client frame has requested one by addding
+For example, STOMP has a `RECEIPT` server frame that is returned when a client frame has requested one by adding
 the `RECEIPT` header.
 To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` s which can be
-obtained by implementing an `ApplicationListener` or using an event inbound channel adapter.
+obtained by implementing an `ApplicationListener` or using an `<int-event:inbound-channel-adapter>` (see <<appevent-inbound>>).
 
 Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager`, when a
 `stompSessionListenableFuture` receives `onFailure()` in case of failure to connect to STOMP Broker.
@@ -316,7 +316,7 @@ mapped or provide your own `HeaderMapper` implementation using `header-mapper`.
 
 <7> Comma-separated list of STOMP destination names to subscribe.
 The list of destinations (and therefore subscriptions) can be modified at runtime
-through the `addDestination() and `removeDestination()` `@ManagedOperation` s.
+through the `addDestination()` and `removeDestination()` `@ManagedOperation` s.
 
 
 <8> Maximum amount of time in milliseconds to wait when sending a message to the channel if the channel may block.

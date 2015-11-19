@@ -11,16 +11,20 @@
 
 	<channel id="requestChannel"/>
 
+	<channel id="replyChannel"/>
+
 	<channel id="errChannel"/>
 
 	<channel id="outputChannel">
 		<queue />
 	</channel>
 
-	<enricher id="enricher" 
-			input-channel="inputChannel" request-channel="requestChannel" 
-			output-channel="outputChannel" error-channel="errChannel">
-		<property name="name" expression="'Mr. ' + payload.name"/>
-	</enricher>
-
+	<chain input-channel="inputChannel" output-channel="outputChannel">
+		<enricher id="enricher"
+				  request-channel="requestChannel"
+				  reply-channel="replyChannel"
+				  error-channel="errChannel">
+			<property name="name" expression="'Mr. ' + payload.name"/>
+		</enricher>
+	</chain>
 </beans:beans>

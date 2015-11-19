@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,8 +50,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
-import junit.framework.AssertionFailedError;
-
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -63,9 +62,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	@After
 	public void setUpTearDown() {
 		StringRedisTemplate template = createStringRedisTemplate(getConnectionFactoryForTest());
-		template.delete("MESSAGE_GROUP_1");
-		template.delete("MESSAGE_GROUP_2");
-		template.delete("MESSAGE_GROUP_3");
+		template.delete(template.keys("MESSAGE_GROUP_*"));
 	}
 
 	@Test

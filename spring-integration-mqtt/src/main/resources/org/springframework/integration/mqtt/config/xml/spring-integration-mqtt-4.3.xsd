@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mqtt"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/mqtt"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.3.xsd" />
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for the Spring Integration
+			Mqtt Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="message-driven-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				The definition for the Spring Integration MqttAdapter
+				Inbound Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="coreMqttComponentAttributes"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topics">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies one or more (comma-delimited) topics on which to listen for messages.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="qos">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the QoS to use when subscribing to topics; default '1'. This can be single
+						value (applying to all topics); otherwise it must be a comma-delimited list corresponding
+						to the provided topics (the name number of elements must be provided).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this inbound-channel-adapter
+						will wait for the message
+						to be sent successfully to the message channel, before throwing
+						an exception.
+						This only applies when the channel might block (such as a bounded QueueChannel
+						that is full).
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a downstream exception is thrown and an error-channel is specified,
+						the MessagingException will be sent to this channel. Otherwise, any such exception
+						will be logged.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+			<xsd:annotation>
+					<xsd:documentation>
+							Defines an outbound Channel Adapter.
+					</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexType>
+				<xsd:all>
+					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+								 minOccurs="0" maxOccurs="1" />
+				</xsd:all>
+				<xsd:attributeGroup ref="coreMqttComponentAttributes"/>
+				<xsd:attribute name="channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								Channel from which messages will be output.
+								When a message is sent to this channel it will
+								cause the query
+								to be executed.
+							</xsd:documentation>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="order">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the order for invocation when this endpoint is connected as a
+							subscriber to a SubscribableChannel.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="default-topic">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the default topic to which messages will be sent. Required if an
+							outbound message does not have an 'mqtt_topic' header.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="default-qos">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the default quality of service. Default 0.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="default-retained">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the default value of the 'retained' flag. Default false.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies that sends should not block, with the thread returning
+							immediately the message is sent. When 'true', message
+							sent and message delivery events can be published; see 'async-events'.
+							Default: 'false'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="async-events">
+					<xsd:annotation>
+						<xsd:documentation>
+							When 'async' is true, specifies that message
+							sent and message delivery events will be published for reception
+							by a suitably configured 'ApplicationListener' or an event
+							inbound-channel-adapter.
+							Default: 'false'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="coreMqttComponentAttributes">
+		<xsd:attribute name="id" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the underlying Spring bean definition, which is an
+					instance of either 'EventDrivenConsumer' or 'PollingConsumer',
+					depending on whether the component's input channel is a
+					'SubscribableChannel' or 'PollableChannel'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" default="true" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that the component should start automatically
+					on startup (default true).
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="phase" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate the phase in which the component should start automatically
+					on startup. See SmartLifecycle.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:integer xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="url" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					MQTT broker URL.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="client-id" use="required" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					MQTT client ID.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation><![CDATA[
+						A message converter to convert Spring Integration Message<String> to/from
+						a paho MqttMessage. Default is DefaultMqttMessageConverter.
+					]]></xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mqtt.support.MqttMessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="client-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation><![CDATA[
+						An MqttClientFactory used to create clients and connection options if you wish to
+						override the defaults. Default is DefaultMqttClientFactory.
+					]]></xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mqtt.core.MqttPahoClientFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+</xsd:schema>

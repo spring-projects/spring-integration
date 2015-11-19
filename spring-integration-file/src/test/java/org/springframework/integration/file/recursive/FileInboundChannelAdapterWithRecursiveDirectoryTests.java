@@ -52,7 +52,7 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
 	@Autowired
 	private PollableChannel files;
 
-	@Test(timeout = 2000)
+	@Test(timeout = 10000)
 	public void shouldScanDirectoriesRecursively() throws IOException {
 
 		//when
@@ -65,7 +65,7 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(timeout = 3000)
+	@Test(timeout = 10000)
 	public void shouldReturnFilesMultipleLevels() throws IOException {
 
 		//when

@@ -30,6 +30,7 @@ import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Collections;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
@@ -45,10 +46,7 @@ import org.junit.Test;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.util.StreamUtils;
-
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * *
@@ -61,7 +59,6 @@ public class SftpServerTests {
 
 	@Test
 	public void testUcPw() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
 			server.setPasswordAuthenticator(new PasswordAuthenticator() {
@@ -71,7 +68,7 @@ public class SftpServerTests {
 					return true;
 				}
 			});
-			server.setPort(port);
+			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
@@ -81,7 +78,7 @@ public class SftpServerTests {
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
 			f.setHost("localhost");
-			f.setPort(port);
+			f.setPort(server.getPort());
 			f.setUser("user");
 			f.setPassword("pass");
 			f.setAllowUnknownKeys(true);
@@ -105,7 +102,6 @@ public class SftpServerTests {
 
 	private void testKeyExchange(String pubKey, String privKey, String passphrase)
 			throws Exception, IOException, InterruptedException {
-		final int port = SocketUtils.findAvailableServerSocket();
 		SshServer server = SshServer.setUpDefaultServer();
 		final PublicKey allowedKey = decodePublicKey(pubKey);
 		try {
@@ -117,7 +113,7 @@ public class SftpServerTests {
 				}
 
 			});
-			server.setPort(port);
+			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
@@ -127,7 +123,7 @@ public class SftpServerTests {
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
 			f.setHost("localhost");
-			f.setPort(port);
+			f.setPort(server.getPort());
 			f.setUser("user");
 			f.setAllowUnknownKeys(true);
 			InputStream stream = new ClassPathResource(privKey).getInputStream();

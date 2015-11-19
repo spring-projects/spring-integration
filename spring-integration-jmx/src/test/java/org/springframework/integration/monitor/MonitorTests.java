@@ -104,7 +104,9 @@ public class MonitorTests {
 
 		new DirectFieldAccessor(this.handler).setPropertyValue("handlerMetrics", handlerMetrics);
 
-		Integer active = new MessagingTemplate(this.input).convertSendAndReceive("foo", Integer.class);
+		MessagingTemplate messagingTemplate = new MessagingTemplate(this.input);
+		messagingTemplate.setReceiveTimeout(10000);
+		Integer active = messagingTemplate.convertSendAndReceive("foo", Integer.class);
 		assertEquals(1, active.intValue());
 		assertTrue(afterHandleLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, this.handler.getActiveCount());

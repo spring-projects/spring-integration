@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.1
  */
-public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore{
+public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 
@@ -342,8 +342,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	private SimpleMessageGroup normalizeSimpleMessageGroup(SimpleMessageGroup messageGroup){
 		SimpleMessageGroup normalizedGroup = new SimpleMessageGroup(messageGroup.getGroupId());
 		for (Message<?> message : messageGroup.getMessages()) {
-			Message<?> normailizedMessage = normalizeMessage(message);
-			normalizedGroup.add(normailizedMessage);
+			Message<?> normalizedMessage = normalizeMessage(message);
+			normalizedGroup.add(normalizedMessage);
 		}
 		return normalizedGroup;
 	}

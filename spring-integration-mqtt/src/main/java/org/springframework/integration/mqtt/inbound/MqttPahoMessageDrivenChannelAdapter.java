@@ -237,15 +237,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		if (this.client.isConnected()) {
 			this.connected = true;
-			if (this.reconnectFuture != null) {
-				cancelReconnect();
-			}
 			String message = "Connected and subscribed to " + Arrays.asList(getTopic());
 			if (logger.isDebugEnabled()) {
 				logger.debug(message);
 			}
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
+			}
+			// cancel() after the publish in case we are on that thread; a send to a QueueChannel would fail.
+			if (this.reconnectFuture != null) {
+				cancelReconnect();
 			}
 		}
 	}

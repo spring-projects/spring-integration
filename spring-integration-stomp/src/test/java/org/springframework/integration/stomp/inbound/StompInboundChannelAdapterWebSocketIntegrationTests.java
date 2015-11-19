@@ -27,17 +27,15 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.log4j.Level;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -46,10 +44,11 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.WebSocketStompSessionManager;
+import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -70,6 +69,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
@@ -90,13 +90,10 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @ContextConfiguration(classes = StompInboundChannelAdapterWebSocketIntegrationTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class StompInboundChannelAdapterWebSocketIntegrationTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework");
+public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdjustingTestSupport {
 
 	@Value("#{server.serverContext}")
-	private ApplicationContext serverContext;
+	private ConfigurableApplicationContext serverContext;
 
 	@Autowired
 	@Qualifier("stompInputChannel")
@@ -113,8 +110,16 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 	@Autowired
 	private StompInboundChannelAdapter stompInboundChannelAdapter;
 
+	public StompInboundChannelAdapterWebSocketIntegrationTests() {
+		super("org.springframework", "org.springframework.integration.stomp");
+	}
+
 	@Test
-	public void testWebSocketStompClient() throws InterruptedException {
+	public void testWebSocketStompClient() throws Exception {
+		Message<?> eventMessage = this.stompEvents.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
+
 		Message<?> receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(StompReceiptEvent.class));
@@ -122,7 +127,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertEquals(StompCommand.SUBSCRIBE, stompReceiptEvent.getStompCommand());
 		assertEquals("/topic/myTopic", stompReceiptEvent.getDestination());
 
-		waitForSubscribe("myTopic");
+		waitForSubscribe("/topic/myTopic");
 
 		SimpMessagingTemplate messagingTemplate = this.serverContext.getBean("brokerMessagingTemplate",
 				SimpMessagingTemplate.class);
@@ -154,7 +159,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		receive = this.stompEvents.receive(10000);
 		assertNotNull(receive);
 
-		waitForSubscribe("myTopic");
+		waitForSubscribe("/topic/myTopic");
 
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(10000);
@@ -165,6 +170,27 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertThat(throwable, instanceOf(MessageHandlingException.class));
 		assertThat(throwable.getCause(), instanceOf(MessageConversionException.class));
 		assertThat(throwable.getMessage(), containsString("No suitable converter, payloadType=interface java.util.Map"));
+
+		this.serverContext.close();
+
+		eventMessage = this.stompEvents.receive(10000);
+		assertNotNull(eventMessage);
+		assertThat(eventMessage.getPayload(), instanceOf(StompConnectionFailedEvent.class));
+
+		this.serverContext.refresh();
+
+		do {
+			eventMessage = this.stompEvents.receive(10000);
+			assertNotNull(eventMessage);
+		}
+		while (!(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
+
+		waitForSubscribe("/topic/myTopic");
+
+		messagingTemplate = this.serverContext.getBean("brokerMessagingTemplate", SimpMessagingTemplate.class);
+		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
+		receive = this.errorChannel.receive(10000);
+		assertNotNull(receive);
 	}
 
 	private void waitForSubscribe(String destination) throws InterruptedException {
@@ -181,18 +207,12 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
 	}
 
-	@SuppressWarnings("rawtypes")
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
-		Map sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
-		for (Object info : sessions.values()) {
-			Map subscriptions = TestUtils.getPropertyValue(info, "destinationLookup", Map.class);
-			for (Object dest : subscriptions.keySet()) {
-				if (((String) dest).contains(destination)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
+		stompHeaderAccessor.setDestination(destination);
+		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.toMessageHeaders());
+		MultiValueMap<String, String> subscriptions = subscriptionRegistry.findSubscriptions(message);
+		return !subscriptions.isEmpty();
 	}
 
 
@@ -225,6 +245,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 			WebSocketStompSessionManager webSocketStompSessionManager =
 					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
+			webSocketStompSessionManager.setRecoveryInterval(1000);
 			StompHeaders stompHeaders = new StompHeaders();
 			stompHeaders.setHeartbeat(new long[] {10000, 10000});
 			webSocketStompSessionManager.setConnectHeaders(stompHeaders);

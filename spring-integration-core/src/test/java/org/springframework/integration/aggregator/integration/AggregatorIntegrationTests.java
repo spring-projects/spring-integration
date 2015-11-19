@@ -158,7 +158,7 @@ public class AggregatorIntegrationTests {
 				Thread.sleep(100);
 			}
 			assertTrue("Group did not complete", n < 100);
-			assertNotNull(this.output.receive(1000));
+			assertNotNull(this.output.receive(10000));
 			assertNull(this.discard.receive(0));
 		}
 	}
@@ -183,7 +183,7 @@ public class AggregatorIntegrationTests {
 			}
 		}
 		assertTrue("Group did not complete", n < 100);
-		Message<?> receive = this.output.receive(1000);
+		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(Collections.singletonList(1), receive.getPayload());
 		assertNull(this.discard.receive(0));
@@ -199,7 +199,7 @@ public class AggregatorIntegrationTests {
 		// As far as 'group.size() >= 2' it will be scheduled to 'forceComplete'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(2, stubHeaders(2, 6, 1)));
 		assertNull(this.output.receive(0));
-		Message<?> receive = this.output.receive(500);
+		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(2, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
@@ -215,14 +215,14 @@ public class AggregatorIntegrationTests {
 
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(5, stubHeaders(5, 6, 1)));
 		assertNull(this.output.receive(0));
-		receive = this.output.receive(500);
+		receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(3, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
 
 		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
 		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(6, stubHeaders(6, 6, 1)));
-		receive = this.output.receive(500);
+		receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(1, ((Collection<?>) receive.getPayload()).size());
 		assertNull(this.discard.receive(0));
