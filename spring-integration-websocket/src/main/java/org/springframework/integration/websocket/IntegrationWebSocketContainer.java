@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,10 +181,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 
 		@Override
 		public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-			WebSocketSession removed = IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			if (removed != null) {
-				IntegrationWebSocketContainer.this.sessions.remove(session.getId());
-			}
+			IntegrationWebSocketContainer.this.sessions.remove(session.getId());
 			throw new Exception(exception);
 		}
 
