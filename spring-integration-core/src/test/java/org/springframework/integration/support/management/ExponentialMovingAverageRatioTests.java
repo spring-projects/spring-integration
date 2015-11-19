@@ -26,6 +26,8 @@ import org.junit.Test;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class ExponentialMovingAverageRatioTests {
@@ -42,8 +44,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetTimeSinceLastMeasurement() throws Exception {
-		history.success();
-		Thread.sleep(20L);
+		history.success(System.nanoTime() - 20000000);
 		assertThat(history.getTimeSinceLastMeasurement(), Matchers.greaterThan(0.));
 	}
 
@@ -63,8 +64,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testDecayedMean() throws Exception {
-		history.failure();
-		Thread.sleep(200L);
+		history.failure(System.nanoTime() - 200000000);
 		assertEquals(average(0, Math.exp(-0.4)), history.getMean(), 0.01);
 	}
 
