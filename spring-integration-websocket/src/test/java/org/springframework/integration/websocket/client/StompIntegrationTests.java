@@ -27,6 +27,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -84,6 +85,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -95,6 +99,9 @@ import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
+import org.springframework.web.socket.sockjs.client.Transport;
+import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
@@ -107,6 +114,9 @@ public class StompIntegrationTests {
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
+
+	@Autowired
+	private IntegrationWebSocketContainer clientWebSocketContainer;
 
 	@Autowired
 	@Qualifier("webSocketOutputChannel")
@@ -166,7 +176,7 @@ public class StompIntegrationTests {
 		assertEquals(StompCommand.RECEIPT, headers.getCommand());
 		assertEquals("myReceipt", headers.getReceiptId());
 
-		waitForSubscribe("increment");
+		waitForSubscribe("/topic/increment");
 
 		headers = StompHeaderAccessor.create(StompCommand.SEND);
 		headers.setSubscriptionId("subs1");
@@ -197,7 +207,7 @@ public class StompIntegrationTests {
 
 		this.webSocketOutputChannel.send(message);
 
-		waitForSubscribe("foo");
+		waitForSubscribe("/topic/foo");
 
 		this.webSocketOutputChannel.send(message2);
 
@@ -251,7 +261,7 @@ public class StompIntegrationTests {
 
 		this.webSocketOutputChannel.send(message);
 
-		waitForSubscribe("error");
+		waitForSubscribe("/queue/error-user" + this.clientWebSocketContainer.getSession(null).getId());
 
 		this.webSocketOutputChannel.send(message2);
 
@@ -284,7 +294,7 @@ public class StompIntegrationTests {
 
 		this.webSocketOutputChannel.send(message);
 
-		waitForSubscribe("answer");
+		waitForSubscribe("/queue/answer-user" + this.clientWebSocketContainer.getSession(null).getId());
 
 		this.webSocketOutputChannel.send(message2);
 
@@ -307,18 +317,13 @@ public class StompIntegrationTests {
 		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
 	}
 
-	@SuppressWarnings("rawtypes")
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
-		Map sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions", Map.class);
-		for (Object info : sessions.values()) {
-			Map subscriptions = TestUtils.getPropertyValue(info, "destinationLookup", Map.class);
-			for (Object dest : subscriptions.keySet()) {
-				if (((String) dest).contains(destination)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
+		stompHeaderAccessor.setDestination(destination);
+		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.toMessageHeaders());
+		Object sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions");
+		MultiValueMap<String, String> subscriptions = subscriptionRegistry.findSubscriptions(message);
+		return !subscriptions.isEmpty();
 	}
 
 	@Configuration
@@ -331,8 +336,13 @@ public class StompIntegrationTests {
 		}
 
 		@Bean
+		public WebSocketClient webSocketClient() {
+			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
+		}
+
+		@Bean
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
-			return new ClientWebSocketContainer(new StandardWebSocketClient(), server().getWsBaseUrl() + "/ws/websocket");
+			return new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
 		}
 
 		@Bean
