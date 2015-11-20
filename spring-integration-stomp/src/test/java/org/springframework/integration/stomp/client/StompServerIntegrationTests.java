@@ -75,7 +75,8 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 
 
 	public StompServerIntegrationTests() {
-		super("org.springframework", "org.springframework.integration.stomp");
+		super("org.springframework", "org.springframework.integration.stomp",
+				"org.apache.activemq.broker", "reactor.io", "io.netty");
 	}
 
 	@BeforeClass

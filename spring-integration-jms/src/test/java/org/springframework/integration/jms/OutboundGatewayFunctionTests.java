@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -55,7 +56,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @since 2.2
  *
  */
-public class OutboundGatewayFunctionTests {
+public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 	private static Destination requestQueue1 = new ActiveMQQueue("request1");
 
