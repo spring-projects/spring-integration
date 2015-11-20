@@ -449,13 +449,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					logger.warn("Missing group row for message id: " + message.getHeaders().getId());
 				}
 			}
-			return new SimpleMessageGroup(groupId);
+			return getSimpleMessageGroupFactory().create(groupId);
 		}
 
 		long timestamp = createDate.get().getTime();
 		boolean complete = completeFlag.get();
 
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
+		SimpleMessageGroup messageGroup = getSimpleMessageGroupFactory()
+				.create(messages, groupId, timestamp, complete);
 		messageGroup.setLastModified(updateDate.get().getTime());
 
 		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();

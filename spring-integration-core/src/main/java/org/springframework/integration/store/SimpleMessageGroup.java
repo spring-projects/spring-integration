@@ -17,10 +17,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id.
@@ -39,7 +39,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object groupId;
 
-	private final Set<Message<?>> messages;
+	private final Collection<Message<?>> messages;
 
 	private final long timestamp;
 
@@ -50,47 +50,36 @@ public class SimpleMessageGroup implements MessageGroup {
 	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
-		this(groupId, false);
-	}
-
-	public SimpleMessageGroup(Object groupId, boolean unsynchronized) {
-		this(Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false, unsynchronized);
+		this(Collections.<Message<?>> emptyList(), groupId);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
 		this(messages, groupId, System.currentTimeMillis(), false);
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-	                          boolean complete) {
-		this(messages, groupId, timestamp, complete, false);
+	public SimpleMessageGroup(MessageGroup messageGroup) {
+		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(),
+				messageGroup.isComplete());
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-	                          boolean complete, boolean unsynchronized) {
+	                          boolean complete) {
+		this(new LinkedHashSet<Message<?>>(), messages, groupId, timestamp, complete);
+	}
+
+	SimpleMessageGroup(Collection<Message<?>> internalStore, Collection<? extends Message<?>> messages, Object groupId,
+	                   long timestamp, boolean complete) {
+		Assert.notNull(internalStore, "'internalStore' must not be null");
+		Assert.notNull(messages, "'messages' must not be null");
+		this.messages = internalStore;
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
-		if (unsynchronized) {
-			this.messages = new LinkedHashSet<Message<?>>();
-		}
-		else {
-			this.messages = Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
-		}
 		for (Message<?> message : messages) {
-			if (message != null) { //see INT-2666
+			if (message != null){ //see INT-2666
 				addMessage(message);
 			}
 		}
-	}
-
-	public SimpleMessageGroup(MessageGroup messageGroup) {
-		this(messageGroup, false);
-	}
-
-	public SimpleMessageGroup(MessageGroup messageGroup, boolean unsynchronized) {
-		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(),
-				messageGroup.isComplete(), unsynchronized);
 	}
 
 	@Override
@@ -168,8 +157,10 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Message<?> getOne() {
-		Iterator<Message<?>> iterator = this.messages.iterator();
-		return iterator.hasNext() ? iterator.next() : null;
+		synchronized (this.messages) {
+			Iterator<Message<?>> iterator = this.messages.iterator();
+			return iterator.hasNext() ? iterator.next() : null;
+		}
 	}
 
 	public void clear(){

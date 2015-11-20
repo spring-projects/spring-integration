@@ -202,7 +202,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
-			return new SimpleMessageGroup(groupId, true);
+			return getSimpleMessageGroupFactory().create(groupId);
 		}
 		if (this.copyOnGet) {
 			return copy(group);
@@ -218,7 +218,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup simpleMessageGroup = new SimpleMessageGroup(group, true);
+				SimpleMessageGroup simpleMessageGroup = getSimpleMessageGroupFactory().create(group);
 				simpleMessageGroup.setLastModified(group.getLastModified());
 				return simpleMessageGroup;
 			}
@@ -242,7 +242,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 				UpperBound upperBound;
 				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				if (group == null) {
-					group = new SimpleMessageGroup(groupId, true);
+					group = getSimpleMessageGroupFactory().create(groupId);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 					upperBound = new UpperBound(this.groupCapacity);
 					upperBound.tryAcquire(-1);
@@ -413,7 +413,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Message<?> pollMessageFromGroup(Object groupId) {
-		Collection<Message<?>> messageList = this.getMessageGroup(groupId).getMessages();
+		Collection<Message<?>> messageList = getMessageGroup(groupId).getMessages();
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)) {
 			message = messageList.iterator().next();
@@ -426,17 +426,17 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public int messageGroupSize(Object groupId) {
-		return this.getMessageGroup(groupId).size();
+		return getMessageGroup(groupId).size();
 	}
 
 	@Override
 	public MessageGroupMetadata getGroupMetadata(Object groupId) {
-		return new MessageGroupMetadata(this.getMessageGroup(groupId));
+		return new MessageGroupMetadata(getMessageGroup(groupId));
 	}
 
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
-		return this.getMessageGroup(groupId).getOne();
+		return getMessageGroup(groupId).getOne();
 	}
 
 	public void clearMessageGroup(Object groupId) {

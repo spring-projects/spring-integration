@@ -329,8 +329,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 				}
 			}
 
-			SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages,
-						groupId, messageGroupMetadata.getTimestamp(), messageGroupMetadata.isComplete());
+			SimpleMessageGroup messageGroup = getSimpleMessageGroupFactory()
+					.create(messages, groupId, messageGroupMetadata.getTimestamp(), messageGroupMetadata.isComplete());
 			messageGroup.setLastModified(messageGroupMetadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(messageGroupMetadata.getLastReleasedMessageSequenceNumber());
 			return messageGroup;
@@ -345,12 +345,12 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			return (SimpleMessageGroup) messageGroup;
 		}
 		else {
-			return new SimpleMessageGroup(messageGroup);
+			return getSimpleMessageGroupFactory().create(messageGroup);
 		}
 	}
 
 	private SimpleMessageGroup normalizeSimpleMessageGroup(SimpleMessageGroup messageGroup){
-		SimpleMessageGroup normalizedGroup = new SimpleMessageGroup(messageGroup.getGroupId());
+		SimpleMessageGroup normalizedGroup = getSimpleMessageGroupFactory().create(messageGroup.getGroupId());
 		for (Message<?> message : messageGroup.getMessages()) {
 			Message<?> normalizedMessage = normalizeMessage(message);
 			normalizedGroup.add(normalizedMessage);

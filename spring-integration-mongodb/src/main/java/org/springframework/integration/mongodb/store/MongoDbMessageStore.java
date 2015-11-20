@@ -264,7 +264,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			messages.add(messageWrapper.getMessage());
 		}
 
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
+		SimpleMessageGroup messageGroup = getSimpleMessageGroupFactory().create(messages, groupId, timestamp, completeGroup);
 		messageGroup.setLastModified(lastModified);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
