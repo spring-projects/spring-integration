@@ -23,6 +23,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -138,27 +140,45 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	protected boolean asyncSendMessage(final DatagramPacket packet) {
-		this.getTaskExecutor().execute(new Runnable(){
-			@Override
-			public void run() {
-				Message<byte[]> message = null;
-				try {
-					message = mapper.toMessage(packet);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Received:" + message);
+		Executor taskExecutor = getTaskExecutor();
+		if (taskExecutor != null) {
+			try {
+				taskExecutor.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						doSend(packet);
+
 					}
+				});
+			}
+			catch (RejectedExecutionException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Adapter stopped, sending on main thread");
 				}
-				catch (Exception e) {
-					logger.error("Failed to map packet to message ", e);
-				}
-				if (message != null) {
-					if (message.getHeaders().containsKey(IpHeaders.ACK_ADDRESS)) {
-						sendAck(message);
-					}
-					sendMessage(message);
-				}
-			}});
+				doSend(packet);
+			}
+		}
 		return true;
+	}
+
+	protected void doSend(final DatagramPacket packet) {
+		Message<byte[]> message = null;
+		try {
+			message = mapper.toMessage(packet);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received:" + message);
+			}
+		}
+		catch (Exception e) {
+			logger.error("Failed to map packet to message ", e);
+		}
+		if (message != null) {
+			if (message.getHeaders().containsKey(IpHeaders.ACK_ADDRESS)) {
+				sendAck(message);
+			}
+			sendMessage(message);
+		}
 	}
 
 	protected DatagramPacket receive() throws Exception {
@@ -242,4 +262,5 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public String getComponentType(){
 		return "ip:udp-inbound-channel-adapter";
 	}
+
 }
