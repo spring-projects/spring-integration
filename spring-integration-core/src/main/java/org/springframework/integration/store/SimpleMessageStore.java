@@ -56,6 +56,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private final int groupCapacity;
 
+	private final int individualCapacity;
+
 	private final UpperBound individualUpperBound;
 
 	private volatile LockRegistry lockRegistry;
@@ -119,6 +121,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	                          LockRegistry lockRegistry) {
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.individualUpperBound = new UpperBound(individualCapacity);
+		this.individualCapacity = individualCapacity;
 		this.groupCapacity = groupCapacity;
 		this.lockRegistry = lockRegistry;
 		this.upperBoundTimeout = upperBoundTimeout;
@@ -166,7 +169,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		this.isUsed = true;
 		if (!individualUpperBound.tryAcquire(this.upperBoundTimeout)) {
 			throw new MessagingException(this.getClass().getSimpleName()
-					+ " was out of capacity at, try constructing it with a larger capacity.");
+					+ " was out of capacity ("
+					+ this.individualCapacity
+					+ "), try constructing it with a larger capacity.");
 		}
 		this.idToMessage.put(message.getHeaders().getId(), message);
 		return message;
@@ -250,8 +255,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 					if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
 						unlocked = true;
 						throw new MessagingException(this.getClass().getSimpleName()
-								+ " was out of capacity at for individual group, " +
-								"try constructing it with a larger capacity.");
+								+ " was out of capacity ("
+								+ this.groupCapacity
+								+ ") for group '"
+								+ groupId
+								+ "', try constructing it with a larger capacity.");
 					}
 					lock.lockInterruptibly();
 				}

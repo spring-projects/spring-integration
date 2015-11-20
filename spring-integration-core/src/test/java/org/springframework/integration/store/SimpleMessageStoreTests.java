@@ -81,7 +81,7 @@ public class SimpleMessageStoreTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity at"));
+			assertThat(e.getMessage(), containsString("was out of capacity (1)"));
 		}
 		store.removeMessage(testMessage2.getHeaders().getId());
 		try {
@@ -90,7 +90,7 @@ public class SimpleMessageStoreTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity at"));
+			assertThat(e.getMessage(), containsString("was out of capacity (1)"));
 		}
 		store.removeMessage(testMessage1.getHeaders().getId());
 		store.addMessage(testMessage2);
@@ -204,7 +204,7 @@ public class SimpleMessageStoreTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity at"));
+			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
 		}
 		store.removeMessageFromGroup("foo", testMessage2);
 		try {
@@ -213,7 +213,7 @@ public class SimpleMessageStoreTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessagingException.class));
-			assertThat(e.getMessage(), containsString("was out of capacity at"));
+			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
 		}
 		store.removeMessageFromGroup("foo", testMessage1);
 		store.addMessageToGroup("foo", testMessage2);
