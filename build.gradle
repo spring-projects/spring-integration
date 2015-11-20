@@ -401,6 +401,10 @@ project('spring-integration-ip') {
 		compile project(":spring-integration-core")
 		testCompile project(":spring-integration-stream")
 	}
+
+	test {
+		jvmArgs '-Djava.net.preferIPv4Stack=true' // Multicast on OS X
+	}
 }
 
 project('spring-integration-jdbc') {

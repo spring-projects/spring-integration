@@ -12,19 +12,19 @@
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
-	
+
 	<message-history/>
-	<!--  
-		Play with the buffer size to force errors. If the checkLength property is 
+	<!--
+		Play with the buffer size to force errors. If the checkLength property is
 		set and this buffer is too small, we'll throw an exception.
 	-->
 	<ip:udp-inbound-channel-adapter id="udpReceiver"
 		channel="udpOutChannel"
-		port="11111"
+		port="0"
 		receive-buffer-size="500"
 		multicast="false"
 		check-length="true" />
 
 	<beans:import resource="testIp-common-context.xml" />
-	
+
 </beans:beans>

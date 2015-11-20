@@ -4,14 +4,14 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:stream="http://www.springframework.org/schema/integration/stream"
 	xmlns:ip="http://www.springframework.org/schema/integration/ip"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/stream
-			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
-			http://www.springframework.org/schema/integration/ip
-			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<context:property-placeholder />
 
 	<stream:stdin-channel-adapter id="stdin" channel="outputChannel" >
 		<poller fixed-delay="100"/>
@@ -28,11 +28,11 @@
 
 	<chain input-channel="outputChannel">
 		<ip:udp-outbound-channel-adapter host="localhost"
-										 port="11111"
+										 port="${port}"
 										 check-length="true"
 										 acknowledge="true"
 										 ack-host="localhost"
-										 ack-port="22223"
+										 ack-port="0"
 										 ack-timeout="10000"/>
 	</chain>
 

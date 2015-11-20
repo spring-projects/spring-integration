@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -61,22 +62,26 @@ public class UdpChannelAdapterTests {
 
 	@Test
 	public void testUnicastReceiver() throws Exception {
-		testUnicastReceiver(false);
+		testUnicastReceiver(false, false);
+	}
+
+	@Test
+	public void testUnicastReceiverLocalNicOnly() throws Exception {
+		testUnicastReceiver(false, true);
 	}
 
 	@Test
 	public void testUnicastReceiverDeadExecutor() throws Exception {
-		testUnicastReceiver(true);
+		testUnicastReceiver(true, false);
 	}
 
-	private void testUnicastReceiver(final boolean killExecutor) throws Exception {
+	private void testUnicastReceiver(final boolean killExecutor, boolean useLocalAddress) throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
 		final CountDownLatch stopLatch = new CountDownLatch(1);
 		final CountDownLatch exitLatch = new CountDownLatch(1);
 		final AtomicBoolean stopping = new AtomicBoolean();
 		final AtomicReference<Exception> exceptionHolder = new AtomicReference<Exception>();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port) {
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0) {
 
 			@Override
 			public boolean isActive() {
@@ -130,9 +135,12 @@ public class UdpChannelAdapterTests {
 
 		};
 		adapter.setOutputChannel(channel);
-//		SocketUtils.setLocalNicIfPossible(adapter);
+		if (useLocalAddress) {
+			adapter.setLocalAddress("127.0.0.1");
+		}
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
+		int port = adapter.getPort();
 
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -157,11 +165,11 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiverWithReply() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
+		int port = adapter.getPort();
 
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -211,13 +219,13 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setBeanName("test");
 		adapter.setOutputChannel(channel);
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
+		int port = adapter.getPort();
 
 //		String whichNic = SocketUtils.chooseANic(false);
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
@@ -238,20 +246,20 @@ public class UdpChannelAdapterTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
 	public void testMulticastReceiver() throws Exception {
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
-		MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.8", port);
+		MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.8", 0);
 		adapter.setOutputChannel(channel);
-		String nic = SocketTestUtils.chooseANic(true);
-		if (nic == null) {	// no multicast support
-			LogFactory.getLog(this.getClass()).error("No Multicast support");
+		String nic = checkMulticast();
+		if (nic == null) {
 			return;
 		}
 		adapter.setLocalAddress(nic);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
+		int port = adapter.getPort();
 
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -267,16 +275,33 @@ public class UdpChannelAdapterTests {
 		adapter.stop();
 	}
 
+	private String checkMulticast() throws Exception {
+		String nic = SocketTestUtils.chooseANic(true);
+		if (nic == null) {	// no multicast support
+			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
+			return null;
+		}
+		try {
+			MulticastSocket socket = new MulticastSocket();
+			socket.joinGroup(InetAddress.getByName("225.6.7.9"));
+			socket.close();
+		}
+		catch (Exception e) {
+			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
+		}
+		return nic;
+	}
+
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
 	public void testMulticastSender() throws Exception {
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		QueueChannel channel = new QueueChannel(2);
 		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.9", port);
 		adapter.setOutputChannel(channel);
-		String nic = SocketTestUtils.chooseANic(true);
-		if (nic == null) {	// no multicast support
-			LogFactory.getLog(this.getClass()).error("No Multicast support");
+		String nic = checkMulticast();
+		if (nic == null) {
 			return;
 		}
 		adapter.setLocalAddress(nic);
@@ -297,8 +322,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiverException() throws Exception {
 		SubscribableChannel channel = new DirectChannel();
-		int port = SocketUtils.findAvailableUdpSocket();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.setOutputChannel(channel);
@@ -308,6 +332,7 @@ public class UdpChannelAdapterTests {
 		adapter.setErrorChannel(errorChannel);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
+		int port = adapter.getPort();
 
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
