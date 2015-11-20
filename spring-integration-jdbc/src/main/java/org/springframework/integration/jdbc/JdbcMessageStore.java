@@ -465,6 +465,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToRemove.getHeaders().getId());

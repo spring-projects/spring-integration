@@ -349,7 +349,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			synchronized (this.messageGroupId) {
 				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
 				if (messages.contains(message)) {
-					this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
+					this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
 					return true;
 				}
 				else {

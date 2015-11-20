@@ -132,6 +132,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 * Remove a Message from the group with the provided group ID.
 	 */
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");

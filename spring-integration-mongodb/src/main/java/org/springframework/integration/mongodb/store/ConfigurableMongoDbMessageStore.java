@@ -201,6 +201,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(final Object groupId, final Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");

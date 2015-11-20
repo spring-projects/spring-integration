@@ -88,7 +88,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param groupCapacity      The capacity of each group.
 	 * @param upperBoundTimeout  The time to wait if the store is at max capacity.
 	 * @see #SimpleMessageStore(int, int)
-	 * @since 3.0.8
+	 * @since 4.3
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout) {
 		this(individualCapacity, groupCapacity, upperBoundTimeout, new DefaultLockRegistry());
@@ -115,7 +115,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @param groupCapacity      The capacity of each group.
 	 * @param upperBoundTimeout  The time to wait if the store is at max capacity
 	 * @param lockRegistry       The lock registry.
-	 * @since 3.0.8
+	 * @since 4.3
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
 	                          LockRegistry lockRegistry) {
@@ -303,6 +303,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {

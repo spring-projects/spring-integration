@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.store;
 
 import static org.junit.Assert.assertEquals;
@@ -54,7 +55,6 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
- *
  */
 public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
@@ -190,7 +190,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
 		assertEquals(3, messageGroup.size());
 
-		messageGroup = store.removeMessageFromGroup(1, message);
+		store.removeMessagesFromGroup(1, message);
+		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
 
 		// make sure the store is properly rebuild from Redis
@@ -235,7 +236,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
 	@Test
@@ -243,7 +244,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{
 		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
 
@@ -264,7 +265,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		RedisMessageStore store3 = new RedisMessageStore(jcf);
 
-		messageGroup = store3.removeMessageFromGroup(1, message);
+		store3.removeMessagesFromGroup(1, message);
+		messageGroup = store3.getMessageGroup(1);
 
 		assertEquals(1, messageGroup.getMessages().size());
 	}
@@ -340,7 +342,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.execute(new Runnable() {
 				@Override
 				public void run() {
-					MessageGroup group = store2.removeMessageFromGroup(1, message);
+					store2.removeMessagesFromGroup(1, message);
+					MessageGroup group = store2.getMessageGroup(1);
 					if (group.getMessages().size() != 0){
 						failures.add("REMOVE");
 						throw new AssertionFailedError("Failed on Remove");
@@ -350,7 +353,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 			executor.shutdown();
 			executor.awaitTermination(10, TimeUnit.SECONDS);
-			store2.removeMessageFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
+			store2.removeMessagesFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
 		assertTrue(failures.size() == 0);
 	}

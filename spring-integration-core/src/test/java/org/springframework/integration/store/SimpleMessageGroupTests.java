@@ -36,7 +36,7 @@ import org.springframework.util.StopWatch;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
- * @author Artenm Bilan
+ * @author Artem Bilan
  */
 public class SimpleMessageGroupTests {
 
@@ -75,7 +75,7 @@ public class SimpleMessageGroupTests {
 		assertThat(group.canAdd(message1), is(true));
 	}
 
-	@Test // shoud not fail with NPE (see INT-2666)
+	@Test // should not fail with NPE (see INT-2666)
 	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() throws Exception{
 		Message<?> m1 = mock(Message.class);
 		Message<?> m2 = mock(Message.class);

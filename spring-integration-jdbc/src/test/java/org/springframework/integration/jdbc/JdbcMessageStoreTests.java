@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,7 +243,7 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.removeMessageFromGroup(groupId, message);
+		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
@@ -532,14 +532,12 @@ public class JdbcMessageStoreTests {
 		messageStore.completeGroup(messageGroup.getGroupId());
 		//now clear the messages
 		for (Message<?> message : messageGroup.getMessages()) {
-			messageStore.removeMessageFromGroup(groupId, message);
+			messageStore.removeMessagesFromGroup(groupId, message);
 		}//end for
 		//'add' the other message --> emulated by getting the messageGroup
 		messageGroup = messageStore.getMessageGroup(groupId);
 		//should be marked 'complete' --> old behavior it would not
 		assertTrue(messageGroup.isComplete());
 	}
-
-
 
 }

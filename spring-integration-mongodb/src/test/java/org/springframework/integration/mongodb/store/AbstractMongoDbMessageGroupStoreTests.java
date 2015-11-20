@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mongodb.store;
 
 import static org.junit.Assert.assertEquals;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.mongodb.MongoClient;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -47,13 +49,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
-import com.mongodb.MongoClient;
-
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Amol Nayak
- *
+ * @author Artem Bilan
  */
 public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 
@@ -197,22 +197,22 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertEquals(1, store.messageGroupSize(2));
 		assertEquals(1, store.messageGroupSize(3));
 		assertEquals(1, store.messageGroupSize(4));
-		store.removeMessageFromGroup(3, messageA);
+		store.removeMessagesFromGroup(3, messageA);
 		assertEquals(1, store.messageGroupSize(1));
 		assertEquals(1, store.messageGroupSize(2));
 		assertEquals(0, store.messageGroupSize(3));
 		assertEquals(1, store.messageGroupSize(4));
-		store.removeMessageFromGroup(4, messageA);
+		store.removeMessagesFromGroup(4, messageA);
 		assertEquals(1, store.messageGroupSize(1));
 		assertEquals(1, store.messageGroupSize(2));
 		assertEquals(0, store.messageGroupSize(3));
 		assertEquals(0, store.messageGroupSize(4));
-		store.removeMessageFromGroup(2, messageA);
+		store.removeMessagesFromGroup(2, messageA);
 		assertEquals(1, store.messageGroupSize(1));
 		assertEquals(0, store.messageGroupSize(2));
 		assertEquals(0, store.messageGroupSize(3));
 		assertEquals(0, store.messageGroupSize(4));
-		store.removeMessageFromGroup(1, messageA);
+		store.removeMessagesFromGroup(1, messageA);
 		assertEquals(0, store.messageGroupSize(1));
 		assertEquals(0, store.messageGroupSize(2));
 		assertEquals(0, store.messageGroupSize(3));
@@ -262,7 +262,8 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertNotNull(messageGroup);
 		assertEquals(2, messageGroup.size());
 
-		messageGroup = store.removeMessageFromGroup(1, messageA);
+		store.removeMessagesFromGroup(1, messageA);
+		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.size());
 
 		// validate that the updates were propagated to Mongo as well
@@ -339,7 +340,8 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertNotNull(messageGroup);
 		assertEquals(3, messageGroup.size());
 
-		messageGroup = store.removeMessageFromGroup(1, message);
+		store.removeMessagesFromGroup(1, message);
+		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
 	}
 
@@ -363,7 +365,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertNotNull(messageGroup);
 		assertEquals(3, messageGroup.size());
 
-		store3.removeMessageFromGroup(1, message);
+		store3.removeMessagesFromGroup(1, message);
 
 		messageGroup = store2.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
@@ -391,7 +393,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		}
 		assertEquals(3, counter);
 
-		store2.removeMessageFromGroup(1, message);
+		store2.removeMessagesFromGroup(1, message);
 
 		iterator = store3.iterator();
 		counter = 0;

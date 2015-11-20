@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.gemfire.store;
 
 import static org.junit.Assert.assertEquals;
@@ -29,6 +30,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
+import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,16 +54,11 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.Scope;
-
-import junit.framework.AssertionFailedError;
-
 /**
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class GemfireGroupStoreTests {
@@ -119,7 +119,7 @@ public class GemfireGroupStoreTests {
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(3, messageGroup.size());
 
-		messageGroup = store.removeMessageFromGroup(messageGroup.getGroupId(), message);
+		store.removeMessagesFromGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
 
@@ -163,14 +163,14 @@ public class GemfireGroupStoreTests {
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
 	@Test
 	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.region);
 		store.afterPropertiesSet();
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
 	@Test
@@ -214,7 +214,8 @@ public class GemfireGroupStoreTests {
 		GemfireMessageStore store3 = new GemfireMessageStore(this.region);
 		store3.afterPropertiesSet();
 
-		messageGroup = store3.removeMessageFromGroup(1, message);
+		store3.removeMessagesFromGroup(1, message);
+		messageGroup = store3.getMessageGroup(1);
 
 		assertEquals(1, messageGroup.getMessages().size());
 	}
@@ -308,7 +309,8 @@ public class GemfireGroupStoreTests {
 			executor.execute(new Runnable() {
 				@Override
 				public void run() {
-					MessageGroup group = store2.removeMessageFromGroup(1, message);
+					store2.removeMessagesFromGroup(1, message);
+					MessageGroup group = store2.getMessageGroup(1);
 					if (group.getMessages().size() != 0) {
 						failures.add("REMOVE");
 						throw new AssertionFailedError("Failed on Remove");
@@ -318,7 +320,7 @@ public class GemfireGroupStoreTests {
 
 			executor.shutdown();
 			executor.awaitTermination(10, TimeUnit.SECONDS);
-			store2.removeMessageFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
+			store2.removeMessagesFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
 		assertTrue(failures.size() == 0);
 	}

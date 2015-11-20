@@ -28,6 +28,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
+import com.mongodb.DBObject;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -74,11 +79,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BulkWriteOperation;
-import com.mongodb.DBObject;
 
 
 /**
@@ -305,6 +305,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	@Deprecated
 	public MessageGroup removeMessageFromGroup(final Object groupId, final Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");

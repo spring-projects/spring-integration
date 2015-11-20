@@ -57,7 +57,9 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * @param key The groupId for the group containing the message.
 	 * @param messageToRemove The message to be removed.
 	 * @return The message Group.
+	 * @deprecated in favor of {@link #removeMessagesFromGroup}
 	 */
+	@Deprecated
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
 
 	/**

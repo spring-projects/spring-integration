@@ -277,7 +277,7 @@ public class MySqlJdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.removeMessageFromGroup(groupId, message);
+		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}

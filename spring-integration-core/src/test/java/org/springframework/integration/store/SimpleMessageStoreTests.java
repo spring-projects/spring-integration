@@ -166,7 +166,7 @@ public class SimpleMessageStoreTests {
 		});
 		// Simulate a blocked consumer
 		Thread.sleep(10);
-		store2.removeMessageFromGroup("foo", testMessage1);
+		store2.removeMessagesFromGroup("foo", testMessage1);
 
 		assertTrue(message2Latch.await(10, TimeUnit.SECONDS));
 		MessageGroup messageGroup = store2.getMessageGroup("foo");
@@ -206,7 +206,7 @@ public class SimpleMessageStoreTests {
 			assertThat(e, instanceOf(MessagingException.class));
 			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
 		}
-		store.removeMessageFromGroup("foo", testMessage2);
+		store.removeMessagesFromGroup("foo", testMessage2);
 		try {
 			store.addMessageToGroup("foo", testMessage2);
 			fail("Should have thrown");
@@ -215,7 +215,7 @@ public class SimpleMessageStoreTests {
 			assertThat(e, instanceOf(MessagingException.class));
 			assertThat(e.getMessage(), containsString("was out of capacity (1) for group 'foo'"));
 		}
-		store.removeMessageFromGroup("foo", testMessage1);
+		store.removeMessagesFromGroup("foo", testMessage1);
 		store.addMessageToGroup("foo", testMessage2);
 	}
 
@@ -234,7 +234,8 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
 		Message<?> testMessage2 = store.getMessageGroup("bar").getOne();
-		MessageGroup group = store.removeMessageFromGroup("bar", testMessage2);
+		store.removeMessagesFromGroup("bar", testMessage2);
+		MessageGroup group = store.getMessageGroup("bar");
 		assertEquals(0, group.size());
 		assertEquals(0, store.getMessageGroup("bar").size());
 	}
