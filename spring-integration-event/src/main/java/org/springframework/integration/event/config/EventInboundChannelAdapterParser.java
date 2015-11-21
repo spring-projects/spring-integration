@@ -39,7 +39,7 @@ public class EventInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 				.rootBeanDefinition(ApplicationEventListeningMessageProducer.class);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression",
 				"payloadExpressionString");

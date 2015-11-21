@@ -20,7 +20,7 @@
 			 input-channel="input"
 			 output-channel="output"
 			 default-delay="1234"
-			 delay-header-name="foo"
+			 expression="headers.foo"
 			 order="99"
 			 send-timeout="987"/>
 

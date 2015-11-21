@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
@@ -70,7 +71,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				element.getAttribute("default-channel") : IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
 		rootBuilder.addConstructorArgValue(spelSourceBuilder.getBeanDefinition());
 		rootBuilder.addPropertyReference("channelResolver", chResolverName);
-		rootBuilder.addPropertyReference("defaultChannel", defaultChannel);
+		rootBuilder.addPropertyValue("defaultChannelName", defaultChannel);
 		return rootBuilder.getBeanDefinition();
 	}
 
@@ -104,7 +105,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 					String expression = headerElement.getAttribute("expression");
 					boolean hasValue = StringUtils.hasText(value);
 					boolean hasExpression = StringUtils.hasText(expression);
-					if (!(hasValue ^ hasExpression)) {
+					if (hasValue == hasExpression) {
 						parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on the <header> element",
 								parserContext.extractSource(headerElement));
 						continue;

@@ -58,9 +58,22 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 *
 	 * @param messageStoreRegion The region.
 	 */
-	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
+	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
 		cache = null;
 		this.messageStoreRegion = messageStoreRegion;
+	}
+    /**
+     * Provides a cache reference used to create a message store region named
+     * 'messageStoreRegion'
+     *
+     * @param cache The cache.
+     *
+     * @deprecated - use the other constructor and provide a region directly.
+     */
+	@Deprecated
+	public GemfireMessageStore(Cache cache) {
+		Assert.notNull(cache, "'cache' must not be null");
+		this.cache = cache;
 	}
 
 	public void setIgnoreJta(boolean ignoreJta) {

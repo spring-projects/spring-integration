@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -24,6 +24,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -36,7 +37,9 @@ import com.gemstone.gemfire.internal.cache.DistributedRegion;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class GemfireInboundChannelAdapterTests {
+
 	@Autowired
 	SubscribableChannel channel1;
 
@@ -57,8 +60,6 @@ public class GemfireInboundChannelAdapterTests {
 
 	@Autowired
 	DistributedRegion region3;
-
-
 
 	@Test
 	public void testGemfireInboundChannelAdapterWithExpression() {
@@ -96,23 +97,27 @@ public class GemfireInboundChannelAdapterTests {
 		region3.put("payload", "payload");
 
 		assertEquals(1, errorHandler.count);
-
 	}
 
 	static class ErrorHandler implements MessageHandler {
+
 		public int count = 0;
 
 		public void handleMessage(Message<?> message) throws MessagingException {
 			assertTrue(message instanceof ErrorMessage);
 			count++;
 		}
+
 	}
 
 	static class EventHandler implements MessageHandler {
+
 		public Object event = null;
+
 		public void handleMessage(Message<?> message) throws MessagingException {
 			event = message.getPayload();
 		}
+
 	}
 
 }
