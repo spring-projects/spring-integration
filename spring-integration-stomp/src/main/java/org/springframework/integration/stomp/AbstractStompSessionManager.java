@@ -165,6 +165,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	private void connect() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Connecting " + this);
+		}
 		this.connecting = true;
 		this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
@@ -191,7 +194,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private void scheduleReconnect(Throwable e) {
 		this.connecting = this.connected = false;
-		logger.error("STOMP connect error.", e);
+		logger.error("STOMP connect error for " + this, e);
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
 					new StompConnectionFailedEvent(this, e));

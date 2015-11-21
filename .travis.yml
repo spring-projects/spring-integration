@@ -8,4 +8,4 @@ services:
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true
 script:
-  - ./gradlew  :spring-integration-stomp:test --debug
+  - ./gradlew  :spring-integration-stomp:test -Dtest.single=StompServerIntegrationTests --debug
