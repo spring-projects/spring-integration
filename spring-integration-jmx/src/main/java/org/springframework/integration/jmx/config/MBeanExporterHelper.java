@@ -62,6 +62,11 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered {
 			}
 		}
 
+		return bean;
+	}
+
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (AnnotatedElementUtils.isAnnotated(AopUtils.getTargetClass(bean),
 				IntegrationManagedResource.class.getName())) {
 			this.siBeanNames.add(beanName);
@@ -80,11 +85,6 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered {
 			}
 		}
 
-		return bean;
-	}
-
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
