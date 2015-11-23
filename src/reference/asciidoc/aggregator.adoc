@@ -104,9 +104,11 @@ However, there are better solutions, less coupled to the API, for implementing t
 In general, any POJO can implement the aggregation algorithm if it provides a method that accepts a single `java.util.List` as an argument (parameterized lists are supported as well).
 This method will be invoked for aggregating messages as follows:
 
-* if the argument is a `java.util.List<T>`, and the parameter type T is assignable to `Message`, then the whole list of messages accumulated for aggregation will be sent to the aggregator
+* if the argument is a `java.util.Collection<T>`, and the parameter type T is assignable to `Message`,
+then the whole list of messages accumulated for aggregation will be sent to the aggregator
 
-* if the argument is a non-parameterized `java.util.List` or the parameter type is not assignable to `Message`, then the method will receive the payloads of the accumulated messages
+* if the argument is a non-parameterized `java.util.Collection` or the parameter type is not assignable to `Message`,
+then the method will receive the payloads of the accumulated messages
 
 * if the return type is not assignable to `Message`, then it will be treated as the payload for a Message that will be created automatically by the framework.
 
@@ -114,8 +116,19 @@ This method will be invoked for aggregating messages as follows:
 
 NOTE: In the interest of code simplicity, and promoting best practices such as low coupling, testability, etc., the preferred way of implementing the aggregation logic is through a POJO, and using the XML or annotation support for configuring it in the application.
 
+IMPORTANT: The `SimpleMessageGroup.getMessages()` returns an `unmodifiableCollection`, therefore,
+if your aggregating POJO is based on the `Collection<Message>`, it will be exactly that
+`Collection` instance, and in the case of `SimpleMessageStore` usage for the Aggregator,
+that original `Collection<Message>` will be cleared after releasing the group.
+Hence the `Collection<Message>` variable in the POJO will be empty too.
+It is recommended to build a new `Collection` (`new ArrayList<Message>(messages)`) if there are plans to use the entire
+list of messages in the further logic, e.g. produce from aggregator a message with `payload` as a
+`Collection<Message>` of all messages from the group.
+The Framework doesn't copy those messages to a new collection to avoid undesired extra object creation.
+
+
 If the `MessageGroupProcessor` 's `processMessageGroup` method returns a collection, it must be a collection of
-`Messge<?>` s.
+`Message<?>` s.
 In this case, the messages are released individually.
 Prior to _version 4.2_, it was not possible to provide a `MessageGroupProcessor` using XML configuration, only POJO
 methods could be used for aggregation.
