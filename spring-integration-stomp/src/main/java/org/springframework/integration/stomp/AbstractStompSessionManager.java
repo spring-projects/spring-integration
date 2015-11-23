@@ -20,7 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +42,7 @@ import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
@@ -71,6 +75,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	private final Object lifecycleMonitor = new Object();
 
 	protected final StompClientSupport stompClient;
+
+	private final AtomicInteger epoch = new AtomicInteger();
 
 	private boolean autoStartup = false;
 
@@ -164,26 +170,46 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		return this.phase;
 	}
 
-	private void connect() {
+	private synchronized void connect() {
+		if (this.connecting || this.connected) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Aborting connect; another thread is connecting.");
+			}
+			return;
+		}
+		final int epoch = this.epoch.get();
+		this.connecting = true;
 		if (logger.isDebugEnabled()) {
 			logger.debug("Connecting " + this);
 		}
-		this.connecting = true;
 		try {
 			this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		}
 		catch (Exception e) {
 			logger.error("doConnect() error for " + this, e);
 		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Adding callback to future.");
+		}
+		final CountDownLatch latch = new CountDownLatch(1);
 		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
 
 			@Override
 			public void onFailure(Throwable e) {
-				scheduleReconnect(e);
+				if (logger.isDebugEnabled()) {
+					logger.debug("onFailure", e);
+				}
+				latch.countDown();
+				if (epoch == AbstractStompSessionManager.this.epoch.get()) {
+					scheduleReconnect(e);
+				}
 			}
 
 			@Override
 			public void onSuccess(StompSession stompSession) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("onSuccess");
+				}
 				AbstractStompSessionManager.this.connected = true;
 				AbstractStompSessionManager.this.connecting = false;
 				stompSession.setAutoReceipt(isAutoReceiptEnabled());
@@ -192,12 +218,26 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 							new StompSessionConnectedEvent(this));
 				}
 				AbstractStompSessionManager.this.reconnectFuture = null;
+				latch.countDown();
 			}
 
 		});
+		try {
+			if (!latch.await(10, TimeUnit.SECONDS)) {
+				logger.error("No response to connection attempt");
+				if (epoch == this.epoch.get()) {
+					scheduleReconnect(null);
+				}
+			}
+		}
+		catch (InterruptedException e1) {
+			logger.error("Interrupted while waiting for connection attempt");
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	private void scheduleReconnect(Throwable e) {
+		this.epoch.incrementAndGet();
 		this.connecting = this.connected = false;
 		logger.error("STOMP connect error for " + this, e);
 		if (this.applicationEventPublisher != null) {
@@ -305,8 +345,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	@Override
 	public String toString() {
-		return "StompSessionManager{" +
-				"connected=" + connected +
+		return ObjectUtils.identityToString(this) +
+				" {connecting=" + connecting +
+				", connected=" + connected +
 				", name='" + name + '\'' +
 				'}';
 	}

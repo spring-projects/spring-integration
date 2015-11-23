@@ -20,6 +20,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
+import java.lang.management.LockInfo;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
@@ -196,4 +200,34 @@ public abstract class TestUtils {
 	public static String applySystemFileSeparator(String s) {
 		return s.replaceAll("/", java.util.regex.Matcher.quoteReplacement(File.separator));
 	}
+
+	/*
+	 * Courtesy crunchify.com.
+	 */
+	public static String threadDump() {
+		final StringBuilder dump = new StringBuilder();
+		final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+		final ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
+		for (ThreadInfo threadInfo : threadInfos) {
+			dump.append('"');
+			dump.append(threadInfo.getThreadName());
+			dump.append("\" ");
+			final Thread.State state = threadInfo.getThreadState();
+			dump.append("\n   java.lang.Thread.State: ");
+			dump.append(state);
+			LockInfo lock = threadInfo.getLockInfo();
+			if (lock != null) {
+				dump.append(" ");
+				dump.append(threadInfo.getLockName() + ", owner:" + threadInfo.getLockOwnerName());
+			}
+			final StackTraceElement[] stackTraceElements = threadInfo.getStackTrace();
+			for (final StackTraceElement stackTraceElement : stackTraceElements) {
+				dump.append("\n        at ");
+				dump.append(stackTraceElement);
+			}
+			dump.append("\n\n");
+		}
+		return dump.toString();
+	}
+
 }

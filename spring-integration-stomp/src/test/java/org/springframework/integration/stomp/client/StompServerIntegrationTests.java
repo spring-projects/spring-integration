@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.apache.activemq.broker.BrokerService;
+import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,6 +52,7 @@ import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -216,6 +218,10 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 
 		do {
 			eventMessage = stompEvents1.receive(20000);
+			if (eventMessage == null) {
+				String dump = TestUtils.threadDump();
+				LogFactory.getLog(this.getClass()).debug(dump);
+			}
 			assertNotNull(eventMessage);
 		}
 		while (!(eventMessage.getPayload() instanceof StompReceiptEvent));
