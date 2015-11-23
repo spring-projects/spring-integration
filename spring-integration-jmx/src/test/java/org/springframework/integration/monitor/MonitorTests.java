@@ -42,11 +42,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -85,30 +87,30 @@ public class MonitorTests {
 
 	@Test
 	public void testStats() throws InterruptedException {
-		final CountDownLatch afterHandleLatch = new CountDownLatch(1);
+		final CountDownLatch afterSendLatch = new CountDownLatch(1);
 
-		DefaultMessageHandlerMetrics handlerMetrics =
-				TestUtils.getPropertyValue(this.handler, "handlerMetrics", DefaultMessageHandlerMetrics.class);
-		handlerMetrics = Mockito.spy(handlerMetrics);
+		DefaultMessageChannelMetrics channelMetrics =
+				TestUtils.getPropertyValue(this.next, "channelMetrics", DefaultMessageChannelMetrics.class);
+		channelMetrics = Mockito.spy(channelMetrics);
 
 		Mockito.doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Object result = invocation.callRealMethod();
-				afterHandleLatch.countDown();
+				afterSendLatch.countDown();
 				return result;
 			}
 
-		}).when(handlerMetrics).afterHandle(Mockito.any(MetricsContext.class), Mockito.eq(Boolean.TRUE));
+		}).when(channelMetrics).afterSend(Mockito.any(MetricsContext.class), Mockito.eq(Boolean.TRUE));
 
-		new DirectFieldAccessor(this.handler).setPropertyValue("handlerMetrics", handlerMetrics);
+		new DirectFieldAccessor(this.next).setPropertyValue("channelMetrics", channelMetrics);
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.input);
 		messagingTemplate.setReceiveTimeout(10000);
 		Integer active = messagingTemplate.convertSendAndReceive("foo", Integer.class);
 		assertEquals(1, active.intValue());
-		assertTrue(afterHandleLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(afterSendLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, this.handler.getActiveCount());
 		assertEquals(1, this.handler.getHandleCount());
 		assertThat(this.handler.getDuration().getMax(), greaterThan(99.0));
