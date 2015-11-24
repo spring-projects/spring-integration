@@ -256,6 +256,12 @@ public class UnicastSendingMessageHandler extends
 		if (!this.ackThreadRunning) {
 			synchronized(this) {
 				if (!this.ackThreadRunning) {
+					try {
+						getSocket();
+					}
+					catch (IOException e) {
+						logger.error("Error creating socket", e);
+					}
 					ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
 					try {
