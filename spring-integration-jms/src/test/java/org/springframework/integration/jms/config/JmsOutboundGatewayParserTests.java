@@ -56,6 +56,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -239,7 +240,7 @@ public class JmsOutboundGatewayParserTests {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageHistory history = MessageHistory.read(message);
 				assertNotNull(history);
-				Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
+				Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "inboundGateway", 0);
 				assertNotNull(componentHistoryRecord);
 				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
 				MessagingTemplate messagingTemplate = new MessagingTemplate();

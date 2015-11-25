@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
@@ -202,7 +202,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			QueueChannel channel = ctx.getBean("udpOutChannel", QueueChannel.class);
 			finalMessage = (Message<byte[]>) channel.receive();
 			MessageHistory history = MessageHistory.read(finalMessage);
-			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "udpReceiver", 0);
+			Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "udpReceiver", 0);
 			assertNotNull(componentHistoryRecord);
 			assertEquals("ip:udp-inbound-channel-adapter", componentHistoryRecord.get("type"));
 			firstReceived.countDown();

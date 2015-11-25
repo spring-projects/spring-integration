@@ -40,6 +40,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -122,7 +123,7 @@ public class EventInboundChannelAdapterParserTests {
 		Message<?> message = channel.receive(0);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "eventAdapterSimple", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "eventAdapterSimple", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("event:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull(message);

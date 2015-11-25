@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
@@ -51,7 +52,7 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundAdapter", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "inboundAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("jms:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);

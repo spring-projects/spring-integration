@@ -32,6 +32,7 @@ import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -56,7 +57,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		JmsMessageDrivenEndpoint endpoint =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
 		assertEquals("jms:message-driven-channel-adapter", componentHistoryRecord.get("type"));
