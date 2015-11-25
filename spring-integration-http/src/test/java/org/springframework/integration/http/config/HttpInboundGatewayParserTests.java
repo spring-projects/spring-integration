@@ -26,7 +26,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-import static org.springframework.integration.test.util.TestUtils.handlerExpecting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +34,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,16 +46,20 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -259,6 +263,17 @@ public class HttpInboundGatewayParserTests {
 				messageConverters.size() > 1);
 	}
 
+	@SuppressWarnings("rawtypes")
+	private MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
+		return new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
+				assertThat(message, is(messageMatcher));
+			}
+		};
+	}
+
+
 	public static class Person {
 
 		private String name;
@@ -275,6 +290,7 @@ public class HttpInboundGatewayParserTests {
 
 	public static class PersonConverter implements Converter<Person, String> {
 
+		@Override
 		public String convert(Person source) {
 			return source.getName();
 		}

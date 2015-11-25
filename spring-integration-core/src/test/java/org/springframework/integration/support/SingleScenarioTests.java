@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *	  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.support;
+package org.springframework.integration.support;
 
 import static org.junit.Assert.assertEquals;
 
+import org.springframework.integration.test.support.PayloadValidator;
+import org.springframework.integration.test.support.RequestResponseScenario;
+import org.springframework.integration.test.support.SingleRequestResponseScenarioTests;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration("MessageScenariosTests-context.xml") 
+@ContextConfiguration("MessageScenariosTests-context.xml")
 public class SingleScenarioTests extends SingleRequestResponseScenarioTests {
-   
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.test.support.SingleRequestResponseScenarioTest#defineRequestResponseScenario()
-	 */
+
 	@Override
 	protected RequestResponseScenario defineRequestResponseScenario() {
 		RequestResponseScenario scenario = new RequestResponseScenario(
-                "inputChannel","outputChannel")
-            .setPayload("hello")
-            .setResponseValidator(new PayloadValidator<String>() {    
-                @Override
-                protected void validateResponse(String response) {
-                    assertEquals("HELLO",response);
-                }
-            });
+				"inputChannel","outputChannel")
+			.setPayload("hello")
+			.setResponseValidator(new PayloadValidator<String>() {
+				@Override
+				protected void validateResponse(String response) {
+					assertEquals("HELLO",response);
+				}
+			});
 		return scenario;
 	}
 }
