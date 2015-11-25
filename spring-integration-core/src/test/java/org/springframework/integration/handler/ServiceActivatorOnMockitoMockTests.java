@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.mockito;
+package org.springframework.integration.handler;
 
 import static org.mockito.Mockito.verify;
 
@@ -27,6 +27,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -79,10 +80,9 @@ public class ServiceActivatorOnMockitoMockTests {
 		verify(singleMethodOnClass).move("SingleMethodOnClass");
 	}
 
-	@SuppressWarnings("deprecation")
 	public static class SingleMethodAcceptingHeaderOnClass {
 
-		public String move(@org.springframework.integration.annotation.Header("s") String s) {
+		public String move(@Header("s") String s) {
 			return s;
 		}
 
