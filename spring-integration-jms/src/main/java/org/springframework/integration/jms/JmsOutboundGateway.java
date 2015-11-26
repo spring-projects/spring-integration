@@ -1250,10 +1250,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			else {
 				int n = 0;
-				while (this.replyDestination == null && n++ < 10) {
+				while (this.replyDestination == null && n++ < 100) {
 					logger.debug("Waiting for container to create destination");
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(100);
 					}
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
@@ -1292,6 +1292,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		@Override
 		protected void recoverAfterListenerSetupFailure() {
+			if (logger.isDebugEnabled()) {
+				logger.debug("recoverAfterListenerSetupFailure for dest: " + this.replyDestination);
+			}
 			this.replyDestination = null;
 			super.recoverAfterListenerSetupFailure();
 		}
