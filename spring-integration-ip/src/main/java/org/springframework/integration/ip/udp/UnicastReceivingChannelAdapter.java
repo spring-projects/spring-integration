@@ -23,6 +23,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,6 +80,16 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	@Override
+	public int getPort() {
+		if (this.socket == null) {
+			return super.getPort();
+		}
+		else {
+			return this.socket.getLocalPort();
+		}
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		this.mapper.setBeanFactory(this.getBeanFactory());
@@ -85,11 +97,13 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	@Override
 	public void run() {
+		getSocket();
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("UDP Receiver running on port:" + this.getPort());
 		}
 
-		this.setListening(true);
+		setListening(true);
 
 		// Do as little as possible here so we can loop around and catch the next packet.
 		// Just schedule the packet for processing.
@@ -120,7 +134,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		String ackAddress = ((String) headers.get(IpHeaders.ACK_ADDRESS)).trim();
 		Matcher mat = addressPattern.matcher(ackAddress);
 		if (!mat.matches()) {
-			throw new MessagingException(message, "Ack requested but could not decode acknowledgment address:" + ackAddress);
+			throw new MessagingException(message,
+					"Ack requested but could not decode acknowledgment address: " + ackAddress);
 		}
 		String host = mat.group(1);
 		int port = Integer.parseInt(mat.group(2));
@@ -138,32 +153,50 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			out.close();
 		}
 		catch (IOException e) {
-			throw new MessagingException(message, "Failed to send acknowledgment", e);
+			throw new MessagingException(message, "Failed to send acknowledgment to: " + ackAddress, e);
 		}
 	}
 
 	protected boolean asyncSendMessage(final DatagramPacket packet) {
-		this.getTaskExecutor().execute(new Runnable(){
-			@Override
-			public void run() {
-				Message<byte[]> message = null;
-				try {
-					message = mapper.toMessage(packet);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Received:" + message);
+		Executor taskExecutor = getTaskExecutor();
+		if (taskExecutor != null) {
+			try {
+				taskExecutor.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						doSend(packet);
+
 					}
+				});
+			}
+			catch (RejectedExecutionException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Adapter stopped, sending on main thread");
 				}
-				catch (Exception e) {
-					logger.error("Failed to map packet to message ", e);
-				}
-				if (message != null) {
-					if (message.getHeaders().containsKey(IpHeaders.ACK_ADDRESS)) {
-						sendAck(message);
-					}
-					sendMessage(message);
-				}
-			}});
+				doSend(packet);
+			}
+		}
 		return true;
+	}
+
+	protected void doSend(final DatagramPacket packet) {
+		Message<byte[]> message = null;
+		try {
+			message = mapper.toMessage(packet);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received:" + message);
+			}
+		}
+		catch (Exception e) {
+			logger.error("Failed to map packet to message ", e);
+		}
+		if (message != null) {
+			if (message.getHeaders().containsKey(IpHeaders.ACK_ADDRESS)) {
+				sendAck(message);
+			}
+			sendMessage(message);
+		}
 	}
 
 	protected DatagramPacket receive() throws Exception {
@@ -190,11 +223,13 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			try {
 				DatagramSocket socket = null;
 				String localAddress = this.getLocalAddress();
+				int port = super.getPort();
 				if (localAddress == null) {
-					socket = new DatagramSocket(this.getPort());
-				} else {
+					socket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
+				}
+				else {
 					InetAddress whichNic = InetAddress.getByName(localAddress);
-					socket = new DatagramSocket(this.getPort(), whichNic);
+					socket = new DatagramSocket(new InetSocketAddress(whichNic, port));
 				}
 				setSocketAttributes(socket);
 				this.socket = socket;
@@ -247,4 +282,5 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public String getComponentType(){
 		return "ip:udp-inbound-channel-adapter";
 	}
+
 }

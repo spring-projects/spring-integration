@@ -19,10 +19,13 @@ package org.springframework.integration.ip.util;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -431,17 +434,19 @@ public class SocketTestUtils {
 	}
 
 	public static String chooseANic(boolean multicast) throws Exception {
-//		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-//		while (interfaces.hasMoreElements()) {
-//			NetworkInterface intface = interfaces.nextElement();
-//			if (intface.isLoopback() || (multicast && !intface.supportsMulticast()))
-//				continue;
-//			Enumeration<InetAddress> inet = intface.getInetAddresses();
-//			if (!inet.hasMoreElements())
-//				continue;
-//			String address = inet.nextElement().getHostAddress();
-//			return address;
-//		}
+		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+		while (interfaces.hasMoreElements()) {
+			NetworkInterface intface = interfaces.nextElement();
+			if (intface.isLoopback() || (multicast && !intface.supportsMulticast())) {
+				continue;
+			}
+			for (Enumeration<InetAddress> inetAddr = intface.getInetAddresses(); inetAddr.hasMoreElements(); ) {
+				InetAddress nextElement = inetAddr.nextElement();
+				if (nextElement instanceof Inet4Address) {
+					return nextElement.getHostAddress();
+				}
+			}
+		}
 		return null;
 	}
 

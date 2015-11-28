@@ -151,8 +151,10 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 
 		this.stompInboundChannelAdapter.removeDestination("/topic/myTopic");
 
+		waitForUnsubscribe("/topic/myTopic");
+
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
-		receive = this.stompInputChannel.receive(1000);
+		receive = this.errorChannel.receive(100);
 		assertNull(receive);
 
 		this.stompInboundChannelAdapter.addDestination("/topic/myTopic");
@@ -191,6 +193,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 		messagingTemplate.convertAndSend("/topic/myTopic", "foo");
 		receive = this.errorChannel.receive(10000);
 		assertNotNull(receive);
+		assertEquals(0, ((QueueChannel) this.errorChannel).getQueueSize());
 	}
 
 	private void waitForSubscribe(String destination) throws InterruptedException {
@@ -206,6 +209,21 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 
 		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
 	}
+
+	private void waitForUnsubscribe(String destination) throws InterruptedException {
+		SimpleBrokerMessageHandler serverBrokerMessageHandler =
+				this.serverContext.getBean("simpleBrokerMessageHandler", SimpleBrokerMessageHandler.class);
+
+		SubscriptionRegistry subscriptionRegistry = serverBrokerMessageHandler.getSubscriptionRegistry();
+
+		int n = 0;
+		while (containsDestination(destination, subscriptionRegistry) && n++ < 100) {
+			Thread.sleep(100);
+		}
+
+		assertTrue("The subscription for the '" + destination + "' destination hasn't been registered", n < 100);
+	}
+
 
 	private boolean containsDestination(String destination, SubscriptionRegistry subscriptionRegistry) {
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.MESSAGE);

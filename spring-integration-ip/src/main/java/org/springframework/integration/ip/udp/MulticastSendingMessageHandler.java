@@ -111,20 +111,26 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		if (this.getTheSocket() == null) {
 			MulticastSocket socket;
 			if (this.isAcknowledge()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + this.getAckPort());
-				}
+				int ackPort = this.getAckPort();
 				if (localAddress == null) {
-					socket = new MulticastSocket(this.getAckPort());
-				} else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					socket = new MulticastSocket(new InetSocketAddress(whichNic, this.getAckPort()));
+					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
 				}
-				if (this.getSoReceiveBufferSize() > 0) {
+				else {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
+				}
+				if (getSoReceiveBufferSize() > 0) {
 					socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
 				}
-			} else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Listening for acks on port: " + socket.getLocalPort());
+				}
+				setSocket(socket);
+				updateAckAddress();
+			}
+			else {
 				socket = new MulticastSocket();
+				setSocket(socket);
 			}
 			if (this.timeToLive >= 0) {
 				socket.setTimeToLive(this.timeToLive);
@@ -135,7 +141,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 				NetworkInterface intfce = NetworkInterface.getByInetAddress(whichNic);
 				socket.setNetworkInterface(intfce);
 			}
-			this.setSocket(socket);
 		}
 	}
 

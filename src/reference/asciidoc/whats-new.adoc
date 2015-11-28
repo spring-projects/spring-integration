@@ -26,3 +26,15 @@ If you have such configuration, simply remove the `reply-channel`.
 The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been
 seen is now available using the XML namespace.
 See <<imap-seen>> for more information.
+
+==== JMS Changes
+
+The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its
+`toString()` method.
+See <<jms-header-mapping>> for more information.
+
+==== Aggregator Changes
+
+There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects; this is rare but if
+your application does that, you will need to make a small change to your POJO. See this <<agg-message-collection>> note
+for more information.

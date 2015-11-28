@@ -559,6 +559,14 @@ Custom header mapper could also be provided via `header-mapper` attribute of inb
 IMPORTANT: Since _version 4.0_, the `JMSPriority` header is mapped to the standard `priority` header for inbound messages (previously, the `priority` header was only used for outbound messages).
 To revert to the previous behavior (do not map inbound priority), use the `mapInboundPriority` property of `DefaultJmsHeaderMapper` with argument set to `false`.
 
+IMPORTANT: Since _version 4.3_, the `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message
+property by invoking its `toString()` method (`correlationId` is often a `UUID`, which is not a type that is supported
+by JMS).
+On the inbound side, it is mapped as a `String`.
+This is independent of the `jms_correlationId` header which is mapped to/from the `JMSCorrelationID` header.
+The `JMSCorrelationID` is generally used to correlate requests and replies whereas the `correlationId` is often used
+to combine related messages into a group (such as with an aggregator or resequencer).
+
 [[jms-conversion-and-marshalling]]
 === Message Conversion, Marshalling and Unmarshalling
 

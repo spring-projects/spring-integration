@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -55,7 +56,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @since 2.2
  *
  */
-public class OutboundGatewayFunctionTests {
+public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 	private static Destination requestQueue1 = new ActiveMQQueue("request1");
 
@@ -87,7 +88,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue1);
 		gateway.setReplyDestination(replyQueue1);
 		gateway.setCorrelationKey("JMSCorrelationID");
@@ -111,7 +112,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertNotNull(request);
@@ -139,7 +140,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue2);
 		gateway.setReplyDestination(replyQueue2);
 		gateway.setUseReplyContainer(true);
@@ -162,7 +163,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue2);
 		assertNotNull(request);
@@ -191,7 +192,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue3);
 		gateway.setReplyDestinationName("reply3");
 		gateway.setCorrelationKey("JMSCorrelationID");
@@ -215,7 +216,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue3);
 		assertNotNull(request);
@@ -243,7 +244,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue4);
 		gateway.setReplyDestinationName("reply4");
 		gateway.setUseReplyContainer(true);
@@ -266,7 +267,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue4);
 		assertNotNull(request);
@@ -295,10 +296,11 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue5);
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.setUseReplyContainer(true);
+		gateway.setComponentName("testContainerWithTemporary.gateway");
 		gateway.afterPropertiesSet();
 		gateway.start();
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
@@ -318,7 +320,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue5);
 		assertNotNull(request);
@@ -347,7 +349,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue6);
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
@@ -369,7 +371,7 @@ public class OutboundGatewayFunctionTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getTemplateConnectionFactory());
+		template.setConnectionFactory(getConnectionFactory());
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue6);
 		assertNotNull(request);
@@ -398,7 +400,7 @@ public class OutboundGatewayFunctionTests {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getGatewayConnectionFactory());
+		gateway.setConnectionFactory(getConnectionFactory());
 		gateway.setRequestDestination(requestQueue7);
 		gateway.setReplyDestination(replyQueue7);
 		gateway.setCorrelationKey("JMSCorrelationID");
@@ -412,7 +414,7 @@ public class OutboundGatewayFunctionTests {
 			@Override
 			public void run() {
 				JmsTemplate template = new JmsTemplate();
-				template.setConnectionFactory(getTemplateConnectionFactory());
+				template.setConnectionFactory(getConnectionFactory());
 				template.setReceiveTimeout(20000);
 				receiveAndSend(template);
 				receiveAndSend(template);
@@ -452,14 +454,11 @@ public class OutboundGatewayFunctionTests {
 		assertFalse(container.isRunning());
 	}
 
-	private ConnectionFactory getTemplateConnectionFactory() {
-		ConnectionFactory amqConnectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
-		return amqConnectionFactory;
-	}
-
-	private ConnectionFactory getGatewayConnectionFactory() {
-		ConnectionFactory amqConnectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
-		return new CachingConnectionFactory(amqConnectionFactory);
+	private ConnectionFactory getConnectionFactory() {
+		ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
+		CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(activeMQConnectionFactory);
+		cachingConnectionFactory.setCacheConsumers(false);
+		return cachingConnectionFactory;
 	}
 
 }

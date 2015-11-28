@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,6 +66,8 @@ public class UnicastSendingMessageHandler extends
 	private volatile boolean waitForAck = false;
 
 	private volatile boolean acknowledge = false;
+
+	private volatile String ackHost;
 
 	private volatile int ackPort;
 
@@ -158,6 +161,7 @@ public class UnicastSendingMessageHandler extends
 		this.waitForAck = acknowledge;
 		this.mapper.setAcknowledge(acknowledge);
 		this.mapper.setAckAddress(ackHost + ":" + ackPort);
+		this.ackHost = ackHost;
 		this.ackPort = ackPort;
 		if (ackTimeout > 0) {
 			this.ackTimeout = ackTimeout;
@@ -185,6 +189,7 @@ public class UnicastSendingMessageHandler extends
 						});
 				this.taskExecutor = executor;
 			}
+			startAckThread();
 		}
 	}
 
@@ -203,19 +208,7 @@ public class UnicastSendingMessageHandler extends
 			MessageDeliveryException {
 		if (this.acknowledge) {
 			Assert.state(this.isRunning(), "When 'acknowlege' is enabled, adapter must be running");
-			if (!this.ackThreadRunning) {
-				synchronized(this) {
-					if (!this.ackThreadRunning) {
-						ackLatch = new CountDownLatch(1);
-						this.taskExecutor.execute(this);
-						try {
-							ackLatch.await(10000, TimeUnit.MILLISECONDS);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
-					}
-				}
-			}
+			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
 		String messageId = message.getHeaders().getId().toString();
@@ -227,13 +220,16 @@ public class UnicastSendingMessageHandler extends
 			}
 			packet = this.mapper.fromMessage(message);
 			this.send(packet);
-			logger.debug("Sent packet for message " + message);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Sent packet for message " + message);
+			}
 			if (this.waitForAck) {
 				try {
 					if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
 						throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
 					}
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 			}
@@ -256,6 +252,29 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
+	public void startAckThread() {
+		if (!this.ackThreadRunning) {
+			synchronized(this) {
+				if (!this.ackThreadRunning) {
+					try {
+						getSocket();
+					}
+					catch (IOException e) {
+						logger.error("Error creating socket", e);
+					}
+					ackLatch = new CountDownLatch(1);
+					this.taskExecutor.execute(this);
+					try {
+						ackLatch.await(10000, TimeUnit.MILLISECONDS);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				}
+			}
+		}
+	}
+
 	protected void send(DatagramPacket packet) throws Exception {
 		DatagramSocket socket = this.getSocket();
 		packet.setSocketAddress(this.getDestinationAddress());
@@ -273,24 +292,31 @@ public class UnicastSendingMessageHandler extends
 	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
 			if (acknowledge) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + ackPort);
-				}
 				if (localAddress == null) {
-					this.socket = new DatagramSocket(this.ackPort);
-				} else {
+					this.socket = this.ackPort == 0 ? new DatagramSocket() : new DatagramSocket(this.ackPort);
+				}
+				else {
 					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					this.socket = new DatagramSocket(this.ackPort, whichNic);
+					this.socket = new DatagramSocket(new InetSocketAddress(whichNic, this.ackPort));
 				}
 				if (this.soReceiveBufferSize > 0) {
 					socket.setReceiveBufferSize(this.soReceiveBufferSize);
 				}
-			} else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Listening for acks on port: " + getAckPort());
+				}
+				updateAckAddress();
+			}
+			else {
 				this.socket = new DatagramSocket();
 			}
 			setSocketAttributes(this.socket);
 		}
 		return this.socket;
+	}
+
+	protected void updateAckAddress() {
+		this.mapper.setAckAddress(this.ackHost + ":" + getAckPort());
 	}
 
 	/**
@@ -336,7 +362,13 @@ public class UnicastSendingMessageHandler extends
 	 * @return the ackPort
 	 */
 	public int getAckPort() {
-		return ackPort;
+		DatagramSocket socket = this.socket;
+		if (this.ackPort == 0 && socket != null) {
+			return socket.getLocalPort();
+		}
+		else  {
+			return this.ackPort;
+		}
 	}
 
 	/**

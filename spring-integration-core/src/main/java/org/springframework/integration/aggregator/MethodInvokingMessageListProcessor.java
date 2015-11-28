@@ -18,14 +18,13 @@ package org.springframework.integration.aggregator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
+import org.springframework.messaging.Message;
 
 /**
  * A MessageListProcessor implementation that invokes a method on a target POJO.
@@ -69,9 +68,9 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 		return delegate.toString();
 	}
 
-	public T process(Collection<? extends Message<?>> messages, Map<String, Object> aggregateHeaders) {
+	public T process(Collection<Message<?>> messages, Map<String, Object> aggregateHeaders) {
 		try {
-			return delegate.process(new ArrayList<Message<?>>(messages), aggregateHeaders);
+			return delegate.process(messages, aggregateHeaders);
 		}
 		catch (RuntimeException e) {
 			throw e;

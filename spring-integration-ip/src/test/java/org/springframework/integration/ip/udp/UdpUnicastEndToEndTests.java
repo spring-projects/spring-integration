@@ -32,6 +32,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -71,6 +73,8 @@ public class UdpUnicastEndToEndTests implements Runnable {
 
 	private CountDownLatch readyToReceive = new CountDownLatch(1);
 
+	private volatile int receiverPort;
+
 	private static long hangAroundFor = 10;
 
 	@Before
@@ -86,24 +90,42 @@ public class UdpUnicastEndToEndTests implements Runnable {
 
 	@Test
 	public void runIt() throws Exception {
-		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
-		Thread t = new Thread(launcher);
-		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"testIp-out-context.xml", UdpUnicastEndToEndTests.class);
-		launcher.launchSender(applicationContext);
-		applicationContext.stop();
+		String location = "org/springframework/integration/ip/udp/testIp-out-context.xml";
+		test(location);
 	}
 
 	@Test
 	public void tesUdpOutboundChannelAdapterWithinChain() throws Exception {
+		String location = "org/springframework/integration/ip/udp/testIp-out-within-chain-context.xml";
+		test(location);
+	}
+
+	private void test(String location) throws InterruptedException, Exception {
 		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"testIp-out-within-chain-context.xml", UdpUnicastEndToEndTests.class);
+		int n = 0;
+		while (n++ < 100 && launcher.getReceiverPort() == 0) {
+			Thread.sleep(100);
+		}
+		assertTrue("Receiver failed to listen", n < 100);
+
+		ClassPathXmlApplicationContext applicationContext = createContext(launcher, location);
 		launcher.launchSender(applicationContext);
-		applicationContext.stop();
+		applicationContext.close();
+	}
+
+	private ClassPathXmlApplicationContext createContext(UdpUnicastEndToEndTests launcher, String location) {
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext();
+		applicationContext.setConfigLocation(location);
+		StandardEnvironment env = new StandardEnvironment();
+		Properties props = new Properties();
+		props.setProperty("port", Integer.toString(launcher.getReceiverPort()));
+		PropertiesPropertySource pps = new PropertiesPropertySource("ftpprops", props);
+		env.getPropertySources().addLast(pps);
+		applicationContext.setEnvironment(env);
+		applicationContext.refresh();
+		return applicationContext;
 	}
 
 
@@ -138,6 +160,9 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		assertEquals(testingIpText, new String(finalMessage.getPayload()));
 	}
 
+	public int getReceiverPort() {
+		return receiverPort;
+	}
 
 	/**
 	 * Instantiate the receiving context
@@ -158,7 +183,14 @@ public class UdpUnicastEndToEndTests implements Runnable {
 				}
 			}
 		}
-		catch (Exception e) { }
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("interrupted");
+		}
+		this.receiverPort = inbound.getPort();
 		while (okToRun) {
 			try {
 				readyToReceive.countDown();

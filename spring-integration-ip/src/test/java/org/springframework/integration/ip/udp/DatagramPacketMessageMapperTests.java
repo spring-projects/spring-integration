@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.DatagramPacket;
@@ -26,10 +26,11 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -69,7 +70,7 @@ public class DatagramPacketMessageMapperTests {
 		Message<byte[]> messageOut = mapper.toMessage(packet);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
-			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(), 
+			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
 					     message.getHeaders().getId().toString());
 		}
 		assertTrue(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
@@ -77,10 +78,10 @@ public class DatagramPacketMessageMapperTests {
 		messageOut = mapper.toMessage(packet);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
-			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(), 
+			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
 					     message.getHeaders().getId().toString());
 		}
-		assertFalse(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));		
+		assertFalse(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 	}
 
 	@Test

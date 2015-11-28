@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -90,6 +90,9 @@ public class RouterMBeanTests {
 		// System.err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertEquals(1, names.size());
+		// INT-3896
+		names = server.queryNames(new ObjectName("test.RouterMBean:type=ExpressionEvaluatingRouter,*"), null);
+		assertEquals(0, names.size());
 	}
 
 	public static interface Service {

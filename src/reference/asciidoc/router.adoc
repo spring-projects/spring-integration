@@ -1269,17 +1269,17 @@ Configuration for the _Routing Slip_ is presented as a `HeaderEnricher` option -
 [source,xml]
 ----
 <util:properties id="properties">
-		<beans:prop key="myRoutePath1">channel1</beans:prop>
-		<beans:prop key="myRoutePath2">request.headers[myRoutingSlipChannel]</beans:prop>
-	</util:properties>
+    <beans:prop key="myRoutePath1">channel1</beans:prop>
+    <beans:prop key="myRoutePath2">request.headers[myRoutingSlipChannel]</beans:prop>
+</util:properties>
 
-	<context:property-placeholder properties-ref="properties"/>
+<context:property-placeholder properties-ref="properties"/>
 
-	<header-enricher input-channel="input" output-channel="process">
-		<routing-slip
-				value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
-							routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
-	</header-enricher>
+<header-enricher input-channel="input" output-channel="process">
+    <routing-slip
+            value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
+                    routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
+</header-enricher>
 ----
 
 In this sample we have:
@@ -1317,12 +1317,12 @@ For Java configuration, simply add a `RoutingSlipHeaderValueMessageProcessor` in
 @Bean
 @Transformer(inputChannel = "routingSlipHeaderChannel")
 public HeaderEnricher headerEnricher() {
-	return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
-			new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
-			    "@routingSlipRoutingPojo.get(request, reply)",
-			    "routingSlipRoutingStrategy",
-			    "request.headers[myRoutingSlipChannel]",
-			    "finishChannel")));
+    return new HeaderEnricher(Collections.singletonMap(IntegrationMessageHeaderAccessor.ROUTING_SLIP,
+            new RoutingSlipHeaderValueMessageProcessor("myRoutePath1",
+                                                       "@routingSlipRoutingPojo.get(request, reply)",
+                                                       "routingSlipRoutingStrategy",
+                                                       "request.headers[myRoutingSlipChannel]",
+                                                       "finishChannel")));
 }
 ----
 
@@ -1353,24 +1353,24 @@ For example we can route to a https://github.com/reactor/reactor/wiki/Streams[Re
 ----
 @Bean
 public PollableChannel resultsChannel() {
-	return new QueueChannel();
+    return new QueueChannel();
 }
 @Bean
 public RoutingSlipRouteStrategy routeStrategy() {
-	return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
-			? new FixedSubscriberChannel(m ->
-			Streams.defer((String) m.getPayload())
-					.env(this.reactorEnv)
-					.get()
-					.map(String::toUpperCase)
-					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-					.flush())
-			: new FixedSubscriberChannel(m ->
-			Streams.defer((Integer) m.getPayload())
-					.env(this.reactorEnv)
-					.get()
-					.map(v -> v * 2)
-					.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-					.flush());
+    return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
+            ? new FixedSubscriberChannel(m ->
+            Streams.defer((String) m.getPayload())
+                    .env(this.reactorEnv)
+                    .get()
+                    .map(String::toUpperCase)
+                    .consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+                    .flush())
+            : new FixedSubscriberChannel(m ->
+            Streams.defer((Integer) m.getPayload())
+                    .env(this.reactorEnv)
+                    .get()
+                    .map(v -> v * 2)
+                    .consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
+                    .flush());
 }
 ----
