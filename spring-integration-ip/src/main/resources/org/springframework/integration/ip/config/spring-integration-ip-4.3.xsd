@@ -80,26 +80,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="via-udp-inbound-channel-adapter"
-								   type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Reference to udp-inbound-channel-adapter which contains
-								datagram socket that will be used by both
-								udp-inbound-channel-adapter and this
-								udp-outbound-channel-adapter.
-								Sending outgoing datagrams via server socket located in
-								udp-inbound-channel-adapter is useful e.g. when clients
-								work behind NAT ("UDP hole punching").
-							</xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type
-											type="org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="host" type="xsd:string" />
 					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="ack-host" type="xsd:string" />

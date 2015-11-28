@@ -18,8 +18,6 @@ package org.springframework.integration.ip.udp;
 
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -144,20 +142,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			buffer.put(bytes);
 			bytes = buffer.array();
 		}
-
-		return getDatagramFromHeader(message, bytes, bytes.length);
-	}
-
-	private DatagramPacket getDatagramFromHeader(Message<?> message, byte[] bytes,
-												 int length) throws UnknownHostException {
-			InetAddress inetAddress = InetAddress.getByName(
-					message.getHeaders().get(IpHeaders.IP_ADDRESS, String.class));
-			Integer port = message.getHeaders().get(IpHeaders.PORT, Integer.class);
-		if (inetAddress != null && port != null) {
-			return new DatagramPacket(bytes, length, inetAddress, port);
-		} else {
-			return new DatagramPacket(bytes, length);
-		}
+		return new DatagramPacket(bytes, bytes.length);
 	}
 
 	/**
@@ -185,7 +170,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			// default ByteOrder is	ByteOrder.BIG_ENDIAN (network byte order)
 			buffer.putInt(0, bytes.length + headersLength);
 		}
-		return getDatagramFromHeader(message, buffer.array(), buffer.position());
+		return new DatagramPacket(buffer.array(), buffer.position());
 	}
 
 	private byte[] getPayloadAsBytes(Message<?> message) {

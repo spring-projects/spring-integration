@@ -87,8 +87,6 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile boolean taskExecutorSet;
 
-	private volatile UnicastReceivingChannelAdapter unicastReceivingChannelAdapter;
-
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
 	 * @param host Destination host.
@@ -260,9 +258,7 @@ public class UnicastSendingMessageHandler extends
 
 	protected void send(DatagramPacket packet) throws Exception {
 		DatagramSocket socket = this.getSocket();
-		if (unicastReceivingChannelAdapter == null) {
-			packet.setSocketAddress(this.getDestinationAddress());
-		}
+		packet.setSocketAddress(this.getDestinationAddress());
 		socket.send(packet);
 	}
 
@@ -290,11 +286,7 @@ public class UnicastSendingMessageHandler extends
 					socket.setReceiveBufferSize(this.soReceiveBufferSize);
 				}
 			} else {
-				if (unicastReceivingChannelAdapter != null) {
-					this.socket = unicastReceivingChannelAdapter.getSocket();
-				} else {
-					this.socket = new DatagramSocket();
-				}
+				this.socket = new DatagramSocket();
 			}
 			setSocketAttributes(this.socket);
 		}
@@ -352,14 +344,6 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public int getSoReceiveBufferSize() {
 		return soReceiveBufferSize;
-	}
-
-	/**
-	 * @param unicastReceivingChannelAdapter the unicast receiving channel adapter to set
-	 */
-	public void setViaUdpInboundChannelAdapter(UnicastReceivingChannelAdapter
-													   unicastReceivingChannelAdapter) {
-		this.unicastReceivingChannelAdapter = unicastReceivingChannelAdapter;
 	}
 
 	@Override
