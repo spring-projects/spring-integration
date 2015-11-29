@@ -22,6 +22,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.UnicastDatagramSocketRegistry;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -82,6 +83,9 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 			builder.addConstructorArgValue(mcAddress);
 		}
 		addPortToConstructor(element, builder, parserContext);
+		if (multicast.equals("false")) {
+			builder.addConstructorArgValue(UnicastDatagramSocketRegistry.INSTANCE);
+		}
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		return builder;

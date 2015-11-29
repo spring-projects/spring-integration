@@ -73,7 +73,9 @@ public class DatagramPacketSendingHandlerTests {
 		});
 		assertTrue(listening.await(10, TimeUnit.SECONDS));
 		UnicastSendingMessageHandler handler =
-				new UnicastSendingMessageHandler("localhost", testPort.get());
+				new UnicastSendingMessageHandler("localhost",
+						testPort.get(),
+						UnicastDatagramSocketRegistry.INSTANCE);
 		String payload = "foo";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(received.await(3000, TimeUnit.MILLISECONDS));
@@ -110,7 +112,7 @@ public class DatagramPacketSendingHandlerTests {
 					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 					mapper.setAcknowledge(true);
 					mapper.setLengthCheck(true);
-					Message<byte[]> message = mapper.toMessage(receivedPacket);
+					Message<byte[]> message = mapper.toMessage(new DatagramPacketWrapper(receivedPacket, null));
 					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
 					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
@@ -127,7 +129,14 @@ public class DatagramPacketSendingHandlerTests {
 		});
 		listening.await(10000, TimeUnit.MILLISECONDS);
 		UnicastSendingMessageHandler handler =
-				new UnicastSendingMessageHandler("localhost", testPort.get(), true, true, "localhost", 0, 5000);
+				new UnicastSendingMessageHandler("localhost",
+						testPort.get(),
+						UnicastDatagramSocketRegistry.INSTANCE,
+						true,
+						true,
+						"localhost",
+						0,
+						5000);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.start();
@@ -257,7 +266,7 @@ public class DatagramPacketSendingHandlerTests {
 					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 					mapper.setAcknowledge(true);
 					mapper.setLengthCheck(true);
-					Message<byte[]> message = mapper.toMessage(receivedPacket);
+					Message<byte[]> message = mapper.toMessage(new DatagramPacketWrapper(receivedPacket, null));
 					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
 					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,

@@ -154,8 +154,7 @@ public abstract class IpAdapterParserUtils {
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		if (!StringUtils.hasText(host)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
-					+ " is required for IP outbound channel adapters", element);
+			host = "";
 		}
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
@@ -183,8 +182,7 @@ public abstract class IpAdapterParserUtils {
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (!StringUtils.hasText(port)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
-					" is required for IP channel adapters", element);
+			port = "0";
 		}
 		return port;
 	}

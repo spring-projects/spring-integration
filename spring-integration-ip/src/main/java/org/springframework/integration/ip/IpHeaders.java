@@ -78,6 +78,11 @@ public final class IpHeaders {
 	 */
 	public static final String ACTUAL_CONNECTION_ID = IP + "actualConnectionId";
 
+	/**
+	 * A unique identifier for datagram socket;
+	 */
+	public static final String DATAGRAM_SOCKET_ID = "datagramSocketId";
+
 	private IpHeaders() {}
 
 }

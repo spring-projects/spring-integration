@@ -67,7 +67,8 @@ public class DatagramPacketMessageMapperTests {
 		mapper.setLengthCheck(lengthCheck);
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
-		Message<byte[]> messageOut = mapper.toMessage(packet);
+		DatagramPacketWrapper datagramPacketWrapper = new DatagramPacketWrapper(packet, null);
+		Message<byte[]> messageOut = mapper.toMessage(datagramPacketWrapper);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
@@ -75,7 +76,7 @@ public class DatagramPacketMessageMapperTests {
 		}
 		assertTrue(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 		mapper.setLookupHost(false);
-		messageOut = mapper.toMessage(packet);
+		messageOut = mapper.toMessage(datagramPacketWrapper);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
@@ -99,7 +100,7 @@ public class DatagramPacketMessageMapperTests {
 		bb.putInt(bigLen);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
 		try {
-			mapper.toMessage(packet);
+			mapper.toMessage(new DatagramPacketWrapper(packet, null));
 			fail("Truncated message exception expected");
 		}
 		catch (MessageMappingException e) {
