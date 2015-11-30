@@ -178,7 +178,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	/**
 	 * Override to allow 'reply-channel' within a chain, for components where it
 	 * makes sense (e.g. enricher). Default is false for outbound gateways, else true.
+	 * @param element the element.
 	 * @return true to allow a reply channel attribute within a chain.
+	 * @since 4.3
 	 */
 	protected boolean replyChannelInChainAllowed(Element element) {
 		String localName = element.getLocalName();
