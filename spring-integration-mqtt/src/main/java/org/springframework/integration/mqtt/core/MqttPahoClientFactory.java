@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.mqtt.core;
 
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -35,8 +35,7 @@ public interface MqttPahoClientFactory {
 	 * @return The client instance.
 	 * @throws MqttException Any.
 	 */
-	// TODO: change return type to IMqttClient in 4.3
-	MqttClient getClientInstance(String url, String clientId) throws MqttException;
+	IMqttClient getClientInstance(String url, String clientId) throws MqttException;
 
 	/**
 	 * Retrieve an async client instance.
@@ -47,8 +46,7 @@ public interface MqttPahoClientFactory {
 	 * @throws MqttException Any.
 	 * @since 4.1
 	 */
-	// TODO: change return type to IMqttAsyncClient in 4.3
-	MqttAsyncClient getAsyncClientInstance(String url, String clientId) throws MqttException;
+	IMqttAsyncClient getAsyncClientInstance(String url, String clientId) throws MqttException;
 
 	/**
 	 * Retrieve the connection options.
@@ -56,4 +54,12 @@ public interface MqttPahoClientFactory {
 	 * @return The options.
 	 */
 	MqttConnectOptions getConnectionOptions();
+
+	/**
+	 * Get the consumer stop action.
+	 * @return the consumer stop action.
+	 * @since 4.3
+	 */
+	ConsumerStopAction getConsumerStopAction();
+
 }

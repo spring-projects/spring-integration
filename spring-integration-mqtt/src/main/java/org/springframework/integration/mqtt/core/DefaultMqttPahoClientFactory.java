@@ -20,6 +20,8 @@ import java.util.Properties;
 
 import javax.net.SocketFactory;
 
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
@@ -112,14 +114,12 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
 	}
 
-	/*
-	 * TODO: move to interface in 4.3.
-	 */
 	/**
 	 * Get the consumer stop action.
 	 * @return the consumer stop action.
 	 * @since 4.2.3
 	 */
+	@Override
 	public ConsumerStopAction getConsumerStopAction() {
 		return consumerStopAction;
 	}
@@ -135,13 +135,13 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	}
 
 	@Override
-	public MqttClient getClientInstance(String uri, String clientId) throws MqttException {
+	public IMqttClient getClientInstance(String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
 	@Override
-	public MqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+	public IMqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttAsyncClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}

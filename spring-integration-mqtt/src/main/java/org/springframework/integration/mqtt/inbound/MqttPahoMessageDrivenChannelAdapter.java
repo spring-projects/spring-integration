@@ -221,9 +221,10 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
-		this.consumerStopAction = this.clientFactory instanceof DefaultMqttPahoClientFactory ?
-				((DefaultMqttPahoClientFactory) this.clientFactory).getConsumerStopAction() :
-				ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
+		if (this.consumerStopAction == null) {
+			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+		}
 		Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 		this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
