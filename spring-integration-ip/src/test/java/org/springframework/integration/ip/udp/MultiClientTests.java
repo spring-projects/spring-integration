@@ -53,8 +53,7 @@ public class MultiClientTests {
 	public void testNoAck() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
-			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(),
-					UnicastDatagramSocketRegistry.INSTANCE);
+			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket());
 		int drivers = 10;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -71,8 +70,7 @@ public class MultiClientTests {
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost",
-							adapter.getPort(),
-							UnicastDatagramSocketRegistry.INSTANCE);
+							adapter.getPort());
 					sender.start();
 					while (true) {
 						Message<?> message = queueIn.receive();
@@ -105,7 +103,6 @@ public class MultiClientTests {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
 			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(),
-					UnicastDatagramSocketRegistry.INSTANCE,
 					false);
 		int drivers = 5;
 		adapter.setPoolSize(drivers);
@@ -123,8 +120,7 @@ public class MultiClientTests {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
-							"localhost", adapter.getPort(),
-							UnicastDatagramSocketRegistry.INSTANCE, false, true, "localhost",
+							"localhost", adapter.getPort(), false, true, "localhost",
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
 							10000);
 					sender.start();
@@ -158,8 +154,7 @@ public class MultiClientTests {
 	public void testAckWithLength() throws Exception {
 		final String payload = largePayload(1000);
 		final UnicastReceivingChannelAdapter adapter =
-			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(),
-					UnicastDatagramSocketRegistry.INSTANCE, true);
+			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), true);
 		int drivers = 10;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -177,7 +172,6 @@ public class MultiClientTests {
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
-							UnicastDatagramSocketRegistry.INSTANCE,
 							true, true, "localhost",
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);

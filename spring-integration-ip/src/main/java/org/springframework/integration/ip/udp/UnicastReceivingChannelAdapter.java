@@ -63,11 +63,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
 	 * @param port The port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry
 	 */
-	public UnicastReceivingChannelAdapter(int port, UnicastDatagramSocketRegistry unicastDatagramSocketRegistry) {
+	public UnicastReceivingChannelAdapter(int port) {
 		super(port);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 		this.mapper.setLengthCheck(false);
 	}
 
@@ -77,14 +75,11 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	 * a length to precede the incoming packets.
 	 * @param port The port.
 	 * @param lengthCheck If true, enables the lengthCheck Option.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry
 	 */
 	public UnicastReceivingChannelAdapter(int port,
-										  UnicastDatagramSocketRegistry unicastDatagramSocketRegistry,
 										  boolean lengthCheck) {
 		super(port);
 		this.mapper.setLengthCheck(lengthCheck);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 	}
 
 	@Override
@@ -302,4 +297,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		return "ip:udp-inbound-channel-adapter";
 	}
 
+	public void setUnicastDatagramSocketRegistry(UnicastDatagramSocketRegistry unicastDatagramSocketRegistry) {
+		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
+	}
 }

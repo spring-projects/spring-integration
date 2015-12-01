@@ -49,7 +49,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * @param port The port.
 	 */
 	public MulticastSendingMessageHandler(String address, int port) {
-		super(address, port, null);
+		super(address, port);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * @param lengthCheck Enable the lengthCheck option.
 	 */
 	public MulticastSendingMessageHandler(String address, int port, boolean lengthCheck) {
-		super(address, port, null, lengthCheck);
+		super(address, port, lengthCheck);
 	}
 
 
@@ -77,7 +77,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 */
 	public MulticastSendingMessageHandler(String address, int port,
 			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
-		super(address, port, null, acknowledge, ackHost, ackPort, ackTimeout);
+		super(address, port, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	public MulticastSendingMessageHandler(String address, int port,
 			boolean lengthCheck, boolean acknowledge, String ackHost,
 			int ackPort, int ackTimeout) {
-		super(address, port, null, lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
+		super(address, port, lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
 	@Override
