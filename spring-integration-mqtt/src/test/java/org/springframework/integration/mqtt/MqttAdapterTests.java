@@ -26,6 +26,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,21 +42,28 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.MqttToken;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory.Will;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
@@ -73,6 +81,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  */
 public class MqttAdapterTests {
+
+	private IMqttToken alwaysComplete;
+
+	{
+		ProxyFactoryBean pfb = new ProxyFactoryBean();
+		pfb.addAdvice(new MethodInterceptor() {
+
+			@Override
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				return null;
+			}
+
+		});
+		pfb.setInterfaces(IMqttToken.class);
+		this.alwaysComplete = (IMqttToken) pfb.getObject();
+	}
 
 	@Test
 	public void testPahoConnectOptions() {
@@ -311,6 +335,90 @@ public class MqttAdapterTests {
 		}
 		assertThat(event, instanceOf(MqttSubscribedEvent.class));
 		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+	}
+
+	@Test
+	public void testStopActionDefault() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, null, null);
+
+		adapter.start();
+		adapter.stop();
+		verifyUnsubscribe(client);
+	}
+
+	@Test
+	public void testStopActionDefaultNotClean() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, false, null);
+
+		adapter.start();
+		adapter.stop();
+		verifyNotUnsubscribe(client);
+	}
+
+	@Test
+	public void testStopActionAlways() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, false,
+				ConsumerStopAction.UNSUBSCRIBE_ALWAYS);
+
+		adapter.start();
+		adapter.stop();
+		verifyUnsubscribe(client);
+	}
+
+	@Test
+	public void testStopActionNever() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+
+		adapter.start();
+		adapter.stop();
+		verifyNotUnsubscribe(client);
+	}
+
+	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final MqttAsyncClient client, Boolean cleanSession,
+			ConsumerStopAction action) throws MqttException, MqttSecurityException {
+		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
+
+			@Override
+			public MqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+				return client;
+			}
+
+		};
+		factory.setServerURIs("tcp://localhost:1883");
+		if (cleanSession != null) {
+			factory.setCleanSession(cleanSession);
+		}
+		if (action != null) {
+			factory.setConsumerStopAction(action);
+		}
+		when(client.connect(any(MqttConnectOptions.class))).thenReturn(this.alwaysComplete);
+		when(client.subscribe(any(String[].class), any(int[].class))).thenReturn(this.alwaysComplete);
+		when(client.disconnect()).thenReturn(this.alwaysComplete);
+		when(client.unsubscribe(any(String[].class))).thenReturn(this.alwaysComplete);
+		when(client.isConnected()).thenReturn(true);
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
+		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
+		adapter.setOutputChannel(new NullChannel());
+		adapter.afterPropertiesSet();
+		return adapter;
+	}
+
+	private void verifyUnsubscribe(MqttAsyncClient client) throws Exception {
+		verify(client).connect(any(MqttConnectOptions.class));
+		verify(client).subscribe(any(String[].class), any(int[].class));
+		verify(client).unsubscribe(any(String[].class));
+		verify(client).disconnect();
+	}
+
+	private void verifyNotUnsubscribe(MqttAsyncClient client) throws Exception {
+		verify(client).connect(any(MqttConnectOptions.class));
+		verify(client).subscribe(any(String[].class), any(int[].class));
+		verify(client, never()).unsubscribe(any(String[].class));
+		verify(client).disconnect();
 	}
 
 }

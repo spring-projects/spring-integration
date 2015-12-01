@@ -35,6 +35,7 @@ public interface MqttPahoClientFactory {
 	 * @return The client instance.
 	 * @throws MqttException Any.
 	 */
+	// TODO: change return type to IMqttClient in 4.3
 	MqttClient getClientInstance(String url, String clientId) throws MqttException;
 
 	/**
@@ -46,6 +47,7 @@ public interface MqttPahoClientFactory {
 	 * @throws MqttException Any.
 	 * @since 4.1
 	 */
+	// TODO: change return type to IMqttAsyncClient in 4.3
 	MqttAsyncClient getAsyncClientInstance(String url, String clientId) throws MqttException;
 
 	/**

@@ -58,6 +58,8 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 	private volatile String[] serverURIs;
 
+	private volatile ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+
 	public void setCleanSession(Boolean cleanSession) {
 		this.cleanSession = cleanSession;
 	}
@@ -108,6 +110,28 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	public void setServerURIs(String... serverURIs) {
 		Assert.notNull(serverURIs, "'serverURIs' must not be null.");
 		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
+	}
+
+	/*
+	 * TODO: move to interface in 4.3.
+	 */
+	/**
+	 * Get the consumer stop action.
+	 * @return the consumer stop action.
+	 * @since 4.2.3
+	 */
+	public ConsumerStopAction getConsumerStopAction() {
+		return consumerStopAction;
+	}
+
+	/**
+	 * Set the consumer stop action. Determines whether we unsubscribe when the consumer stops.
+	 * Default: {@link ConsumerStopAction#UNSUBSCRIBE_CLEAN}.
+	 * @param consumerStopAction the consumer stop action.
+	 * @since 4.2.3.
+	 */
+	public void setConsumerStopAction(ConsumerStopAction consumerStopAction) {
+		this.consumerStopAction = consumerStopAction;
 	}
 
 	@Override
