@@ -161,7 +161,7 @@ public class FileTailingMessageProducerTests {
 		foo.flush();
 		foo.close();
 		for (int i = 0; i < 50; i++) {
-			Message<?> message = outputChannel.receive(5000);
+			Message<?> message = outputChannel.receive(10000);
 			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
 		}
