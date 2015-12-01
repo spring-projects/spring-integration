@@ -20,6 +20,8 @@ import java.util.Properties;
 
 import javax.net.SocketFactory;
 
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
@@ -57,6 +59,8 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	private volatile Will will;
 
 	private volatile String[] serverURIs;
+
+	private volatile ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 
 	public void setCleanSession(Boolean cleanSession) {
 		this.cleanSession = cleanSession;
@@ -110,14 +114,34 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
 	}
 
+	/**
+	 * Get the consumer stop action.
+	 * @return the consumer stop action.
+	 * @since 4.2.3
+	 */
 	@Override
-	public MqttClient getClientInstance(String uri, String clientId) throws MqttException {
+	public ConsumerStopAction getConsumerStopAction() {
+		return consumerStopAction;
+	}
+
+	/**
+	 * Set the consumer stop action. Determines whether we unsubscribe when the consumer stops.
+	 * Default: {@link ConsumerStopAction#UNSUBSCRIBE_CLEAN}.
+	 * @param consumerStopAction the consumer stop action.
+	 * @since 4.2.3.
+	 */
+	public void setConsumerStopAction(ConsumerStopAction consumerStopAction) {
+		this.consumerStopAction = consumerStopAction;
+	}
+
+	@Override
+	public IMqttClient getClientInstance(String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
 	@Override
-	public MqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
+	public IMqttAsyncClient getAsyncClientInstance(String uri, String clientId) throws MqttException {
 		// Client validates URI even if overridden by options
 		return new MqttAsyncClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
