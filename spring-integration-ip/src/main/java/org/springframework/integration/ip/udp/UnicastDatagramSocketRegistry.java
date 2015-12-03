@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.udp;
 
+import org.springframework.context.Lifecycle;
+
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Map;
@@ -27,15 +29,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Marcin Pilaczynski
  * @since 4.3
  */
-public class UnicastDatagramSocketRegistry {
+public enum UnicastDatagramSocketRegistry implements Lifecycle {
 
-	public static final String BEAN_NAME = "UnicastDatagramSocketRegistry";
+	INSTANCE;
 
+	//	public static final String BEAN_NAME = "UnicastDatagramSocketRegistry";
 	protected final Map<String, DatagramSocket> stringDatagramSocketMap = new ConcurrentHashMap<String, DatagramSocket>();
+	private volatile boolean running;
 
 	public DatagramSocket getDatagramSocket(String datagramSocketId) throws SocketException {
-		if (datagramSocketId == null) {
-			return null;
+		if (datagramSocketId == null || stringDatagramSocketMap.get(datagramSocketId) == null) {
+			return new DatagramSocket();
 		} else {
 			return stringDatagramSocketMap.get(datagramSocketId);
 		}
@@ -43,6 +47,21 @@ public class UnicastDatagramSocketRegistry {
 
 	public void addDatagramSocket(String datagramSocketId, DatagramSocket datagramSocket) {
 		stringDatagramSocketMap.put(datagramSocketId, datagramSocket);
+	}
+
+	@Override
+	public void start() {
+		running = true;
+	}
+
+	@Override
+	public void stop() {
+		running = false;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return running;
 	}
 
 	public void removeDatagramSocket(String datagramSocketId) {

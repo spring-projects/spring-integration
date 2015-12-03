@@ -74,7 +74,8 @@ public class DatagramPacketSendingHandlerTests {
 		assertTrue(listening.await(10, TimeUnit.SECONDS));
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost",
-						testPort.get());
+						testPort.get(),
+						UnicastDatagramSocketRegistry.INSTANCE);
 		String payload = "foo";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(received.await(3000, TimeUnit.MILLISECONDS));
@@ -130,6 +131,7 @@ public class DatagramPacketSendingHandlerTests {
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost",
 						testPort.get(),
+						UnicastDatagramSocketRegistry.INSTANCE,
 						true,
 						true,
 						"localhost",
