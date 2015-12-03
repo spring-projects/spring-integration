@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Diego Belfer
+ * @author Gary Russell
  * @since 1.0.3
  */
 @SuppressWarnings({"unchecked"})
@@ -66,23 +67,23 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 
 	private final CopyOnWriteArraySet<E> elements;
 
-    private final Set<E> unmodifiableElements;
+	private final Set<E> unmodifiableElements;
 
-    public OrderedAwareCopyOnWriteArraySet() {
-        elements = new CopyOnWriteArraySet<E>();
-        unmodifiableElements = Collections.unmodifiableSet(elements);
-    }
+	OrderedAwareCopyOnWriteArraySet() {
+		elements = new CopyOnWriteArraySet<E>();
+		unmodifiableElements = Collections.unmodifiableSet(elements);
+	}
 
-    public Set<E> asUnmodifiableSet() {
-        return unmodifiableElements;
-    }
-
+	public Set<E> asUnmodifiableSet() {
+		return unmodifiableElements;
+	}
 
 	/**
 	 * Every time an Ordered element is added via this method this
 	 * Set will be re-sorted, otherwise the element is simply added
 	 * to the end. Added element must not be null.
 	 */
+	@Override
 	public boolean add(E o) {
 		Assert.notNull(o,"Can not add NULL object");
 		writeLock.lock();
@@ -104,6 +105,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	/**
 	 * Adds all elements in this Collection.
 	 */
+	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		Assert.notNull(c,"Can not merge with NULL set");
 		writeLock.lock();
@@ -121,6 +123,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean remove(Object o) {
 		writeLock.lock();
 		try {
@@ -136,6 +139,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean removeAll(Collection<?> c){
 		if (CollectionUtils.isEmpty(c)){
 			return false;
@@ -149,6 +153,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		}
 	}
 
+	@Override
 	public <T> T[] toArray(T[] a) {
 		readLock.lock();
 		try {
@@ -208,35 +213,44 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		return added;
 	}
 
-    public Iterator<E> iterator() {
-        return this.elements.iterator();
-    }
+	@Override
+	public Iterator<E> iterator() {
+		return this.elements.iterator();
+	}
 
+	@Override
 	public int size(){
 		return this.elements.size();
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return this.elements.isEmpty();
 	}
 
+	@Override
 	public boolean contains(Object o) {
 		return this.elements.contains(o);
 	}
 
+	@Override
 	public Object[] toArray() {
 		return this.elements.toArray();
 	}
 
+	@Override
 	public boolean containsAll(Collection<?> c) {
 		return this.elements.containsAll(c);
 	}
 
+	@Override
 	public boolean retainAll(Collection<?> c) {
 		return this.elements.retainAll(c);
 	}
 
+	@Override
 	public void clear() {
 		this.elements.clear();
 	}
+
 }

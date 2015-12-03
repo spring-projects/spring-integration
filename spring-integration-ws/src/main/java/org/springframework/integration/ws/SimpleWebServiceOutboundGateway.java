@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
@@ -96,7 +97,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private class SimpleRequestMessageCallback extends RequestMessageCallback {
 
-		public SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+		private SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
 			super(requestCallback, requestMessage);
 		}
 
@@ -137,7 +138,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 		private final Result result;
 
-		public SimpleResponseMessageExtractor(Result result){
+		private SimpleResponseMessageExtractor(Result result){
 			super();
 			this.result = result;
 		}

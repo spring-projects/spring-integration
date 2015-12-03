@@ -53,7 +53,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	 * @param defaultChannel the default {@link MessageChannel} for {@code send} operations
 	 */
 	public MessagingTemplate(MessageChannel defaultChannel) {
-		this.setDefaultChannel(defaultChannel);
+		super.setDefaultDestination(defaultChannel);
 	}
 
 	/**

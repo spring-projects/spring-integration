@@ -159,7 +159,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		private final AtomicLong epoch = new AtomicLong();
 
-		public FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws Exception {
+		private FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws Exception {
 			this.factories = factories;
 			this.factoryIterator = factories.iterator();
 			findAConnection();

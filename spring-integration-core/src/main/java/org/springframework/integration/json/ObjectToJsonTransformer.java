@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package org.springframework.integration.json;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
 
-	public static enum ResultType {
+	public enum ResultType {
 		STRING, NODE
 	}
 

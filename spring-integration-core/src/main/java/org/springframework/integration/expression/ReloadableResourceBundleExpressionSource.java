@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Juergen Hoeller
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  * @see #setCacheSeconds
  * @see #setBasenames
@@ -545,12 +546,12 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		private long refreshTimestamp = -1;
 
 
-		public PropertiesHolder(Properties properties, long fileTimestamp) {
+		private PropertiesHolder(Properties properties, long fileTimestamp) {
 			this.properties = properties;
 			this.fileTimestamp = fileTimestamp;
 		}
 
-		public PropertiesHolder() {
+		private PropertiesHolder() {
 		}
 
 		public Properties getProperties() {

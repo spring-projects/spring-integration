@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map;
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -43,6 +44,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 		this.staticParameters = staticParameters;
 	}
 
+	@Override
 	public ParameterSource createParameterSource(Object input) {
 		ParameterSource toReturn = new StaticBeanPropertyParameterSource(input, staticParameters);
 		return toReturn;
@@ -55,16 +57,18 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 
 		private final Map<String, Object> staticParameters;
 
-		public StaticBeanPropertyParameterSource(Object input, Map<String, Object> staticParameters) {
+		private StaticBeanPropertyParameterSource(Object input, Map<String, Object> staticParameters) {
 			this.input = new BeanPropertyParameterSource(input);
 			this.staticParameters = staticParameters;
 		}
 
+		@Override
 		public Object getValue(String paramName) {
 			return staticParameters.containsKey(paramName) ? staticParameters.get(paramName) : input
 					.getValue(paramName);
 		}
 
+		@Override
 		public boolean hasValue(String paramName) {
 			return staticParameters.containsKey(paramName) || input.hasValue(paramName);
 		}

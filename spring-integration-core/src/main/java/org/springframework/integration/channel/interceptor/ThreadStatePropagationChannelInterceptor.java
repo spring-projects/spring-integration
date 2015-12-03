@@ -46,6 +46,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @param <S> the propagated state object type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
  */
 public abstract class ThreadStatePropagationChannelInterceptor<S>
@@ -96,7 +97,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 
 		private final S state;
 
-		public MessageWithThreadState(Message<?> message, S state) {
+		private MessageWithThreadState(Message<?> message, S state) {
 			this.message = message;
 			this.state = state;
 		}

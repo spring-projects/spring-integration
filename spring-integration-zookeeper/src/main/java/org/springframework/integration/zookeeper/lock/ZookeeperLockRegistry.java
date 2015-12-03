@@ -154,7 +154,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 		private final String root;
 
-		public DefaultKeyToPathStrategy(String rootPath) {
+		private DefaultKeyToPathStrategy(String rootPath) {
 			Assert.notNull(rootPath, "'rootPath' cannot be null");
 			if (!rootPath.endsWith("/")) {
 				this.root = rootPath + "/";
@@ -184,7 +184,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 		private long lastUsed;
 
-		public ZkLock(CuratorFramework client, String path) {
+		private ZkLock(CuratorFramework client, String path) {
 			this.mutex = new InterProcessMutex(client, path);
 			this.path = path;
 		}

@@ -65,6 +65,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 
@@ -118,6 +119,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		this.createDocuments = createDocuments;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "xml:xpath-splitter";
 	}
@@ -275,7 +277,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		private int index;
 
-		public NodeListIterator(NodeList nodeList) throws ParserConfigurationException {
+		private NodeListIterator(NodeList nodeList) throws ParserConfigurationException {
 			this.nodeList = nodeList;
 			if (XPathMessageSplitter.this.createDocuments) {
 				this.documentBuilder = getNewDocumentBuilder();
@@ -292,8 +294,9 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		@Override
 		public Node next() {
-			if (!hasNext())
+			if (!hasNext()) {
 				return null;
+			}
 
 			Node node = nodeList.item(index++);
 			if (this.documentBuilder != null) {

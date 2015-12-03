@@ -57,7 +57,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	 * than waiting for the next timeout)
 	 */
 	@Override
-	public void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
+	public final void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
 		super.setExpireGroupsUponTimeout(expireGroupsUponTimeout);
 	}
 

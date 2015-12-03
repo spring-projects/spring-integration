@@ -33,7 +33,7 @@ import org.springframework.integration.scripting.ScriptExecutor;
 	/**
 	 * @param language
 	 */
-	public PythonScriptExecutor() {
+	PythonScriptExecutor() {
 		super("python");
 	}
 

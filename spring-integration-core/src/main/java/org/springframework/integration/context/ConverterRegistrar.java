@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
@@ -42,7 +43,7 @@ class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
 	private BeanFactory beanFactory;
 
 
-	public ConverterRegistrar(Set<?> converters) {
+	ConverterRegistrar(Set<?> converters) {
 		this.converters = converters;
 	}
 

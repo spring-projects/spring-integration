@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PriorityChannel extends QueueChannel {
 
@@ -106,7 +107,7 @@ public class PriorityChannel extends QueueChannel {
 
 		private final Comparator<Message<?>> targetComparator;
 
-		public SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
+		private SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
 			this.targetComparator = targetComparator;
 		}
 
@@ -135,11 +136,11 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	//we need this because of INT-2508
-	private class MessageWrapper implements Message<Object>{
+	private class MessageWrapper implements Message<Object> {
 		private final Message<?> rootMessage;
 		private final long sequence;
 
-		public MessageWrapper(Message<?> rootMessage){
+		private MessageWrapper(Message<?> rootMessage){
 			this.rootMessage = rootMessage;
 			this.sequence = sequenceCounter.incrementAndGet();
 		}

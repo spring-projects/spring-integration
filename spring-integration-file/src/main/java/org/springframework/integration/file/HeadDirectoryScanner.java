@@ -44,7 +44,7 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 	}
 
 	@Override
-	public void setFilter(FileListFilter<File> filter) {
+	public final void setFilter(FileListFilter<File> filter) {
 		if (filter instanceof CompositeFileListFilter) {
 			((CompositeFileListFilter<File>) filter).addFilter(this.headFilter);
 			super.setFilter(filter);
@@ -61,7 +61,7 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 
 		private final int maxNumberOfFiles;
 
-		public HeadFilter(int maxNumberOfFiles) {
+		private HeadFilter(int maxNumberOfFiles) {
 			this.maxNumberOfFiles = maxNumberOfFiles;
 		}
 

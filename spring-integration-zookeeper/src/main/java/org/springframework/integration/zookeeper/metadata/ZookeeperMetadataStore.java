@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * the names of which are stored as keys.
  *
  * @author Marius Bogoevici
+ * @author Gary Russell
  * @since 4.2
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
@@ -325,16 +326,16 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 		private final int version;
 
-		public LocalChildData(String value, int version) {
+		private LocalChildData(String value, int version) {
 			this.value = value;
 			this.version = version;
 		}
 
-		public String getValue() {
+		private String getValue() {
 			return this.value;
 		}
 
-		public int getVersion() {
+		private int getVersion() {
 			return this.version;
 		}
 	}

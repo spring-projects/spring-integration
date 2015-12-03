@@ -450,7 +450,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 		private final Object userData;
 
-		public CorrelationDataWrapper(String id, Object userData) {
+		private CorrelationDataWrapper(String id, Object userData) {
 			super(id);
 			this.userData = userData;
 		}

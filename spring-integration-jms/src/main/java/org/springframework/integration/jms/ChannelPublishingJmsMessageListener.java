@@ -481,11 +481,11 @@ public class ChannelPublishingJmsMessageListener
 	 */
 	private static class DestinationNameHolder {
 
-		public final String name;
+		private final String name;
 
-		public final boolean isTopic;
+		private final boolean isTopic;
 
-		public DestinationNameHolder(String name, boolean isTopic) {
+		private DestinationNameHolder(String name, boolean isTopic) {
 			this.name = name;
 			this.isTopic = isTopic;
 		}

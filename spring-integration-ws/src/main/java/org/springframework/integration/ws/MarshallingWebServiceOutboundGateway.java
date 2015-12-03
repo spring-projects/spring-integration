@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.ws.support.MarshallingUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @see Marshaller
  * @see Unmarshaller
  */
@@ -112,7 +113,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	private class MarshallingRequestMessageCallback extends RequestMessageCallback {
 
-		public MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+		private MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
 			super(requestCallback, requestMessage);
 		}
 
