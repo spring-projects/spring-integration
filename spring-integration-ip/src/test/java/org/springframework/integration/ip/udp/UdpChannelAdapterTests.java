@@ -81,7 +81,7 @@ public class UdpChannelAdapterTests {
 		final CountDownLatch exitLatch = new CountDownLatch(1);
 		final AtomicBoolean stopping = new AtomicBoolean();
 		final AtomicReference<Exception> exceptionHolder = new AtomicReference<Exception>();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0, UnicastDatagramSocketRegistry.INSTANCE) {
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0) {
 
 			@Override
 			public boolean isActive() {
@@ -165,7 +165,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiverWithReply() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0, UnicastDatagramSocketRegistry.INSTANCE);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
@@ -219,7 +219,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0, UnicastDatagramSocketRegistry.INSTANCE);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setBeanName("test");
 		adapter.setOutputChannel(channel);
 //		SocketUtils.setLocalNicIfPossible(adapter);
@@ -229,7 +229,7 @@ public class UdpChannelAdapterTests {
 
 //		String whichNic = SocketUtils.chooseANic(false);
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
-				"localhost", port, UnicastDatagramSocketRegistry.INSTANCE, false, true,
+				"localhost", port, false, true,
 				"localhost",
 //				whichNic,
 				SocketUtils.findAvailableUdpSocket(), 5000);
@@ -322,7 +322,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiverException() throws Exception {
 		SubscribableChannel channel = new DirectChannel();
-		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0, UnicastDatagramSocketRegistry.INSTANCE);
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.setOutputChannel(channel);

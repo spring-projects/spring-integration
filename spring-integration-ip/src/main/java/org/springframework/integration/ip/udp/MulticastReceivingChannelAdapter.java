@@ -42,7 +42,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	 * @param port The port.
 	 */
 	public MulticastReceivingChannelAdapter(String group, int port) {
-		super(port, null);
+		super(port);
 		this.group = group;
 	}
 
@@ -55,7 +55,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	 * @param lengthCheck If true, enables the lengthCheck Option.
 	 */
 	public MulticastReceivingChannelAdapter(String group, int port, boolean lengthCheck) {
-		super(port, null, lengthCheck);
+		super(port, lengthCheck);
 		this.group = group;
 	}
 

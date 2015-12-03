@@ -21,7 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.udp.UnicastDatagramSocketRegistry;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -57,9 +56,6 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 					".UnicastSendingMessageHandler");
 		}
 		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
-		if (multicast.equals("false")) {
-			builder.addConstructorArgValue(UnicastDatagramSocketRegistry.INSTANCE);
-		}
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,

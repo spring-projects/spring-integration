@@ -17,7 +17,6 @@
 package org.springframework.integration.syslog.inbound;
 
 import org.springframework.integration.channel.FixedSubscriberChannel;
-import org.springframework.integration.ip.udp.UnicastDatagramSocketRegistry;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -51,8 +50,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	protected void onInit() {
 		super.onInit();
 		if (this.udpAdapter == null) {
-			this.udpAdapter = new UnicastReceivingChannelAdapter(this.getPort(),
-					UnicastDatagramSocketRegistry.INSTANCE);
+			this.udpAdapter = new UnicastReceivingChannelAdapter(this.getPort());
 			this.udpAdapter.setBeanFactory(getBeanFactory());
 		}
 		else {

@@ -57,9 +57,8 @@ public class UnicastSendingMessageHandler extends
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	private volatile UnicastDatagramSocketRegistry unicastDatagramSocketRegistry;
-
 	private volatile DatagramSocket socket;
+
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
@@ -95,13 +94,9 @@ public class UnicastSendingMessageHandler extends
 	 * Basic constructor; no reliability; no acknowledgment.
 	 * @param host Destination host.
 	 * @param port Destination port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry.
 	 */
-	public UnicastSendingMessageHandler(String host,
-	                                    int port,
-	                                    UnicastDatagramSocketRegistry unicastDatagramSocketRegistry) {
+	public UnicastSendingMessageHandler(String host, int port) {
 		super(host, port);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
 	}
@@ -110,15 +105,10 @@ public class UnicastSendingMessageHandler extends
 	 * Can used to add a length to each packet which can be checked at the destination.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry.
 	 * @param lengthCheck If true, packets will contain a length.
 	 */
-	public UnicastSendingMessageHandler(String host,
-	                                    int port,
-	                                    UnicastDatagramSocketRegistry unicastDatagramSocketRegistry,
-	                                    boolean lengthCheck) {
+	public UnicastSendingMessageHandler(String host, int port, boolean lengthCheck) {
 		super(host, port);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 		this.mapper.setLengthCheck(lengthCheck);
 		this.mapper.setAcknowledge(false);
 	}
@@ -127,7 +117,6 @@ public class UnicastSendingMessageHandler extends
 	 * Add an acknowledgment request to packets.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry.
 	 * @param acknowledge If true, packets will request acknowledgment.
 	 * @param ackHost The host to which acks should be sent. Required if ack true.
 	 * @param ackPort The port to which acks should be sent.
@@ -135,7 +124,6 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public UnicastSendingMessageHandler(String host,
 	                                    int port,
-	                                    UnicastDatagramSocketRegistry unicastDatagramSocketRegistry,
 	                                    boolean acknowledge,
 	                                    String ackHost,
 	                                    int ackPort,
@@ -149,7 +137,6 @@ public class UnicastSendingMessageHandler extends
 	 * Add a length and/or acknowledgment request to packets.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry.
 	 * @param lengthCheck If true, packets will contain a length.
 	 * @param acknowledge If true, packets will request acknowledgment.
 	 * @param ackHost The host to which acks should be sent. Required if ack true.
@@ -158,7 +145,6 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public UnicastSendingMessageHandler(String host,
 	                                    int port,
-	                                    UnicastDatagramSocketRegistry unicastDatagramSocketRegistry,
 	                                    boolean lengthCheck,
 	                                    boolean acknowledge,
 	                                    String ackHost,
@@ -233,7 +219,7 @@ public class UnicastSendingMessageHandler extends
 				this.ackControl.put(messageId, countdownLatch);
 			}
 			packet = this.mapper.fromMessage(message);
-			this.send(packet, this.mapper.getDatagramSocketId(message));
+			this.send(packet);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sent packet for message " + message);
 			}
@@ -271,7 +257,7 @@ public class UnicastSendingMessageHandler extends
 			synchronized(this) {
 				if (!this.ackThreadRunning) {
 					try {
-						getSocket(null);
+						getSocket();
 					}
 					catch (IOException e) {
 						logger.error("Error creating socket", e);
@@ -289,11 +275,9 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	protected void send(DatagramPacket packet, String datagramSocketId) throws Exception {
-		DatagramSocket socket = this.getSocket(datagramSocketId);
-		if (packet.getAddress() == null) {
-			packet.setSocketAddress(this.getDestinationAddress());
-		}
+	protected void send(DatagramPacket packet) throws Exception {
+		DatagramSocket socket = this.getSocket();
+		packet.setSocketAddress(this.getDestinationAddress());
 		socket.send(packet);
 	}
 
@@ -305,7 +289,7 @@ public class UnicastSendingMessageHandler extends
 		return this.socket;
 	}
 
-	protected synchronized DatagramSocket getSocket(String datagramSocketId) throws IOException {
+	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
 			if (acknowledge) {
 				if (localAddress == null) {
@@ -324,7 +308,7 @@ public class UnicastSendingMessageHandler extends
 				updateAckAddress();
 			}
 			else {
-				this.socket = unicastDatagramSocketRegistry.getDatagramSocket(datagramSocketId);
+				this.socket = new DatagramSocket();
 			}
 			setSocketAttributes(this.socket);
 		}
@@ -419,7 +403,7 @@ public class UnicastSendingMessageHandler extends
 			ackLatch.countDown();
 			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
 			while(true) {
-				this.getSocket(null).receive(ackPack);
+				this.getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());
 				if (logger.isDebugEnabled()) {
 					logger.debug("Received ack for " + id + " from " + ackPack.getAddress().getHostAddress());

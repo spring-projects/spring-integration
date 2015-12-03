@@ -23,9 +23,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Matcher;
@@ -47,11 +44,7 @@ import org.springframework.messaging.MessagingException;
  */
 public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolReceivingChannelAdapter {
 
-	private volatile UnicastDatagramSocketRegistry unicastDatagramSocketRegistry;
-
 	private volatile DatagramSocket socket;
-
-	private volatile String datagramSocketId;
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -63,11 +56,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	/**
 	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
 	 * @param port The port.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry
 	 */
-	public UnicastReceivingChannelAdapter(int port, UnicastDatagramSocketRegistry unicastDatagramSocketRegistry) {
+	public UnicastReceivingChannelAdapter(int port) {
 		super(port);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 		this.mapper.setLengthCheck(false);
 	}
 
@@ -77,14 +68,10 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	 * a length to precede the incoming packets.
 	 * @param port The port.
 	 * @param lengthCheck If true, enables the lengthCheck Option.
-	 * @param unicastDatagramSocketRegistry unicast datagram socket registry
 	 */
-	public UnicastReceivingChannelAdapter(int port,
-										  UnicastDatagramSocketRegistry unicastDatagramSocketRegistry,
-										  boolean lengthCheck) {
+	public UnicastReceivingChannelAdapter(int port, boolean lengthCheck) {
 		super(port);
 		this.mapper.setLengthCheck(lengthCheck);
-		this.unicastDatagramSocketRegistry = unicastDatagramSocketRegistry;
 	}
 
 	@Override
@@ -196,9 +183,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected void doSend(final DatagramPacket packet) {
 		Message<byte[]> message = null;
 		try {
-			Map<String, Object> additionalHeaders = new HashMap<String, Object>();
-			additionalHeaders.put(IpHeaders.DATAGRAM_SOCKET_ID, datagramSocketId);
-			message = mapper.toMessage(new DatagramPacketWrapper(packet, additionalHeaders));
+			message = mapper.toMessage(packet);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received:" + message);
 			}
@@ -248,8 +233,6 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				}
 				setSocketAttributes(socket);
 				this.socket = socket;
-				this.datagramSocketId = UUID.randomUUID().toString();
-				unicastDatagramSocketRegistry.addDatagramSocket(datagramSocketId, socket);
 			}
 			catch (IOException e) {
 				throw new MessagingException("failed to create DatagramSocket", e);
@@ -280,8 +263,6 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			DatagramSocket socket = this.socket;
 			this.socket = null;
 			socket.close();
-			unicastDatagramSocketRegistry.removeDatagramSocket(datagramSocketId);
-			datagramSocketId = null;
 		}
 		catch (Exception e) {
 			// ignore
