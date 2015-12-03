@@ -16,13 +16,15 @@
 
 package org.springframework.integration.ip.config;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
-import org.springframework.integration.ip.udp.UnicastDatagramSocketRegistryBeanDefinitionFactory;
+import org.springframework.integration.ip.udp.UnicastDatagramSocketRegistry;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -84,9 +86,17 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		}
 		addPortToConstructor(element, builder, parserContext);
 		if (multicast.equals("false")) {
-			builder.addPropertyValue("unicastDatagramSocketRegistry",
-					UnicastDatagramSocketRegistryBeanDefinitionFactory
-							.getBeanDefinition(parserContext.getRegistry()));
+			BeanDefinition beanDefinition;
+			if (parserContext.getRegistry().containsBeanDefinition(UnicastDatagramSocketRegistry.BEAN_NAME)) {
+				beanDefinition = parserContext.getRegistry().getBeanDefinition(UnicastDatagramSocketRegistry.BEAN_NAME);
+			}
+			else {
+				beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(UnicastDatagramSocketRegistry.class)
+						.getBeanDefinition();
+				beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
+				registerBeanDefinition(new BeanDefinitionHolder(beanDefinition, UnicastDatagramSocketRegistry.BEAN_NAME), parserContext.getRegistry());
+			}
+			builder.addPropertyValue("unicastDatagramSocketRegistry", beanDefinition);
 		}
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
