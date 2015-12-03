@@ -33,7 +33,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -59,6 +63,7 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile DatagramSocket socket;
 
+	private final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
@@ -89,6 +94,10 @@ public class UnicastSendingMessageHandler extends
 	private volatile Executor taskExecutor;
 
 	private volatile boolean taskExecutorSet;
+
+	private volatile Expression socketExpression;
+
+	private volatile EvaluationContext evaluationContext;
 
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -153,6 +162,16 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
 				ackTimeout);
+	}
+
+	public void setSocketExpression(Expression socketExpression) {
+		Assert.notNull(socketExpression, "'socketExpression' cannot be null");
+		this.socketExpression = socketExpression;
+	}
+
+	public void setSocketExpressionString(String socketExpression) {
+		Assert.notNull(socketExpression, "'socketExpression' cannot be null");
+		this.socketExpression = PARSER.parseExpression(socketExpression);
 	}
 
 	protected final void setReliabilityAttributes(boolean lengthCheck,
@@ -277,7 +296,9 @@ public class UnicastSendingMessageHandler extends
 
 	protected void send(DatagramPacket packet) throws Exception {
 		DatagramSocket socket = this.getSocket();
-		packet.setSocketAddress(this.getDestinationAddress());
+		if (this.socketExpression == null) {
+			packet.setSocketAddress(this.getDestinationAddress());
+		}
 		socket.send(packet);
 	}
 
@@ -290,6 +311,9 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected synchronized DatagramSocket getSocket() throws IOException {
+		if (this.socketExpression != null) {
+			return this.socketExpression.getValue(this.evaluationContext, DatagramSocket.class);
+		}
 		if (this.socket == null) {
 			if (acknowledge) {
 				if (localAddress == null) {
@@ -382,6 +406,10 @@ public class UnicastSendingMessageHandler extends
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.mapper.setBeanFactory(this.getBeanFactory());
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(this.getBeanFactory());
+		if (this.socketExpression != null) {
+			Assert.state(!this.acknowledge, "'acknowledge' must be false when using a socket expression");
+		}
 	}
 
 	protected void setSocketAttributes(DatagramSocket socket) throws SocketException {

@@ -41,6 +41,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -345,6 +347,24 @@ public class UdpChannelAdapterTests {
 		assertNotNull(receivedMessage);
 		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
 		adapter.stop();
+	}
+
+	@Test
+	public void testSocketExpression() throws Exception {
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml",
+				this.getClass());
+		UnicastSendingMessageHandler outbound = context.getBean(UnicastSendingMessageHandler.class);
+		outbound.setSocketExpressionString("@inbound.socket");
+		UnicastReceivingChannelAdapter inbound = context.getBean(UnicastReceivingChannelAdapter.class);
+		int receiverServerPort = inbound.getPort();
+		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
+		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
+		DatagramSocket socket = new DatagramSocket();
+		socket.send(packet);
+		socket.receive(packet);
+		assertEquals("FOO", new String(packet.getData()));
+		assertEquals(receiverServerPort, packet.getPort());
+		context.close();
 	}
 
 	private class FailingService {

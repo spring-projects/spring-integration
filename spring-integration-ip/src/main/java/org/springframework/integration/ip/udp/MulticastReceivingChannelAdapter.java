@@ -60,7 +60,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 	}
 
 	@Override
-	protected synchronized DatagramSocket getSocket() {
+	public synchronized DatagramSocket getSocket() {
 		if (this.getTheSocket() == null) {
 			try {
 				int port = getPort();
