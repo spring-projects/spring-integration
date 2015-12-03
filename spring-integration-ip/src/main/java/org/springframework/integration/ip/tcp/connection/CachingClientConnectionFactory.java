@@ -139,7 +139,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		private volatile boolean released;
 
-		public CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
+		private CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
 			super.setTheConnection(connection);
 			registerListener(tcpListener);
 		}

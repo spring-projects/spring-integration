@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
  * The WebSocket Integration infrastructure {@code beanFactory} initializer.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class WebSocketIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
@@ -114,7 +115,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 		private ApplicationContext applicationContext;
 
-		public WebSocketHandlerMappingFactoryBean(ThreadPoolTaskScheduler sockJsTaskScheduler) {
+		private WebSocketHandlerMappingFactoryBean(ThreadPoolTaskScheduler sockJsTaskScheduler) {
 			this.registry = new ServletWebSocketHandlerRegistry(sockJsTaskScheduler);
 		}
 

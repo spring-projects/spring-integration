@@ -458,7 +458,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		private final MimeMessage source;
 
-		public IntegrationMimeMessage(MimeMessage source) throws MessagingException {
+		private IntegrationMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
 			this.source = source;
 		}

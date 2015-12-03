@@ -65,12 +65,12 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	private final ConnectionFactory connectionFactory;
 
-	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	protected AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
 	}
 
-	public AbstractSubscribableAmqpChannel(String channelName,
+	protected AbstractSubscribableAmqpChannel(String channelName,
 			SimpleMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub) {
 		super(amqpTemplate);

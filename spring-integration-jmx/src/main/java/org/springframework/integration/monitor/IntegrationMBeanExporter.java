@@ -1114,7 +1114,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private static class IntegrationMetadataMBeanInfoAssembler extends MetadataMBeanInfoAssembler {
 
-		public IntegrationMetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
+		private IntegrationMetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
 			super(attributeSource);
 		}
 
@@ -1132,7 +1132,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private static class IntegrationMetadataNamingStrategy extends MetadataNamingStrategy {
 
-		public IntegrationMetadataNamingStrategy(JmxAttributeSource attributeSource) {
+		private IntegrationMetadataNamingStrategy(JmxAttributeSource attributeSource) {
 			super(attributeSource);
 		}
 

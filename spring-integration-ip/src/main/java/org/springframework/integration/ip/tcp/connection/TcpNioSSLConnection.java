@@ -281,7 +281,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 		private final ChannelOutputStream channelOutputStream;
 
-		public SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
+		private SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
 			this.channelOutputStream = channelOutputStream;
 		}
 

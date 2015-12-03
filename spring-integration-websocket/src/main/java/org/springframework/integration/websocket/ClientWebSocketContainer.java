@@ -45,6 +45,7 @@ import org.springframework.web.socket.client.WebSocketClient;
  * event, which can be accessed from this container using {@link #getSession(String)}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public final class ClientWebSocketContainer extends IntegrationWebSocketContainer implements SmartLifecycle {
@@ -177,7 +178,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 		private final boolean syncClientLifecycle;
 
-		public IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
+		private IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 			super(uriTemplate, uriVariables);
 			this.client = client;
 			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());

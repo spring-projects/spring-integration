@@ -112,7 +112,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 		private final ConfigurableListableBeanFactory beanFactory;
 
-		public ManagedBeansBinding(BeanFactory beanFactory) {
+		private ManagedBeansBinding(BeanFactory beanFactory) {
 			this.beanFactory = (beanFactory instanceof ConfigurableListableBeanFactory)
 					? (ConfigurableListableBeanFactory) beanFactory : null;
 		}

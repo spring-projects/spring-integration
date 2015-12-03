@@ -315,7 +315,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		private final Callable<Boolean> pollingTask;
 
 
-		public Poller(Callable<Boolean> pollingTask) {
+		private Poller(Callable<Boolean> pollingTask) {
 			this.pollingTask = pollingTask;
 		}
 

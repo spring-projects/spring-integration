@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,15 +104,15 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final MessageBuilderFactory messageBuilderFactory;
 
-	public GatewayMethodInboundMessageMapper(Method method) {
+	GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
 
-	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
+	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		this(method, headerExpressions, null, null, null);
 	}
 
-	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
+	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
 			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper,
 			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(method, "method must not be null");
