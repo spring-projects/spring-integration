@@ -34,8 +34,27 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
+		parseSocketExpression(element, parserContext, builder);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		return builder.getBeanDefinition();
+	}
+
+	private void parseSocketExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
+		if (StringUtils.hasText(socketExpression)) {
+			String ack = element.getAttribute(IpAdapterParserUtils.ACK);
+			String multicast = IpAdapterParserUtils.getMulticast(element);
+			if (ack.equals("true") || multicast.equals("true")) {
+				parserContext.getReaderContext().error("Option "
+						+ IpAdapterParserUtils.SOCKET_EXPRESSION
+						+ " cannot be used together with "
+						+ IpAdapterParserUtils.ACK
+						+ " or "
+						+ IpAdapterParserUtils.UDP_MULTICAST
+						+ " options.", element);
+			}
+			builder.addPropertyValue("socketExpressionString", socketExpression);
+		}
 	}
 
 	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {

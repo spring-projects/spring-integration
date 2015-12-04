@@ -59,11 +59,11 @@ import org.springframework.util.Assert;
 public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
+	private static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
+
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
 	private volatile DatagramSocket socket;
-
-	private final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
@@ -171,7 +171,7 @@ public class UnicastSendingMessageHandler extends
 
 	public void setSocketExpressionString(String socketExpression) {
 		Assert.notNull(socketExpression, "'socketExpression' cannot be null");
-		this.socketExpression = PARSER.parseExpression(socketExpression);
+		this.socketExpression = SPEL_EXPRESSION_PARSER.parseExpression(socketExpression);
 	}
 
 	protected final void setReliabilityAttributes(boolean lengthCheck,

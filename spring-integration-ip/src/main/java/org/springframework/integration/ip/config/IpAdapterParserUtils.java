@@ -92,6 +92,8 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
+	static final String SOCKET_EXPRESSION = "socket-expression";
+
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
 
 	public static final String REQUEST_TIMEOUT = "request-timeout";
@@ -153,12 +155,16 @@ public abstract class IpAdapterParserUtils {
 	public static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
-		if (!StringUtils.hasText(host)) {
+		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
+		if (!StringUtils.hasText(host) && StringUtils.isEmpty(socketExpression)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
 					+ " is required for IP outbound channel adapters", element);
 		}
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
+		if (StringUtils.isEmpty(port)) {
+			port = "0";
+		}
 		builder.addConstructorArgValue(port);
 	}
 
@@ -170,6 +176,9 @@ public abstract class IpAdapterParserUtils {
 	public static void addPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
+		if (StringUtils.isEmpty(port)) {
+			port = "0";
+		}
 		builder.addConstructorArgValue(port);
 	}
 
@@ -182,9 +191,10 @@ public abstract class IpAdapterParserUtils {
 	 */
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
-		if (!StringUtils.hasText(port)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
-					" is required for IP channel adapters", element);
+		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
+		if (!StringUtils.hasText(port) && StringUtils.isEmpty(socketExpression)) {
+			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT
+					+ " is required for IP outbound channel adapters", element);
 		}
 		return port;
 	}

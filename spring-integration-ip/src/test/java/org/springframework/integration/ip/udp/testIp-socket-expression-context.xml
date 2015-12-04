@@ -15,6 +15,6 @@
 
 	<int:channel id="out" />
 
-	<int-ip:udp-outbound-channel-adapter id="outbound" host="foo" port="0" channel="out" />
+	<int-ip:udp-outbound-channel-adapter id="outbound" socket-expression="@inbound.socket" channel="out" />
 
 </beans>

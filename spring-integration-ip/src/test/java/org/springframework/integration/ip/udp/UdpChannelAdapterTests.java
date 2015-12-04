@@ -353,9 +353,14 @@ public class UdpChannelAdapterTests {
 	public void testSocketExpression() throws Exception {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml",
 				this.getClass());
-		UnicastSendingMessageHandler outbound = context.getBean(UnicastSendingMessageHandler.class);
-		outbound.setSocketExpressionString("@inbound.socket");
 		UnicastReceivingChannelAdapter inbound = context.getBean(UnicastReceivingChannelAdapter.class);
+		int n = 0;
+		while (!inbound.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 20) {
+				throw new RuntimeException("Receiving channel adapter failed to start listening");
+			}
+		}
 		int receiverServerPort = inbound.getPort();
 		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
 		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
