@@ -54,11 +54,13 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this(destinationProvider, null, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
+			SourceExtractor<?> sourceExtractor) {
 		this(destinationProvider, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor,
+			WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -71,7 +73,8 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor,
+			WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -82,7 +85,8 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 	@Override
-	protected Object doHandle(String uri, final Message<?> requestMessage, final WebServiceMessageCallback requestCallback) {
+	protected Object doHandle(String uri, final Message<?> requestMessage,
+			final WebServiceMessageCallback requestCallback) {
 		Object requestPayload = requestMessage.getPayload();
 		Result responseResultInstance = null;
 		if (requestPayload instanceof String) {
@@ -92,17 +96,19 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			responseResultInstance = new DOMResult();
 		}
 		return this.getWebServiceTemplate().sendAndReceive(uri,
-				new SimpleRequestMessageCallback(requestCallback, requestMessage), new SimpleResponseMessageExtractor(responseResultInstance));
+				new SimpleRequestMessageCallback(requestCallback, requestMessage),
+				new SimpleResponseMessageExtractor(responseResultInstance));
 	}
 
 	private class SimpleRequestMessageCallback extends RequestMessageCallback {
 
-		private SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+		private SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 
 		@Override
-		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException {
+		public void doWithMessageInternal(WebServiceMessage message, Object payload)
+				throws IOException, TransformerException {
 			Source source = this.extractSource(payload);
 			this.transform(source, message.getPayloadResult());
 		}
@@ -124,7 +130,8 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			}
 			else {
 				throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
-						"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" + Source.class.getName() +
+						"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" +
+						Source.class.getName() +
 						"', and '" + Document.class.getName() + "'. Consider either using the '"
 						+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
 			}
@@ -138,13 +145,13 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 		private final Result result;
 
-		private SimpleResponseMessageExtractor(Result result){
+		private SimpleResponseMessageExtractor(Result result) {
 			super();
 			this.result = result;
 		}
 
 		@Override
-		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException{
+		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException {
 			Source payloadSource = message.getPayloadSource();
 
 			if (payloadSource != null && this.result != null) {

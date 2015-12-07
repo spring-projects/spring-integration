@@ -27,11 +27,11 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
  * @author Gary Russell
  * @since 3.0
  */
-class ScriptExecutingMessageSource extends AbstractMessageSource<Object> {
+public class ScriptExecutingMessageSource extends AbstractMessageSource<Object> {
 
 	private final AbstractScriptExecutingMessageProcessor<?> scriptMessageProcessor;
 
-	ScriptExecutingMessageSource(AbstractScriptExecutingMessageProcessor<?> scriptMessageProcessor) {
+	public ScriptExecutingMessageSource(AbstractScriptExecutingMessageProcessor<?> scriptMessageProcessor) {
 		this.scriptMessageProcessor = scriptMessageProcessor;
 	}
 

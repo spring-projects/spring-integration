@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.1
  */
-abstract class AbstractScriptExecutor implements ScriptExecutor {
+public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -45,7 +45,7 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	protected final String language;
 
-	public AbstractScriptExecutor(String language) {
+	protected AbstractScriptExecutor(String language) {
 		Assert.hasText(language, "language must not be empty");
 		this.language = language;
 

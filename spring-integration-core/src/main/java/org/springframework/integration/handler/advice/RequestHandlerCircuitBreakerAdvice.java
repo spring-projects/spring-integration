@@ -72,7 +72,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 	}
 
-	private class AdvisedMetadata {
+	private static class AdvisedMetadata {
 
 		private final AtomicInteger failures = new AtomicInteger();
 
@@ -91,7 +91,10 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 	}
 
-	private class CircuitBreakerOpenException extends RuntimeException {
+	/**
+	 * An exception thrown when the circuit breaker is in an open state.
+	 */
+	public static class CircuitBreakerOpenException extends RuntimeException {
 
 		private static final long serialVersionUID = 1L;
 
