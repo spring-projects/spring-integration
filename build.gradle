@@ -175,7 +175,7 @@ subprojects { subproject ->
 			exclude group: 'org.hamcrest'
 		}
 		testCompile "org.springframework:spring-test:$springVersion"
-		if (!(subproject.name ==~ /.*-(core|test)/)) {
+		if (!(subproject.name ==~ /.*-(core|test|core-test)/)) {
 			testCompile project(":spring-integration-test")
 		}
 
@@ -255,9 +255,27 @@ subprojects { subproject ->
 	build.dependsOn jacocoTestReport
 }
 
+project('spring-integration-core-test') {
+	description = 'Spring Integration (Core) Test Support - no SI Dependencies'
+	dependencies {
+		compile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+		compile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-messaging:$springVersion"
+		compile "org.springframework:spring-test:$springVersion"
+		compile ("log4j:log4j:$log4jVersion", optional)
+	}
+}
+
 project('spring-integration-test') {
 	description = 'Spring Integration Test Support'
 	dependencies {
+		compile project(":spring-integration-core-test")
 		compile project(":spring-integration-core")
 		compile ("junit:junit:$junitVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
@@ -267,7 +285,6 @@ project('spring-integration-test') {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
 		compile "org.springframework:spring-test:$springVersion"
-		compile "log4j:log4j:$log4jVersion" // TEMPORARY - DO NOT RELEASE
 	}
 }
 
@@ -308,6 +325,7 @@ project('spring-integration-core') {
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
+		testCompile project(":spring-integration-core-test")
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("net.openhft:chronicle:$chronicleVersion")
 		testCompile ("io.projectreactor.spring:reactor-spring-context:$reactorVersion")

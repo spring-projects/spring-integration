@@ -26,6 +26,8 @@ import javax.net.ServerSocketFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.springframework.integration.test.util.SocketUtils;
+
 /**
  * @author Gunnar Hillert
  * @author Gary Russell

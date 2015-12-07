@@ -44,7 +44,7 @@ import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -118,7 +118,7 @@ public class ConnectionToConnectionTests {
 			assertNotNull(message);
 			MessageHistory history = MessageHistory.read(message);
 			//org.springframework.integration.test.util.TestUtils
-			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, gatewayName, 0);
+			Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, gatewayName, 0);
 			assertNotNull(componentHistoryRecord);
 			assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 			assertNotNull(message);
@@ -176,7 +176,7 @@ public class ConnectionToConnectionTests {
 		assertNotNull(message);
 		MessageHistory history = MessageHistory.read(message);
 		//org.springframework.integration.test.util.TestUtils
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "gwNet", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "gwNet", 0);
 		assertNotNull(componentHistoryRecord);
 		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 		assertNotNull(message);

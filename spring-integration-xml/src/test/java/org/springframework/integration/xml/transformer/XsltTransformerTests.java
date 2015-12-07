@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -33,7 +33,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,7 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class XsltTransformerTests {
-	private String docAsString = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private final String docAsString = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 	@Autowired
 	private ApplicationContext applicationContext;
 	@Autowired
@@ -66,7 +66,7 @@ public class XsltTransformerTests {
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "paramHeadersWithStartWildCharacter", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "paramHeadersWithStartWildCharacter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("xml:xslt-transformer", componentHistoryRecord.get("type"));
 		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());

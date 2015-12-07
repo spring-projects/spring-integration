@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,16 +42,17 @@ import org.springframework.expression.Expression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -214,7 +215,7 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		Message<?> message = requests.receive(0);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "postOnlyAdapter", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "postOnlyAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("http:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull(message);

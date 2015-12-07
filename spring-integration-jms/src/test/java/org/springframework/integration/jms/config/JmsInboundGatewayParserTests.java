@@ -37,6 +37,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
@@ -65,7 +66,7 @@ public class JmsInboundGatewayParserTests {
 		Message<?> message = channel.receive(3000);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jmsGateway", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "jmsGateway", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);

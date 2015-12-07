@@ -36,6 +36,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.history.HistoryUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
@@ -82,7 +83,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
+		Properties componentHistoryRecord = HistoryUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("jdbc:inbound-channel-adapter", componentHistoryRecord.get("type"));
 
