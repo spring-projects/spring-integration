@@ -16,6 +16,15 @@
 
 package org.springframework.integration.ws.config;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -29,16 +38,16 @@ import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.mapping.AbstractHeaderMapper;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.support.AbstractMarshaller;
 import org.springframework.test.annotation.DirtiesContext;
@@ -48,15 +57,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.soap.SoapMessage;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Iwein Fuld
@@ -210,17 +210,21 @@ public class WebServiceInboundGatewayParserTests {
 	@SuppressWarnings("unused")
 	private static class TestHeaderMapper implements SoapHeaderMapper {
 
+		@Override
 		public void fromHeadersToRequest(MessageHeaders headers,
 				SoapMessage target) {
 		}
 
+		@Override
 		public void fromHeadersToReply(MessageHeaders headers, SoapMessage target) {
 		}
 
+		@Override
 		public Map<String, Object> toHeadersFromRequest(SoapMessage source) {
 			return Collections.emptyMap();
 		}
 
+		@Override
 		public Map<String, Object> toHeadersFromReply(SoapMessage source) {
 			return Collections.emptyMap();
 		}

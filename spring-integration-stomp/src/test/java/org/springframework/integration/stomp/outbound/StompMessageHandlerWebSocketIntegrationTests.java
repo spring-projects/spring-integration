@@ -57,7 +57,6 @@ import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

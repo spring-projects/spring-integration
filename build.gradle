@@ -256,9 +256,8 @@ subprojects { subproject ->
 }
 
 project('spring-integration-test') {
-	description = 'Spring Integration Test Support'
+	description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
 	dependencies {
-		compile project(":spring-integration-core")
 		compile ("junit:junit:$junitVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
@@ -266,8 +265,10 @@ project('spring-integration-test') {
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
-		compile "log4j:log4j:$log4jVersion" // TEMPORARY - DO NOT RELEASE
+		compile ("log4j:log4j:$log4jVersion", optional)
 	}
 }
 
@@ -308,6 +309,7 @@ project('spring-integration-core') {
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
+		testCompile project(":spring-integration-test")
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("net.openhft:chronicle:$chronicleVersion")
 		testCompile ("io.projectreactor.spring:reactor-spring-context:$reactorVersion")

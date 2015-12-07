@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.mockito;
+package org.springframework.integration.handler;
 
 import static org.mockito.Mockito.verify;
 
@@ -82,7 +82,7 @@ public class ServiceActivatorOnMockitoMockTests {
 	@SuppressWarnings("deprecation")
 	public static class SingleMethodAcceptingHeaderOnClass {
 
-		public String move(@org.springframework.integration.annotation.Header("s") String s) {
+		public String move(@org.springframework.messaging.handler.annotation.Header("s") String s) {
 			return s;
 		}
 
