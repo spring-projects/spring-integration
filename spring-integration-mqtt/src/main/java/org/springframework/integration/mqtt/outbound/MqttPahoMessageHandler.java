@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.mqtt.outbound;
 
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -49,7 +49,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile MqttAsyncClient client;
+	private volatile IMqttAsyncClient client;
 
 	private volatile boolean async;
 
@@ -154,7 +154,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		}
 	}
 
-	private synchronized MqttAsyncClient checkConnection() throws MqttException {
+	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
 		if (this.client != null && !this.client.isConnected()) {
 			this.client.close();
 			this.client = null;
@@ -164,7 +164,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 				Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-				MqttAsyncClient client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+				IMqttAsyncClient client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 				incrementClientInstance();
 				client.setCallback(this);
 				client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
@@ -183,7 +183,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		MqttAsyncClient client = checkConnection();
+		IMqttAsyncClient client = checkConnection();
 		IMqttDeliveryToken token = client.publish(topic, (MqttMessage) mqttMessage);
 		if (!this.async) {
 			token.waitForCompletion(this.completionTimeout);

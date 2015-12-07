@@ -18,8 +18,8 @@ package org.springframework.integration.mqtt.inbound;
 import java.util.Arrays;
 import java.util.concurrent.ScheduledFuture;
 
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -27,6 +27,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
@@ -51,7 +52,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile MqttAsyncClient client;
+	private volatile IMqttAsyncClient client;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
 
@@ -60,6 +61,10 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private volatile boolean cleanSession;
+
+	private volatile ConsumerStopAction consumerStopAction;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -148,8 +153,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		super.doStop();
 		if (this.client != null) {
 			try {
-				this.client.unsubscribe(getTopic())
-						.waitForCompletion(this.completionTimeout);
+				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
+						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
+								&& this.cleanSession)) {
+					this.client.unsubscribe(getTopic())
+							.waitForCompletion(this.completionTimeout);
+				}
 			}
 			catch (MqttException e) {
 				logger.error("Exception while unsubscribing", e);
@@ -211,6 +220,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
+		this.cleanSession = connectionOptions.isCleanSession();
+		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
+		if (this.consumerStopAction == null) {
+			this.consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
+		}
 		Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 		this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());

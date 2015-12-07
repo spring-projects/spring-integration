@@ -89,6 +89,22 @@ Also, a new property `recoveryInterval` controls the interval at which the adapt
 a failure; it defaults to `10000ms` (ten seconds).
 This is not currently available using XML configuration.
 
+[NOTE]
+====
+Prior to _version 4.2.3_, the client always unsubscribed when the adapter was stopped.
+This was incorrect because if the client QOS is > 1, we need to keep the subscription active so that messages arriving
+while the adapter is stopped will be delivered on the next start.
+This also requires setting the `cleanSession` property on the client factory to `false` - it defaults to `true`.
+
+Starting with _version 4.2.3_, the adapter will not unsubscribe if the `cleanSession` property is `false` (by default).
+
+This behavior can be overridden by setting the `consumerCloseAction` property on the factory.
+It can have values: `UNSUBSCRIBE_ALWAYS`, `UNSUBSCRIBE_NEVER`, and `UNSUBSCRIBE_CLEAN`.
+The latter (the default) will unsubscribe only if the `cleanSession` property is `true`.
+
+To revert to the pre-4.2.3 behavior, use `UNSUBSCRIBE_ALWAYS`.
+====
+
 ==== Adding/Removing Topics at Runtime
 
 Starting with _version 4.1_, it is possible to programmatically change the topics to which the adapter is subscribed.
