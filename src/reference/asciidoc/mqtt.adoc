@@ -92,7 +92,7 @@ This is not currently available using XML configuration.
 [NOTE]
 ====
 Prior to _version 4.2.3_, the client always unsubscribed when the adapter was stopped.
-This is incorrect because if the client QOS is > 1, we need to keep the subscription active so that messages arriving
+This was incorrect because if the client QOS is > 0, we need to keep the subscription active so that messages arriving
 while the adapter is stopped will be delivered on the next start.
 This also requires setting the `cleanSession` property on the client factory to `false` - it defaults to `true`.
 
