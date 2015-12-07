@@ -30,9 +30,7 @@ import org.springframework.integration.scripting.ScriptExecutor;
  *
  */
  public class PythonScriptExecutor extends AbstractScriptExecutor {
-	/**
-	 * @param language
-	 */
+
 	public PythonScriptExecutor() {
 		super("python");
 	}
