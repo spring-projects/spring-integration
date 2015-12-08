@@ -49,8 +49,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
 
-	private final ConcurrentMap<Object, SimpleMessageGroup> groupIdToMessageGroup =
-			new ConcurrentHashMap<Object, SimpleMessageGroup>();
+	private final ConcurrentMap<Object, MessageGroup> groupIdToMessageGroup =
+			new ConcurrentHashMap<Object, MessageGroup>();
 
 	private final ConcurrentMap<Object, UpperBound> groupToUpperBound = new ConcurrentHashMap<Object, UpperBound>();
 
@@ -200,9 +200,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
+		MessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
-			return getSimpleMessageGroupFactory().create(groupId);
+			return getMessageGroupFactory().create(groupId);
 		}
 		if (this.copyOnGet) {
 			return copy(group);
@@ -214,12 +214,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	protected MessageGroup copy(MessageGroup group) {
-		Lock lock = this.lockRegistry.obtain(group.getGroupId());
+		Object groupId = group.getGroupId();
+		Lock lock = this.lockRegistry.obtain(groupId);
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup simpleMessageGroup = getSimpleMessageGroupFactory().create(group);
+				MessageGroup simpleMessageGroup = getMessageGroupFactory()
+						.create(group.getMessages(), groupId, group.getTimestamp(), group.isComplete());
 				simpleMessageGroup.setLastModified(group.getLastModified());
+				simpleMessageGroup.setLastReleasedMessageSequenceNumber(group.getLastReleasedMessageSequenceNumber());
 				return simpleMessageGroup;
 			}
 			finally {
@@ -240,9 +243,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			boolean unlocked = false;
 			try {
 				UpperBound upperBound;
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				if (group == null) {
-					group = getSimpleMessageGroupFactory().create(groupId);
+					group = getMessageGroupFactory().create(groupId);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 					upperBound = new UpperBound(this.groupCapacity);
 					upperBound.tryAcquire(-1);
@@ -285,7 +288,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
+				MessageGroup messageGroup = this.groupIdToMessageGroup.remove(groupId);
 				if (messageGroup != null) {
 					UpperBound upperBound = this.groupToUpperBound.remove(groupId);
 					Assert.state(upperBound != null, "'upperBound' must not be null.");
@@ -309,7 +312,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message from the MessageGroup");
 				if (group.remove(messageToRemove)) {
@@ -336,7 +339,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message(s) from the MessageGroup");
 				UpperBound upperBound = this.groupToUpperBound.get(groupId);
@@ -373,7 +376,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to set 'lastReleasedSequenceNumber'");
 				group.setLastReleasedMessageSequenceNumber(sequenceNumber);
@@ -395,7 +398,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to complete the MessageGroup");
 				group.complete();
@@ -444,7 +447,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		try {
 			lock.lockInterruptibly();
 			try {
-				SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to complete the MessageGroup");
 				group.clear();

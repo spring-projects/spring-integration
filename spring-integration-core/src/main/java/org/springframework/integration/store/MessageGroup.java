@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public interface MessageGroup {
 
@@ -39,6 +40,21 @@ public interface MessageGroup {
 	 * @return true if the message can be added.
 	 */
 	boolean canAdd(Message<?> message);
+
+	/**
+	 * Add the message to this group.
+	 * @param messageToAdd the message to add.
+	 * @since 4.3
+	 */
+	void add(Message<?> messageToAdd);
+
+	/**
+	 * Remove the message from this group.
+	 * @param messageToRemove the message to remove.
+	 * @return {@code true} if a message was removed.
+	 * @since 4.3
+	 */
+	boolean remove(Message<?> messageToRemove);
 
 	/**
 	 * Returns all available Messages from the group at the time of invocation
@@ -56,6 +72,8 @@ public interface MessageGroup {
 	 * @return the sequenceNumber of the last released message. Used in Resequencer use cases only
 	 */
 	int getLastReleasedMessageSequenceNumber();
+
+	void setLastReleasedMessageSequenceNumber(int sequenceNumber);
 
 	/**
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)
@@ -91,5 +109,9 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the time this group was last updated
 	 */
 	long getLastModified();
+
+	void setLastModified(long lastModified);
+
+	void clear();
 
 }

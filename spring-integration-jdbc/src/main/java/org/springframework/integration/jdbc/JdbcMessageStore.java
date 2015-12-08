@@ -44,7 +44,6 @@ import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -79,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Will Schipp
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -168,8 +168,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			return sql;
 		}
 	}
-
-	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -427,10 +425,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region }, mapper);
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY),
+				new Object[] { key, region }, mapper);
 
 		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key, region},
 				new RowCallbackHandler() {
+
 					@Override
 					public void processRow(ResultSet rs) throws SQLException {
 						updateDate.set(rs.getTimestamp("UPDATED_DATE"));
@@ -441,6 +441,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 						lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
 					}
+
 				});
 
 		if (createDate.get() == null && updateDate.get() == null) {
@@ -449,19 +450,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					logger.warn("Missing group row for message id: " + message.getHeaders().getId());
 				}
 			}
-			return getSimpleMessageGroupFactory().create(groupId);
+			return getMessageGroupFactory().create(groupId);
 		}
 
 		long timestamp = createDate.get().getTime();
 		boolean complete = completeFlag.get();
-
-		SimpleMessageGroup messageGroup = getSimpleMessageGroupFactory()
-				.create(messages, groupId, timestamp, complete);
-		messageGroup.setLastModified(updateDate.get().getTime());
-
+		long lastModified = updateDate.get().getTime();
 		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
-		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 
+		MessageGroup messageGroup = getMessageGroupFactory()
+				.create(messages, groupId, timestamp, complete);
+		messageGroup.setLastModified(lastModified);
+		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		return messageGroup;
 	}
 
@@ -501,22 +501,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				messages,
 				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
-			@Override
-			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
-				ps.setString(1, groupKey);
-				ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
-				ps.setString(3, region);
-			}
+					@Override
+					public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+						ps.setString(1, groupKey);
+						ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
+						ps.setString(3, region);
+					}
 		});
 		jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
 				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
-			@Override
-			public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
-				ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
-				ps.setString(2, region);
-			}
+					@Override
+					public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
+						ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
+						ps.setString(2, region);
+					}
 		});
 		this.updateMessageGroup(groupKey);
 	}

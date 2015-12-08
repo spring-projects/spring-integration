@@ -28,11 +28,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BulkWriteOperation;
-import com.mongodb.DBObject;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -69,7 +64,6 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
@@ -79,6 +73,11 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
+import com.mongodb.DBObject;
 
 
 /**
@@ -264,7 +263,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			messages.add(messageWrapper.getMessage());
 		}
 
-		SimpleMessageGroup messageGroup = getSimpleMessageGroupFactory().create(messages, groupId, timestamp, completeGroup);
+		MessageGroup messageGroup = getMessageGroupFactory().create(messages, groupId, timestamp, completeGroup);
 		messageGroup.setLastModified(lastModified);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);

@@ -28,7 +28,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
@@ -51,8 +50,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	private volatile BeanFactory beanFactory;
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private volatile SimpleMessageGroupFactory simpleMessageGroupFactory = new SimpleMessageGroupFactory();
 
 	private volatile boolean messageBuilderFactorySet;
 
@@ -104,18 +101,9 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		this.timeoutOnIdle = timeoutOnIdle;
 	}
 
-	public void setSimpleMessageGroupFactory(SimpleMessageGroupFactory simpleMessageGroupFactory) {
-		Assert.notNull(simpleMessageGroupFactory, "'simpleMessageGroupFactory' must not be null");
-		this.simpleMessageGroupFactory = simpleMessageGroupFactory;
-	}
-
-	protected SimpleMessageGroupFactory getSimpleMessageGroupFactory() {
-		return simpleMessageGroupFactory;
-	}
-
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		expiryCallbacks.add(callback);
+		this.expiryCallbacks.add(callback);
 	}
 
 	@Override

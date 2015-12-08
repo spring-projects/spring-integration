@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -119,7 +118,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	 */
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		return new SimpleMessageGroup(groupId);
+		return getMessageGroupFactory().create(groupId);
 	}
 
 	@Override

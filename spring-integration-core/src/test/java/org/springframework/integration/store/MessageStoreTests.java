@@ -103,6 +103,7 @@ public class MessageStoreTests {
 		}
 
 		@Override
+		@Deprecated
 		public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
 			throw new UnsupportedOperationException();
 		}

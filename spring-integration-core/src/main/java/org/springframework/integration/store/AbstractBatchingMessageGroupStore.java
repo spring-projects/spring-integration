@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.store;
 
 
+import org.springframework.util.Assert;
+
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -26,6 +30,8 @@ public abstract class AbstractBatchingMessageGroupStore implements BasicMessageG
 	private static final int DEFAULT_REMOVE_BATCH_SIZE = 100;
 
 	private volatile int removeBatchSize = DEFAULT_REMOVE_BATCH_SIZE;
+
+	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
 	/**
 	 * Set the batch size when bulk removing messages from groups for message stores
@@ -40,6 +46,15 @@ public abstract class AbstractBatchingMessageGroupStore implements BasicMessageG
 
 	public int getRemoveBatchSize() {
 		return removeBatchSize;
+	}
+
+	public void setMessageGroupFactory(MessageGroupFactory messageGroupFactory) {
+		Assert.notNull(messageGroupFactory, "'messageGroupFactory' must not be null");
+		this.messageGroupFactory = messageGroupFactory;
+	}
+
+	protected MessageGroupFactory getMessageGroupFactory() {
+		return this.messageGroupFactory;
 	}
 
 }

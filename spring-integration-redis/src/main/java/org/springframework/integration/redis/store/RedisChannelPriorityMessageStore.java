@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -41,10 +40,12 @@ import org.springframework.util.Assert;
  * Requires that groupId is a String.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
-public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore implements PriorityCapableChannelMessageStore {
+public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
+		implements PriorityCapableChannelMessageStore {
 
 	private final Comparator<String> keysComparator = new Comparator<String>() {
 
@@ -85,7 +86,7 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore i
 			List<Message<?>> messages = this.getRedisTemplate().boundListOps(key).range(0, -1);
 			allMessages.addAll(messages);
 		}
-		return new SimpleMessageGroup(allMessages, groupId);
+		return getMessageGroupFactory().create(allMessages, groupId);
 	}
 
 

@@ -30,14 +30,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.Scope;
-import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -54,6 +49,11 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
+import junit.framework.AssertionFailedError;
+
 /**
  * @author Oleg Zhurakousky
  * @author David Turanski
@@ -67,7 +67,7 @@ public class GemfireGroupStoreTests {
 
 	private Region<Object, Object> region;
 
-	@Rule
+//	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test

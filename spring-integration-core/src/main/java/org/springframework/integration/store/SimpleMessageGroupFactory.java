@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 4.3
  */
-public class SimpleMessageGroupFactory {
+public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	private final GroupType type;
 
@@ -36,16 +36,19 @@ public class SimpleMessageGroupFactory {
 		this.type = type;
 	}
 
-	public SimpleMessageGroup create(Object groupId) {
+	@Override
+	public MessageGroup create(Object groupId) {
 		return create(Collections.<Message<?>> emptyList(), groupId);
 	}
 
-	public SimpleMessageGroup create(Collection<? extends Message<?>> messages, Object groupId) {
+	@Override
+	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId) {
 		return create(messages, groupId, System.currentTimeMillis(), false);
 	}
 
-	public SimpleMessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-	                                 boolean complete) {
+	@Override
+	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
+							   boolean complete) {
 		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete);
 	}
 

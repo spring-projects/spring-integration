@@ -94,7 +94,7 @@ public class SimpleMessageGroupTests {
 		for (int i = 0; i < 100000; i++) {
 			messages.add(new GenericMessage<Object>("foo"));
 		}
-		SimpleMessageGroup group = new SimpleMessageGroup(messages, this.key, System.currentTimeMillis(), false, true);
+		SimpleMessageGroup group = new SimpleMessageGroup(messages, this.key);
 		StopWatch watch = new StopWatch();
 		watch.start();
 		for (Message<?> message : messages) {

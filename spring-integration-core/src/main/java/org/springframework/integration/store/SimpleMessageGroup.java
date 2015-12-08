@@ -101,8 +101,8 @@ public class SimpleMessageGroup implements MessageGroup {
 		return true;
 	}
 
-	public void add(Message<?> message) {
-		addMessage(message);
+	public void add(Message<?> messageToAdd) {
+		addMessage(messageToAdd);
 	}
 
 	public boolean remove(Message<?> message) {
