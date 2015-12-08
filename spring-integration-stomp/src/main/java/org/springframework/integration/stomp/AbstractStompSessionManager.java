@@ -60,7 +60,10 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * to the provided {@link StompSessionHandler}s.
  * This {@link AbstractStompSessionManager.CompositeStompSessionHandler} is used for the
  * {@link StompSession} connection.
+ *
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 4.2
  */
 public abstract class AbstractStompSessionManager implements StompSessionManager, ApplicationEventPublisherAware,
@@ -363,15 +366,11 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			if (this.session != null) {
 				delegate.afterConnected(this.session, getConnectHeaders());
 			}
-			synchronized (this.delegates) {
-				this.delegates.add(delegate);
-			}
+			this.delegates.add(delegate);
 		}
 
 		void removeHandler(StompSessionHandler delegate) {
-			synchronized (this.delegates) {
-				this.delegates.remove(delegate);
-			}
+			this.delegates.remove(delegate);
 		}
 
 		@Override
