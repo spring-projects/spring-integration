@@ -19,10 +19,7 @@ package org.springframework.integration.aggregator;
 import java.util.Collection;
 
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 
@@ -34,8 +31,6 @@ import org.springframework.messaging.Message;
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageListProcessor extends AbstractExpressionEvaluator implements MessageListProcessor {
-
-	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private final Expression expression;
 
@@ -52,7 +47,7 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 
 	public ExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
-			this.expression = parser.parseExpression(expression);
+			this.expression = EXPRESSION_PARSER.parseExpression(expression);
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);

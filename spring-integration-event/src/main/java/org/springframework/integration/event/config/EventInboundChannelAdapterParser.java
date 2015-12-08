@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.event.inbound.ApplicationEventListeningMe
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class EventInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -40,7 +41,8 @@ public class EventInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression",
+				"payloadExpressionString");
 		return adapterBuilder.getBeanDefinition();
 	}
 

@@ -254,7 +254,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testInt2773WithDefaultAmqpTemplateExchangeAndRoutingLey() throws IOException {
+	public void testInt2773WithDefaultAmqpTemplateExchangeAndRoutingKey() throws IOException {
 		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
 		Connection mockConnection = mock(Connection.class);
 		Channel mockChannel = mock(Channel.class);

@@ -46,11 +46,11 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile StandardEvaluationContext evaluationContext;
-
-	private final ExpressionParser expressionParser = new SpelExpressionParser();
+	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile BeanFactory beanFactory;
 
@@ -146,7 +146,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
-		return this.expressionParser.parseExpression(expression)
+		return EXPRESSION_PARSER.parseExpression(expression)
 				.getValue(this.getEvaluationContext(), input, expectedType);
 	}
 

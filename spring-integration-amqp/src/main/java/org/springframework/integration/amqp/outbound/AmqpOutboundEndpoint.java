@@ -109,7 +109,16 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExchangeNameExpression}.
+	 * @param exchangeNameExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setExchangeNameExpressionString(String exchangeNameExpression) {
+		Assert.hasText(exchangeNameExpression, "'exchangeNameExpression' must not be empty");
+		this.exchangeNameExpression = EXPRESSION_PARSER.parseExpression(exchangeNameExpression);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setExchangeNameExpressionString(String)}.
 	 * @param exchangeNameExpression the expression to set.
 	 */
 	@Deprecated
@@ -127,7 +136,16 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setRoutingKeyExpression}.
+	 * @param routingKeyExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setRoutingKeyExpressionString(String routingKeyExpression) {
+		Assert.hasText(routingKeyExpression, "'routingKeyExpression' must not be empty");
+		this.routingKeyExpression = EXPRESSION_PARSER.parseExpression(routingKeyExpression);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setRoutingKeyExpressionString(String)}.
 	 * @param routingKeyExpression the expression to set.
 	 */
 	@Deprecated
@@ -144,7 +162,16 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setConfirmCorrelationExpression}.
+	 * @param confirmCorrelationExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setConfirmCorrelationExpressionString(String confirmCorrelationExpression) {
+		Assert.hasText(confirmCorrelationExpression, "'confirmCorrelationExpression' must not be empty");
+		this.confirmCorrelationExpression = EXPRESSION_PARSER.parseExpression(confirmCorrelationExpression);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setConfirmCorrelationExpressionString(String)}.
 	 * @param confirmCorrelationExpression the expression to set.
 	 */
 	@Deprecated

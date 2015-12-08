@@ -76,7 +76,16 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setCommandExpression}.
+	 * @param commandExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setCommandExpressionString(String commandExpression) {
+		Assert.hasText(commandExpression, "'commandExpression' must not be empty");
+		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setCommandExpressionString(String)}.
 	 * @param commandExpression the expression to set.
 	 */
 	@Deprecated

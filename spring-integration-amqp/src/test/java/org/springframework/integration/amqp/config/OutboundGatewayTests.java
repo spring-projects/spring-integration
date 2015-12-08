@@ -106,7 +106,7 @@ public class OutboundGatewayTests {
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
 		endpoint.setRoutingKeyExpression(PARSER.parseExpression("@foo"));
 		endpoint.setExchangeNameExpression(PARSER.parseExpression("@bar"));
-		endpoint.setConfirmCorrelationExpression(PARSER.parseExpression("@baz"));
+		endpoint.setConfirmCorrelationExpressionString("@baz");
 		endpoint.setBeanFactory(context);
 		endpoint.afterPropertiesSet();
 		Message<?> message = new GenericMessage<String>("Hello, world!");

@@ -373,13 +373,21 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.mputFilter = filter;
 	}
 
-	public void setRenameExpression(Expression expression) {
-		Assert.notNull(expression, "'expression' cannot be null");
-		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(expression);
+	public void setRenameExpression(Expression renameExpression) {
+		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(renameExpression);
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setRenameExpression}.
+	 * @param renameExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setRenameExpressionString(String renameExpression) {
+		Assert.hasText(renameExpression, "'renameExpression' cannot be empty");
+		setRenameExpression(EXPRESSION_PARSER.parseExpression(renameExpression));
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setRenameExpressionString(String)}.
 	 * @param expression the expression to set.
 	 */
 	@Deprecated
@@ -390,6 +398,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
 		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
 		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
+	}
+
+	/**
+	 * @param localFilenameGeneratorExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setLocalFilenameGeneratorExpressionString(String localFilenameGeneratorExpression) {
+		Assert.hasText(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be empty");
+		this.localFilenameGeneratorExpression = EXPRESSION_PARSER.parseExpression(localFilenameGeneratorExpression);
 	}
 
 	/**

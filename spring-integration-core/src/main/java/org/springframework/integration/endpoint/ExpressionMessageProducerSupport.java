@@ -16,6 +16,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageProducerSupport} sub-class that provides {@linkplain #payloadExpression}
@@ -38,7 +39,16 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setPayloadExpression}.
+	 * @param payloadExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
+	public void setPayloadExpressionString(String payloadExpression) {
+		Assert.hasText(payloadExpression, "'payloadExpression' must not be empty");
+		this.payloadExpression = EXPRESSION_PARSER.parseExpression(payloadExpression);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #setPayloadExpressionString(String)}.
 	 * @param payloadExpression the expression to set.
 	 */
 	@Deprecated

@@ -33,6 +33,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -67,6 +69,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * Logger that is available to subclasses
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
+
+	protected final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final ConversionService defaultConversionService = new DefaultConversionService();
 
