@@ -181,7 +181,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	}
 
 	private StompSession connectIfNecessary() throws Exception {
-		synchronized (this.sessionHandler) {
+		synchronized (this.connectSemaphore) {
 			if (this.stompSession == null || !this.stompSessionManager.isConnected()) {
 				this.stompSessionManager.disconnect(this.sessionHandler);
 				this.stompSessionManager.connect(this.sessionHandler);
@@ -259,7 +259,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		}
 
 		@Override
-		public synchronized void handleTransportError(StompSession session, Throwable exception) {
+		public void handleTransportError(StompSession session, Throwable exception) {
 			StompMessageHandler.this.transportError = exception;
 			StompMessageHandler.this.stompSession = null;
 		}
