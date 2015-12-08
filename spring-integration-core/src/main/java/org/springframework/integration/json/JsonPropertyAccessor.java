@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 				return new TypedValue(wrap(json));
 			}
 			else {
-				return null;
+				return TypedValue.NULL;
 			}
 		}
 	}
@@ -155,6 +155,9 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public String toString() {
+			if (node == null) {
+				return "null";
+			}
 			if (node.isValueNode()) {
 				// This is to avoid quotes around a TextNode for example
 				return node.asText();
@@ -166,14 +169,15 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public boolean equals(Object o) {
-			return this == o
-					|| (!(o == null || getClass() != o.getClass())
-							&& this.node.equals(((ToStringFriendlyJsonNode) o).node));
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			ToStringFriendlyJsonNode that = (ToStringFriendlyJsonNode) o;
+			return (this.node == that.node) || (this.node != null && this.node.equals(that.node));
 		}
 
 		@Override
 		public int hashCode() {
-			return this.node.toString().hashCode();
+			return this.node != null ? this.node.toString().hashCode() : 0;
 		}
 
 	}

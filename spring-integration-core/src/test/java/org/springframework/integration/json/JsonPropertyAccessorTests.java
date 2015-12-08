@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,19 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests for {@link JsonPropertyAccessor}.
@@ -117,6 +118,18 @@ public class JsonPropertyAccessorTests {
 	public void testUnsupportedJson() throws Exception {
 		String json = "\"literal\"";
 		evaluate(json, "foo", Object.class);
+	}
+
+	@Test
+	public void testNoNullPointerWithCachedReadAccessor() throws Exception {
+		Expression expression = parser.parseExpression("foo");
+		Object json = mapper.readTree("{\"foo\": \"bar\"}");
+		Object value = expression.getValue(this.context, json);
+		assertThat(value, Matchers.instanceOf(JsonPropertyAccessor.ToStringFriendlyJsonNode.class));
+		assertEquals("bar", value.toString());
+		Object json2 = mapper.readTree("{}");
+		Object value2 = expression.getValue(this.context, json2);
+		assertNull(value2);
 	}
 
 	private <T> T evaluate(Object target, String expression, Class<T> expectedType) {
