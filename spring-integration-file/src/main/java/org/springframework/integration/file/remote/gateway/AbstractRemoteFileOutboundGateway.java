@@ -373,6 +373,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.mputFilter = filter;
 	}
 
+	/**
+	 * @param renameExpression the expression to use.
+	 * @since 4.3
+	 */
 	public void setRenameExpression(Expression renameExpression) {
 		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(renameExpression);
 	}
@@ -387,14 +391,18 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setRenameExpressionString(String)}.
 	 * @param expression the expression to set.
+	 * @deprecated in favor of {@link #setRenameExpression}.
 	 */
 	@Deprecated
 	public void setExpressionRename(Expression expression) {
 		setRenameExpression(expression);
 	}
 
+	/**
+	 * @param localFilenameGeneratorExpression the expression to use.
+	 * @since 3.0
+	 */
 	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
 		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
 		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;

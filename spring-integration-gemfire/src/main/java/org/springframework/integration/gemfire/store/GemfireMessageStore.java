@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
@@ -31,6 +28,9 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
+
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
 
 /**
  * Gemfire implementation of the key/value style {@link MessageStore} and

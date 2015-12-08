@@ -34,6 +34,10 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 
 	private volatile EvaluationContext evaluationContext;
 
+	/**
+	 * @param payloadExpression the expression to use.
+	 * @since 4.3
+	 */
 	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
 	}
@@ -48,8 +52,8 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setPayloadExpressionString(String)}.
 	 * @param payloadExpression the expression to set.
+	 * @deprecated in favor of {@link #setPayloadExpression}.
 	 */
 	@Deprecated
 	public void setExpressionPayload(Expression payloadExpression) {

@@ -71,6 +71,10 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.argumentsSerializer = (RedisSerializer<Object>) serializer;
 	}
 
+	/**
+	 * @param commandExpression the String in SpEL syntax.
+	 * @since 4.3
+	 */
 	public void setCommandExpression(Expression commandExpression) {
 		this.commandExpression = commandExpression;
 	}
@@ -85,8 +89,8 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setCommandExpressionString(String)}.
 	 * @param commandExpression the expression to set.
+	 * @deprecated in favor of {@link #setCommandExpression}.
 	 */
 	@Deprecated
 	public void setExpressionCommand(Expression commandExpression) {

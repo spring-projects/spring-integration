@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote.gateway;
 
 import static org.hamcrest.Matchers.anyOf;
@@ -1095,7 +1096,7 @@ public class RemoteFileOutboundGatewayTests {
 
 
 
-	class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
+	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
@@ -1150,7 +1151,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	}
 
-	class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
+	static class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
 		private volatile String filename;
 		private final long size;
@@ -1210,7 +1211,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	}
 
-	class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
+	static class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
 
 		public TestPatternFilter(String path) {
 			super(path);

@@ -104,6 +104,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.exchangeName = exchangeName;
 	}
 
+	/**
+	 * @param exchangeNameExpression the expression to use.
+	 * @since 4.3
+	 */
 	public void setExchangeNameExpression(Expression exchangeNameExpression) {
 		this.exchangeNameExpression = exchangeNameExpression;
 	}
@@ -118,8 +122,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExchangeNameExpressionString(String)}.
 	 * @param exchangeNameExpression the expression to set.
+	 * @deprecated in favor of {@link #setExchangeNameExpression}.
 	 */
 	@Deprecated
 	public void setExpressionExchangeName(Expression exchangeNameExpression) {
@@ -131,6 +135,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.routingKey = routingKey;
 	}
 
+	/**
+	 * @param routingKeyExpression the expression to use.
+	 * @since 4.3
+	 */
 	public void setRoutingKeyExpression(Expression routingKeyExpression) {
 		this.routingKeyExpression = routingKeyExpression;
 	}
@@ -145,8 +153,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setRoutingKeyExpressionString(String)}.
 	 * @param routingKeyExpression the expression to set.
+	 * @deprecated in favor of {@link #setRoutingKeyExpression}.
 	 */
 	@Deprecated
 	public void setExpressionRoutingKey(Expression routingKeyExpression) {
@@ -157,6 +165,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		this.expectReply = expectReply;
 	}
 
+	/**
+	 * @param confirmCorrelationExpression the expression to use.
+	 * @since 4.3
+	 */
 	public void setConfirmCorrelationExpression(Expression confirmCorrelationExpression) {
 		this.confirmCorrelationExpression = confirmCorrelationExpression;
 	}
@@ -171,8 +183,8 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setConfirmCorrelationExpressionString(String)}.
 	 * @param confirmCorrelationExpression the expression to set.
+	 * @deprecated in favor of {@link #setConfirmCorrelationExpression}.
 	 */
 	@Deprecated
 	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
