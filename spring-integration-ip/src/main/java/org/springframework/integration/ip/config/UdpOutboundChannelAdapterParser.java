@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -34,27 +35,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
-		parseSocketExpression(element, parserContext, builder);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		return builder.getBeanDefinition();
-	}
-
-	private void parseSocketExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
-		if (StringUtils.hasText(socketExpression)) {
-			String ack = element.getAttribute(IpAdapterParserUtils.ACK);
-			String multicast = IpAdapterParserUtils.getMulticast(element);
-			if (ack.equals("true") || multicast.equals("true")) {
-				parserContext.getReaderContext().error("Option "
-						+ IpAdapterParserUtils.SOCKET_EXPRESSION
-						+ " cannot be used together with "
-						+ IpAdapterParserUtils.ACK
-						+ " or "
-						+ IpAdapterParserUtils.UDP_MULTICAST
-						+ " options.", element);
-			}
-			builder.addPropertyValue("socketExpressionString", socketExpression);
-		}
 	}
 
 	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {
@@ -74,7 +56,7 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
 					".UnicastSendingMessageHandler");
 		}
-		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
+		IpAdapterParserUtils.addBasicSocketConfigToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,

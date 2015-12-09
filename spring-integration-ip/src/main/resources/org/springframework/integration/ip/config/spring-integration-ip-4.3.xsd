@@ -86,7 +86,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								An SpEL expression to be evaluated to determine which datagram
-								socket use for sending outgoing UDP packets (e.x. UDP inbound
+								socket use for sending outgoing UDP packets (e.g. UDP inbound
 								packet receiving Channel Adapter socket can be used).
 							</xsd:documentation>
 						</xsd:annotation>

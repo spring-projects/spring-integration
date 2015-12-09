@@ -42,6 +42,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class DatagramPacketSendingHandlerTests {

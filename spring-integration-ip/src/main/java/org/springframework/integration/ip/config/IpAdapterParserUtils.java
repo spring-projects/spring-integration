@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  * Utility methods and constants for IP adapter parsers.
  *
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public abstract class IpAdapterParserUtils {
@@ -152,33 +153,48 @@ public abstract class IpAdapterParserUtils {
 	 * @param builder The builder.
 	 * @param parserContext The parser context.
 	 */
-	public static void addHostAndPortToConstructor(Element element,
+	public static void addBasicSocketConfigToConstructor(Element element,
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
+		if (StringUtils.hasText(socketExpression)) {
+			addSocketExpressionToConstructor(socketExpression, element, builder, parserContext);
+		} else {
+			addHostAndPortToConstructor(element, builder, parserContext);
+		}
+	}
+
+	private static void addSocketExpressionToConstructor(String socketExpression,
+			Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String host = element.getAttribute(IpAdapterParserUtils.HOST);
+		String port = element.getAttribute(IpAdapterParserUtils.PORT);
+		String ack = element.getAttribute(IpAdapterParserUtils.ACK);
+		String multicast = IpAdapterParserUtils.getMulticast(element);
+		if (StringUtils.hasText(host) || StringUtils.hasText(port) || ack.equals("true")
+				|| multicast.equals("true")) {
+			parserContext.getReaderContext().error("Option "
+					+ IpAdapterParserUtils.SOCKET_EXPRESSION
+					+ " cannot be used together with "
+					+ IpAdapterParserUtils.HOST
+					+ " or "
+					+ IpAdapterParserUtils.PORT
+					+ " or "
+					+ IpAdapterParserUtils.ACK
+					+ " or "
+					+ IpAdapterParserUtils.UDP_MULTICAST
+					+ " options.", element);
+		}
+		builder.addConstructorArgValue(socketExpression);
+	}
+
+	private static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
-		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
-		if (!StringUtils.hasText(host) && StringUtils.isEmpty(socketExpression)) {
+		if (!StringUtils.hasText(host)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
 					+ " is required for IP outbound channel adapters", element);
 		}
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
-		if (StringUtils.isEmpty(port)) {
-			port = "0";
-		}
-		builder.addConstructorArgValue(port);
-	}
-
-	/**
-	 * @param element The element.
-	 * @param builder The builder.
-	 * @param parserContext The parser context.
-	 */
-	public static void addPortToConstructor(Element element,
-			BeanDefinitionBuilder builder, ParserContext parserContext) {
-		String port = IpAdapterParserUtils.getPort(element, parserContext);
-		if (StringUtils.isEmpty(port)) {
-			port = "0";
-		}
 		builder.addConstructorArgValue(port);
 	}
 
@@ -191,8 +207,7 @@ public abstract class IpAdapterParserUtils {
 	 */
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
-		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
-		if (!StringUtils.hasText(port) && StringUtils.isEmpty(socketExpression)) {
+		if (!StringUtils.hasText(port)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT
 					+ " is required for IP outbound channel adapters", element);
 		}

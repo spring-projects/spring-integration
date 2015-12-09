@@ -28,6 +28,7 @@ import org.springframework.messaging.MessagingException;
  * sends them to an output channel.
  *
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAdapter {
@@ -61,7 +62,7 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 
 	@Override
 	public synchronized DatagramSocket getSocket() {
-		if (this.getTheSocket() == null) {
+		if (getTheSocket() == null) {
 			try {
 				int port = getPort();
 				MulticastSocket socket = port == 0 ? new MulticastSocket() : new MulticastSocket(port);

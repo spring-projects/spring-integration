@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket>,
@@ -149,8 +150,11 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	private DatagramPacket getDatagramFromHeader(Message<?> message, byte[] bytes,
 												 int length) throws UnknownHostException {
-		InetAddress inetAddress = InetAddress.getByName(
-				message.getHeaders().get(IpHeaders.IP_ADDRESS, String.class));
+		InetAddress inetAddress = null;
+		if (message.getHeaders().get(IpHeaders.IP_ADDRESS, String.class) != null) {
+			inetAddress = InetAddress.getByName(message.getHeaders()
+					.get(IpHeaders.IP_ADDRESS, String.class));
+		}
 		Integer port = message.getHeaders().get(IpHeaders.PORT, Integer.class);
 		if (inetAddress != null && port != null) {
 			return new DatagramPacket(bytes, length, inetAddress, port);

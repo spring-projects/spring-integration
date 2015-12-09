@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * a UDP acknowledgment to confirm delivery.
  *
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
@@ -111,6 +112,17 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
+	 * Basic constructor using external datagram socket for sending outgoing data.
+	 * @param socketExpression socket expression describing external socket
+	 */
+	public UnicastSendingMessageHandler(String socketExpression) {
+		super("", 0);
+		this.mapper.setLengthCheck(false);
+		this.mapper.setAcknowledge(false);
+		this.socketExpression = SPEL_EXPRESSION_PARSER.parseExpression(socketExpression);
+	}
+
+	/**
 	 * Can used to add a length to each packet which can be checked at the destination.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
@@ -162,16 +174,6 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
 				ackTimeout);
-	}
-
-	public void setSocketExpression(Expression socketExpression) {
-		Assert.notNull(socketExpression, "'socketExpression' cannot be null");
-		this.socketExpression = socketExpression;
-	}
-
-	public void setSocketExpressionString(String socketExpression) {
-		Assert.notNull(socketExpression, "'socketExpression' cannot be null");
-		this.socketExpression = SPEL_EXPRESSION_PARSER.parseExpression(socketExpression);
 	}
 
 	protected final void setReliabilityAttributes(boolean lengthCheck,
@@ -295,9 +297,9 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected void send(DatagramPacket packet) throws Exception {
-		DatagramSocket socket = this.getSocket();
+		DatagramSocket socket = getSocket();
 		if (this.socketExpression == null) {
-			packet.setSocketAddress(this.getDestinationAddress());
+			packet.setSocketAddress(getDestinationAddress());
 		}
 		socket.send(packet);
 	}
@@ -405,8 +407,8 @@ public class UnicastSendingMessageHandler extends
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.mapper.setBeanFactory(this.getBeanFactory());
-		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(this.getBeanFactory());
+		this.mapper.setBeanFactory(getBeanFactory());
+		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
 		if (this.socketExpression != null) {
 			Assert.state(!this.acknowledge, "'acknowledge' must be false when using a socket expression");
 		}

@@ -99,6 +99,26 @@ For even more reliable networking, TCP can be used.
 
 Starting with _version 4.3_, the `ackPort` can be set to `0`, in which case the Operating System chooses the port.
 
+Another way of configuring outbound channel adapter is to make it use other UDP channel adapters socket.
+Outbound channel adapter can use e.g. inbound channel adapters socket to send datagrams through same port which they were received. It's useful in a scenario when spring application works as UDP server and clients operate behind NAT.
+To configure outbound channel adapter with external socket the `socket-expression` parameter must be used with proper SpEL expression.
+`socket-expression` parameter cannot be used with other parameters: `host`, `port`, `multicast` and `acknowledge`.
+
+[source,xml]
+----
+<int-ip:udp-inbound-channel-adapter id="inbound" port="0" channel="in" />
+
+<int:channel id="in" />
+
+<int:transformer expression="new String(payload).toUpperCase()" input-channel="in" output-channel="out"/>
+
+<int:channel id="out" />
+
+<int-ip:udp-outbound-channel-adapter id="outbound" socket-expression="@inbound.socket" channel="out" />
+----
+
+A complete example of `socket-expression` configuration. This feature is available from _version 4.3_.
+
 [source,xml]
 ----
 <int-ip:udp-inbound-channel-adapter id="udpReceiver"
