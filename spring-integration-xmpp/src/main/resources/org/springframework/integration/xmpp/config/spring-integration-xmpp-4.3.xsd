@@ -21,21 +21,21 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" default="xmppConnection"/>
-			<xsd:attribute name="user" type="xsd:string" use="required">
+			<xsd:attribute name="user" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						The user name (e.g., someuser@gmail.com) that will be used by this connection object
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="password" type="xsd:string" use="required">
+			<xsd:attribute name="password" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						The user's password
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="host" type="xsd:string" use="required">
+			<xsd:attribute name="host" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						The host name to connect TO

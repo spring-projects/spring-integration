@@ -24,7 +24,7 @@
 			password="${user.1.password}"
 			host="${user.1.host}"
 			service-name="${user.1.service}"/>
-			
+
 	<channel id="outboundPresenceChannel"/>
 
 	<xmpp:presence-outbound-channel-adapter xmpp-connection="testConnection" channel="outboundPresenceChannel"/>

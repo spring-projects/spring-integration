@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.config;
 
 /**
  * Parser for 'xmpp:presence-outbound-channel-adapter' element
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */

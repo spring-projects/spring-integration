@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 /**
  * Parser for 'xmpp:presence-inbound-channel-adapter' element.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -31,4 +31,5 @@ public class PresenceInboundChannelAdapterParser extends AbstractXmppInboundChan
 	protected String getBeanClassName(Element element) {
 		return "org.springframework.integration.xmpp.inbound.PresenceListeningEndpoint";
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jivesoftware.smack.Roster;
-import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 
@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
@@ -65,14 +66,14 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
-		Roster roster = this.xmppConnection.getRoster();
+		Roster roster = Roster.getInstanceFor(this.xmppConnection);
 		roster.addRosterListener(this.rosterListener);
 	}
 
 	@Override
 	protected void doStop() {
 		if (this.xmppConnection != null) {
-			this.xmppConnection.getRoster().removeRosterListener(this.rosterListener);
+			Roster.getInstanceFor(this.xmppConnection).removeRosterListener(this.rosterListener);
 		}
 	}
 

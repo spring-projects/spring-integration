@@ -35,14 +35,14 @@ public class SmackMessageSampleTests {
 	public void validateSmackMessageSent(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("SmackMessageSampleTest-context.xml", this.getClass());
 		MessageChannel xmppInput = ac.getBean("xmppInput", MessageChannel.class);
-		
-		
+
+
 		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("springintegration@gmail.com");
 		smackMessage.setBody("Message sent as Smack Message");
-		
-		Message<org.jivesoftware.smack.packet.Message> message = 
+
+		Message<org.jivesoftware.smack.packet.Message> message =
 			new GenericMessage<org.jivesoftware.smack.packet.Message>(smackMessage);
-		
+
 		xmppInput.send(message);
 	}
 }

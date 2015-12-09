@@ -16,9 +16,9 @@
 			password="${user.1.password}"
 			host="${user.1.host}"
 			service-name="${user.1.service}"/>
-	
+
 	<int:channel id="xmppInput"/>
-	
+
 	<int-xmpp:outbound-channel-adapter channel="xmppInput"/>
 
 </beans>

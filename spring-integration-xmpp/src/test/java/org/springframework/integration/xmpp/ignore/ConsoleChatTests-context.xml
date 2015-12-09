@@ -21,16 +21,14 @@
 	<xmpp:xmpp-connection
 			id="testConnection"
 			user="${user.1.login}"
-			password="${user.1.password}"
-			host="${user.1.host}"
-			service-name="${user.1.service}"/>
+			password="${user.1.password}"/>
 
 	<console:stdout-channel-adapter id="stdout" append-newline="true"/>
-		
+
 	<console:stdin-channel-adapter id="stdin">
 		<poller fixed-rate="1000"/>
 	</console:stdin-channel-adapter>
-	
+
 	<xmpp:header-enricher input-channel="stdin" output-channel="messagesToSend">
 		<xmpp:chat-to value="${user.2.login}"/>
 	</xmpp:header-enricher>

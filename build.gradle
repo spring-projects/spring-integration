@@ -129,7 +129,7 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.8"
 		tomcatVersion = "8.0.18"
 		smack3Version = '3.2.1'
-		smackVersion = '4.0.6'
+		smackVersion = '4.1.5'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.2.RELEASE'
 //		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '1.8.2.RELEASE'
@@ -689,11 +689,10 @@ project('spring-integration-xmpp') {
 	description = 'Spring Integration XMPP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		compile "org.igniterealtime.smack:smack-resolver-javax:$smackVersion"
+		compile "org.igniterealtime.smack:smack-java7:$smackVersion"
 		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
-		compile "org.springframework:spring-context-support:$springVersion"
+
 		testCompile project(":spring-integration-stream")
 	}
 }

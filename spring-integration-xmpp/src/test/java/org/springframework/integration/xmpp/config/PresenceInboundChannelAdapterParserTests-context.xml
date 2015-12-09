@@ -6,14 +6,14 @@
 		http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
-	
+
 	<bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
 	</bean>
-	
-	<int-xmpp:presence-inbound-channel-adapter channel="outChannel" 
+
+	<int-xmpp:presence-inbound-channel-adapter channel="outChannel"
 					xmpp-connection="testConnection" auto-startup="false"/>
-	
+
 	<int:channel id="outChannel"/>
-	
+
 </beans>
