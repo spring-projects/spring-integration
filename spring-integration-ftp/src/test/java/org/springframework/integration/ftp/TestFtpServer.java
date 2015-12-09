@@ -32,6 +32,7 @@ import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
+import org.apache.ftpserver.listener.Listener;
 import org.apache.ftpserver.listener.ListenerFactory;
 import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
@@ -44,7 +45,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
-import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * Embedded FTP Server for test cases; exposes an associated session factory
@@ -57,11 +57,11 @@ import org.springframework.integration.test.util.SocketUtils;
 @Configuration
 public class TestFtpServer {
 
-	private final int ftpPort = SocketUtils.findAvailableServerSocket();
-
 	private final TemporaryFolder ftpFolder;
 
 	private final TemporaryFolder localFolder;
+
+	private volatile int ftpPort;
 
 	private volatile File ftpRootFolder;
 
@@ -171,11 +171,14 @@ public class TestFtpServer {
 		serverFactory.setUserManager(new TestUserManager(this.ftpRootFolder.getAbsolutePath()));
 
 		ListenerFactory factory = new ListenerFactory();
-		factory.setPort(ftpPort);
+		factory.setPort(0);
 		serverFactory.addListener("default", factory.createListener());
 
 		server = serverFactory.createServer();
 		server.start();
+
+		Listener listener = serverFactory.getListeners().values().iterator().next();
+		this.ftpPort = listener.getPort();
 	}
 
 
