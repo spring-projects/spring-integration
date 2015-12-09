@@ -110,7 +110,7 @@ subprojects { subproject ->
 		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
-		jsonpathVersion = '2.0.0'
+		jsonpathVersion = '2.1.0'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
