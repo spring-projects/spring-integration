@@ -6,43 +6,43 @@
 		http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
-	
+
 	<bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
 	</bean>
-	
+
 	<int:channel id="pollingChannel">
 		<int:queue/>
 	</int:channel>
-	
-	<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundRosterAdapter" 
-					xmpp-connection="testConnection" 
+
+	<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundRosterAdapter"
+					xmpp-connection="testConnection"
 					channel="pollingChannel"
 					order="23">
 			<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
 	</int-xmpp:presence-outbound-channel-adapter>
-	
-	
+
+
 	<int:channel id="eventChannel"/>
-	
-	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterAdapter" 
-					xmpp-connection="testConnection" 
+
+	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterAdapter"
+					xmpp-connection="testConnection"
 					channel="eventChannel"
 					order="34"/>
 
-	<int-xmpp:presence-outbound-channel-adapter id="advised" 
-					xmpp-connection="testConnection" 
+	<int-xmpp:presence-outbound-channel-adapter id="advised"
+					xmpp-connection="testConnection"
 					channel="eventChannel"
 					order="34">
 		<int-xmpp:request-handler-advice-chain>
 			<bean class="org.springframework.integration.xmpp.config.PresenceOutboundChannelAdapterParserTests$FooAdvice" />
 		</int-xmpp:request-handler-advice-chain>
 	</int-xmpp:presence-outbound-channel-adapter>
-					
-					
-	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterChannel" 
+
+
+	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterChannel"
 					xmpp-connection="testConnection"
 					order="45"/>
-					
-	
+
+
 </beans>

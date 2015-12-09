@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,22 +33,22 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  */
 public class PresenceSendingMessageHandlerTests {
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
-	public void testPresencePayload(){
+	public void testPresencePayload() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage(mock(Presence.class)));
+		handler.handleMessage(new GenericMessage<Presence>(new Presence(Presence.Type.subscribe)));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test(expected=MessageHandlingException.class)
-	public void testWrongPayload(){
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	@Test(expected = MessageHandlingException.class)
+	public void testWrongPayload() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -56,19 +56,20 @@ public class PresenceSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void testWithImplicitXmppConnection(){
+	public void testWithImplicitXmppConnection() {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
-		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "xmppConnection"));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testNoXmppConnection(){
+	@Test(expected = IllegalArgumentException.class)
+	public void testNoXmppConnection() {
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 	}
+
 }

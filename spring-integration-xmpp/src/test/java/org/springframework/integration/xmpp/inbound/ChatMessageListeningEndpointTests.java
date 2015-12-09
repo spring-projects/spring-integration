@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,12 @@ import static org.mockito.Mockito.mock;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.junit.Test;
-
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -50,35 +49,39 @@ import org.springframework.messaging.support.ErrorMessage;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Florian Schmaus
- *
+ * @author Artem Bilan
  */
 public class ChatMessageListeningEndpointTests {
 
 
 	@Test
 	/**
-	 * Should add/remove PacketListener when endpoint started/stopped
+	 * Should add/remove StanzaListener when endpoint started/stopped
 	 */
-	public void testLifecycle(){
-		final Set<PacketListener> packetListSet = new HashSet<PacketListener>();
+	public void testLifecycle() {
+		final Set<StanzaListener> packetListSet = new HashSet<StanzaListener>();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.add((PacketListener) invocation.getArguments()[0]);
+				packetListSet.add((StanzaListener) invocation.getArguments()[0]);
 				return null;
 			}
-		}).when(connection).addPacketListener(Mockito.any(PacketListener.class), (PacketFilter) Mockito.any());
+
+		}).when(connection).addAsyncStanzaListener(Mockito.any(StanzaListener.class), Mockito.any(StanzaFilter.class));
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.remove(invocation.getArguments()[0]);
+				packetListSet.remove((StanzaListener) invocation.getArguments()[0]);
 				return null;
 			}
-		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));
+
+		}).when(connection).removeAsyncStanzaListener(Mockito.any(StanzaListener.class));
 
 		assertEquals(0, packetListSet.size());
 		endpoint.setOutputChannel(new QueueChannel());
@@ -90,32 +93,32 @@ public class ChatMessageListeningEndpointTests {
 		assertEquals(0, packetListSet.size());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testNonInitializationFailure(){
+	@Test(expected = IllegalArgumentException.class)
+	public void testNonInitializationFailure() {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(mock(XMPPConnection.class));
 		endpoint.start();
 	}
 
 	@Test
-	public void testWithImplicitXmppConnection(){
+	public void testWithImplicitXmppConnection() {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
-		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
+		assertNotNull(TestUtils.getPropertyValue(endpoint, "xmppConnection"));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testNoXmppConnection(){
+	@Test(expected = IllegalArgumentException.class)
+	public void testNoXmppConnection() {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
 	}
 
 	@Test
-	public void testWithErrorChannel() throws NotConnectedException{
+	public void testWithErrorChannel() throws NotConnectedException {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
@@ -124,25 +127,28 @@ public class ChatMessageListeningEndpointTests {
 
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(org.springframework.messaging.Message<?> message)
 					throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
+
 		});
 		PollableChannel errorChannel = new QueueChannel();
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(outChannel);
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
-		PacketListener listener = (PacketListener) TestUtils.getPropertyValue(endpoint, "packetListener");
+		StanzaListener listener = (StanzaListener) TestUtils.getPropertyValue(endpoint, "stanzaListener");
 		Message smackMessage = new Message("kermit@frog.com");
 		smackMessage.setBody("hello");
 		smackMessage.setThread("1234");
 		listener.processPacket(smackMessage);
 
 		ErrorMessage msg =
-			(ErrorMessage) errorChannel.receive();
-		assertEquals("hello", ((MessagingException)msg.getPayload()).getFailedMessage().getPayload());
+				(ErrorMessage) errorChannel.receive();
+		assertEquals("hello", ((MessagingException) msg.getPayload()).getFailedMessage().getPayload());
 	}
+
 }

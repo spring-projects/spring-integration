@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xmpp.outbound;
 
+import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.XMPPConnection;
 
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -34,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Mario Gray
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
@@ -61,7 +63,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		Object messageBody = message.getPayload();
 		org.jivesoftware.smack.packet.Message xmppMessage = null;
 		if (messageBody instanceof org.jivesoftware.smack.packet.Message) {
@@ -77,14 +79,15 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			xmppMessage.setBody((String) messageBody);
 		}
 		else {
-			throw new MessageHandlingException(message, "Only payloads of type java.lang.String or org.jivesoftware.smack.packet.Message " +
+			throw new MessageHandlingException(message,
+					"Only payloads of type java.lang.String or org.jivesoftware.smack.packet.Message " +
 					"are supported. Received [" + messageBody.getClass().getName() +
 					"]. Consider adding a Transformer prior to this adapter.");
 		}
-		if (!this.xmppConnection.isConnected()) {
-			this.xmppConnection.connect();
+		if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
+			((AbstractXMPPConnection) this.xmppConnection).connect();
 		}
-		this.xmppConnection.sendPacket(xmppMessage);
+		this.xmppConnection.sendStanza(xmppMessage);
 	}
 
 }

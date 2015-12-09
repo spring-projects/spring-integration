@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
@@ -110,7 +111,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void withHeaderMapper() throws Exception{
+	public void withHeaderMapper() throws Exception {
 		Object pollingConsumer = context.getBean("withHeaderMapper");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 		assertEquals(headerMapper, TestUtils.getPropertyValue(pollingConsumer, "handler.headerMapper"));
@@ -120,40 +121,44 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
 
 		Mockito.doAnswer(new Answer() {
-		      public Object answer(InvocationOnMock invocation) {
-		          Object[] args = invocation.getArguments();
-		          org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
-		          assertEquals("oleg", xmppMessage.getTo());
-		          assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
-		          return null;
-		      }})
-		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+
+			public Object answer(InvocationOnMock invocation) {
+				Object[] args = invocation.getArguments();
+				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
+				assertEquals("oleg", xmppMessage.getTo());
+				assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
+				return null;
+			}
+		})
+				.when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 
 		channel.send(message);
 
-		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+		verify(connection, times(1)).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 		Mockito.reset(connection);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test //INT-2275
-	public void testOutboundChannelAdapterInsideChain() throws Exception{
+	public void testOutboundChannelAdapterInsideChain() throws Exception {
 		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "artem").build();
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
 		Mockito.doAnswer(new Answer() {
+
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
 				assertEquals("artem", xmppMessage.getTo());
 				assertEquals("hello", xmppMessage.getBody());
 				return null;
-			}})
-				.when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+			}
+
+		}).when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 
 		channel.send(message);
 
-		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+		verify(connection, times(1)).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 		Mockito.reset(connection);
 	}
 
@@ -166,4 +171,5 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		}
 
 	}
+
 }

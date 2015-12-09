@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,19 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for 'xmpp:xmpp-connection' element
- *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 
-	private static String[] connectionFactoryAttributes = new String[]{"user", "password", "resource","subscription-mode"};
-
-
 	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.config.XmppConnectionFactoryBean";
+	protected Class<?> getBeanClass(Element element) {
+		return XmppConnectionFactoryBean.class;
 	}
 
 	@Override
@@ -49,27 +45,18 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String serviceName = element.getAttribute("service-name");
-		String host = element.getAttribute("host");
-		String port = element.getAttribute("port");
-		BeanDefinitionBuilder connectionConfigurationBuilder =
-			BeanDefinitionBuilder.genericBeanDefinition("org.jivesoftware.smack.ConnectionConfiguration");
-		if (StringUtils.hasText(host)) {
-			Assert.hasLength(port, "Port must be provided if 'host' is specified");
-			connectionConfigurationBuilder.addConstructorArgValue(host);
-			connectionConfigurationBuilder.addConstructorArgValue(port);
+		String user = element.getAttribute("user");
+
+		if (!StringUtils.hasText(serviceName) && !StringUtils.hasText(user)) {
+			parserContext.getReaderContext().error("One of 'service-name' or 'user' attributes is required", element);
 		}
-		else {
-			Assert.hasText(serviceName, "'serviceName' is requuired if 'host' is not provided");
-		}
-		if (StringUtils.hasText(serviceName)){
-			connectionConfigurationBuilder.addConstructorArgValue(serviceName);
-		}
-		for (String attribute : connectionFactoryAttributes) {
+
+		String[] attributes = {"user", "password", "resource", "subscription-mode", "host", "port", "service-name",
+				IntegrationNamespaceUtils.AUTO_STARTUP, IntegrationNamespaceUtils.PHASE};
+
+		for (String attribute : attributes) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
-		builder.addConstructorArgValue(connectionConfigurationBuilder.getBeanDefinition());
 	}
 
 }

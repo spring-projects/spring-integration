@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package org.springframework.integration.xmpp.core;
 
 import org.jivesoftware.smack.XMPPConnection;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class AbstractXmppConnectionAwareMessageHandler extends AbstractMessageHandler {
@@ -44,10 +46,12 @@ public abstract class AbstractXmppConnectionAwareMessageHandler extends Abstract
 	protected void onInit() throws Exception {
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.xmppConnection == null && beanFactory != null) {
-			this.xmppConnection = beanFactory.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
+			this.xmppConnection =
+					beanFactory.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
 		}
-		Assert.notNull(this.xmppConnection, "Failed to resolve XMPPConnection. XMPPConnection must either be set explicitly " +
-				"via 'xmpp-connection' attribute or implicitly by registering a bean with the name 'xmppConnection' and of type " +
+		Assert.notNull(this.xmppConnection, "Failed to resolve XMPPConnection. " +
+				"XMPPConnection must either be set explicitly via constructor argument " +
+				"or implicitly by registering a bean with the name 'xmppConnection' and of type " +
 				"'org.jivesoftware.smack.XMPPConnection' in the Application Context.");
 		this.initialized = true;
 	}
