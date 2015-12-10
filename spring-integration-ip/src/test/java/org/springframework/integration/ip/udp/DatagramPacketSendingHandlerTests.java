@@ -22,16 +22,12 @@ import static org.mockito.Mockito.mock;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -45,8 +41,6 @@ import org.springframework.messaging.Message;
  * @since 2.0
  */
 public class DatagramPacketSendingHandlerTests {
-
-	private boolean noMulticast;
 
 	@Test
 	public void verifySend() throws Exception {
@@ -152,149 +146,6 @@ public class DatagramPacketSendingHandlerTests {
 			Thread.sleep(100);
 		}
 		assertTrue(n < 100);
-	}
-
-	@Test
-	public void verifySendMulticast() throws Exception {
-		MulticastSocket socket;
-		try {
-			socket = new MulticastSocket();
-		}
-		catch (Exception e) {
-			return;
-		}
-		final int testPort = socket.getLocalPort();
-		final String multicastAddress = "225.6.7.8";
-		final String payload = "foo";
-		final CountDownLatch listening = new CountDownLatch(2);
-		final CountDownLatch received = new CountDownLatch(2);
-		Runnable catcher = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					byte[] buffer = new byte[8];
-					DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-					MulticastSocket socket = new MulticastSocket(testPort);
-					InetAddress group = InetAddress.getByName(multicastAddress);
-					socket.joinGroup(group);
-					listening.countDown();
-					LogFactory.getLog(getClass())
-						.debug(Thread.currentThread().getName() + " waiting for packet");
-					socket.receive(receivedPacket);
-					socket.close();
-					byte[] src = receivedPacket.getData();
-					int length = receivedPacket.getLength();
-					int offset = receivedPacket.getOffset();
-					byte[] dest = new byte[length];
-					System.arraycopy(src, offset, dest, 0, length);
-					assertEquals(payload, new String(dest));
-					LogFactory.getLog(getClass())
-						.debug(Thread.currentThread().getName() + " received packet");
-					received.countDown();
-				}
-				catch (Exception e) {
-					noMulticast = true;
-					listening.countDown();
-					e.printStackTrace();
-				}
-			}
-		};
-		Executor executor = Executors.newFixedThreadPool(2);
-		executor.execute(catcher);
-		executor.execute(catcher);
-		listening.await(10000, TimeUnit.MILLISECONDS);
-		if (noMulticast) {
-			socket.close();
-			return;
-		}
-		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
-		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(received.await(10000, TimeUnit.MILLISECONDS));
-		handler.stop();
-		socket.close();
-	}
-
-	@Test
-	public void verifySendMulticastWithAcks() throws Exception {
-
-		MulticastSocket socket;
-		try {
-			socket = new MulticastSocket();
-		}
-		catch (Exception e) {
-			return;
-		}
-		final int testPort = socket.getLocalPort();
-		final AtomicInteger ackPort = new AtomicInteger();
-
-		final String multicastAddress = "225.6.7.8";
-		final String payload = "foobar";
-		final CountDownLatch listening = new CountDownLatch(2);
-		final CountDownLatch ackListening = new CountDownLatch(1);
-		final CountDownLatch ackSent = new CountDownLatch(2);
-		Runnable catcher = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					byte[] buffer = new byte[1000];
-					DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-					MulticastSocket socket = new MulticastSocket(testPort);
-					socket.setSoTimeout(8000);
-					InetAddress group = InetAddress.getByName(multicastAddress);
-					socket.joinGroup(group);
-					listening.countDown();
-					assertTrue(ackListening.await(10, TimeUnit.SECONDS));
-					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " waiting for packet");
-					socket.receive(receivedPacket);
-					socket.close();
-					byte[] src = receivedPacket.getData();
-					int length = receivedPacket.getLength();
-					int offset = receivedPacket.getOffset();
-					byte[] dest = new byte[6];
-					System.arraycopy(src, offset+length-6, dest, 0, 6);
-					assertEquals(payload, new String(dest));
-					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " received packet");
-					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
-					mapper.setAcknowledge(true);
-					mapper.setLengthCheck(true);
-					Message<byte[]> message = mapper.toMessage(receivedPacket);
-					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
-					byte[] ack = id.toString().getBytes();
-					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
-												new InetSocketAddress("localHost", ackPort.get()));
-					DatagramSocket out = new DatagramSocket();
-					out.send(ackPack);
-					out.close();
-					ackSent.countDown();
-					socket.close();
-				}
-				catch (Exception e) {
-					noMulticast = true;
-					listening.countDown();
-					e.printStackTrace();
-				}
-			}
-		};
-		Executor executor = Executors.newFixedThreadPool(2);
-		executor.execute(catcher);
-		executor.execute(catcher);
-		listening.await(10000, TimeUnit.MILLISECONDS);
-		if (this.noMulticast) {
-			socket.close();
-			return;
-		}
-		MulticastSendingMessageHandler handler =
-			new MulticastSendingMessageHandler(multicastAddress, testPort, true, true, "localhost", 0, 10000);
-		handler.setMinAcksForSuccess(2);
-		handler.afterPropertiesSet();
-		handler.start();
-		waitAckListening(handler);
-		ackPort.set(handler.getAckPort());
-		ackListening.countDown();
-		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(ackSent.await(10000, TimeUnit.MILLISECONDS));
-		handler.stop();
-		socket.close();
 	}
 
 }

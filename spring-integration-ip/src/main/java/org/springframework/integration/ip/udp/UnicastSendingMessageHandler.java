@@ -221,7 +221,7 @@ public class UnicastSendingMessageHandler extends
 			packet = this.mapper.fromMessage(message);
 			this.send(packet);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Sent packet for message " + message);
+				logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
 			}
 			if (this.waitForAck) {
 				try {

@@ -437,7 +437,8 @@ public class SocketTestUtils {
 		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface intface = interfaces.nextElement();
-			if (intface.isLoopback() || (multicast && !intface.supportsMulticast())) {
+			if (intface.isLoopback() || (multicast && !intface.supportsMulticast())
+					|| intface.getName().contains("vboxnet")) {
 				continue;
 			}
 			for (Enumeration<InetAddress> inetAddr = intface.getInetAddresses(); inetAddr.hasMoreElements(); ) {

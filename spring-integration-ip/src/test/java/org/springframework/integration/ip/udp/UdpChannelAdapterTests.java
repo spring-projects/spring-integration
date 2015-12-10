@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.logging.LogFactory;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -59,6 +57,9 @@ import org.springframework.messaging.SubscribableChannel;
  *
  */
 public class UdpChannelAdapterTests {
+
+	@Rule
+	public MulticastRule multicastRule = new MulticastRule();
 
 	@Test
 	public void testUnicastReceiver() throws Exception {
@@ -248,14 +249,11 @@ public class UdpChannelAdapterTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMulticastReceiver() throws Exception {
-		System.setProperty("java.net.preferIPv4Stack", "true");
 		QueueChannel channel = new QueueChannel(2);
-		MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.8", 0);
+		MulticastReceivingChannelAdapter adapter =
+				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
 		adapter.setOutputChannel(channel);
-		String nic = checkMulticast();
-		if (nic == null) {
-			return;
-		}
+		String nic = this.multicastRule.getNic();
 		adapter.setLocalAddress(nic);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
@@ -264,7 +262,7 @@ public class UdpChannelAdapterTests {
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
-		packet.setSocketAddress(new InetSocketAddress("225.6.7.8", port));
+		packet.setSocketAddress(new InetSocketAddress(this.multicastRule.getGroup(), port));
 		DatagramSocket datagramSocket = new DatagramSocket(0, Inet4Address.getByName(nic));
 		datagramSocket.send(packet);
 		datagramSocket.close();
@@ -275,40 +273,21 @@ public class UdpChannelAdapterTests {
 		adapter.stop();
 	}
 
-	private String checkMulticast() throws Exception {
-		String nic = SocketTestUtils.chooseANic(true);
-		if (nic == null) {	// no multicast support
-			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
-			return null;
-		}
-		try {
-			MulticastSocket socket = new MulticastSocket();
-			socket.joinGroup(InetAddress.getByName("225.6.7.9"));
-			socket.close();
-		}
-		catch (Exception e) {
-			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
-		}
-		return nic;
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMulticastSender() throws Exception {
-		System.setProperty("java.net.preferIPv4Stack", "true");
 		QueueChannel channel = new QueueChannel(2);
 		int port = SocketUtils.findAvailableUdpSocket();
-		UnicastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.9", port);
+		UnicastReceivingChannelAdapter adapter =
+				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), port);
 		adapter.setOutputChannel(channel);
-		String nic = checkMulticast();
-		if (nic == null) {
-			return;
-		}
+		String nic = this.multicastRule.getNic();
 		adapter.setLocalAddress(nic);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 
-		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler("225.6.7.9", port);
+		MulticastSendingMessageHandler handler =
+				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), port);
 		handler.setLocalAddress(nic);
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);

@@ -17,11 +17,11 @@
 package org.springframework.integration.ip.udp;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
-import java.net.NetworkInterface;
 
 import org.springframework.messaging.MessageHandler;
 
@@ -42,6 +42,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	private int timeToLive = -1;
 
 	private String localAddress;
+
+	private volatile MulticastSocket multicastSocket;
 
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
@@ -136,11 +138,11 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 				socket.setTimeToLive(this.timeToLive);
 			}
 			setSocketAttributes(socket);
-			if (localAddress != null) {
+			if (this.localAddress != null) {
 				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				NetworkInterface intfce = NetworkInterface.getByInetAddress(whichNic);
-				socket.setNetworkInterface(intfce);
+				socket.setInterface(whichNic);
 			}
+			this.multicastSocket = socket;
 		}
 	}
 
@@ -166,6 +168,14 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	@Override
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
+	}
+
+	@Override
+	protected void send(DatagramPacket packet) throws Exception {
+		super.send(packet);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sent packet to " + this.multicastSocket.getInterface());
+		}
 	}
 
 }

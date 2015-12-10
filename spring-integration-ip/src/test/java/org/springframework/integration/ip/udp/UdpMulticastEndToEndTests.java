@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
@@ -50,11 +51,13 @@ import org.springframework.messaging.support.GenericMessage;
  * received in the other context (and written back to the console).
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UdpMulticastEndToEndTests implements Runnable {
 
-	private String testingIpText;
+	@Rule
+	public MulticastRule multicastRule = new MulticastRule();
 
 	private Message<byte[]> finalMessage;
 
@@ -113,6 +116,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
 			fail("Receiver failed to start in 30s");
 		}
+		String testingIpText;
 		try {
 			testingIpText = ">>>>>>> Testing IP (multicast) " + new Date();
 			inputChannel.send(new GenericMessage<String>(testingIpText));
