@@ -38,3 +38,9 @@ See <<jms-header-mapping>> for more information.
 There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects; this is rare but if
 your application does that, you will need to make a small change to your POJO. See this <<agg-message-collection>> note
 for more information.
+
+==== UDP outbound adapter socket-expression
+
+New `socket-expression` option for outbound UDP packet-sending Channel Adapter was introduced. This option enables the outbound
+channel adapter to use other adapters datagram socket. It expects proper SpEL expression describing which external datagram
+socket to use.

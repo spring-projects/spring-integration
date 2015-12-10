@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,7 +158,8 @@ public abstract class IpAdapterParserUtils {
 		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
 		if (StringUtils.hasText(socketExpression)) {
 			addSocketExpressionToConstructor(socketExpression, element, builder, parserContext);
-		} else {
+		}
+		else {
 			addHostAndPortToConstructor(element, builder, parserContext);
 		}
 	}
@@ -167,20 +168,13 @@ public abstract class IpAdapterParserUtils {
 			Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
-		String ack = element.getAttribute(IpAdapterParserUtils.ACK);
-		String multicast = IpAdapterParserUtils.getMulticast(element);
-		if (StringUtils.hasText(host) || StringUtils.hasText(port) || ack.equals("true")
-				|| multicast.equals("true")) {
+		if (StringUtils.hasText(host) || StringUtils.hasText(port)) {
 			parserContext.getReaderContext().error("Option "
 					+ IpAdapterParserUtils.SOCKET_EXPRESSION
 					+ " cannot be used together with "
 					+ IpAdapterParserUtils.HOST
 					+ " or "
 					+ IpAdapterParserUtils.PORT
-					+ " or "
-					+ IpAdapterParserUtils.ACK
-					+ " or "
-					+ IpAdapterParserUtils.UDP_MULTICAST
 					+ " options.", element);
 		}
 		builder.addConstructorArgValue(socketExpression);
@@ -209,7 +203,7 @@ public abstract class IpAdapterParserUtils {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (!StringUtils.hasText(port)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT
-					+ " is required for IP outbound channel adapters", element);
+					+ " is required for IP channel adapters", element);
 		}
 		return port;
 	}

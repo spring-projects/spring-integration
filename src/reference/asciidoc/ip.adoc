@@ -1232,6 +1232,10 @@ For a multicast adapter it is also used to determine which interface the multica
 If not supplied, an internal single threaded executor will be used.
 Needed on some platforms that require the use of specific task executors such as a WorkManagerTaskExecutor.
 One thread will be dedicated to handling acknowledgments (if the acknowledge option is true).
+| socket-expression
+| SpEL expression
+| A SpEL expression to be evaluated to determine which datagram socket use for sending outgoing UDP packets (e.g. UDP inbound packet receiving Channel Adapter socket can be used).
+Cannot be used together with options `host`, `port`, `acknowledge`, `multicast`.
 |===
 
 .TCP Inbound Channel Adapter Attributes

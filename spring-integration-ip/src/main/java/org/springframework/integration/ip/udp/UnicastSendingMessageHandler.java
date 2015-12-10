@@ -39,11 +39,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
+import org.springframework.integration.ip.config.IpAdapterParserUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a Message into
@@ -59,8 +61,6 @@ import org.springframework.util.Assert;
  */
 public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable {
-
-	private static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -96,7 +96,7 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile boolean taskExecutorSet;
 
-	private volatile Expression socketExpression;
+	private final Expression socketExpression;
 
 	private volatile EvaluationContext evaluationContext;
 
@@ -109,17 +109,35 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
+		this.socketExpression = null;
+	}
+
+	/**
+	 * Basic constructor using external datagram socket for sending outgoing data.
+	 * @param socketExpression socket expression string describing external socket
+	 * @since 4.3
+	 */
+	public UnicastSendingMessageHandler(String socketExpression) {
+		super("", 0);
+		Assert.hasText(socketExpression);
+		Assert.state(!this.acknowledge, "socketExpression cannot be used together with acknowledge");
+		this.mapper.setLengthCheck(false);
+		this.mapper.setAcknowledge(false);
+		this.socketExpression = this.EXPRESSION_PARSER.parseExpression(socketExpression);
 	}
 
 	/**
 	 * Basic constructor using external datagram socket for sending outgoing data.
 	 * @param socketExpression socket expression describing external socket
+	 * @since 4.3
 	 */
-	public UnicastSendingMessageHandler(String socketExpression) {
+	public UnicastSendingMessageHandler(Expression socketExpression) {
 		super("", 0);
+		Assert.notNull(socketExpression);
+		Assert.state(!this.acknowledge, "socketExpression cannot be used together with acknowledge");
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
-		this.socketExpression = SPEL_EXPRESSION_PARSER.parseExpression(socketExpression);
+		this.socketExpression = socketExpression;
 	}
 
 	/**
@@ -132,6 +150,7 @@ public class UnicastSendingMessageHandler extends
 		super(host, port);
 		this.mapper.setLengthCheck(lengthCheck);
 		this.mapper.setAcknowledge(false);
+		this.socketExpression = null;
 	}
 
 	/**
@@ -150,6 +169,7 @@ public class UnicastSendingMessageHandler extends
 	                                    int ackPort,
 	                                    int ackTimeout) {
 		super(host, port);
+		this.socketExpression = null;
 		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
 				ackTimeout);
 	}
@@ -172,6 +192,7 @@ public class UnicastSendingMessageHandler extends
 	                                    int ackPort,
 	                                    int ackTimeout) {
 		super(host, port);
+		this.socketExpression = null;
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
 				ackTimeout);
 	}
@@ -188,8 +209,9 @@ public class UnicastSendingMessageHandler extends
 			this.ackTimeout = ackTimeout;
 		}
 		this.acknowledge = acknowledge;
-		if (this.acknowledge) {
+		if (!this.acknowledge) {
 			Assert.hasLength(ackHost);
+			Assert.state(StringUtils.isEmpty(socketExpression), "acknowledge cannot be used together with socketExpression");
 		}
 	}
 
@@ -228,7 +250,7 @@ public class UnicastSendingMessageHandler extends
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		if (this.acknowledge) {
-			Assert.state(this.isRunning(), "When 'acknowlege' is enabled, adapter must be running");
+			Assert.state(this.isRunning(), "When 'acknowledge' is enabled, adapter must be running");
 			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
