@@ -43,7 +43,6 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link org.springframework.messaging.MessageHandler} implementation that maps a Message into
