@@ -35,11 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
-import org.springframework.integration.ip.config.IpAdapterParserUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
@@ -119,8 +117,7 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public UnicastSendingMessageHandler(String socketExpression) {
 		super("", 0);
-		Assert.hasText(socketExpression);
-		Assert.state(!this.acknowledge, "socketExpression cannot be used together with acknowledge");
+		Assert.hasText(socketExpression, "socketExpression cannot be null or empty");
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
 		this.socketExpression = this.EXPRESSION_PARSER.parseExpression(socketExpression);
@@ -133,8 +130,7 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public UnicastSendingMessageHandler(Expression socketExpression) {
 		super("", 0);
-		Assert.notNull(socketExpression);
-		Assert.state(!this.acknowledge, "socketExpression cannot be used together with acknowledge");
+		Assert.notNull(socketExpression, "socketExpression cannot be null");
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
 		this.socketExpression = socketExpression;
@@ -209,9 +205,8 @@ public class UnicastSendingMessageHandler extends
 			this.ackTimeout = ackTimeout;
 		}
 		this.acknowledge = acknowledge;
-		if (!this.acknowledge) {
+		if (this.acknowledge) {
 			Assert.hasLength(ackHost);
-			Assert.state(StringUtils.isEmpty(socketExpression), "acknowledge cannot be used together with socketExpression");
 		}
 	}
 
