@@ -459,7 +459,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 	private class MessageReadingMongoConverter extends MappingMongoConverter {
 
-		public MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
+		private MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
@@ -789,7 +789,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private int sequence;
 
-		public MessageWrapper(Message<?> message) {
+		private MessageWrapper(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
 			this._messageType = message.getClass().getName();

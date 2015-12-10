@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.mockito;
+package org.springframework.integration.handler;
 
 import static org.mockito.Mockito.verify;
 
@@ -27,12 +27,14 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -79,10 +81,9 @@ public class ServiceActivatorOnMockitoMockTests {
 		verify(singleMethodOnClass).move("SingleMethodOnClass");
 	}
 
-	@SuppressWarnings("deprecation")
 	public static class SingleMethodAcceptingHeaderOnClass {
 
-		public String move(@org.springframework.integration.annotation.Header("s") String s) {
+		public String move(@Header("s") String s) {
 			return s;
 		}
 

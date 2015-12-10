@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote.gateway;
 
 import static org.hamcrest.Matchers.anyOf;
@@ -57,6 +58,7 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -74,11 +76,14 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
- * @author liujiong
+ * @author Liu Jiong
+ * @author Artem Bilan
  * @since 2.1
  */
 @SuppressWarnings("rawtypes")
 public class RemoteFileOutboundGatewayTests {
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
@@ -278,12 +283,11 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testMoveWithExpression() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 				(sessionFactory, "mv", "payload");
-		gw.setRenameExpression("payload.substring(1)");
+		gw.setRenameExpression(PARSER.parseExpression("payload.substring(1)"));
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
@@ -304,12 +308,11 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testMoveWithMkDirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 				(sessionFactory, "mv", "payload");
-		gw.setRenameExpression("'foo/bar/baz'");
+		gw.setRenameExpression(PARSER.parseExpression("'foo/bar/baz'"));
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
@@ -1009,214 +1012,216 @@ public class RemoteFileOutboundGatewayTests {
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
 	}
 
-}
+	abstract static class TestSession implements Session<TestLsEntry> {
 
-abstract class TestSession implements org.springframework.integration.file.remote.session.Session<TestLsEntry> {
-
-	private boolean open;
+		private boolean open;
 
 
-	@Override
-	public boolean remove(String path) throws IOException {
-		return false;
-	}
+		@Override
+		public boolean remove(String path) throws IOException {
+			return false;
+		}
 
-	@Override
-	public TestLsEntry[] list(String path) throws IOException {
-		return null;
-	}
+		@Override
+		public TestLsEntry[] list(String path) throws IOException {
+			return null;
+		}
 
-	@Override
-	public void read(String source, OutputStream outputStream)
-			throws IOException {
-	}
+		@Override
+		public void read(String source, OutputStream outputStream)
+				throws IOException {
+		}
 
-	@Override
-	public void write(InputStream inputStream, String destination)
-			throws IOException {
-	}
+		@Override
+		public void write(InputStream inputStream, String destination)
+				throws IOException {
+		}
 
-	@Override
-	public void append(InputStream inputStream, String destination)
-			throws IOException {
-	}
+		@Override
+		public void append(InputStream inputStream, String destination)
+				throws IOException {
+		}
 
-	@Override
-	public boolean mkdir(String directory) throws IOException {
-		return true;
-	}
+		@Override
+		public boolean mkdir(String directory) throws IOException {
+			return true;
+		}
 
-	@Override
-	public boolean rmdir(String directory) throws IOException {
-		return true;
-	}
+		@Override
+		public boolean rmdir(String directory) throws IOException {
+			return true;
+		}
 
-	@Override
-	public void rename(String pathFrom, String pathTo)
-			throws IOException {
-	}
+		@Override
+		public void rename(String pathFrom, String pathTo)
+				throws IOException {
+		}
 
-	@Override
-	public void close() {
-		open = false;
-	}
+		@Override
+		public void close() {
+			open = false;
+		}
 
-	@Override
-	public boolean isOpen() {
-		return open;
-	}
+		@Override
+		public boolean isOpen() {
+			return open;
+		}
 
-	@Override
-	public boolean exists(String path) throws IOException {
-		return true;
-	}
+		@Override
+		public boolean exists(String path) throws IOException {
+			return true;
+		}
 
-	@Override
-	public String[] listNames(String path) throws IOException {
-		return null;
-	}
+		@Override
+		public String[] listNames(String path) throws IOException {
+			return null;
+		}
 
-	@Override
-	public InputStream readRaw(String source) throws IOException {
-		return null;
-	}
+		@Override
+		public InputStream readRaw(String source) throws IOException {
+			return null;
+		}
 
-	@Override
-	public boolean finalizeRaw() throws IOException {
-		return false;
-	}
+		@Override
+		public boolean finalizeRaw() throws IOException {
+			return false;
+		}
 
-	@Override
-	public Object getClientInstance() {
-		return null;
-	}
+		@Override
+		public Object getClientInstance() {
+			return null;
+		}
 
-}
-
-class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
-
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
-										 String command, String expression) {
-		super(sessionFactory, Command.toCommand(command), expression);
-		this.setBeanFactory(mock(BeanFactory.class));
-	}
-
-	public TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
-			String expression) {
-		super(remoteFileTemplate, command, expression);
-		this.setBeanFactory(mock(BeanFactory.class));
 	}
 
 
-	@Override
-	protected boolean isDirectory(TestLsEntry file) {
-		return file.isDirectory();
+
+	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
+
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
+		                                     String command, String expression) {
+			super(sessionFactory, Command.toCommand(command), expression);
+			this.setBeanFactory(mock(BeanFactory.class));
+		}
+
+		public TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
+		                                     String expression) {
+			super(remoteFileTemplate, command, expression);
+			this.setBeanFactory(mock(BeanFactory.class));
+		}
+
+
+		@Override
+		protected boolean isDirectory(TestLsEntry file) {
+			return file.isDirectory();
+		}
+
+		@Override
+		protected boolean isLink(TestLsEntry file) {
+			return file.isLink();
+		}
+
+		@Override
+		protected String getFilename(TestLsEntry file) {
+			return file.getFilename();
+		}
+
+		@Override
+		protected String getFilename(AbstractFileInfo<TestLsEntry> file) {
+			return file.getFilename();
+		}
+
+		@Override
+		protected long getModified(TestLsEntry file) {
+			return file.getModified();
+		}
+
+		@Override
+		protected List<AbstractFileInfo<TestLsEntry>> asFileInfoList(
+				Collection<TestLsEntry> files) {
+			return new ArrayList<AbstractFileInfo<TestLsEntry>>(files);
+		}
+
+		@Override
+		protected TestLsEntry enhanceNameWithSubDirectory(TestLsEntry file, String directory) {
+			file.setFilename(directory + file.getFilename());
+			return file;
+		}
+
 	}
 
-	@Override
-	protected boolean isLink(TestLsEntry file) {
-		return file.isLink();
+	static class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
+
+		private volatile String filename;
+		private final long size;
+		private final boolean dir;
+		private final boolean link;
+		private final long modified;
+		private final String permissions;
+
+		public TestLsEntry(String filename, long size, boolean dir, boolean link,
+		                   long modified, String permissions) {
+			this.filename = filename;
+			this.size = size;
+			this.dir = dir;
+			this.link = link;
+			this.modified = modified;
+			this.permissions = permissions;
+		}
+
+		@Override
+		public boolean isDirectory() {
+			return this.dir;
+		}
+
+		@Override
+		public long getModified() {
+			return this.modified;
+		}
+
+		@Override
+		public String getFilename() {
+			return this.filename;
+		}
+
+		@Override
+		public boolean isLink() {
+			return this.link;
+		}
+
+		@Override
+		public long getSize() {
+			return this.size;
+		}
+
+		@Override
+		public String getPermissions() {
+			return this.permissions;
+		}
+
+		@Override
+		public TestLsEntry getFileInfo() {
+			return this;
+		}
+
+		public void setFilename(String filename) {
+			this.filename = filename;
+		}
+
 	}
 
-	@Override
-	protected String getFilename(TestLsEntry file) {
-		return file.getFilename();
-	}
+	static class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
 
-	@Override
-	protected String getFilename(AbstractFileInfo<TestLsEntry> file) {
-		return file.getFilename();
-	}
+		public TestPatternFilter(String path) {
+			super(path);
+		}
 
-	@Override
-	protected long getModified(TestLsEntry file) {
-		return file.getModified();
-	}
+		@Override
+		protected String getFilename(TestLsEntry file) {
+			return file.getFilename();
+		}
 
-	@Override
-	protected List<AbstractFileInfo<TestLsEntry>> asFileInfoList(
-			Collection<TestLsEntry> files) {
-		return new ArrayList<AbstractFileInfo<TestLsEntry>>(files);
-	}
-
-	@Override
-	protected TestLsEntry enhanceNameWithSubDirectory(TestLsEntry file, String directory) {
-		file.setFilename(directory + file.getFilename());
-		return file;
-	}
-
-}
-
-class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
-
-	private volatile String filename;
-	private final long size;
-	private final boolean dir;
-	private final boolean link;
-	private final long modified;
-	private final String permissions;
-
-	public TestLsEntry(String filename, long size, boolean dir, boolean link,
-					   long modified, String permissions) {
-		this.filename = filename;
-		this.size = size;
-		this.dir = dir;
-		this.link = link;
-		this.modified = modified;
-		this.permissions = permissions;
-	}
-
-	@Override
-	public boolean isDirectory() {
-		return this.dir;
-	}
-
-	@Override
-	public long getModified() {
-		return this.modified;
-	}
-
-	@Override
-	public String getFilename() {
-		return this.filename;
-	}
-
-	@Override
-	public boolean isLink() {
-		return this.link;
-	}
-
-	@Override
-	public long getSize() {
-		return this.size;
-	}
-
-	@Override
-	public String getPermissions() {
-		return this.permissions;
-	}
-
-	@Override
-	public TestLsEntry getFileInfo() {
-		return this;
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-}
-
-class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
-
-	public TestPatternFilter(String path) {
-		super(path);
-	}
-
-	@Override
-	protected String getFilename(TestLsEntry file) {
-		return file.getFilename();
 	}
 
 }

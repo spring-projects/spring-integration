@@ -48,6 +48,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractCh
 
 	protected abstract String getBeanClassName(Element element);
 
+	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getBeanClassName(element));
 

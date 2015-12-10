@@ -24,7 +24,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
  * Parser for the XMPP 'inbound-channel-adapter' element.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0

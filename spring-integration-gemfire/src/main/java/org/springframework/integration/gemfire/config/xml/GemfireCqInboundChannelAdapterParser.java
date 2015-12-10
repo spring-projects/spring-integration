@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.gemfire.config.xml;
 
 import org.w3c.dom.Element;
@@ -25,6 +26,7 @@ import org.springframework.integration.gemfire.inbound.ContinuousQueryMessagePro
  * @author David Turanski
  * @author Dan Oxlade
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -43,8 +45,6 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 	private static final String QUERY_ATTRIBUTE = "query";
 
-	private static final String PAYLOAD_EXPRESSION_PROPERTY = "payloadExpression";
-
 	private static final String EXPRESSION_ATTRIBUTE = "expression";
 
 	private static final String SUPPORTED_EVENT_TYPES_PROPERTY = "supportedEventTypes";
@@ -53,11 +53,11 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder continuousQueryMesageProducer =
+		BeanDefinitionBuilder continuousQueryMessageProducer =
 				BeanDefinitionBuilder.genericBeanDefinition(ContinuousQueryMessageProducer.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element,
-				EXPRESSION_ATTRIBUTE, PAYLOAD_EXPRESSION_PROPERTY);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element,
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMessageProducer, element,
+				EXPRESSION_ATTRIBUTE, "payloadExpressionString");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMessageProducer, element,
 				QUERY_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 
 		if (!element.hasAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE)) {
@@ -69,16 +69,16 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 			parserContext.getReaderContext().error("'" + QUERY_ATTRIBUTE + "' attribute is required.", element);
 		}
 
-		continuousQueryMesageProducer.addConstructorArgReference(element.getAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE));
-		continuousQueryMesageProducer.addConstructorArgValue(element.getAttribute(QUERY_ATTRIBUTE));
+		continuousQueryMessageProducer.addConstructorArgReference(element.getAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE));
+		continuousQueryMessageProducer.addConstructorArgValue(element.getAttribute(QUERY_ATTRIBUTE));
 
-		continuousQueryMesageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(continuousQueryMesageProducer, element,
+		continuousQueryMessageProducer.addPropertyReference(OUTPUT_CHANNEL_PROPERTY, channelName);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(continuousQueryMessageProducer, element,
 				ERROR_CHANNEL_ATTRIBUTE);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_NAME_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, DURABLE_ATTRIBUTE);
-		return continuousQueryMesageProducer.getBeanDefinition();
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMessageProducer, element, QUERY_NAME_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMessageProducer, element, DURABLE_ATTRIBUTE);
+		return continuousQueryMessageProducer.getBeanDefinition();
 	}
 
 }

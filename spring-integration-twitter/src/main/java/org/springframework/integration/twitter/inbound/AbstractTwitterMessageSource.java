@@ -81,7 +81,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	private volatile int pageSize = DEFAULT_PAGE_SIZE;
 
 
-	public AbstractTwitterMessageSource(Twitter twitter, String metadataKey) {
+	protected AbstractTwitterMessageSource(Twitter twitter, String metadataKey) {
 		Assert.notNull(twitter, "twitter must not be null");
 		Assert.notNull(metadataKey, "metadataKey must not be null");
 		this.twitter = twitter;

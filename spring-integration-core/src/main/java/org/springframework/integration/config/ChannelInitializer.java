@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile BeanFactory beanFactory;
 
@@ -54,10 +54,12 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		this.autoCreate = autoCreate;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.beanFactory, "'beanFactory' must not be null");
 		if (!autoCreate){
@@ -89,7 +91,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 		private final Collection<String> channelNames;
 
-		public AutoCreateCandidatesCollector(Collection<String> channelNames){
+		AutoCreateCandidatesCollector(Collection<String> channelNames){
 			this.channelNames = channelNames;
 		}
 

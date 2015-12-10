@@ -284,7 +284,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		private volatile Message<?> reply;
 
-		public AsyncReply(long remoteTimeout) {
+		private AsyncReply(long remoteTimeout) {
 			this.latch = new CountDownLatch(1);
 			this.secondChanceLatch = new CountDownLatch(1);
 			this.remoteTimeout = remoteTimeout;

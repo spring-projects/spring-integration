@@ -64,12 +64,8 @@ Where this is not the case references to the appropriate beans can be configured
 
 ----
 
-Starting with _version 4.2_, the `@SecuredChannel` annotation is available, replacing the deprecated
-`ChannelSecurityInterceptorFactoryBean`, which was introduced in _version 4.0_ for Java & Annotation
+Starting with _version 4.2_, the `@SecuredChannel` annotation is available for Java & Annotation
 configuration in `@Configuration` classes.
-The `ChannelSecurityInterceptorFactoryBean` has been deprecated to
-avoid the possibility of undesired early load for dependent beans from the `BeanFactory` during the `ApplicationContext` initialization
-phase.
 
 With the `@SecuredChannel` annotation, the Java configuration variant of the XML configuration above is:
 

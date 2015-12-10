@@ -16,14 +16,17 @@
 
 package org.springframework.integration.test.util;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.hamcrest.Matcher;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
@@ -33,21 +36,17 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.MethodCallback;
+import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -55,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class TestUtils {
 
@@ -87,10 +87,10 @@ public abstract class TestUtils {
 
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
-		ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(context));
+		ErrorHandler errorHandler = new MessagePublishingErrorHandler(context);
 		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
 		scheduler.setErrorHandler(errorHandler);
-		registerBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler, context);
+		registerBean("taskScheduler", scheduler, context);
 		return context;
 	}
 
@@ -135,32 +135,59 @@ public abstract class TestUtils {
 			super();
 		}
 
-		public void registerChannel(String channelName, MessageChannel channel) {
-			if (channel instanceof NamedComponent && ((NamedComponent) channel).getComponentName() != null) {
+		public void registerChannel(String channelName, final MessageChannel channel) {
+			String componentName = getComponentNameIfNamed(channel);
+			if (componentName != null) {
 				if (channelName == null) {
-					channelName = ((NamedComponent) channel).getComponentName();
+					channelName = componentName;
 				}
 				else {
-					Assert.isTrue(((NamedComponent) channel).getComponentName().equals(channelName),
+					Assert.isTrue(componentName.equals(channelName),
 							"channel name has already been set with a conflicting value");
 				}
 			}
-			registerBean(channelName, channel, this);
+			TestUtils.registerBean(channelName, channel, this);
 		}
 
-		public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
-			registerBean(endpointName, endpoint, this);
-		}
-	}
+		private String getComponentNameIfNamed(final MessageChannel channel) {
+			Set<Class<?>> interfaces = ClassUtils.getAllInterfacesAsSet(channel);
+			final AtomicReference<String> componentName = new AtomicReference<String>();
+			for (Class<?> intface : interfaces) {
+				if ("org.springframework.integration.support.context.NamedComponent".equals(intface.getName())) {
+					ReflectionUtils.doWithMethods(channel.getClass(), new MethodCallback() {
 
-	@SuppressWarnings("rawtypes")
-	public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
-		return new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
-				assertThat(message, is(messageMatcher));
+						@Override
+						public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+							try {
+								componentName.set((String) method.invoke(channel, new Object[0]));
+							}
+							catch (InvocationTargetException e) {
+								throw new IllegalArgumentException(e);
+							}
+						}
+
+					}, new MethodFilter() {
+
+						@Override
+						public boolean matches(Method method) {
+							return method.getName().equals("getComponentName");
+						}
+
+					});
+					break;
+				}
 			}
-		};
+			return componentName.get();
+		}
+
+		public void registerEndpoint(String endpointName, Object endpoint) {
+			TestUtils.registerBean(endpointName, endpoint, this);
+		}
+
+		public void registerBean(String beanName, Object bean) {
+			TestUtils.registerBean(beanName, bean, this);
+		}
+
 	}
 
 	/**
@@ -169,7 +196,7 @@ public abstract class TestUtils {
 	 * @param startingIndex the index to start scanning
 	 * @return the properties provided by the named component or null if none available
 	 */
-	public static Properties locateComponentInHistory(MessageHistory history, String componentName, int startingIndex){
+	public static Properties locateComponentInHistory(List<Properties> history, String componentName, int startingIndex) {
 		Assert.notNull(history, "'history' must not be null");
 		Assert.isTrue(StringUtils.hasText(componentName), "'componentName' must be provided");
 		Assert.isTrue(startingIndex < history.size(), "'startingIndex' can not be greater then size of history");
@@ -191,5 +218,61 @@ public abstract class TestUtils {
 	 */
 	public static String applySystemFileSeparator(String s) {
 		return s.replaceAll("/", java.util.regex.Matcher.quoteReplacement(File.separator));
+	}
+
+	private static class MessagePublishingErrorHandler implements ErrorHandler {
+
+		private final Log logger = LogFactory.getLog(this.getClass());
+
+		private final TestApplicationContext context;
+
+		private MessagePublishingErrorHandler(TestApplicationContext ctx) {
+			this.context = ctx;
+		}
+
+		@Override
+		public void handleError(Throwable t) {
+			MessageChannel errorChannel = this.resolveErrorChannel(t);
+			boolean sent = false;
+			if (errorChannel != null) {
+				try {
+					sent = errorChannel.send(new ErrorMessage(t), 10000);
+				}
+				catch (Throwable errorDeliveryError) {//NOSONAR
+					// message will be logged only
+					if (logger.isWarnEnabled()) {
+						logger.warn("Error message was not delivered.", errorDeliveryError);
+					}
+					if (errorDeliveryError instanceof Error) {
+						throw ((Error) errorDeliveryError);
+					}
+				}
+			}
+			if (!sent && logger.isErrorEnabled()) {
+				Message<?> failedMessage = (t instanceof MessagingException) ?
+						((MessagingException) t).getFailedMessage() : null;
+				if (failedMessage != null) {
+					logger.error("failure occurred in messaging task with message: " + failedMessage, t);
+				}
+				else {
+					logger.error("failure occurred in messaging task", t);
+				}
+			}
+
+		}
+
+		private MessageChannel resolveErrorChannel(Throwable t) {
+			Message<?> failedMessage = (t instanceof MessagingException) ?
+					((MessagingException) t).getFailedMessage() : null;
+			Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
+			if (errorChannelHeader instanceof MessageChannel) {
+				return (MessageChannel) errorChannelHeader;
+			}
+			Assert.isInstanceOf(String.class, errorChannelHeader,
+					"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
+					errorChannelHeader.getClass() + "]");
+			return this.context.getBean((String) errorChannelHeader, MessageChannel.class);
+		}
+
 	}
 }

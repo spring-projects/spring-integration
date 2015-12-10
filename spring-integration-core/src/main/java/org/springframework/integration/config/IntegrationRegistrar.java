@@ -36,7 +36,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -86,11 +85,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 * to register the messaging annotation post processors (for {@code <int:annotation-config/>}).
 	 */
 	@Override
-	@SuppressWarnings("deprecation")
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		this.registerImplicitChannelCreator(registry);
 		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
-		//TODO remove this line in the 4.3
 		this.registerIntegrationEvaluationContext(registry);
 		this.registerIntegrationProperties(registry);
 		this.registerHeaderChannelRegistry(registry);
@@ -175,15 +172,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	}
 
 	/**
-	 * Register {@link IntegrationEvaluationContextFactoryBean} bean
-	 * and {@code IntegrationEvaluationContextAwareBeanPostProcessor}, if necessary.
+	 * Register {@link IntegrationEvaluationContextFactoryBean} bean, if necessary.
 	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.
-	 * @deprecated since 4.2 in favor of {@link IntegrationContextUtils#getEvaluationContext}
-	 * direct usage from the {@code afterPropertiesSet} implementation.
-	 * Will be removed in the next release.
 	 */
-	@Deprecated
-	@SuppressWarnings("deprecation")
 	private void registerIntegrationEvaluationContext(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
@@ -196,10 +187,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder,
 					registry);
-
-			RootBeanDefinition integrationEvalContextBPP =
-					new RootBeanDefinition(org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor.class);
-			BeanDefinitionReaderUtils.registerWithGeneratedName(integrationEvalContextBPP, registry);
 		}
 	}
 

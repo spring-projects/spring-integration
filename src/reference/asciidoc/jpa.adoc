@@ -279,11 +279,10 @@ Below is a sample xml snippet that shows a sample usage of _inbound-channel-adap
                     auto-startup="true"  <3>
                     query="select s from Student s"  <4>
                     expect-single-result="true"  <5>
-                    max-number-of-results=""  <6>
-                    max-results=""  <7>
-                    max-results-expression=""  <8>
-                    delete-after-poll="true"  <9>
-                    flush-after-delete="true">  <10>
+                    max-results=""  <6>
+                    max-results-expression=""  <7>
+                    delete-after-poll="true"  <8>
+                    flush-after-delete="true">  <9>
     <int:poller fixed-rate="2000" >
       <int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
     </int:poller>
@@ -309,29 +308,23 @@ If the value is set to `true`, the single entity retrieved is sent as the payloa
 If, however, multiple results are returned after setting this to `true`, a `MessagingException` is thrown.
 The value defaults to `false`.
 
-
-<6> _Deprecated_.
-Use `max-results` instead.
-_Optional_.
-
-
-<7> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
+<6> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
 By default, if this attribute is not set, all the possible records are selected by given query.
 This attribute is mutually exclusive with `max-results-expression`.
 _Optional_.
 
 
-<8> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
+<7> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
 _Optional_.
 
 
-<9> Set this value to `true` if you want to delete the rows received after execution of the query.
+<8> Set this value to `true` if you want to delete the rows received after execution of the query.
 Please ensure that the component is operating as part of a transaction.
 Otherwise, you may encounter an Exception such as: _java.lang.IllegalArgumentException: Removing
                          a detached instance ..._
 
 
-<10> Set this value to `true` if you want to the persistence context immediately after deleting received entities and if you don't want rely on the `EntityManager`'s flushMode.
+<9> Set this value to `true` if you want to the persistence context immediately after deleting received entities and if you don't want rely on the `EntityManager`'s flushMode.
 The default value is set to `false`.
 
 
@@ -844,11 +837,10 @@ _Optional_.
     id=""
     jpa-operations=""
     jpa-query=""
-    max-number-of-results=""  <3>
-    max-results=""  <4>
-    max-results-expression=""  <5>
-    first-result=""  <6>
-    first-result-expression=""  <7>
+    max-results=""  <3>
+    max-results-expression=""  <4>
+    first-result=""  <5>
+    first-result-expression=""  <6>
     named-query=""
     native-query=""
     order=""
@@ -878,27 +870,22 @@ By default the value is `false`.
 _Optional_.
 
 
-<3> _Deprecated_.
-Use `max-results` instead.
-_Optional_.
-
-
-<4> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
+<3> This non zero, non negative integer value tells the adapter not to select more than given number of rows on execution of the select operation.
 By default, if this attribute is not set, all the possible records are selected by given query.
 This attribute is mutually exclusive with `max-results-expression`.
 _Optional_.
 
 
-<5> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
+<4> An expression, mutually exclusive with `max-results`, that can be used to provide an expression that will be evaluated to find the maximum number of results in a result set.
 _Optional_.
 
 
-<6> This non zero, non negative integer value tells the adapter the first record from which the results are to be retrieved This attribute is mutually exclusive to `first-result-expression`.
+<5> This non zero, non negative integer value tells the adapter the first record from which the results are to be retrieved This attribute is mutually exclusive to `first-result-expression`.
 This attribute is introduced since version 3.0.
 _Optional_.
 
 
-<7> This expression is evaluated against the message to find the position of first record in the result set to be retrieved This attribute is mutually exclusive to `first-result`.
+<6> This expression is evaluated against the message to find the position of first record in the result set to be retrieved This attribute is mutually exclusive to `first-result`.
 This attribute is introduced since version 3.0.
 _Optional_.
 

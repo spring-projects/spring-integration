@@ -54,8 +54,6 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
 import javax.mail.search.SearchTerm;
 
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPMessage;
 import org.apache.commons.logging.Log;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -88,6 +86,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
+
+import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPMessage;
 
 /**
  * @author Oleg Zhurakousky

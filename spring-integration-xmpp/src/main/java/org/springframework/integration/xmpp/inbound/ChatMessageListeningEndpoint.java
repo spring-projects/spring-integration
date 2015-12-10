@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.xmpp.inbound;
 
 import java.util.Map;
 
-import org.jivesoftware.smack.PacketListener;
+import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.Stanza;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
@@ -36,13 +36,14 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private volatile boolean extractPayload = true;
 
-	private final PacketListener packetListener = new ChatMessagePublishingPacketListener();
+	private final StanzaListener stanzaListener = new ChatMessagePublishingStanzaListener();
 
 	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
@@ -78,21 +79,21 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
-		this.xmppConnection.addPacketListener(this.packetListener, null);
+		this.xmppConnection.addAsyncStanzaListener(this.stanzaListener, null);
 	}
 
 	@Override
 	protected void doStop() {
 		if (this.xmppConnection != null) {
-			this.xmppConnection.removePacketListener(this.packetListener);
+			this.xmppConnection.removeAsyncStanzaListener(this.stanzaListener);
 		}
 	}
 
 
-	private class ChatMessagePublishingPacketListener implements PacketListener {
+	private class ChatMessagePublishingStanzaListener implements StanzaListener {
 
 		@Override
-		public void processPacket(final Packet packet) {
+		public void processPacket(final Stanza packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
 				Map<String, ?> mappedHeaders = headerMapper.toHeadersFromRequest(xmppMessage);
@@ -117,6 +118,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				}
 			}
 		}
+
 	}
 
 }

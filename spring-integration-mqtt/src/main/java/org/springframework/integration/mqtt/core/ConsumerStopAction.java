@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.integration.amqp;
+package org.springframework.integration.mqtt.core;
 
 /**
- * Pre-defined names and prefixes to be used for setting and/or retrieving AMQP
- * MessageProperties from/to integration Message Headers.
- * @deprecated in favor of {@link org.springframework.amqp.support.AmqpHeaders}.
- * Will be removed in a future release.
+ * Action to take regarding subscrptions when consumer stops.
  *
- * @author Mark Fisher
+ * @author Gary Russell
+ * @since 4.2.3
+ *
  */
-@Deprecated
-public abstract class AmqpHeaders extends org.springframework.amqp.support.AmqpHeaders {
+public enum ConsumerStopAction {
+
+	/**
+	 * Never unsubscribe.
+	 */
+	UNSUBSCRIBE_NEVER,
+
+	/**
+	 * Always unsubscribe.
+	 */
+	UNSUBSCRIBE_ALWAYS,
+
+	/**
+	 * Unsubscribe if clean session is true.
+	 */
+	UNSUBSCRIBE_CLEAN
+
 }

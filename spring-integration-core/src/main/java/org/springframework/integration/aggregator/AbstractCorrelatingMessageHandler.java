@@ -155,7 +155,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.lockRegistrySet = true;
 	}
 
-	public void setMessageStore(MessageGroupStore store) {
+	public final void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			@Override

@@ -29,7 +29,7 @@
 		<int:header-enricher>
 			<int:header name="delay" expression="new java.util.Random().nextInt(3000)"/>
 		</int:header-enricher>
-		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
+		<int:delayer id="foo" default-delay="0" expression="headers.delay"/>
 		<int:transformer expression="payload"/>
 	</int:chain>
 

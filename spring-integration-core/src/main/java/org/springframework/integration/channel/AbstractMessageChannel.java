@@ -27,7 +27,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 
 import org.springframework.core.OrderComparator;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
@@ -195,24 +194,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void addInterceptor(int index, ChannelInterceptor interceptor) {
 		this.interceptors.add(index, interceptor);
-	}
-
-	/**
-	 * Specify the {@link ConversionService} to use when trying to convert to
-	 * one of this channel's supported datatypes for a Message whose payload
-	 * does not already match. If this property is not set explicitly but
-	 * the channel is managed within a context, it will attempt to locate a
-	 * bean named "integrationConversionService" defined within that context.
-	 *
-	 * @param conversionService The conversion service.
-	 * @deprecated No longer used; see {@link DefaultDatatypeChannelMessageConverter}.
-	 */
-	@Deprecated
-	@Override
-	public void setConversionService(ConversionService conversionService) {
-		if (logger.isWarnEnabled()) {
-			logger.warn("The conversion service is no longer used; see setMessageConverter()");
-		}
 	}
 
 	/**

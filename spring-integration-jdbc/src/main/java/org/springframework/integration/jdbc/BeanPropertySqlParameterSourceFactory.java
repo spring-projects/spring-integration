@@ -46,6 +46,7 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 		this.staticParameters = staticParameters;
 	}
 
+	@Override
 	public SqlParameterSource createParameterSource(Object input) {
 		SqlParameterSource toReturn = new StaticBeanPropertySqlParameterSource(input, staticParameters);
 		return toReturn;
@@ -58,16 +59,18 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 
 		private final Map<String, Object> staticParameters;
 
-		public StaticBeanPropertySqlParameterSource(Object input, Map<String, Object> staticParameters) {
+		private StaticBeanPropertySqlParameterSource(Object input, Map<String, Object> staticParameters) {
 			this.input = new BeanPropertySqlParameterSource(input);
 			this.staticParameters = staticParameters;
 		}
 
+		@Override
 		public Object getValue(String paramName) throws IllegalArgumentException {
 			return staticParameters.containsKey(paramName) ? staticParameters.get(paramName) : input
 					.getValue(paramName);
 		}
 
+		@Override
 		public boolean hasValue(String paramName) {
 			return staticParameters.containsKey(paramName) || input.hasValue(paramName);
 		}

@@ -33,9 +33,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
@@ -59,10 +56,6 @@ import org.springframework.util.StringUtils;
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		implements RabbitTemplate.ConfirmCallback, ReturnCallback,
 		ApplicationListener<ContextRefreshedEvent>, Lifecycle {
-
-	private static final ExpressionParser expressionParser =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
-
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -112,22 +105,29 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExpressionExchangeName}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param exchangeNameExpression the expression to set.
+	 * @param exchangeNameExpression the expression to use.
+	 * @since 4.3
 	 */
-	@Deprecated
-	public void setExchangeNameExpression(String exchangeNameExpression) {
-		Assert.hasText(exchangeNameExpression);
-		this.exchangeNameExpression = expressionParser.parseExpression(exchangeNameExpression);
+	public void setExchangeNameExpression(Expression exchangeNameExpression) {
+		this.exchangeNameExpression = exchangeNameExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@link #setExchangeNameExpression} in a future release.
-	 * @param exchangeNameExpression the expression to set.
+	 * @param exchangeNameExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
+	public void setExchangeNameExpressionString(String exchangeNameExpression) {
+		Assert.hasText(exchangeNameExpression, "'exchangeNameExpression' must not be empty");
+		this.exchangeNameExpression = EXPRESSION_PARSER.parseExpression(exchangeNameExpression);
+	}
+
+	/**
+	 * @param exchangeNameExpression the expression to set.
+	 * @deprecated in favor of {@link #setExchangeNameExpression}.
+	 */
+	@Deprecated
 	public void setExpressionExchangeName(Expression exchangeNameExpression) {
-		this.exchangeNameExpression = exchangeNameExpression;
+		setExchangeNameExpression(exchangeNameExpression);
 	}
 
 	public void setRoutingKey(String routingKey) {
@@ -136,22 +136,29 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExpressionRoutingKey}. Will be changed in a future release
-	 * to use an {@link Expression} parameter.
-	 * @param routingKeyExpression the expression to set.
+	 * @param routingKeyExpression the expression to use.
+	 * @since 4.3
 	 */
-	@Deprecated
-	public void setRoutingKeyExpression(String routingKeyExpression) {
-		Assert.hasText(routingKeyExpression);
-		setExpressionRoutingKey(expressionParser.parseExpression(routingKeyExpression));
+	public void setRoutingKeyExpression(Expression routingKeyExpression) {
+		this.routingKeyExpression = routingKeyExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@code setRoutingKeyExpression} in a future release.
-	 * @param routingKeyExpression the expression to set.
+	 * @param routingKeyExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
+	public void setRoutingKeyExpressionString(String routingKeyExpression) {
+		Assert.hasText(routingKeyExpression, "'routingKeyExpression' must not be empty");
+		this.routingKeyExpression = EXPRESSION_PARSER.parseExpression(routingKeyExpression);
+	}
+
+	/**
+	 * @param routingKeyExpression the expression to set.
+	 * @deprecated in favor of {@link #setRoutingKeyExpression}.
+	 */
+	@Deprecated
 	public void setExpressionRoutingKey(Expression routingKeyExpression) {
-		this.routingKeyExpression = routingKeyExpression;
+		setRoutingKeyExpression(routingKeyExpression);
 	}
 
 	public void setExpectReply(boolean expectReply) {
@@ -159,22 +166,29 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	/**
-	 * @deprecated in favor of {@link #setExpressionConfirmCorrelation}. Will be changed in a future release
-	 * to use {@link Expression} parameter.
-	 * @param confirmCorrelationExpression the expression to set.
+	 * @param confirmCorrelationExpression the expression to use.
+	 * @since 4.3
 	 */
-	@Deprecated
-	public void setConfirmCorrelationExpression(String confirmCorrelationExpression) {
-		Assert.hasText(confirmCorrelationExpression);
-		setExpressionConfirmCorrelation(expressionParser.parseExpression(confirmCorrelationExpression));
+	public void setConfirmCorrelationExpression(Expression confirmCorrelationExpression) {
+		this.confirmCorrelationExpression = confirmCorrelationExpression;
 	}
 
 	/**
-	 * Temporary, will be changed to {@code setConfirmCorrelationExpression} in a future release.
-	 * @param confirmCorrelationExpression the expression to set.
+	 * @param confirmCorrelationExpression the String in SpEL syntax.
+	 * @since 4.3
 	 */
+	public void setConfirmCorrelationExpressionString(String confirmCorrelationExpression) {
+		Assert.hasText(confirmCorrelationExpression, "'confirmCorrelationExpression' must not be empty");
+		this.confirmCorrelationExpression = EXPRESSION_PARSER.parseExpression(confirmCorrelationExpression);
+	}
+
+	/**
+	 * @param confirmCorrelationExpression the expression to set.
+	 * @deprecated in favor of {@link #setConfirmCorrelationExpression}.
+	 */
+	@Deprecated
 	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
-		this.confirmCorrelationExpression = confirmCorrelationExpression;
+		setConfirmCorrelationExpression(this.confirmCorrelationExpression);
 	}
 
 	public void setConfirmAckChannel(MessageChannel ackChannel) {
@@ -450,7 +464,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 		private final Object userData;
 
-		public CorrelationDataWrapper(String id, Object userData) {
+		private CorrelationDataWrapper(String id, Object userData) {
 			super(id);
 			this.userData = userData;
 		}

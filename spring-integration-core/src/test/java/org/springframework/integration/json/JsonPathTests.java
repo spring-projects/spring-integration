@@ -58,7 +58,8 @@ import com.jayway.jsonpath.Predicate;
  * @author Gary Russell
  * @since 3.0
  */
-@ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class,
+		loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JsonPathTests {
 
@@ -135,7 +136,6 @@ public class JsonPathTests {
 			//MessageTransformationException / MessageHandlingException / InvocationTargetException / IllegalArgumentException
 			Throwable cause = e.getCause().getCause().getCause();
 			assertTrue(cause instanceof PathNotFoundException);
-			assertEquals("Property ['store'] not found in path $", cause.getMessage());
 		}
 	}
 

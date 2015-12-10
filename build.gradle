@@ -110,7 +110,7 @@ subprojects { subproject ->
 		jpaApiVersion = '2.0.0'
 		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
-		jsonpathVersion = '2.0.0'
+		jsonpathVersion = '2.1.0'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
@@ -129,7 +129,7 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.8"
 		tomcatVersion = "8.0.18"
 		smack3Version = '3.2.1'
-		smackVersion = '4.0.6'
+		smackVersion = '4.1.5'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.5.2.RELEASE'
 //		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '1.8.2.RELEASE'
@@ -166,16 +166,7 @@ subprojects { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
-		testCompile ("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest'
-		}
-		testCompile "log4j:log4j:$log4jVersion"
-		testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest'
-		}
-		testCompile "org.springframework:spring-test:$springVersion"
-		if (!(subproject.name ==~ /.*-(core|test)/)) {
+		if (!(subproject.name ==~ /.*-test/)) {
 			testCompile project(":spring-integration-test")
 		}
 
@@ -256,9 +247,8 @@ subprojects { subproject ->
 }
 
 project('spring-integration-test') {
-	description = 'Spring Integration Test Support'
+	description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
 	dependencies {
-		compile project(":spring-integration-core")
 		compile ("junit:junit:$junitVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
@@ -266,8 +256,10 @@ project('spring-integration-test') {
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
-		compile "log4j:log4j:$log4jVersion" // TEMPORARY - DO NOT RELEASE
+		compile ("log4j:log4j:$log4jVersion", optional)
 	}
 }
 
@@ -697,11 +689,10 @@ project('spring-integration-xmpp') {
 	description = 'Spring Integration XMPP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
-		compile "org.igniterealtime.smack:smack-resolver-javax:$smackVersion"
+		compile "org.igniterealtime.smack:smack-java7:$smackVersion"
 		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
-		compile "org.springframework:spring-context-support:$springVersion"
+
 		testCompile project(":spring-integration-stream")
 	}
 }

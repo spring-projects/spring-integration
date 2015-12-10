@@ -26,7 +26,7 @@ import org.springframework.util.ObjectUtils;
  * wrapped by the {@link EqualsResultMatcher.Evaluator}
  *
  * The goal is to defer the computation until the matcher needs to be actually evaluated.
- * Mainly useful in conjunction with retrying matcherss such as {@link EventuallyMatcher}
+ * Mainly useful in conjunction with retrying matchers such as {@link EventuallyMatcher}
  *
  * @author Marius Bogoevici
  * @since 4.2

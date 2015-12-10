@@ -942,7 +942,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	private javax.jms.Message retryableReceiveReply(Session session, Destination replyTo, String messageSelector)
 			throws JMSException {
-		Connection consumerConnection = null;
+		Connection consumerConnection = null;//NOSONAR
 		Session consumerSession = session;
 		MessageConsumer messageConsumer = null;
 		JMSException exception = null;
@@ -1306,15 +1306,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private final javax.jms.Message reply;
 
-		public TimedReply(javax.jms.Message reply) {
+		private TimedReply(javax.jms.Message reply) {
 			this.reply = reply;
 		}
 
-		public long getTimeStamp() {
+		private long getTimeStamp() {
 			return timeStamp;
 		}
 
-		public javax.jms.Message getReply() {
+		private javax.jms.Message getReply() {
 			return reply;
 		}
 	}

@@ -35,7 +35,7 @@ A minimal configuration might be:
 
 Attributes:
 
-[source]
+[source,xml]
 ----
 <int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
 	client-id="foo"  <1>
@@ -88,6 +88,22 @@ These events can be received by a bean that implements `ApplicationListener`.
 Also, a new property `recoveryInterval` controls the interval at which the adapter will attempt to reconnect after
 a failure; it defaults to `10000ms` (ten seconds).
 This is not currently available using XML configuration.
+
+[NOTE]
+====
+Prior to _version 4.2.3_, the client always unsubscribed when the adapter was stopped.
+This was incorrect because if the client QOS is > 0, we need to keep the subscription active so that messages arriving
+while the adapter is stopped will be delivered on the next start.
+This also requires setting the `cleanSession` property on the client factory to `false` - it defaults to `true`.
+
+Starting with _version 4.2.3_, the adapter will not unsubscribe (by default) if the `cleanSession` property is `false`.
+
+This behavior can be overridden by setting the `consumerCloseAction` property on the factory.
+It can have values: `UNSUBSCRIBE_ALWAYS`, `UNSUBSCRIBE_NEVER`, and `UNSUBSCRIBE_CLEAN`.
+The latter (the default) will unsubscribe only if the `cleanSession` property is `true`.
+
+To revert to the pre-4.2.3 behavior, use `UNSUBSCRIBE_ALWAYS`.
+====
 
 ==== Adding/Removing Topics at Runtime
 
@@ -159,7 +175,7 @@ Starting with _version 4.1_, the adapter supports asynchronous sends, avoiding b
 
 Attributes:
 
-[source]
+[source,xml]
 ----
 <int-mqtt:outbound-channel-adapter id="withConverter"
 	client-id="foo"  <1>

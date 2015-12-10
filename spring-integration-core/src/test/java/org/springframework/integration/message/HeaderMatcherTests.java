@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.test.matcher;
+package org.springframework.integration.message;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.any;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasAllHeaders;
@@ -43,8 +42,9 @@ import java.util.UUID;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * @author Alex Peters

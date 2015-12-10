@@ -95,7 +95,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param role the role.
 	 * @param lifecycle the {@link SmartLifecycle}.
 	 */
-	public void addLifecycleToRole(String role, SmartLifecycle lifecycle) {
+	public final void addLifecycleToRole(String role, SmartLifecycle lifecycle) {
 		this.lifecycles.add(role, lifecycle);
 	}
 

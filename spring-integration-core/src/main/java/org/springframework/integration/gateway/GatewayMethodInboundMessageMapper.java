@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,15 +104,15 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final MessageBuilderFactory messageBuilderFactory;
 
-	public GatewayMethodInboundMessageMapper(Method method) {
+	GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
 
-	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
+	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		this(method, headerExpressions, null, null, null);
 	}
 
-	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
+	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
 			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper,
 			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(method, "method must not be null");
@@ -244,13 +244,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return parameterList;
 	}
 
-	@SuppressWarnings("deprecation")
 	private static Expression parsePayloadExpression(Method method) {
 		Expression expression = null;
-		Annotation payload = method.getAnnotation(org.springframework.integration.annotation.Payload.class);
-		if (payload == null) {
-			payload = method.getAnnotation(Payload.class);
-		}
+		Annotation payload = method.getAnnotation(Payload.class);
 		if (payload != null) {
 			String expressionString = (String) AnnotationUtils.getValue(payload);
 			Assert.hasText(expressionString,
@@ -263,7 +259,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
 		@Override
-		@SuppressWarnings("deprecation")
 		public Message<?> toMessage(MethodArgsHolder holder) throws Exception {
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
@@ -280,8 +275,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				Annotation annotation =
 						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(), false);
 				if (annotation != null) {
-					if (annotation.annotationType().equals(org.springframework.integration.annotation.Payload.class)
-							|| annotation.annotationType().equals(Payload.class)) {
+					if (annotation.annotationType().equals(Payload.class)) {
 						if (messageOrPayload != null) {
 							GatewayMethodInboundMessageMapper.this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 						}
@@ -295,8 +289,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						}
 						foundPayloadAnnotation = true;
 					}
-					else if (annotation.annotationType().equals(org.springframework.integration.annotation.Header.class)
-							|| annotation.annotationType().equals(Header.class)) {
+					else if (annotation.annotationType().equals(Header.class)) {
 						String headerName =
 								GatewayMethodInboundMessageMapper.this.determineHeaderName(annotation, methodParameter);
 						if ((Boolean) AnnotationUtils.getValue(annotation, "required") && argumentValue == null) {
@@ -305,8 +298,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						}
 						headers.put(headerName, argumentValue);
 					}
-					else if (annotation.annotationType().equals(org.springframework.integration.annotation.Headers.class)
-							|| annotation.annotationType().equals(Headers.class)) {
+					else if (annotation.annotationType().equals(Headers.class)) {
 						if (argumentValue != null) {
 							if (!(argumentValue instanceof Map)) {
 								throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");

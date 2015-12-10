@@ -26,14 +26,14 @@
 			service-name="${user.1.service}"/>
 
 	<xmpp:presence-inbound-channel-adapter channel="inboundPresenceChannel" xmpp-connection="testConnection"/>
-	
+
 	<channel id="inboundPresenceChannel"/>
 
-	<service-activator input-channel="inboundPresenceChannel" output-channel="stdOutChannel" 
+	<service-activator input-channel="inboundPresenceChannel" output-channel="stdOutChannel"
 					expression="'Presence event from: ' + payload.getFrom() + ' - ' + payload.getMode()"/>
-	
+
 	<channel id="stdOutChannel"/>
-	
+
 	<stream:stdout-channel-adapter channel="stdOutChannel" append-newline="true"/>
 
 </beans:beans>

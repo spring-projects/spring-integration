@@ -44,6 +44,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -60,6 +61,8 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Artem Bilan
  */
 public class ApplicationEventListeningMessageProducerTests {
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	@Test
 	public void anyApplicationEventSentByDefault() {
@@ -135,11 +138,10 @@ public class ApplicationEventListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void payloadExpressionEvaluatedAgainstApplicationEvent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
-		adapter.setPayloadExpression("'received: ' + source");
+		adapter.setPayloadExpression(PARSER.parseExpression("'received: ' + source"));
 		adapter.setOutputChannel(channel);
 
 		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
