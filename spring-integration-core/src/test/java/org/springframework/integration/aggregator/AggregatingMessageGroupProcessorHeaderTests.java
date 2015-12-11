@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class AggregatingMessageGroupProcessorHeaderTests {
@@ -94,6 +99,54 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		this.multipleValuesConflict(methodInvokingProcessor);
 	}
 
+	@Test
+	public void testNullHeaderValue() {
+		DefaultAggregatingMessageGroupProcessor processor = new DefaultAggregatingMessageGroupProcessor();
+		DirectFieldAccessor dfa = new DirectFieldAccessor(processor);
+		dfa.setPropertyValue("messageBuilderFactory", new MutableMessageBuilderFactory());
+		Map<String, Object> headers1 = new HashMap<String, Object>();
+		headers1.put("k1", "foo");
+		headers1.put("k2", null);
+		Message<?> message1 = MutableMessageBuilder.withPayload("test")
+				.setCorrelationId(1)
+				.setSequenceNumber(1)
+				.setSequenceSize(2)
+				.copyHeadersIfAbsent(headers1)
+				.build();
+		Map<String, Object> headers2 = new HashMap<String, Object>();
+		headers2.put("k1", "bar");
+		headers2.put("k2", 123);
+		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
+		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
+		MessageGroup group = new SimpleMessageGroup(messages, 1);
+		Object result = processor.processMessageGroup(group);
+		assertNotNull(result);
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertNull(resultMessage.getHeaders().get("k1"));
+		assertNull(resultMessage.getHeaders().get("k2"));
+
+		headers1 = new HashMap<String, Object>();
+		headers1.put("k1", "foo");
+		headers1.put("k2", 123);
+		message1 = correlatedMessage(1, 2, 1, headers1);
+		headers2 = new HashMap<String, Object>();
+		headers2.put("k1", "bar");
+		headers2.put("k2", null);
+		message2 = MutableMessageBuilder.withPayload("test")
+				.setCorrelationId(1)
+				.setSequenceNumber(2)
+				.setSequenceSize(2)
+				.copyHeadersIfAbsent(headers2)
+				.build();
+		messages = Arrays.<Message<?>>asList(message1, message2);
+		group = new SimpleMessageGroup(messages, 1);
+		result = processor.processMessageGroup(group);
+		resultMessage = (Message<?>) result;
+		assertNull(resultMessage.getHeaders().get("k1"));
+		assertNull(resultMessage.getHeaders().get("k2"));
+	}
+
 
 	private void singleMessage(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<String, Object>();
@@ -133,7 +186,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message1 = correlatedMessage(1, 2, 1, headers1);
 		Map<String, Object> headers2 = new HashMap<String, Object>();
 		headers2.put("k1", "bar");
-		headers2.put("k2", new Integer(123));		
+		headers2.put("k2", new Integer(123));
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
@@ -158,7 +211,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers2.put("commonTo2And3", "bar");
 		headers2.put("conflictBetween1And2", "valueFor2");
 		headers2.put("conflictBetween2And3", "valueFor2");
-		headers2.put("commonToAll", new Integer(123));		
+		headers2.put("commonToAll", new Integer(123));
 		Message<?> message2 = correlatedMessage(1, 3, 2, headers2);
 		Map<String, Object> headers3 = new HashMap<String, Object>();
 		headers3.put("only3", "value3");
