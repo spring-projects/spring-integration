@@ -112,8 +112,11 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 				if (!aggregatedHeaders.containsKey(key)) {
 					aggregatedHeaders.put(key, value);
 				}
-				else if (!value.equals(aggregatedHeaders.get(key))) {
-					conflictKeys.add(key);
+				else {
+					Object existingValue = aggregatedHeaders.get(key);
+					if (value != existingValue && (value == null || !value.equals(existingValue))) {
+						conflictKeys.add(key);
+					}
 				}
 			}
 		}
