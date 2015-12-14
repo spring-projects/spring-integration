@@ -39,10 +39,10 @@ public interface Connection {
 	/**
 	 * Fetch an actual offset in the partition, immediately before the given reference time,
 	 * or the smallest and largest value, respectively, if the special values -1
-	 * ({@link OffsetRequest#LatestTime()}) and -2 ({@link OffsetRequest#LatestTime()})
+	 * ({@link OffsetRequest#LatestTime()}) and -2 ({@link OffsetRequest#EarliestTime()})
 	 * are used . To be used to position the initial offset of a read operation.
 	 * @param referenceTime The returned values will be before this time, if they exist. The special
-	 * values -2 ({@link OffsetRequest#LatestTime()}) and -1 ({@link OffsetRequest#LatestTime()}) are supported.
+	 * values -2 ({@link OffsetRequest#EarliestTime()}) and -1 ({@link OffsetRequest#LatestTime()}) are supported.
 	 * @param partitions the offsets, indexed by {@link Partition}
 	 * @return any errors, an empty {@link Result} in case of success
 	 * @throws ConsumerException the ConsumerException if any underlying error
