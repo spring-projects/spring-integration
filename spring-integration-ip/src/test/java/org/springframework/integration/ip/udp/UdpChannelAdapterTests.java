@@ -41,6 +41,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -55,6 +57,7 @@ import org.springframework.messaging.SubscribableChannel;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Marcin Pilaczynski
  * @since 2.0
  *
  */
@@ -345,6 +348,29 @@ public class UdpChannelAdapterTests {
 		assertNotNull(receivedMessage);
 		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
 		adapter.stop();
+	}
+
+	@Test
+	public void testSocketExpression() throws Exception {
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml",
+				getClass());
+		UnicastReceivingChannelAdapter inbound = context.getBean(UnicastReceivingChannelAdapter.class);
+		int n = 0;
+		while (!inbound.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 20) {
+				throw new RuntimeException("Receiving channel adapter failed to start listening");
+			}
+		}
+		int receiverServerPort = inbound.getPort();
+		DatagramPacket packet = new DatagramPacket("foo".getBytes(), 3);
+		packet.setSocketAddress(new InetSocketAddress("localhost", receiverServerPort));
+		DatagramSocket socket = new DatagramSocket();
+		socket.send(packet);
+		socket.receive(packet);
+		assertEquals("FOO", new String(packet.getData()));
+		assertEquals(receiverServerPort, packet.getPort());
+		context.close();
 	}
 
 	private class FailingService {

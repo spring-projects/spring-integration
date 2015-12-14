@@ -218,7 +218,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		return this.socket;
 	}
 
-	protected synchronized DatagramSocket getSocket() {
+	public synchronized DatagramSocket getSocket() {
 		if (this.socket == null) {
 			try {
 				DatagramSocket socket = null;

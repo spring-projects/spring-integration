@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.ip.udp;
 
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -60,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket>,
@@ -142,7 +145,23 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			buffer.put(bytes);
 			bytes = buffer.array();
 		}
-		return new DatagramPacket(bytes, bytes.length);
+		return getDatagramFromHeader(message, bytes, bytes.length);
+	}
+
+	private DatagramPacket getDatagramFromHeader(Message<?> message, byte[] bytes,
+												 int length) throws UnknownHostException {
+		InetAddress inetAddress = null;
+		if (message.getHeaders().get(IpHeaders.IP_ADDRESS, String.class) != null) {
+			inetAddress = InetAddress.getByName(message.getHeaders()
+					.get(IpHeaders.IP_ADDRESS, String.class));
+		}
+		Integer port = message.getHeaders().get(IpHeaders.PORT, Integer.class);
+		if (inetAddress != null && port != null) {
+			return new DatagramPacket(bytes, length, inetAddress, port);
+		}
+		else {
+			return new DatagramPacket(bytes, length);
+		}
 	}
 
 	/**

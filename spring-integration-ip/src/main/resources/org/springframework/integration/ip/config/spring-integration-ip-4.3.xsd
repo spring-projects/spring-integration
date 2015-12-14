@@ -80,8 +80,17 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="host" type="xsd:string" />
+					<xsd:attribute name="host" type="xsd:string" use="optional"/>
 					<xsd:attribute name="acknowledge" type="xsd:string" />
+					<xsd:attribute name="socket-expression" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to be evaluated to determine which datagram
+								socket use for sending outgoing UDP packets (e.g. UDP inbound
+								packet receiving Channel Adapter socket can be used).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="ack-host" type="xsd:string" />
 					<xsd:attribute name="ack-port" type="xsd:string" />
 					<xsd:attribute name="ack-timeout" type="xsd:string" />
@@ -819,7 +828,7 @@
 
 	<xsd:complexType name="common-attributes">
 		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="port" type="xsd:string" />
+		<xsd:attribute name="port" type="xsd:string" use="optional" />
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-timeout" type="xsd:string" />

@@ -42,6 +42,7 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public class DatagramPacketSendingHandlerTests {
@@ -285,6 +286,7 @@ public class DatagramPacketSendingHandlerTests {
 		}
 		MulticastSendingMessageHandler handler =
 			new MulticastSendingMessageHandler(multicastAddress, testPort, true, true, "localhost", 0, 10000);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setMinAcksForSuccess(2);
 		handler.afterPropertiesSet();
 		handler.start();

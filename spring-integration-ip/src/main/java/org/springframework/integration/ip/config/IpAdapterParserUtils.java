@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  * Utility methods and constants for IP adapter parsers.
  *
  * @author Gary Russell
+ * @author Marcin Pilaczynski
  * @since 2.0
  */
 public abstract class IpAdapterParserUtils {
@@ -92,6 +93,8 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
+	static final String SOCKET_EXPRESSION = "socket-expression";
+
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
 
 	public static final String REQUEST_TIMEOUT = "request-timeout";
@@ -150,7 +153,34 @@ public abstract class IpAdapterParserUtils {
 	 * @param builder The builder.
 	 * @param parserContext The parser context.
 	 */
-	public static void addHostAndPortToConstructor(Element element,
+	public static void addBasicSocketConfigToConstructor(Element element,
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
+		if (StringUtils.hasText(socketExpression)) {
+			addSocketExpressionToConstructor(socketExpression, element, builder, parserContext);
+		}
+		else {
+			addHostAndPortToConstructor(element, builder, parserContext);
+		}
+	}
+
+	private static void addSocketExpressionToConstructor(String socketExpression,
+			Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String host = element.getAttribute(IpAdapterParserUtils.HOST);
+		String port = element.getAttribute(IpAdapterParserUtils.PORT);
+		if (StringUtils.hasText(host) || StringUtils.hasText(port)) {
+			parserContext.getReaderContext().error("Option "
+					+ IpAdapterParserUtils.SOCKET_EXPRESSION
+					+ " cannot be used together with "
+					+ IpAdapterParserUtils.HOST
+					+ " or "
+					+ IpAdapterParserUtils.PORT
+					+ " options.", element);
+		}
+		builder.addConstructorArgValue(socketExpression);
+	}
+
+	private static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		if (!StringUtils.hasText(host)) {
@@ -158,17 +188,6 @@ public abstract class IpAdapterParserUtils {
 					+ " is required for IP outbound channel adapters", element);
 		}
 		builder.addConstructorArgValue(host);
-		String port = IpAdapterParserUtils.getPort(element, parserContext);
-		builder.addConstructorArgValue(port);
-	}
-
-	/**
-	 * @param element The element.
-	 * @param builder The builder.
-	 * @param parserContext The parser context.
-	 */
-	public static void addPortToConstructor(Element element,
-			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
 		builder.addConstructorArgValue(port);
 	}
@@ -183,8 +202,8 @@ public abstract class IpAdapterParserUtils {
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (!StringUtils.hasText(port)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
-					" is required for IP channel adapters", element);
+			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT
+					+ " is required for IP channel adapters", element);
 		}
 		return port;
 	}
