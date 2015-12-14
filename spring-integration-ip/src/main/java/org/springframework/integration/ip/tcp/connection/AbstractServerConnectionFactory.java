@@ -20,9 +20,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Date;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -195,6 +199,32 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	protected void publishServerExceptionEvent(Exception e) {
 		if (getApplicationEventPublisher() != null) {
 			getApplicationEventPublisher().publishEvent(new TcpConnectionServerExceptionEvent(this, e));
+		}
+	}
+
+	protected void publishServerListeningEvent(int port) {
+		final ApplicationEventPublisher eventPublisher = getApplicationEventPublisher();
+		if (eventPublisher != null) {
+			final TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
+			TaskScheduler taskScheduler = this.getTaskScheduler();
+			if (taskScheduler != null) {
+				try {
+					taskScheduler.schedule(new Runnable() {
+
+						@Override
+						public void run() {
+							eventPublisher.publishEvent(event);
+						}
+
+					}, new Date());
+				}
+				catch (TaskRejectedException e) {
+					eventPublisher.publishEvent(event);
+				}
+			}
+			else {
+				eventPublisher.publishEvent(event);
+			}
 		}
 	}
 

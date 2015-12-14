@@ -82,7 +82,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		test(location);
 	}
 
-	private void test(String location) throws InterruptedException, Exception {
+	private void test(String location) throws Exception {
 		UdpMulticastEndToEndTests launcher = new UdpMulticastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver

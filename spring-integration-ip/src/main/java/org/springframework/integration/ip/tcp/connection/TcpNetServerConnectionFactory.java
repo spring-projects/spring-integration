@@ -58,8 +58,9 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public int getPort() {
 		int port = super.getPort();
-		if (port == 0 && this.serverSocket != null) {
-			return this.serverSocket.getLocalPort();
+		ServerSocket serverSocket = this.serverSocket;
+		if (port == 0 && serverSocket != null) {
+			port = serverSocket.getLocalPort();
 		}
 		return port;
 	}
@@ -100,6 +101,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			this.serverSocket = theServerSocket;
 			setListening(true);
 			logger.info(this + " Listening");
+			publishServerListeningEvent(getPort());
 			while (true) {
 				final Socket socket;
 				/*
