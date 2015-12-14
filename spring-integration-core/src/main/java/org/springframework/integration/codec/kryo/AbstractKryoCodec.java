@@ -22,14 +22,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.kryo.pool.KryoCallback;
+import org.springframework.integration.codec.kryo.pool.KryoFactory;
+import org.springframework.integration.codec.kryo.pool.KryoPool;
 import org.springframework.util.Assert;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.pool.KryoCallback;
-import com.esotericsoftware.kryo.pool.KryoFactory;
-import com.esotericsoftware.kryo.pool.KryoPool;
 
 /**
  * Base class for {@link Codec}s using {@link Kryo}.
