@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,20 +50,21 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testListInboundConfiguration() throws Exception{
+	public void testListInboundConfiguration() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.prepareList(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("listAdapter", SourcePollingChannelAdapter.class);
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get the same stuff
-		message = (Message<Integer>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(Integer.valueOf(13), message.getPayload());
 		this.deletePresidents(jcf);
@@ -74,22 +75,24 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	// synchronization commit renames the list
-	public void testListInboundConfigurationWithSynchronization() throws Exception{
+	public void testListInboundConfigurationWithSynchronization() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
 		template.delete("bar");
 		this.prepareList(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronization", SourcePollingChannelAdapter.class);
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		SourcePollingChannelAdapter spca =
+				context.getBean("listAdapterWithSynchronization", SourcePollingChannelAdapter.class);
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get nothing since the collection was removed during synchronization
-		message = (Message<Integer>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(100);
 		assertNull(message);
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
@@ -101,7 +104,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@Test
 	@RedisAvailable
 	// synchronization rollback renames the list
-	public void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception{
+	public void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
 		template.delete("baz");
@@ -117,6 +120,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 				latch.countDown();
 				throw new RuntimeException("Test Rollback");
 			}
+
 		});
 		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationAndRollback",
 				SourcePollingChannelAdapter.class);
@@ -126,7 +130,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		while (n++ < 100 && template.keys("baz").size() == 0) {
 			Thread.sleep(100);
 		}
-		assertTrue("Rename didn't occcur", n < 100);
+		assertTrue("Rename didn't occur", n < 100);
 		assertEquals(Long.valueOf(13), template.boundListOps("baz").size());
 		template.delete("baz");
 
@@ -138,22 +142,24 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	// synchronization commit renames the list
-	public void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception{
+	public void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate template = this.createStringRedisTemplate(jcf);
 		template.delete("bar");
 		this.prepareList(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationAndRedisTemplate", SourcePollingChannelAdapter.class);
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		SourcePollingChannelAdapter spca =
+				context.getBean("listAdapterWithSynchronizationAndRedisTemplate", SourcePollingChannelAdapter.class);
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Integer> message = (Message<Integer>) redisChannel.receive(1000);
+		Message<Integer> message = (Message<Integer>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(Integer.valueOf(13), message.getPayload());
 
 		//poll again, should get nothing since the collection was removed during synchronization
-		message = (Message<Integer>) redisChannel.receive(1000);
+		message = (Message<Integer>) redisChannel.receive(100);
 		assertNull(message);
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
@@ -168,7 +174,8 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 	public void testZsetInboundAdapter() throws InterruptedException {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.prepareZset(jcf);
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("zset-inbound-adapter.xml", this.getClass());
 
 		//No Score test
 		SourcePollingChannelAdapter zsetAdapterNoScore =
@@ -177,12 +184,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
@@ -194,12 +201,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 				context.getBean("zsetAdapterWithScoreRange", SourcePollingChannelAdapter.class);
 		zsetAdapterWithScoreRange.start();
 
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
@@ -211,12 +218,12 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 				context.getBean("zsetAdapterWithSingleScore", SourcePollingChannelAdapter.class);
 		zsetAdapterWithSingleScore.start();
 
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		//poll again, should get the same stuff
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
@@ -231,24 +238,24 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 
 		// get all 13 presidents
 		zsetAdapterNoScore.start();
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 		zsetAdapterNoScore.stop();
 
 		// get only presidents for 18th century
 		zsetAdapterWithSingleScoreAndSynchronization.start();
-		Message<Integer> sizeMessage = (Message<Integer>) otherRedisChannel.receive(2000);
+		Message<Integer> sizeMessage = (Message<Integer>) otherRedisChannel.receive(10000);
 		assertNotNull(sizeMessage);
 		assertEquals(Integer.valueOf(2), sizeMessage.getPayload());
 
 		// ... however other elements are still available 13-2=11
 		zsetAdapterNoScore.start();
-		message = (Message<RedisZSet<Object>>) redisChannel.receive(2000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(10000);
 		assertNotNull(message);
 
 		int n = 0;
-		while(n++ < 100 && message.getPayload().size() != 11) {
+		while (n++ < 100 && message.getPayload().size() != 11) {
 			Thread.sleep(100);
 		}
 		assertTrue(n < 100);
