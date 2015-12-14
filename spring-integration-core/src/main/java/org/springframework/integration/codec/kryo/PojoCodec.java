@@ -19,13 +19,12 @@ package org.springframework.integration.codec.kryo;
 import java.util.Collections;
 import java.util.List;
 
-import org.objenesis.strategy.StdInstantiatorStrategy;
-
 import org.springframework.util.CollectionUtils;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
 
 /**
  * Kryo Codec that can encode and decode arbitrary types. Classes and associated
@@ -99,7 +98,7 @@ public class PojoCodec extends AbstractKryoCodec {
 
 	@Override
 	protected void configureKryoInstance(Kryo kryo) {
-		kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 		if (this.kryoRegistrar != null) {
 			this.kryoRegistrar.registerTypes(kryo);
 		}
