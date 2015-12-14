@@ -352,8 +352,8 @@ public class UdpChannelAdapterTests {
 
 	@Test
 	public void testSocketExpression() throws Exception {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml",
-				getClass());
+		ConfigurableApplicationContext context =
+				new ClassPathXmlApplicationContext("testIp-socket-expression-context.xml", getClass());
 		UnicastReceivingChannelAdapter inbound = context.getBean(UnicastReceivingChannelAdapter.class);
 		int n = 0;
 		while (!inbound.isListening()) {
@@ -374,11 +374,12 @@ public class UdpChannelAdapterTests {
 	}
 
 	private class FailingService {
+
 		@SuppressWarnings("unused")
 		public String serviceMethod(byte[] bytes) {
 			throw new RuntimeException("Failed");
 		}
-	}
 
+	}
 
 }

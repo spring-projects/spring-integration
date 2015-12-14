@@ -80,7 +80,19 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="host" type="xsd:string" use="optional"/>
+					<xsd:attribute name="host" type="xsd:string"/>
+					<xsd:attribute name="destination-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to determine the destination address for the datagram packet
+								at run time. The 'requestMessage' is used as a root object for evaluation context.
+								Must evaluate to 'String', 'URI' or 'SocketAddress'.
+								The 'IpHeaders.PACKET_ADDRESS' header from the received message throughout
+								'udp-inbound-channel-adapter' can be used with this expression as well.
+								Mutually exclusive with 'host'/'port' pair.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="socket-expression" type="xsd:string" use="optional">
 						<xsd:annotation>
@@ -828,7 +840,7 @@
 
 	<xsd:complexType name="common-attributes">
 		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="port" type="xsd:string" use="optional" />
+		<xsd:attribute name="port" type="xsd:string" />
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-timeout" type="xsd:string" />

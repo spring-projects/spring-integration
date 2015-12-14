@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Marcin Pilaczynski
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class IpAdapterParserUtils {
@@ -71,8 +72,6 @@ public abstract class IpAdapterParserUtils {
 
 	static final String USING_DIRECT_BUFFERS = "using-direct-buffers";
 
-	static final String MESSAGE_FORMAT = "message-format";
-
 	static final String SO_LINGER = "so-linger";
 
 	static final String SO_TCP_NODELAY = "so-tcp-no-delay";
@@ -92,8 +91,6 @@ public abstract class IpAdapterParserUtils {
 	static final String SINGLE_USE = "single-use";
 
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
-
-	static final String SOCKET_EXPRESSION = "socket-expression";
 
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
 
@@ -139,9 +136,16 @@ public abstract class IpAdapterParserUtils {
 	 * @param attributeName the name of the attribute whose value will be
 	 * @param trueFalse not used
 	 * used to populate the property
+	 * @deprecated in favor of {@link #addConstructorValueIfAttributeDefined}.
 	 */
+	@Deprecated
 	public static void addConstuctorValueIfAttributeDefined(BeanDefinitionBuilder builder,
 			Element element, String attributeName, boolean trueFalse) {
+		addConstructorValueIfAttributeDefined(builder, element, attributeName);
+	}
+
+	public static void addConstructorValueIfAttributeDefined(BeanDefinitionBuilder builder,
+			Element element, String attributeName) {
 		String attributeValue = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
 			builder.addConstructorArgValue(attributeValue);
@@ -153,11 +157,11 @@ public abstract class IpAdapterParserUtils {
 	 * @param builder The builder.
 	 * @param parserContext The parser context.
 	 */
-	public static void addBasicSocketConfigToConstructor(Element element,
-			BeanDefinitionBuilder builder, ParserContext parserContext) {
-		String socketExpression = element.getAttribute(IpAdapterParserUtils.SOCKET_EXPRESSION);
-		if (StringUtils.hasText(socketExpression)) {
-			addSocketExpressionToConstructor(socketExpression, element, builder, parserContext);
+	public static void addDestinationConfigToConstructor(Element element,
+	                                                     BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String destinationExpression = element.getAttribute("destination-expression");
+		if (StringUtils.hasText(destinationExpression)) {
+			addSocketExpressionToConstructor(destinationExpression, element, builder, parserContext);
 		}
 		else {
 			addHostAndPortToConstructor(element, builder, parserContext);
@@ -169,13 +173,8 @@ public abstract class IpAdapterParserUtils {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (StringUtils.hasText(host) || StringUtils.hasText(port)) {
-			parserContext.getReaderContext().error("Option "
-					+ IpAdapterParserUtils.SOCKET_EXPRESSION
-					+ " cannot be used together with "
-					+ IpAdapterParserUtils.HOST
-					+ " or "
-					+ IpAdapterParserUtils.PORT
-					+ " options.", element);
+			parserContext.getReaderContext()
+					.error("The 'destination-expression' is mutually exclusive with 'host/port' pair.", element);
 		}
 		builder.addConstructorArgValue(socketExpression);
 	}
