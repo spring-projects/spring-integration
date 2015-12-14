@@ -40,6 +40,8 @@ public class MulticastRule extends TestWatcher {
 
 	private final String nic;
 
+	private boolean skip;
+
 	public MulticastRule() {
 		this(GROUP);
 	}
@@ -63,6 +65,7 @@ public class MulticastRule extends TestWatcher {
 	private String checkMulticast() throws Exception {
 		String nic = SocketTestUtils.chooseANic(true);
 		if (nic == null) {	// no multicast support
+			this.skip = true;
 			return null;
 		}
 		try {
@@ -71,6 +74,7 @@ public class MulticastRule extends TestWatcher {
 			socket.close();
 		}
 		catch (Exception e) {
+			this.skip = true;
 			// Ignore. Assume no Multicast - skip the test.
 		}
 		return nic;
@@ -86,7 +90,7 @@ public class MulticastRule extends TestWatcher {
 
 	@Override
 	public Statement apply(Statement base, Description description) {
-		if (this.nic == null) {
+		if (this.skip) {
 			LogFactory.getLog(this.getClass()).info("No Multicast support; test skipped");
 			return new Statement() {
 
