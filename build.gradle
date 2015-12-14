@@ -106,7 +106,7 @@ subprojects { subproject ->
 		jsonpathVersion = '0.9.1'
 		junitVersion = '4.11'
 		jythonVersion = '2.5.3'
-		kryoShadedVersion = '3.0.3'
+		kryoVersion = '2.22'
 		log4jVersion = '1.2.17'
 		mockitoVersion = '1.9.5'
 		mysqlVersion = '5.1.29'
@@ -268,7 +268,7 @@ project('spring-integration-core') {
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
 		compile("io.fastjson:boon:$boonVersion", optional)
-		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
+		compile("com.esotericsoftware.kryo:kryo:$kryoVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("net.openhft:chronicle:$chronicleVersion")
