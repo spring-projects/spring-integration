@@ -65,12 +65,12 @@ import org.springframework.util.StringUtils;
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent,
 		ApplicationContextAware, BeanFactoryAware, InitializingBean {
 
+	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
 	/**
 	 * Logger that is available to subclasses
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
-
-	protected final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final ConversionService defaultConversionService = new DefaultConversionService();
 

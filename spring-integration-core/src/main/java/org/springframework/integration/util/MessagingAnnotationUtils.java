@@ -113,8 +113,11 @@ public final class MessagingAnnotationUtils {
 		Annotation match = null;
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> type = annotation.annotationType();
-			if (type.equals(Payload.class)
+			if (type.equals(org.springframework.integration.annotation.Payload.class)
+					|| type.equals(Payload.class)
+					|| type.equals(org.springframework.integration.annotation.Header.class)
 					|| type.equals(Header.class)
+					|| type.equals(org.springframework.integration.annotation.Headers.class)
 					|| type.equals(Headers.class)
 					|| (payloads && type.equals(Payloads.class))) {
 				if (match != null) {

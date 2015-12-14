@@ -399,7 +399,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
-		boolean hasPayloadExpression = method.isAnnotationPresent(Payload.class);
+		@SuppressWarnings("deprecation")
+		boolean hasPayloadExpression =
+				method.isAnnotationPresent(org.springframework.integration.annotation.Payload.class)
+						|| method.isAnnotationPresent(Payload.class);
 		if (!hasPayloadExpression && this.methodMetadataMap != null) {
 			// check for the method metadata next
 			GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
