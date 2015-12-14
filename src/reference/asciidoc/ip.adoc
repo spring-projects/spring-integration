@@ -405,6 +405,14 @@ collaborating outbound channel adapter) receives a message that cannot be routed
 Outbound gateways also publish this event when a late reply is received (the sender thread has timed out).
 The event contains the connection id as well as an exception in the `cause` property that contains the failed message.
 
+Starting with _version 4.3_, a `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
+This is useful when the factory is configured to listen on port 0, meaning that the operating system chooses the port.
+It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will
+connect to the socket.
+
+IMPORTANT: To avoid delaying the listening thread from accepting connections, the event is published on a separate
+thread.
+
 [[tcp-adapters]]
 === TCP Adapters
 

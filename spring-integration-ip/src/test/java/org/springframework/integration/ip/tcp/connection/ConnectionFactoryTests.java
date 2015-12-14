@@ -16,8 +16,10 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -47,12 +49,16 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
-import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -75,13 +81,17 @@ public class ConnectionFactoryTests {
 	}
 
 	public void testObtainConnectionIds(AbstractServerConnectionFactory serverFactory) throws Exception {
-		final List<TcpConnectionEvent> events =
-				Collections.synchronizedList(new ArrayList<TcpConnectionEvent>());
+		final List<IpIntegrationEvent> events =
+				Collections.synchronizedList(new ArrayList<IpIntegrationEvent>());
+		final CountDownLatch serverListeningLatch = new CountDownLatch(1);
 		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
 
 			@Override
 			public void publishEvent(ApplicationEvent event) {
-				events.add((TcpConnectionEvent) event);
+				events.add((IpIntegrationEvent) event);
+				if (event instanceof TcpConnectionServerListeningEvent) {
+					serverListeningLatch.countDown();
+				}
 			}
 
 			@Override
@@ -102,10 +112,19 @@ public class ConnectionFactoryTests {
 				return result;
 			}
 		}).when(serverFactory).wrapConnection(any(TcpConnectionSupport.class));
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setPoolSize(10);
+		scheduler.afterPropertiesSet();
+		BeanFactory bf = mock(BeanFactory.class);
+		when(bf.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
+		when(bf.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class)).thenReturn(scheduler);
+		serverFactory.setBeanFactory(bf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(serverFactory);
 		adapter.start();
-		TestingUtilities.waitListening(serverFactory, null);
+		assertTrue("Listening event not received", serverListeningLatch.await(10, TimeUnit.SECONDS));
+		assertThat(events.get(0), instanceOf(TcpConnectionServerListeningEvent.class));
+		assertThat(((TcpConnectionServerListeningEvent) events.get(0)).getPort(), equalTo(serverFactory.getPort()));
 		int port = serverFactory.getPort();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", port);
 		clientFactory.registerListener(new TcpListener() {
@@ -127,11 +146,15 @@ public class ConnectionFactoryTests {
 		assertTrue(serverFactory.closeConnection(servers.get(0)));
 		servers = serverFactory.getOpenConnectionIds();
 		assertEquals(0, servers.size());
-		Thread.sleep(1000);
+		int n = 0;
 		clients = clientFactory.getOpenConnectionIds();
+		while (n++ < 100 && clients.size() > 0) {
+			Thread.sleep(100);
+			clients = clientFactory.getOpenConnectionIds();
+		}
 		assertEquals(0, clients.size());
-		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 6// OPEN, CLOSE, EXCEPTION for each side
-				: 4; //OPEN, CLOSE (but we *might* get exceptions, depending on timing).
+		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 7// Listening, OPEN, CLOSE, EXCEPTION for each side
+				: 5; //Listening, OPEN, CLOSE (but we *might* get exceptions, depending on timing).
 		assertThat(events.size(), greaterThanOrEqualTo(expected));
 
 		FooEvent event = new FooEvent(client, "foo");
@@ -153,6 +176,7 @@ public class ConnectionFactoryTests {
 			assertEquals(port, inetAddress.getPort());
 		}
 		serverFactory.stop();
+		scheduler.shutdown();
 	}
 
 	@Test

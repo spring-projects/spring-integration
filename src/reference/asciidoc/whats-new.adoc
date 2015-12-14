@@ -38,3 +38,8 @@ See <<jms-header-mapping>> for more information.
 There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects; this is rare but if
 your application does that, you will need to make a small change to your POJO. See this <<agg-message-collection>> note
 for more information.
+
+==== TCP Changes
+
+A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
+See <<tcp-events>> for more information.

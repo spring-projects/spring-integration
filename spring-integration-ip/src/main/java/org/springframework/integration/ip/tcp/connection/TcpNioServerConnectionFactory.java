@@ -70,9 +70,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public int getPort() {
 		int port = super.getPort();
-		if (port == 0 && this.serverChannel != null) {
+		ServerSocketChannel serverChannel = this.serverChannel;
+		if (port == 0 && serverChannel != null) {
 			try {
-				SocketAddress address = this.serverChannel.getLocalAddress();
+				SocketAddress address = serverChannel.getLocalAddress();
 				if (address instanceof InetSocketAddress) {
 					port = ((InetSocketAddress) address).getPort();
 				}
@@ -123,6 +124,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			if (logger.isInfoEnabled()) {
 				logger.info(this + " Listening");
 			}
+			publishServerListeningEvent(getPort());
 			final Selector selector = Selector.open();
 			if (this.serverChannel == null) {
 				if (logger.isDebugEnabled()) {
