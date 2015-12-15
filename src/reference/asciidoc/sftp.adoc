@@ -41,7 +41,7 @@ You can configure the _SFTP Session Factory_ via a regular bean definition:
 ----
 
 Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is being created.
-Under the covers, the SFTP Session Factory relies on thehttp://www.jcraft.com/jsch/[JSch] library to provide the SFTP capabilities.
+Under the covers, the SFTP Session Factory relies on the http://www.jcraft.com/jsch/[JSch] library to provide the SFTP capabilities.
 
 However, Spring Integration also supports the caching of SFTP sessions, please see <<sftp-session-caching>> for more information.
 
@@ -84,7 +84,7 @@ It's default depends on the underlying JSch version but it will look like:_SSH-2
 
 If `true`, all threads will be daemon threads.
 If set to `false`, normal non-daemon threads will be used instead.
-This property will be set on the underlyinghttp://www.jcraft.com/jsch/[JSch]`Session`.
+This property will be set on the underlying http://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[Session].
 There, this property will default to `false`, if not explicitly set.
 
 *host*
@@ -116,7 +116,8 @@ If specified, this properties must be a positive number.
 
 *privateKey*
 
-Allows you to set a http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource], which represents the location of the private key used for authenticating against the remote host.
+Allows you to set a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource],
+which represents the location of the private key used for authenticating against the remote host.
 If the _privateKey_ is not provided, then the _password_ property is mandatory.
 
 *privateKeyPassphrase*
@@ -408,9 +409,13 @@ This will work for any `ResettableFileListFilter`.
 [[sftp-outbound]]
 === SFTP Outbound Channel Adapter
 
-The _SFTP Outbound Channel Adapter_is a special `MessageHandler` that will connect to the remote directory and will initiate a file transfer for every file it will receive as the payload of an incoming `Message`.
+The _SFTP Outbound Channel Adapter_ is a special `MessageHandler` that will connect to the remote directory and will
+initiate a file transfer for every file it will receive as the payload of an incoming `Message`.
 It also supports several representations of the File so you are not limited to the File object.
-Similar to the FTP outbound adapter, the _SFTP Outbound Channel Adapter_ supports the following payloads: 1) `java.io.File` - the actual file object; 2) `byte[]` - byte array that represents the file contents; 3) `java.lang.String` - text that represents the file contents.
+Similar to the FTP outbound adapter, the _SFTP Outbound Channel Adapter_ supports the following payloads:
+1) `java.io.File` - the actual file object;
+2) `byte[]` - byte array that represents the file contents;
+3) `java.lang.String` - text that represents the file contents.
 
 [source,xml]
 ----
