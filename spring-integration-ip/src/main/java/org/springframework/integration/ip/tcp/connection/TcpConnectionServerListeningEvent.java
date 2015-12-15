@@ -33,7 +33,7 @@ public class TcpConnectionServerListeningEvent extends IpIntegrationEvent {
 
 	private final int port;
 
-	public TcpConnectionServerListeningEvent(Object connectionFactory, int port) {
+	public TcpConnectionServerListeningEvent(AbstractServerConnectionFactory connectionFactory, int port) {
 		super(connectionFactory);
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		this.port = port;

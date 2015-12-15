@@ -124,7 +124,6 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			if (logger.isInfoEnabled()) {
 				logger.info(this + " Listening");
 			}
-			publishServerListeningEvent(getPort());
 			final Selector selector = Selector.open();
 			if (this.serverChannel == null) {
 				if (logger.isDebugEnabled()) {
@@ -134,6 +133,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			else {
 				this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 				setListening(true);
+				publishServerListeningEvent(getPort());
 				this.selector = selector;
 				doSelect(this.serverChannel, selector);
 			}

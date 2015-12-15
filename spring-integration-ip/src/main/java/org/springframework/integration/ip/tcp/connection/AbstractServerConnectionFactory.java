@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Date;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -202,8 +203,9 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 
 	protected void publishServerListeningEvent(int port) {
-		if (getApplicationEventPublisher() != null) {
-			TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
+		final ApplicationEventPublisher eventPublisher = getApplicationEventPublisher();
+		if (eventPublisher != null) {
+			final TcpConnectionServerListeningEvent event = new TcpConnectionServerListeningEvent(this, port);
 			TaskScheduler taskScheduler = this.getTaskScheduler();
 			if (taskScheduler != null) {
 				try {
@@ -211,17 +213,17 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 						@Override
 						public void run() {
-							getApplicationEventPublisher().publishEvent(event);
+							eventPublisher.publishEvent(event);
 						}
 
 					}, new Date());
 				}
 				catch (TaskRejectedException e) {
-					getApplicationEventPublisher().publishEvent(event);
+					eventPublisher.publishEvent(event);
 				}
 			}
 			else {
-				getApplicationEventPublisher().publishEvent(event);
+				eventPublisher.publishEvent(event);
 			}
 		}
 	}

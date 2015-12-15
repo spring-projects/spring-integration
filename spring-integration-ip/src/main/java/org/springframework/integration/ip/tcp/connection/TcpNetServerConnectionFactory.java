@@ -101,6 +101,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			this.serverSocket = theServerSocket;
 			setListening(true);
 			logger.info(this + " Listening");
+			publishServerListeningEvent(getPort());
 			while (true) {
 				final Socket socket;
 				/*
@@ -115,7 +116,6 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						throw new IOException(this + " stopped before accept");
 					}
 					else {
-						publishServerListeningEvent(getPort());
 						socket = this.serverSocket.accept();
 					}
 				}
