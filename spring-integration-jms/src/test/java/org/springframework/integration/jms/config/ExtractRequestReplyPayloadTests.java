@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.jms.JMSException;
 
 import org.apache.log4j.Level;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -75,6 +76,11 @@ public class ExtractRequestReplyPayloadTests {
 
 	@Autowired
 	ChannelPublishingJmsMessageListener inboundGateway;
+
+	@BeforeClass
+	public static void setup() {
+		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
+	}
 
 	@Test
 	public void testOutboundInboundDefault() {
