@@ -41,4 +41,10 @@
 		</int:request-handler-advice-chain>
 	</int:service-activator>
 
+	<int:service-activator id="saDefaultRetry" input-channel="foo" expression="'foo'">
+		<int:request-handler-advice-chain>
+			<int:retry-advice />
+		</int:request-handler-advice-chain>
+	</int:service-activator>
+
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -26,10 +30,17 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -40,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class DefaultOutboundChannelAdapterParserTests {
 
 	@Autowired
@@ -68,10 +80,18 @@ public class DefaultOutboundChannelAdapterParserTests {
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
-		Object handler = TestUtils.getPropertyValue(adapter, "handler");
+		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
 		assertTrue(AopUtils.isAopProxy(handler));
 		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+
+		handler.handleMessage(new GenericMessage<>("foo"));
+		QueueChannel recovery = context.getBean("recovery", QueueChannel.class);
+		Message<?> received = recovery.receive(10000);
+		assertNotNull(received);
+		assertThat(received, instanceOf(ErrorMessage.class));
+		assertThat(received.getPayload(), instanceOf(MessagingException.class));
+		assertEquals("foo", ((MessagingException) received.getPayload()).getFailedMessage().getPayload());
 	}
 
 	@Test
@@ -88,6 +108,7 @@ public class DefaultOutboundChannelAdapterParserTests {
 	static class TestBean {
 
 		public void out(Object o) {
+			throw new RuntimeException("ex");
 		}
 
 	}
