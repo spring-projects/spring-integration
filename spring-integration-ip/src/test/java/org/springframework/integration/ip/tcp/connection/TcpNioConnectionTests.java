@@ -728,7 +728,9 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public void publishEvent(ApplicationEvent event) {
-				connectionLatch.countDown();
+				if (event instanceof TcpConnectionOpenEvent) {
+					connectionLatch.countDown();
+				}
 			}
 
 			@Override
