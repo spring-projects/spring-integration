@@ -24,9 +24,13 @@
 		<beans:bean class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
 		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" />
 		<request-handler-advice-chain>
-			<retry-advice/>
+			<retry-advice max-attempts="3" recovery-channel="recovery"/>
 		</request-handler-advice-chain>
 	</outbound-channel-adapter>
+
+	<channel id="recovery">
+		<queue/>
+	</channel>
 
 	<task:executor id="executor" pool-size="5" />
 

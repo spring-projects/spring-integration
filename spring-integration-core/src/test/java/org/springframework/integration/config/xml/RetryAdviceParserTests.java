@@ -70,37 +70,44 @@ public class RetryAdviceParserTests {
 	@Autowired @Qualifier("sa2.handler")
 	private MessageHandler handler2;
 
+	@Autowired @Qualifier("saDefaultRetry.handler")
+	private MessageHandler defaultRetryHandler;
+
 	@Autowired
 	private MessageChannel foo;
 
 	@Test
 	public void testAll() {
-		assertEquals(Integer.valueOf(3), TestUtils.getPropertyValue(a1, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(4), TestUtils.getPropertyValue(a2, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(5), TestUtils.getPropertyValue(a3, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(6), TestUtils.getPropertyValue(a4, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(7), TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(8), TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
-		assertEquals(Integer.valueOf(3), TestUtils.getPropertyValue(a7, "retryTemplate.retryPolicy.maxAttempts", Integer.class));
+		assertEquals(3, TestUtils.getPropertyValue(a1, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(4, TestUtils.getPropertyValue(a2, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(5, TestUtils.getPropertyValue(a3, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(6, TestUtils.getPropertyValue(a4, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(7, TestUtils.getPropertyValue(a5, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(8, TestUtils.getPropertyValue(a6, "retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(3, TestUtils.getPropertyValue(a7, "retryTemplate.retryPolicy.maxAttempts"));
 
-		assertEquals(Long.valueOf(1000), TestUtils.getPropertyValue(a3, "retryTemplate.backOffPolicy.backOffPeriod", Long.class));
-		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(a4, "retryTemplate.backOffPolicy.backOffPeriod", Long.class));
+		assertEquals(1000L, TestUtils.getPropertyValue(a3, "retryTemplate.backOffPolicy.backOffPeriod"));
+		assertEquals(1234L, TestUtils.getPropertyValue(a4, "retryTemplate.backOffPolicy.backOffPeriod"));
 
-		assertEquals(Long.valueOf(100), TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.initialInterval", Long.class));
-		assertEquals(Double.valueOf(2.0), TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.multiplier", Double.class));
-		assertEquals(Long.valueOf(30000), TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.maxInterval", Long.class));
-		assertEquals(Long.valueOf(1000), TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.initialInterval", Long.class));
-		assertEquals(Double.valueOf(3.0), TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.multiplier", Double.class));
-		assertEquals(Long.valueOf(10000), TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.maxInterval", Long.class));
+		assertEquals(100L, TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.initialInterval"));
+		assertEquals(2.0, TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.multiplier"));
+		assertEquals(30000L, TestUtils.getPropertyValue(a5, "retryTemplate.backOffPolicy.maxInterval"));
+		assertEquals(1000L, TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.initialInterval"));
+		assertEquals(3.0, TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.multiplier"));
+		assertEquals(10000L, TestUtils.getPropertyValue(a6, "retryTemplate.backOffPolicy.maxInterval"));
 
 		assertNull(TestUtils.getPropertyValue(a1, "recoveryCallback"));
 		assertNotNull(TestUtils.getPropertyValue(a7, "recoveryCallback"));
-		assertSame(foo, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.defaultDestination"));
-		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"));
+		assertSame(this.foo, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.defaultDestination"));
+		assertEquals(4567L, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"));
 
-		assertSame(a1, TestUtils.getPropertyValue(handler1, "adviceChain", List.class).get(0));
-		assertEquals(Integer.valueOf(9), TestUtils.getPropertyValue(TestUtils.getPropertyValue(handler2, "adviceChain", List.class).get(0),
-				"retryTemplate.retryPolicy.maxAttempts", Integer.class));
+		assertSame(this.a1, TestUtils.getPropertyValue(this.handler1, "adviceChain", List.class).get(0));
+		assertEquals(9, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(this.handler2, "adviceChain", List.class).get(0),
+							"retryTemplate.retryPolicy.maxAttempts"));
+		assertEquals(3,	TestUtils.getPropertyValue(
+							TestUtils.getPropertyValue(this.defaultRetryHandler, "adviceChain", List.class).get(0),
+							"retryTemplate.retryPolicy.maxAttempts"));
 	}
 
 }
