@@ -18,9 +18,14 @@ package org.springframework.integration.endpoint;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,23 +38,27 @@ import java.util.concurrent.TimeUnit;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.aop.CompoundTriggerAdvice;
 import org.springframework.integration.aop.SimpleActiveIdleMessageSourceAdvice;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.PollSkipStrategy;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Gary Russell
@@ -221,11 +230,11 @@ public class PollerAdviceTests {
 				return m;
 			}
 		});
-		QueueChannel channel = new QueueChannel();
 		SimpleActiveIdleMessageSourceAdvice toggling = new SimpleActiveIdleMessageSourceAdvice(trigger);
 		toggling.setActivePollPeriod(11);
 		toggling.setIdlePollPeriod(12);
 		adapter.setAdviceChain(Collections.singletonList(toggling));
+		adapter.setTrigger(trigger);
 		configure(adapter);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -234,7 +243,42 @@ public class PollerAdviceTests {
 		while (triggerPeriods.size() > 5) {
 			triggerPeriods.removeLast();
 		}
-		assertThat(triggerPeriods, Matchers.contains(10L, 12L, 11L, 12L, 11L));
+		assertThat(triggerPeriods, contains(10L, 12L, 11L, 12L, 11L));
+	}
+
+	@Test
+	public void testCompoundTriggerAdvice() throws Exception {
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		final CountDownLatch latch = new CountDownLatch(5);
+		final LinkedList<Object> overridePresent = new LinkedList<Object>();
+		final CompoundTrigger compoundTrigger = new CompoundTrigger(new PeriodicTrigger(10));
+		Trigger override = spy(new PeriodicTrigger(5));
+		final CompoundTriggerAdvice advice = new CompoundTriggerAdvice(compoundTrigger, override);
+		adapter.setSource(new MessageSource<Object>() {
+
+			@Override
+			public Message<Object> receive() {
+				overridePresent.add(TestUtils.getPropertyValue(compoundTrigger, "override"));
+				Message<Object> m = null;
+				if (latch.getCount() % 2 == 0) {
+					m = new GenericMessage<Object>("foo");
+				}
+				latch.countDown();
+				return m;
+			}
+		});
+		adapter.setAdviceChain(Collections.singletonList(advice));
+		adapter.setTrigger(compoundTrigger);
+		configure(adapter);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		adapter.stop();
+		while (overridePresent.size() > 5) {
+			overridePresent.removeLast();
+		}
+		assertThat(overridePresent, contains(null, override, null, override, null));
+		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
 	}
 
 	private void configure(SourcePollingChannelAdapter adapter) {
@@ -243,6 +287,31 @@ public class PollerAdviceTests {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(scheduler);
+	}
+
+	@Test
+	public void testCompoundAdviceXML() throws Exception {
+		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext("compound-trigger-context.xml",
+				getClass());
+		SourcePollingChannelAdapter adapter = ctx.getBean(SourcePollingChannelAdapter.class);
+		Source source = ctx.getBean(Source.class);
+		adapter.start();
+		assertTrue(source.latch.await(10, TimeUnit.SECONDS));
+		assertNotNull(TestUtils.getPropertyValue(adapter, "trigger.override"));
+		adapter.stop();
+		ctx.close();
+	}
+
+	public static class Source implements MessageSource<Object> {
+
+		private final CountDownLatch latch = new CountDownLatch(5);
+
+		@Override
+		public Message<Object> receive() {
+			latch.countDown();
+			return null;
+		}
+
 	}
 
 }

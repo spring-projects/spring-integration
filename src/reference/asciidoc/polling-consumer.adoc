@@ -84,6 +84,16 @@ Message<?> afterReceive(Message<?> result, MessageSource<?> source)
 This method is called after the `receive()` method; again, you can reconfigure the source, or take any action perhaps depending on the result (which can be `null` if there was no message created by the source).
 You can even return a different message!
 
+.Advice Chain Ordering
+[IMPORTANT]
+=====
+It is important to understand how the advice chain is processed during initialization.
+`Advice` objects that do not extend `AbstractMessageSourceAdvice` are applied to the whole poll process and are all invoked first, in order, before any `AbstractMessageSourceAdvice`; then `AbstractMessageSourceAdvice` objects are invoked in order around the `MessageSource` `receive()` method.
+If you have, say `Advice` objects `a, b, c, d`, where `b` and `d` are `AbstractMessageSourceAdvice`, they will be applied in the order `a, c, b, d`.
+Also, if a `MessageSource` is already a `Proxy`, the `AbstractMessageSourceAdvice` will be invoked after any existing `Advice` objects.
+If you wish to change the order, you should wire up the proxy yourself.
+=====
+
 ===== SimpleActiveIdleMessageSourceAdvice
 
 This advice is a simple implementation of `AbstractMessageSourceAdvice`, when used in conjunction with a `DynamicPeriodicTrigger`, it adjuststhe polling frequency depending on whether or not the previous poll resulted in a message or not.
@@ -95,12 +105,52 @@ This will only work if the advice is called on the poller thread.
 It will *not* work if the poller has a `task-executor`.
 To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
 
-.Advice Chain Ordering
-[IMPORTANT]
-=====
-It is important to understand how the advice chain is processed during initialization.
-`Advice` objects that do not extend `AbstractMessageSourceAdvice` are applied to the whole poll process and are all invoked first, in order, before any `AbstractMessageSourceAdvice`; then `AbstractMessageSourceAdvice` objects are invoked in order around the `MessageSource` `receive()` method.
-If you have, say `Advice` objects `a, b, c, d`, where `b` and `d` are `AbstractMessageSourceAdvice`, they will be applied in the order `a, c, b, d`.
-Also, if a `MessageSource` is already a `Proxy`, the `AbstractMessageSourceAdvice` will be invoked after any existing `Advice` objects.
-If you wish to change the order, you should wire up the proxy yourself.
-=====
+===== CompoundTriggerAdvice
+
+This advice allows the selection of one of two triggers based on whether a poll returns a message or not.
+Consider a poller that uses a `CronTrigger`; `CronTrigger` s are immutable so cannot be altered once constructed.
+Consider a use case where we want to use a cron expression to trigger a poll once each hour but, if no message is
+received, poll once per minute and, when a message is retrieved, revert to using the cron expression.
+
+The advice (and poller) use a `CompoundTrigger` for this purpose.
+The trigger's `primary` trigger can be a `CronTrigger`.
+When the advice detects that no message is received, it adds the secondary trigger to the `CompoundTrigger`.
+When the `CompoundTrigger` 's `nextExecutionTime` method is invoked, it will delegate to the secondary trigger, if
+present; otherwise the primary trigger.
+
+The poller must also have a reference to the same `CompoundTrigger`.
+
+The following shows the configuration for the hourly cron expression with fall-back to every minute...
+
+[source, xml]
+----
+<int:inbound-channel-adapter channel="nullChannel" auto-startup="false">
+    <bean class="org.springframework.integration.endpoint.PollerAdviceTests.Source" />
+    <int:poller trigger="compoundTrigger">
+        <int:advice-chain>
+            <bean class="org.springframework.integration.aop.CompoundTriggerAdvice">
+                <constructor-arg ref="compoundTrigger"/>
+                <constructor-arg ref="secondary"/>
+            </bean>
+        </int:advice-chain>
+    </int:poller>
+</int:inbound-channel-adapter>
+
+<bean id="compoundTrigger" class="org.springframework.integration.util.CompoundTrigger">
+    <constructor-arg ref="primary" />
+</bean>
+
+<bean id="primary" class="org.springframework.scheduling.support.CronTrigger">
+    <constructor-arg value="0 0 * * * *" /> <!-- top of every hour -->
+</bean>
+
+<bean id="secondary" class="org.springframework.scheduling.support.PeriodicTrigger">
+    <constructor-arg value="60000" />
+</bean>
+----
+
+.Important: Async Handoff
+IMPORTANT: This advice modifies the trigger based on the `receive()` result.
+This will only work if the advice is called on the poller thread.
+It will *not* work if the poller has a `task-executor`.
+To use this advice where you wish to use async operations after the result of a poll, do the async handoff later, perhaps by using an `ExecutorChannel`.
