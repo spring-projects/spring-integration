@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Session;
@@ -39,6 +38,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -59,12 +59,18 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class PollableJmsChannelTests {
 
 	private ActiveMQConnectionFactory connectionFactory;
 
 	private Destination queue;
+
+	@BeforeClass
+	public static void setup() {
+		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
+	}
 
 	@Test
 	public void queueReference() throws Exception {
@@ -85,10 +91,10 @@ public class PollableJmsChannelTests {
 		assertTrue(sent1);
 		boolean sent2 = channel.send(new GenericMessage<String>("bar"));
 		assertTrue(sent2);
-		Message<?> result1 = channel.receive(1000);
+		Message<?> result1 = channel.receive(10000);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		Message<?> result2 = channel.receive(1000);
+		Message<?> result2 = channel.receive(10000);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
 	}
@@ -115,7 +121,7 @@ public class PollableJmsChannelTests {
 		Message<?> result1 = channel.receive(10000);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		Message<?> result2 = channel.receive(1000);
+		Message<?> result2 = channel.receive(10000);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
 	}
@@ -200,11 +206,14 @@ public class PollableJmsChannelTests {
 		final AtomicReference<javax.jms.Message> message = new AtomicReference<javax.jms.Message>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
 			@Override
 			public void run() {
 				message.set(receiver.receive(queue));
 				latch1.countDown();
-			}});
+			}
+
+		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		assertNotNull(message.get());
 		assertEquals(5, message.get().getJMSPriority());
@@ -215,11 +224,14 @@ public class PollableJmsChannelTests {
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
 		assertTrue(sent2);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
 			@Override
 			public void run() {
 				message.set(receiver.receive(queue));
 				latch2.countDown();
-			}});
+			}
+
+		});
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(message.get());
 		assertEquals(6, message.get().getJMSPriority());
@@ -260,9 +272,10 @@ public class PollableJmsChannelTests {
 				message.setStringProperty("baz", "qux");
 				return message;
 			}
+
 		});
 
-		Message<?> result2 = channel.receive(1000);
+		Message<?> result2 = channel.receive(10000);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
 	}
@@ -296,4 +309,5 @@ public class PollableJmsChannelTests {
 		}
 
 	}
+
 }
