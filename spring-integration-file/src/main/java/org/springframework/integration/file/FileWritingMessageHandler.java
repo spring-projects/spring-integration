@@ -305,8 +305,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						(StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists()));
 
 		if (!ignore) {
-
 			try {
+				if (!resultFile.exists()) {
+					tempFile.getParentFile().mkdirs();
+					resultFile.getParentFile().mkdirs();
+				}
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
 				}
