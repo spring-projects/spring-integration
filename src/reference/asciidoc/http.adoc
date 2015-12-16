@@ -8,12 +8,14 @@ The HTTP support allows for the execution of HTTP requests and the processing of
 Because interaction over HTTP is always synchronous, even if all that is returned is a 200 status code, the HTTP support consists of two gateway implementations: `HttpInboundEndpoint` and `HttpRequestExecutingMessageHandler`.
 
 [[http-inbound]]
-=== Http Inbound Gateway
+=== Http Inbound Components
 
 To receive messages over HTTP, you need to use an _HTTP Inbound
 		Channel Adapter_ or _Gateway_.
 To support the _HTTP Inbound Adapters_, they need to be deployed within a servlet container such as http://tomcat.apache.org/[Apache Tomcat] or http://www.eclipse.org/jetty/[Jetty].
-The easiest way to do this is to use Spring's http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[HttpRequestHandlerServlet], by providing the following servlet definition in the _web.xml_ file:
+The easiest way to do this is to use Spring's
+http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[HttpRequestHandlerServlet],
+ by providing the following servlet definition in the _web.xml_ file:
 
 [source,xml]
 ----
@@ -24,14 +26,17 @@ The easiest way to do this is to use Spring's http://static.springsource.org/spr
 ----
 
 Notice that the servlet name matches the bean name.
-For more information on using the `HttpRequestHandlerServlet`, see chapter "http://static.springsource.org/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring]", which is part of the Spring Framework Reference documentation.
+For more information on using the `HttpRequestHandlerServlet`, see chapter
+http://docs.spring.io/spring/docs/current/spring-framework-reference/html/remoting.html[Remoting and web services using Spring],
+which is part of the Spring Framework Reference documentation.
 
 If you are running within a Spring MVC application, then the aforementioned explicit servlet definition is not necessary.
 In that case, the bean name for your gateway can be matched against the URL path just like a Spring MVC Controller bean.
-For more information, please see the chapter "http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html[Web MVC framework]", which is part of the Spring Framework Reference documentation.
+For more information, please see the chapter
+http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html[Web MVC framework], which is part of the Spring Framework Reference documentation.
 
-TIP: For a sample application and the corresponding configuration, please see the https://github.com/SpringSource/spring-integration-samples[Spring Integration Samples] repository.
-It contains the https://github.com/SpringSource/spring-integration-samples/tree/master/basic/http[Http Sample] application demonstrating Spring Integration's HTTP support.
+TIP: For a sample application and the corresponding configuration, please see the https://github.com/spring-projects/spring-integration-samples[Spring Integration Samples] repository.
+It contains the https://github.com/spring-projects/spring-integration-samples/tree/master/basic/http[Http Sample] application demonstrating Spring Integration's HTTP support.
 
 Below is an example bean definition for a simple HTTP inbound endpoint.
 
@@ -56,7 +61,8 @@ If the request has been wrapped as a _MultipartHttpServletRequest_, when using t
 NOTE: The HTTP inbound Endpoint will locate a MultipartResolver in the context if one exists with the bean name "multipartResolver" (the same name expected by Spring's DispatcherServlet).
 If it does in fact locate that bean, then the support for MultipartFiles will be enabled on the inbound request mapper.
 Otherwise, it will fail when trying to map a multipart-file request to a Spring Integration Message.
-For more on Spring's support for MultipartResolvers, refer to the http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
+For more on Spring's support for MultipartResolvers, refer to the
+http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
 
 [NOTE]
 ====
@@ -113,7 +119,7 @@ The reply message will be available in the Model map.
 The key that is used for that map entry by default is 'reply', but this can be overridden by setting the 'replyKey' property on the endpoint's configuration.
 
 [[http-outbound]]
-=== Http Outbound Gateway
+=== Http Outbound Components
 
 To configure the `HttpRequestExecutingMessageHandler` write a bean definition like this:
 
@@ -158,7 +164,7 @@ This enables simple stateful interactions, such as...
 If _transfer-cookies_ is false, any _Set-Cookie_ header received will remain as _Set-Cookie_ in the reply message, and will be dropped on subsequent sends.
 
 [NOTE]
-.Note: Empty Repsonse Bodies
+.Note: Empty Response Bodies
 =====
 HTTP is a request/response protocol.
 However the response may not have a body, just headers.
@@ -610,10 +616,11 @@ For outbound endpoints, the second thing to consider is timing while interacting
 .How timeout settings apply to an HTTP Outbound Gateway
 image::images/http-outbound-gateway.png[align="center"]
 
-You may want to configure the HTTP related timeout behavior, when making active HTTP requests using the _HTTP Oubound Gateway_ or the _HTTP Outbound Channel Adapter_.
-In those instances, these two components use Spring'shttp://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[RestTemplate] support to execute HTTP requests.
+You may want to configure the HTTP related timeout behavior, when making active HTTP requests using the _HTTP Outbound Gateway_ or the _HTTP Outbound Channel Adapter_.
+In those instances, these two components use Spring's
+http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html[RestTemplate] support to execute HTTP requests.
 
-In order to configure timeouts for the _HTTP Oubound Gateway_ and the _HTTP Outbound Channel Adapter_, you can either reference a `RestTemplate` bean directly, using the _rest-template_ attribute, or you can provide a reference to a http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[ClientHttpRequestFactory] bean using the _request-factory_ attribute.
+In order to configure timeouts for the _HTTP Outbound Gateway_ and the _HTTP Outbound Channel Adapter_, you can either reference a `RestTemplate` bean directly, using the _rest-template_ attribute, or you can provide a reference to a http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestFactory.html[ClientHttpRequestFactory] bean using the _request-factory_ attribute.
 Spring provides the following implementations of the `ClientHttpRequestFactory` interface:
 
 http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/SimpleClientHttpRequestFactory.html[SimpleClientHttpRequestFactory] - Uses standard J2SE facilities for making HTTP Requests
@@ -665,7 +672,7 @@ _HTTP Outbound Gateway_
 
 For the _HTTP Outbound Gateway_, the XML Schema defines only the _reply-timeout_.
 The _reply-timeout_ maps to the _sendTimeout_ property of the _org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler_ class.
-More precisely, the property is set on the extended `AbstractReplyProducingMessageHandler` class, which ultimatelly sets the property on the _MessagingTemplate_.
+More precisely, the property is set on the extended `AbstractReplyProducingMessageHandler` class, which ultimately sets the property on the `MessagingTemplate`.
 
 The value of the _sendTimeout_ property defaults to "-1" and will be applied to the connected `MessageChannel`.
 This means, that depending on the implementation, the Message Channel's_send_ method may block indefinitely.
