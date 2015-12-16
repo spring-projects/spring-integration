@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.springframework.integration.file;
 import java.io.File;
 
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -40,42 +38,38 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
-	private static final String DEFAULT_EXPRESSION = "headers['" + FileHeaders.FILENAME + "']";
-
-	private final static ExpressionParser parser = new SpelExpressionParser();
-
-	private volatile Expression expression = parser.parseExpression(DEFAULT_EXPRESSION);
+	private volatile Expression expression =
+			EXPRESSION_PARSER.parseExpression("headers['" + FileHeaders.FILENAME + "']");
 
 	/**
 	 * Specify an expression to be evaluated against the Message
 	 * in order to generate a file name.
-	 *
 	 * @param expression The expression.
 	 */
 	public void setExpression(String expression) {
 		Assert.hasText(expression, "expression must not be empty");
-		this.expression = parser.parseExpression(expression);
+		this.expression = EXPRESSION_PARSER.parseExpression(expression);
 	}
 
 	/**
 	 * Specify a custom header name to check for the file name.
 	 * The default is defined by {@link FileHeaders#FILENAME}.
-	 *
 	 * @param headerName The header name.
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
-		this.expression = parser.parseExpression("headers['" + headerName + "']");
+		this.expression = EXPRESSION_PARSER.parseExpression("headers['" + headerName + "']");
 	}
 
 	@Override
 	public String generateFileName(Message<?> message) {
-		Object filenameProperty = this.evaluateExpression(this.expression, message);
-		if (filenameProperty instanceof String && StringUtils.hasText((String) filenameProperty)) {
-			return (String) filenameProperty;
+		Object filename = this.evaluateExpression(this.expression, message);
+		if (filename instanceof String && StringUtils.hasText((String) filename)) {
+			return (String) filename;
 		}
 		if (message.getPayload() instanceof File) {
 			return ((File) message.getPayload()).getName();
