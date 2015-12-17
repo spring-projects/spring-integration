@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,14 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
+ * @author Artem Bilan
  *
  * @see org.jivesoftware.smack.XMPPConnection
  * @since 2.0
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle{
 
-	private final ConnectionConfiguration connectionConfiguration;
+	private ConnectionConfiguration connectionConfiguration;
 
 	private volatile String resource = null; // server will generate resource if not provided
 
@@ -62,12 +63,28 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private volatile boolean running;
 
+	public XmppConnectionFactoryBean() {
+	}
 
+	/**
+	 * @param connectionConfiguration the {@link ConnectionConfiguration} to use.
+	 * @deprecated since {@literal 4.2.5} in favor of {@link #setConnectionConfiguration(ConnectionConfiguration)}
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
+	 */
+	@Deprecated
 	public XmppConnectionFactoryBean(ConnectionConfiguration connectionConfiguration) {
 		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
 		this.connectionConfiguration = connectionConfiguration;
 	}
 
+	/**
+	 * @param connectionConfiguration the {@link ConnectionConfiguration} to use.
+	 * @since 4.2.5
+	 */
+	public void setConnectionConfiguration(ConnectionConfiguration connectionConfiguration) {
+		this.connectionConfiguration = connectionConfiguration;
+	}
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;

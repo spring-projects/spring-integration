@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jpa.config.xml;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -24,7 +27,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * The Abstract Parser for the JPA Outbound Gateways.
@@ -42,14 +44,13 @@ public abstract class AbstractJpaOutboundGatewayParser extends AbstractConsumerE
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
-
-		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
+		final BeanDefinitionBuilder jpaOutboundGatewayBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "requires-reply");
 
-		final String replyChannel = gatewayElement.getAttribute("reply-channel");
+		String replyChannel = gatewayElement.getAttribute("reply-channel");
 
 		if (StringUtils.hasText(replyChannel)) {
 			jpaOutboundGatewayBuilder.addPropertyReference("outputChannel", replyChannel);
@@ -58,7 +59,8 @@ public abstract class AbstractJpaOutboundGatewayParser extends AbstractConsumerE
 		final Element transactionalElement = DomUtils.getChildElementByTagName(gatewayElement, "transactional");
 
 		if (transactionalElement != null) {
-			BeanDefinition txAdviceDefinition = IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
+			BeanDefinition txAdviceDefinition =
+					IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
 			jpaOutboundGatewayBuilder.addPropertyValue("txAdviceChain", adviceChain);

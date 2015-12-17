@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -266,15 +266,16 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Get a text value from a named attribute if it exists, otherwise check for a nested element of the same name. If
-	 * both are specified it is an error, but if neither is specified, just returns null.
+	 * Get a text value from a named attribute if it exists, otherwise check for a nested element of the same name.
+	 * If both are specified it is an error, but if neither is specified, just returns null.
 	 *
 	 * @param element a DOM node
 	 * @param name the name of the property (attribute or child element)
 	 * @param parserContext the current context
-	 * @return the text from the attribite or element or null
+	 * @return the text from the attribute or element or null
 	 */
-	public static String getTextFromAttributeOrNestedElement(Element element, String name, ParserContext parserContext) {
+	public static String getTextFromAttributeOrNestedElement(Element element, String name,
+	                                                         ParserContext parserContext) {
 		String attr = element.getAttribute(name);
 		Element childElement = DomUtils.getChildElementByTagName(element, name);
 		if (StringUtils.hasText(attr) && childElement != null) {
@@ -305,7 +306,8 @@ public abstract class IntegrationNamespaceUtils {
 			parserContext.getReaderContext().error(
 				"Ambiguous definition. Inner bean " + (innerComponentDefinition.getBeanDefinition().getBeanClassName())
 						+ " declaration and \"ref\" " + ref + " are not allowed together on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".", parserContext.extractSource(element));
+					IntegrationNamespaceUtils.createElementDescription(element) + ".",
+					parserContext.extractSource(element));
 		}
 		return innerComponentDefinition;
 	}
@@ -616,13 +618,14 @@ public abstract class IntegrationNamespaceUtils {
 		return adapter;
 	}
 
-	private static BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName) {
+	private static BeanMetadataElement createAdapter(BeanMetadataElement ref, String method,
+	                                                 String unqualifiedClassName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
 						+ "FactoryBean");
-		builder.addConstructorArgValue(ref);
+		builder.addPropertyValue("target", ref);
 		if (StringUtils.hasText(method)) {
-			builder.addConstructorArgValue(method);
+			builder.addPropertyValue("methodName", method);
 		}
 		return builder.getBeanDefinition();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,17 +33,18 @@ import org.springframework.integration.zookeeper.leader.LeaderInitiator;
  * Creates a {@link LeaderInitiator}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
 
-	private final CuratorFramework client;
+	private CuratorFramework client;
 
-	private final Candidate candidate;
+	private Candidate candidate;
 
-	private final String path;
+	private String path;
 
 	private LeaderInitiator leaderInitiator;
 
@@ -53,16 +54,38 @@ public class LeaderInitiatorFactoryBean
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	public LeaderInitiatorFactoryBean() {
+	}
+
 	/**
 	 * Construct the instance.
 	 * @param client the {@link CuratorFramework}.
 	 * @param path the path in zookeeper.
 	 * @param role the role of the leader.
+	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
 	 */
+	@Deprecated
 	public LeaderInitiatorFactoryBean(CuratorFramework client, String path, String role) {
 		this.client = client;
-		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
 		this.path = path;
+		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
+	}
+
+	public LeaderInitiatorFactoryBean setClient(CuratorFramework client) {
+		this.client = client;
+		return this;
+	}
+
+	public LeaderInitiatorFactoryBean setPath(String path) {
+		this.path = path;
+		return this;
+	}
+
+	public LeaderInitiatorFactoryBean setRole(String role) {
+		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
+		return this;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -85,7 +86,10 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 
 		@Bean
 		public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
-			return new LeaderInitiatorFactoryBean(client, "/siTest/", "foo");
+			return new LeaderInitiatorFactoryBean()
+					.setClient(client)
+					.setPath("/siTest/")
+					.setRole("foo");
 		}
 
 		@Bean

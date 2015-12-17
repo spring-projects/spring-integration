@@ -1,5 +1,5 @@
 /*
-   * Copyright 2002-2012 the original author or authors.
+   * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jpa.config.xml;
 
 import org.w3c.dom.Element;
@@ -33,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -52,7 +54,8 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 
-		final BeanDefinitionBuilder jpaOutboundChannelAdapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
+		final BeanDefinitionBuilder jpaOutboundChannelAdapterBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "persist-mode");
@@ -60,21 +63,25 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush-size");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "clear-on-flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element,
+				"use-payload-as-parameter-source");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String channelAdapterId = this.resolveId(element, jpaOutboundChannelAdapterBuilder.getRawBeanDefinition(), parserContext);
+		final String channelAdapterId = resolveId(element, jpaOutboundChannelAdapterBuilder.getRawBeanDefinition(),
+				parserContext);
 		final String jpaExecutorBeanName = channelAdapterId + ".jpaExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(
+				new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		jpaOutboundChannelAdapterBuilder.addConstructorArgReference(jpaExecutorBeanName);
-		jpaOutboundChannelAdapterBuilder.addPropertyValue("producesReply", Boolean.FALSE);
+		jpaOutboundChannelAdapterBuilder.addPropertyReference("jpaExecutor", jpaExecutorBeanName)
+				.addPropertyValue("producesReply", Boolean.FALSE);
 
 		final Element transactionalElement = DomUtils.getChildElementByTagName(element, "transactional");
 
 		if(transactionalElement != null) {
-			BeanDefinition txAdviceDefinition = IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
+			BeanDefinition txAdviceDefinition =
+					IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
 			jpaOutboundChannelAdapterBuilder.addPropertyValue("txAdviceChain", adviceChain);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.jpa.support.OutboundGatewayType;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -37,10 +38,10 @@ public class UpdatingJpaOutboundGatewayParser extends AbstractJpaOutboundGateway
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
+		BeanDefinitionBuilder jpaOutboundGatewayBuilder = super.parseHandler(gatewayElement, parserContext);
 
-		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = super.parseHandler(gatewayElement, parserContext);
-
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
+		BeanDefinitionBuilder jpaExecutorBuilder =
+				JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "persist-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "flush");
@@ -48,15 +49,15 @@ public class UpdatingJpaOutboundGatewayParser extends AbstractJpaOutboundGateway
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "clear-on-flush");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String gatewayId = this.resolveId(gatewayElement, jpaOutboundGatewayBuilder.getRawBeanDefinition(), parserContext);
+		final String gatewayId = resolveId(gatewayElement, jpaOutboundGatewayBuilder.getRawBeanDefinition(),
+				parserContext);
 		final String jpaExecutorBeanName = gatewayId + ".jpaExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(
+				new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
-		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.UPDATING);
-		return jpaOutboundGatewayBuilder;
-
+		return  jpaOutboundGatewayBuilder.addPropertyReference("jpaExecutor", jpaExecutorBeanName)
+				.addPropertyValue("gatewayType", OutboundGatewayType.UPDATING);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,20 @@ import static org.mockito.Mockito.mock;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.xmpp.config.XmppConnectionFactoryBean;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class XmppConnectionFactoryBeanTests {
 
 	@Test
 	public void testXmppConnectionFactoryBean() throws Exception {
-		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean(mock(ConnectionConfiguration.class));
+		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
+		xmppConnectionFactoryBean.setConnectionConfiguration(mock(ConnectionConfiguration.class));
 		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
 		assertNotNull(connection);
 	}

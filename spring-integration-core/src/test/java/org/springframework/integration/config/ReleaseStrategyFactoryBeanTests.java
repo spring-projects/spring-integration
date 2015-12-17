@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package org.springframework.integration.config;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 
@@ -32,34 +34,49 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0.2
- *
  */
 public class ReleaseStrategyFactoryBeanTests {
 
-	public void testRefWithMethod() throws Exception {
+	@Test
+	public void testRefWithNoMethod() throws Exception {
 		Foo foo = new Foo();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(foo, "doRelease");
-		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Foo.class), is(foo));
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(foo);
+		factory.setMethodName("doRelease");
+		try {
+			factory.afterPropertiesSet();
+			fail("IllegalArgumentException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(), containsString("Target object of type " +
+							"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
+					"has no eligible methods for handling Messages."));
+		}
 	}
 
 	@Test
 	public void testRefWithMethodWithDifferentAnnotatedMethod() throws Exception {
 		Bar bar = new Bar();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(bar, "doRelease2");
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(bar);
+		factory.setMethodName("doRelease2");
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
 		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class), is(bar));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression", String.class),
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression"),
 				equalTo("#target.doRelease2(messages)"));
 	}
 
 	@Test
 	public void testRefWithNoMethodWithAnnotation() throws Exception {
 		Bar bar = new Bar();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(bar);
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(bar);
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
 		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class), is(bar));
@@ -67,7 +84,8 @@ public class ReleaseStrategyFactoryBeanTests {
 
 	@Test
 	public void testNoRefNoMethod() throws Exception {
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(null);
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(SequenceSizeReleaseStrategy.class));
 	}
@@ -75,7 +93,9 @@ public class ReleaseStrategyFactoryBeanTests {
 	@Test
 	public void testRefWithNoMethodNoAnnotation() throws Exception {
 		Foo foo = new Foo();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(foo);
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(foo);
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(SequenceSizeReleaseStrategy.class));
 	}
@@ -83,19 +103,24 @@ public class ReleaseStrategyFactoryBeanTests {
 	@Test
 	public void testRefThatImplements() throws Exception {
 		Baz baz = new Baz();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(baz);
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(baz);
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat((Baz) delegate, is(baz));
+		assertThat(delegate, is(baz));
 	}
 
 	@Test
 	public void testRefThatImplementsWithDifferentMethod() throws Exception {
 		Baz baz = new Baz();
-		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean(baz, "doRelease2");
+		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
+		factory.setTarget(baz);
+		factory.setMethodName("doRelease2");
+		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
 		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Baz.class), is(baz));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression", String.class),
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression"),
 				equalTo("#target.doRelease2(messages)"));
 	}
 
