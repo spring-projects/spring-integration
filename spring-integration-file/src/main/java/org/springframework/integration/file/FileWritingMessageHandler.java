@@ -250,8 +250,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	protected void doInit() {
-
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
 			final File directory = new File(this.destinationDirectoryExpression.getValue(
@@ -259,27 +258,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
+		Assert.state(!(this.temporaryFileSuffixSet && FileExistsMode.APPEND.equals(this.fileExistsMode)),
+				"'temporaryFileSuffix' can not be set when appending to an existing file");
+
 		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(this.getBeanFactory());
+			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(getBeanFactory());
 		}
 	}
 
 	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
-
 		if (!destinationDirectory.exists() && autoCreateDirectory) {
 			Assert.isTrue(destinationDirectory.mkdirs(),
 					"Destination directory [" + destinationDirectory + "] could not be created.");
 		}
-
 		Assert.isTrue(destinationDirectory.exists(),
 				"Destination directory [" + destinationDirectory + "] does not exist.");
 		Assert.isTrue(destinationDirectory.isDirectory(),
 				"Destination path [" + destinationDirectory + "] does not point to a directory.");
 		Assert.isTrue(destinationDirectory.canWrite(),
 				"Destination directory [" + destinationDirectory + "] is not writable.");
-		Assert.state(!(this.temporaryFileSuffixSet
-						&& FileExistsMode.APPEND.equals(this.fileExistsMode)),
-				"'temporaryFileSuffix' can not be set when appending to an existing file");
 	}
 
 	@Override
@@ -535,8 +532,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				fileToWriteTo = tempFile;
 				break;
 			default:
-				throw new IllegalStateException("Unsupported FileExistsMode "
-						+ this.fileExistsMode);
+				throw new IllegalStateException("Unsupported FileExistsMode " + this.fileExistsMode);
 		}
 		return fileToWriteTo;
 	}
