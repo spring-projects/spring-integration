@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jpa.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.util.CollectionUtils;
@@ -34,6 +33,7 @@ import org.springframework.util.xml.DomUtils;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  */
 public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatewayParser {
@@ -43,7 +43,8 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 
 		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = super.parseHandler(gatewayElement, parserContext);
 
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
+		final BeanDefinitionBuilder jpaExecutorBuilder =
+				JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
 		BeanDefinition firstResultExpression = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("first-result", "first-result-expression",
@@ -84,27 +85,26 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 								+ "not allowed with an 'id-expression' attribute.",
 						gatewayElement);
 			}
-			AbstractBeanDefinition idExpressionDef = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
-					.addConstructorArgValue(idExpression)
-					.getBeanDefinition();
+			BeanDefinition idExpressionDef =
+					IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("id-expression", gatewayElement);
 			jpaExecutorBuilder.addPropertyValue("idExpression", idExpressionDef);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "flush-after-delete", "flush");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(
+				jpaExecutorBuilder, gatewayElement, "flush-after-delete", "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "expect-single-result");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String gatewayId = this.resolveId(gatewayElement, jpaOutboundGatewayBuilder.getRawBeanDefinition(), parserContext);
+		final String gatewayId = resolveId(gatewayElement, jpaOutboundGatewayBuilder.getRawBeanDefinition(), parserContext);
 		final String jpaExecutorBeanName = gatewayId + ".jpaExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(
+				new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
-		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.RETRIEVING);
-
-		return jpaOutboundGatewayBuilder;
+		return jpaOutboundGatewayBuilder.addPropertyReference("jpaExecutor", jpaExecutorBeanName)
+				.addPropertyValue("gatewayType", OutboundGatewayType.RETRIEVING);
 	}
 
 }
