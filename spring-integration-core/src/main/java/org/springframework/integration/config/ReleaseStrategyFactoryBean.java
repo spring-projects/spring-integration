@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config;
 
 import java.lang.reflect.Method;
@@ -21,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
@@ -28,55 +30,83 @@ import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Convenience factory for XML configuration of a {@link ReleaseStrategy}. Encapsulates the knowledge of the default
- * strategy and search algorithms for POJO and annotated methods.
+ * Convenience factory for XML configuration of a {@link ReleaseStrategy}.
+ * Encapsulates the knowledge of the default strategy and search algorithms for POJO and annotated methods.
  *
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
-public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy> {
+public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(ReleaseStrategyFactoryBean.class);
 
-	private ReleaseStrategy delegate = new SequenceSizeReleaseStrategy();
+	private Object target;
 
-	/**
-	 * Create a factory and set up the delegate which clients of the factory will see as its product.
-	 *
-	 * @param target the target object (null if default strategy is acceptable)
-	 */
-	public ReleaseStrategyFactoryBean(Object target) {
-		this(target, null);
+	private String methodName;
+
+	private ReleaseStrategy strategy = new SequenceSizeReleaseStrategy();
+
+	public ReleaseStrategyFactoryBean() {
 	}
 
 	/**
-	 * Create a factory and set up the delegate which clients of the factory will see as its product.
-	 *
+	 * Create a factory and set up the strategy which clients of the factory will see as its product.
+	 * @param target the target object (null if default strategy is acceptable)
+	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
+	 */
+	@Deprecated
+	public ReleaseStrategyFactoryBean(Object target) {
+		this.target = target;
+	}
+
+	/**
+	 * Create a factory and set up the strategy which clients of the factory will see as its product.
 	 * @param target the target object (null if default strategy is acceptable)
 	 * @param methodName the method name to invoke in the target (null if it can be inferred)
+	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
 	 */
+	@Deprecated
 	public ReleaseStrategyFactoryBean(Object target, String methodName) {
-		if (target instanceof ReleaseStrategy && !StringUtils.hasText(methodName)) {
-			this.delegate = (ReleaseStrategy) target;
+		this.target = target;
+		this.methodName = methodName;
+	}
+
+	public void setTarget(Object target) {
+		this.target = target;
+	}
+
+	public void setMethodName(String methodName) {
+		this.methodName = methodName;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.target instanceof ReleaseStrategy && !StringUtils.hasText(this.methodName)) {
+			this.strategy = (ReleaseStrategy) this.target;
 			return;
 		}
-		if (target != null) {
-			if (StringUtils.hasText(methodName)) {
-				this.delegate = new MethodInvokingReleaseStrategy(target, methodName);
+		if (this.target != null) {
+			if (StringUtils.hasText(this.methodName)) {
+				this.strategy = new MethodInvokingReleaseStrategy(this.target, this.methodName);
 			}
 			else {
-				Method method = MessagingAnnotationUtils.findAnnotatedMethod(target,
+				Method method = MessagingAnnotationUtils.findAnnotatedMethod(this.target,
 						org.springframework.integration.annotation.ReleaseStrategy.class);
 				if (method != null) {
-					this.delegate = new MethodInvokingReleaseStrategy(target, method);
+					this.strategy = new MethodInvokingReleaseStrategy(this.target, method);
 				}
 				else {
 					if (logger.isWarnEnabled()) {
 						logger.warn("No ReleaseStrategy annotated method found on "
-								+ target.getClass().getSimpleName()
+								+ this.target.getClass().getSimpleName()
 								+ "; falling back to SequenceSizeReleaseStrategy, target:"
-								+ target + ", methodName:" + methodName);
+								+ this.target + ", methodName:" + this.methodName);
 					}
 				}
 			}
@@ -90,7 +120,7 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy> 
 
 	@Override
 	public ReleaseStrategy getObject() throws Exception {
-		return this.delegate;
+		return this.strategy;
 	}
 
 	@Override

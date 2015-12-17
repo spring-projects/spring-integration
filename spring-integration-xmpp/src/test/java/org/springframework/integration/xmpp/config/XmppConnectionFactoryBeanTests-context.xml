@@ -13,9 +13,9 @@
 	</bean>
 
 	<bean id="xmppConnection" class="org.springframework.integration.xmpp.config.XmppConnectionFactoryBean">
-		<constructor-arg>
+		<property name="connectionConfiguration">
 			<bean factory-bean="xmppConnectionConfigurationBuilder" factory-method="build"/>
-		</constructor-arg>
+		</property>
 		<property name="autoStartup" value="false"/>
 	</bean>
 

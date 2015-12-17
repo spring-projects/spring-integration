@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.jxmpp.util.XmppStringUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -44,9 +43,9 @@ import org.springframework.util.StringUtils;
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle {
 
-	private final XMPPTCPConnectionConfiguration connectionConfiguration;
-
 	private final Object lifecycleMonitor = new Object();
+
+	private XMPPTCPConnectionConfiguration connectionConfiguration;
 
 	private volatile String resource; // server will generate resource if not provided
 
@@ -72,11 +71,24 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 
 	public XmppConnectionFactoryBean() {
-		this.connectionConfiguration = null;
 	}
 
+	/**
+	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
+	 * @deprecated since {@literal 4.2.5} in favor of {@link #setConnectionConfiguration(XMPPTCPConnectionConfiguration)}
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
+	 */
+	@Deprecated
 	public XmppConnectionFactoryBean(XMPPTCPConnectionConfiguration connectionConfiguration) {
-		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
+		this.connectionConfiguration = connectionConfiguration;
+	}
+
+	/**
+	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
+	 * @since 4.2.5
+	 */
+	public void setConnectionConfiguration(XMPPTCPConnectionConfiguration connectionConfiguration) {
 		this.connectionConfiguration = connectionConfiguration;
 	}
 
@@ -144,6 +156,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		return this.connection;
 	}
 
+	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
@@ -165,6 +178,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
+	@Override
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
@@ -174,19 +188,23 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.running;
 	}
 
+	@Override
 	public int getPhase() {
 		return this.phase;
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
@@ -194,22 +212,27 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private class LoggingConnectionListener implements ConnectionListener {
 
+		@Override
 		public void reconnectionSuccessful() {
 			logger.debug("Reconnection successful");
 		}
 
+		@Override
 		public void reconnectionFailed(Exception e) {
 			logger.debug("Reconnection failed", e);
 		}
 
+		@Override
 		public void reconnectingIn(int seconds) {
 			logger.debug("Reconnecting in " + seconds + " seconds");
 		}
 
+		@Override
 		public void connectionClosedOnError(Exception e) {
 			logger.debug("Connection closed on error", e);
 		}
 
+		@Override
 		public void connectionClosed() {
 			logger.debug("Connection closed");
 		}
