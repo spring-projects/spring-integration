@@ -153,6 +153,8 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
+	 * Adds destination configuration to constructor.
+	 *
 	 * @param element The element.
 	 * @param builder The builder.
 	 * @param parserContext The parser context.
@@ -161,15 +163,15 @@ public abstract class IpAdapterParserUtils {
 	                                                     BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String destinationExpression = element.getAttribute("destination-expression");
 		if (StringUtils.hasText(destinationExpression)) {
-			addSocketExpressionToConstructor(destinationExpression, element, builder, parserContext);
+			addDestinationExpressionToConstructor(destinationExpression, element, builder, parserContext);
 		}
 		else {
 			addHostAndPortToConstructor(element, builder, parserContext);
 		}
 	}
 
-	private static void addSocketExpressionToConstructor(String socketExpression,
-			Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
+	private static void addDestinationExpressionToConstructor(String socketExpression,
+			  Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (StringUtils.hasText(host) || StringUtils.hasText(port)) {

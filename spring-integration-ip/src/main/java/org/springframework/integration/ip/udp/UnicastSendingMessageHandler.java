@@ -137,7 +137,7 @@ public class UnicastSendingMessageHandler extends
 	 */
 	public UnicastSendingMessageHandler(Expression destinationExpression) {
 		super("", 0);
-		Assert.notNull(socketExpression, "'destinationExpression' cannot be null");
+		Assert.notNull(destinationExpression, "'destinationExpression' cannot be null");
 		this.mapper.setLengthCheck(false);
 		this.mapper.setAcknowledge(false);
 		this.destinationExpression = destinationExpression;
@@ -259,14 +259,12 @@ public class UnicastSendingMessageHandler extends
 		CountDownLatch countdownLatch = null;
 		String messageId = message.getHeaders().getId().toString();
 		try {
-			DatagramPacket packet;
 			boolean waitForAck = this.waitForAck;
 			if (waitForAck) {
 				countdownLatch = new CountDownLatch(ackCounter);
 				this.ackControl.put(messageId, countdownLatch);
 			}
-			packet = this.mapper.fromMessage(message);
-			send(packet, message);
+			convertAndSend(message);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sent packet for message " + message);
 			}
@@ -322,7 +320,7 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	protected void send(DatagramPacket packet, Message<?> message) throws Exception {
+	protected void convertAndSend(Message<?> message) throws Exception {
 		DatagramSocket socket;
 		if (this.socketExpression != null) {
 			socket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);
@@ -334,7 +332,7 @@ public class UnicastSendingMessageHandler extends
 		if (this.destinationExpression != null) {
 			Object destination = this.destinationExpression.getValue(this.evaluationContext, message);
 			if (destination instanceof String) {
-				destination = new URI("tcp://" + destination);
+				destination = new URI("udp://" + destination);
 			}
 			if (destination instanceof URI) {
 				URI uri = (URI) destination;
@@ -351,6 +349,7 @@ public class UnicastSendingMessageHandler extends
 		else {
 			destinationAddress = getDestinationAddress();
 		}
+		DatagramPacket packet = this.mapper.fromMessage(message);
 		packet.setSocketAddress(destinationAddress);
 		socket.send(packet);
 	}
