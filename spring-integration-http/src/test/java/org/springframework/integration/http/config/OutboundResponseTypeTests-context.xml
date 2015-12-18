@@ -13,47 +13,54 @@
 		http://www.springframework.org/schema/util
 		http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="portBean" class="org.springframework.integration.http.config.OutboundResponseTypeTests$Port"/>
+	<bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
+							   rest-template="restTemplate"
 							   request-channel="requestChannel"
 							   reply-channel="replyChannel"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
+							   rest-template="restTemplate"
 							   request-channel="resTypeSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="java.lang.String"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
+							   rest-template="restTemplate"
 							   request-channel="resPrimitiveStringPresentationChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="[B"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
+							   rest-template="restTemplate"
 							   request-channel="resTypeExpressionSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type-expression="payload"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
+							   rest-template="restTemplateWithConverters"
 							   request-channel="resTypeExpressionSetSerializationChannel"
 							   reply-channel="replyChannel"
-							   message-converters="stringAndSerializingConverters"
 							   expected-response-type-expression="payload"/>
 
-	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
+	<bean id="restTemplateWithConverters" class="org.springframework.web.client.RestTemplate">
+		<property name="messageConverters">
+			<list>
+				<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+				<bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+			</list>
+		</property>
+	</bean>
+
+	<int-http:outbound-gateway url="/testApps/outboundResponse"
 							   request-channel="invalidResponseTypeChannel"
 							   expected-response-type-expression="new java.util.Date()"/>
 
 	<int:chain input-channel="contentTypePropagationChannel" output-channel="nullChannel">
 		<int:object-to-json-transformer/>
-		<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"/>
+		<int-http:outbound-gateway url="/testApps/outboundResponse" rest-template="restTemplate"/>
 	</int:chain>
-
-
-	<util:list id="stringAndSerializingConverters">
-		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
-		<bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
-	</util:list>
 
 	<int:channel id="replyChannel">
 		<int:queue/>
