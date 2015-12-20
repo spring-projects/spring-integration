@@ -155,11 +155,13 @@ public class ConnectionFactoryTests {
 		assertEquals(0, clients.size());
 		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 7// Listening, OPEN, CLOSE, EXCEPTION for each side
 				: 5; //Listening, OPEN, CLOSE (but we *might* get exceptions, depending on timing).
-		assertThat(events.size(), greaterThanOrEqualTo(expected));
+		assertThat("Expected at least " + expected + " events; got: " + events.size() + " : " + events,
+				events.size(), greaterThanOrEqualTo(expected));
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
-		assertThat(events.size(), greaterThanOrEqualTo(expected + 1));
+		assertThat("Expected at least " + expected + " events; got: " + events.size() + " : " + events,
+				events.size(), greaterThanOrEqualTo(expected + 1));
 
 		try {
 			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
