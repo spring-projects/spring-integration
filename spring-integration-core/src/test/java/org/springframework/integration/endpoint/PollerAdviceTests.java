@@ -49,7 +49,7 @@ import org.springframework.integration.aop.SimpleActiveIdleMessageSourceAdvice;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
-import org.springframework.integration.scheduling.PollSkipStrategy;
+import org.springframework.integration.scheduling.SimplePollSkipStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
@@ -104,18 +104,26 @@ public class PollerAdviceTests {
 	}
 
 	@Test
-	public void testSkipAll() throws Exception {
+	public void testSkipSimple() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		final CountDownLatch latch = new CountDownLatch(1);
-		adapter.setSource(new MessageSource<Object>() {
+		class LocalSource implements MessageSource<Object> {
+
+			private final CountDownLatch latch;
+
+			public LocalSource(CountDownLatch latch) {
+				this.latch = latch;
+			}
 
 			@Override
 			public Message<Object> receive() {
 				latch.countDown();
 				return null;
 			}
-		});
-		adapter.setTrigger(new Trigger() {
+
+		};
+		CountDownLatch latch = new CountDownLatch(1);
+		adapter.setSource(new LocalSource(latch));
+		class OneAndDone10msTrigger implements Trigger {
 
 			private boolean done;
 
@@ -125,22 +133,25 @@ public class PollerAdviceTests {
 				done = true;
 				return date;
 			}
-		});
+		};
+		adapter.setTrigger(new OneAndDone10msTrigger());
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<Advice>();
-		PollSkipAdvice advice = new PollSkipAdvice(new PollSkipStrategy() {
-
-			@Override
-			public boolean skipPoll() {
-				return true;
-			}
-
-		});
+		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
+		skipper.skipPolls();
+		PollSkipAdvice advice = new PollSkipAdvice(skipper);
 		adviceChain.add(advice);
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertFalse(latch.await(1, TimeUnit.SECONDS));
+		adapter.stop();
+		skipper.reset();
+		latch = new CountDownLatch(1);
+		adapter.setSource(new LocalSource(latch));
+		adapter.setTrigger(new OneAndDone10msTrigger());
+		adapter.start();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
 	}
 

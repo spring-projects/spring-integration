@@ -50,6 +50,10 @@ Starting with _version 4.1_ a `PollSkipAdvice` is provided.
 Pollers use triggers to determine the time of the next poll.
 The `PollSkipAdvice` can be used to suppress (skip) a poll, perhaps because there is some downstream condition that would prevent the message to be processed properly.
 To use this advice, you have to provide it with an implementation of a `PollSkipStrategy`.
+Startng with version 4.2.5, a `SimplePollSkipStrategy` is provided.
+Add an instance as a bean to the application context, inject it into a `PollSkipAdvice` and add that to the poller's
+advice chain.
+To skip polling, call `skipPolls()`, to resume polling, call `reset()`.
 _Version 4.2_ added more flexibility in this area - see <<conditional-pollers>>.
 
 This chapter is meant to only give a high-level overview regarding Polling Consumers and how they fit into the concept of message channels - <<channel>> and channel adapters - <<channel-adapter>>.
