@@ -39,35 +39,56 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.aop.CompoundTriggerAdvice;
 import org.springframework.integration.aop.SimpleActiveIdleMessageSourceAdvice;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
-import org.springframework.integration.scheduling.PollSkipStrategy;
+import org.springframework.integration.scheduling.SimplePollSkipStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
  * @since 4.1
  *
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class PollerAdviceTests {
 
 	public Message<?> receiveAdviceResult;
+
+	@Autowired
+	private MessageChannel control;
+
+	@Autowired
+	private SimplePollSkipStrategy skipper;
 
 	@Test
 	public void testDefaultDontSkip() throws Exception {
@@ -104,18 +125,26 @@ public class PollerAdviceTests {
 	}
 
 	@Test
-	public void testSkipAll() throws Exception {
+	public void testSkipSimple() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		final CountDownLatch latch = new CountDownLatch(1);
-		adapter.setSource(new MessageSource<Object>() {
+		class LocalSource implements MessageSource<Object> {
+
+			private final CountDownLatch latch;
+
+			public LocalSource(CountDownLatch latch) {
+				this.latch = latch;
+			}
 
 			@Override
 			public Message<Object> receive() {
 				latch.countDown();
 				return null;
 			}
-		});
-		adapter.setTrigger(new Trigger() {
+
+		};
+		CountDownLatch latch = new CountDownLatch(1);
+		adapter.setSource(new LocalSource(latch));
+		class OneAndDone10msTrigger implements Trigger {
 
 			private boolean done;
 
@@ -125,23 +154,34 @@ public class PollerAdviceTests {
 				done = true;
 				return date;
 			}
-		});
+		};
+		adapter.setTrigger(new OneAndDone10msTrigger());
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<Advice>();
-		PollSkipAdvice advice = new PollSkipAdvice(new PollSkipStrategy() {
-
-			@Override
-			public boolean skipPoll() {
-				return true;
-			}
-
-		});
+		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
+		skipper.skipPolls();
+		PollSkipAdvice advice = new PollSkipAdvice(skipper);
 		adviceChain.add(advice);
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertFalse(latch.await(1, TimeUnit.SECONDS));
 		adapter.stop();
+		skipper.reset();
+		latch = new CountDownLatch(1);
+		adapter.setSource(new LocalSource(latch));
+		adapter.setTrigger(new OneAndDone10msTrigger());
+		adapter.start();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		adapter.stop();
+	}
+
+	@Test
+	public void testSkipSimpleControlBus() {
+		this.control.send(new GenericMessage<String>("@skipper.skipPolls()"));
+		assertTrue(this.skipper.skipPoll());
+		this.control.send(new GenericMessage<String>("@skipper.reset()"));
+		assertFalse(this.skipper.skipPoll());
 	}
 
 	@Test
@@ -310,6 +350,28 @@ public class PollerAdviceTests {
 		public Message<Object> receive() {
 			latch.countDown();
 			return null;
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class Config {
+
+		@Bean
+		public SimplePollSkipStrategy skipper() {
+			return new SimplePollSkipStrategy();
+		}
+
+		@Bean
+		public MessageChannel control() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "control")
+		public ExpressionControlBusFactoryBean controlBus() {
+			return new ExpressionControlBusFactoryBean();
 		}
 
 	}
