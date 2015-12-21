@@ -26,6 +26,8 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -53,6 +55,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.ReactiveEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -61,6 +64,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -75,6 +79,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import reactor.core.subscriber.SubscriberFactory;
 
 /**
  * Base class for Method-level annotation post-processors.
@@ -311,7 +317,21 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
 			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
 					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
-			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			if (inputChannel instanceof Publisher) {
+				Publisher<Message<?>> publisher = (Publisher<Message<?>>) inputChannel;
+				Subscriber<Message<?>> subscriber;
+				if (handler instanceof Subscriber) {
+					subscriber = (Subscriber<Message<?>>) handler;
+				}
+				else {
+					//TODO errorConsumer, completeConsumer
+					subscriber = SubscriberFactory.consumer(handler::handleMessage);
+				}
+				endpoint = new ReactiveEndpoint(publisher, subscriber);
+			}
+			else {
+				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
+			}
 		}
 		return endpoint;
 	}

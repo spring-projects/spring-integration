@@ -73,15 +73,9 @@ subprojects { subproject ->
 	}
 
 	compileJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
 	}
-
-	compileTestJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
-	}
-
 
 	ext {
 		activeMqVersion = '5.13.2'
@@ -123,7 +117,7 @@ subprojects { subproject ->
 		openJpaVersion = '2.4.0'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '2.0.8.RELEASE'
+		reactorVersion = '2.5.0.BUILD-SNAPSHOT'
 		romeToolsVersion = '1.6.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
@@ -289,11 +283,6 @@ project('spring-integration-amqp') {
 project('spring-integration-core') {
 	description = 'Spring Integration Core'
 
-	compileTestJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
-	}
-
 	dependencies {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework:spring-aop:$springVersion"
@@ -317,7 +306,11 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
-		testCompile ("net.openhft:chronicle:$chronicleVersion")
+//		testCompile ("net.openhft:chronicle:$chronicleVersion")
+//		testCompile ("io.projectreactor:reactor-chronicle:$reactorVersion")
+
+		testCompile "org.testng:testng:6.8.21"
+		testCompile "org.reactivestreams:reactive-streams-tck:1.0.0"
 	}
 }
 

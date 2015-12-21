@@ -31,6 +31,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+import org.reactivestreams.Publisher;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Gateway;
@@ -46,7 +47,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import reactor.fn.Consumer;
-import reactor.rx.Promise;
+import reactor.rx.Promises;
 
 /**
  * @author Mark Fisher
@@ -56,6 +57,7 @@ import reactor.rx.Promise;
  * @since 2.0
  */
 public class AsyncGatewayTests {
+
 
 	// TODO: changed from 0 because of recurrent failure: is this right?
 	private final long safety = 100;
@@ -249,8 +251,8 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Promise<Message<?>> promise = service.returnMessagePromise("foo");
-		Object result = promise.await(10, TimeUnit.SECONDS);
+		Publisher<Message<?>> promise = service.returnMessagePromise("foo");
+		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -265,8 +267,8 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Promise<String> promise = service.returnStringPromise("foo");
-		Object result = promise.await(10, TimeUnit.SECONDS);
+		Publisher<String> promise = service.returnStringPromise("foo");
+		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", result);
 	}
 
@@ -281,8 +283,8 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Promise<?> promise = service.returnSomethingPromise("foo");
-		Object result = promise.await(10, TimeUnit.SECONDS);
+		Publisher<?> promise = service.returnSomethingPromise("foo");
+		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
@@ -298,12 +300,12 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Promise<String> promise = service.returnStringPromise("foo");
+		Publisher<String> promise = service.returnStringPromise("foo");
 
 		final AtomicReference<String> result = new AtomicReference<String>();
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		promise.onSuccess(new Consumer<String>() {
+		Promises.from(promise).onSuccess(new Consumer<String>() {
 			@Override
 			public void accept(String s) {
 				result.set(s);
@@ -362,11 +364,11 @@ public class AsyncGatewayTests {
 		@Gateway(headers = @GatewayHeader(name = "method", expression = "#gatewayMethod.name"))
 		Future<?> returnCustomFutureWithTypeFuture(String s);
 
-		Promise<String> returnStringPromise(String s);
+		Publisher<String> returnStringPromise(String s);
 
-		Promise<Message<?>> returnMessagePromise(String s);
+		Publisher<Message<?>> returnMessagePromise(String s);
 
-		Promise<?> returnSomethingPromise(String s);
+		Publisher<?> returnSomethingPromise(String s);
 
 	}
 

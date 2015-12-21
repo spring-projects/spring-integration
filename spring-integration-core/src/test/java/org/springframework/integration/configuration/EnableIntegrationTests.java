@@ -127,7 +127,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.MultiValueMap;
 
-import reactor.rx.Promise;
 import reactor.rx.Streams;
 
 /**
@@ -1335,7 +1334,7 @@ public class EnableIntegrationTests {
 		void sendAsync(String payload);
 
 		@Gateway(requestChannel = "promiseChannel")
-		Promise<Integer> multiply(Integer value);
+		org.reactivestreams.Publisher<Integer> multiply(Integer value);
 
 	}
 
@@ -1350,7 +1349,7 @@ public class EnableIntegrationTests {
 	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
-			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
+			defaultRequestTimeout="${default.request.timeout:12300}", defaultReplyTimeout="#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 

@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanNameAware;
@@ -64,7 +65,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import reactor.rx.Promise;
+import reactor.rx.Promises;
 
 /**
  * @author Mark Fisher
@@ -173,8 +174,8 @@ public class GatewayParserTests {
 		MessageChannel replyChannel = context.getBean("replyChannel", MessageChannel.class);
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("promise", TestService.class);
-		Promise<Message<?>> result = service.promise("foo");
-		Message<?> reply = result.await(10, TimeUnit.SECONDS);
+		Publisher<Message<?>> result = service.promise("foo");
+		Message<?> reply = Promises.from(result).await(1, TimeUnit.SECONDS);
 		assertEquals("foo", reply.getPayload());
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor"));
 	}

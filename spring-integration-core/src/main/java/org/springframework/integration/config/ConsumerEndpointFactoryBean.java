@@ -21,6 +21,8 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
@@ -39,9 +41,11 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.ReactiveEndpoint;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -51,6 +55,8 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import reactor.core.subscriber.SubscriberFactory;
 
 /**
  * @author Mark Fisher
@@ -240,6 +246,7 @@ public class ConsumerEndpointFactoryBean
 		return this.endpoint.getClass();
 	}
 
+	@SuppressWarnings("unchecked")
 	private void initializeEndpoint() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
@@ -281,6 +288,18 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setBeanClassLoader(this.beanClassLoader);
 				pollingConsumer.setBeanFactory(this.beanFactory);
 				this.endpoint = pollingConsumer;
+			}
+			else if (channel instanceof Publisher) {
+				Publisher<Message<?>> publisher = (Publisher<Message<?>>) channel;
+				Subscriber<Message<?>> subscriber;
+				if (this.handler instanceof Subscriber) {
+					subscriber = (Subscriber<Message<?>>) this.handler;
+				}
+				else {
+					//TODO errorConsumer, completeConsumer
+					subscriber = SubscriberFactory.consumer(this.handler::handleMessage);
+				}
+				this.endpoint = new ReactiveEndpoint(publisher, subscriber);
 			}
 			else {
 				throw new IllegalArgumentException("unsupported channel type: [" + channel.getClass() + "]");
