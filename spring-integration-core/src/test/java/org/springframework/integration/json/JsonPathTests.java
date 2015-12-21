@@ -119,7 +119,7 @@ public class JsonPathTests {
 	@Test
 	public void testInt3139JsonPathTransformer() throws IOException {
 		this.transformerInput.send(testMessage);
-		Message<?> receive = this.output.receive(1000);
+		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals("Nigel Rees", receive.getPayload());
 
@@ -142,23 +142,23 @@ public class JsonPathTests {
 	@Test
 	public void testInt3139JsonPathFilter() {
 		this.filterInput1.send(testMessage);
-		Message<?> receive = this.output.receive(1000);
+		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(JSON, receive.getPayload());
 
 		this.filterInput2.send(testMessage);
-		receive = this.output.receive(1000);
+		receive = this.output.receive(10000);
 		assertNotNull(receive);
 
 		Message<String> message = MessageBuilder.withPayload(JSON)
 				.setHeader("price", 10)
 				.build();
 		this.filterInput3.send(message);
-		receive = this.output.receive(1000);
+		receive = this.output.receive(10000);
 		assertNotNull(receive);
 
 		this.filterInput4.send(testMessage);
-		receive = this.output.receive(1000);
+		receive = this.output.receive(10000);
 		assertNotNull(receive);
 
 		try {
@@ -171,7 +171,7 @@ public class JsonPathTests {
 		receive = this.output.receive(0);
 		assertNull(receive);
 
-		receive = this.discardChannel.receive(1000);
+		receive = this.discardChannel.receive(10000);
 		assertNotNull(receive);
 
 	}
@@ -179,8 +179,8 @@ public class JsonPathTests {
 	@Test
 	public void testInt3139JsonPathSplitter() {
 	  this.splitterInput.send(testMessage);
-		for(int i = 0; i < 3; i++) {
-			Message<?> receive = this.splitterOutput.receive(1000);
+		for(int i = 0; i < 4; i++) {
+			Message<?> receive = this.splitterOutput.receive(10000);
 			assertNotNull(receive);
 			assertTrue(receive.getPayload() instanceof Map);
 		}
@@ -192,7 +192,7 @@ public class JsonPathTests {
 				.setHeader("jsonPath", "$.store.book[0].category")
 				.build();
 		this.routerInput.send(message);
-		Message<?> receive = this.routerOutput1.receive(1000);
+		Message<?> receive = this.routerOutput1.receive(10000);
 		assertNotNull(receive);
 		assertEquals(JSON, receive.getPayload());
 		assertNull(this.routerOutput2.receive(10));
@@ -201,7 +201,7 @@ public class JsonPathTests {
 				.setHeader("jsonPath", "$.store.book[2].category")
 				.build();
 		this.routerInput.send(message);
-		receive = this.routerOutput2.receive(1000);
+		receive = this.routerOutput2.receive(10000);
 		assertNotNull(receive);
 		assertEquals(JSON, receive.getPayload());
 		assertNull(this.routerOutput1.receive(10));

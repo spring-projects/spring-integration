@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.scheduling;
 
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
+
 /**
  * A simple {@link PollSkipStrategy} to be used with a {@code PollSkipAdvice}.
  * Invoke {@link #skipPolls()} to start skipping polls; invoke {@link #reset()}
@@ -24,6 +27,7 @@ package org.springframework.integration.scheduling;
  * @since 4.2.5
  *
  */
+@ManagedResource
 public class SimplePollSkipStrategy implements PollSkipStrategy {
 
 	private volatile boolean skip;
@@ -36,6 +40,7 @@ public class SimplePollSkipStrategy implements PollSkipStrategy {
 	/**
 	 * Skip future polls.
 	 */
+	@ManagedOperation
 	public void skipPolls() {
 		this.skip = true;
 	}
@@ -43,6 +48,7 @@ public class SimplePollSkipStrategy implements PollSkipStrategy {
 	/**
 	 * Resume polling at the next {@code Trigger} event.
 	 */
+	@ManagedOperation
 	public void reset() {
 		this.skip = false;
 	}
