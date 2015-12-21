@@ -43,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -55,6 +56,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
@@ -66,7 +68,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @since 3.0
  *
  */
-public class ConnectionFactoryTests {
+public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 
 	@Test
 	public void testObtainConnectionIdsNet() throws Exception {
@@ -83,15 +85,21 @@ public class ConnectionFactoryTests {
 	public void testObtainConnectionIds(AbstractServerConnectionFactory serverFactory) throws Exception {
 		final List<IpIntegrationEvent> events =
 				Collections.synchronizedList(new ArrayList<IpIntegrationEvent>());
+		int expectedEvents = serverFactory instanceof TcpNetServerConnectionFactory
+				? 7  // Listening, + OPEN, CLOSE, EXCEPTION for each side
+				: 5; // Listening, + OPEN, CLOSE (but we *might* get exceptions, depending on timing).
 		final CountDownLatch serverListeningLatch = new CountDownLatch(1);
+		final CountDownLatch eventLatch = new CountDownLatch(expectedEvents);
 		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
 
 			@Override
 			public void publishEvent(ApplicationEvent event) {
+				LogFactory.getLog(this.getClass()).trace("Received: " + event);
 				events.add((IpIntegrationEvent) event);
 				if (event instanceof TcpConnectionServerListeningEvent) {
 					serverListeningLatch.countDown();
 				}
+				eventLatch.countDown();
 			}
 
 			@Override
@@ -153,15 +161,14 @@ public class ConnectionFactoryTests {
 			clients = clientFactory.getOpenConnectionIds();
 		}
 		assertEquals(0, clients.size());
-		int expected = serverFactory instanceof TcpNetServerConnectionFactory ? 7// Listening, OPEN, CLOSE, EXCEPTION for each side
-				: 5; //Listening, OPEN, CLOSE (but we *might* get exceptions, depending on timing).
-		assertThat("Expected at least " + expected + " events; got: " + events.size() + " : " + events,
-				events.size(), greaterThanOrEqualTo(expected));
+		assertTrue(eventLatch.await(10, TimeUnit.SECONDS));
+		assertThat("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events,
+				events.size(), greaterThanOrEqualTo(expectedEvents));
 
 		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
-		assertThat("Expected at least " + expected + " events; got: " + events.size() + " : " + events,
-				events.size(), greaterThanOrEqualTo(expected + 1));
+		assertThat("Expected at least " + expectedEvents + " events; got: " + events.size() + " : " + events,
+				events.size(), greaterThanOrEqualTo(expectedEvents + 1));
 
 		try {
 			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");

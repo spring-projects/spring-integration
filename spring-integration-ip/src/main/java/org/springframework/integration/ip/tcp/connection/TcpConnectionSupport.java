@@ -376,6 +376,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			}
 			else {
 				this.applicationEventPublisher.publishEvent(event);
+				if (logger.isTraceEnabled()) {
+					logger.trace("Published: " + event);
+				}
 			}
 		}
 		catch (Exception e) {
