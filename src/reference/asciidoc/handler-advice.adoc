@@ -1,18 +1,18 @@
 [[message-handler-advice-chain]]
 === Adding Behavior to Endpoints
 
-Prior to Spring Integration 2.2, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's <advice-chain /> element.
-However, let's say you want to retry, say, just a ReST Web Service call, and not any downstream endpoints.
+Prior to Spring Integration _2.2_, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's `<advice-chain/>` element.
+However, let's say you want to retry, say, just a REST Web Service call, and not any downstream endpoints.
 
 For example, consider the following flow:
 
 _inbound-adapter->poller->http-gateway1->http-gateway2->jdbc-outbound-adapter_
 
 If you configure some retry-logic into an advice chain on the poller, and, the call to _http-gateway2_ failed because of a network glitch, the retry would cause both _http-gateway1_ and _http-gateway2_ to be called a second time.
-Similarly, after a transient failure in the_jdbc-outbound-adapter_, both http-gateways would be called a second time before again calling the _jdbc-outbound-adapter_.
+Similarly, after a transient failure in the _jdbc-outbound-adapter_, both http-gateways would be called a second time before again calling the _jdbc-outbound-adapter_.
 
 Spring Integration 2.2 adds the ability to add behavior to individual endpoints.
-This is achieved by the addition of the <request-handler-advice-chain /> element to many endpoints.
+This is achieved by the addition of the `<request-handler-advice-chain/>` element to many endpoints.
 For example:
 
 [source,xml]
@@ -27,17 +27,17 @@ For example:
 </int-http:outbound-gateway>
 ----
 
-In this case, _myRetryAdvice_ will only be applied locally to this gateway and will not apply to further actions taken downstream after the reply is sent to the_nextChannel_.
+In this case, _myRetryAdvice_ will only be applied locally to this gateway and will not apply to further actions taken downstream after the reply is sent to the _nextChannel_.
 The scope of the advice is limited to the endpoint itself.
 
 [IMPORTANT]
 =====
-At this time, you cannot advise an entire <chain/> of endpoints.
-The schema does not allow a <request-handler-advice-chain/> as a child element of the chain itself.
+At this time, you cannot advise an entire `<chain/>` of endpoints.
+The schema does not allow a `<request-handler-advice-chain/>` as a child element of the chain itself.
 
-However, a <request-handler-advice-chain/> can be added to individual reply-producing endpoints _within_ a <chain/> element.
-An exception is that, in a chain that produces no reply, because the last element in the chain is an_outbound-channel-adapter_, that _last_ element cannot be advised.
-If you need to advise such an element, it must be moved outside of the chain (with the_output-channel_ of the chain being the _input-channel_ of the adapter.
+However, a `<request-handler-advice-chain/>` can be added to individual reply-producing endpoints _within_ a `<chain/>` element.
+An exception is that, in a chain that produces no reply, because the last element in the chain is an _outbound-channel-adapter_, that _last_ element cannot be advised.
+If you need to advise such an element, it must be moved outside of the chain (with the _output-channel_ of the chain being the _input-channel_ of the adapter.
 The adapter can then be advised as normal.
 For chains that produce a reply, every child element can be advised.
 =====
@@ -47,18 +47,16 @@ For chains that produce a reply, every child element can be advised.
 
 In addition to providing the general mechanism to apply AOP Advice classes in this way, three standard Advices are provided:
 
-* RequestHandlerRetryAdvice
-* RequestHandlerCircuitBreakerAdvice
-* ExpressionEvaluatingRequestHandlerAdvice
-
-
+* `RequestHandlerRetryAdvice`
+* `RequestHandlerCircuitBreakerAdvice`
+* `ExpressionEvaluatingRequestHandlerAdvice`
 
 These are each described in detail in the following sections.
 
 [[retry-advice]]
 ===== Retry Advice
 
-The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by thehttps://github.com/SpringSource/spring-retry[Spring Retry] project.
+The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://github.com/spring-projects/spring-retry[Spring Retry] project.
 The core component of `spring-retry` is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` and `BackoffPolicy` strategies, with a number of implementations, as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
 
 *Stateless Retry*
@@ -74,7 +72,7 @@ Stateful retry needs some mechanism to detect a retried submission.
 
 *Further Information*
 
-For more information on `spring-retry`, refer to the project's javadocs, as well as the reference documentation for http://static.springsource.org/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
+For more information on `spring-retry`, refer to the project's javadocs, as well as the reference documentation for http://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
 
 WARNING: The default back off behavior is no back off - retries are attempted immediately.
 Using a back off policy that causes threads to pause between attempts may cause performance issues, including excessive memory use and thread starvation.
@@ -83,7 +81,7 @@ In high volume environments, back off policies should be used with caution.
 [[retry-config]]
 ====== Configuring the Retry Advice
 
-The following examples use a simple <service-activator />> that always throws an exception:
+The following examples use a simple `<service-activator/>` that always throws an exception:
 [source,java]
 ----
 public class FailingService {
@@ -379,11 +377,11 @@ It provides a mechanism to evaluate an expression on the original inbound messag
 Separate expressions are available to be evaluated, either after success, or failure.
 Optionally, a message containing the evaluation result, together with the input message, can be sent to a message channel.
 
-A typical use case for this advice might be with an <ftp:outbound-channel-adapter />, perhaps to move the file to one directory if the transfer was successful, or to another directory if it fails:
+A typical use case for this advice might be with an `<ftp:outbound-channel-adapter/>`, perhaps to move the file to one directory if the transfer was successful, or to another directory if it fails:
 
 The Advice has properties to set an expression when successful, an expression for failures, and corresponding channels for each.
-For the successful case, the message sent to the_successChannel_ is an `AdviceMessage`, with the payload being the result of the expression evaluation, and an additional property `inputMessage` which contains the original message sent to the handler.
-A message sent to the _failureChannel_ (when the handler throws an excecption) is an ErrorMessage with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
+For the successful case, the message sent to the _successChannel_ is an `AdviceMessage`, with the payload being the result of the expression evaluation, and an additional property `inputMessage` which contains the original message sent to the handler.
+A message sent to the _failureChannel_ (when the handler throws an exception) is an `ErrorMessage` with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
 Like all `MessagingException` s, this payload has `failedMessage` and `cause` properties, as well as an additional property `evaluationResult`, containing the result of the expression evaluation.
 
 When an exception is thrown in the scope of the advice, by default, that exception is thrown to caller after any
@@ -397,7 +395,7 @@ In addition to the provided Advice classes above, you can implement your own Adv
 While you can provide any implementation of `org.aopalliance.aop.Advice`, it is generally recommended that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
 This has the benefit of avoiding writing low-level _Aspect Oriented Programming_ code as well as providing a starting point that is specifically tailored for use in this environment.
 
-Subclasses need to implement the doInvoke() method:
+Subclasses need to implement the `doInvoke()`` method:
 
 [source,java]
 ----
@@ -446,7 +444,7 @@ In addition to the `execute()` method, the `ExecutionCallback` provides an addit
 This method must be used in cases where the invocation might be called multiple times within a single execution of `doInvoke()`, such as in the `RequestHandlerRetryAdvice`.
 This is required because the Spring AOP `org.springframework.aop.framework.ReflectiveMethodInvocation` object maintains state of which advice in a chain was last invoked; this state must be reset for each call.
 
-For more information, see the http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] JavaDocs.
+For more information, see the http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] JavaDocs.
 =====
 
 [[other-advice]]
@@ -461,7 +459,7 @@ There is an additional consideration when advising `Filter` s.
 By default, any discard actions (when the filter returns false) are performed _within_ the scope of the advice chain.
 This could include all the flow downstream of the _discard channel_.
 So, for example if an element downstream of the _discard-channel_ throws an exception, and there is a retry advice, the process will be retried.
-This is also the case if_throwExceptionOnRejection_ is set to true (the exception is thrown within the scope of the advice).
+This is also the case if _throwExceptionOnRejection_ is set to true (the exception is thrown within the scope of the advice).
 
 Setting _discard-within-advice_ to "false" modifies this behavior and the discard (or exception) occurs after the advice chain is called.
 
