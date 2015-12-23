@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
+
 import com.gs.collections.api.block.function.Function;
 import com.gs.collections.api.block.predicate.Predicate;
 import com.gs.collections.api.partition.PartitionIterable;
@@ -31,22 +38,20 @@ import com.gs.collections.impl.block.factory.Functions;
 import com.gs.collections.impl.map.mutable.UnifiedMap;
 import com.gs.collections.impl.utility.Iterate;
 import com.gs.collections.impl.utility.ListIterate;
+
 import kafka.client.ClientUtils$;
+import kafka.cluster.Broker;
 import kafka.common.ErrorMapping;
 import kafka.javaapi.TopicMetadata;
 import kafka.javaapi.TopicMetadataResponse;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import scala.collection.JavaConversions;
-
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
+import scala.collection.Seq;
 
 /**
  * Default implementation of {@link ConnectionFactory}
  *
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 public class DefaultConnectionFactory implements InitializingBean, ConnectionFactory, DisposableBean {
 
@@ -169,9 +174,16 @@ public class DefaultConnectionFactory implements InitializingBean, ConnectionFac
 			this.lock.writeLock().lock();
 			String brokerAddressesAsString = ListIterate
 					.collect(this.configuration.getBrokerAddresses(), Functions.getToString()).makeString(",");
+			Seq<Broker> brokers = null;
+			try {
+				brokers = ClientUtils$.MODULE$.parseBrokerList(brokerAddressesAsString);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Can not parse Kafka Brokers for: [" + brokerAddressesAsString + "]", e);
+			}
 			TopicMetadataResponse topicMetadataResponse = new TopicMetadataResponse(ClientUtils$.MODULE$
-					.fetchTopicMetadata(JavaConversions.asScalaSet(new HashSet<String>(topics)),
-							ClientUtils$.MODULE$.parseBrokerList(brokerAddressesAsString),
+					.fetchTopicMetadata(JavaConversions.asScalaSet(new HashSet<>(topics)),
+							brokers,
 							this.configuration.getClientId(), this.configuration.getFetchMetadataTimeout(), 0));
 			PartitionIterable<TopicMetadata> selectWithoutErrors = Iterate
 					.partition(topicMetadataResponse.topicsMetadata(), errorlessTopicMetadataPredicate);
