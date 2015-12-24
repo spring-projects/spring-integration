@@ -466,7 +466,7 @@ project('spring-integration-jpa') {
 
 	tasks.withType(Test).matching {it.name ==~ /(springIo.+)|(test)|(testAll)/}.all {
 		jvmArgs classpath.files.findAll {
-			it.name ==~ /(spring-instrument.+)|(openjpa-${openJpaVersion}.+)/}.collect{"-javaagent:$it"
+			it.name ==~ /(spring-instrument.+)|(openjpa-\d+\.\d+\.\d+\.jar)/}.collect{"-javaagent:$it"
 		}
 	}
 
