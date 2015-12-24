@@ -134,7 +134,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message will be processed
-	 * or this timeout is reached. Should be less then or equal to {@link #receiveTimeout}
+	 * or this timeout is reached. Should be more then or equal to {@link #receiveTimeout}
 	 * @since 4.0.3
 	 */
 	public void setStopTimeout(long stopTimeout) {
@@ -272,7 +272,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	protected void doStop() {
 		try {
 			this.active = false;
-			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MICROSECONDS);
+			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MILLISECONDS);
 		}
 		catch (InterruptedException e) {
 			logger.debug("Thread interrupted while stopping the endpoint");

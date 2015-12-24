@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,6 +34,7 @@ import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author David Liu
+ * @author Artem Bilan
  * @since 4.1
  */
 @ContextConfiguration
@@ -74,6 +77,10 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testInboundGatewayStop() throws Exception {
+		Long stopTimeout = TestUtils.getPropertyValue(this.inboundGateway, "stopTimeout", Long.class);
+		Long receiveTimeout = TestUtils.getPropertyValue(this.inboundGateway, "receiveTimeout", Long.class);
+		this.inboundGateway.setReceiveTimeout(1);
+		this.inboundGateway.setStopTimeout(1);
 		this.inboundGateway.stop();
 		try {
 			this.sendChannel.send(new GenericMessage<String>("test1"));
@@ -82,6 +89,8 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {
+			this.inboundGateway.setReceiveTimeout(receiveTimeout);
+			this.inboundGateway.setStopTimeout(stopTimeout);
 			this.inboundGateway.start();
 		}
 	}

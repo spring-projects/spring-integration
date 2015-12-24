@@ -24,7 +24,7 @@
 	<int-redis:queue-outbound-gateway id="outboundGateway"
 									  request-channel="sendChannel"
 									  queue="foo"
-									  reply-timeout="2000"
+									  reply-timeout="1000"
 									  requires-reply="true"
 									  reply-channel="outputChannel"
 									  serializer="serializer"/>
@@ -37,6 +37,8 @@
 									 request-channel="requestChannel"
 									 serializer="serializer"
 									 reply-timeout="20001"
+									 receive-timeout="100"
+									 stop-timeout="2000"
 									 request-timeout="20000"/>
 
 	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>

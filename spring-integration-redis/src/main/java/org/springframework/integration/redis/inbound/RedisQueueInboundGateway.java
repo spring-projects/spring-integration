@@ -55,7 +55,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private static final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
-	public static final long DEFAULT_RECEIVE_TIMEOUT = 5000;
+	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
@@ -131,7 +131,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
-	 * will be processed or this timeout is reached. Should be less then or equal to
+	 * will be processed or this timeout is reached. Should be more then or equal to
 	 * {@link #receiveTimeout}
 	 */
 	public void setStopTimeout(long stopTimeout) {
@@ -195,6 +195,10 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		}
 		String uuid = null;
 		if (value != null) {
+			if (!active) {
+				this.boundListOperations.rightPush(value);
+				return;
+			}
 			uuid = stringSerializer.deserialize(value);
 			try {
 				value = this.template.boundListOps(uuid).rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
@@ -205,6 +209,10 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Message<Object> requestMessage = null;
 			if (value != null) {
+				if (!active) {
+					this.template.boundListOps(uuid).rightPush(value);
+					return;
+				}
 				if (this.extractPayload) {
 					Object payload = value;
 					if (this.serializer != null) {
@@ -289,7 +297,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	protected void doStop() {
 		try {
 			this.active = false;
-			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MICROSECONDS);
+			this.lifecycleCondition.await(Math.max(this.stopTimeout, this.receiveTimeout), TimeUnit.MILLISECONDS);
 		}
 		catch (InterruptedException e) {
 			logger.debug("Thread interrupted while stopping the endpoint");

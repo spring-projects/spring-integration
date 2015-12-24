@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xmlns:redis="http://www.springframework.org/schema/redis"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
-		http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"
-			serializer="redisSerializer"/>
+	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic.parser"
+										 serializer="redisSerializer"/>
 
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
@@ -19,6 +15,6 @@
 	<bean id="redisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
 	<int-redis:publish-subscribe-channel id="redisChannelWithSubLimit" topic-name="si.test.topic"
-			serializer="redisSerializer" max-subscribers="1" />
+										 serializer="redisSerializer" max-subscribers="1"/>
 
 </beans>

@@ -56,7 +56,7 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer", RedisSerializer.class);
 		assertEquals(connectionFactory, context.getBean("redisConnectionFactory"));
 		assertEquals(redisSerializer, context.getBean("redisSerializer"));
-		assertEquals("si.test.topic", TestUtils.getPropertyValue(redisChannel, "topicName"));
+		assertEquals("si.test.topic.parser", TestUtils.getPropertyValue(redisChannel, "topicName"));
 		assertEquals(Integer.MAX_VALUE, TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(redisChannel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 		redisChannel = context.getBean("redisChannelWithSubLimit", SubscribableChannel.class);
