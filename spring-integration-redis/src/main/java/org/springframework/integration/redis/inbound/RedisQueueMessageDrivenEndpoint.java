@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors
+ * Copyright 2013-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.inbound;
 
 import java.util.concurrent.Executor;
@@ -73,11 +74,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private volatile long stopTimeout = DEFAULT_RECEIVE_TIMEOUT;
-
 	private volatile boolean active;
 
 	private volatile boolean listening;
+
+	private volatile Runnable stopCallback;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -134,11 +135,13 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message will be processed
-	 * or this timeout is reached. Should be less then or equal to {@link #receiveTimeout}
+	 * or this timeout is reached. Should be less than or equal to {@link #receiveTimeout}
 	 * @since 4.0.3
+	 * @deprecated since {@literal 4.3} with no-op in favor of delayer call {@code callback.run()}
+	 * in the {@link #stop(Runnable)}.
 	 */
+	@Deprecated
 	public void setStopTimeout(long stopTimeout) {
-		this.stopTimeout = stopTimeout;
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -269,18 +272,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	}
 
 	@Override
+	protected void doStop(Runnable callback) {
+		this.stopCallback = callback;
+		doStop();
+	}
+
+	@Override
 	protected void doStop() {
-		try {
-			this.active = false;
-			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MICROSECONDS);
-		}
-		catch (InterruptedException e) {
-			logger.debug("Thread interrupted while stopping the endpoint");
-			Thread.currentThread().interrupt();
-		}
-		finally {
-			this.listening = false;
-		}
+		super.doStop();
+		this.active = this.listening = false;
 	}
 
 	public boolean isListening() {
@@ -327,14 +327,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				if (RedisQueueMessageDrivenEndpoint.this.active) {
 					RedisQueueMessageDrivenEndpoint.this.restart();
 				}
-				else {
-					RedisQueueMessageDrivenEndpoint.this.lifecycleLock.lock();
-					try {
-						RedisQueueMessageDrivenEndpoint.this.lifecycleCondition.signalAll();
-					}
-					finally {
-						RedisQueueMessageDrivenEndpoint.this.lifecycleLock.unlock();
-					}
+				else if (RedisQueueMessageDrivenEndpoint.this.stopCallback != null) {
+					RedisQueueMessageDrivenEndpoint.this.stopCallback.run();
+					RedisQueueMessageDrivenEndpoint.this.stopCallback = null;
 				}
 			}
 		}
