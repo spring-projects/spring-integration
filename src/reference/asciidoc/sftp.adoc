@@ -303,8 +303,8 @@ This filter determines which remote files are retrieved.
 You can also combine a pattern based filter with other filters, such as an `AcceptOnceFileListFilter` to avoid synchronizing files that have previously been fetched, by using a `CompositeFileListFilter`.
 
 The `AcceptOnceFileListFilter` stores its state in memory.
-If you wish the state to survive a system restart, consider using the`SftpPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in an instance of the`MetadataStore` strategy (<<metadata-store>>).
+If you wish the state to survive a system restart, consider using the `SftpPersistentAcceptOnceFileListFilter` instead.
+This filter stores the accepted file names in an instance of the `MetadataStore` strategy (<<metadata-store>>).
 This filter matches on the filename and the remote modified time.
 
 Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
