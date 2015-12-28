@@ -249,7 +249,7 @@ public class FailoverClientConnectionFactoryTests {
 	@Test
 	public void testRealNet() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
 
 		int port1 = openPorts.get(0);
 		int port2 = openPorts.get(1);
@@ -263,7 +263,7 @@ public class FailoverClientConnectionFactoryTests {
 	@Test
 	public void testRealNio() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
 
 		int port1 = openPorts.get(0);
 		int port2 = openPorts.get(1);
@@ -278,7 +278,7 @@ public class FailoverClientConnectionFactoryTests {
 	@Test
 	public void testRealNetSingleUse() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
 
 		int port1 = openPorts.get(0);
 		int port2 = openPorts.get(1);
@@ -295,7 +295,7 @@ public class FailoverClientConnectionFactoryTests {
 	@Test
 	public void testRealNioSingleUse() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
 
 		int port1 = openPorts.get(0);
 		int port2 = openPorts.get(1);
@@ -591,7 +591,6 @@ public class FailoverClientConnectionFactoryTests {
 		else {
 			return TestUtils.getPropertyValue(client.getConnection(), "socketChannel", SocketChannel.class).socket();
 		}
-
 	}
 
 }

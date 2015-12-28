@@ -99,7 +99,7 @@ public final class SocketUtils {
 				ServerSocket sock = ServerSocketFactory.getDefault()
 						.createServerSocket(i, 1, InetAddress.getByName("localhost"));
 				sock.close();
-				openPorts.add(i);
+				openPorts.add(i == 0 ? sock.getLocalPort() : i);
 
 				if (openPorts.size() == numberOfRequestedPorts) {
 					return openPorts;

@@ -13,7 +13,7 @@
 		id="scf"
 		type="server"
 		so-timeout="60000"
-		port="#{tcpIpUtils.findAvailableServerSocket()}"/>
+		port="#{tcpIpUtils.findAvailableServerSocket(0)}"/>
 
 	<int-ip:tcp-inbound-channel-adapter
 		connection-factory="scf"
