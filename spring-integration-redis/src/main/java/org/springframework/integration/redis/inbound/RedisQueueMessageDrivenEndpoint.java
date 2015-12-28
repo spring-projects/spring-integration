@@ -134,7 +134,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message will be processed
-	 * or this timeout is reached. Should be more then or equal to {@link #receiveTimeout}
+	 * or this timeout is reached. Should be less than or equal to {@link #receiveTimeout}
 	 * @since 4.0.3
 	 */
 	public void setStopTimeout(long stopTimeout) {

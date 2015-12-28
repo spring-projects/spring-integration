@@ -375,7 +375,7 @@
 							<xsd:documentation>
 								The timeout to block 'doStop()' until the last message
 								will be processed or this timeout is reached.
-								Should be more then or equal to 'receive-timeout'.
+								Should be less than or equal to 'receive-timeout'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -529,7 +529,7 @@
 					<xsd:documentation>
 						The timeout to block 'doStop()' until the last message
 						will be processed or this timeout is reached.
-						Should be more then or equal to 'receive-timeout'.
+						Should be less than or equal to 'receive-timeout'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

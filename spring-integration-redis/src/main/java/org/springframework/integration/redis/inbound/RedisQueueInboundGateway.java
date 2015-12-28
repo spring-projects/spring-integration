@@ -131,7 +131,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
-	 * will be processed or this timeout is reached. Should be more then or equal to
+	 * will be processed or this timeout is reached. Should be less than or equal to
 	 * {@link #receiveTimeout}
 	 */
 	public void setStopTimeout(long stopTimeout) {
@@ -211,6 +211,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			if (value != null) {
 				if (!active) {
 					this.template.boundListOps(uuid).rightPush(value);
+					this.boundListOperations.rightPush(stringSerializer.serialize(uuid));
 					return;
 				}
 				if (this.extractPayload) {
@@ -297,7 +298,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	protected void doStop() {
 		try {
 			this.active = false;
-			this.lifecycleCondition.await(Math.max(this.stopTimeout, this.receiveTimeout), TimeUnit.MILLISECONDS);
+			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MILLISECONDS);
 		}
 		catch (InterruptedException e) {
 			logger.debug("Thread interrupted while stopping the endpoint");

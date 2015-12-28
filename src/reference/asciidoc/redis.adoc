@@ -243,7 +243,7 @@ By default a `SimpleAsyncTaskExecutor` is used.
 
 
 <13> The timeout to block 'doStop()' until the last message will be processed or this timeout is reached.
-Should be more then or equal to `receive-timeout`.
+Should be less than or equal to `receive-timeout`.
 
 [[redis-queue-outbound-channel-adapter]]
 ==== Redis Queue Outbound Channel Adapter
@@ -731,7 +731,7 @@ If this attribute is set to `true`, the `serializer` can't be an empty string be
 
 
 <11> The timeout to block 'doStop()' until the last message will be processed or this timeout is reached.
-Should be more then or equal to `receive-timeout`.
+Should be less than or equal to `receive-timeout`.
 
 
 <12> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,

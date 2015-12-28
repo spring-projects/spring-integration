@@ -21,9 +21,11 @@
 
 	<int:channel id="requestChannel"/>
 
+	<bean id="redisQueue" class="java.util.UUID" factory-method="randomUUID"/>
+
 	<int-redis:queue-outbound-gateway id="outboundGateway"
 									  request-channel="sendChannel"
-									  queue="foo"
+									  queue="#{redisQueue.toString()}"
 									  reply-timeout="1000"
 									  requires-reply="true"
 									  reply-channel="outputChannel"
@@ -33,12 +35,11 @@
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
 	<int-redis:queue-inbound-gateway id="inboundGateway"
-									 queue="foo"
+									 queue="#{redisQueue.toString()}"
 									 request-channel="requestChannel"
 									 serializer="serializer"
 									 reply-timeout="20001"
 									 receive-timeout="100"
-									 stop-timeout="2000"
 									 request-timeout="20000"/>
 
 	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>

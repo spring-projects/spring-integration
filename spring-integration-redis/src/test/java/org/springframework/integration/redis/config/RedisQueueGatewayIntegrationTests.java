@@ -20,12 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
@@ -51,6 +53,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 
+	@Value("#{redisQueue.toString().bytes}")
+	private byte[] queueName;
+
 	@Autowired
 	@Qualifier("sendChannel")
 	private DirectChannel sendChannel;
@@ -65,6 +70,11 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Autowired
 	private RedisQueueOutboundGateway outboundGateway;
 
+	public void setup() {
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
+		jcf.getConnection().del(this.queueName);
+	}
+
 	@Test
 	@RedisAvailable
 	public void testRequestWithReply() throws Exception {
@@ -77,10 +87,8 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testInboundGatewayStop() throws Exception {
-		Long stopTimeout = TestUtils.getPropertyValue(this.inboundGateway, "stopTimeout", Long.class);
 		Long receiveTimeout = TestUtils.getPropertyValue(this.inboundGateway, "receiveTimeout", Long.class);
 		this.inboundGateway.setReceiveTimeout(1);
-		this.inboundGateway.setStopTimeout(1);
 		this.inboundGateway.stop();
 		try {
 			this.sendChannel.send(new GenericMessage<String>("test1"));
@@ -90,7 +98,6 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 		}
 		finally {
 			this.inboundGateway.setReceiveTimeout(receiveTimeout);
-			this.inboundGateway.setStopTimeout(stopTimeout);
 			this.inboundGateway.start();
 		}
 	}
