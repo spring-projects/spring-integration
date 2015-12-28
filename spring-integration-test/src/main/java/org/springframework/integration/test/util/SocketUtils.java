@@ -94,7 +94,7 @@ public final class SocketUtils {
 
 		final List<Integer> openPorts = new ArrayList<Integer>(numberOfRequestedPorts);
 
-		for (int i = seed; i < seed + 200; i++) {
+		for (int i = seed; i < seed + 200;  i = i == 0 ? i : i + 1) {
 			try {
 				ServerSocket sock = ServerSocketFactory.getDefault()
 						.createServerSocket(i, 1, InetAddress.getByName("localhost"));
