@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The stereotype annotation to provide the Integration Messaging Gateway Proxy ({@code <gateway/>}).
+ * The stereotype annotation to provide the Integration Messaging Gateway Proxy ({@code <gateway/>})
+ * to hide the messaging API. The target application’s business logic may be completely unaware
+ * of the Spring Integration API, the code interacts instead with a simple interface, only.
  *
  * @author Artem Bilan
  * @since 4.0

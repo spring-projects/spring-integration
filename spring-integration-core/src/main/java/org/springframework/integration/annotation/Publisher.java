@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,21 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to indicate that a method, or all public methods if applied at
- * class-level, should publish Messages. The  @Payload and @Header annotations
- * can be used in conjunction with this to determine the content of the Message.
+ * class-level, should publish Messages.
+ * <p>
+ * The Message will be constructed from the return value of the method invocation and sent
+ * to a channel specified by the channel attribute.
+ * To further manage message structure, a combination of both @Payload and @Header annotations
+ * can be used as well.
+ * <p>
+ * Note: unlike @Gateway, this annotation represents typical AOP Advice for existing service
+ * and its method implementation.
+ * <p>
+ * The XML equivalent is {@code <int:publishing-interceptor>}
  *
  * @author Mark Fisher
  * @since 2.0
+ * @see org.springframework.integration.aop.MessagePublishingInterceptor
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
