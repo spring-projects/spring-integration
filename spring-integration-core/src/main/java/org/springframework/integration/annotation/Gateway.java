@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method is capable of mapping its parameters to a message
- * or message payload. These method-level annotations are detected by the
- * {@link org.springframework.integration.gateway.GatewayProxyFactoryBean}
+ * Indicates that an interface method is capable of mapping its parameters
+ * to a message or message payload. These method-level annotations are detected
+ * by the {@link org.springframework.integration.gateway.GatewayProxyFactoryBean}
  * where the annotation attributes can override the default channel settings.
  *
  * <p>A method annotated with @Gateway may accept a single non-annotated
@@ -44,9 +44,18 @@ import java.lang.annotation.Target;
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
  * the return value if necessary.
  *
+ * <p>Note: unlike @Publisher, this annotation is for exposing a
+ * Messaging Endpoint based on a Proxy for the marked interface method.
+ * The method invocation causes messaging interaction using an
+ * AOP Advice. Method parameters become the part of sent message (payload, headers).
+ * The method return value is the result (payload) of the messaging flow invoked by the
+ * Proxy.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
+ * @see MessagingGateway
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
