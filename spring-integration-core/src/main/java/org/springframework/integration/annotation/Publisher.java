@@ -31,7 +31,8 @@ import java.lang.annotation.Target;
  * can be used as well.
  * <p>
  * Note: unlike @Gateway, this annotation represents typical AOP Advice for existing service
- * and its method implementation.
+ * and its method implementation. The message sending is a side effect of the real method invocation.
+ * And the method may doesn't care about messaging at all.
  * <p>
  * The XML equivalent is {@code <int:publishing-interceptor>}
  *

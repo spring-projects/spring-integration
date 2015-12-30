@@ -46,6 +46,9 @@ import java.lang.annotation.Target;
  *
  * <p>Note: unlike @Publisher, this annotation is exactly for exposing the
  * Messaging Endpoint based on the Proxy for the marked interface method.
+ * The method invocation is fully based on the messaging interaction through the
+ * AOP Advice. Method parameters become the part of sending message (payload, headers).
+ * The method return is a result of messaging flow behind the Proxy.
  *
  * @author Mark Fisher
  * @author Gary Russell
