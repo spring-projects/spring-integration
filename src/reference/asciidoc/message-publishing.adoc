@@ -3,7 +3,8 @@
 
 The AOP Message Publishing feature allows you to construct and send a message as a by-product of a method invocation.
 For example, imagine you have a component and every time the state of this component changes you would like to be notified via a Message.
-The easiest way to send such notifications would be to send a message to a dedicated channel, but how would you connect the method invocation that changes the state of the object to a message sending process, and how should the notification Message be structured? The AOP Message Publishing feature handles these responsibilities with a configuration-driven approach.
+The easiest way to send such notifications would be to send a message to a dedicated channel, but how would you connect the method invocation that changes the state of the object to a message sending process, and how should the notification Message be structured?
+The AOP Message Publishing feature handles these responsibilities with a configuration-driven approach.
 
 [[message-publishing-config]]
 === Message Publishing Configuration
@@ -17,7 +18,7 @@ The annotation-driven approach allows you to annotate any method with the `@Publ
 The Message will be constructed from the return value of the method invocation and sent to a channel specified by the 'channel' attribute.
 To further manage message structure, you can also use a combination of both `@Payload` and `@Header` annotations.
 
-Internally this message publishing feature of Spring Integration uses both Spring AOP by defining `PublisherAnnotationAdvisor` and Spring 3.0's Expression Language (SpEL) support, giving you considerable flexibility and control over the structure of the_Message_ it will publish.
+Internally this message publishing feature of Spring Integration uses both Spring AOP by defining `PublisherAnnotationAdvisor` and Spring 3.0's Expression Language (SpEL) support, giving you considerable flexibility and control over the structure of the _Message_ it will publish.
 
 The `PublisherAnnotationAdvisor` defines and binds the following variables:
 
