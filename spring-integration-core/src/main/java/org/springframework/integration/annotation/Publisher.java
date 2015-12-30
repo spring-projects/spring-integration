@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
  * Annotation to indicate that a method, or all public methods if applied at
  * class-level, should publish Messages.
  * <p>
- * The Message will be constructed from the return value of the method invocation and sent
- * to a channel specified by the channel attribute.
+ * By default, the Message will be constructed from the return value of the method invocation
+ * and sent to a channel specified by the {@link #channel()} attribute.
  * To further manage message structure, a combination of both @Payload and @Header annotations
  * can be used as well.
  * <p>
@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
  * The XML equivalent is {@code <int:publishing-interceptor>}
  *
  * @author Mark Fisher
+ *
  * @since 2.0
  * @see org.springframework.integration.aop.MessagePublishingInterceptor
  */
