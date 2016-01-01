@@ -50,7 +50,7 @@ Spring Integration is guided by the following principles:
 
 From the _vertical_ perspective, a layered architecture facilitates separation of concerns, and interface-based contracts between layers promote loose coupling.
 Spring-based applications are typically designed this way, and the Spring framework and portfolio provide a strong foundation for following this best practice for the full-stack of an enterprise application.
-Message-driven architectures add a_horizontal_ perspective, yet these same goals are still relevant.
+Message-driven architectures add a _horizontal_ perspective, yet these same goals are still relevant.
 Just as "layered architecture" is an extremely generic and abstract paradigm, messaging systems typically follow the similarly abstract "pipes-and-filters" model.
 The "filters" represent any component that is capable of producing and/or consuming messages, and the "pipes" transport the messages between filters so that the components themselves remain loosely-coupled.
 It is important to note that these two high-level paradigms are not mutually exclusive.

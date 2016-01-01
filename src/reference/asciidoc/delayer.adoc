@@ -61,7 +61,7 @@ In the first case, the expression will evaluate to `null`; the second will resul
 		   Field or property 'delay' cannot be found on object of type 'org.springframework.messaging.MessageHeaders'
 ----
 
-So, if there is a possibility of the header being omitted, and you want to fall back to the default delay, it is generally more efficient (and recommended) to use the_Indexer_ syntax instead of _dot property accessor_ syntax, because detecting the null is faster than catching an exception.
+So, if there is a possibility of the header being omitted, and you want to fall back to the default delay, it is generally more efficient (and recommended) to use the _Indexer_ syntax instead of _dot property accessor_ syntax, because detecting the null is faster than catching an exception.
 =====
 
 The delayer delegates to an instance of Spring's `TaskScheduler` abstraction.

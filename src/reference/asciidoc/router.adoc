@@ -675,7 +675,7 @@ The following parameters are valid for all routers inside and outside of chains.
 
 
 This attribute specifies whether sequence number and size headers should be added to each Message.
-This_optional_ attribute defaults to _false_.
+This _optional_ attribute defaults to _false_.
 
 
 
@@ -698,7 +698,7 @@ NOTE: A Message will only be sent to the `default-output-channel` if `resolution
 If _true_ this attribute specifies that channel names must always be successfully resolved to channel instances that exist.
 If set to _true_, a `MessagingException` will be raised, in case the channel cannot be resolved.
 Setting this attribute to _false_, will cause any unresovable channels to be ignored.
-This_optional_ attribute will, if not explicitly set, default to _true_.
+This _optional_ attribute will, if not explicitly set, default to _true_.
 
 NOTE: A Message will only be sent to the `default-output-channel`, if specified, when `resolution-required` is false and the channel is not resolved.
 

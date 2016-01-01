@@ -118,7 +118,7 @@ For further details please see <<ftp-outbound-gateway>> and <<sftp-outbound-gate
 
 As of version 2.1, we have exposed more flexibility with regards to session management for remote file adapters (e.g., FTP, SFTP etc).
 
-Specifically, the `cache-sessions` attribute, which is available via the XML namespace support, is now_deprecated_.
+Specifically, the `cache-sessions` attribute, which is available via the XML namespace support, is now _deprecated_.
 Alternatively, we added the `sessionCacheSize` and `sessionWaitTimeout` attributes on the `CachingSessionFactory`.
 
 For further details please see <<ftp-session-caching>> and <<sftp-session-caching>>.

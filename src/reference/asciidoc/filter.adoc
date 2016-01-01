@@ -6,7 +6,7 @@
 
 Message Filters are used to decide whether a Message should be passed along or dropped based on some criteria such as a Message Header value or Message content itself.
 Therefore, a Message Filter is similar to a router, except that for each Message received from the filter's input channel, that same Message may or may not be sent to the filter's output channel.
-Unlike the router, it makes no decision regarding_which_ Message Channel to send the Message to but only decides _whether_ to send.
+Unlike the router, it makes no decision regarding _which_ Message Channel to send the Message to but only decides _whether_ to send.
 
 NOTE: As you will see momentarily, the Filter also supports a discard channel, so in certain cases it _can_ play the role of a very simple router (or "switch") based on a boolean condition.
 

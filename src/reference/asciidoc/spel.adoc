@@ -144,7 +144,7 @@ For more information regarding xml and xpath see <<xml>>.
 
 Namespace support is provided for the easy addition of SpEL custom http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html[`PropertyAccessor`] implementations.
 You can specify the `<spel-property-accessors/>` component to provide a list of custom `PropertyAccessor` s to the `EvaluationContext` used throughout the framework.
-Instead of configuring the factory bean above, simply add one or more of these components, and the framework will automatically add the accessors to the default_integrationEvaluationContext_ factory bean:
+Instead of configuring the factory bean above, simply add one or more of these components, and the framework will automatically add the accessors to the default _integrationEvaluationContext_ factory bean:
 
 [source,xml]
 ----

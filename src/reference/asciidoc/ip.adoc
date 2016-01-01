@@ -688,7 +688,7 @@ _Pool Size_
 
 The pool size attribute is no longer used; previously, it specified the size of the default thread pool when a task-executor was not specified.
 It was also used to set the connection backlog on server sockets.
-The first function is no longer needed (see below); the second function is replaced by the_backlog_ attribute.
+The first function is no longer needed (see below); the second function is replaced by the _backlog_ attribute.
 
 Previously, when using a fixed thread pool task executor (which was the default), with NIO, it was possible to get a deadlock and processing would stop.
 The problem occurred when a buffer was full, a thread reading from the socket was trying to add more data to the buffer, and there were no threads available to make space in the buffer.

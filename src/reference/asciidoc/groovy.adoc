@@ -8,7 +8,7 @@ For more information about Groovy please refer to the Groovy documentation which
 ==== Groovy configuration
 
 With Spring Integration 2.1, Groovy Support's configuration namespace is an extension of Spring Integration's Scripting Support and shares the core configuration and behavior described in detail in the <<scripting,Scripting Support>> section.
-Even though Groovy scripts are well supported by generic Scripting Support, Groovy Support provides the_Groovy_ configuration namespace which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
+Even though Groovy scripts are well supported by generic Scripting Support, Groovy Support provides the _Groovy_ configuration namespace which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
 Below are a couple of sample configurations:
 
 _Filter_

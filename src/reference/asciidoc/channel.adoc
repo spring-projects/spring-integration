@@ -767,7 +767,7 @@ It is essentially a variation of the Bridge, but it is encapsulated within a cha
 Also, unlike the bridge, it basically forks another message flow.
 Is that flow _synchronous_ or _asynchronous_? The answer simply depends on the type of _Message Channel_ that 'channelB' is.
 And, now you know that we have: _Direct Channel_, _Pollable Channel_, and _Executor Channel_ as options.
-The last two do break the thread boundary making communication via such channels_asynchronous_ simply because the dispatching of the message from that channel to its subscribed handlers happens on a different thread than the one used to send the message to that channel.
+The last two do break the thread boundary making communication via such channels _asynchronous_ simply because the dispatching of the message from that channel to its subscribed handlers happens on a different thread than the one used to send the message to that channel.
 That is what is going to make your wire-tap flow _sync_ or _async_.
 It is consistent with other components within the framework (e.g., Message Publisher) and actually brings a level of consistency and simplicity by sparing you from worrying in advance (other than writing thread safe code) whether a particular piece of code should be implemented as _sync_ or _async_.
 The actual wiring of two pieces of code (component A and component B) via _Message Channel_ is what makes their collaboration _sync_ or _async_.

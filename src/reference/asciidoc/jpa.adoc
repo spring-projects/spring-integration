@@ -57,7 +57,7 @@ When using a persistence provider, please ensure that the provider is compatible
 === Java Implementation
 
 Each of the provided components will use the `o.s.i.jpa.core.JpaExecutor` class which in turn will use an implementation of the `o.s.i.jpa.core.JpaOperations` interface.
-`JpaOperations` operates like a typical Data Access Object (DAO) and provides methods such as_find_, _persist_, _executeUpdate_ etc.
+`JpaOperations` operates like a typical Data Access Object (DAO) and provides methods such as _find_, _persist_, _executeUpdate_ etc.
 For most use cases the provided default implementation `o.s.i.jpa.core.DefaultJpaOperations` should be sufficient.
 Nevertheless, you have the option to optionally specify your own implementation in case you require custom behavior.
 
@@ -291,7 +291,7 @@ Below is a sample xml snippet that shows a sample usage of _inbound-channel-adap
 
 ----
 
-<1> The channel over which the _inbound-channel-adapter_ will put the messages with the payload received after executing the provided JPA QL in the_query_ attribute.
+<1> The channel over which the _inbound-channel-adapter_ will put the messages with the payload received after executing the provided JPA QL in the _query_ attribute.
 
 
 <2> The `EntityManager` instance that will be used to perform the required JPA operations.
@@ -505,7 +505,7 @@ By default the type is assumed to be a `java.lang.String`.
 
 As seen in the above snippet, it is perfectly valid to use multiple _parameter_ sub elements within an outbound channel adapter tag and derive some parameters using expressions and some with static value.
 However, care should be taken not to specify the same parameter name multiple times, and, provide one _parameter_ sub element for each named parameter specified in the JPA query.
-For example, we are specifying two parameters_level_ and _name_ where _level_ attribute is a static value of type `java.lang.Integer`, where as the _name_ attribute is derived from the payload of the message
+For example, we are specifying two parameters _level_ and _name_ where _level_ attribute is a static value of type `java.lang.Integer`, where as the _name_ attribute is derived from the payload of the message
 
 NOTE: Though specifying _select_ is valid for JPA QL, it makes no sense as outbound channel adapters will not be returning any result.
 If you want to select some values, consider using the outbound gateway instead.
@@ -769,13 +769,13 @@ _parameter-source-factory_
 An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` that will be used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource`.
 The _ParameterSource_ is used to resolve the values of the parameters provided in the query.
 The_parameter-source-factory_ attribute is ignored, if operations are performed using a JPA entity.
-If a_parameter_ sub-element is used, the factory must be of type `ExpressionEvaluatingParameterSourceFactory`, located in package _o.s.i.jpa.support.parametersource_.
+If a _parameter_ sub-element is used, the factory must be of type `ExpressionEvaluatingParameterSourceFactory`, located in package _o.s.i.jpa.support.parametersource_.
 _Optional_.
 
 _use-payload-as-parameter-source_
 
 If set to _true_, the payload of the Message will be used as a source for providing parameters.
-If set to_false_, the entire Message will be available as a source for parameters.
+If set to _false_, the entire Message will be available as a source for parameters.
 If no JPA Parameters are passed in, this property will default to _true_.
 This means that using a default `BeanPropertyParameterSourceFactory`, the bean properties of the payload will be used as a source for parameter values for the to-be-executed JPA query.
 However, if JPA Parameters are passed in, then this property will by default evaluate to _false_.
@@ -965,7 +965,7 @@ Since an _Updating Outbound Gateway_ is used, only _update_ and _delete_ JPQL qu
 
 
 When sending a message with a String payload and containing a header _rollNumber_ with a _long_ value, the last name of the student with the provided roll number is updated to the value provided in the message payload.
-When using an_UPDATING_ gateway, the return value is _always_ an integer value which denotes the number of records affected by execution of the JPA QL.
+When using an _UPDATING_ gateway, the return value is _always_ an integer value which denotes the number of records affected by execution of the JPA QL.
 
 _Retrieving an Entity using JPQL_
 

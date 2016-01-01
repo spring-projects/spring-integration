@@ -40,7 +40,7 @@ $ git clone https://github.com/SpringSource/spring-integration-samples.git
 
 That is all you need to do in order to clone the entire samples repository into a directory named _spring-integration-samples_ within the working directory where you issued that _git_ command.
 Since the samples repository is a live repository, you might want to perform periodic _pulls_ (updates) to get new samples, as well as updates to the existing samples.
-In order to do so issue the following git_PULL_ command:
+In order to do so issue the following git _pull_ command:
 
 [source,xml]
 ----

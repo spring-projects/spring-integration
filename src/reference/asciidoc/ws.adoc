@@ -82,7 +82,7 @@ If you want to send the reply to another channel instead, then provide a 'reply-
 
 TIP: When invoking a Web Service that returns an empty response after using a String payload for the request Message, _no reply Message will be sent by default_.
 Therefore you don't need to set a 'reply-channel' or have a REPLY_CHANNEL header in the request Message.
-If for any reason you actually _do_ want to receive the empty response as a Message, then provide the 'ignore-empty-responses' attribute with a value of _false_ (this only applies for Strings, because using a Source or Document object simply leads to a NULL response and will therefore_never_ generate a reply Message).
+If for any reason you actually _do_ want to receive the empty response as a Message, then provide the 'ignore-empty-responses' attribute with a value of _false_ (this only applies for Strings, because using a Source or Document object simply leads to a NULL response and will therefore _never_ generate a reply Message).
 
 To set up an inbound Web Service Gateway, use the "inbound-gateway":
 [source,xml]
