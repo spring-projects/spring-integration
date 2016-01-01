@@ -698,6 +698,6 @@ One provides _Inbound_ and _Outbound Channel Adapters_, and the other provides _
 They are configured to run with an embedded_http://activemq.apache.org/[ActiveMQ]_ process, but the samples' _https://github.com/SpringSource/spring-integration-samples/blob/master/basic/jms/src/main/resources/META-INF/spring/integration/common.xml[common.xml]__Spring Application Context_ file can easily be modified to support either a different JMS provider or a standalone _ActiveMQ_ process.
 
 In other words, you can split the configuration, so that the Inbound and Outbound Adapters are running in separate JVMs.
-If you have_ActiveMQ_ installed, simply modify the _brokerURL_ property within the _common.xml_ file to use _tcp://localhost:61616_ (instead of _vm://localhost_).
+If you have _ActiveMQ_ installed, simply modify the _brokerURL_ property within the _common.xml_ file to use _tcp://localhost:61616_ (instead of _vm://localhost_).
 Both of the samples accept input via stdin and then echo back to stdout.
 Look at the configuration to see how these messages are routed over JMS.

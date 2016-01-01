@@ -675,7 +675,7 @@ The _reply-timeout_ maps to the _sendTimeout_ property of the _org.springframewo
 More precisely, the property is set on the extended `AbstractReplyProducingMessageHandler` class, which ultimately sets the property on the `MessagingTemplate`.
 
 The value of the _sendTimeout_ property defaults to "-1" and will be applied to the connected `MessageChannel`.
-This means, that depending on the implementation, the Message Channel's_send_ method may block indefinitely.
+This means, that depending on the implementation, the Message Channel's _send_ method may block indefinitely.
 Furthermore, the _sendTimeout_ property is only used, when the actual MessageChannel implementation has a blocking send (such as 'full' bounded QueueChannel).
 
 _HTTP Inbound Gateway_

@@ -77,10 +77,10 @@ That is why the _<context:mbean-export/>_ element is shown above as well.
 
 When Messages are sent to the channel for this adapter, the Notification is created from the Message content.
 If the payload is a String it will be passed as the _message_ text for the Notification.
-Any other payload type will be passed as the_userData_ of the Notification.
+Any other payload type will be passed as the _userData_ of the Notification.
 
 JMX Notifications also have a _type_, and it should be a dot-delimited String.
-There are two ways to provide the_type_.
+There are two ways to provide the _type_.
 Precedence will always be given to a Message header value associated with the `JmxHeaders.NOTIFICATION_TYPE` key.
 On the other hand, you can rely on a fallback _default-notification-type_ attribute provided in the configuration.
 

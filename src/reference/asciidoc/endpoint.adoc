@@ -19,7 +19,7 @@ When connecting to one of Spring Integration's subscribable Message Channels, th
 However, when connecting to a buffering, pollable Message Channel, some component has to schedule and manage the polling thread(s).
 Spring Integration provides two different endpoint implementations to accommodate these two types of consumers.
 Therefore, the consumers themselves can simply implement the callback interface.
-When polling is required, the endpoint acts as a_container_ for the consumer instance.
+When polling is required, the endpoint acts as a _container_ for the consumer instance.
 The benefit is similar to that of using a container for hosting Message Driven Beans, but since these consumers are simply Spring-managed Objects running within an ApplicationContext, it more closely resembles Spring's own MessageListener containers.
 
 [[endpoint-handler]]
@@ -437,7 +437,7 @@ Throughout the reference manual, you will also see specific configuration and im
 In the case of an Object, such a parameter will be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language).
 However there are times when the type of input parameter of the endpoint method does not match the type of the payload or its part.
 In this scenario we need to perform type conversion.
-Spring Integration provides a convenient way for registering type converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named_integrationConversionService_.
+Spring Integration provides a convenient way for registering type converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named _integrationConversionService_.
 That bean is automatically created as soon as the first converter is defined using the Spring Integration infrastructure.
 To register a Converter all you need is to implement `org.springframework.core.convert.converter.Converter`, `org.springframework.core.convert.converter.GenericConverter` or `org.springframework.core.convert.converter.ConverterFactory`.
 
