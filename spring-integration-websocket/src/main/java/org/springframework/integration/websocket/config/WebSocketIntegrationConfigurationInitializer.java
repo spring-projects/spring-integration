@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 				BeanDefinitionBuilder enableWebSocketBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(WebSocketHandlerMappingFactoryBean.class)
 								.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-								.addConstructorArgReference("defaultSockJsTaskScheduler");
+								.addPropertyReference("sockJsTaskScheduler", "defaultSockJsTaskScheduler");
 
 				registry.registerBeanDefinition(WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME,
 						enableWebSocketBuilder.getBeanDefinition());
@@ -111,11 +111,11 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	private static class WebSocketHandlerMappingFactoryBean extends AbstractFactoryBean<HandlerMapping>
 			implements ApplicationContextAware {
 
-		private final ServletWebSocketHandlerRegistry registry;
+		private ServletWebSocketHandlerRegistry registry;
 
 		private ApplicationContext applicationContext;
 
-		private WebSocketHandlerMappingFactoryBean(ThreadPoolTaskScheduler sockJsTaskScheduler) {
+		private void setSockJsTaskScheduler(ThreadPoolTaskScheduler sockJsTaskScheduler) {
 			this.registry = new ServletWebSocketHandlerRegistry(sockJsTaskScheduler);
 		}
 
@@ -140,6 +140,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 		public Class<?> getObjectType() {
 			return HandlerMapping.class;
 		}
+
 	}
 
 }

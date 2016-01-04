@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.jxmpp.util.XmppStringUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -44,9 +43,9 @@ import org.springframework.util.StringUtils;
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle {
 
-	private final XMPPTCPConnectionConfiguration connectionConfiguration;
-
 	private final Object lifecycleMonitor = new Object();
+
+	private XMPPTCPConnectionConfiguration connectionConfiguration;
 
 	private volatile String resource; // server will generate resource if not provided
 
@@ -72,11 +71,23 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 
 	public XmppConnectionFactoryBean() {
-		this.connectionConfiguration = null;
 	}
 
+	/**
+	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
+	 * @deprecated since {@literal 4.2.5} in favor of {@link #setConnectionConfiguration(XMPPTCPConnectionConfiguration)}
+	 * to avoid {@code BeanCurrentlyInCreationException}
+	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
+	 */
 	public XmppConnectionFactoryBean(XMPPTCPConnectionConfiguration connectionConfiguration) {
-		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
+		setConnectionConfiguration(connectionConfiguration);
+	}
+
+	/**
+	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
+	 * @since 4.2.5
+	 */
+	public void setConnectionConfiguration(XMPPTCPConnectionConfiguration connectionConfiguration) {
 		this.connectionConfiguration = connectionConfiguration;
 	}
 
