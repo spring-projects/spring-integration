@@ -185,8 +185,7 @@ The adapter is message-driven using an internal listener thread and does not use
                     receive-timeout=""  <9>
                     recovery-interval=""  <10>
                     expect-message=""  <11>
-                    task-executor=""  <12>
-                    stop-timeout=""/>  <13>
+                    task-executor=""/>  <12>
 
 ----
 
@@ -240,10 +239,6 @@ Default is `false`.
 <12> A reference to a Spring `TaskExecutor` (or standard JDK 1.5+ `Executor`) bean.
 It is used for the underlying listening task.
 By default a `SimpleAsyncTaskExecutor` is used.
-
-
-<13> The timeout to block 'doStop()' until the last message will be processed or this timeout is reached.
-Should be less than or equal to `receive-timeout`.
 
 [[redis-queue-outbound-channel-adapter]]
 ==== Redis Queue Outbound Channel Adapter
@@ -684,8 +679,7 @@ It pops a _conversation_ `UUID` from the provided `queue`, then pops the value f
         serializer=""  <8>
         receive-timeout=""  <9>
         expect-message=""  <10>
-        stop-timeout=""  <11>
-        recovery-interval=""/>  <12>
+        recovery-interval=""/>  <11>
 ----
 
 
@@ -730,11 +724,7 @@ Typically is applied for queue-based limited request-channels.
 If this attribute is set to `true`, the `serializer` can't be an empty string because messages require some form of deserialization (JDK serialization by default).
 
 
-<11> The timeout to block 'doStop()' until the last message will be processed or this timeout is reached.
-Should be less than or equal to `receive-timeout`.
-
-
-<12> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,
+<11> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,
 before restarting the listener task.
 
 [[redis-lock-registry]]

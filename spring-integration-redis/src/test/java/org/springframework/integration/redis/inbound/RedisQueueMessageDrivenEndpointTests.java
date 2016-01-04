@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors
+ * Copyright 2013-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -240,7 +240,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(new DirectChannel());
 		endpoint.setReceiveTimeout(1000);
-		endpoint.setStopTimeout(100);
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		endpoint.setTaskExecutor(executorService);
@@ -252,10 +251,22 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		dfa.setPropertyValue("listening", false);
 
 		redisTemplate.boundListOps(queueName).leftPush("foo");
-		endpoint.stop();
+
+		final CountDownLatch stopLatch = new CountDownLatch(1);
+
+		endpoint.stop(new Runnable() {
+
+			@Override
+			public void run() {
+				stopLatch.countDown();
+			}
+
+		});
 
 		executorService.shutdown();
 		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+
+		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
 
 		Mockito.verify(boundListOperations).rightPush(Mockito.any(byte[].class));
 	}

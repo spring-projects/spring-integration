@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors
+ * Copyright 2014-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -75,13 +75,13 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private volatile long stopTimeout = DEFAULT_RECEIVE_TIMEOUT;
-
 	private volatile boolean active;
 
 	private volatile boolean listening;
 
 	private volatile boolean extractPayload = true;
+
+	private volatile Runnable stopCallback;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -131,11 +131,12 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	/**
 	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
-	 * will be processed or this timeout is reached. Should be less than or equal to
-	 * {@link #receiveTimeout}
+	 * will be processed or this timeout is reached. Should be less than or equal to {@link #receiveTimeout}
+	 * @deprecated since {@literal 4.3} with no-op in favor of delayer call {@code callback.run()}
+	 * in the {@link #stop(Runnable)}.
 	 */
+	@Deprecated
 	public void setStopTimeout(long stopTimeout) {
-		this.stopTimeout = stopTimeout;
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -257,6 +258,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		if (!this.active) {
 			this.active = true;
 			this.restart();
@@ -295,22 +297,19 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	}
 
 	@Override
+	protected void doStop(Runnable callback) {
+		this.stopCallback = callback;
+		doStop();
+	}
+
+	@Override
 	protected void doStop() {
-		try {
-			this.active = false;
-			this.lifecycleCondition.await(Math.min(this.stopTimeout, this.receiveTimeout), TimeUnit.MILLISECONDS);
-		}
-		catch (InterruptedException e) {
-			logger.debug("Thread interrupted while stopping the endpoint");
-			Thread.currentThread().interrupt();
-		}
-		finally {
-			this.listening = false;
-		}
+		super.doStop();
+		this.active = this.listening = false;
 	}
 
 	public boolean isListening() {
-		return listening;
+		return this.listening;
 	}
 
 	/**
@@ -345,21 +344,15 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			try {
 				while (RedisQueueInboundGateway.this.active) {
 					RedisQueueInboundGateway.this.listening = true;
-					RedisQueueInboundGateway.this.receiveAndReply();
+					receiveAndReply();
 				}
 			}
 			finally {
 				if (RedisQueueInboundGateway.this.active) {
-					RedisQueueInboundGateway.this.restart();
+					restart();
 				}
-				else {
-					RedisQueueInboundGateway.this.lifecycleLock.lock();
-					try {
-						RedisQueueInboundGateway.this.lifecycleCondition.signalAll();
-					}
-					finally {
-						RedisQueueInboundGateway.this.lifecycleLock.unlock();
-					}
+				else if (RedisQueueInboundGateway.this.stopCallback != null) {
+					RedisQueueInboundGateway.this.stopCallback.run();
 				}
 			}
 		}

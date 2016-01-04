@@ -370,15 +370,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="stop-timeout" type="xsd:string" default="1000">
-						<xsd:annotation>
-							<xsd:documentation>
-								The timeout to block 'doStop()' until the last message
-								will be processed or this timeout is reached.
-								Should be less than or equal to 'receive-timeout'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="recovery-interval" type="xsd:string" default="5000">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -521,15 +512,6 @@
 						Specify the timeout in milliseconds to wait for the result of the
 						'rightPop' operation on Redis queue.
 						Default is 1 second.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="stop-timeout" type="xsd:string" default="1000">
-				<xsd:annotation>
-					<xsd:documentation>
-						The timeout to block 'doStop()' until the last message
-						will be processed or this timeout is reached.
-						Should be less than or equal to 'receive-timeout'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
