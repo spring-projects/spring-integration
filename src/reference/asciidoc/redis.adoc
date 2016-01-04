@@ -24,12 +24,12 @@ To connect to Redis you would use one of the implementations of the `RedisConnec
 ----
 public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
-	/**
-	 * Provides a suitable connection for interacting with Redis.
-	 *
-	 * @return connection for interacting with Redis.
-	 */
-	RedisConnection getConnection();
+    /**
+     * Provides a suitable connection for interacting with Redis.
+     *
+     * @return connection for interacting with Redis.
+     */
+    RedisConnection getConnection();
 }
 ----
 
@@ -72,7 +72,7 @@ Or in Spring's XML configuration::
 [source,xml]
 ----
 <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-	<property name="connectionFactory" ref="redisConnectionFactory"/>
+    <property name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>
 ----
 
@@ -337,7 +337,7 @@ It is recommended that this store is used for backing channels, instead of the g
 </bean>
 
 <int:channel id="somePersistentQueueChannel">
-	<int:queue message-store="redisMessageStore"/>
+    <int:queue message-store="redisMessageStore"/>
 <int:channel>
 ----
 
@@ -530,18 +530,17 @@ Since _Spring Integration 4.0_, the Redis Command Gateway is available to perfor
 [source,xml]
 ----
 <int-redis:outbound-gateway
-		request-channel=""  <1>
-		reply-channel=""  <2>
-		requires-reply=""  <3>
-		reply-timeout=""  <4>
-		connection-factory=""  <5>
-		redis-template=""  <6>
-		arguments-serializer=""  <7>
-		command-expression=""  <8>
-		argument-expressions=""  <9>
-		use-command-variable=""  <10>
-		arguments-strategy="" /> <11>
-
+        request-channel=""  <1>
+        reply-channel=""  <2>
+        requires-reply=""  <3>
+        reply-timeout=""  <4>
+        connection-factory=""  <5>
+        redis-template=""  <6>
+        arguments-serializer=""  <7>
+        command-expression=""  <8>
+        argument-expressions=""  <9>
+        use-command-variable=""  <10>
+        arguments-strategy="" /> <11>
 ----
 
 
@@ -597,8 +596,8 @@ For example to get incremented value from Redis Atomic Number:
 [source,xml]
 ----
 <int-redis:outbound-gateway request-channel="requestChannel"
-	reply-channel="replyChannel"
-	command-expression="'INCR'"/>
+    reply-channel="replyChannel"
+    command-expression="'INCR'"/>
 ----
 
 where the Message `payload` should be a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
@@ -615,16 +614,15 @@ A different UUID is used for each interaction.
 [source,xml]
 ----
 <int-redis:queue-outbound-gateway
-		request-channel=""  <1>
-		reply-channel=""  <2>
-		requires-reply=""  <3>
-		reply-timeout=""  <4>
-		connection-factory=""  <5>
-		queue=""  <6>
-		order=""  <7>
-		serializer=""  <8>
-		extract-payload=""  <9>
-
+        request-channel=""  <1>
+        reply-channel=""  <2>
+        requires-reply=""  <3>
+        reply-timeout=""  <4>
+        connection-factory=""  <5>
+        queue=""  <6>
+        order=""  <7>
+        serializer=""  <8>
+        extract-payload=""/>  <9>
 ----
 
 
@@ -667,21 +665,21 @@ If this attribute is set to `true`, the `serializer` can't be an empty string be
 === Redis Queue Inbound Gateway
 
 Since _Spring Integration 4.1_, the Redis Queue Inbound Gateway is available to perform request and reply scenarios.
-It pops a _conversation_`UUID` from the provided `queue`, then pops the value from the Redis List with that `UUID` as its key and pushes the reply to the Redis List with a key of `UUID + '.reply'`:
+It pops a _conversation_ `UUID` from the provided `queue`, then pops the value from the Redis List with that `UUID` as its key and pushes the reply to the Redis List with a key of `UUID + '.reply'`:
 [source,xml]
 ----
 <int-redis:queue-inbound-gateway
-		request-channel=""  <1>
-		reply-channel=""  <2>
-		executor=""  <3>
-		reply-timeout=""  <4>
-		connection-factory=""  <5>
-		queue=""  <6>
-		order=""  <7>
-		serializer=""  <8>
-		receive-timeout=""  <9>
-		expect-message=""  <10>
-
+        request-channel=""  <1>
+        reply-channel=""  <2>
+        executor=""  <3>
+        reply-timeout=""  <4>
+        connection-factory=""  <5>
+        queue=""  <6>
+        order=""  <7>
+        serializer=""  <8>
+        receive-timeout=""  <9>
+        expect-message=""  <10>
+        recovery-interval=""/>  <11>
 ----
 
 
@@ -706,7 +704,7 @@ Defaults to `redisConnectionFactory`.
 Mutually exclusive with 'redis-template' attribute.
 
 
-<6> The name of the Redis List for the _conversation_`UUID` s.
+<6> The name of the Redis List for the _conversation_ `UUID` s.
 
 
 <7> The order for this inbound gateway when multiple gateway are registered thereby
@@ -724,6 +722,10 @@ Typically is applied for queue-based limited request-channels.
 
 <10> Specify if this Endpoint expects data from the Redis queue to contain entire `Message` s.
 If this attribute is set to `true`, the `serializer` can't be an empty string because messages require some form of deserialization (JDK serialization by default).
+
+
+<11> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,
+before restarting the listener task.
 
 [[redis-lock-registry]]
 === Redis Lock Registry

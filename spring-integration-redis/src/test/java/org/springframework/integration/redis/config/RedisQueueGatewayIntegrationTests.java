@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
@@ -33,6 +36,7 @@ import org.springframework.integration.redis.inbound.RedisQueueInboundGateway;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundGateway;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,12 +45,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author David Liu
+ * @author Artem Bilan
  * @since 4.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
+
+	@Value("#{redisQueue.toString().bytes}")
+	private byte[] queueName;
 
 	@Autowired
 	@Qualifier("sendChannel")
@@ -62,6 +70,11 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Autowired
 	private RedisQueueOutboundGateway outboundGateway;
 
+	public void setup() {
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
+		jcf.getConnection().del(this.queueName);
+	}
+
 	@Test
 	@RedisAvailable
 	public void testRequestWithReply() throws Exception {
@@ -74,6 +87,8 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testInboundGatewayStop() throws Exception {
+		Long receiveTimeout = TestUtils.getPropertyValue(this.inboundGateway, "receiveTimeout", Long.class);
+		this.inboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.stop();
 		try {
 			this.sendChannel.send(new GenericMessage<String>("test1"));
@@ -82,6 +97,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {
+			this.inboundGateway.setReceiveTimeout(receiveTimeout);
 			this.inboundGateway.start();
 		}
 	}

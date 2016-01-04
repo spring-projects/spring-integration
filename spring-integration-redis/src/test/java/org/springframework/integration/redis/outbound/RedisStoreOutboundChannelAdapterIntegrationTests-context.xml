@@ -19,11 +19,6 @@
 											  collection-type="LIST"
 											  key="pepboys"/>
 
-	<int-redis:store-outbound-channel-adapter id="listWithKeyProvidedAndChannel"
-											  channel="someChannel"
-											  collection-type="LIST"
-											  key="pepboys"/>
-
 	<int-redis:store-outbound-channel-adapter id="mapToZset"
 											  collection-type="ZSET"
 											  key-expression="'presidents'"/>
