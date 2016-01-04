@@ -79,8 +79,9 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	 * to avoid {@code BeanCurrentlyInCreationException}
 	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
 	 */
+	@Deprecated
 	public XmppConnectionFactoryBean(XMPPTCPConnectionConfiguration connectionConfiguration) {
-		setConnectionConfiguration(connectionConfiguration);
+		this.connectionConfiguration = connectionConfiguration;
 	}
 
 	/**
@@ -155,6 +156,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		return this.connection;
 	}
 
+	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
@@ -176,6 +178,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
+	@Override
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
@@ -185,19 +188,23 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
+	@Override
 	public boolean isRunning() {
 		return this.running;
 	}
 
+	@Override
 	public int getPhase() {
 		return this.phase;
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
@@ -205,22 +212,27 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private class LoggingConnectionListener implements ConnectionListener {
 
+		@Override
 		public void reconnectionSuccessful() {
 			logger.debug("Reconnection successful");
 		}
 
+		@Override
 		public void reconnectionFailed(Exception e) {
 			logger.debug("Reconnection failed", e);
 		}
 
+		@Override
 		public void reconnectingIn(int seconds) {
 			logger.debug("Reconnecting in " + seconds + " seconds");
 		}
 
+		@Override
 		public void connectionClosedOnError(Exception e) {
 			logger.debug("Connection closed on error", e);
 		}
 
+		@Override
 		public void connectionClosed() {
 			logger.debug("Connection closed");
 		}

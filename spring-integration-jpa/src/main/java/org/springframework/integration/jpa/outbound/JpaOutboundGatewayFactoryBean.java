@@ -86,7 +86,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	 */
 	@Deprecated
 	public JpaOutboundGatewayFactoryBean(JpaExecutor jpaExecutor) {
-		setJpaExecutor(jpaExecutor);
+		this.jpaExecutor = jpaExecutor;
 	}
 
 	public void setJpaExecutor(JpaExecutor jpaExecutor) {

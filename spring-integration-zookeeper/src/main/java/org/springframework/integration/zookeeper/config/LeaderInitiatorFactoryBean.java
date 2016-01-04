@@ -66,10 +66,11 @@ public class LeaderInitiatorFactoryBean
 	 * to avoid {@code BeanCurrentlyInCreationException}
 	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
 	 */
+	@Deprecated
 	public LeaderInitiatorFactoryBean(CuratorFramework client, String path, String role) {
-		setClient(client);
-		setPath(path);
-		setRole(role);
+		this.client = client;
+		this.path = path;
+		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
 	}
 
 	public LeaderInitiatorFactoryBean setClient(CuratorFramework client) {

@@ -60,8 +60,7 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", maxResultsExpression);
 		}
 
-		String idExpression = gatewayElement.getAttribute("id-expression");
-		if (StringUtils.hasText(idExpression)) {
+		if (StringUtils.hasText(gatewayElement.getAttribute("id-expression"))) {
 			String[] otherAttributes = {"jpa-query", "native-query", "named-query", "first-result",
 					"first-result-expression", "max-results", "max-results-expression", "delete-in-batch",
 					"expect-single-result", "parameter-source-factory", "use-payload-as-parameter-source"};
