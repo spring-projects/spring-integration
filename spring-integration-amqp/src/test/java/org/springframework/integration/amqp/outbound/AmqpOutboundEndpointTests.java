@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -71,7 +73,7 @@ public class AmqpOutboundEndpointTests {
 	private PollableChannel ackChannel;
 
 	@Autowired
-	private MessageChannel pcRequestChannelAdapter;
+	private MessageChannel pcRequestChannelForAdapter;
 
 	@Autowired
 	private MessageChannel returnRequestChannel;
@@ -79,17 +81,33 @@ public class AmqpOutboundEndpointTests {
 	@Autowired
 	private PollableChannel returnChannel;
 
+	@Autowired
+	private MessageChannel ctRequestChannel;
+
+	@Autowired
+	private ConnectionFactory connectionFactory;
+
 	@Test
 	public void testGatewayPublisherConfirms() throws Exception {
+		while (this.amqpTemplateConfirms.receive(this.queue.getName()) != null) {
+			;
+		}
 
 		Message<?> message = MessageBuilder.withPayload("hello")
 				.setHeader("amqp_confirmCorrelationData", "foo")
+				.setHeader(AmqpHeaders.CONTENT_TYPE, "application/json")
 				.build();
 		this.pcRequestChannel.send(message);
 		Message<?> ack = this.ackChannel.receive(10000);
 		assertNotNull(ack);
 		assertEquals("foo", ack.getPayload());
 		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+
+		org.springframework.amqp.core.Message received = this.amqpTemplateConfirms.receive(this.queue.getName());
+		assertEquals("\"hello\"", new String(received.getBody(), "UTF-8"));
+		assertEquals("application/json", received.getMessageProperties().getContentType());
+		assertEquals("java.lang.String", received.getMessageProperties().getHeaders()
+				.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 
 		// test whole message is correlation
 		message = MessageBuilder.withPayload("hello")
@@ -100,8 +118,9 @@ public class AmqpOutboundEndpointTests {
 		assertSame(message.getPayload(), ack.getPayload());
 		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
 
-		this.amqpTemplateConfirms.receive(this.queue.getName()); // so queue is deleted
-
+		while (this.amqpTemplateConfirms.receive(this.queue.getName()) != null) {
+			;
+		}
 	}
 
 	@Test
@@ -109,7 +128,7 @@ public class AmqpOutboundEndpointTests {
 		Message<?> message = MessageBuilder.withPayload("hello")
 				.setHeader("amqp_confirmCorrelationData", "foo")
 				.build();
-		this.pcRequestChannelAdapter.send(message);
+		this.pcRequestChannelForAdapter.send(message);
 		Message<?> ack = this.ackChannel.receive(10000);
 		assertNotNull(ack);
 		assertEquals("foo", ack.getPayload());
@@ -125,5 +144,33 @@ public class AmqpOutboundEndpointTests {
 		assertEquals(message.getPayload(), returned.getPayload());
 	}
 
+	@Test
+	public void adapterWithContentType() throws Exception {
+		RabbitTemplate template = new RabbitTemplate(this.connectionFactory);
+		template.setQueue(this.queue.getName());
+		while (template.receive() != null) {
+			;
+		}
+		Message<?> message = MessageBuilder.withPayload("hello")
+				.setHeader(AmqpHeaders.CONTENT_TYPE, "application/json")
+				.build();
+		this.ctRequestChannel.send(message);
+		org.springframework.amqp.core.Message m = template.receive();
+		assertNotNull(m);
+		assertEquals("\"hello\"", new String(m.getBody(), "UTF-8"));
+		assertEquals("application/json", m.getMessageProperties().getContentType());
+		assertEquals("java.lang.String",
+				m.getMessageProperties().getHeaders().get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+		message = MessageBuilder.withPayload("hello")
+				.build();
+		this.ctRequestChannel.send(message);
+		m = template.receive();
+		assertNotNull(m);
+		assertEquals("hello", new String(m.getBody(), "UTF-8"));
+		assertEquals("text/plain", m.getMessageProperties().getContentType());
+		while (template.receive() != null) {
+			;
+		}
+	}
 
 }

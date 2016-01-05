@@ -47,3 +47,8 @@ See <<tcp-events>> for more information.
 The `destination-expression` and `socket-expression` are now available for the `<int-ip:udp-outbound-channel-adapter>`.
 See <<udp-adapters>> for more information.
 
+==== AMQP Changes
+
+The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
+that the converter can be chosen based on the message content type.
+See <<content-type-conversion-outbound>> for more information.
