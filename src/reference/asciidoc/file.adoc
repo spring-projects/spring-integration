@@ -459,16 +459,21 @@ Once setup, the `DefaultFileNameGenerator` will employ the following resolution 
 
 When using the XML namespace support, both, the _File Outbound Channel Adapter_ and the _File Outbound Gateway_ support the following two mutually exclusive configuration attributes:
 
-* `filename-generator` (a reference to a `FileNameGenerator`) implementation)
+* `filename-generator` (a reference to a `FileNameGenerator` implementation)
 * `filename-generator-expression` (an expression evaluating to a `String`)
-
-
 
 While writing files, a temporary file suffix will be used (default: `.writing`).
 It is appended to the filename while the file is being written.
 To customize the suffix, you can set the _temporary-file-suffix_ attribute on both the _File Outbound Channel Adapter_ and the _File Outbound Gateway_.
 
 NOTE: When using the _APPEND_ file _mode_, the _temporary-file-suffix_ attribute is ignored, since the data is appended to the file directly.
+
+Starting with _version 4.2.5_ the generated file name (as a result of `filename-generator`/`filename-generator-expression`
+evaluation) can represent a _sub-path_ together with the target file name.
+It is used as a second constructor argument for `File(File parent, String child)` as before, but in the past we didn't
+created (`mkdirs()`) directories for _sub-path_ assuming only the _file name_.
+This approach is useful for cases when we need to restore the file system tree according the source directory.
+For example we unzipping the archive and want to save all file in the target directory at the same order.
 
 [[file-writing-output-directory]]
 ==== Specifying the Output Directory
@@ -477,8 +482,6 @@ Both, the _File Outbound Channel Adapter_ and the _File Outbound Gateway_ provid
 
 * _directory_
 * _directory-expression_
-
-
 
 NOTE: The _directory-expression_ attribute is available since Spring Integration 2.2.
 

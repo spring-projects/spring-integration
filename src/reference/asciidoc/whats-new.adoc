@@ -47,3 +47,8 @@ See <<tcp-events>> for more information.
 The `destination-expression` and `socket-expression` are now available for the `<int-ip:udp-outbound-channel-adapter>`.
 See <<udp-adapters>> for more information.
 
+==== File Changes
+
+The generated file name for the `FileWritingMessageHandler` can represent _sub-path_ to save the desired directory
+structure for file in the target directory.
+See <<file-writing-file-names>> for more information.
