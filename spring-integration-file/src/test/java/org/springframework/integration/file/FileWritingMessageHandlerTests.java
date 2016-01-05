@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public class FileWritingMessageHandlerTests {
 	@Test
 	public void testFileNameHeader() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT)
-				.setHeader(FileHeaders.FILENAME, "dir1/dir2/test")
+				.setHeader(FileHeaders.FILENAME, "dir1\\dir2/test")
 				.build();
 		QueueChannel output = new QueueChannel();
 		handler.setCharset(DEFAULT_ENCODING);
@@ -216,7 +216,7 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	@Ignore // INT-3289 ignored because it won't fail on all OS
+	@Ignore("INT-3289: doesn't fail on all OS")
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -303,8 +304,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (!ignore) {
 			try {
-				if (!resultFile.exists()) {
-					tempFile.getParentFile().mkdirs();
+				if (!resultFile.exists() &&
+						generatedFileName.replaceAll("/", Matcher.quoteReplacement(File.separator))
+								.contains(File.separator)) {
 					resultFile.getParentFile().mkdirs();
 				}
 				if (payload instanceof File) {
