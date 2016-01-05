@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(comparator);
 		assertEquals("ftpInbound", ftpInbound.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", ftpInbound.getComponentType());
-		assertNotNull(TestUtils.getPropertyValue(ftpInbound, "poller"));
 		assertEquals(context.getBean("ftpChannel"), TestUtils.getPropertyValue(ftpInbound, "outputChannel"));
 		FtpInboundFileSynchronizingMessageSource inbound =
 			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");

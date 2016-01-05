@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.handler.advice;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -82,6 +81,7 @@ import org.springframework.retry.RetryState;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -896,6 +896,8 @@ public class AdvisedMessageHandlerTests {
 				}));
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
+		consumer.setTaskScheduler(mock(TaskScheduler.class));
+		consumer.start();
 
 		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "poller.pollingTask", Callable.class);
 		assertTrue(AopUtils.isAopProxy(pollingTask));
@@ -919,6 +921,7 @@ public class AdvisedMessageHandlerTests {
 		assertTrue(logMessage.get().endsWith("can only be used for MessageHandlers; " +
 				"an attempt to advise method 'call' in " +
 				"'org.springframework.integration.endpoint.AbstractPollingEndpoint$1' is ignored"));
+		consumer.stop();
 	}
 
 	public void filterDiscardNoAdvice() {
