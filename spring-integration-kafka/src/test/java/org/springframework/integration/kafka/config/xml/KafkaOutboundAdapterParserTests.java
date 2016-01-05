@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,30 @@
 
 package org.springframework.integration.kafka.config.xml;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.Advisor;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.rule.KafkaEmbedded;
 import org.springframework.integration.kafka.rule.KafkaRule;
 import org.springframework.integration.kafka.support.KafkaProducerContext;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class KafkaOutboundAdapterParserTests {
 
 	@ClassRule
@@ -71,6 +81,11 @@ public class KafkaOutboundAdapterParserTests {
 				= this.appContext.getBean("org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler#1",
 				KafkaProducerMessageHandler.class);
 		assertEquals(false, TestUtils.getPropertyValue(messageHandler2, "enableHeaderRouting"));
+		MessageHandler advisedHandler = TestUtils.getPropertyValue(pollingConsumer, "handler", MessageHandler.class);
+		assertTrue(AopUtils.isJdkDynamicProxy(advisedHandler));
+		Advisor[] advisors = ((Advised) advisedHandler).getAdvisors();
+		assertEquals(1, advisors.length);
+		assertThat(advisors[0].getAdvice(), instanceOf(RequestHandlerCircuitBreakerAdvice.class));
 	}
 
 }
