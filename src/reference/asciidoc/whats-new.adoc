@@ -52,3 +52,9 @@ See <<udp-adapters>> for more information.
 The generated file name for the `FileWritingMessageHandler` can represent _sub-path_ to save the desired directory
 structure for file in the target directory.
 See <<file-writing-file-names>> for more information.
+
+==== AMQP Changes
+
+The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
+that the converter can be chosen based on the message content type.
+See <<content-type-conversion-outbound>> for more information.

@@ -906,6 +906,48 @@ public class AmqpJavaApplication {
 }
 ----
 
+[[content-type-conversion-outbound]]
+=== Outbound Message Conversion
+
+Spring AMQP 1.4 introduced the `ContentTypeDelegatingMessageConverter` where the actual converter is selected based
+on the incoming content type message property.
+This could be used by inbound endpoints.
+
+Spring Integration _version 4.3_ now allows the `ContentTypeDelegatingMessageConverter` to be used on outbound
+endpoints as well - with the `contentType` header specifiying which converter will be used.
+
+The following configures a `ContentTypeDelegatingMessageConverter` with the default converter being the
+`SimpleMessageConverter` (which handles java serialization and plain text), together with a JSON converter:
+
+[source, xml]
+----
+<amqp:outbound-channel-adapter id="withContentTypeConverter" channel="ctRequestChannel"
+                               exchange-name="someExchange"
+                               routing-key="someKey"
+                               amqp-template="amqpTemplateContentTypeConverter" />
+
+<int:channel id="ctRequestChannel"/>
+
+<rabbit:template id="amqpTemplateContentTypeConverter"
+        connection-factory="connectionFactory" message-converter="ctConverter" />
+
+<bean id="ctConverter"
+        class="o.s.amqp.support.converter.ContentTypeDelegatingMessageConverter">
+    <property name="delegates">
+        <map>
+            <entry key="application/json">
+                <bean class="o.s.amqp.support.converter.Jackson2JsonMessageConverter" />
+            </entry>
+        </map>
+    </property>
+</bean>
+----
+
+Sending a message to `ctRequestChannel` with the `contentType` header set to `application/json` will cause the
+JSON converter to be selected.
+
+This applies to both the outbound channel adapter and gateway.
+
 [[amqp-channels]]
 === AMQP Backed Message Channels
 

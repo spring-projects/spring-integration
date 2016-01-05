@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationListener;
@@ -340,18 +341,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	private void send(String exchangeName, String routingKey,
 			final Message<?> requestMessage, CorrelationData correlationData) {
 		if (this.amqpTemplate instanceof RabbitTemplate) {
-			((RabbitTemplate) this.amqpTemplate).convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
-					new MessagePostProcessor() {
-						@Override
-						public org.springframework.amqp.core.Message postProcessMessage(
-								org.springframework.amqp.core.Message message) throws AmqpException {
-							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(),
-									message.getMessageProperties());
-							checkDeliveryMode(requestMessage, message.getMessageProperties());
-							return message;
-						}
-					},
-					correlationData);
+			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+			org.springframework.amqp.core.Message amqpMessage = mapMessage(requestMessage, converter);
+			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
 		else {
 			this.amqpTemplate.convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
@@ -372,13 +364,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
 				"RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
-		MessageProperties amqpMessageProperties = new MessageProperties();
-		org.springframework.amqp.core.Message amqpMessage =
-				converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
-		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
-		checkDeliveryMode(requestMessage, amqpMessageProperties);
+		org.springframework.amqp.core.Message amqpMessage = mapMessage(requestMessage, converter);
 		org.springframework.amqp.core.Message amqpReplyMessage =
-				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey,amqpMessage,
+				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey, amqpMessage,
 						correlationData);
 
 		if (amqpReplyMessage == null) {
@@ -391,6 +379,21 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(amqpReplyMessage.getMessageProperties());
 		builder.copyHeadersIfAbsent(headers);
 		return builder.build();
+	}
+
+	protected org.springframework.amqp.core.Message mapMessage(Message<?> requestMessage, MessageConverter converter) {
+		MessageProperties amqpMessageProperties = new MessageProperties();
+		org.springframework.amqp.core.Message amqpMessage;
+		if (converter instanceof ContentTypeDelegatingMessageConverter) {
+			this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
+			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		}
+		else { // See INT-3002 - map headers last if we're not using a CTDMC
+			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+			this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
+		}
+		checkDeliveryMode(requestMessage, amqpMessageProperties);
+		return amqpMessage;
 	}
 
 	private void checkDeliveryMode(Message<?> requestMessage, MessageProperties messageProperties) {
