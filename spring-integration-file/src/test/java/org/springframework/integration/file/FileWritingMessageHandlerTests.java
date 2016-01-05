@@ -33,18 +33,19 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -57,6 +58,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Gary Russell
  * @author Tony Falabella
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class FileWritingMessageHandlerTests {
 
@@ -113,6 +115,21 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+	}
+
+	@Test
+	public void testFileNameHeader() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT)
+				.setHeader(FileHeaders.FILENAME, "dir1" + File.separator + "dir2/test")
+				.build();
+		QueueChannel output = new QueueChannel();
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIsMatching(result);
+		File destFile = (File) result.getPayload();
+		assertThat(destFile.getAbsolutePath(), containsString(TestUtils.applySystemFileSeparator("/dir1/dir2/test")));
 	}
 
 	@Test
@@ -196,7 +213,8 @@ public class FileWritingMessageHandlerTests {
 		assertFileContentIs(result, SAMPLE_CONTENT + System.getProperty("line.separator"));
 	}
 
-	@Test @Ignore // INT-3289 ignored because it won't fail on all OS
+	@Test
+	@Ignore("INT-3289: doesn't fail on all OS")
 	public void testCreateDirFail() {
 		File dir = new File("/foo");
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(dir);
@@ -404,18 +422,18 @@ public class FileWritingMessageHandlerTests {
 		assertFileContentIs(outFile, "foo");
 	}
 
-	void assertFileContentIsMatching(Message<?> result) throws IOException, UnsupportedEncodingException {
+	void assertFileContentIsMatching(Message<?> result) throws IOException {
 		assertFileContentIs(result, SAMPLE_CONTENT);
 	}
 
-	void assertFileContentIs(Message<?> result, String expected) throws IOException, UnsupportedEncodingException {
+	void assertFileContentIs(Message<?> result, String expected) throws IOException {
 		assertThat(result, is(notNullValue()));
 		assertThat(result.getPayload(), is(instanceOf(File.class)));
 		File destFile = (File) result.getPayload();
 		assertFileContentIs(destFile, expected);
 	}
 
-	void assertFileContentIs(File destFile, String expected) throws IOException, UnsupportedEncodingException {
+	void assertFileContentIs(File destFile, String expected) throws IOException {
 		assertNotSame(destFile, sourceFile);
 		assertThat(destFile.exists(), is(true));
 		byte[] destFileContent = FileCopyUtils.copyToByteArray(destFile);
