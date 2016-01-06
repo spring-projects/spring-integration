@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -25,7 +26,6 @@ import java.util.List;
 
 import javax.xml.transform.dom.DOMSource;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -75,7 +75,7 @@ public class UnmarshallingTransformerParserTests {
 		@SuppressWarnings("unchecked")
 		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
 				MultiValueMap.class).get("foo");
-		assertThat(list, Matchers.contains((SmartLifecycle) consumer));
+		assertThat(list, contains((SmartLifecycle) consumer));
 	}
 
 	@Test
