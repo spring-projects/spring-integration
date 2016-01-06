@@ -30,9 +30,9 @@ import java.lang.annotation.Target;
  * <p>
  * Important: The {@link IntegrationComponentScan} is required alongside with the
  * {@link org.springframework.context.annotation.Configuration}
- * to scan interfaces with the {@link IntegrationComponentScan}, because the
+ * to scan interfaces with the {@link MessagingGateway}, because the
  * standard {@link org.springframework.context.annotation.ComponentScan}
- * doesn't deal with interfaces at all.
+ * ignores interfaces.
  *
  * @author Artem Bilan
  * @since 4.0

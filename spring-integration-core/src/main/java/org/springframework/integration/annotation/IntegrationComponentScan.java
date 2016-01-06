@@ -31,8 +31,7 @@ import org.springframework.integration.config.IntegrationComponentScanRegistrar;
  * Configures component scanning directives for use with
  * the {@link org.springframework.context.annotation.Configuration} classes.
  * <p>
- * Scans Spring Integration specific components, like {@link MessagingGateway}
- * on interfaces, where the standard {@link ComponentScan} doesn't deal with interfaces at all.
+ * Scans for {@link MessagingGateway} on interfaces to create {@code GatewayProxyFactoryBean}s.
  *
  * @author Artem Bilan
  * @since 4.0
