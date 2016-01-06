@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 
-import org.springframework.beans.BeansException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
@@ -30,7 +29,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 
 /**
@@ -80,8 +78,20 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * Set the timeout for sending a message to the resolved channel. By default, there is no timeout, meaning the send
 	 * will block indefinitely.
 	 * @param timeout The timeout.
+	 * @deprecated in favor of {@link #setSendTimeout(long)}.
 	 */
+	@Deprecated
 	public void setTimeout(long timeout) {
+		this.messagingTemplate.setSendTimeout(timeout);
+	}
+
+	/**
+	 * Set the timeout for sending a message to the resolved channel.
+	 * By default, there is no timeout, meaning the send will block indefinitely.
+	 * @param timeout The timeout.
+	 * @since 4.3
+	 */
+	public void setSendTimeout(long timeout) {
 		this.messagingTemplate.setSendTimeout(timeout);
 	}
 

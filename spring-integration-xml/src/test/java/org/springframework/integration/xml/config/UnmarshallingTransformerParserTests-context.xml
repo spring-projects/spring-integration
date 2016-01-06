@@ -11,26 +11,36 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<si:channel id="input" />
-	
+
 	<si:channel id="pollableInput" >
 		<si:queue capacity="1"/>
 	</si:channel>
-	
+
 	<si:channel id="output">
 		<si:queue capacity="1"/>
 	</si:channel>
+
+	<si-xml:unmarshalling-transformer id="parseOnly"
+			order="2"
+			auto-startup="false"
+			phase="-1"
+			role="foo"
+			send-timeout="123"
+			input-channel="input"
+			output-channel="output"
+			unmarshaller="unmarshaller"/>
 
 	<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
 			input-channel="input"
 			output-channel="output"
 			unmarshaller="unmarshaller"/>
-			
+
 	<si-xml:unmarshalling-transformer id="unmrshallerWithPoller"
 			input-channel="pollableInput"
 			output-channel="output"
 			unmarshaller="unmarshaller">
 		<si:poller fixed-delay="500"/>
-	</si-xml:unmarshalling-transformer>		
+	</si-xml:unmarshalling-transformer>
 
 	<bean id="unmarshaller" class="org.springframework.integration.xml.config.StubUnmarshaller"/>
 

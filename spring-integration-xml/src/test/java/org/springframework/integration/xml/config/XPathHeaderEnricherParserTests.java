@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -28,22 +31,30 @@ import org.w3c.dom.Node;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class XPathHeaderEnricherParserTests {
 
 	@Autowired
@@ -57,6 +68,20 @@ public class XPathHeaderEnricherParserTests {
 
 	private final Message<?> message = MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
 
+
+	@Test
+	public void testParse() throws Exception {
+		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
+		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
+		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
+		@SuppressWarnings("unchecked")
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
+				MultiValueMap.class).get("foo");
+		assertThat(list, contains((SmartLifecycle) consumer));
+	}
 
 	@Test
 	public void stringResultByDefault() {

@@ -7,6 +7,15 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
+	<int-xml:xpath-router id="parseOnly" input-channel="xpathRouterEmptyChannel"
+			order="2"
+			auto-startup="false"
+			role="foo"
+			send-timeout="123"
+			phase="-1">
+		<int-xml:xpath-expression expression="/name"/>
+	</int-xml:xpath-router>
+
 	<int-xml:xpath-router id="xpathRouterEmpty" input-channel="xpathRouterEmptyChannel">
 		<int-xml:xpath-expression expression="/name"/>
 	</int-xml:xpath-router>

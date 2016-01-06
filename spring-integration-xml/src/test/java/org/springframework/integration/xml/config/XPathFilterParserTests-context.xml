@@ -10,6 +10,16 @@
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
+	<si-xml:xpath-filter id="parseOnly"
+			order="2"
+			auto-startup="false"
+			phase="-1"
+			role="foo"
+			send-timeout="123"
+			input-channel="booleanFilterInput" discard-channel="booleanFilterRejections">
+		<si-xml:xpath-expression expression="/name"/>
+	</si-xml:xpath-filter>
+
 	<si-xml:xpath-filter id="booleanFilter" input-channel="booleanFilterInput" discard-channel="booleanFilterRejections">
 		<si-xml:xpath-expression expression="/name"/>
 	</si-xml:xpath-filter>

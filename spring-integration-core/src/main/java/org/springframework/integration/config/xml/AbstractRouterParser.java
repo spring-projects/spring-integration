@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,14 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Base parser for routers.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractRouterParser extends AbstractConsumerEndpointParser {
 
@@ -39,7 +41,12 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 	protected final BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
+		if (StringUtils.hasText(element.getAttribute("timeout"))
+				&& StringUtils.hasText(element.getAttribute("send-timeout"))) {
+			parserContext.getReaderContext().error("Only one of 'timeout' and 'send-timeout' is allowed", element);
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout", "sendTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");

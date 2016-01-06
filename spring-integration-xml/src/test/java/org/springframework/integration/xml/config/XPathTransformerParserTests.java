@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
@@ -33,21 +36,29 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 import org.springframework.xml.xpath.NodeMapper;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class XPathTransformerParserTests {
 
 	@Autowired
@@ -77,8 +88,25 @@ public class XPathTransformerParserTests {
 	@Autowired
 	private PollableChannel output;
 
+	@Autowired
+	private EventDrivenConsumer parseOnly;
+
+	@Autowired
+	SmartLifecycleRoleController roleController;
+
 	private final Message<?> message = MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
 
+	@Test
+	public void testParse() throws Exception {
+		assertEquals(2, TestUtils.getPropertyValue(this.parseOnly, "handler.order"));
+		assertEquals(123L, TestUtils.getPropertyValue(this.parseOnly, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(this.parseOnly, "phase"));
+		assertFalse(TestUtils.getPropertyValue(this.parseOnly, "autoStartup", Boolean.class));
+		@SuppressWarnings("unchecked")
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
+				MultiValueMap.class).get("foo");
+		assertThat(list, contains((SmartLifecycle) this.parseOnly));
+	}
 
 	@Test
 	public void stringResultByDefault() {
@@ -139,6 +167,7 @@ public class XPathTransformerParserTests {
 	@SuppressWarnings("unused")
 	private static class TestNodeMapper implements NodeMapper<Object> {
 
+		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
 		}
@@ -148,10 +177,12 @@ public class XPathTransformerParserTests {
 	@SuppressWarnings("unused")
 	private static class TestXmlPayloadConverter implements XmlPayloadConverter {
 
+		@Override
 		public Source convertToSource(Object object) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public Node convertToNode(Object object) {
 			try {
 				return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
@@ -162,6 +193,7 @@ public class XPathTransformerParserTests {
 			}
 		}
 
+		@Override
 		public Document convertToDocument(Object object) {
 			throw new UnsupportedOperationException();
 		}

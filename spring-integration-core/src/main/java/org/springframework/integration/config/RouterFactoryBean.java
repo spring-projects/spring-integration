@@ -44,7 +44,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private volatile String defaultOutputChannelName;
 
-	private volatile Long timeout;
+	private volatile Long sendTimeout;
 
 	private volatile Boolean resolutionRequired;
 
@@ -60,8 +60,17 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
+	/**
+	 * @param timeout the timeout.
+	 * @deprecated in favor of {@link #setSendTimeout(Long)}.
+	 */
+	@Deprecated
 	public void setTimeout(Long timeout) {
-		this.timeout = timeout;
+		this.sendTimeout = timeout;
+	}
+
+	public void setSendTimeout(Long timeout) {
+		this.sendTimeout = timeout;
 	}
 
 	public void setResolutionRequired(Boolean resolutionRequired) {
@@ -121,8 +130,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.defaultOutputChannelName != null) {
 			router.setDefaultOutputChannelName(this.defaultOutputChannelName);
 		}
-		if (this.timeout != null) {
-			router.setTimeout(this.timeout);
+		if (this.sendTimeout != null) {
+			router.setSendTimeout(this.sendTimeout);
 		}
 		if (this.applySequence != null) {
 			router.setApplySequence(this.applySequence);
@@ -152,7 +161,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private boolean noRouterAttributesProvided() {
 		return this.channelMappings == null && this.defaultOutputChannel == null
-				&& this.timeout == null && this.resolutionRequired == null && this.applySequence == null
+				&& this.sendTimeout == null && this.resolutionRequired == null && this.applySequence == null
 				&& this.ignoreSendFailures == null;
 	}
 

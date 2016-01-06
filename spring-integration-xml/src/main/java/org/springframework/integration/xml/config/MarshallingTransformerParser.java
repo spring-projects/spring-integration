@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.config;
 
 import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
@@ -38,8 +39,8 @@ public class MarshallingTransformerParser extends AbstractTransformerParser {
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultTransformer = element.getAttribute("result-transformer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type", "resultType"); 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory", "resultFactoryName"); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type", "resultType");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory", "resultFactoryName");
 		String marshaller = element.getAttribute("marshaller");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
 		builder.addConstructorArgReference(marshaller);

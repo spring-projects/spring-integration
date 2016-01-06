@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import javax.xml.transform.dom.DOMSource;
 
@@ -25,18 +30,24 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.util.MultiValueMap;
 import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class UnmarshallingTransformerParserTests {
 
@@ -52,6 +63,20 @@ public class UnmarshallingTransformerParserTests {
 		unmarshaller = (StubUnmarshaller) appContext.getBean("unmarshaller");
 	}
 
+
+	@Test
+	public void testParse() throws Exception {
+		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("parseOnly");
+		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
+		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		SmartLifecycleRoleController roleController = appContext.getBean(SmartLifecycleRoleController.class);
+		@SuppressWarnings("unchecked")
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
+				MultiValueMap.class).get("foo");
+		assertThat(list, contains((SmartLifecycle) consumer));
+	}
 
 	@Test
 	public void testDefaultUnmarshall() throws Exception {
@@ -88,7 +113,7 @@ public class UnmarshallingTransformerParserTests {
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
-	
+
 	@Test
 	public void testPollingUnmarshall() throws Exception {
 		MessageChannel input = (MessageChannel) appContext.getBean("pollableInput");
@@ -100,9 +125,9 @@ public class UnmarshallingTransformerParserTests {
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
-	
-	
-	
+
+
+
 
 	@Test(expected = MessagingException.class)
 	public void testUnmarshallUnsupported() throws Exception {

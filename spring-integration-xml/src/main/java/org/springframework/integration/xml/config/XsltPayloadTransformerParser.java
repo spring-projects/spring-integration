@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Oleg Zhurakousky
  * @author Mike Bazos
  * @author liujiong
+ * @author Gary Russell
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
@@ -51,7 +52,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String xslResource = element.getAttribute("xsl-resource");
 		String xslTemplates = element.getAttribute("xsl-templates");
 		String resultTransformer = element.getAttribute("result-transformer");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type"); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "result-factory", "resultFactoryName");
 		String transformerFactoryClass = element.getAttribute("transformer-factory-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "xslt-param-headers");

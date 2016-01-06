@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public class RecipientListRouterTests {
 		channelB.setBeanName("channelB");
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
@@ -145,7 +145,7 @@ public class RecipientListRouterTests {
 		channelB.setBeanName("channelB");
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
@@ -177,7 +177,7 @@ public class RecipientListRouterTests {
 		channelB.setBeanName("channelB");
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
@@ -212,7 +212,7 @@ public class RecipientListRouterTests {
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
 		router.setIgnoreSendFailures(true);
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
@@ -242,7 +242,7 @@ public class RecipientListRouterTests {
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
 		router.setIgnoreSendFailures(true);
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
@@ -272,7 +272,7 @@ public class RecipientListRouterTests {
 		channelC.setBeanName("channelC");
 		RecipientListRouter router = new RecipientListRouter();
 		router.setIgnoreSendFailures(true);
-		router.setTimeout(0);
+		router.setSendTimeout(0);
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channelA);
 		channels.add(channelB);
