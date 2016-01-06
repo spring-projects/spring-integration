@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.integration.config.IntegrationComponentScanRegistrar;
 
 /**
- * Configures component scanning directives for use with @{@link org.springframework.context.annotation.Configuration} classes.
- * Scan Spring Integration specific components.
+ * Configures component scanning directives for use with
+ * the {@link org.springframework.context.annotation.Configuration} classes.
+ * <p>
+ * Scans for {@link MessagingGateway} on interfaces to create {@code GatewayProxyFactoryBean}s.
  *
  * @author Artem Bilan
  * @since 4.0
+ *
+ * @see ComponentScan
+ * @see MessagingGateway
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -41,28 +48,27 @@ public @interface IntegrationComponentScan {
 	/**
 	 * Alias for the {@link #basePackages()} attribute.
 	 * Allows for more concise annotation declarations e.g.:
-	 * {@code @ComponentScan("org.my.pkg")} instead of
-	 * {@code @ComponentScan(basePackages="org.my.pkg")}.
-	 *
+	 * {@code @IntegrationComponentScan("org.my.pkg")} instead of
+	 * {@code @IntegrationComponentScan(basePackages="org.my.pkg")}.
 	 * @return the array of 'basePackages'.
 	 */
+	@AliasFor("basePackages")
 	String[] value() default {};
 
 	/**
 	 * Base packages to scan for annotated components.
-	 * <p>{@link #value()} is an alias for (and mutually exclusive with) this attribute.
-	 * <p>Use {@link #basePackageClasses()} for a type-safe alternative to String-based package names.
-	 *
+	 * The {@link #value()} is an alias for (and mutually exclusive with) this attribute.
+	 * Use {@link #basePackageClasses()} for a type-safe alternative to String-based package names.
 	 * @return the array of 'basePackages'.
 	 */
+	@AliasFor("value")
 	String[] basePackages() default {};
 
 	/**
 	 * Type-safe alternative to {@link #basePackages()} for specifying the packages
 	 * to scan for annotated components. The package of each class specified will be scanned.
-	 * <p>Consider creating a special no-op marker class or interface in each package
+	 * Consider creating a special no-op marker class or interface in each package
 	 * that serves no purpose other than being referenced by this attribute.
-	 *
 	 * @return the array of 'basePackageClasses'.
 	 */
 	Class<?>[] basePackageClasses() default {};
