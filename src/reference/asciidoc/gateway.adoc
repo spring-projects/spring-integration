@@ -277,8 +277,11 @@ public interface TestGateway {
 }
 ----
 
-As with the XML version, Spring Integration creates the `proxy` implementation with its messaging infrastructure, when discovering these annotations during a component scan.
-To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class - see also <<annotations>>.
+IMPORTANT: As with the XML version, Spring Integration creates the `proxy` implementation with its messaging infrastructure, when discovering these annotations during a component scan.
+To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
+The standard `@ComponentScan` infrastructure doesn't deal with interfaces, therefore the custom `@IntegrationComponentScan` logic has been introduced
+to determine `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` s for them.
+See also <<annotations>>
 
 [[gateway-calling-no-argument-methods]]
 ==== Invoking No-Argument Methods

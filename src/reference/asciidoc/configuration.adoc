@@ -256,6 +256,8 @@ Annotations available in Spring Integration include:
 * @InboundChannelAdapter
 * @BridgeFrom
 * @BridgeTo
+* @MessagingGateway
+* @IntegrationComponentScan
 
 The behavior of each is described in its own chapter or section within this reference.
 
@@ -437,6 +439,24 @@ public String foo() {
 ----
 
 The first example requires that the default poller has been declared elsewhere in the application context.
+
+*@MessagingGateway*
+
+See <<messaging-gateway-annotation>>.
+
+*@IntegrationComponentScan*
+
+The standard Spring Framework `@ComponentScan` annotation doesn't scan interfaces for stereotype `@Component`
+annotations.
+To overcome this limitation and allow the configuration of `@MessagingGateway` (see <<messaging-gateway-annotation>>),
+the `@IntegrationComponentScan` mechanism has been introduced.
+This annotation must be placed along with a `@Configuration` annotation, and customized for the scanning options,
+such as `basePackages` and `basePackageClasses`.
+In this case all discovered interfaces annotated with `@MessagingGateway` will be parsed and registered
+as a `GatewayProxyFactoryBean` s.
+All other class-based components are parsed by the standard `@ComponentScan`.
+In future, more scanning logic may be added to the `@IntegrationComponentScan`.
+
 
 [[meta-annotations]]
 ==== Messaging Meta-Annotations
