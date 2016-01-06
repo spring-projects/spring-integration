@@ -14,6 +14,17 @@
 		<si:queue capacity="1"/>
 	</si:channel>
 
+	<si-xml:marshalling-transformer
+		id="parseOnly"
+		order="2"
+		auto-startup="false"
+		phase="-1"
+		role="foo"
+		send-timeout="123"
+		input-channel="marshallingTransformerNoResultFactory"
+		output-channel="output"
+		marshaller="marshaller" />
+
 	<si:channel id="marshallingTransformerNoResultFactory"/>
 	<si-xml:marshalling-transformer
 		input-channel="marshallingTransformerNoResultFactory"
@@ -33,13 +44,13 @@
 		output-channel="output"
 		marshaller="marshaller"
 		result-type="DOMResult" />
-		
+
 	<si:channel id="marshallingTransformerCustomResultFactory"/>
 	<si-xml:marshalling-transformer
 		input-channel="marshallingTransformerCustomResultFactory"
 		output-channel="output"
 		marshaller="marshaller"
-		result-factory="stubResultFactory" />	
+		result-factory="stubResultFactory" />
 
 	<si:channel id="marshallingTransformerWithResultTransformer"/>
 	<si-xml:marshalling-transformer

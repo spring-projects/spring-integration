@@ -13,9 +13,9 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
-			
+
 	<context:property-placeholder properties-ref="props"/>
-	
+
 	<util:properties id="props">
 		<beans:prop key="booleanResult">BOOLEAN_RESULT</beans:prop>
 		<beans:prop key="stringResult">STRING_RESULT</beans:prop>
@@ -23,10 +23,20 @@
 		<beans:prop key="nodeResult">NODE_RESULT</beans:prop>
 		<beans:prop key="nodeListResult">NODE_LIST_RESULT</beans:prop>
  	</util:properties>
-	
+
 	<si:channel id="output">
 		<si:queue/>
 	</si:channel>
+
+	<xpath-header-enricher id="parseOnly"
+			input-channel="input" output-channel="output"
+			order="2"
+			auto-startup="false"
+			phase="-1"
+			role="foo"
+			send-timeout="123">
+		<header name="name" xpath-expression="/person/@name" />
+	</xpath-header-enricher>
 
 	<xpath-header-enricher input-channel="input" output-channel="output">
 		<header name="name" xpath-expression="/person/@name" />

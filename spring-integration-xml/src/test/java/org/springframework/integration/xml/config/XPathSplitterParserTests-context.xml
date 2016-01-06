@@ -21,6 +21,11 @@
 	</util:properties>
 
 	<xpath-splitter id="xpathSplitter"
+					order="2"
+					auto-startup="false"
+					phase="-1"
+					role="foo"
+					send-timeout="123"
 					input-channel="input"
 					apply-sequence="false"
 					create-documents="true"

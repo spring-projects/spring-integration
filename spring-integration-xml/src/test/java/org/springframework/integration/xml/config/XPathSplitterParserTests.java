@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,51 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class XPathSplitterParserTests {
 
 	@Autowired @Qualifier("xpathSplitter.handler")
 	private MessageHandler xpathSplitter;
 
+	@Autowired @Qualifier("xpathSplitter")
+	private EventDrivenConsumer consumer;
+
 	@Autowired @Qualifier("outputProperties")
 	private Properties outputProperties;
+
+	@Autowired
+	SmartLifecycleRoleController roleController;
 
 	@Test
 	public void testXpathSplitterConfig() {
@@ -54,6 +72,14 @@ public class XPathSplitterParserTests {
 				TestUtils.getPropertyValue(this.xpathSplitter,
 						"xpathExpression.xpathExpression.xpath.m_patternString",
 						String.class));
+		assertEquals(2, TestUtils.getPropertyValue(xpathSplitter, "order"));
+		assertEquals(123L, TestUtils.getPropertyValue(xpathSplitter, "messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		@SuppressWarnings("unchecked")
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
+				MultiValueMap.class).get("foo");
+		assertThat(list, contains((SmartLifecycle) consumer));
 	}
 
 }

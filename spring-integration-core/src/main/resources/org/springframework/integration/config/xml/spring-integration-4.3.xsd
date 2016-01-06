@@ -3394,8 +3394,21 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify the maximum amount of time in milliseconds to wait
-					when sending Messages to the target MessageChannels. By
-					default the send will block indefinitely.
+					when sending Messages to the target MessageChannels if blocking
+					is possible (e.g. a bounded queue channel that is currently full).
+					By default the send will block indefinitely.
+					DEPRECATED in favor of 'send-timeout' for consistency with other elements.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the maximum amount of time in milliseconds to wait
+					when sending Messages to the target MessageChannels if blocking
+					is possible (e.g. a bounded queue channel that is currently full).
+					By default the send will block indefinitely.
+					Synonym for 'timeout' - only one can be supplied.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

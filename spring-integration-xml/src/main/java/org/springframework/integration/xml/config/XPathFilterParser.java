@@ -33,13 +33,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;xpath-filter&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */
 public class XPathFilterParser extends AbstractConsumerEndpointParser {
 
-	private XPathExpressionParser xpathParser = new XPathExpressionParser();
+	private final XPathExpressionParser xpathParser = new XPathExpressionParser();
 
 
 	@Override
@@ -65,6 +65,7 @@ public class XPathFilterParser extends AbstractConsumerEndpointParser {
 		builder.addPropertyValue("targetObject", selectorBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "throw-exception-on-rejection");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 

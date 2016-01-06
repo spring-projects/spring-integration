@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 
@@ -55,6 +56,7 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "iterator");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "output-properties");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 
