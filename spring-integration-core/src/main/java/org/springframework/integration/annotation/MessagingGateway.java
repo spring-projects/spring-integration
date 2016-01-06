@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,17 @@ import java.lang.annotation.Target;
  * ({@code <gateway/>}) as an abstraction over the messaging API. The target
  * application’s business logic may be completely unaware of the Spring Integration
  * API, with the code interacting only via the interface.
+ * <p>
+ * Important: The {@link IntegrationComponentScan} is required alongside with the
+ * {@link org.springframework.context.annotation.Configuration}
+ * to scan interfaces with the {@link IntegrationComponentScan}, because the
+ * standard {@link org.springframework.context.annotation.ComponentScan}
+ * doesn't deal with interfaces at all.
  *
  * @author Artem Bilan
  * @since 4.0
+ *
+ * @see IntegrationComponentScan
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -50,8 +58,8 @@ public @interface MessagingGateway {
 	String defaultRequestChannel() default "";
 
 	/**
-	 * Identifies default channel the gateway proxy will subscribe to to receive reply {@code Message}s, which will then be
-	 * converted to the return type of the method signature.
+	 * Identifies default channel the gateway proxy will subscribe to to receive reply {@code Message}s,
+	 * which will then be converted to the return type of the method signature.
 	 * @return the suggested channel name, if any
 	 */
 	String defaultReplyChannel() default "";
