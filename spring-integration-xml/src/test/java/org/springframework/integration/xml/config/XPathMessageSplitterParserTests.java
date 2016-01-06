@@ -17,23 +17,26 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Test;
+import org.w3c.dom.Document;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
-import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -57,8 +60,14 @@ public class XPathMessageSplitterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
 				.getTestAppContext(channelDefinitions
-						+ "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
+						+ "<si-xml:xpath-splitter id='splitter' "
+						+ "order='2' send-timeout='123' auto-startup='false' phase='-1' "
+						+ "input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
+		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
+		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		consumer.start();
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
@@ -98,7 +107,7 @@ public class XPathMessageSplitterParserTests {
 		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
 		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
 	}
-	
+
 	@Test
 	public void testXPathExpressionRef() throws Exception {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper

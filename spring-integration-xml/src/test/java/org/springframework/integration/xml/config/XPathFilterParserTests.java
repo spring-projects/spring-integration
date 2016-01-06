@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,67 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.w3c.dom.Document;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class XPathFilterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
+	public void testParse() throws Exception {
+		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
+		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
+		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
+		assertEquals(-1, TestUtils.getPropertyValue(consumer, "phase"));
+		assertFalse(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
+		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
+		@SuppressWarnings("unchecked")
+		List<SmartLifecycle> list = (List<SmartLifecycle>) TestUtils.getPropertyValue(roleController, "lifecycles",
+				MultiValueMap.class).get("foo");
+		assertThat(list, contains((SmartLifecycle) consumer));
+	}
+
+	@Test
 	public void simpleStringExpressionBoolean() throws Exception {
-		MessageChannel inputChannel = context.getBean("booleanFilterInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("booleanFilterInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("booleanFilterRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("booleanFilterRejections", PollableChannel.class);
 		Message<?> shouldBeAccepted = MessageBuilder.withPayload("<name>outputOne</name>").setReplyChannel(replyChannel).build();
 		Message<?> shouldBeRejected = MessageBuilder.withPayload("<other>outputOne</other>").setReplyChannel(replyChannel).build();
 		inputChannel.send(shouldBeAccepted);
@@ -59,12 +86,12 @@ public class XPathFilterParserTests {
 		assertNull(replyChannel.receive(0));
 		assertNull(discardChannel.receive(0));
 	}
-	
+
 	@Test
 	public void stringExpressionWithNamespaceBoolean() throws Exception {
-		MessageChannel inputChannel = context.getBean("booleanFilterWithNamespaceInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("booleanFilterWithNamespaceInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("booleanFilterWithNamespaceRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("booleanFilterWithNamespaceRejections", PollableChannel.class);
 		Document docToAccept = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		Document docToReject = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		Message<?> shouldBeAccepted = MessageBuilder.withPayload(docToAccept).setReplyChannel(replyChannel).build();
@@ -79,9 +106,9 @@ public class XPathFilterParserTests {
 
 	@Test
 	public void stringExpressionWithNestedMapBoolean() throws Exception {
-		MessageChannel inputChannel = context.getBean("nestedNamespaceMapFilterInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("nestedNamespaceMapFilterInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("nestedNamespaceMapFilterRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("nestedNamespaceMapFilterRejections", PollableChannel.class);
 		Document docToAccept = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		Document docToReject = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		Message<?> shouldBeAccepted = MessageBuilder.withPayload(docToAccept).setReplyChannel(replyChannel).build();
@@ -96,9 +123,9 @@ public class XPathFilterParserTests {
 
 	@Test
 	public void stringExpressionWithNamespaceString() throws Exception {
-		MessageChannel inputChannel = context.getBean("stringFilterWithNamespaceInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("stringFilterWithNamespaceInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("stringFilterWithNamespaceRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("stringFilterWithNamespaceRejections", PollableChannel.class);
 		Document docToAccept = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		Document docToReject = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		Message<?> shouldBeAccepted = MessageBuilder.withPayload(docToAccept).setReplyChannel(replyChannel).build();
@@ -113,9 +140,9 @@ public class XPathFilterParserTests {
 
 	@Test
 	public void stringExpressionIgnoresCase() throws Exception {
-		MessageChannel inputChannel = context.getBean("stringFilterIgnoresCaseInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("stringFilterIgnoresCaseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("stringFilterIgnoresCaseRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("stringFilterIgnoresCaseRejections", PollableChannel.class);
 		Document docToAccept1 = XmlTestUtil.getDocumentForString("<name>OUTPUTONE</name>");
 		Document docToAccept2 = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		Document docToReject = XmlTestUtil.getDocumentForString("<name>outputTwo</name>");
@@ -134,9 +161,9 @@ public class XPathFilterParserTests {
 
 	@Test
 	public void stringExpressionRegex() throws Exception {
-		MessageChannel inputChannel = context.getBean("stringFilterRegexInput", MessageChannel.class); 
+		MessageChannel inputChannel = context.getBean("stringFilterRegexInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
-		PollableChannel discardChannel = context.getBean("stringFilterRegexRejections", PollableChannel.class); 
+		PollableChannel discardChannel = context.getBean("stringFilterRegexRejections", PollableChannel.class);
 		Document docToAccept1 = XmlTestUtil.getDocumentForString("<name>aBcDeFgHiJk</name>");
 		Document docToAccept2 = XmlTestUtil.getDocumentForString("<name>xyz</name>");
 		Document docToReject = XmlTestUtil.getDocumentForString("<name>abc123</name>");

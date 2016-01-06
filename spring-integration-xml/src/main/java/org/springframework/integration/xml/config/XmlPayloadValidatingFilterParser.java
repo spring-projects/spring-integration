@@ -16,7 +16,6 @@
 
 package org.springframework.integration.xml.config;
 
-import org.springframework.integration.xml.selector.XmlValidatingMessageSelector;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -25,6 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.FilterFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xml.selector.XmlValidatingMessageSelector;
 import org.springframework.util.StringUtils;
 
 /**
@@ -60,6 +60,7 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(selectorBuilder, element, "throw-exception-on-rejection");
 		filterBuilder.addPropertyValue("targetObject", selectorBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(filterBuilder, element, "send-timeout");
 		return filterBuilder;
 	}
 

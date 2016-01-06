@@ -822,27 +822,6 @@
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="output-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Message Channel where you want accepted messages to be sent.
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="discard-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -856,6 +835,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>
+		<xsd:attributeGroup ref="integration:inputOutputChannelGroup"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="inputOutputEndpoint">
@@ -863,24 +843,7 @@
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="output-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:inputOutputChannelGroup"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="paramType">

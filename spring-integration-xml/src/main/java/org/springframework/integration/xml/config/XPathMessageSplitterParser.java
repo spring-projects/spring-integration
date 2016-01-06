@@ -55,6 +55,7 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "iterator");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "output-properties");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 
