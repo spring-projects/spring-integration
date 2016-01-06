@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.messaging.Message;
 import org.springframework.util.StringUtils;
 
 /**
@@ -49,9 +47,9 @@ public class KafkaProducerContext implements SmartLifecycle, NamedComponent, Bea
 
 	private volatile Map<String, ProducerConfiguration<?, ?>> producerConfigurations;
 
-	private volatile ProducerConfiguration<?,?> theProducerConfiguration;
+	private volatile ProducerConfiguration<?, ?> theProducerConfiguration;
 
-	private String beanName = "not_specified";
+	private String beanName;
 
 	private int phase = 0;
 
@@ -187,18 +185,19 @@ public class KafkaProducerContext implements SmartLifecycle, NamedComponent, Bea
 	}
 
 	public Future<RecordMetadata> send(String topic, Object messageKey, Object messagePayload) {
-		return this.send(topic, null, messageKey, messagePayload);
+		return send(topic, null, messageKey, messagePayload);
 	}
 
 	public Future<RecordMetadata> send(String topic, Integer partition, Object messageKey, Object messagePayload) {
-		if (!running.get()) {
+		if (!this.running.get()) {
 			start();
 		}
 
 		// only try to look up for a producer configuration if the topic is passed as argument
 		// if no topic is configured, then we'll fall back to the default if a single
 		// producer configuration is available
-		ProducerConfiguration<?, ?> producerConfiguration = StringUtils.hasText(topic) ? getTopicConfiguration(topic) : null;
+		ProducerConfiguration<?, ?> producerConfiguration =
+				StringUtils.hasText(topic) ? getTopicConfiguration(topic) : null;
 
 		if (producerConfiguration != null) {
 			return producerConfiguration.convertAndSend(topic, partition, messageKey, messagePayload);
