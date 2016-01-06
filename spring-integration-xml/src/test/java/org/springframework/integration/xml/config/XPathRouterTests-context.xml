@@ -11,7 +11,7 @@
 			order="2"
 			auto-startup="false"
 			role="foo"
-			timeout="123"
+			send-timeout="123"
 			phase="-1">
 		<int-xml:xpath-expression expression="/name"/>
 	</int-xml:xpath-router>
