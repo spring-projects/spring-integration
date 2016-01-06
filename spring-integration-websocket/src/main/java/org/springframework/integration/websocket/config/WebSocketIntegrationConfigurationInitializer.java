@@ -115,7 +115,7 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 
 		private ApplicationContext applicationContext;
 
-		private void setSockJsTaskScheduler(ThreadPoolTaskScheduler sockJsTaskScheduler) {
+		public void setSockJsTaskScheduler(ThreadPoolTaskScheduler sockJsTaskScheduler) {
 			this.registry = new ServletWebSocketHandlerRegistry(sockJsTaskScheduler);
 		}
 
