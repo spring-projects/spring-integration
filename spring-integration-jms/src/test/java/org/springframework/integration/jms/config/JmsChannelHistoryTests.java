@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -43,6 +44,11 @@ import org.springframework.jms.listener.AbstractMessageListenerContainer;
  *
  */
 public class JmsChannelHistoryTests {
+
+	@BeforeClass
+	public static void setup() {
+		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
+	}
 
 	@SuppressWarnings("rawtypes")
 	@Test

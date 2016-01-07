@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -77,6 +78,11 @@ public class SubscribableJmsChannelTests {
 	private Destination topic;
 
 	private Destination queue;
+
+	@BeforeClass
+	public static void beforeClass() {
+		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
+	}
 
 	@Before
 	public void setup() throws Exception {
