@@ -721,6 +721,7 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:sequence>
+					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="sql-parameter-definition" minOccurs="0"
 							maxOccurs="unbounded" type="sqlParameterDefinitionType">
 						<xsd:annotation>

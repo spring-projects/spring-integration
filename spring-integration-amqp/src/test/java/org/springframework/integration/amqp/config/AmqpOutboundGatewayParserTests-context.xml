@@ -17,7 +17,9 @@
 		amqp-template="amqpTemplate"
 		auto-startup="false"
 		order="5"
-		return-channel="returnChannel"/>
+		return-channel="returnChannel">
+		<int:poller fixed-delay="100"/>
+	</amqp:outbound-gateway>
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 
@@ -25,7 +27,9 @@
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
 
-	<int:channel id="toRabbit0"/>
+	<int:channel id="toRabbit0">
+		<int:queue/>
+	</int:channel>
 	<int:channel id="toRabbit1"/>
 	<int:channel id="toRabbit2"/>
 	<int:channel id="toRabbit3"/>

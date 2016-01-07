@@ -16,7 +16,9 @@
 	<context:mbean-export/>
 	<context:mbean-server/>
 
-	<si:channel id="withReplyChannel"/>
+	<si:channel id="withReplyChannel">
+		<si:queue/>
+	</si:channel>
 
 	<si:channel id="withReplyChannelOutput">
 		<si:queue/>
@@ -28,6 +30,7 @@
 			reply-channel="withReplyChannelOutput"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
 			operation-name="testWithReturn">
+		<si:poller fixed-delay="100"/>
 		<jmx:request-handler-advice-chain>
 			<bean class="org.springframework.integration.jmx.config.OperationInvokingOutboundGatewayTests.FooAdvice" />
 		</jmx:request-handler-advice-chain>

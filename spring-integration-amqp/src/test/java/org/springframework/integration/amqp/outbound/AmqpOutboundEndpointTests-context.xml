@@ -55,9 +55,13 @@
 								   mapped-request-headers="foo*"
 								   amqp-template="amqpTemplateConfirmsAdapter"
 								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
-								   confirm-ack-channel="ackChannel" />
+								   confirm-ack-channel="ackChannel" >
+		<int:poller fixed-delay="100"/>
+	</amqp:outbound-channel-adapter>
 
-	<int:channel id="pcRequestChannelForAdapter"/>
+	<int:channel id="pcRequestChannelForAdapter">
+		<int:queue/>
+	</int:channel>
 
 	<rabbit:template id="amqpTemplateReturns" connection-factory="connectionFactory" mandatory="true" />
 

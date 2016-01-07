@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,16 +78,19 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class ParserUnitTests {
 
 	@Autowired
@@ -213,19 +218,19 @@ public class ParserUnitTests {
 	private MessageChannel errorChannel;
 
 	@Autowired
-	private DirectChannel udpChannel;
+	private MessageChannel udpChannel;
 
 	@Autowired
-	private DirectChannel udpAdviceChannel;
+	private MessageChannel udpAdviceChannel;
 
 	@Autowired
-	private DirectChannel tcpAdviceChannel;
+	private MessageChannel tcpAdviceChannel;
 
 	@Autowired
-	private DirectChannel tcpAdviceGateChannel;
+	private MessageChannel tcpAdviceGateChannel;
 
 	@Autowired
-	private DirectChannel tcpChannel;
+	private MessageChannel tcpChannel;
 
 	@Autowired
 	TcpReceivingChannelAdapter tcpInClientMode;
@@ -274,7 +279,7 @@ public class ParserUnitTests {
 	@Autowired
 	QueueChannel eventChannel;
 
-	private static volatile int adviceCalled;
+	private static CountDownLatch adviceCalled = new CountDownLatch(1);
 
 	@Test
 	public void testInUdp() {
@@ -409,24 +414,24 @@ public class ParserUnitTests {
 	}
 
 	@Test
-	public void udpAdvice() {
-		adviceCalled = 0;
+	public void udpAdvice() throws InterruptedException {
+		adviceCalled = new CountDownLatch(1);
 		this.udpAdviceChannel.send(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
-	public void tcpAdvice() {
-		adviceCalled = 0;
+	public void tcpAdvice() throws InterruptedException {
+		adviceCalled = new CountDownLatch(1);
 		this.tcpAdviceChannel.send(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
-	public void tcpGatewayAdvice() {
-		adviceCalled = 0;
+	public void tcpGatewayAdvice() throws InterruptedException {
+		adviceCalled = new CountDownLatch(1);
 		this.tcpAdviceGateChannel.send(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -693,7 +698,7 @@ public class ParserUnitTests {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
-			adviceCalled++;
+			adviceCalled.countDown();
 			return null;
 		}
 

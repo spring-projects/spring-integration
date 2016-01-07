@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt-4.3.xsd=org/springframework/integration/mqtt/config/xml/spring-integration-mqtt-4.3.xsd
-http\://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd=org/springframework/integration/mqtt/config/xml/spring-integration-mqtt-4.3.xsd
+http\://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt-4.3.xsd=org/springframework/integration/mqtt/config/spring-integration-mqtt-4.3.xsd
+http\://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd=org/springframework/integration/mqtt/config/spring-integration-mqtt-4.3.xsd

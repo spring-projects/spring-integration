@@ -134,7 +134,7 @@
 					writes Message to a Gemfire cache
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:choice minOccurs="0" maxOccurs="2">
+			<xsd:choice minOccurs="0" maxOccurs="3">
 				<xsd:element name="cache-entries" type="beans:mapType"
 							 minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
@@ -144,6 +144,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0"
 							 maxOccurs="1"/>
 			</xsd:choice>
