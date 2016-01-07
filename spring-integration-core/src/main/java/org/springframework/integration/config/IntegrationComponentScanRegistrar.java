@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package org.springframework.integration.config;
 
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -41,16 +39,15 @@ import org.springframework.util.StringUtils;
  * {@link ImportBeanDefinitionRegistrar} implementation to scan and register Integration specific components.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
-		ResourceLoaderAware, BeanClassLoaderAware {
+		ResourceLoaderAware {
 
 	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
 
 	private ResourceLoader resourceLoader;
-
-	private ClassLoader classLoader;
 
 	public IntegrationComponentScanRegistrar() {
 		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class, true), new MessagingGatewayRegistrar());
@@ -59,11 +56,6 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;
-	}
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
 	}
 
 	@Override
@@ -94,23 +86,8 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 			@Override
 			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-				if (beanDefinition.getMetadata().isIndependent()) {
-					// TODO until SPR-11711 will be resolved
-					if (beanDefinition.getMetadata().isInterface() &&
-							beanDefinition.getMetadata().getInterfaceNames().length == 1 &&
-							Annotation.class.getName().equals(beanDefinition.getMetadata().getInterfaceNames()[0])) {
-						try {
-							Class<?> target = ClassUtils.forName(beanDefinition.getMetadata().getClassName(), classLoader);
-							return !target.isAnnotation();
-						}
-						catch (Exception e) {
-							logger.error("Could not load target class: " + beanDefinition.getMetadata().getClassName(), e);
-
-						}
-					}
-					return true;
-				}
-				return false;
+				return beanDefinition.getMetadata().isIndependent()
+						&& !beanDefinition.getMetadata().isAnnotation();
 			}
 		};
 
