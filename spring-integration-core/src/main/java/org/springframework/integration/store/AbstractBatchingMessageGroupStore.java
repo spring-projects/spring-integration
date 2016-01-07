@@ -49,7 +49,7 @@ public abstract class AbstractBatchingMessageGroupStore implements BasicMessageG
 	}
 
 	/**
-	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup) object where
+	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup} object where
 	 * it is necessary.
 	 * Defaults to {@link SimpleMessageGroupFactory}.
 	 * @param messageGroupFactory the {@link MessageGroupFactory} to use.
