@@ -68,6 +68,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="udpAdapterType">
 					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 							minOccurs="0" maxOccurs="1" />
 					</xsd:all>
@@ -203,6 +204,7 @@
 	<xsd:element name="tcp-outbound-channel-adapter">
 		<xsd:complexType>
 			<xsd:all>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 					minOccurs="0" maxOccurs="1" />
 			</xsd:all>
@@ -343,6 +345,7 @@
 	<xsd:element name="tcp-outbound-gateway">
 		<xsd:complexType>
 			<xsd:all>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
 					minOccurs="0" maxOccurs="1" />
 			</xsd:all>

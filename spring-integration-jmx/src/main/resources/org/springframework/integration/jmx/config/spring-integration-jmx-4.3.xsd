@@ -72,6 +72,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="request-channel" type="xsd:string" />
@@ -100,6 +101,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="channel" type="xsd:string" use="optional" />

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
@@ -53,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -78,7 +80,7 @@ public class FtpOutboundChannelAdapterParserTests {
 	private EventDrivenConsumer ftpOutbound2;
 
 	@Autowired
-	private EventDrivenConsumer ftpOutbound3;
+	private PollingConsumer ftpOutbound3;
 
 	@Autowired
 	private PublishSubscribeChannel ftpChannel;
@@ -87,10 +89,11 @@ public class FtpOutboundChannelAdapterParserTests {
 	private FileNameGenerator fileNameGenerator;
 
 	@Test
-	public void testFtpOutboundChannelAdapterComplete() throws Exception{
+	public void testFtpOutboundChannelAdapterComplete() throws Exception {
 		assertEquals(ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
 		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
+		FileTransferringMessageHandler<?> handler =
+				TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
@@ -106,21 +109,18 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(22, TestUtils.getPropertyValue(sessionFactory, "port"));
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
 		//verify subscription order
+		Object dispatcher = TestUtils.getPropertyValue(ftpChannel, "dispatcher");
 		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
-				.getPropertyValue(
-						TestUtils.getPropertyValue(ftpChannel, "dispatcher"),
-						"handlers");
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils.getPropertyValue(dispatcher, "handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
 		assertSame(TestUtils.getPropertyValue(this.ftpOutbound2, "handler"), iterator.next());
 		assertSame(handler, iterator.next());
 		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(ftpOutbound, "handler.mode"));
 	}
 
-	@SuppressWarnings("resource")
-	@Test(expected=BeanCreationException.class)
-	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
-		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());
+	@Test(expected = BeanCreationException.class)
+	public void testFailWithEmptyRfsAndAcdTrue() throws Exception {
+		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass()).close();
 	}
 
 	@Test
@@ -142,13 +142,14 @@ public class FtpOutboundChannelAdapterParserTests {
 	@Test
 	public void testTemporaryFileSuffix() {
 		FileTransferringMessageHandler<?> handler =
-				(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ftpOutbound3, "handler");
-		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
+				(FileTransferringMessageHandler<?>) TestUtils.getPropertyValue(ftpOutbound3, "handler");
+		assertFalse(TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName", Boolean.class));
 	}
 
 	@Test
-	public void testBeanExpressions() throws Exception{
-		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(withBeanExpressions, "handler", FileTransferringMessageHandler.class);
+	public void testBeanExpressions() throws Exception {
+		FileTransferringMessageHandler<?> handler =
+				TestUtils.getPropertyValue(withBeanExpressions, "handler", FileTransferringMessageHandler.class);
 		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
 		assertNotNull(dirExpProc);
@@ -173,4 +174,5 @@ public class FtpOutboundChannelAdapterParserTests {
 		}
 
 	}
+
 }

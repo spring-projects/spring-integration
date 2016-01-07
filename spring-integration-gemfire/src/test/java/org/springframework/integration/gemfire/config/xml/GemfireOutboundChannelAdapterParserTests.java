@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,12 @@
 package org.springframework.integration.gemfire.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.createFakeParserContext;
 import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.loadXMLFrom;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,20 +34,23 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dan Oxlade
  * @author Liujiong
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class GemfireOutboundChannelAdapterParserTests {
 
 	private GemfireOutboundChannelAdapterParser underTest = new GemfireOutboundChannelAdapterParser();
 
-	private volatile static int adviceCalled;
+	private static final CountDownLatch adviceCalled = new CountDownLatch(1);
 
 	@Autowired
 	@Qualifier("adapter")
@@ -60,11 +67,11 @@ public class GemfireOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void withAdvice() {
+	public void withAdvice() throws InterruptedException {
 		adapter1.start();
 		MessageChannel channel = ctx.getBean("input", MessageChannel.class);
 		channel.send(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		assertTrue(adviceCalled.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -81,7 +88,7 @@ public class GemfireOutboundChannelAdapterParserTests {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
-			adviceCalled++;
+			adviceCalled.countDown();
 			return null;
 		}
 

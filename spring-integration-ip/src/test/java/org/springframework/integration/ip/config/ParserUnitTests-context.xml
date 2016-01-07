@@ -143,9 +143,12 @@
 		order="12"
 	/>
 
-	<int:channel id="udpAdviceChannel" />
+	<int:channel id="udpAdviceChannel" >
+		<int:queue/>
+	</int:channel>
 
 	<ip:udp-outbound-channel-adapter channel="udpAdviceChannel" host="localhost" port="0">
+		<int:poller fixed-delay="100"/>
 		<ip:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
 		</ip:request-handler-advice-chain>
@@ -173,12 +176,15 @@
 		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory" />
 	</bean>
 
-	<int:channel id="tcpAdviceChannel" />
+	<int:channel id="tcpAdviceChannel">
+		<int:queue/>
+	</int:channel>
 
 	<ip:tcp-outbound-channel-adapter id="tcpOutAdvice"
 		channel="tcpAdviceChannel"
 		connection-factory="mockClientCf"
 		phase="125">
+		<int:poller fixed-delay="100"/>
 		<ip:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
 		</ip:request-handler-advice-chain>
@@ -229,13 +235,16 @@
 		phase="127"
 		/>
 
-	<int:channel id="tcpAdviceGateChannel" />
+	<int:channel id="tcpAdviceGateChannel">
+		<int:queue/>
+	</int:channel>
 
 	<ip:tcp-outbound-gateway id="outAdviceGateway"
 		request-channel="tcpAdviceGateChannel"
 		reply-channel="replyChannel"
 		remote-timeout-expression="4000"
 		connection-factory="mockClientCf">
+		<int:poller fixed-delay="100"/>
 		<ip:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
 		</ip:request-handler-advice-chain>
