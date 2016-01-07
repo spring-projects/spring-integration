@@ -9,6 +9,14 @@ development process.
 [[x4.3-new-components]]
 === New Components
 
+==== MessageGroupFactory
+
+The new `MessageGroupFactory` strategy has been introduced to allow a control over `MessageGroup` instances
+in the `MessageGroupStore` logic.
+The `SimpleMessageGroupFactory` is provided for the `SimpleMessageGroup` with the `GroupType.HASH_SET` as default
+factory for the particular `MessageGroupStore` implementations.
+See <<message-store>> for more information.
+
 
 [[x4.3-general]]
 === General Changes

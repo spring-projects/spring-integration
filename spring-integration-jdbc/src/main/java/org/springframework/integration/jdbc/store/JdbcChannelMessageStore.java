@@ -362,6 +362,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		return this.priorityEnabled;
 	}
 
+	/**
+	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup) object where
+	 * it is necessary.
+	 * Defaults to {@link SimpleMessageGroupFactory}.
+	 * @param messageGroupFactory the {@link MessageGroupFactory} to use.
+	 * @since 4.3
+	 */
 	public void setMessageGroupFactory(MessageGroupFactory messageGroupFactory) {
 		Assert.notNull(messageGroupFactory, "'messageGroupFactory' must not be null");
 		this.messageGroupFactory = messageGroupFactory;

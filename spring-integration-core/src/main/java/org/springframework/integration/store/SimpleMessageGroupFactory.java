@@ -21,6 +21,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.messaging.Message;
 
 /**
+ * The {@link MessageGroupFactory} implementation to produce {@link SimpleMessageGroup} instances.
+ * The {@link GroupType} modificator specifies the internal collection for the {@link SimpleMessageGroup}.
+ * The {@link GroupType#HASH_SET} is the default type.
+ *
  * @author Artem Bilan
  * @since 4.3
  */

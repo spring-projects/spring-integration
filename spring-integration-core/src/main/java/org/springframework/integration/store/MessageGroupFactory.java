@@ -21,6 +21,9 @@ import java.util.Collection;
 import org.springframework.messaging.Message;
 
 /**
+ * The {@link MessageGroup} factory strategy.
+ * This strategy is used from the {@link MessageGroup}-aware components, e.g. {@code MessageGroupStore}.
+ *
  * @author Artem Bilan
  * @since 4.3
  */
