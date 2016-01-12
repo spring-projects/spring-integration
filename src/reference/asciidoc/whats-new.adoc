@@ -57,9 +57,20 @@ See <<udp-adapters>> for more information.
 
 ==== File Changes
 
+===== Destination Directory Creation
+
 The generated file name for the `FileWritingMessageHandler` can represent _sub-path_ to save the desired directory
 structure for file in the target directory.
 See <<file-writing-file-names>> for more information.
+
+===== Buffer Size
+
+When writing files, you can now specify the buffer size to use.
+
+===== Appending and Flushing
+
+You can now avoid flushing files when appending and use a number of strategies to flush the data during idle periods.
+See <<file-flushing>> for more information.
 
 ==== AMQP Changes
 

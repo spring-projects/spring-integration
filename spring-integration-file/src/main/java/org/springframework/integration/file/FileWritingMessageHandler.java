@@ -21,23 +21,32 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ScheduledFuture;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
@@ -45,6 +54,7 @@ import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -69,6 +79,15 @@ import org.springframework.util.StringUtils;
  * Likewise, any Object can be converted to a String based on its
  * <code>toString()</code> method by the
  * {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
+ * <p>
+ * {@link FileExistsMode#APPEND} adds content to an existing file; the file is closed after
+ * each write.
+ * {@link FileExistsMode#APPEND_NO_FLUSH} adds content to an existing file and the file
+ * is left open without flushing any data. Data will be flushed based on the
+ * {@link #setFlushInterval(long) flushInterval} or when a message is sent to the
+ * {@link #trigger(Message)} method, or a
+ * {@link #flushIfNeeded(MessageFlushPredicate, Message) flushIfNeeded}
+ * method is called.
  *
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -79,9 +98,16 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Tony Falabella
  */
-public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
+public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
+		implements Lifecycle, MessageTriggerAction {
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+	private static final int DEFAULT_BUFFER_SIZE = 8192;
+
+	private static final long DEFAULT_FLUSH_INTERVAL = 30000L;
+
+	private final Map<String, FileState> fileStates = new HashMap<String, FileState>();
 
 	private volatile String temporaryFileSuffix = ".writing";
 
@@ -110,6 +136,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile boolean appendNewLine = false;
 
 	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
+
+	private volatile int bufferSize = DEFAULT_BUFFER_SIZE;
+
+	private volatile long flushInterval = DEFAULT_FLUSH_INTERVAL;
+
+	private volatile ScheduledFuture<?> flushTask;
+
+	private volatile MessageFlushPredicate flushPredicate = new DefaultFlushPredicate();
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -181,7 +215,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.notNull(fileExistsMode, "'fileExistsMode' must not be null.");
 		this.fileExistsMode = fileExistsMode;
 
-		if (FileExistsMode.APPEND.equals(fileExistsMode)) {
+		if (FileExistsMode.APPEND.equals(fileExistsMode)
+				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			this.lockRegistry = this.lockRegistry instanceof PassThruLockRegistry
 					? new DefaultLockRegistry()
 					: this.lockRegistry;
@@ -249,6 +284,42 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.charset = Charset.forName(charset);
 	}
 
+	/**
+	 * Set the buffer size to use while writing to files; default 8192.
+	 * @param bufferSize the buffer size.
+	 * @since 4.3
+	 */
+	public void setBufferSize(int bufferSize) {
+		this.bufferSize = bufferSize;
+	}
+
+	/**
+	 * Set the frequency to flush buffers when {@link FileExistsMode#APPEND_NO_FLUSH} is
+	 * being used.
+	 * @param flushInterval the interval.
+	 * @since 4.3
+	 */
+	public void setFlushInterval(long flushInterval) {
+		this.flushInterval = flushInterval;
+	}
+
+	@Override
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
+	}
+
+	/**
+	 * Set a {@link MessageFlushPredicate} to use when flushing files when
+	 * {@link FileExistsMode#APPEND_NO_FLUSH} is being used.
+	 * See {@link #trigger(Message)}.
+	 * @param flushPredicate the predicate.
+	 * @since 4.3
+	 */
+	public void setFlushPredicate(MessageFlushPredicate flushPredicate) {
+		Assert.notNull(flushPredicate, "'flushPredicate' cannot be null");
+		this.flushPredicate = flushPredicate;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
@@ -259,12 +330,38 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
-		Assert.state(!(this.temporaryFileSuffixSet && FileExistsMode.APPEND.equals(this.fileExistsMode)),
+		Assert.state(!(this.temporaryFileSuffixSet
+				&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
+						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))),
 				"'temporaryFileSuffix' can not be set when appending to an existing file");
 
 		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(getBeanFactory());
 		}
+
+	}
+
+	@Override
+	public void start() {
+		if (FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
+			TaskScheduler taskScheduler = getTaskScheduler();
+			Assert.state(taskScheduler != null, "'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
+			this.flushTask = taskScheduler.scheduleAtFixedRate(new Flusher(), this.flushInterval / 3);
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.flushTask != null) {
+			this.flushTask.cancel(true);
+			this.flushTask = null;
+		}
+		new Flusher().run();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.flushTask != null;
 	}
 
 	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
@@ -380,15 +477,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
 										  final File resultFile) throws IOException {
-		if (FileExistsMode.APPEND.equals(this.fileExistsMode)) {
-			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
+		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
+				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
+
+		if (append) {
+			final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+
+			final FileState state = getFileState(fileToWriteTo, false);
 
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 					fileToWriteTo.getAbsolutePath()) {
 
 				@Override
 				protected void whileLocked() throws IOException {
+					BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 					try {
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
@@ -398,7 +500,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						if (FileWritingMessageHandler.this.appendNewLine) {
 							bos.write(LINE_SEPARATOR.getBytes());
 						}
-						bos.flush();
 					}
 					finally {
 						try {
@@ -407,7 +508,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						catch (IOException ex) {
 						}
 						try {
-							bos.close();
+							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+								bos.close();
+								if (state != null) {
+									fileStates.remove(fileToWriteTo.getAbsolutePath());
+								}
+							}
+							else {
+								state.lastWrite = System.currentTimeMillis();
+							}
 						}
 						catch (IOException ex) {
 						}
@@ -421,7 +530,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else {
 
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile));
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize);
 
 			try {
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
@@ -453,16 +562,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile)
 			throws IOException {
-		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+
+		final FileState state = getFileState(fileToWriteTo, false);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 				fileToWriteTo.getAbsolutePath()) {
 
 			@Override
 			protected void whileLocked() throws IOException {
+				BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
 				try {
 					bos.write(bytes);
 					if (FileWritingMessageHandler.this.appendNewLine) {
@@ -471,7 +582,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						bos.close();
+						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+							bos.close();
+							if (state != null) {
+								fileStates.remove(fileToWriteTo.getAbsolutePath());
+							}
+						}
+						else {
+							state.lastWrite = System.currentTimeMillis();
+						}
 					}
 					catch (IOException ex) {
 					}
@@ -486,17 +605,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile)
 			throws IOException {
-		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+
+		final FileState state = getFileState(fileToWriteTo, true);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final BufferedWriter writer =
-				new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 				fileToWriteTo.getAbsolutePath()) {
 
 			@Override
 			protected void whileLocked() throws IOException {
+				BufferedWriter writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
 				try {
 					writer.write(content);
 					if (FileWritingMessageHandler.this.appendNewLine) {
@@ -505,7 +625,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						writer.close();
+						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
+							writer.close();
+							if (state != null) {
+								fileStates.remove(fileToWriteTo.getAbsolutePath());
+							}
+						}
+						else {
+							state.lastWrite = System.currentTimeMillis();
+						}
 					}
 					catch (IOException ex) {
 					}
@@ -526,6 +654,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		switch (this.fileExistsMode) {
 			case APPEND:
+			case APPEND_NO_FLUSH:
 				fileToWriteTo = resultFile;
 				break;
 			case FAIL:
@@ -540,7 +669,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException {
-		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && StringUtils.hasText(this.temporaryFileSuffix)) {
+		if (!FileExistsMode.APPEND.equals(this.fileExistsMode)
+				&& !FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)
+				&& StringUtils.hasText(this.temporaryFileSuffix)) {
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 
@@ -606,6 +737,218 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		validateDestinationDirectory(destinationDirectory, this.autoCreateDirectory);
 		return destinationDirectory;
+	}
+
+	private synchronized FileState getFileState(final File fileToWriteTo, boolean isString)
+			throws FileNotFoundException {
+		String absolutePath = fileToWriteTo.getAbsolutePath();
+		FileState state;
+		boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
+		if (appendNoFlush) {
+			state = this.fileStates.get(absolutePath);
+			if (state != null && ((isString && state.stream != null) || (!isString && state.writer != null))) {
+				state.close();
+				state = null;
+				this.fileStates.remove(absolutePath);
+			}
+			if (state == null) {
+				if (isString) {
+					state = new FileState(createWriter(fileToWriteTo, true));
+				}
+				else {
+					state = new FileState(createOutputStream(fileToWriteTo, true));
+				}
+				this.fileStates.put(absolutePath, state);
+			}
+			state.lastWrite = Long.MAX_VALUE; // prevent flush while we write
+		}
+		else {
+			state = null;
+		}
+		return state;
+	}
+
+	private BufferedWriter createWriter(final File fileToWriteTo, final boolean append) throws FileNotFoundException {
+		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset),
+				this.bufferSize);
+	}
+
+	private BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
+			throws FileNotFoundException {
+		return new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append), this.bufferSize);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, you can send a message to this
+	 * method to flush any file(s) that needs it. By default, the payload must be a regular
+	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
+	 * of any in-process files. However, if a custom {@link MessageFlushPredicate} is provided,
+	 * the payload can be of any type supported by that implementation.
+	 * @since 4.3
+	 */
+	@Override
+	public void trigger(Message<?> message) {
+		flushIfNeeded(this.flushPredicate, message);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link FlushPredicate}.
+	 * @since 4.3
+	 */
+	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
+		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<String, FileState> entry = iterator.next();
+			FileState state = entry.getValue();
+			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite)) {
+				iterator.remove();
+				state.close();
+			}
+		}
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link MessageFlushPredicate}.
+	 * @param filterMessage an optional message passed into the predicate.
+	 * @since 4.3
+	 */
+	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<String, FileState> entry = iterator.next();
+			FileState state = entry.getValue();
+			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite, filterMessage)) {
+				iterator.remove();
+				state.close();
+			}
+		}
+	}
+
+
+	private static final class FileState {
+
+		private final BufferedWriter writer;
+
+		private final BufferedOutputStream  stream;
+
+		private volatile long lastWrite;
+
+		private FileState(BufferedWriter writer) {
+			this.writer = writer;
+			this.stream = null;
+		}
+
+		private FileState(BufferedOutputStream stream) {
+			this.writer = null;
+			this.stream = stream;
+		}
+
+		private void close() {
+			try {
+				if (this.writer != null) {
+					this.writer.close();
+				}
+				else {
+					this.stream.close();
+				}
+			}
+			catch (IOException e) {
+				;
+			}
+		}
+	}
+
+	private final class Flusher implements Runnable {
+
+		@Override
+		public void run() {
+			synchronized (FileWritingMessageHandler.this) {
+				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
+						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
+				Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Entry<String, FileState> entry = iterator.next();
+					FileState state = entry.getValue();
+					if (state.lastWrite < expired) {
+						iterator.remove();
+						state.close();
+						if (logger.isDebugEnabled()) {
+							logger.debug("Flushed: " + entry.getKey());
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * an implementation of this interface is called for each file that has pending data
+	 * to flush when {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)}
+	 * is invoked.
+	 * @since 4.3
+	 *
+	 */
+	public interface FlushPredicate {
+
+		/**
+		 * @param fileAbsolutePath the path to the file.
+		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
+		 * @return true if the file should be flushed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long lastWrite);
+
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * an implementation of this interface is called for each file that has pending data
+	 * to flush.
+	 * @see FileWritingMessageHandler#trigger(Message)
+	 * @since 4.3
+	 *
+	 */
+	public interface MessageFlushPredicate {
+
+		/**
+		 * @param fileAbsolutePath the path to the file.
+		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
+		 * @param filterMessage an optional message to be used in the decision process.
+		 * @return true if the file should be flushed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> filterMessage);
+
+	}
+
+	/**
+	 * Flushes files where the path matches a pattern, regardless of last write time.
+	 */
+	private final class DefaultFlushPredicate implements MessageFlushPredicate {
+
+		@Override
+		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
+			Pattern pattern;
+			if (triggerMessage.getPayload() instanceof String) {
+				pattern = Pattern.compile((String) triggerMessage.getPayload());
+			}
+			else if (triggerMessage.getPayload() instanceof Pattern) {
+				pattern = (Pattern) triggerMessage.getPayload();
+			}
+			else {
+				throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
+			}
+			return pattern.matcher(fileAbsolutePath).matches();
+		}
+
 	}
 
 }
