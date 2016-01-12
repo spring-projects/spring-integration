@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	@Test // INT-2751
 	public void testReaperDoesntReapAProcessingGroup() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
-		final CountDownLatch waitForSendlatch = new CountDownLatch(1);
+		final CountDownLatch waitForSendLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapStartLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapCompleteLatch = new CountDownLatch(1);
 		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(
@@ -85,7 +85,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
-				waitForSendlatch.countDown();
+				waitForSendLatch.countDown();
 				try {
 					Thread.sleep(100);
 				}
@@ -95,6 +95,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				groupStore.expireMessageGroups(50);
 				waitReapCompleteLatch.countDown();
 			}
+
 		});
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
@@ -109,7 +110,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				// wake reaper
 				waitReapStartLatch.countDown();
 				try {
-					waitForSendlatch.await(10, TimeUnit.SECONDS);
+					waitForSendLatch.await(10, TimeUnit.SECONDS);
 					// wait a little longer for reaper to grab groups
 					Thread.sleep(2000);
 					// simulate tx commit
@@ -132,6 +133,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 			public boolean canRelease(MessageGroup group) {
 				return group.size() == 2;
 			}
+
 		});
 
 		QueueChannel discards = new QueueChannel();
@@ -290,7 +292,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		mgs.addMessageToGroup("foo", secondMessage);
 		MessageGroup group = mgs.getMessageGroup("foo");
 		// remove a message
-		mgs.removeMessageFromGroup("foo", secondMessage);
+		mgs.removeMessagesFromGroup("foo", secondMessage);
 		// force lastModified to be the same
 		MessageGroup groupNow = mgs.getMessageGroup("foo");
 		new DirectFieldAccessor(group).setPropertyValue("lastModified", groupNow.getLastModified());

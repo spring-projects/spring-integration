@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,7 +25,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
@@ -49,10 +48,11 @@ import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageSto
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupFactory;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -150,6 +150,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private volatile MessageRowMapper messageRowMapper;
 
 	private volatile Map<String, String> queryCache = new HashMap<String, String>();
+
+	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
 	private boolean usingIdCache = false;
 
@@ -360,6 +362,22 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		return this.priorityEnabled;
 	}
 
+	/**
+	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup} object where
+	 * it is necessary.
+	 * Defaults to {@link SimpleMessageGroupFactory}.
+	 * @param messageGroupFactory the {@link MessageGroupFactory} to use.
+	 * @since 4.3
+	 */
+	public void setMessageGroupFactory(MessageGroupFactory messageGroupFactory) {
+		Assert.notNull(messageGroupFactory, "'messageGroupFactory' must not be null");
+		this.messageGroupFactory = messageGroupFactory;
+	}
+
+	protected MessageGroupFactory getMessageGroupFactory() {
+		return this.messageGroupFactory;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
@@ -468,7 +486,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
-		return new SimpleMessageGroup(groupId);
+		return getMessageGroupFactory().create(groupId);
 	}
 
 	/**

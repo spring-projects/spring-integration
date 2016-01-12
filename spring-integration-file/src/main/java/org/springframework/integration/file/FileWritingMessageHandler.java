@@ -307,7 +307,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				if (!resultFile.exists() &&
 						generatedFileName.replaceAll("/", Matcher.quoteReplacement(File.separator))
 								.contains(File.separator)) {
-					resultFile.getParentFile().mkdirs();
+					resultFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 				}
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +37,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -331,7 +331,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private void doReleaseMessage(Message<?> message) {
 		if (removeDelayedMessageFromMessageStore(message)) {
-			this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
+			if (!(this.messageStore instanceof SimpleMessageStore)) {
+				this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
+			}
 			this.handleMessageInternal(message);
 		}
 		else {
@@ -344,9 +346,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private boolean removeDelayedMessageFromMessageStore(Message<?> message) {
 		if (this.messageStore instanceof SimpleMessageStore) {
-			SimpleMessageGroup messageGroup =
-					(SimpleMessageGroup) this.messageStore.getMessageGroup(this.messageGroupId);
-			return messageGroup.remove(message);
+			synchronized (this.messageGroupId) {
+				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
+				if (messages.contains(message)) {
+					this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
 		}
 		else {
 			return ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null;

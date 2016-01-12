@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -84,10 +85,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * schema-mysql-5_6_4.sql
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @Ignore
 public class MySqlJdbcMessageStoreTests {
 
@@ -111,16 +113,17 @@ public class MySqlJdbcMessageStoreTests {
 	public void afterTest() {
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		new TransactionTemplate(this.transactionManager).execute(new TransactionCallback<Void>() {
-		public Void doInTransaction(TransactionStatus status) {
-			final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
-			final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
-			final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
 
-			LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
-					"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
-					deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
-			return null;
-		}
+			public Void doInTransaction(TransactionStatus status) {
+				final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+				final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
+				final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
+
+				LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
+								"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
+						deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
+				return null;
+			}
 		});
 	}
 
@@ -146,7 +149,7 @@ public class MySqlJdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testWithMessageHistory() throws Exception{
+	public void testWithMessageHistory() throws Exception {
 
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
@@ -179,12 +182,14 @@ public class MySqlJdbcMessageStoreTests {
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
 		messageStore.setSerializer(new Serializer<Message<?>>() {
+
 			public void serialize(Message<?> object, OutputStream outputStream) throws IOException {
 				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
 				outputStream.flush();
 			}
 		});
 		messageStore.setDeserializer(new Deserializer<GenericMessage<String>>() {
+
 			public GenericMessage<String> deserialize(InputStream inputStream) throws IOException {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				return new GenericMessage<String>(reader.readLine());
@@ -277,7 +282,7 @@ public class MySqlJdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.removeMessageFromGroup(groupId, message);
+		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
@@ -297,7 +302,7 @@ public class MySqlJdbcMessageStoreTests {
 
 		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
 		assertTrue(template.queryForList(
-				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '"  + uuidGroupId + "'").size() == 0);
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '" + uuidGroupId + "'").size() == 0);
 	}
 
 	@Test
@@ -362,6 +367,7 @@ public class MySqlJdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
@@ -385,6 +391,7 @@ public class MySqlJdbcMessageStoreTests {
 		messageStore.setTimeoutOnIdle(true);
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
@@ -511,10 +518,11 @@ public class MySqlJdbcMessageStoreTests {
 		assertNotNull(messageFromRegion2);
 
 		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
-		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " +new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
+		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
 
 		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
+
 }

@@ -84,3 +84,13 @@ Manipulation of the group outside of the aggregator may cause unpredictable resu
 
 For this reason, users should not perform such manipulation, or set the `copyOnGet` property to `true`.
 =====
+
+[[message-group-factory]]
+===== MessageGroupFactory
+
+Starting with _version 4.3_, some `MessageGroupStore` implementations can be injected with the custom
+`MessageGroupFactory` strategy to create/customize the `MessageGroup` instances in the `MessageGroupStore` logic.
+The defaults to `SimpleMessageGroupFactory` which produces `SimpleMessageGroup` s based on the `GroupType.HASH_SET`
+(`LinkedHashSet`) internal collection.
+Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
+previous `SimpleMessageGroup` behavior.

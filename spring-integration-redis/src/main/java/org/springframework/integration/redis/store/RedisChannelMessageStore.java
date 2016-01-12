@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.store;
 
 import java.util.List;
@@ -27,7 +28,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.store.MessageGroupFactory;
+import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -38,12 +40,15 @@ import org.springframework.util.Assert;
  * Requires {@link #setBeanName(String)} which is used as part of the key.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
 public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAware, InitializingBean {
 
 	private final RedisTemplate<Object, Message<?>> redisTemplate;
+
+	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
 	private String beanName;
 
@@ -71,6 +76,22 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 		this.redisTemplate.setValueSerializer(valueSerializer);
 	}
 
+	/**
+	 * Specify the {@link MessageGroupFactory} to create {@link MessageGroup} object where
+	 * it is necessary.
+	 * Defaults to {@link SimpleMessageGroupFactory}.
+	 * @param messageGroupFactory the {@link MessageGroupFactory} to use.
+	 * @since 4.3
+	 */
+	public void setMessageGroupFactory(MessageGroupFactory messageGroupFactory) {
+		Assert.notNull(messageGroupFactory, "'messageGroupFactory' must not be null");
+		this.messageGroupFactory = messageGroupFactory;
+	}
+
+	protected MessageGroupFactory getMessageGroupFactory() {
+		return this.messageGroupFactory;
+	}
+
 	@Override
 	public void setBeanName(String name) {
 		Assert.notNull(name, "'beanName' must not be null");
@@ -78,11 +99,11 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	}
 
 	protected String getBeanName() {
-		return beanName;
+		return this.beanName;
 	}
 
 	protected RedisTemplate<Object, Message<?>> getRedisTemplate() {
-		return redisTemplate;
+		return this.redisTemplate;
 	}
 
 	@Override
@@ -99,7 +120,7 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	@Override
 	public MessageGroup getMessageGroup(Object groupId) {
 		List<Message<?>> messages = this.redisTemplate.boundListOps(groupId).range(0, -1);
-		return new SimpleMessageGroup(messages, groupId);
+		return getMessageGroupFactory().create(messages, groupId);
 	}
 
 	@Override
