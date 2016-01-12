@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -128,6 +129,7 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 		when(bf.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class)).thenReturn(scheduler);
 		serverFactory.setBeanFactory(bf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setOutputChannel(new NullChannel());
 		adapter.setConnectionFactory(serverFactory);
 		adapter.start();
 		assertTrue("Listening event not received", serverListeningLatch.await(10, TimeUnit.SECONDS));
