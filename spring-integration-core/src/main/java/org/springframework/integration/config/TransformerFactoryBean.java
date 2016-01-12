@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		Transformer transformer = null;
 		if (targetObject instanceof Transformer) {
@@ -61,12 +61,12 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
 		return this.createHandler(transformer);
 	}
 
-	private MessageTransformingHandler createHandler(Transformer transformer) {
+	protected MessageTransformingHandler createHandler(Transformer transformer) {
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		this.postProcessReplyProducer(handler);
 		return handler;

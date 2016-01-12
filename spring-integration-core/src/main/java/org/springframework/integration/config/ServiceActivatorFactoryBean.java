@@ -49,7 +49,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
 		handler = createDirectHandlerIfPossible(targetObject, targetMethodName);
 		if (handler == null) {
@@ -65,7 +65,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	 * If the target object is a {@link MessageHandler} and the method is 'handleMessage', return an
 	 * {@link AbstractMessageProducingHandler} that wraps it.
 	 */
-	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
+	protected MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
@@ -92,18 +92,18 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
 		processor.setBeanFactory(this.getBeanFactory());
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
 	@Override
-	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+	protected <T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
-	private MessageHandler configureHandler(ServiceActivatingHandler handler) {
+	protected MessageHandler configureHandler(ServiceActivatingHandler handler) {
 		postProcessReplyProducer(handler);
 		return handler;
 	}

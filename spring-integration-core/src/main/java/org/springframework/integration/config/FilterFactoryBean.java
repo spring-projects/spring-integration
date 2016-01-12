@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		MessageSelector selector = null;
 		if (targetObject instanceof MessageSelector) {
 			selector = (MessageSelector) targetObject;
@@ -88,17 +88,17 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.createFilter(new ExpressionEvaluatingSelector(expression));
 	}
 
-	private MessageFilter createFilter(MessageSelector selector) {
+	protected MessageFilter createFilter(MessageSelector selector) {
 		MessageFilter filter = new MessageFilter(selector);
 		postProcessReplyProducer(filter);
 		return filter;
 	}
 
-	private void postProcessFilter(MessageFilter filter) {
+	protected void postProcessFilter(MessageFilter filter) {
 		if (this.throwExceptionOnRejection != null) {
 			filter.setThrowExceptionOnRejection(this.throwExceptionOnRejection);
 		}
