@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A support class for producer endpoints that provides a setter for the
@@ -36,13 +37,15 @@ import org.springframework.util.Assert;
  */
 public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent {
 
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
 	private volatile MessageChannel outputChannel;
+
+	private volatile String outputChannelName;
 
 	private volatile MessageChannel errorChannel;
 
 	private volatile boolean shouldTrack = false;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -51,6 +54,17 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	@Override
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	/**
+	 * Set the output channel name; overrides
+	 * {@link #setOutputChannel(MessageChannel) outputChannel} if provided.
+	 * @param outputChannelName the channel name.
+	 * @since 4.3
+	 */
+	public void setOutputChannelName(String outputChannelName) {
+		Assert.hasText(outputChannelName, "'outputChannelName' must not be null or empty");
+		this.outputChannelName = outputChannelName;
 	}
 
 	public void setErrorChannel(MessageChannel errorChannel) {
@@ -72,7 +86,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	@Override
 	protected void onInit() {
-		Assert.notNull(this.outputChannel, "outputChannel is required");
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 		}
@@ -80,10 +93,15 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	/**
 	 * Takes no action by default. Subclasses may override this if they
-	 * need lifecycle-managed behavior.
+	 * need lifecycle-managed behavior. Protected by 'lifecycleLock'.
 	 */
 	@Override
 	protected void doStart() {
+		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
+				"'outputChannel' or 'outputChannelName' is required");
+		if (this.outputChannelName != null) {
+			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+		}
 	}
 
 	/**
