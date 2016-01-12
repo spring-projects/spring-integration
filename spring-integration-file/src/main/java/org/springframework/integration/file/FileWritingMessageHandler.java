@@ -478,6 +478,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 							if (state == null) {
 								bos.close();
 							}
+							else {
+								state.lastWrite = System.currentTimeMillis();
+							}
 						}
 						catch (IOException ex) {
 						}
@@ -546,6 +549,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						if (state == null) {
 							bos.close();
 						}
+						else {
+							state.lastWrite = System.currentTimeMillis();
+						}
 					}
 					catch (IOException ex) {
 					}
@@ -582,6 +588,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					try {
 						if (state == null) {
 							writer.close();
+						}
+						else {
+							state.lastWrite = System.currentTimeMillis();
 						}
 					}
 					catch (IOException ex) {
@@ -709,7 +718,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				this.fileStates.put(absolutePath, state);
 			}
-			state.lastWrite = System.currentTimeMillis(); // set while synchronized to avoid races
+			state.lastWrite = Long.MAX_VALUE; // prevent flush while we write
 		}
 		else {
 			state = null;
