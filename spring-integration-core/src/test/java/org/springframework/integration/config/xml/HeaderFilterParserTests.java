@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,33 +24,36 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class HeaderFilterParserTests {
 
 	@Autowired
 	private MessageChannel inputA;
-	
+
 	@Autowired
 	private MessageChannel inputB;
-	
+
 	@Autowired
 	private MessageChannel inputC;
-	
+
 	@Autowired
 	private MessageChannel inputD;
-	
+
 	@Autowired
 	private MessageChannel inputE;
 
@@ -75,7 +78,7 @@ public class HeaderFilterParserTests {
 		assertNotNull(result.getHeaders().get("b"));
 		assertNotNull(result.getHeaders().get("e"));
 	}
-	
+
 	@Test
 	public void verifyHeadersRemovedWithSingleWildcard() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -97,7 +100,7 @@ public class HeaderFilterParserTests {
 		assertNull(result.getHeaders().get("b"));
 		assertNull(result.getHeaders().get("e"));
 	}
-	
+
 	@Test
 	public void verifyHeadersRemovedWithNamePatterns() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -119,7 +122,7 @@ public class HeaderFilterParserTests {
 		assertNull(result.getHeaders().get("goo"));
 		assertNotNull(result.getHeaders().get("e"));
 	}
-	
+
 	@Test
 	public void verifyHeadersRemovedWhereHeaderNameContainsWildCard() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -141,7 +144,7 @@ public class HeaderFilterParserTests {
 		assertNull(result.getHeaders().get("goo"));
 		assertNotNull(result.getHeaders().get("e"));
 	}
-	
+
 	@Test
 	public void verifyHeadersRemovedWhereHeaderNameIsLiteral() {
 		QueueChannel replyChannel = new QueueChannel();

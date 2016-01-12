@@ -2337,7 +2337,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="pattern-match" type="xsd:boolean" default="true">
+		<xsd:attribute name="pattern-match" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
 					Boolean flag that specifies whether values provided in 'header-names' should be treated as
@@ -2347,6 +2347,9 @@
 					the only header that will be removed is the one that is an exact match.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
