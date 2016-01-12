@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utility for forking Java processes. Modified from the SGF version for SI
- * 
+ *
  * @author Costin Leau
  * @author David Turanski
- * 
- * 
+ * @author Gary Russell
+ *
+ *
  */
 public class ForkUtil {
 
@@ -74,8 +75,9 @@ public class ForkUtil {
 			public void run() {
 				System.out.println("Stopping fork...");
 				run.set(false);
-				if (p != null)
+				if (p != null) {
 					p.destroy();
+				}
 
 				try {
 					p.waitFor();
@@ -94,6 +96,7 @@ public class ForkUtil {
 			final AtomicBoolean run, final PrintStream out) {
 		Thread reader = new Thread(new Runnable() {
 
+			@Override
 			public void run() {
 				try {
 					String line = null;
@@ -110,22 +113,22 @@ public class ForkUtil {
 		});
 		return reader;
 	}
-	
+
 	public static OutputStream cacheServer() {
 		return startCacheServer("org.springframework.integration.gemfire.fork.CacheServerProcess");
 	}
-	
+
 	public static OutputStream cacheServer(String className) {
 		return startCacheServer(className);
 	}
 
 	private static OutputStream startCacheServer(String className) {
-		
+
 		if (controlFileExists(className)) {
 			deleteControlFile(className);
 		}
 		OutputStream os = cloneJVM(className);
-		int maxTime = 30000;
+		int maxTime = 60000;
 		int time = 0;
 		while (!controlFileExists(className) && time < maxTime) {
 			try {
