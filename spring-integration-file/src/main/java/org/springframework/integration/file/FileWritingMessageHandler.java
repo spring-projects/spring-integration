@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ScheduledFuture;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,6 +46,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
@@ -87,7 +89,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Tony Falabella
  */
-public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
+		implements Lifecycle, MessageTriggerAction {
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -287,6 +290,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setFlushInterval(long flushInterval) {
 		this.flushInterval = flushInterval;
+	}
+
+	@Override
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	@Override
@@ -734,6 +742,40 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
 			throws FileNotFoundException {
 		return new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append), this.bufferSize);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can send a message to this
+	 * method to flush any file(s) that needs it. The payload must be a regular
+	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
+	 * of any in-process files.
+	 * @since 4.3
+	 */
+	@Override
+	public synchronized void trigger(Message<?> message) {
+		Pattern pattern;
+		if (message.getPayload() instanceof String) {
+			pattern = Pattern.compile((String) message.getPayload());
+		}
+		else if (message.getPayload() instanceof Pattern) {
+			pattern = (Pattern) message.getPayload();
+		}
+		else {
+			throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
+		}
+		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<String, FileState> entry = iterator.next();
+			FileState state = entry.getValue();
+			Matcher matcher = pattern.matcher(entry.getKey());
+			if (matcher.matches()) {
+				iterator.remove();
+				state.close();
+				if (logger.isDebugEnabled()) {
+					logger.debug("Trigger flushed: " + entry.getKey());
+				}
+			}
+		}
 	}
 
 	private static final class FileState {

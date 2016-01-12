@@ -450,21 +450,24 @@ public class FileWritingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.start();
 		File file = new File(tempFolder, "foo.txt");
-		handler.handleMessage(new GenericMessage<>("foo"));
-		handler.handleMessage(new GenericMessage<>("bar"));
-		handler.handleMessage(new GenericMessage<>("baz"));
-		handler.handleMessage(new GenericMessage<>("qux".getBytes())); // change of payload type forces flush
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<String>("bar"));
+		handler.handleMessage(new GenericMessage<String>("baz"));
+		handler.handleMessage(new GenericMessage<byte[]>("qux".getBytes())); // change of payload type forces flush
 		assertThat(file.length(), greaterThanOrEqualTo(9L));
 		handler.stop(); // forces flush
 		assertThat(file.length(), equalTo(12L));
 		handler.setFlushInterval(100);
 		handler.start();
-		handler.handleMessage(new GenericMessage<>(new ByteArrayInputStream("foo".getBytes())));
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("fiz".getBytes())));
 		int n = 0;
 		while (n++ < 100 && file.length() < 15) {
 			Thread.sleep(100);
 		}
 		assertThat(file.length(), equalTo(15L));
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
+		handler.trigger(new GenericMessage<String>(file.getAbsolutePath()));
+		assertThat(file.length(), equalTo(18L));
 		handler.stop();
 	}
 
