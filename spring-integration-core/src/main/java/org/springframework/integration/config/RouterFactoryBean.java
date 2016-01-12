@@ -90,7 +90,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
@@ -113,17 +113,17 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
-	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
+	protected AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
 	}
 
-	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
+	protected AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
@@ -145,7 +145,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return router;
 	}
 
-	private void configureMappingRouter(AbstractMappingMessageRouter router) {
+	protected void configureMappingRouter(AbstractMappingMessageRouter router) {
 		if (this.channelMappings != null) {
 			router.setChannelMappings(this.channelMappings);
 		}
@@ -159,7 +159,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return noRouterAttributesProvided();
 	}
 
-	private boolean noRouterAttributesProvided() {
+	protected boolean noRouterAttributesProvided() {
 		return this.channelMappings == null && this.defaultOutputChannel == null
 				&& this.sendTimeout == null && this.resolutionRequired == null && this.applySequence == null
 				&& this.ignoreSendFailures == null;

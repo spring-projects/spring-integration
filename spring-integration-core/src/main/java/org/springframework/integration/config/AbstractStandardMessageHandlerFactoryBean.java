@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -38,7 +38,8 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author David Liu
  */
-abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
+public abstract class AbstractStandardMessageHandlerFactoryBean
+		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true,
 			true));
@@ -128,23 +129,26 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
+	 * @param targetObject the object to use for method invocation.
+	 * @param targetMethodName the method name of the target object to invoke.
+	 * @return the method invoking {@link MessageHandler} implementation.
 	 */
-	abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
+	protected abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
 
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
 	}
 
-	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+	protected <T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
 		return this.createMethodInvokingHandler(processor, null);
 	}
 
-	MessageHandler createDefaultHandler() {
+	protected MessageHandler createDefaultHandler() {
 		throw new IllegalArgumentException("Exactly one of the 'targetObject' or 'expression' property is required.");
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+	protected <T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
 		if (targetObject == null) {
 			return null;
 		}

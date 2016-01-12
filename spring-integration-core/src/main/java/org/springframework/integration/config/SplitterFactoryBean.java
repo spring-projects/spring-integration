@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		AbstractMessageSplitter splitter = this.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
 		if (splitter == null) {
@@ -86,23 +86,23 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		return splitter;
 	}
 
-	private AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
+	protected AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingSplitter(targetObject, targetMethodName)
 				: new MethodInvokingSplitter(targetObject);
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
 	@Override
-	MessageHandler createDefaultHandler() {
+	protected MessageHandler createDefaultHandler() {
 		return this.configureSplitter(new DefaultMessageSplitter());
 	}
 
-	private AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
+	protected AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
 		this.postProcessReplyProducer(splitter);
 		return splitter;
 	}
