@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -37,6 +36,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportAware;
+import org.springframework.context.annotation.MBeanExportConfiguration.SpecificPlatform;
 import org.springframework.context.annotation.Role;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
@@ -55,6 +55,7 @@ import org.springframework.util.StringUtils;
  * {@link EnableIntegrationMBeanExport} annotation. See its javadoc for complete usage details.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 @Configuration
@@ -143,7 +144,10 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 			exporter.setServer(bean);
 		}
 		else {
-			exporter.setServer(MBeanServerFactory.createMBeanServer());
+			SpecificPlatform specificPlatform = SpecificPlatform.get();
+			if (specificPlatform != null) {
+				exporter.setServer(specificPlatform.getMBeanServer());
+			}
 		}
 	}
 

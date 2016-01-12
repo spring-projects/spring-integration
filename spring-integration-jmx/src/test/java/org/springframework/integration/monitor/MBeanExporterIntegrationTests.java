@@ -15,6 +15,7 @@ package org.springframework.integration.monitor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -33,14 +34,18 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -222,6 +227,28 @@ public class MBeanExporterIntegrationTests {
 		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(2, names.size());
+	}
+
+	@Test
+	public void testSingleMBeanServer() {
+		AnnotationConfigApplicationContext ctx1 = new AnnotationConfigApplicationContext(Config1.class);
+		AnnotationConfigApplicationContext ctx2 = new AnnotationConfigApplicationContext(Config2.class);
+		assertSame(TestUtils.getPropertyValue(ctx1.getBean(IntegrationMBeanExporter.class), "server"),
+				TestUtils.getPropertyValue(ctx2.getBean(IntegrationMBeanExporter.class), "server"));
+		ctx1.close();
+		ctx2.close();
+	}
+
+	@EnableIntegration
+	@EnableIntegrationMBeanExport(defaultDomain = "config1")
+	public static class Config1 {
+
+	}
+
+	@EnableIntegration
+	@EnableIntegrationMBeanExport(defaultDomain = "config2")
+	public static class Config2 {
+
 	}
 
 	public static class BogusEndpoint extends AbstractEndpoint {
