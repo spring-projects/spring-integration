@@ -99,7 +99,7 @@ public class BackToBackAdapterTests {
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		adapter.stop();
-		Message<?> out = outputChannel.receive(1000);
+		Message<?> out = outputChannel.receive(10000);
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
@@ -138,7 +138,7 @@ public class BackToBackAdapterTests {
 
 		inbound.removeTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
-		out = outputChannel.receive(1000);
+		out = outputChannel.receive(10000);
 		assertNull(out);
 
 		try {
@@ -179,12 +179,12 @@ public class BackToBackAdapterTests {
 		Message<?> message = MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build();
 		adapter.handleMessage(message);
 		adapter.stop();
-		Message<?> out = outputChannel.receive(1000);
+		Message<?> out = outputChannel.receive(10000);
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
-		out = outputChannel.receive(1000);
+		out = outputChannel.receive(10000);
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("bar", out.getPayload());
