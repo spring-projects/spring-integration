@@ -23,6 +23,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
@@ -36,6 +37,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.regex.Matcher;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -466,9 +469,10 @@ public class FileWritingMessageHandlerTests {
 		}
 		assertThat(file.length(), equalTo(15L));
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
-		handler.trigger(new GenericMessage<String>(file.getAbsolutePath()));
+		handler.trigger(new GenericMessage<String>(Matcher.quoteReplacement(file.getAbsolutePath())));
 		assertThat(file.length(), equalTo(18L));
 		handler.stop();
+		assertEquals(0, TestUtils.getPropertyValue(handler, "fileStates", Map.class).size());
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {

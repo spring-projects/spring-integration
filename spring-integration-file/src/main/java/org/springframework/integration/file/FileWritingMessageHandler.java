@@ -465,7 +465,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 				@Override
 				protected void whileLocked() throws IOException {
-					BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
+					BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 					try {
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
@@ -715,7 +715,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			if (state != null && ((isString && state.stream != null) || (!isString && state.writer != null))) {
 				state.close();
 				state = null;
-				this.fileStates.remove(fileToWriteTo);
+				this.fileStates.remove(absolutePath);
 			}
 			if (state == null) {
 				if (isString) {
