@@ -550,8 +550,8 @@ The file is closed after each message.
 __APPEND_NO_FLUSH__
 
 This has the same semantics as *APPEND* but the data is not flushed and the file is not closed after each message.
-This can provide a significance performance at the risk of data loss in the case of a failure.
-See <<file-lushing>> for more information.
+This can provide a significant performance at the risk of data loss in the case of a failure.
+See <<file-flushing>> for more information.
 
 _FAIL_
 

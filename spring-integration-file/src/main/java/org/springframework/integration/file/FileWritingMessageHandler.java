@@ -508,7 +508,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						catch (IOException ex) {
 						}
 						try {
-							if (state == null) {
+							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 								bos.close();
 							}
 							else {
@@ -579,7 +579,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						if (state == null) {
+						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							bos.close();
 						}
 						else {
@@ -619,7 +619,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						if (state == null) {
+						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							writer.close();
 						}
 						else {
