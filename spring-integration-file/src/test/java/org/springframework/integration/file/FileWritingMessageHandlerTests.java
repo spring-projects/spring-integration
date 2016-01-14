@@ -38,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 
 import org.junit.Before;
@@ -49,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileWritingMessageHandler.FlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -471,8 +473,22 @@ public class FileWritingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
 		handler.trigger(new GenericMessage<String>(Matcher.quoteReplacement(file.getAbsolutePath())));
 		assertThat(file.length(), equalTo(18L));
-		handler.stop();
 		assertEquals(0, TestUtils.getPropertyValue(handler, "fileStates", Map.class).size());
+
+		handler.setFlushInterval(30000);
+		final AtomicBoolean called = new AtomicBoolean();
+		handler.setFlushPredicate(new FlushPredicate() {
+
+			@Override
+			public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
+				called.set(true);
+				return true;
+			}
+		});
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
+		handler.trigger(new GenericMessage<String>("foo"));
+		assertThat(file.length(), equalTo(21L));
+		assertTrue(called.get());
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {

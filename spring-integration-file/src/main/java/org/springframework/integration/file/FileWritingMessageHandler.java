@@ -134,6 +134,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile ScheduledFuture<?> flushTask;
 
+	private volatile FlushPredicate flushPredicate = new DefaultFlushPredicate();
+
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
 	 * a {@link LiteralExpression}.
@@ -295,6 +297,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
+	}
+
+	public void setFlushPredicate(FlushPredicate flushPredicate) {
+		Assert.notNull(flushPredicate, "'flushPredicate' cannot be null");
+		this.flushPredicate = flushPredicate;
 	}
 
 	@Override
@@ -746,34 +753,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can send a message to this
-	 * method to flush any file(s) that needs it. The payload must be a regular
+	 * method to flush any file(s) that needs it. By default, the payload must be a regular
 	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
-	 * of any in-process files.
+	 * of any in-process files. However, if a custom {@link FlushPredicate} is provided,
+	 * the payload can be of any type supported by that implementation.
 	 * @since 4.3
 	 */
 	@Override
 	public synchronized void trigger(Message<?> message) {
-		Pattern pattern;
-		if (message.getPayload() instanceof String) {
-			pattern = Pattern.compile((String) message.getPayload());
-		}
-		else if (message.getPayload() instanceof Pattern) {
-			pattern = (Pattern) message.getPayload();
-		}
-		else {
-			throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
-		}
 		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
-			Matcher matcher = pattern.matcher(entry.getKey());
-			if (matcher.matches()) {
+			if (this.flushPredicate.shouldFlush(entry.getKey(), state.lastWrite, message)) {
 				iterator.remove();
 				state.close();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Trigger flushed: " + entry.getKey());
-				}
 			}
 		}
 	}
@@ -831,6 +825,47 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					}
 				}
 			}
+		}
+
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} and a trigger message is invoked
+	 * an implementation of this interface is called for each file that has pending data
+	 * to flush.
+	 * @since 4.3
+	 *
+	 */
+	public interface FlushPredicate {
+
+		/**
+		 * @param fileAbsolutePath the path to the file.
+		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
+		 * @param triggerMessage the trigger message received.
+		 * @return true if the file should be flushed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage);
+
+	}
+
+	/**
+	 * Flushes files where the path matches a pattern, regardless of last write time.
+	 */
+	private final class DefaultFlushPredicate implements FlushPredicate {
+
+		@Override
+		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
+			Pattern pattern;
+			if (triggerMessage.getPayload() instanceof String) {
+				pattern = Pattern.compile((String) triggerMessage.getPayload());
+			}
+			else if (triggerMessage.getPayload() instanceof Pattern) {
+				pattern = (Pattern) triggerMessage.getPayload();
+			}
+			else {
+				throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
+			}
+			return pattern.matcher(fileAbsolutePath).matches();
 		}
 
 	}
