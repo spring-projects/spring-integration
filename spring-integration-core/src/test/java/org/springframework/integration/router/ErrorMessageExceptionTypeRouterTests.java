@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -79,11 +81,12 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
-
 		router.setBeanFactory(beanFactory);
-
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+
 		router.handleMessage(message);
+
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -103,9 +106,11 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
-
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+
 		router.handleMessage(message);
+
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -124,8 +129,11 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+
 		router.handleMessage(message);
+
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -141,7 +149,10 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setDefaultOutputChannel(defaultChannel);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
+
 		router.handleMessage(message);
+
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -160,8 +171,10 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setResolutionRequired(true);
 		router.setBeanName("fooRouter");
+
 		try {
 			router.handleMessage(message);
 			fail("MessageDeliveryException expected");
@@ -186,8 +199,11 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+
 		router.handleMessage(message);
+
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -207,12 +223,34 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+
 		router.handleMessage(message);
+
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(messageHandlingExceptionChannel.receive(0));
+	}
+
+	@Test
+	public void testHierarchicalMapping() {
+		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
+		MessageHandlingException error = new MessageRejectedException(new GenericMessage<Object>("foo"), "failed", rootCause);
+		ErrorMessage message = new ErrorMessage(error);
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
+		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
+		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
+		router.setChannelMappings(exceptionTypeChannelMap);
+		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.setDefaultOutputChannel(defaultChannel);
+
+		router.handleMessage(message);
+
+		assertNotNull(messageHandlingExceptionChannel.receive(1000));
+		assertNull(defaultChannel.receive(0));
 	}
 
 }

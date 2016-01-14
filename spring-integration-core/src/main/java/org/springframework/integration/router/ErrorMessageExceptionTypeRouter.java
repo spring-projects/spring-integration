@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,27 @@
 package org.springframework.integration.router;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.ClassUtils;
 
 /**
  * A Message Router that resolves the target {@link MessageChannel} for
  * messages whose payload is an Exception. The channel resolution is based upon
  * the most specific cause of the error for which a channel-mapping exists.
- * 
+ * <p>
+ * The channel-mapping can be specified on the super classes to avoid mapping duplication
+ * for the particular exception implementation.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- */  
+ * @author Artem Bilan
+ */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
 	@Override
@@ -38,15 +46,28 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable) {
 			Throwable cause = (Throwable) payload;
+			Set<String> mapping = getChannelMappings().keySet();
+			Map<String, Class<?>> classesCache = new HashMap<String, Class<?>>();
 			while (cause != null) {
-				String causeName = cause.getClass().getName();
-				if (this.getChannelMappings().keySet().contains(causeName)) {
-					mostSpecificCause = causeName;
+				for (String className : mapping) {
+					Class<?> exceptionClass = classesCache.get(className);
+					if (exceptionClass == null) {
+						try {
+							exceptionClass = ClassUtils.forName(className, getApplicationContext().getClassLoader());
+							classesCache.put(className, exceptionClass);
+						}
+						catch (ClassNotFoundException e) {
+							throw new IllegalStateException(e);
+						}
+					}
+					if (exceptionClass.isInstance(cause)) {
+						mostSpecificCause = className;
+					}
 				}
 				cause = cause.getCause();
 			}
 		}
-		return Collections.singletonList((Object) mostSpecificCause);
+		return mostSpecificCause != null ? Collections.<Object>singletonList(mostSpecificCause) : null;
 	}
 
 }
