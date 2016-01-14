@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors
+ * Copyright 2013-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Rainer Frey
  * @since 3.0
  */
 @ContextConfiguration
@@ -175,6 +176,44 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 				new Jackson2JsonMessageParser());
 		Message<?> resultMessage = mapper.toMessage(result);
 		assertEquals(message.getPayload(), resultMessage.getPayload());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testInt3932LeftPushFalse() throws Exception {
+
+		final String queueName = "si.test.Int3932LeftPushFalse";
+
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName,
+				this.connectionFactory);
+		handler.setLeftPush(false);
+
+		String payload = "testing";
+		handler.handleMessage(MessageBuilder.withPayload(payload).build());
+
+		Date payload2 = new Date();
+		handler.handleMessage(MessageBuilder.withPayload(payload2).build());
+
+		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.afterPropertiesSet();
+
+		Object result = redisTemplate.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
+		assertNotNull(result);
+
+		assertEquals(payload, result);
+
+		RedisTemplate<String, ?> redisTemplate2 = new RedisTemplate<String, Object>();
+		redisTemplate2.setConnectionFactory(this.connectionFactory);
+		redisTemplate2.setEnableDefaultSerializer(false);
+		redisTemplate2.setKeySerializer(new StringRedisSerializer());
+		redisTemplate2.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate2.afterPropertiesSet();
+
+		Object result2 = redisTemplate2.boundListOps(queueName).leftPop(5000, TimeUnit.MILLISECONDS);
+		assertNotNull(result2);
+
+		assertEquals(payload2, result2);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;int-redis:queue-outbound-channel-adapter&gt; element.
  *
  * @author Artem Bilan
+ * @author Rainer Frey
  * @since 3.0
  */
 public class RedisQueueOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -50,6 +51,7 @@ public class RedisQueueOutboundChannelAdapterParser extends AbstractOutboundChan
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "left-push");
 
 		return builder.getBeanDefinition();
 	}

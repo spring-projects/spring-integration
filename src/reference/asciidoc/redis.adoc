@@ -170,7 +170,8 @@ These attributes are mutually exclusive.
 [[redis-queue-inbound-channel-adapter]]
 ==== Redis Queue Inbound Channel Adapter
 
-Since _Spring Integration 3.0_, a Queue Inbound Channel Adapter is available to 'right pop' messages from a Redis List.
+Since _Spring Integration 3.0_, a Queue Inbound Channel Adapter is available to 'pop' messages from a Redis List. By default it uses 'right pop', but
+it can be configured to use 'left pop' instead.
 The adapter is message-driven using an internal listener thread and does not use a poller.
 [source,xml]
 ----
@@ -185,7 +186,8 @@ The adapter is message-driven using an internal listener thread and does not use
                     receive-timeout=""  <9>
                     recovery-interval=""  <10>
                     expect-message=""  <11>
-                    task-executor=""/>  <12>
+                    task-executor=""  <12>
+                    right-pop=""/>  <13>
 
 ----
 
@@ -211,7 +213,7 @@ Default is `0`.
 Defaults to `redisConnectionFactory`.
 
 
-<6> The name of the Redis List on which the queue-based 'right pop' operation is performed to get Redis messages.
+<6> The name of the Redis List on which the queue-based 'pop' operation is performed to get Redis messages.
 
 
 <7> The `MessageChannel` to which to send `ErrorMessage` s with `Exception` s from the listening task of the Endpoint.
@@ -224,11 +226,11 @@ In this case the raw `byte[]` from the inbound Redis message is sent to the `cha
 By default it is a `JdkSerializationRedisSerializer`.
 
 
-<9> The timeout in milliseconds for 'right pop' operation to wait for a Redis message from the queue.
+<9> The timeout in milliseconds for 'pop' operation to wait for a Redis message from the queue.
 Default is 1 second.
 
 
-<10> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation, before restarting the listener task.
+<10> The time in milliseconds for which the listener task should sleep after exceptions on the 'pop' operation, before restarting the listener task.
 
 
 <11> Specify if this Endpoint expects data from the Redis queue to contain entire `Message` s.
@@ -240,10 +242,18 @@ Default is `false`.
 It is used for the underlying listening task.
 By default a `SimpleAsyncTaskExecutor` is used.
 
+
+<13> Specify whether this Endpoint should use 'right pop' (when `true`) or 'left pop' (when `false`) to read messages from the Redis List.
+If `true`, the Redis List acts as a `FIFO` queue when used with a default _Redis Queue Outbound Channel Adapter_. Set to `false` to use with software
+that writes to the list with 'right push', or to achieve a stack-like message order.
+Default is `true`.
+Since _version 4.3_.
+
 [[redis-queue-outbound-channel-adapter]]
 ==== Redis Queue Outbound Channel Adapter
 
-Since _Spring Integration 3.0_, a Queue Outbound Channel Adapter is available to 'left push' to a Redis List from Spring Integration messages:
+Since _Spring Integration 3.0_, a Queue Outbound Channel Adapter is available to 'push' to a Redis List from Spring Integration messages. By default,
+it uses 'left push', but it can be configured to use 'right push' instead.
 [source,xml]
 ----
 <int-redis:queue-outbound-channel-adapter id=""  <1>
@@ -252,7 +262,8 @@ Since _Spring Integration 3.0_, a Queue Outbound Channel Adapter is available to
                     queue=""  <4>
                     queue-expression=""  <5>
                     serializer=""  <6>
-                    extract-payload="" /> <7>
+                    extract-payload=""  <7>
+                    left-push=""/>  <8>
 
 ----
 
@@ -270,7 +281,7 @@ In this case, the endpoint is registered with the bean name `id + '.adapter'`.
 Defaults to `redisConnectionFactory`.
 
 
-<4> The name of the Redis List on which the queue-based 'left push' operation is performed to send Redis messages.
+<4> The name of the Redis List on which the queue-based 'push' operation is performed to send Redis messages.
 This attribute is mutually exclusive with `queue-expression`.
 
 
@@ -285,6 +296,14 @@ However, for `String` payloads, a `StringRedisSerializer` is used, if a `seriali
 
 <7> Specify if this Endpoint should send just the _payload_ to the Redis queue, or the entire `Message`.
 Default is `true`.
+
+
+<8> Specify whether this Endpoint should use 'left push' (when `true`) or 'right push' (when `false`) to write messages to the Redis List.
+If `true`, the Redis List acts as a `FIFO` queue when used with a default _Redis Queue Inbound Channel Adapter_. Set to `false` to use with software
+that reads from the list with 'left pop', or to achieve a stack-like message order.
+Default is `true`.
+Since _version 4.3_.
+
 
 [[redis-application-events]]
 ==== Redis Application Events

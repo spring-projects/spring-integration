@@ -73,6 +73,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rainer Frey
  * @since 3.0
  */
 @ContextConfiguration
@@ -157,7 +158,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		PollableChannel errorChannel = new QueueChannel();
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint =
+				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setExpectMessage(true);
 		endpoint.setOutputChannel(channel);
@@ -175,7 +177,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertNotNull(receive);
 		assertThat(receive, Matchers.instanceOf(ErrorMessage.class));
 		assertThat(receive.getPayload(), Matchers.instanceOf(MessagingException.class));
-		assertThat(((Exception) receive.getPayload()).getMessage(), Matchers.containsString("Deserialization of Message failed."));
+		assertThat(((Exception) receive.getPayload()).getMessage(),
+				Matchers.containsString("Deserialization of Message failed."));
 		assertThat(((Exception) receive.getPayload()).getCause(), Matchers.instanceOf(ClassCastException.class));
 		assertThat(((Exception) receive.getPayload()).getCause().getMessage(),
 				Matchers.containsString("java.lang.String cannot be cast to org.springframework.messaging.Message"));
@@ -193,7 +196,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
-		redisTemplate.boundListOps("si.test.Int3017IntegrationInbound").leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
+		redisTemplate.boundListOps("si.test.Int3017IntegrationInbound")
+				.leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
 
 		Message<?> receive = this.fromChannel.receive(2000);
 		assertNotNull(receive);
@@ -336,6 +340,50 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		Message<?> receive = channel.receive(1000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
+
+		endpoint.stop();
+	}
+
+	@Test
+	@RedisAvailable
+	@SuppressWarnings("unchecked")
+	public void testInt3932ReadFromLeft() throws Exception {
+
+		String queueName = "si.test.redisQueueInboundChannelAdapterTests3932";
+
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.setEnableDefaultSerializer(false);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
+
+		String payload = "testing";
+
+		redisTemplate.boundListOps(queueName).rightPush(payload);
+
+		Date payload2 = new Date();
+
+		redisTemplate.boundListOps(queueName).rightPush(payload2);
+
+		PollableChannel channel = new QueueChannel();
+
+		RedisQueueMessageDrivenEndpoint endpoint =
+				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setOutputChannel(channel);
+		endpoint.setReceiveTimeout(1000);
+		endpoint.setRightPop(false);
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+
+		Message<Object> receive = (Message<Object>) channel.receive(2000);
+		assertNotNull(receive);
+		assertEquals(payload, receive.getPayload());
+
+		receive = (Message<Object>) channel.receive(2000);
+		assertNotNull(receive);
+		assertEquals(payload2, receive.getPayload());
 
 		endpoint.stop();
 	}
