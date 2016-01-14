@@ -201,10 +201,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		byte[] value = null;
 		try {
 			if (readFromLeft) {
-				value = this.boundListOperations.leftPop( this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 			else {
-				value = this.boundListOperations.rightPop( this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 		}
 		catch (Exception e) {
