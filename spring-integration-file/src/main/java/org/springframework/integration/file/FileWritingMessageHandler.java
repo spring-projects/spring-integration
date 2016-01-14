@@ -778,7 +778,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	@Override
-	public synchronized void trigger(Message<?> message) {
+	public void trigger(Message<?> message) {
 		flushIfNeeded(this.flushPredicate, message);
 	}
 
@@ -790,7 +790,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param flushPredicate the {@link FlushPredicate}.
 	 * @since 4.3
 	 */
-	public void flushIfNeeded(FlushPredicate flushPredicate) {
+	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
 		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
@@ -811,7 +811,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param filterMessage an optional message passed into the predicate.
 	 * @since 4.3
 	 */
-	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
 		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
