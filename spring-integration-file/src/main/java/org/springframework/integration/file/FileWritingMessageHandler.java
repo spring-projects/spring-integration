@@ -352,8 +352,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public void stop() {
-		this.flushTask.cancel(true);
-		this.flushTask = null;
+		if (this.flushTask != null) {
+			this.flushTask.cancel(true);
+			this.flushTask = null;
+		}
 		new Flusher().run();
 	}
 
@@ -882,7 +884,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * an implementation of this interface is called for each file that has pending data
-	 * to flush when {@link FileWritingMessageHandler#flushIfNeeded(MessageFlushPredicate)}
+	 * to flush when {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)}
 	 * is invoked.
 	 * @since 4.3
 	 *

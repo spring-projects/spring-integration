@@ -49,6 +49,20 @@
 								   auto-startup="false"
 								   directory="${java.io.tmpdir}"/>
 
+	<file:outbound-channel-adapter id="adapterWithFlushing"
+								   channel="testChannel"
+								   order="555"
+								   mode="APPEND_NO_FLUSH"
+								   flush-interval="12345"
+								   flush-predicate="predicate"
+								   buffer-size="4096"
+								   auto-startup="false"
+								   directory="${java.io.tmpdir}"/>
+
+	<bean id="predicate" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate" />
+	</bean>
+
 	<file:outbound-channel-adapter id="usageChannel"
 								   filename-generator-expression="@fooString"
 								   mode="APPEND"

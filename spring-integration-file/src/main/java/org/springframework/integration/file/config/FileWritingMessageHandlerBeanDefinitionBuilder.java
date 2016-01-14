@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Tony Falabella
+ * @author Gary Russell
  *
  * @since 1.0.3
  */
@@ -41,7 +42,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 
 	static BeanDefinitionBuilder configure(Element element, boolean expectReply, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = 
+		BeanDefinitionBuilder builder =
 				BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
 
 		String directory = element.getAttribute("directory");
@@ -56,7 +57,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		}
 
 		if (StringUtils.hasText(directoryExpression)) {
-			BeanDefinitionBuilder expressionBuilder = 
+			BeanDefinitionBuilder expressionBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 			expressionBuilder.addConstructorArgValue(directoryExpression);
 			builder.addPropertyValue("directoryExpression", expressionBuilder.getBeanDefinition());
@@ -70,6 +71,9 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mode", "fileExistsMode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "buffer-size");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "flush-interval");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "flush-predicate");
 		String remoteFileNameGenerator = element.getAttribute("filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
 		boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);

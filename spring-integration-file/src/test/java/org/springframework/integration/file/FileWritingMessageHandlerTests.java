@@ -50,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileWritingMessageHandler.FlushPredicate;
 import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
@@ -484,10 +485,25 @@ public class FileWritingMessageHandlerTests {
 				called.set(true);
 				return true;
 			}
+
 		});
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
 		handler.trigger(new GenericMessage<String>("foo"));
 		assertThat(file.length(), equalTo(21L));
+		assertTrue(called.get());
+
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
+		called.set(false);
+		handler.flushIfNeeded(new FlushPredicate() {
+
+			@Override
+			public boolean shouldFlush(String fileAbsolutePath, long lastWrite) {
+				called.set(true);
+				return true;
+			}
+
+		});
+		assertThat(file.length(), equalTo(24L));
 		assertTrue(called.get());
 	}
 

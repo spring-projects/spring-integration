@@ -466,11 +466,20 @@ Only files matching this regular expression will be picked up by this adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="buffer-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The buffer size to use when writing to files.
+					Default 8192 bytes.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="flush-interval" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					When using 'mode=APPEND_NO_FLUSH' if this time (ms) elapses
 					without any new writes, the data is flushed and the file closed.
+					Default 30000.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -720,6 +729,19 @@ Only files matching this regular expression will be picked up by this adapter.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="APPEND_NO_FLUSH">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Same as 'APPEND' but the data is not flushed or the file
+						closed. This can significantly improve performance at the
+						risk of lost data in the event of a failure.
+
+						Various strategies are available for flushing the data and
+						closing the file. Refer to the reference documentation for
+						more information.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="FAIL">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -849,7 +871,7 @@ Only files matching this regular expression will be picked up by this adapter.
 
 					Same as 'APPEND' but the data is not flushed or the file
 					closed. This can significantly improve performance at the
-					risk of lost data.
+					risk of lost data in the event of a failure.
 
 					Various strategies are available for flushing the data and
 					closing the file. Refer to the reference documentation for
