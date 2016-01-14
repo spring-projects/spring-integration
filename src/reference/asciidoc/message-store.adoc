@@ -86,7 +86,7 @@ For this reason, users should not perform such manipulation, or set the `copyOnG
 =====
 
 [[message-group-factory]]
-===== MessageGroupFactory
+==== MessageGroupFactory
 
 Starting with _version 4.3_, some `MessageGroupStore` implementations can be injected with a custom
 `MessageGroupFactory` strategy to create/customize the `MessageGroup` instances used by the `MessageGroupStore`.
