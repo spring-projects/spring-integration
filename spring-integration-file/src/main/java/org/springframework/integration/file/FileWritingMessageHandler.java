@@ -79,6 +79,15 @@ import org.springframework.util.StringUtils;
  * Likewise, any Object can be converted to a String based on its
  * <code>toString()</code> method by the
  * {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
+ * <p>
+ * {@link FileExistsMode#APPEND} adds content to an existing file; the file is closed after
+ * each write.
+ * {@link FileExistsMode#APPEND_NO_FLUSH} adds content to an existing file and the file
+ * is left open without flushing any data. Data will be flushed based on the
+ * {@link #setFlushInterval(long) flushInterval} or when a message is sent to the
+ * {@link #trigger(Message)} method, or a
+ * {@link #flushIfNeeded(FlushPredicate, Message) flushIfNeeded}
+ * method is called.
  *
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -299,6 +308,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		super.setTaskScheduler(taskScheduler);
 	}
 
+	/**
+	 * Set a {@link FlushPredicate} to use when flushing files when
+	 * {@link FileExistsMode#APPEND_NO_FLUSH} is being used.
+	 * See {@link #trigger(Message)}.
+	 * @param flushPredicate the predicate.
+	 * @since 4.3
+	 */
 	public void setFlushPredicate(FlushPredicate flushPredicate) {
 		Assert.notNull(flushPredicate, "'flushPredicate' cannot be null");
 		this.flushPredicate = flushPredicate;
@@ -752,7 +768,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can send a message to this
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, you can send a message to this
 	 * method to flush any file(s) that needs it. By default, the payload must be a regular
 	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
 	 * of any in-process files. However, if a custom {@link FlushPredicate} is provided,
@@ -761,16 +777,42 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	@Override
 	public synchronized void trigger(Message<?> message) {
+		flushIfNeeded(this.flushPredicate, message);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush open files. For each open file the supplied
+	 * {@link FlushPredicate#shouldFlush(String, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link FlushPredicate}.
+	 * @since 4.3
+	 */
+	public void flushIfNeeded(FlushPredicate flushPredicate) {
+		flushIfNeeded(flushPredicate, null);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush open files. For each open file the supplied
+	 * {@link FlushPredicate#shouldFlush(String, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link FlushPredicate}.
+	 * @param filterMessage an optional message passed into the predicate.
+	 * @since 4.3
+	 */
+	public void flushIfNeeded(FlushPredicate flushPredicate, Message<?> filterMessage) {
 		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
-			if (this.flushPredicate.shouldFlush(entry.getKey(), state.lastWrite, message)) {
+			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite, filterMessage)) {
 				iterator.remove();
 				state.close();
 			}
 		}
 	}
+
 
 	private static final class FileState {
 
@@ -841,10 +883,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		/**
 		 * @param fileAbsolutePath the path to the file.
 		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
-		 * @param triggerMessage the trigger message received.
+		 * @param filterMessage an optional message to be used in the decision process.
 		 * @return true if the file should be flushed.
 		 */
-		boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage);
+		boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> filterMessage);
 
 	}
 
