@@ -101,7 +101,7 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 	The Destination URI for this Web Service Gateway. If the URI should be determined at runtime
-	(e.g. registry lookup), then configure a 'destination-provider' reference instead. Aternatively,
+	(e.g. registry lookup), then configure a 'destination-provider' reference instead. Alternatively,
 	this URI may include {placeholders} whose values are determined by evaluating SpEL expressions
 	provided via 'uri-variable' sub-elements. The root object for those evaluations is the actual
 	request Message at runtime, i.e. you can access its payload or headers in the expression.
@@ -136,7 +136,7 @@
             <xsd:attribute name="marshaller" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	Reference to a Spring OXM Mashaller. If the Marshaller instance also implements
+	Reference to a Spring OXM Marshaller. If the Marshaller instance also implements
 	the Unmarshaller interface, then the 'unmarshaller' attribute is not required.
 					</xsd:documentation>
 					<xsd:appinfo>
