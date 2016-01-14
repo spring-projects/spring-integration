@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -78,6 +79,7 @@ public class MqttMessageDrivenChannelAdapterParserTests {
 		assertEquals(0, TestUtils.getPropertyValue(noTopicsAdapter, "topics", Collection.class).size());
 		assertSame(out, TestUtils.getPropertyValue(noTopicsAdapter, "outputChannel"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(noTopicsAdapter, "clientFactory"));
+		assertEquals(5000, TestUtils.getPropertyValue(this.noTopicsAdapter, "recoveryInterval"));
 	}
 
 	@Test

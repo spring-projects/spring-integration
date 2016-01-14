@@ -46,6 +46,7 @@ Attributes:
 	client-factory="clientFactory"  <6>
 	send-timeout="123"  <7>
 	error-channel="errors"  <8>
+	recovery-interval="10000"  <9>
 	channel="out" />
 ----
 
@@ -77,6 +78,9 @@ The `DefaultPahoMessageConverter` can be configured to return the raw `byte[]` i
 
 <8> The error channel - downstream exceptions will be sent to this channel, if supplied, in an `ErrorMessage`; the payload is a `MessagingException` containing the failed message and cause.
 
+<9> The recovery interval - controls the interval at which the adapter will attempt to reconnect after
+                            a failure; it defaults to `10000ms` (ten seconds).
+
 NOTE: Starting with _version 4.1_ the url can be omitted and, instead, the server URIs can be provided in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
 This enables, for example, connection to a highly available (HA) cluster.
 
@@ -87,7 +91,7 @@ These events can be received by a bean that implements `ApplicationListener`.
 
 Also, a new property `recoveryInterval` controls the interval at which the adapter will attempt to reconnect after
 a failure; it defaults to `10000ms` (ten seconds).
-This is not currently available using XML configuration.
+
 
 [NOTE]
 ====
