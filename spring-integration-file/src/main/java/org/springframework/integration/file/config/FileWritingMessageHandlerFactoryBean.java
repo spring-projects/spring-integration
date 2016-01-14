@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 
 /**
@@ -37,7 +38,7 @@ import org.springframework.integration.file.support.FileExistsMode;
  *
  * @since 1.0.3
  */
-public class FileWritingMessageHandlerFactoryBean 
+public class FileWritingMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
 
 	private volatile File directory;
@@ -61,8 +62,14 @@ public class FileWritingMessageHandlerFactoryBean
 	private volatile FileExistsMode fileExistsMode;
 
 	private volatile boolean expectReply = true;
-	
+
+	private Integer bufferSize;
+
 	private volatile Boolean appendNewLine;
+
+	private volatile Long flushInterval;
+
+	private volatile MessageFlushPredicate flushPredicate;
 
 	public void setFileExistsMode(String fileExistsModeAsString) {
 		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);
@@ -111,7 +118,19 @@ public class FileWritingMessageHandlerFactoryBean
 	public void setAppendNewLine(Boolean appendNewLine) {
 		this.appendNewLine = appendNewLine;
 	}
-	
+
+	public void setBufferSize(Integer bufferSize) {
+		this.bufferSize = bufferSize;
+	}
+
+	public void setFlushInterval(long flushInterval) {
+		this.flushInterval = flushInterval;
+	}
+
+	public void setFlushPredicate(MessageFlushPredicate flushPredicate) {
+		this.flushPredicate = flushPredicate;
+	}
+
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 
@@ -157,8 +176,17 @@ public class FileWritingMessageHandlerFactoryBean
 		if (this.fileExistsMode != null) {
 			handler.setFileExistsMode(this.fileExistsMode);
 		}
+		if (this.bufferSize != null) {
+			handler.setBufferSize(this.bufferSize);
+		}
+		if (this.flushInterval != null) {
+			handler.setFlushInterval(this.flushInterval);
+		}
+		if (this.flushPredicate != null) {
+			handler.setFlushPredicate(this.flushPredicate);
+		}
 
 		return handler;
 	}
-	
+
 }

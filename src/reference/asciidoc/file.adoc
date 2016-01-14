@@ -438,7 +438,10 @@ This class can deal with the following payload types:
 
 You can configure the encoding and the charset that will be used in case of a String payload.
 
-To make things easier, you can configure the `FileWritingMessageHandler` as part of an _Outbound Channel Adapter_ or _Outbound Gateway_ using the provided XML namespace support.
+To make things easier, you can configure the `FileWritingMessageHandler` as part of an _Outbound Channel Adapter_ or
+_Outbound Gateway_ using the provided XML namespace support.
+
+Starting with _version 4.3_, you can specify the buffer size to use when writing files.
 
 [[file-writing-file-names]]
 ==== Generating File Names
@@ -524,6 +527,7 @@ The following options exist:
 
 * REPLACE (Default)
 * APPEND
+* APPEND_NO_FLUSH
 * FAIL
 * IGNORE
 
@@ -539,7 +543,15 @@ If the _mode_ attribute is not specified, then this is the default behavior when
 _APPEND_
 
 This mode allows you to append Message content to the existing file instead of creating a new file each time.
-Note that this attribute is mutually exclusive with _temporary-file-suffix_ attribute since when appending content to the existing file, the adapter no longer uses a temporary file.
+Note that this attribute is mutually exclusive with _temporary-file-suffix_ attribute since when appending content to
+the existing file, the adapter no longer uses a temporary file.
+The file is closed after each message.
+
+__APPEND_NO_FLUSH__
+
+This has the same semantics as *APPEND* but the data is not flushed and the file is not closed after each message.
+This can provide a significant performance at the risk of data loss in the case of a failure.
+See <<file-flushing>> for more information.
 
 _FAIL_
 
@@ -550,6 +562,27 @@ _IGNORE_
 If the target file exists, the message payload is silently ignored.
 
 NOTE: When using a temporary file suffix (default: `.writing`), the _IGNORE_ mode will apply if the final file name exists, or the temporary file name exists.
+
+[[file-flushing]]
+==== Flushing Files When using APPEND_NO_FLUSH
+
+The *APPEND_NO_FLUSH* mode was added in _version 4.3_.
+This can improve performance because the file is not closed after each message.
+However, this can cause data loss in the event of a failure.
+
+Several flushing strategies, to mitigate this data loss, are provided:
+
+- `flushInterval` - if a file is not written to for this period of time, it is automatically flushed.
+This is approximate and may be up to `1.33x` this time.
+- Send a message to the message handler's `trigger` method containing a regular expression.
+Files with absolute path names matching the pattern will be flushed.
+- Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message
+is sent to the `trigger` method.
+- Invoke one of the handler's `flushIfNeeded` methods passing in a custom `FileWritingMessageHandler.FlushPredicate`
+or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
+
+The predicates are called for each open file.
+See the java docs for these interfaces for more information.
 
 [[file-outbound-channel-adapter]]
 ==== File Outbound Channel Adapter

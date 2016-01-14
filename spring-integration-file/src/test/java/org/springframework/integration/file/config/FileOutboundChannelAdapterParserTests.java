@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -38,12 +39,15 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -62,6 +66,7 @@ import org.springframework.util.ReflectionUtils;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
@@ -75,6 +80,9 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	EventDrivenConsumer adapterWithOrder;
+
+	@Autowired
+	EventDrivenConsumer adapterWithFlushing;
 
 	@Autowired
 	EventDrivenConsumer adapterWithCharset;
@@ -105,6 +113,9 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	CountDownLatch fileWriteLatch;
+
+	@Autowired
+	MessageFlushPredicate predicate;
 
 	private volatile static int adviceCalled;
 
@@ -163,6 +174,18 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(555, handlerAccessor.getPropertyValue("order"));
+	}
+
+	@Test
+	public void adapterWithFlushing() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithFlushing);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(4096, handlerAccessor.getPropertyValue("bufferSize"));
+		assertEquals(12345L, handlerAccessor.getPropertyValue("flushInterval"));
+		assertEquals(FileExistsMode.APPEND_NO_FLUSH, handlerAccessor.getPropertyValue("fileExistsMode"));
+		assertSame(this.predicate, handlerAccessor.getPropertyValue("flushPredicate"));
 	}
 
 	@Test

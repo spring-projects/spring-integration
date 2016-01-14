@@ -21,6 +21,9 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
@@ -28,11 +31,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -43,12 +50,15 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileWritingMessageHandler.FlushPredicate;
+import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -423,6 +433,78 @@ public class FileWritingMessageHandlerTests {
 		assertFileContentIsMatching(result);
 		assertThat(outFile.exists(), is(true));
 		assertFileContentIs(outFile, "foo");
+	}
+
+	@Test
+	public void noFlushAppend() throws Exception {
+		File tempFolder = this.temp.newFolder();
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder);
+		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
+		handler.setFileNameGenerator(new FileNameGenerator() {
+
+			@Override
+			public String generateFileName(Message<?> message) {
+				return "foo.txt";
+			}
+		});
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+		handler.setOutputChannel(new NullChannel());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setFlushInterval(30000);
+		handler.afterPropertiesSet();
+		handler.start();
+		File file = new File(tempFolder, "foo.txt");
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<String>("bar"));
+		handler.handleMessage(new GenericMessage<String>("baz"));
+		handler.handleMessage(new GenericMessage<byte[]>("qux".getBytes())); // change of payload type forces flush
+		assertThat(file.length(), greaterThanOrEqualTo(9L));
+		handler.stop(); // forces flush
+		assertThat(file.length(), equalTo(12L));
+		handler.setFlushInterval(100);
+		handler.start();
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("fiz".getBytes())));
+		int n = 0;
+		while (n++ < 100 && file.length() < 15) {
+			Thread.sleep(100);
+		}
+		assertThat(file.length(), equalTo(15L));
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("buz".getBytes())));
+		handler.trigger(new GenericMessage<String>(Matcher.quoteReplacement(file.getAbsolutePath())));
+		assertThat(file.length(), equalTo(18L));
+		assertEquals(0, TestUtils.getPropertyValue(handler, "fileStates", Map.class).size());
+
+		handler.setFlushInterval(30000);
+		final AtomicBoolean called = new AtomicBoolean();
+		handler.setFlushPredicate(new MessageFlushPredicate() {
+
+			@Override
+			public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
+				called.set(true);
+				return true;
+			}
+
+		});
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
+		handler.trigger(new GenericMessage<String>("foo"));
+		assertThat(file.length(), equalTo(21L));
+		assertTrue(called.get());
+
+		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
+		called.set(false);
+		handler.flushIfNeeded(new FlushPredicate() {
+
+			@Override
+			public boolean shouldFlush(String fileAbsolutePath, long lastWrite) {
+				called.set(true);
+				return true;
+			}
+
+		});
+		assertThat(file.length(), equalTo(24L));
+		assertTrue(called.get());
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {
