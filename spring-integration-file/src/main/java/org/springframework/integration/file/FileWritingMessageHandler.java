@@ -86,7 +86,7 @@ import org.springframework.util.StringUtils;
  * is left open without flushing any data. Data will be flushed based on the
  * {@link #setFlushInterval(long) flushInterval} or when a message is sent to the
  * {@link #trigger(Message)} method, or a
- * {@link #flushIfNeeded(FlushPredicate, Message) flushIfNeeded}
+ * {@link #flushIfNeeded(MessageFlushPredicate, Message) flushIfNeeded}
  * method is called.
  *
  * @author Mark Fisher
@@ -143,7 +143,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile ScheduledFuture<?> flushTask;
 
-	private volatile FlushPredicate flushPredicate = new DefaultFlushPredicate();
+	private volatile MessageFlushPredicate flushPredicate = new DefaultFlushPredicate();
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -309,13 +309,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * Set a {@link FlushPredicate} to use when flushing files when
+	 * Set a {@link MessageFlushPredicate} to use when flushing files when
 	 * {@link FileExistsMode#APPEND_NO_FLUSH} is being used.
 	 * See {@link #trigger(Message)}.
 	 * @param flushPredicate the predicate.
 	 * @since 4.3
 	 */
-	public void setFlushPredicate(FlushPredicate flushPredicate) {
+	public void setFlushPredicate(MessageFlushPredicate flushPredicate) {
 		Assert.notNull(flushPredicate, "'flushPredicate' cannot be null");
 		this.flushPredicate = flushPredicate;
 	}
@@ -771,7 +771,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, you can send a message to this
 	 * method to flush any file(s) that needs it. By default, the payload must be a regular
 	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
-	 * of any in-process files. However, if a custom {@link FlushPredicate} is provided,
+	 * of any in-process files. However, if a custom {@link MessageFlushPredicate} is provided,
 	 * the payload can be of any type supported by that implementation.
 	 * @since 4.3
 	 */
@@ -783,25 +783,33 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
 	 * selectively flush open files. For each open file the supplied
-	 * {@link FlushPredicate#shouldFlush(String, long, Message)}
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
 	 * method is invoked and if true is returned, the file is flushed.
 	 * @param flushPredicate the {@link FlushPredicate}.
 	 * @since 4.3
 	 */
 	public void flushIfNeeded(FlushPredicate flushPredicate) {
-		flushIfNeeded(flushPredicate, null);
+		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<String, FileState> entry = iterator.next();
+			FileState state = entry.getValue();
+			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite)) {
+				iterator.remove();
+				state.close();
+			}
+		}
 	}
 
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
 	 * selectively flush open files. For each open file the supplied
-	 * {@link FlushPredicate#shouldFlush(String, long, Message)}
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
 	 * method is invoked and if true is returned, the file is flushed.
-	 * @param flushPredicate the {@link FlushPredicate}.
+	 * @param flushPredicate the {@link MessageFlushPredicate}.
 	 * @param filterMessage an optional message passed into the predicate.
 	 * @since 4.3
 	 */
-	public void flushIfNeeded(FlushPredicate flushPredicate, Message<?> filterMessage) {
+	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
 		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
@@ -872,13 +880,33 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} and a trigger message is invoked
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * an implementation of this interface is called for each file that has pending data
-	 * to flush.
+	 * to flush when {@link FileWritingMessageHandler#flushIfNeeded(MessageFlushPredicate)}
+	 * is invoked.
 	 * @since 4.3
 	 *
 	 */
 	public interface FlushPredicate {
+
+		/**
+		 * @param fileAbsolutePath the path to the file.
+		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
+		 * @return true if the file should be flushed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long lastWrite);
+
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * an implementation of this interface is called for each file that has pending data
+	 * to flush.
+	 * @see FileWritingMessageHandler#trigger(Message)
+	 * @since 4.3
+	 *
+	 */
+	public interface MessageFlushPredicate {
 
 		/**
 		 * @param fileAbsolutePath the path to the file.
@@ -893,7 +921,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Flushes files where the path matches a pattern, regardless of last write time.
 	 */
-	private final class DefaultFlushPredicate implements FlushPredicate {
+	private final class DefaultFlushPredicate implements MessageFlushPredicate {
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {

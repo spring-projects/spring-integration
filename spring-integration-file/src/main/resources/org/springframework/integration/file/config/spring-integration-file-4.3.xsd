@@ -466,6 +466,31 @@ Only files matching this regular expression will be picked up by this adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="flush-interval" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					When using 'mode=APPEND_NO_FLUSH' if this time (ms) elapses
+					without any new writes, the data is flushed and the file closed.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flush-predicate" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					When using 'mode=APPEND_NO_FLUSH',
+					a reference to a 'FlushPredicate' implementation used when a message is
+					sent to the message handler's 'MessageTriggerAction.trigger()' method.
+					By default, the payload of such a message must be a Regex used to match
+					the file absolute path.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+							type="org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
     </xsd:complexType>
 
@@ -813,12 +838,22 @@ Only files matching this regular expression will be picked up by this adapter.
 					subsequent data will be appended to it. This attribute
 					is mutualy exclusive with the use of a temporary file,
 					since append is done to the actual file and not its
-					temporary counterpart.
+					temporary counterpart. The file is closed after each write.
 
 					If set to APPEND, the component will also use
 					instance of the LockRegistry to ensure that there are no
 					collisions when multiple threads are writing to the same
 					file.
+
+					APPEND_NO_FLUSH:
+
+					Same as 'APPEND' but the data is not flushed or the file
+					closed. This can significantly improve performance at the
+					risk of lost data.
+
+					Various strategies are available for flushing the data and
+					closing the file. Refer to the reference documentation for
+					more information.
 
 					FAIL:
 

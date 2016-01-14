@@ -50,7 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.file.FileWritingMessageHandler.FlushPredicate;
+import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -477,7 +477,7 @@ public class FileWritingMessageHandlerTests {
 
 		handler.setFlushInterval(30000);
 		final AtomicBoolean called = new AtomicBoolean();
-		handler.setFlushPredicate(new FlushPredicate() {
+		handler.setFlushPredicate(new MessageFlushPredicate() {
 
 			@Override
 			public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
