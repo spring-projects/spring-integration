@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	 */
 	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {
-		if (CollectionUtils.isEmpty(this.getChannelMappings())) {
+		if (CollectionUtils.isEmpty(this.channelMappings)) {
 			return null;
 		}
 		Class<?> type = message.getPayload().getClass();
@@ -63,7 +63,7 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new ArrayList<String>();
-		for (String candidate : this.getChannelMappings().keySet()) {
+		for (String candidate : this.channelMappings.keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
 					continue;
@@ -88,7 +88,8 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 		}
 		if (matches.size() > 1) { // ambiguity
 			throw new IllegalStateException(
-					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]. Found: " + matches);
+					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]. " +
+							"Found: " + matches);
 		}
 		if (CollectionUtils.isEmpty(matches)) { // no match
 			return null;

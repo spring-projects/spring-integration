@@ -959,7 +959,13 @@ As such, please read chapter _<<xml-xpath-routing>>_
 Spring Integration also provides a special type-based router called `ErrorMessageExceptionTypeRouter` for routing Error Messages (Messages whose `payload` is a `Throwable` instance).
 `ErrorMessageExceptionTypeRouter` is very similar to the `PayloadTypeRouter`.
 In fact they are almost identical.
-The only difference is that while `PayloadTypeRouter` navigates the instance hierarchy of a payload instance (e.g., `payload.getClass().getSuperclass()`) to find the most specific type/channel mappings, the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (e.g., `payload.getCause()`) to find the most specific `Throwable` type/channel mappings.
+The only difference is that while `PayloadTypeRouter` navigates the instance hierarchy of a payload instance (e.g., `payload.getClass().getSuperclass()`) to find the most specific type/channel mappings,
+the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (e.g., `payload.getCause()`)
+to find the most specific `Throwable` type/channel mappings and uses `mappingClass.isInstance(cause)` to match the
+`cause` to the class or any super class.
+
+NOTE: Since _version 4.3_ the `ErrorMessageExceptionTypeRouter` loads all mapping classes during the initialization
+phase to fail-fast for a `ClassNotFoundException`.
 
 Below is a sample configuration for `ErrorMessageExceptionTypeRouter`.
 
