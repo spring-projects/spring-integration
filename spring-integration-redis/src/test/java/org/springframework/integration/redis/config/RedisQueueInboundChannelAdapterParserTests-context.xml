@@ -31,7 +31,8 @@
 											  recovery-interval="3000"
 											  task-executor="executor"
 											  auto-startup="false"
-											  phase="100"/>
+											  phase="100"
+											  read-from-left="true"/>
 
 	<bean id="executor" class="org.springframework.integration.util.ErrorHandlingTaskExecutor">
 		<constructor-arg ref="threadPoolTaskExecutor"/>

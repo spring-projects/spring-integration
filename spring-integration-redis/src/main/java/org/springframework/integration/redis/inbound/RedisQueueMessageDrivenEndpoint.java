@@ -80,6 +80,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private volatile Runnable stopCallback;
 
+	private volatile boolean readFromLeft = false;
+
 	/**
 	 * @param queueName         Must not be an empty String
 	 * @param connectionFactory Must not be null
@@ -158,6 +160,16 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.recoveryInterval = recoveryInterval;
 	}
 
+	/**
+	 * Should data from the Redis queue be read from the left end of the queue (using leftPop)?
+	 * This is useful when the queue is fed by a software that uses rightPush.
+	 * @since 4.3
+	 * @param readFromLeft Defaults to false
+	 */
+	public void setReadFromLeft(boolean readFromLeft) {
+		this.readFromLeft = readFromLeft;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -188,7 +200,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		byte[] value = null;
 		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			if (readFromLeft) {
+				value = this.boundListOperations.leftPop( this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
+			else {
+				value = this.boundListOperations.rightPop( this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
 		}
 		catch (Exception e) {
 			this.listening = false;
@@ -227,7 +244,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				this.sendMessage(message);
 			}
 			else {
-				this.boundListOperations.rightPush(value);
+				if (readFromLeft) {
+					this.boundListOperations.leftPush(value);
+				}
+				else {
+					this.boundListOperations.rightPush(value);
+				}
 			}
 		}
 	}

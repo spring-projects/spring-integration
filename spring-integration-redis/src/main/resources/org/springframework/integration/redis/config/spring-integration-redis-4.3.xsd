@@ -390,6 +390,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="read-from-left" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								When true, specifies that the next message is read from the left end of the Redis queue
+								(default is right end). Useful when the queue is fed on the right end (eg. by
+								non-SI software).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
