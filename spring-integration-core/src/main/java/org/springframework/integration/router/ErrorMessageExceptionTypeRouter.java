@@ -17,11 +17,14 @@
 package org.springframework.integration.router;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ClassUtils;
@@ -31,7 +34,7 @@ import org.springframework.util.ClassUtils;
  * messages whose payload is an Exception. The channel resolution is based upon
  * the most specific cause of the error for which a channel-mapping exists.
  * <p>
- * The channel-mapping can be specified on the super classes to avoid mapping duplication
+ * The channel-mapping can be specified for the super classes to avoid mapping duplication
  * for the particular exception implementation.
  *
  * @author Mark Fisher
@@ -40,28 +43,80 @@ import org.springframework.util.ClassUtils;
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
+	private final Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<String, Class<?>>();
+
+	private volatile boolean initialized;
+
+	@Override
+	@ManagedAttribute
+	public void setChannelMappings(Map<String, String> channelMappings) {
+		super.setChannelMappings(channelMappings);
+		if (this.initialized) {
+			populateClassNameMapping(channelMappings.keySet());
+		}
+	}
+
+	private void populateClassNameMapping(Set<String> classNames) {
+		Map<String, Class<?>> newMappings = new ConcurrentHashMap<String, Class<?>>();
+		synchronized (this.classNameMappings) {
+			this.classNameMappings.clear();
+			for (String className : classNames) {
+				this.classNameMappings.put(className, resolveClassFromName(className));
+			}
+		}
+	}
+
+	private Class<?> resolveClassFromName(String className) {
+		try {
+			return ClassUtils.forName(className, getApplicationContext().getClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("Cannot load class for channel mapping.", e);
+		}
+	}
+
+	@Override
+	@ManagedOperation
+	public void setChannelMapping(String key, String channelName) {
+		super.setChannelMapping(key, channelName);
+		this.classNameMappings.put(key, resolveClassFromName(key));
+	}
+
+	@Override
+	@ManagedOperation
+	public void removeChannelMapping(String key) {
+		super.removeChannelMapping(key);
+		this.classNameMappings.remove(key);
+	}
+
+	@Override
+	@ManagedOperation
+	public void replaceChannelMappings(Properties channelMappings) {
+		super.replaceChannelMappings(channelMappings);
+		populateClassNameMapping(getChannelMappings().keySet());
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		populateClassNameMapping(getChannelMappings().keySet());
+		this.initialized = true;
+	}
+
 	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {
 		String mostSpecificCause = null;
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable) {
 			Throwable cause = (Throwable) payload;
-			Set<String> mapping = getChannelMappings().keySet();
-			Map<String, Class<?>> classesCache = new HashMap<String, Class<?>>();
 			while (cause != null) {
-				for (String className : mapping) {
-					Class<?> exceptionClass = classesCache.get(className);
-					if (exceptionClass == null) {
-						try {
-							exceptionClass = ClassUtils.forName(className, getApplicationContext().getClassLoader());
-							classesCache.put(className, exceptionClass);
+				synchronized (this.classNameMappings) {
+					for (Map.Entry<String, Class<?>> entry : this.classNameMappings.entrySet()) {
+						String channelKey = entry.getKey();
+						Class<?> exceptionClass = entry.getValue();
+						if (exceptionClass.isInstance(cause)) {
+							mostSpecificCause = channelKey;
 						}
-						catch (ClassNotFoundException e) {
-							throw new IllegalStateException(e);
-						}
-					}
-					if (exceptionClass.isInstance(cause)) {
-						mostSpecificCause = className;
 					}
 				}
 				cause = cause.getCause();
