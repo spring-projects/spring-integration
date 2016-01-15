@@ -81,7 +81,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private volatile Runnable stopCallback;
 
-	private volatile boolean readFromLeft = false;
+	private volatile boolean rightPop = true;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -162,12 +162,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	}
 
 	/**
-	 * Should data from the Redis queue be read from the left end of the queue (using leftPop)?
-	 * @param readFromLeft Defaults to false
+	 * Should data from the Redis queue be read with a rightPop or leftPop operation?
+	 * @param rightPop Defaults to true
 	 * @since 4.3
 	 */
-	public void setReadFromLeft(boolean readFromLeft) {
-		this.readFromLeft = readFromLeft;
+	public void setRightPop(boolean rightPop) {
+		this.rightPop = rightPop;
 	}
 
 	@Override
@@ -200,11 +200,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		byte[] value = null;
 		try {
-			if (this.readFromLeft) {
-				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			if (this.rightPop) {
+				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 			else {
-				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 		}
 		catch (Exception e) {
@@ -244,11 +244,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				this.sendMessage(message);
 			}
 			else {
-				if (this.readFromLeft) {
-					this.boundListOperations.leftPush(value);
+				if (this.rightPop) {
+					this.boundListOperations.rightPush(value);
 				}
 				else {
-					this.boundListOperations.rightPush(value);
+					this.boundListOperations.leftPush(value);
 				}
 			}
 		}

@@ -369,7 +369,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(1000);
-		endpoint.setReadFromLeft(true);
+		endpoint.setRightPop(false);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 

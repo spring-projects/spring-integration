@@ -104,7 +104,7 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class));
 		assertEquals(Integer.MAX_VALUE / 2, TestUtils.getPropertyValue(this.defaultAdapter, "phase"));
 		assertSame(this.defaultAdapterChannel, TestUtils.getPropertyValue(this.defaultAdapter, "outputChannel"));
-		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "readFromLeft", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "rightPop", Boolean.class));
 	}
 
 	@Test
@@ -121,7 +121,7 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "autoStartup", Boolean.class));
 		assertEquals(100, TestUtils.getPropertyValue(this.customAdapter, "phase"));
 		assertSame(this.sendChannel, TestUtils.getPropertyValue(this.customAdapter, "outputChannel"));
-		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "readFromLeft", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "rightPop", Boolean.class));
 	}
 
 }

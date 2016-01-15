@@ -52,7 +52,7 @@ public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapte
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "read-from-left");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "right-pop");
 		builder.addPropertyReference("outputChannel", channelName);
 
 		return builder.getBeanDefinition();

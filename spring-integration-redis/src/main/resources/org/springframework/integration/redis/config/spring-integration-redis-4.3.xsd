@@ -390,11 +390,11 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="read-from-left" type="xsd:string" default="false">
+					<xsd:attribute name="right-pop" type="xsd:string" default="true">
 						<xsd:annotation>
 							<xsd:documentation>
-								When true, specifies that data is read from the left end of the Redis queue
-								(default is right end).
+								When 'false', specifies that data is read using a 'left pop' operation instead of a 'right pop'.
+								Default is 'true'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
