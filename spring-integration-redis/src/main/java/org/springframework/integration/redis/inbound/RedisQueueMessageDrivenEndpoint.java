@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rainer Frey
  * @since 3.0
  */
 @ManagedResource
@@ -162,9 +163,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	/**
 	 * Should data from the Redis queue be read from the left end of the queue (using leftPop)?
-	 * This is useful when the queue is fed by a software that uses rightPush.
-	 * @since 4.3
 	 * @param readFromLeft Defaults to false
+	 * @since 4.3
 	 */
 	public void setReadFromLeft(boolean readFromLeft) {
 		this.readFromLeft = readFromLeft;
@@ -200,7 +200,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		byte[] value = null;
 		try {
-			if (readFromLeft) {
+			if (this.readFromLeft) {
 				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 			}
 			else {
@@ -244,7 +244,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				this.sendMessage(message);
 			}
 			else {
-				if (readFromLeft) {
+				if (this.readFromLeft) {
 					this.boundListOperations.leftPush(value);
 				}
 				else {
