@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,15 +31,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class Jsr223InboundChannelAdapterTests {
 
 	@Autowired
@@ -52,15 +54,13 @@ public class Jsr223InboundChannelAdapterTests {
 		Message<?> message = this.inboundChannelAdapterChannel.receive(20000);
 		assertNotNull(message);
 		Object payload = message.getPayload();
-		assertThat(payload, Matchers.instanceOf(Date.class));
+		Thread.sleep(2);
+		assertThat(payload, instanceOf(Date.class));
 		assertTrue(((Date) payload).before(new Date()));
 		assertEquals("bar", message.getHeaders().get("foo"));
 
 		message = this.inboundChannelAdapterChannel.receive(20000);
 		assertNotNull(message);
-
-		message = this.inboundChannelAdapterChannel.receive(10);
-		assertNull(message);
 	}
 
 }

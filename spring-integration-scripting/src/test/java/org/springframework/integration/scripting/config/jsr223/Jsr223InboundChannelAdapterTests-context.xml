@@ -16,7 +16,7 @@
 		<script:script lang="ruby">
 			<![CDATA[
 			require "java"
-			include_class 'java.util.Date'
+			java_import 'java.util.Date'
 
 			Date.new
 			]]>
