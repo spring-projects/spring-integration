@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors
+ * Copyright 2013-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Rainer Frey
  * @since 3.0
  */
 public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
@@ -50,6 +51,8 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
 	private volatile boolean serializerExplicitlySet;
+
+	private volatile boolean leftPush = true;
 
 	public RedisQueueOutboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
 		this(new LiteralExpression(queueName), connectionFactory);
@@ -75,6 +78,10 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
 		this.serializerExplicitlySet = true;
+	}
+
+	public void setLeftPush(boolean leftPush) {
+		this.leftPush = leftPush;
 	}
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
@@ -113,7 +120,12 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 		}
 
 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
-		this.template.boundListOps(queueName).leftPush(value);
+		if (this.leftPush) {
+			this.template.boundListOps(queueName).leftPush(value);
+		}
+		else {
+			this.template.boundListOps(queueName).rightPush(value);
+		}
 	}
 
 }

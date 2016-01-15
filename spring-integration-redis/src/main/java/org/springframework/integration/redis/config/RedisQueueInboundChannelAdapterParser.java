@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;queue-inbound-channel-adapter&gt; element of the 'redis' namespace.
  *
  * @author Artem Bilan
+ * @author Rainer Frey
  * @since 3.0
  */
 public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -51,6 +52,7 @@ public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapte
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "right-pop");
 		builder.addPropertyReference("outputChannel", channelName);
 
 		return builder.getBeanDefinition();

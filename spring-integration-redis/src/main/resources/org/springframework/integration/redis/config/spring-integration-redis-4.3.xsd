@@ -390,6 +390,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="right-pop" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								When 'false', specifies that data is read using a 'left pop' operation instead of a 'right pop'.
+								Default is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -606,6 +614,14 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Specifies if the Message payload or the entire (serialized) Message will be send to the Redis queue.
+								Default is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="left-push" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								When 'false', specifies that data is read using a 'right push' operation instead of a 'left push'.
 								Default is 'true'.
 							</xsd:documentation>
 						</xsd:annotation>

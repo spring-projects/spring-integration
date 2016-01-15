@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rainer Frey
  * @since 3.0
  */
 @ManagedResource
@@ -79,6 +80,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	private volatile boolean listening;
 
 	private volatile Runnable stopCallback;
+
+	private volatile boolean rightPop = true;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -158,6 +161,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.recoveryInterval = recoveryInterval;
 	}
 
+	/**
+	 * Should data from the Redis queue be read with a rightPop or leftPop operation?
+	 * @param rightPop Defaults to true
+	 * @since 4.3
+	 */
+	public void setRightPop(boolean rightPop) {
+		this.rightPop = rightPop;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -188,7 +200,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		byte[] value = null;
 		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			if (this.rightPop) {
+				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
+			else {
+				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
 		}
 		catch (Exception e) {
 			this.listening = false;
@@ -227,7 +244,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				this.sendMessage(message);
 			}
 			else {
-				this.boundListOperations.rightPush(value);
+				if (this.rightPop) {
+					this.boundListOperations.rightPush(value);
+				}
+				else {
+					this.boundListOperations.leftPush(value);
+				}
 			}
 		}
 	}
