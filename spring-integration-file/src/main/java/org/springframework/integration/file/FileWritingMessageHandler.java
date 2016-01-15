@@ -510,9 +510,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						try {
 							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 								bos.close();
-								if (state != null) {
-									fileStates.remove(fileToWriteTo.getAbsolutePath());
-								}
+								clearState(fileToWriteTo, state);
 							}
 							else {
 								state.lastWrite = System.currentTimeMillis();
@@ -584,9 +582,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							bos.close();
-							if (state != null) {
-								fileStates.remove(fileToWriteTo.getAbsolutePath());
-							}
+							clearState(fileToWriteTo, state);
 						}
 						else {
 							state.lastWrite = System.currentTimeMillis();
@@ -627,9 +623,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							writer.close();
-							if (state != null) {
-								fileStates.remove(fileToWriteTo.getAbsolutePath());
-							}
+							clearState(fileToWriteTo, state);
 						}
 						else {
 							state.lastWrite = System.currentTimeMillis();
@@ -832,6 +826,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
+	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
+		if (state != null) {
+			fileStates.remove(fileToWriteTo.getAbsolutePath());
+		}
+	}
+
 
 	private static final class FileState {
 
@@ -932,7 +932,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Flushes files where the path matches a pattern, regardless of last write time.
 	 */
-	private final class DefaultFlushPredicate implements MessageFlushPredicate {
+	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
