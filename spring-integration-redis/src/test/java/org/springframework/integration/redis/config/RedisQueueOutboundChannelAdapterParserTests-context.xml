@@ -26,7 +26,8 @@
 											  queue-expression="headers['redis_queue']"
 											  extract-payload="false"
 											  serializer="serializer"
-											  connection-factory="customRedisConnectionFactory"/>
+											  connection-factory="customRedisConnectionFactory"
+											  left-push="false"/>
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
