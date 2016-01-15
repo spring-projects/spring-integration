@@ -66,3 +66,9 @@ See <<file-writing-file-names>> for more information.
 The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
 that the converter can be chosen based on the message content type.
 See <<content-type-conversion-outbound>> for more information.
+
+==== Redis Changes
+
+Previously, the queue channel adapters always used the Redis List in a fixed direction, pushing to the left end and reading from the right end.
+It is now possible to configure the reading and writing direction.
+See <<redis-queue-inbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> for more information.
