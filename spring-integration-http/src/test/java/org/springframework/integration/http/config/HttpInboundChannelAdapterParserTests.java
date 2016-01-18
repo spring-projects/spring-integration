@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -123,11 +124,17 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getRequestOk() throws Exception {
+		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "autoStartup", Boolean.class));
+		assertEquals(1001, TestUtils.getPropertyValue(this.defaultAdapter, "phase"));
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		defaultAdapter.handleRequest(request, response);
+		this.defaultAdapter.handleRequest(request, response);
+		assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatus());
+		this.defaultAdapter.start();
+		response = new MockHttpServletResponse();
+		this.defaultAdapter.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_SWITCHING_PROTOCOLS, response.getStatus());
 		Message<?> message = requests.receive(0);
 		assertNotNull(message);
@@ -138,7 +145,7 @@ public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTes
 		assertEquals("foo", map.keySet().iterator().next());
 		assertEquals(1, map.get("foo").size());
 		assertEquals("bar", map.getFirst("foo"));
-		assertNotNull(TestUtils.getPropertyValue(defaultAdapter, "errorChannel"));
+		assertNotNull(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel"));
 	}
 
 	@Test

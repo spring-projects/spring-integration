@@ -188,7 +188,7 @@
 							<xsd:documentation><![CDATA[
 	Used to set the sendTimeout on the underlying MessagingTemplate instance
 	(org.springframework.integration.core.MessagingTemplate) for sending messages
-	to the request channel. If not specified this propery will default to "1000"
+	to the request channel. If not specified this property will default to "1000"
 	(1 second).
 							]]></xsd:documentation>
 						</xsd:annotation>
@@ -198,7 +198,7 @@
 							<xsd:documentation><![CDATA[
 	Used to set the receiveTimeout on the underlying MessagingTemplate instance
 	(org.springframework.integration.core.MessagingTemplate) for receiving messages
-	from the reply channel. If not specified this propery will default to "1000"
+	from the reply channel. If not specified this property will default to "1000"
 	(1 second).
 							]]></xsd:documentation>
 						</xsd:annotation>

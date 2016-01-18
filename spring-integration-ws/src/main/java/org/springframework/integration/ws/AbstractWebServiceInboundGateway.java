@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,10 @@ import org.springframework.ws.soap.SoapMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.1
  */
-abstract public class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
+public abstract class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
@@ -48,6 +49,9 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
+		if (!isRunning()) {
+			throw new ServiceUnavailableException("503 Service Unavailable");
+		}
 		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 
 		try {
@@ -87,4 +91,5 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	abstract protected void doInvoke(MessageContext messageContext) throws Exception;
+
 }

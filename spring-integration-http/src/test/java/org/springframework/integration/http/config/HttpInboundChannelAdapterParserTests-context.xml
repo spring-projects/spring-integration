@@ -21,6 +21,8 @@
 	</si:channel>
 
 	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"
+			auto-startup="false"
+			phase="1001"
 			status-code-expression="'101'"/>
 
 	<inbound-channel-adapter id="postOnlyAdapter" path="/postOnly" channel="requests" supported-methods="POST"/>

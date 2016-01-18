@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.web.servlet.View;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Biju Kunjummen
+ * @author Artem Bilan
  * @since 2.0
  */
 public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests {
@@ -65,6 +66,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -91,6 +94,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
 		controller.setViewExpression(viewExpression);
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -123,6 +128,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 
@@ -157,6 +164,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -188,6 +197,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -217,6 +228,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setViewName("foo");
 		controller.setReplyKey("myReply");
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("howdy".getBytes());
@@ -250,6 +263,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setViewName("foo");
 		controller.setExtractReplyPayload(false);
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("abc".getBytes());
@@ -280,6 +295,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.afterPropertiesSet();
+		controller.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -319,6 +336,8 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.afterPropertiesSet();
+		controller.start();
+
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -341,6 +360,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 				}
 				// start the shutdown
 				active.set(controller.beforeShutdown());
+				controller.stop();
 				try {
 					MockHttpServletResponse response = new MockHttpServletResponse();
 					controller.handleRequest(request, response);

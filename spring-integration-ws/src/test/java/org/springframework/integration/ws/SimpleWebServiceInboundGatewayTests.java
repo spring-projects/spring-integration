@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,8 @@ public class SimpleWebServiceInboundGatewayTests {
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.start();
+
 		when(context.getResponse()).thenReturn(response);
 		when(response.getPayloadResult()).thenReturn(payloadResult);
 		when(context.getRequest()).thenReturn(request);
@@ -124,16 +126,20 @@ public class SimpleWebServiceInboundGatewayTests {
 			public void describeTo(Description description) {
 				description.appendText("A message with payload: " + payload);
 			}
+
 		});
 	}
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {
 		return new Answer<Boolean>() {
+
 			@Override
 			public Boolean answer(InvocationOnMock invocation) throws Throwable {
 				replyChannel.send((Message<?>) invocation.getArguments()[0]);
 				return true;
 			}
+
 		};
 	}
+
 }
