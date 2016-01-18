@@ -76,6 +76,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
@@ -97,6 +99,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("text/plain");
@@ -133,6 +137,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.addHeader("Accept", "x-application/octet-stream");
@@ -159,6 +165,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("text/plain");
@@ -184,6 +192,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setConvertExceptions(true);
 		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new TestHttpMessageConverter()));
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader("Accept", "application/x-java-serialized-object");
 		request.setMethod("GET");
@@ -200,6 +210,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(channel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
 		request.setParameter("foo", "123");
 		request.addParameter("bar", "456");
@@ -233,6 +245,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		converters.add(new SerializingHttpMessageConverter());
 		gateway.setMessageConverters(converters);
 		gateway.afterPropertiesSet();
+		gateway.start();
 
 		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
 
@@ -281,6 +294,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setMessageConverters(messageConverters);
 		gateway.setRequestChannel(requestChannel);
+		gateway.start();
 
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
@@ -306,6 +320,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyTimeout(0);
 		gateway.afterPropertiesSet();
+		gateway.start();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -324,6 +339,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setReplyTimeout(0);
 		gateway.setStatusCodeExpression(new LiteralExpression("501"));
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -352,6 +369,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		});
 		gateway.setErrorChannel(errorChannel);
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -372,6 +391,8 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.setErrorChannel(errorChannel);
 		gateway.setStatusCodeExpression(new LiteralExpression("501"));
 		gateway.afterPropertiesSet();
+		gateway.start();
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		MockHttpServletResponse response = new MockHttpServletResponse();

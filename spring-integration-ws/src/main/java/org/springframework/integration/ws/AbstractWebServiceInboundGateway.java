@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 package org.springframework.integration.ws;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.expression.ExpressionException;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -31,9 +33,13 @@ import org.springframework.ws.soap.SoapMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.1
  */
-abstract public class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
+public abstract class AbstractWebServiceInboundGateway extends MessagingGatewaySupport
+		implements MessageEndpoint, OrderlyShutdownCapable {
+
+	private final AtomicInteger activeCount = new AtomicInteger();
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
@@ -48,9 +54,13 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
+		if (!isRunning()) {
+			throw new ServiceUnavailableException("503 Service Unavailable");
+		}
 		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 
 		try {
+			this.activeCount.incrementAndGet();
 			this.doInvoke(messageContext);
 		}
 		catch (Exception e) {
@@ -59,6 +69,9 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 				e = (Exception) e.getCause();
 			}
 			throw e;
+		}
+		finally {
+			this.activeCount.decrementAndGet();
 		}
 	}
 
@@ -86,5 +99,17 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 	}
 
+	@Override
+	public int beforeShutdown() {
+		stop();
+		return this.activeCount.get();
+	}
+
+	@Override
+	public int afterShutdown() {
+		return this.activeCount.get();
+	}
+
 	abstract protected void doInvoke(MessageContext messageContext) throws Exception;
+
 }
