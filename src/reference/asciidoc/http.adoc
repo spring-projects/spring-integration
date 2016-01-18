@@ -55,6 +55,11 @@ The default converters encapsulate simple strategies, which for example will cre
 An additional flag (`mergeWithDefaultConverters`) can be set along with the list of custom `HttpMessageConverter` to add the default converters after the custom converters.
 By default this flag is set to false, meaning that the custom converters replace the default list.
 
+The message conversion process uses the (optional) `requestPayloadType` property and the incoming `Content-Type` header.
+Starting with _version 4.3_, if a request has no content type header, `application/octet-stream` is assumed, as
+recommended by `RFC 2616`.
+Previously, the body of such messages was ignored.
+
 Starting with _Spring Integration 2.0_, MultiPart File support is implemented.
 If the request has been wrapped as a _MultipartHttpServletRequest_, when using the default converters, that request will be converted to a Message payload that is a MultiValueMap containing values that may be byte arrays, Strings, or instances of Spring's `MultipartFile` depending on the content type of the individual parts.
 

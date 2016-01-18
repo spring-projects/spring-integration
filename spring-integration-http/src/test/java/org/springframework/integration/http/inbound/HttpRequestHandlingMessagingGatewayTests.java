@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,11 +99,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-
-		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
-		//Instead do:
-		request.addHeader("Content-Type", "text/plain");
-
+		request.setContentType("text/plain");
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -115,6 +111,15 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 
 	@Test
 	public void stringExpectedWithReply() throws Exception {
+		stringExpectedWithReplyGuts(true);
+	}
+
+	@Test
+	public void stringExpectedWithReplyNoContentType() throws Exception {
+		stringExpectedWithReplyGuts(false);
+	}
+
+	private void stringExpectedWithReplyGuts(boolean contentType) throws Exception {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
 			@Override
@@ -131,11 +136,9 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.addHeader("Accept", "x-application/octet-stream");
-
-		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
-		//Instead do:
-		request.addHeader("Content-Type", "text/plain");
-
+		if (contentType) {
+			request.setContentType("text/plain");
+		}
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -158,11 +161,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-
-		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
-		//Instead do:
-		request.addHeader("Content-Type", "text/plain");
-
+		request.setContentType("text/plain");
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -237,10 +236,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 
 		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
 
-		//request.setContentType("application/x-java-serialized-object"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
-		//Instead do:
-		request.addHeader("Content-Type", "application/x-java-serialized-object");
-
+		request.setContentType("application/x-java-serialized-object");
 		TestBean testBean = new TestBean();
 		testBean.setName("T. Bean");
 		testBean.setAge(42);

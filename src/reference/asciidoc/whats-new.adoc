@@ -85,3 +85,10 @@ pushing to the left end and reading from the right end.
 It is now possible to configure the reading and writing direction using `rightPop` and `leftPush` options for the
 `RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter` respectively.
 See <<redis-queue-inbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> for more information.
+
+==== HTTP Changes
+
+Previously, with requests that had a body (such as `POST`) that had no `content-type` header, the body was ignored.
+With this release, the content type of such requests is considered to be `application/octet-stream` as recommended
+by RFC 2616.
+See <<http-inbound>> for more information.

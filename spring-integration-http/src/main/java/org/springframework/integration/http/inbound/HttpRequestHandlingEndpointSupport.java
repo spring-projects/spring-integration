@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -603,11 +603,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request) and a Content-Type header.
+	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request).
 	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()))
-				&& request.getHeaders().getContentType() != null;
+		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
 	}
 
 	/**
@@ -638,6 +637,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
+		if (contentType == null) {
+			contentType = MediaType.APPLICATION_OCTET_STREAM;
+		}
 		Class<?> expectedType = this.requestPayloadType;
 		if (expectedType == null) {
 			expectedType = ("text".equals(contentType.getType())) ? String.class : byte[].class;
