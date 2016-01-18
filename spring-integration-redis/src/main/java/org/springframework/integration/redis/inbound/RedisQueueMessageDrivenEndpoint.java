@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors
+ * Copyright 2013-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rainer Frey
  * @since 3.0
  */
 @ManagedResource
@@ -78,6 +79,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	private volatile boolean active;
 
 	private volatile boolean listening;
+
+	private volatile boolean rightPop = true;
 
 	/**
 	 * @param queueName         Must not be an empty String
@@ -155,6 +158,15 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.recoveryInterval = recoveryInterval;
 	}
 
+	/**
+	 * Specify if {@code POP} operation from Redis List should be {@code BRPOP} or {@code BLPOP}.
+	 * @param rightPop the {@code BRPOP} flag. Defaults to {@code true}.
+	 * @since 4.2.5
+	 */
+	public void setRightPop(boolean rightPop) {
+		this.rightPop = rightPop;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -185,7 +197,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 		byte[] value = null;
 		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			if (this.rightPop) {
+				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
+			else {
+				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
 		}
 		catch (Exception e) {
 			this.listening = false;
@@ -224,7 +241,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				this.sendMessage(message);
 			}
 			else {
-				this.boundListOperations.rightPush(value);
+				if (this.rightPop) {
+					this.boundListOperations.rightPush(value);
+				}
+				else {
+					this.boundListOperations.leftPush(value);
+				}
 			}
 		}
 	}
