@@ -43,7 +43,7 @@ import org.springframework.util.ClassUtils;
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
-	private final Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<String, Class<?>>();
+	private volatile Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<String, Class<?>>();
 
 	private volatile boolean initialized;
 
@@ -57,12 +57,11 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	private void populateClassNameMapping(Set<String> classNames) {
-		synchronized (this.classNameMappings) {
-			this.classNameMappings.clear();
-			for (String className : classNames) {
-				this.classNameMappings.put(className, resolveClassFromName(className));
-			}
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>();
+		for (String className : classNames) {
+			newClassNameMappings.put(className, resolveClassFromName(className));
 		}
+		this.classNameMappings = newClassNameMappings;
 	}
 
 	private Class<?> resolveClassFromName(String className) {
@@ -109,13 +108,11 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 		if (payload instanceof Throwable) {
 			Throwable cause = (Throwable) payload;
 			while (cause != null) {
-				synchronized (this.classNameMappings) {
-					for (Map.Entry<String, Class<?>> entry : this.classNameMappings.entrySet()) {
-						String channelKey = entry.getKey();
-						Class<?> exceptionClass = entry.getValue();
-						if (exceptionClass.isInstance(cause)) {
-							mostSpecificCause = channelKey;
-						}
+				for (Map.Entry<String, Class<?>> entry : this.classNameMappings.entrySet()) {
+					String channelKey = entry.getKey();
+					Class<?> exceptionClass = entry.getValue();
+					if (exceptionClass.isInstance(cause)) {
+						mostSpecificCause = channelKey;
 					}
 				}
 				cause = cause.getCause();

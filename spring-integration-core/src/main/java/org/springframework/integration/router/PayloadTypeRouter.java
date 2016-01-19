@@ -63,29 +63,27 @@ public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new ArrayList<String>();
-		synchronized (this.channelMappings) {
-			for (String candidate : this.channelMappings.keySet()) {
-				if (isArray) {
-					if (!candidate.endsWith(ARRAY_SUFFIX)) {
-						continue;
-					}
-					// trim the suffix
-					candidate = candidate.substring(0, candidate.length() - ARRAY_SUFFIX.length());
-				}
-				else if (candidate.endsWith(ARRAY_SUFFIX)) {
+		for (String candidate : this.channelMappings.keySet()) {
+			if (isArray) {
+				if (!candidate.endsWith(ARRAY_SUFFIX)) {
 					continue;
 				}
-				int typeDiffWeight = determineTypeDifferenceWeight(candidate, type, 0);
-				if (typeDiffWeight < minTypeDiffWeight) {
-					minTypeDiffWeight = typeDiffWeight;
-					// new winner, start accumulating matches from scratch
-					matches.clear();
-					matches.add((isArray) ? candidate + ARRAY_SUFFIX : candidate);
-				}
-				else if (typeDiffWeight == minTypeDiffWeight && typeDiffWeight != Integer.MAX_VALUE) {
-					// candidate tied with current winner, keep track
-					matches.add(candidate);
-				}
+				// trim the suffix
+				candidate = candidate.substring(0, candidate.length() - ARRAY_SUFFIX.length());
+			}
+			else if (candidate.endsWith(ARRAY_SUFFIX)) {
+				continue;
+			}
+			int typeDiffWeight = determineTypeDifferenceWeight(candidate, type, 0);
+			if (typeDiffWeight < minTypeDiffWeight) {
+				minTypeDiffWeight = typeDiffWeight;
+				// new winner, start accumulating matches from scratch
+				matches.clear();
+				matches.add((isArray) ? candidate + ARRAY_SUFFIX : candidate);
+			}
+			else if (typeDiffWeight == minTypeDiffWeight && typeDiffWeight != Integer.MAX_VALUE) {
+				// candidate tied with current winner, keep track
+				matches.add(candidate);
 			}
 		}
 		if (matches.size() > 1) { // ambiguity

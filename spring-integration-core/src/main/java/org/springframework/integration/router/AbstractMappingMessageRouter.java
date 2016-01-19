@@ -19,7 +19,6 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter implements MappingMessageRouterManagement {
 
-	protected final Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
+	protected volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
 	private volatile String prefix;
 
@@ -107,7 +106,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedAttribute
 	public Map<String, String> getChannelMappings() {
-		return Collections.unmodifiableMap(this.channelMappings);
+		return new HashMap<String, String>(this.channelMappings);
 	}
 
 	/**
@@ -172,11 +171,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	private void doSetChannelMappings(Map<String, String> newChannelMappings) {
-		Map<String, String> oldChannelMappings = new HashMap<String, String>(this.channelMappings);
-		synchronized (this.channelMappings) {
-			this.channelMappings.clear();
-			this.channelMappings.putAll(newChannelMappings);
-		}
+		Map<String, String> oldChannelMappings = this.channelMappings;
+		this.channelMappings = newChannelMappings;
 		if (logger.isDebugEnabled()) {
 			logger.debug("Channel mappings: " + oldChannelMappings + " replaced with: " + newChannelMappings);
 		}
