@@ -77,14 +77,18 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
 		super.setChannelMapping(key, channelName);
-		this.classNameMappings.put(key, resolveClassFromName(key));
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>(this.classNameMappings);
+		newClassNameMappings.put(key, resolveClassFromName(key));
+		this.classNameMappings = newClassNameMappings;
 	}
 
 	@Override
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
 		super.removeChannelMapping(key);
-		this.classNameMappings.remove(key);
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>(this.classNameMappings);
+		newClassNameMappings.remove(key);
+		this.classNameMappings = newClassNameMappings;
 	}
 
 	@Override

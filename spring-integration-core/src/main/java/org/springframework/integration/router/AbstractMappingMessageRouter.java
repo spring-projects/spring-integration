@@ -68,9 +68,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@ManagedAttribute
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
-		newChannelMappings.putAll(channelMappings);
-		this.doSetChannelMappings(newChannelMappings);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(channelMappings);
+		doSetChannelMappings(newChannelMappings);
 	}
 
 	/**
@@ -117,7 +116,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
-		this.channelMappings.put(key, channelName);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		newChannelMappings.put(key, channelName);
+		this.channelMappings = newChannelMappings;
 	}
 
 	/**
@@ -127,7 +128,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
-		this.channelMappings.remove(key);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		newChannelMappings.remove(key);
+		this.channelMappings = newChannelMappings;
 	}
 
 	/**
