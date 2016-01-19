@@ -360,7 +360,6 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 				}
 				// start the shutdown
 				active.set(controller.beforeShutdown());
-				controller.stop();
 				try {
 					MockHttpServletResponse response = new MockHttpServletResponse();
 					controller.handleRequest(request, response);

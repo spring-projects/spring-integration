@@ -16,8 +16,10 @@
 package org.springframework.integration.ws;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.expression.ExpressionException;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -34,7 +36,10 @@ import org.springframework.ws.soap.SoapMessage;
  * @author Artem Bilan
  * @since 2.1
  */
-public abstract class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
+public abstract class AbstractWebServiceInboundGateway extends MessagingGatewaySupport
+		implements MessageEndpoint, OrderlyShutdownCapable {
+
+	private final AtomicInteger activeCount = new AtomicInteger();
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
@@ -55,6 +60,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 
 		try {
+			this.activeCount.incrementAndGet();
 			this.doInvoke(messageContext);
 		}
 		catch (Exception e) {
@@ -63,6 +69,9 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 				e = (Exception) e.getCause();
 			}
 			throw e;
+		}
+		finally {
+			this.activeCount.decrementAndGet();
 		}
 	}
 
@@ -88,6 +97,17 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 			this.headerMapper.fromHeadersToReply(
 					replyMessage.getHeaders(), (SoapMessage) response);
 		}
+	}
+
+	@Override
+	public int beforeShutdown() {
+		stop();
+		return this.activeCount.get();
+	}
+
+	@Override
+	public int afterShutdown() {
+		return this.activeCount.get();
 	}
 
 	abstract protected void doInvoke(MessageContext messageContext) throws Exception;

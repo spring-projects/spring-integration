@@ -689,6 +689,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	@Override
 	public int beforeShutdown() {
+		stop();
 		return this.activeCount.get();
 	}
 
