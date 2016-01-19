@@ -57,7 +57,6 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	private void populateClassNameMapping(Set<String> classNames) {
-		Map<String, Class<?>> newMappings = new ConcurrentHashMap<String, Class<?>>();
 		synchronized (this.classNameMappings) {
 			this.classNameMappings.clear();
 			for (String className : classNames) {
@@ -93,13 +92,13 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void replaceChannelMappings(Properties channelMappings) {
 		super.replaceChannelMappings(channelMappings);
-		populateClassNameMapping(getChannelMappings().keySet());
+		populateClassNameMapping(this.channelMappings.keySet());
 	}
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		populateClassNameMapping(getChannelMappings().keySet());
+		populateClassNameMapping(this.channelMappings.keySet());
 		this.initialized = true;
 	}
 

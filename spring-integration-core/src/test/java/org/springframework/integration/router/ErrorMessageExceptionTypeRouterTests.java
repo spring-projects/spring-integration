@@ -236,4 +236,19 @@ public class ErrorMessageExceptionTypeRouterTests {
 		assertNull(defaultChannel.receive(0));
 	}
 
+	@Test
+	public void testInvalidMapping() {
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
+		router.setBeanFactory(beanFactory);
+		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		try {
+			router.setChannelMapping("foo", "fooChannel");
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getCause(), instanceOf(ClassNotFoundException.class));
+		}
+	}
+
 }

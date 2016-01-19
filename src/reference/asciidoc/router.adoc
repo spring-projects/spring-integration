@@ -963,6 +963,9 @@ The only difference is that while `PayloadTypeRouter` navigates the instance hie
 the `ErrorMessageExceptionTypeRouter` navigates the hierarchy of 'exception causes' (e.g., `payload.getCause()`)
 to find the most specific `Throwable` type/channel mappings and uses `mappingClass.isInstance(cause)` to match the `cause` to its supper class.
 
+NOTE: Since _version 4.3_ the `ErrorMessageExceptionTypeRouter` loads all mapping classes during the initialization
+phase to fail-fast for the `ClassNotFoundException`.
+
 Below is a sample configuration for `ErrorMessageExceptionTypeRouter`.
 
 [source,xml]
