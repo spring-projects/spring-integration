@@ -129,7 +129,8 @@ Optional.
 *proxy*
 
 Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[Proxy].
-If set, then the proxy object is used to create the connection to the remote host.
+If set, then the proxy object is used to create the connection to the remote host via the proxy.
+See <<sftp-proxy-factory-bean>> for a convenient way to configure the proxy.
 
 *serverAliveCountMax*
 
@@ -177,6 +178,32 @@ Also see `allowUnknownHosts`.
 When a `UserInfo` is provided, the `password` and private key `passphrase` is obtained from it, and discrete
 `password` and `privateKeyPassprase` properties cannot be set.
 
+[[sftp-proxy-factory-bean]]
+=== Proxy Factory Bean
+
+`Jsch` provides a mechanism to connect to the server via an HTTP or SOCKS proxy.
+To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory` as discussed
+above.
+Three implementations are provided by `Jsch`, `HTTP`, `SOCKS4` and `SOCKS5`.
+_Spring Integration 4.3_ provides a `FactoryBean` making configuration of these proxies easier, allowing property
+injection:
+
+[source, xml]
+----
+<bean id="proxySocks5" class="org.springframework.integration.sftp.session.JschProxyFactoryBean">
+    <constructor-arg value="SOCKS5" />
+    <constructor-arg value="${sftp.proxy.address}" />
+    <constructor-arg value="${sftp.proxy.port}" />
+    <constructor-arg value="${sftp.proxy.user}" />
+    <constructor-arg value="${sftp.proxy.pw}" />
+</bean>
+
+<bean id="sessionFactory" class="" >
+    ...
+    <property name="proxy" ref="proxySocks5" />
+    ...
+</bean>
+----
 
 [[sftp-dsf]]
 === Delegating Session Factory
