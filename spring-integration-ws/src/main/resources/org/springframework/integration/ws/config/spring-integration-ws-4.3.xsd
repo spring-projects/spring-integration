@@ -410,6 +410,7 @@ this list can also be simple patterns to be matched against the header names (e.
 						]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 

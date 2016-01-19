@@ -148,8 +148,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private volatile Map<String, Expression> headerExpressions;
 
-	private volatile boolean shuttingDown;
-
 	private volatile Expression statusCodeExpression;
 
 	private volatile EvaluationContext evaluationContext;
@@ -397,11 +395,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws IOException {
-		if (this.isShuttingDown()) {
-			return createServiceUnavailableResponse();
+		if (isRunning()) {
+			return actualDoHandleRequest(servletRequest, servletResponse);
 		}
 		else {
-			return actualDoHandleRequest(servletRequest, servletResponse);
+			return createServiceUnavailableResponse();
 		}
 	}
 
@@ -538,7 +536,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		if (logger.isDebugEnabled()) {
 			logger.debug("Endpoint is shutting down; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
 		}
-		return this.getMessageBuilderFactory().withPayload("Endpoint is shutting down")
+		return this.getMessageBuilderFactory().withPayload("Endpoint is stopped")
 				.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
 				.build();
 	}
@@ -688,22 +686,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 	}
 
-	/**
-	 * Lifecycle
-	 */
-	@Override
-	protected void doStart() {
-		this.shuttingDown = false;
-		super.doStart();
-	}
-
-	protected boolean isShuttingDown() {
-		return this.shuttingDown;
-	}
 
 	@Override
 	public int beforeShutdown() {
-		this.shuttingDown = true;
+		stop();
 		return this.activeCount.get();
 	}
 

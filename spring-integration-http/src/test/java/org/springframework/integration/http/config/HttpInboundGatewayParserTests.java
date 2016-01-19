@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,28 +118,33 @@ public class HttpInboundGatewayParserTests {
 
 	@Test
 	public void checkConfig() {
-		assertNotNull(gateway);
-		assertTrue(getPropertyValue(gateway, "expectReply", Boolean.class));
-		assertTrue(getPropertyValue(gateway, "convertExceptions", Boolean.class));
-		assertSame(this.responses, getPropertyValue(gateway, "replyChannel"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
-		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
-		gateway, "messagingTemplate", MessagingTemplate.class);
+		assertNotNull(this.gateway);
+		assertTrue(getPropertyValue(this.gateway, "expectReply", Boolean.class));
+		assertTrue(getPropertyValue(this.gateway, "convertExceptions", Boolean.class));
+		assertSame(this.responses, getPropertyValue(this.gateway, "replyChannel"));
+		assertNotNull(TestUtils.getPropertyValue(this.gateway, "errorChannel"));
+		MessagingTemplate messagingTemplate =
+				TestUtils.getPropertyValue(this.gateway, "messagingTemplate", MessagingTemplate.class);
 		assertEquals(1234L, TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
 		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 
-		boolean registerDefaultConverters = TestUtils.getPropertyValue(gateway,"mergeWithDefaultConverters", Boolean.class);
+		boolean registerDefaultConverters =
+				TestUtils.getPropertyValue(this.gateway,"mergeWithDefaultConverters", Boolean.class);
 		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gateway,"messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters =
+				TestUtils.getPropertyValue(this.gateway,"messageConverters", List.class);
 
 		assertTrue("The default converters should have been registered, given there are no custom converters",
 				messageConverters.size() > 0);
+
+		assertFalse(TestUtils.getPropertyValue(this.gateway, "autoStartup", Boolean.class));
+		assertEquals(1001, TestUtils.getPropertyValue(this.gateway, "phase"));
 	}
 
 	@Test @DirtiesContext
 	public void checkFlow() throws Exception {
-		requests.subscribe(handlerExpecting(any(Message.class)));
+		this.requests.subscribe(handlerExpecting(any(Message.class)));
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.addHeader("Accept", "application/x-java-serialized-object");
@@ -148,10 +153,11 @@ public class HttpInboundGatewayParserTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new SerializingHttpMessageConverter());
-		gateway.setMessageConverters(converters);
-		gateway.afterPropertiesSet();
+		this.gateway.setMessageConverters(converters);
+		this.gateway.afterPropertiesSet();
+		this.gateway.start();
 
-		gateway.handleRequest(request, response);
+		this.gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 
 		assertEquals(response.getContentType(), "application/x-java-serialized-object");

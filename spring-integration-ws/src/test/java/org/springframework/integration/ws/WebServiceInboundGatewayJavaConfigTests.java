@@ -21,10 +21,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.StringWriter;
+import java.util.Locale;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
@@ -34,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -58,6 +63,7 @@ import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.mapping.UriEndpointMapping;
+import org.springframework.ws.soap.SoapBody;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.server.SoapMessageDispatcher;
 import org.springframework.ws.transport.WebServiceMessageReceiver;
@@ -78,11 +84,15 @@ public class WebServiceInboundGatewayJavaConfigTests {
 	@Autowired
 	private PollableChannel webserviceRequestsQueue;
 
+	@Autowired
+	private Lifecycle wsGateway;
+
 	@Test
 	public void testWebServiceInboundGatewayJavaConfig() throws Exception {
 		MessageContext context = mock(MessageContext.class);
 		SoapMessage request = mock(SoapMessage.class);
 		SoapMessage response = mock(SoapMessage.class);
+		SoapBody soapBody = mock(SoapBody.class);
 
 		String input = "<hello/>";
 		Source payloadSource = new StringSource(input);
@@ -91,8 +101,15 @@ public class WebServiceInboundGatewayJavaConfigTests {
 
 		when(context.getResponse()).thenReturn(response);
 		when(response.getPayloadResult()).thenReturn(payloadResult);
+		when(response.getSoapBody()).thenReturn(soapBody);
 		when(context.getRequest()).thenReturn(request);
 		when(request.getPayloadSource()).thenReturn(payloadSource);
+
+		this.messageReceiver.receive(context);
+
+		verify(soapBody).addServerOrReceiverFault(eq("503 Service Unavailable"), any(Locale.class));
+
+		this.wsGateway.start();
 
 		this.messageReceiver.receive(context);
 
@@ -138,6 +155,7 @@ public class WebServiceInboundGatewayJavaConfigTests {
 		public MessageEndpoint wsGateway() {
 			SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();
 			gateway.setRequestChannel(gatewayRequests());
+			gateway.setAutoStartup(false);
 			return gateway;
 		}
 
