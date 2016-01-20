@@ -131,7 +131,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private final String gatewayCorrelation = UUID.randomUUID().toString();
 
 	private final Map<String, LinkedBlockingQueue<javax.jms.Message>> replies =
-			new HashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
+			new ConcurrentHashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
 
 	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies =
 			new ConcurrentHashMap<String, JmsOutboundGateway.TimedReply>();
