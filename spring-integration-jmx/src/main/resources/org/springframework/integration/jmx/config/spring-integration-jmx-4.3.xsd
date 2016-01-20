@@ -140,6 +140,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="adapterType">
 					<xsd:all>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="default-notification-type" type="xsd:string" use="optional" />
@@ -156,7 +157,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="mbeanServerIdentifyerType">
+				<xsd:extension base="mbeanServerIdentifierType">
 					<xsd:attribute name="default-domain" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -215,7 +216,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="mbeanServerIdentifyerType">
+			<xsd:extension base="mbeanServerIdentifierType">
 				<xsd:attribute name="channel" type="xsd:string" />
 				<xsd:attribute name="query-name" type="xsd:string" use="optional">
 					<xsd:annotation>
@@ -283,7 +284,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="mbeanServerIdentifyerType">
+			<xsd:extension base="mbeanServerIdentifierType">
 				<xsd:attribute name="channel" type="xsd:string" />
 				<xsd:attribute name="object-name" type="xsd:string" use="required" />
 				<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
@@ -298,14 +299,14 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="mbeanServerIdentifyerType">
+			<xsd:extension base="mbeanServerIdentifierType">
 				<xsd:attribute name="object-name" type="xsd:string" use="required" />
 				<xsd:attribute name="operation-name" type="xsd:string" use="required" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="mbeanServerIdentifyerType">
+	<xsd:complexType name="mbeanServerIdentifierType">
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="server" type="xsd:string" default="mbeanServer">
 			<xsd:annotation>

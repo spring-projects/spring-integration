@@ -4239,8 +4239,8 @@ unless bean with this name is already registered.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:all minOccurs="0" maxOccurs="1">
-				<xsd:element ref="beans:bean" />
+			<xsd:all>
+				<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1"/>
 			</xsd:all>
 			<xsd:attribute name="ref" type="xsd:string" use="optional">
 				<xsd:annotation>
@@ -4285,7 +4285,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="control-bus-type">
-					<xsd:all minOccurs="0" maxOccurs="1">
+					<xsd:all>
 						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
