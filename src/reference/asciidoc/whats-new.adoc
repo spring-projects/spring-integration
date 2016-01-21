@@ -97,3 +97,12 @@ See <<http-inbound>> for more information.
 
 A new factory bean is provided to simplify the configuration of Jsch proxies for SFTP.
 See <<sftp-proxy-factory-bean>> for more information.
+
+==== Routers Changes
+
+The `ErrorMessageExceptionTypeRouter` supports now the `Exception` superclass mappings to avoid duplication
+for the same channel in case of several inheritors.
+For this purpose the `ErrorMessageExceptionTypeRouter` loads mapping classes during initialization to fail-fast
+for the `ClassNotFoundException`.
+
+See <<router>> for more information.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,13 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -52,7 +50,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter implements MappingMessageRouterManagement {
 
-	private volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
+	protected volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
 	private volatile String prefix;
 
@@ -70,9 +68,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@ManagedAttribute
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
-		newChannelMappings.putAll(channelMappings);
-		this.doSetChannelMappings(newChannelMappings);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(channelMappings);
+		doSetChannelMappings(newChannelMappings);
 	}
 
 	/**
@@ -108,7 +105,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedAttribute
 	public Map<String, String> getChannelMappings() {
-		return Collections.unmodifiableMap(this.channelMappings);
+		return new HashMap<String, String>(this.channelMappings);
 	}
 
 	/**
@@ -119,7 +116,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
-		this.channelMappings.put(key, channelName);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		newChannelMappings.put(key, channelName);
+		this.channelMappings = newChannelMappings;
 	}
 
 	/**
@@ -129,7 +128,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	@Override
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
-		this.channelMappings.remove(key);
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
+		newChannelMappings.remove(key);
+		this.channelMappings = newChannelMappings;
 	}
 
 	/**
@@ -176,8 +177,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		Map<String, String> oldChannelMappings = this.channelMappings;
 		this.channelMappings = newChannelMappings;
 		if (logger.isDebugEnabled()) {
-			logger.debug("Channel mappings:" + oldChannelMappings
-					+ " replaced with:" + newChannelMappings);
+			logger.debug("Channel mappings: " + oldChannelMappings + " replaced with: " + newChannelMappings);
 		}
 	}
 
