@@ -66,7 +66,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.rx.Promises;
+import reactor.core.publisher.Mono;
+
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -400,7 +401,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		if (reactorPresent && Publisher.class.isAssignableFrom(returnType)) {
-			return Promises.<Object>task(() -> new AsyncInvocationTask(invocation));
+			return Mono.fromCallable(new AsyncInvocationTask(invocation));
 		}
 		return this.doInvoke(invocation, true);
 	}

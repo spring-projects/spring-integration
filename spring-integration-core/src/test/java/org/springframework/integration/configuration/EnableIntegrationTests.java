@@ -127,7 +127,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.MultiValueMap;
 
-import reactor.rx.Streams;
+import reactor.rx.Stream;
 
 /**
  * @author Artem Bilan
@@ -617,11 +617,11 @@ public class EnableIntegrationTests {
 		final AtomicReference<List<Integer>> ref = new AtomicReference<List<Integer>>();
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
 
-		Streams.just("1", "2", "3", "4", "5")
+		Stream.just("1", "2", "3", "4", "5")
 				.map(Integer::parseInt)
 				.flatMap(this.testGateway::multiply)
 				.toList()
-				.onSuccess(integers -> {
+				.doOnSuccess(integers -> {
 					ref.set(integers);
 					consumeLatch.countDown();
 				});

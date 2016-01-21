@@ -23,24 +23,24 @@ import org.reactivestreams.Subscriber;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
-import reactor.core.subscription.ReactiveSession;
-import reactor.rx.broadcast.Broadcaster;
+import reactor.core.publisher.ProcessorGroup;
+import reactor.core.subscriber.ReactiveSession;
 
 /**
  * @author Artem Bilan
  * @since 5.0
  */
-public class ReactiveMessageChannel implements MessageChannel, Publisher<Message<?>> {
+public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 
 	private final Processor<Message<?>, Message<?>> processor;
 
 	private final ReactiveSession<Message<?>> reactiveSession;
 
-	public ReactiveMessageChannel() {
-		this(Broadcaster.passthrough());
+	public ReactiveChannel() {
+		this(ProcessorGroup.<Message<?>>sync().get());
 	}
 
-	public ReactiveMessageChannel(Processor<Message<?>, Message<?>> processor) {
+	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
 		this.processor = processor;
 		this.reactiveSession = ReactiveSession.create(processor);
 	}

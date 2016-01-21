@@ -47,7 +47,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import reactor.fn.Consumer;
-import reactor.rx.Promises;
+import reactor.rx.Promise;
 
 /**
  * @author Mark Fisher
@@ -252,7 +252,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Publisher<Message<?>> promise = service.returnMessagePromise("foo");
-		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
+		Object result = Promise.from(promise).await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -268,7 +268,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Publisher<String> promise = service.returnStringPromise("foo");
-		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
+		Object result = Promise.from(promise).await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", result);
 	}
 
@@ -284,7 +284,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Publisher<?> promise = service.returnSomethingPromise("foo");
-		Object result = Promises.from(promise).await(10, TimeUnit.SECONDS);
+		Object result = Promise.from(promise).await(10, TimeUnit.SECONDS);
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
@@ -305,7 +305,7 @@ public class AsyncGatewayTests {
 		final AtomicReference<String> result = new AtomicReference<String>();
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		Promises.from(promise).onSuccess(new Consumer<String>() {
+		Promise.from(promise).doOnSuccess(new Consumer<String>() {
 			@Override
 			public void accept(String s) {
 				result.set(s);

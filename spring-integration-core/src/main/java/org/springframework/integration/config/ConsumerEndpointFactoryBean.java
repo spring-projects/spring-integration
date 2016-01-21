@@ -21,7 +21,6 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.aop.framework.Advised;
@@ -56,7 +55,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.subscriber.SubscriberFactory;
+import reactor.core.subscriber.Subscribers;
+
 
 /**
  * @author Mark Fisher
@@ -289,20 +289,16 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setBeanFactory(this.beanFactory);
 				this.endpoint = pollingConsumer;
 			}
-			else if (channel instanceof Publisher) {
-				Publisher<Message<?>> publisher = (Publisher<Message<?>>) channel;
+			else {
 				Subscriber<Message<?>> subscriber;
 				if (this.handler instanceof Subscriber) {
 					subscriber = (Subscriber<Message<?>>) this.handler;
 				}
 				else {
 					//TODO errorConsumer, completeConsumer
-					subscriber = SubscriberFactory.consumer(this.handler::handleMessage);
+					subscriber = Subscribers.consumer(this.handler::handleMessage);
 				}
-				this.endpoint = new ReactiveEndpoint(publisher, subscriber);
-			}
-			else {
-				throw new IllegalArgumentException("unsupported channel type: [" + channel.getClass() + "]");
+				this.endpoint = new ReactiveEndpoint(channel, subscriber);
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);

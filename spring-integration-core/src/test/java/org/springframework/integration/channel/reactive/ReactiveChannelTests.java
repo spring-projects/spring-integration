@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.ReactiveMessageChannel;
+import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -35,7 +35,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import reactor.Processors;
+import reactor.core.publisher.Processors;
 
 /**
  * @author Artem Bilan
@@ -44,7 +44,7 @@ import reactor.Processors;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class ReactiveMessageChannelTests {
+public class ReactiveChannelTests {
 
 	@Autowired
 	private MessageChannel reactiveChannel;
@@ -71,7 +71,7 @@ public class ReactiveMessageChannelTests {
 
 		@Bean
 		public MessageChannel reactiveChannel() {
-			return new ReactiveMessageChannel(Processors.queue());
+			return new ReactiveChannel(Processors.queue());
 		}
 
 		@ServiceActivator(inputChannel = "reactiveChannel")

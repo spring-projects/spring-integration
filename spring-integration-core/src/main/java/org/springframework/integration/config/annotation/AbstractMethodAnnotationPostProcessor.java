@@ -80,7 +80,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.subscriber.SubscriberFactory;
+import reactor.core.subscriber.Subscribers;
 
 /**
  * Base class for Method-level annotation post-processors.
@@ -306,7 +306,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel, List<Annotation> annotations) {
+	@SuppressWarnings("unchecked")
+	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,List<Annotation> annotations) {
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
@@ -318,16 +319,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
 					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 			if (inputChannel instanceof Publisher) {
-				Publisher<Message<?>> publisher = (Publisher<Message<?>>) inputChannel;
 				Subscriber<Message<?>> subscriber;
 				if (handler instanceof Subscriber) {
 					subscriber = (Subscriber<Message<?>>) handler;
 				}
 				else {
 					//TODO errorConsumer, completeConsumer
-					subscriber = SubscriberFactory.consumer(handler::handleMessage);
+					subscriber = Subscribers.consumer(handler::handleMessage);
 				}
-				endpoint = new ReactiveEndpoint(publisher, subscriber);
+				endpoint = new ReactiveEndpoint(inputChannel, subscriber);
 			}
 			else {
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);

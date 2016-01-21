@@ -20,9 +20,11 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
-import reactor.core.subscription.ReactiveSession;
+import reactor.core.subscriber.ReactiveSession;
+
 
 /**
  * @author Artem Bilan
@@ -36,11 +38,17 @@ public class ReactiveEndpoint extends AbstractEndpoint {
 
 	private ReactiveSession<Message<?>> reactiveSession;
 
-	public ReactiveEndpoint(Publisher<Message<?>> inputChannel, Subscriber<Message<?>> subscriber) {
-		Assert.isInstanceOf(Publisher.class, inputChannel,
-				"The 'inputChannel', must implement org.reactivestreams.Publisher.");
+	@SuppressWarnings("unchecked")
+	public ReactiveEndpoint(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
+		Assert.notNull(inputChannel);
 		Assert.notNull(subscriber);
-		this.inputChannel = inputChannel;
+		if (inputChannel instanceof Publisher) {
+			this.inputChannel = (Publisher<Message<?>>) inputChannel;
+		}
+		else {
+			//TODO: Wrap all other channels to the Publisher<?>
+			this.inputChannel = null;
+		}
 		this.subscriber = subscriber;
 	}
 

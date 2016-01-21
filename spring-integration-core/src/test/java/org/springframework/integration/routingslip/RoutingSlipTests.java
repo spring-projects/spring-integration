@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
-import reactor.rx.Streams;
+import reactor.rx.Stream;
 
 /**
  * @author Artem Bilan
@@ -189,11 +189,11 @@ public class RoutingSlipTests {
 		public RoutingSlipRouteStrategy routeStrategy() {
 			return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
 					? new FixedSubscriberChannel(m ->
-					Streams.just((String) m.getPayload())
+					Stream.just((String) m.getPayload())
 							.map(String::toUpperCase)
 							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)))
 					: new FixedSubscriberChannel(m ->
-					Streams.just((Integer) m.getPayload())
+					Stream.just((Integer) m.getPayload())
 							.map(v -> v * 2)
 							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
 		}
