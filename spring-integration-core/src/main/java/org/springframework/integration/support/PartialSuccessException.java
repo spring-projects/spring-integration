@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ import java.util.Collection;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-
-import reactor.core.support.Assert;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessagingException} thrown when a non-transactional operation is
