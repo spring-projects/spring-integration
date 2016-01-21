@@ -46,8 +46,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
- *
  */
 public class MultipartAsRawByteArrayTests {
 
@@ -56,7 +56,7 @@ public class MultipartAsRawByteArrayTests {
 	public void testMultiPass() throws Exception {
 		HttpRequestHandlingMessagingGateway gw = new HttpRequestHandlingMessagingGateway(false);
 		gw.setMessageConverters(
-				Collections.<HttpMessageConverter<?>> singletonList(new ByteArrayHttpMessageConverter()));
+				Collections.<HttpMessageConverter<?>>singletonList(new ByteArrayHttpMessageConverter()));
 		gw.setMergeWithDefaultConverters(false);
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
@@ -85,12 +85,13 @@ public class MultipartAsRawByteArrayTests {
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getHeaderNames()).thenReturn(mock(Enumeration.class));
 		when(request.getContentType()).thenReturn("multipart/form-data");
+		when(request.getRequestURL()).thenReturn(new StringBuffer("foo"));
 		RequestContextHolder.setRequestAttributes(mock(RequestAttributes.class));
 		gw.handleRequest(request, mock(HttpServletResponse.class));
 		Message<?> received = requestChannel.receive(10000);
 		assertNotNull(received);
 		assertThat(received.getPayload(), instanceOf(byte[].class));
-		assertEquals("foo", new String((byte[])received.getPayload()));
+		assertEquals("foo", new String((byte[]) received.getPayload()));
 	}
 
 }
