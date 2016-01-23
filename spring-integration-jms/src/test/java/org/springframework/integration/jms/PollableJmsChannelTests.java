@@ -38,7 +38,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -67,16 +67,16 @@ public class PollableJmsChannelTests {
 
 	private Destination queue;
 
-	@BeforeClass
-	public static void setup() {
-		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
+	@Before
+	public void setup() {
+		ActiveMqTestUtils.prepare();
+		this.connectionFactory = new ActiveMQConnectionFactory();
+		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
+		this.connectionFactory.setTrustAllPackages(true);
 	}
 
 	@Test
 	public void queueReference() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
@@ -101,10 +101,6 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void queueName() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
-
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
 		ccf.setCacheConsumers(false);
@@ -128,10 +124,6 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void queueNameWithFalsePreReceiveInterceptors() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
-
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
 		ccf.setCacheConsumers(false);
@@ -155,10 +147,6 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void queueNameWithTruePreReceiveInterceptors() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
-
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(this.connectionFactory);
 		ccf.setCacheConsumers(false);
@@ -182,9 +170,6 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void qos() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
 		CachingConnectionFactory ccf = new CachingConnectionFactory(connectionFactory);
 		ccf.setCacheConsumers(false);
@@ -241,9 +226,6 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void selector() throws Exception {
-		ActiveMqTestUtils.prepare();
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.queue = new ActiveMQQueue("pollableJmsChannelSelectorTestQueue");
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
