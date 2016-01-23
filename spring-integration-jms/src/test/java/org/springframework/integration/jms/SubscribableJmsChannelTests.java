@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import javax.jms.Destination;
 import javax.jms.MessageListener;
 
@@ -44,7 +43,6 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -53,6 +51,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -67,6 +66,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class SubscribableJmsChannelTests {
@@ -79,16 +79,13 @@ public class SubscribableJmsChannelTests {
 
 	private Destination queue;
 
-	@BeforeClass
-	public static void beforeClass() {
-		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
-	}
-
 	@Before
-	public void setup() throws Exception {
+	public void setup() {
+		ActiveMqTestUtils.prepare();
 		ActiveMQConnectionFactory targetConnectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory = new CachingConnectionFactory(targetConnectionFactory);
 		targetConnectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
+		targetConnectionFactory.setTrustAllPackages(true);
+		this.connectionFactory = new CachingConnectionFactory(targetConnectionFactory);
 		this.topic = new ActiveMQTopic("testTopic");
 		this.queue = new ActiveMQQueue("testQueue");
 	}

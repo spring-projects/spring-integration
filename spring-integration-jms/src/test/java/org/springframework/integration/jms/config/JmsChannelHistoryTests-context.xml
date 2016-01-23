@@ -10,13 +10,13 @@
 	<int:message-history/>
 
 	<int-jms:channel id="jmsChannel" queue="requestQueue"/>
-		
+
 	<int:bridge input-channel="jmsChannel" output-channel="resultChannel"/>
-	
+
 	<int:channel id="resultChannel">
 		<int:queue/>
-	</int:channel>	
-	
+	</int:channel>
+
 	<bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="request.queue."/>
 	</bean>
@@ -25,6 +25,7 @@
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
+				<property name="trustAllPackages" value="true"/>
 			</bean>
 		</property>
 		<property name="sessionCacheSize" value="10"/>

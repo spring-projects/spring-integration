@@ -77,11 +77,6 @@ public class ExtractRequestReplyPayloadTests {
 	@Autowired
 	ChannelPublishingJmsMessageListener inboundGateway;
 
-	@BeforeClass
-	public static void setup() {
-		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
-	}
-
 	@Test
 	public void testOutboundInboundDefault() {
 		this.outboundGateway.setExtractRequestPayload(true);

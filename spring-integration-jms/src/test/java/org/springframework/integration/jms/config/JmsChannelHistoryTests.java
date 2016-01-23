@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -29,14 +28,14 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.listener.AbstractMessageListenerContainer;
 
 /**
  * @author Oleg Zhurakousky
@@ -44,11 +43,6 @@ import org.springframework.jms.listener.AbstractMessageListenerContainer;
  *
  */
 public class JmsChannelHistoryTests {
-
-	@BeforeClass
-	public static void setup() {
-		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "*");
-	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
