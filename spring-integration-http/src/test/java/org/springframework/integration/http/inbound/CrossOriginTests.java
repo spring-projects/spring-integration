@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.http.inbound;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +37,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -46,6 +52,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @ContextConfiguration
 @DirtiesContext
 public class CrossOriginTests {
+
+	// SPR-13130
+	private static boolean isSpring43 =
+			ClassUtils.isPresent("org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping$HttpOptionsHandler",
+			CrossOriginTests.class.getClassLoader());
 
 	@Autowired
 	private IntegrationRequestMappingHandlerMapping handlerMapping;
@@ -161,11 +172,27 @@ public class CrossOriginTests {
 		assertNull(config.getMaxAge());
 	}
 
-	@Test(expected = HttpRequestMethodNotSupportedException.class)
-	public void preFlightRequestWithoutRequestMethodHeader() throws Exception {
+	@Test
+	public void testOptionsHeaderHandling() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest("OPTIONS", "/default");
 		request.addHeader(HttpHeaders.ORIGIN, "http://domain2.com");
-		this.handlerMapping.getHandler(request);
+		try {
+			HandlerExecutionChain handler = this.handlerMapping.getHandler(request);
+			if (isSpring43) {
+				// SPR-13130
+				assertNotNull(handler);
+				Object handlerMethod = handler.getHandler();
+				assertNotNull(handlerMethod);
+				assertThat(handlerMethod, instanceOf(HandlerMethod.class));
+				assertThat(((HandlerMethod) handlerMethod).getBeanType().getName(),
+						containsString("HttpOptionsHandler"));
+				return;
+			}
+			fail("HttpRequestMethodNotSupportedException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(HttpRequestMethodNotSupportedException.class));
+		}
 	}
 
 	private CorsConfiguration getCorsConfiguration(HandlerExecutionChain chain, boolean isPreFlightRequest) {
