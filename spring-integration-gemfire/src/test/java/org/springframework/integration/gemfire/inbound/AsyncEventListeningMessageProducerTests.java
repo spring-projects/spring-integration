@@ -38,30 +38,22 @@ import org.springframework.messaging.Message;
  */
 public class AsyncEventListeningMessageProducerTests {
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
 	@Test
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = new CacheFactoryBean().getObject();
+		Region<String, String> region = createRegion(cache, "test.receiveNewValuePayloadForCreateEvent");
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
-		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
-		regionFactoryBean.setCache(cache);
-		regionFactoryBean.setDataPolicy(DataPolicy.PARTITION);
-		this.setRegionAttributes(regionFactoryBean);
-
-		AsyncEventQueueFactory queueFactory = cache.createAsyncEventQueueFactory();
-		queueFactory.setPersistent(false);
-		queueFactory.setParallel(false);
-
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
-		AsyncEventListeningMessageProducer producer = new AsyncEventListeningMessageProducer(region, queueFactory);
-		producer.setExpressionPayload(new SpelExpressionParser().parseExpression("key + '=' + deserializedValue"));
+		AsyncEventListeningMessageProducer producer = new AsyncEventListeningMessageProducer(region,
+				createAsyncEventQueueFactory(cache));
+		producer.setPayloadExpression(PARSER.parseExpression("key + '=' + deserializedValue"));
 		producer.setOutputChannel(channel);
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
+
 		assertNull(channel.receive(0));
 		region.put("x", "abc");
 		Message<?> message = channel.receive(1000);
@@ -69,10 +61,50 @@ public class AsyncEventListeningMessageProducerTests {
 		assertEquals("x=abc", message.getPayload());
 	}
 
+	@Test
+	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
+		Cache cache = new CacheFactoryBean().getObject();
+		Region<String, String> region = createRegion(cache, "test.receiveNewValuePayloadForUpdateEvent");
+
+		QueueChannel channel = new QueueChannel();
+		AsyncEventListeningMessageProducer producer = new AsyncEventListeningMessageProducer(region,
+				createAsyncEventQueueFactory(cache));
+		producer.setPayloadExpression(PARSER.parseExpression("deserializedValue"));
+		producer.setOutputChannel(channel);
+		producer.setBeanFactory(mock(BeanFactory.class));
+		producer.afterPropertiesSet();
+		producer.start();
+
+		assertNull(channel.receive(0));
+		region.put("x", "abc");
+		Message<?> message1 = channel.receive(1000);
+		assertNotNull(message1);
+		assertEquals("abc", message1.getPayload());
+		region.put("x", "xyz");
+		Message<?> message2 = channel.receive(1000);
+		assertNotNull(message2);
+		assertEquals("xyz", message2.getPayload());
+	}
+
+	private AsyncEventQueueFactory createAsyncEventQueueFactory(Cache cache) {
+		AsyncEventQueueFactory queueFactory = cache.createAsyncEventQueueFactory();
+		queueFactory.setPersistent(false);
+		queueFactory.setParallel(false);
+
+		return queueFactory;
+	}
+
 	@SuppressWarnings("unchecked")
-	private void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception {
+	private Region<String, String> createRegion(Cache cache, String name) throws Exception {
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
+		regionFactoryBean.setName(name);
+		regionFactoryBean.setCache(cache);
+		regionFactoryBean.setDataPolicy(DataPolicy.PARTITION);
 		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());
+		regionFactoryBean.afterPropertiesSet();
+		return regionFactoryBean.getObject();
 	}
+
 }

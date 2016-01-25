@@ -41,11 +41,17 @@ import org.springframework.util.Assert;
  * the region. This implementation differs from {@link CacheListeningMessageProducer}
  * because it uses an {@link AsyncEventQueue} to offload processing to a dedicated thread.
  * <p>
- * The default supported operations are {@link Operation#CREATE} and
- * {@link Operation#PUTALL_CREATE}. A SpEL expression may be provided
- * to generate a Message payload by evaluating that expression against the
- * {@link AsyncEvent} instance as the root object. If no {@code payloadExpression}
- * is provided, the {@code AsyncEvent} itself will be the payload.
+ * The default supported operations are
+ * <ul>
+ *     <li>{@link Operation#CREATE}</li>
+ *     <li>{@link Operation#UPDATE}</li>
+ *     <li>{@link Operation#PUTALL_CREATE}</li>
+ *     <li>{@link Operation#PUTALL_UPDATE}</li>
+ * </ul>
+ * A SpEL expression may be provided to generate a Message payload by evaluating
+ * that expression against the {@link AsyncEvent} instance as the root object.
+ * If no {@code payloadExpression} is provided, the {@code AsyncEvent} itself
+ * will be the payload.
  *
  * @author Patrick Peralta
  */
@@ -64,7 +70,11 @@ public class AsyncEventListeningMessageProducer extends ExpressionMessageProduce
 	private final String queueId;
 
 	private volatile Set<Operation> supportedOperations =
-			new HashSet<Operation>(Arrays.asList(Operation.CREATE, Operation.PUTALL_CREATE));
+			new HashSet<Operation>(Arrays.asList(
+					Operation.CREATE,
+					Operation.UPDATE,
+					Operation.PUTALL_CREATE,
+					Operation.PUTALL_UPDATE));
 
 
 	/**
