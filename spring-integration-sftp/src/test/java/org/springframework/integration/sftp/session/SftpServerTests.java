@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Collections;
 
-import com.jcraft.jsch.ChannelSftp.LsEntry;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
@@ -48,10 +47,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.StreamUtils;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 /**
  * *
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
  * @since 4.1
  *
  */
@@ -101,7 +103,7 @@ public class SftpServerTests {
 	}
 
 	private void testKeyExchange(String pubKey, String privKey, String passphrase)
-			throws Exception, IOException, InterruptedException {
+			throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		final PublicKey allowedKey = decodePublicKey(pubKey);
 		try {

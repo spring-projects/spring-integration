@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.session;
 
 import static org.hamcrest.Matchers.containsString;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PublicKey;
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
@@ -44,7 +45,6 @@ import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 
 import com.jcraft.jsch.JSchException;
@@ -52,8 +52,8 @@ import com.jcraft.jsch.UserInfo;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0.2
- *
  */
 public class SftpSessionFactoryTests {
 
@@ -63,7 +63,6 @@ public class SftpSessionFactoryTests {
 	 */
 	@Test
 	public void testConnectFailSocketOpen() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
 			server.setPasswordAuthenticator(new PasswordAuthenticator() {
@@ -73,13 +72,13 @@ public class SftpSessionFactoryTests {
 					return true;
 				}
 			});
-			server.setPort(port);
+			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
 			f.setHost("localhost");
-			f.setPort(port);
+			f.setPort(server.getPort());
 			f.setUser("user");
 			f.setPassword("pass");
 			int n = 0;
@@ -122,8 +121,6 @@ public class SftpSessionFactoryTests {
 	@Test
 	public void testPasswordPassPhraseViaUserInfo() throws Exception {
 		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
-		f.setHost("localhost");
-		f.setPort(9999);
 		f.setUser("user");
 		f.setAllowUnknownKeys(true);
 		UserInfo ui = mock(UserInfo.class);
@@ -224,7 +221,6 @@ public class SftpSessionFactoryTests {
 
 	@SuppressWarnings("unchecked")
 	private DefaultSftpSessionFactory createServerAndClient(SshServer server) throws IOException {
-		final int port = SocketUtils.findAvailableServerSocket();
 		server.setPublickeyAuthenticator(new PublickeyAuthenticator() {
 
 			@Override
@@ -232,14 +228,14 @@ public class SftpSessionFactoryTests {
 				return true;
 			}
 		});
-		server.setPort(port);
-		server.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory()));
+		server.setPort(0);
+		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 		server.start();
 
 		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
 		f.setHost("localhost");
-		f.setPort(port);
+		f.setPort(server.getPort());
 		f.setUser("user");
 		Resource privateKey = new ClassPathResource("id_rsa");
 		f.setPrivateKey(privateKey);
