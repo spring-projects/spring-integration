@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,12 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Types;
 import java.util.Iterator;
@@ -38,6 +43,7 @@ import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gunnar Hillert
@@ -60,8 +66,8 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Expression  storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
-		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName.getValue());
+		Expression storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
+		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS", storedProcedureName.getValue());
 	}
 
 	@Test
@@ -69,9 +75,9 @@ public class StoredProcPollingChannelAdapterParserTests {
 		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
 
 		Expression storedProcedureNameExpression =
-			TestUtils.getPropertyValue(this.pollingAdapter,
-					"source.executor.storedProcedureNameExpression",
-					Expression.class);
+				TestUtils.getPropertyValue(this.pollingAdapter,
+						"source.executor.storedProcedureNameExpression",
+						Expression.class);
 
 		assertEquals("Wrong stored procedure name", "'GET_PRIME_NUMBERS'",
 				storedProcedureNameExpression.getExpressionString());
@@ -82,9 +88,9 @@ public class StoredProcPollingChannelAdapterParserTests {
 		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
 		Integer cacheSize =
-			TestUtils.getPropertyValue(this.pollingAdapter,
-					"source.executor.jdbcCallOperationsCacheSize",
-					Integer.class);
+				TestUtils.getPropertyValue(this.pollingAdapter,
+						"source.executor.jdbcCallOperationsCacheSize",
+						Integer.class);
 
 		assertEquals("Wrong Default JdbcCallOperations Cache Size", Integer.valueOf(10),
 				cacheSize);
@@ -95,13 +101,11 @@ public class StoredProcPollingChannelAdapterParserTests {
 	public void testJdbcCallOperationsCacheSizeIsSet() {
 		setUp("storedProcPollingChannelAdapterParserTest2.xml", getClass());
 
-		Integer cacheSize =
-			TestUtils.getPropertyValue(this.pollingAdapter,
-					"source.executor.jdbcCallOperationsCacheSize",
-					Integer.class);
+		Integer cacheSize = TestUtils.getPropertyValue(this.pollingAdapter,
+						"source.executor.jdbcCallOperationsCacheSize",
+						Integer.class);
 
-		assertEquals("Wrong JdbcCallOperations Cache Size", Integer.valueOf(77),
-				cacheSize);
+		assertEquals("Wrong JdbcCallOperations Cache Size", Integer.valueOf(77), cacheSize);
 	}
 
 	@Test
@@ -113,7 +117,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
+		boolean skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
 		assertTrue("skipUndeclaredResults was not set and should default to 'true'", skipUndeclaredResults);
 	}
 
@@ -144,7 +148,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcedurepParametersAreSet() throws Exception {
+	public void testProcedureParametersAreSet() throws Exception {
 		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollingAdapter);
@@ -152,11 +156,11 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  procedureParameters = accessor.getPropertyValue("procedureParameters");
+		Object procedureParameters = accessor.getPropertyValue("procedureParameters");
 		assertNotNull(procedureParameters);
 		assertTrue(procedureParameters instanceof List);
 
-		List<ProcedureParameter>procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
+		List<ProcedureParameter> procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
 
 		assertTrue(procedureParametersAsList.size() == 4);
 
@@ -165,15 +169,15 @@ public class StoredProcPollingChannelAdapterParserTests {
 		ProcedureParameter parameter3 = procedureParametersAsList.get(2);
 		ProcedureParameter parameter4 = procedureParametersAsList.get(3);
 
-		assertEquals("username",    parameter1.getName());
+		assertEquals("username", parameter1.getName());
 		assertEquals("description", parameter2.getName());
-		assertEquals("password",    parameter3.getName());
-		assertEquals("age",         parameter4.getName());
+		assertEquals("password", parameter3.getName());
+		assertEquals("age", parameter4.getName());
 
-		assertEquals("kenny",              parameter1.getValue());
-		assertEquals("Who killed Kenny?",  parameter2.getValue());
+		assertEquals("kenny", parameter1.getValue());
+		assertEquals("Who killed Kenny?", parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  parameter4.getValue());
+		assertEquals(30, parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());
@@ -192,16 +196,17 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  returningResultSetRowMappers = accessor.getPropertyValue("returningResultSetRowMappers");
+		Object returningResultSetRowMappers = accessor.getPropertyValue("returningResultSetRowMappers");
 		assertNotNull(returningResultSetRowMappers);
 		assertTrue(returningResultSetRowMappers instanceof Map);
 
-		Map<String, RowMapper<?>> returningResultSetRowMappersAsMap = (Map<String, RowMapper<?>>) returningResultSetRowMappers;
+		Map<String, RowMapper<?>> returningResultSetRowMappersAsMap =
+				(Map<String, RowMapper<?>>) returningResultSetRowMappers;
 
 		assertTrue("The rowmapper was not set. Expected returningResultSetRowMappersAsMap.size() == 2",
 				returningResultSetRowMappersAsMap.size() == 2);
 
-		Iterator<Entry<String,RowMapper<?>>> iterator = returningResultSetRowMappersAsMap.entrySet().iterator();
+		Iterator<Entry<String, RowMapper<?>>> iterator = returningResultSetRowMappersAsMap.entrySet().iterator();
 
 		Entry<String, ?> mapEntry = iterator.next();
 		assertEquals("out", mapEntry.getKey());
@@ -224,11 +229,11 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  sqlParameters = accessor.getPropertyValue("sqlParameters");
+		Object sqlParameters = accessor.getPropertyValue("sqlParameters");
 		assertNotNull(sqlParameters);
 		assertTrue(sqlParameters instanceof List);
 
-		List<SqlParameter>sqlParametersAsList = (List<SqlParameter>) sqlParameters;
+		List<SqlParameter> sqlParametersAsList = (List<SqlParameter>) sqlParameters;
 
 		assertTrue(sqlParametersAsList.size() == 4);
 
@@ -237,14 +242,14 @@ public class StoredProcPollingChannelAdapterParserTests {
 		SqlParameter parameter3 = sqlParametersAsList.get(2);
 		SqlParameter parameter4 = sqlParametersAsList.get(3);
 
-		assertEquals("username",    parameter1.getName());
-		assertEquals("password",    parameter2.getName());
-		assertEquals("age",         parameter3.getName());
+		assertEquals("username", parameter1.getName());
+		assertEquals("password", parameter2.getName());
+		assertEquals("age", parameter3.getName());
 		assertEquals("description", parameter4.getName());
 
 		assertNull("Expect that the scale is null.", parameter1.getScale());
 		assertNull("Expect that the scale is null.", parameter2.getScale());
-		assertEquals("Expect that the scale is 5.", Integer.valueOf(5),  parameter3.getScale());
+		assertEquals("Expect that the scale is 5.", Integer.valueOf(5), parameter3.getScale());
 		assertNull("Expect that the scale is null.", parameter4.getScale());
 
 		assertEquals("SqlType is ", Types.VARCHAR, parameter1.getSqlType());
@@ -252,10 +257,8 @@ public class StoredProcPollingChannelAdapterParserTests {
 		assertEquals("SqlType is ", Types.INTEGER, parameter3.getSqlType());
 		assertEquals("SqlType is ", Types.VARCHAR, parameter4.getSqlType());
 
-		assertTrue(parameter1 instanceof SqlParameter);
 		assertTrue(parameter2 instanceof SqlOutParameter);
 		assertTrue(parameter3 instanceof SqlInOutParameter);
-		assertTrue(parameter4 instanceof SqlParameter);
 
 	}
 
@@ -263,22 +266,29 @@ public class StoredProcPollingChannelAdapterParserTests {
 	public void testAutoChannel() throws Exception {
 		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
-		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter autoChannelAdapter =
+				context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 		assertFalse(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.returnValueRequired", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.isFunction", Boolean.class));
+		autoChannelAdapter.stop();
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		this.pollingAdapter.stop();
+		ThreadPoolTaskScheduler taskScheduler = context.getBean(ThreadPoolTaskScheduler.class);
+		taskScheduler.setAwaitTerminationSeconds(10);
+		taskScheduler.destroy();
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
-		 this.context    = new ClassPathXmlApplicationContext(name, cls);
-		 this.pollingAdapter   = this.context.getBean("storedProcedurePollingChannelAdapter", SourcePollingChannelAdapter.class);
+	public void setUp(String name, Class<?> cls) {
+		this.context = new ClassPathXmlApplicationContext(name, cls);
+		this.pollingAdapter =
+				this.context.getBean("storedProcedurePollingChannelAdapter", SourcePollingChannelAdapter.class);
 	}
 
 }

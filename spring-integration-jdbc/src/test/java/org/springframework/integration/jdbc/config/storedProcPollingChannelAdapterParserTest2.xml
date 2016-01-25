@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	   xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
@@ -13,40 +13,44 @@
 	<jdbc:embedded-database id="dataSource" type="HSQL"/>
 
 	<int-jdbc:stored-proc-inbound-channel-adapter id="storedProcedurePollingChannelAdapter"
-				data-source="dataSource" channel="target"
-				stored-procedure-name-expression="'GET_PRIME_NUMBERS'"
-				is-function="false"
-				jdbc-call-operations-cache-size="77">
-			<int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
-			<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
-			<int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>
-			<int-jdbc:sql-parameter-definition name="description" />
-			<int-jdbc:parameter name="username" value="kenny" type="java.lang.String"/>
-			<int-jdbc:parameter name="description" value="Who killed Kenny?"/>
-			<int-jdbc:parameter name="password" expression="payload.username"/>
-			<int-jdbc:parameter name="age" value="30" type="java.lang.Integer"/>
-			<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
+												  data-source="dataSource" channel="target"
+												  stored-procedure-name-expression="'GET_PRIME_NUMBERS'"
+												  auto-startup="false"
+												  is-function="false"
+												  jdbc-call-operations-cache-size="77">
+		<int-jdbc:sql-parameter-definition name="username" direction="IN" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="password" direction="OUT"/>
+		<int-jdbc:sql-parameter-definition name="age" direction="INOUT" type="INTEGER" scale="5"/>
+		<int-jdbc:sql-parameter-definition name="description"/>
+		<int-jdbc:parameter name="username" value="kenny" type="java.lang.String"/>
+		<int-jdbc:parameter name="description" value="Who killed Kenny?"/>
+		<int-jdbc:parameter name="password" expression="payload.username"/>
+		<int-jdbc:parameter name="age" value="30" type="java.lang.Integer"/>
+		<int-jdbc:returning-resultset name="out"
+									  row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
 
 	</int-jdbc:stored-proc-inbound-channel-adapter>
 
 	<int:poller default="true" fixed-rate="10000"/>
 
 	<int-jdbc:stored-proc-inbound-channel-adapter id="autoChannel"
-			data-source="dataSource"
-			stored-procedure-name="GET_PRIME_NUMBERS"
-			is-function="false">
-		<int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR" />
-		<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
-		<int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5" />
-		<int-jdbc:sql-parameter-definition name="description" />
-		<int-jdbc:parameter name="username" value="kenny"   type="java.lang.String"/>
+												  data-source="dataSource"
+												  stored-procedure-name="GET_PRIME_NUMBERS"
+												  auto-startup="false"
+												  is-function="false">
+		<int-jdbc:sql-parameter-definition name="username" direction="IN" type="VARCHAR"/>
+		<int-jdbc:sql-parameter-definition name="password" direction="OUT"/>
+		<int-jdbc:sql-parameter-definition name="age" direction="INOUT" type="INTEGER" scale="5"/>
+		<int-jdbc:sql-parameter-definition name="description"/>
+		<int-jdbc:parameter name="username" value="kenny" type="java.lang.String"/>
 		<int-jdbc:parameter name="description" value="Who killed Kenny?"/>
 		<int-jdbc:parameter name="password" expression="payload.username"/>
 		<int-jdbc:parameter name="age" value="30" type="java.lang.Integer"/>
-		<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
+		<int-jdbc:returning-resultset name="out"
+									  row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
 
 	</int-jdbc:stored-proc-inbound-channel-adapter>
 
-	<int:bridge input-channel="autoChannel" output-channel="nullChannel" />
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
 </beans>

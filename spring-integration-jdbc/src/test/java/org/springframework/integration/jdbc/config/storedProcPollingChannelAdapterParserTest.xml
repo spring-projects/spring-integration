@@ -33,7 +33,7 @@
 		<constructor-arg value="java.lang.Long"/>
 	</bean>
 
-	<int:poller default="true" fixed-rate="10000"/>
+	<int:poller default="true" fixed-delay="10000"/>
 
 	<int-jdbc:stored-proc-inbound-channel-adapter id="autoChannel"
 			data-source="dataSource"
