@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors
+ * Copyright 2014-2016 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	@Override
 	public String getComponentType() {
-		return "redis:queue-outbound-gatewway";
+		return "redis:queue-outbound-gateway";
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 		BoundListOperations<String, Object> boundListOperations = template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
 		byte[] reply = (byte[]) boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-		if(reply != null && reply.length > 0) {
+		if (reply != null && reply.length > 0) {
 			Object replyMessage = this.serializer.deserialize(reply);
 			if (replyMessage == null) {
 				return null;

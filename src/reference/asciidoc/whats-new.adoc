@@ -80,11 +80,19 @@ See <<content-type-conversion-outbound>> for more information.
 
 ==== Redis Changes
 
+===== List Push/Pop Direction
+
 Previously, the queue channel adapters always used the Redis List in a fixed direction,
 pushing to the left end and reading from the right end.
 It is now possible to configure the reading and writing direction using `rightPop` and `leftPush` options for the
 `RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter` respectively.
 See <<redis-queue-inbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> for more information.
+
+===== Queue Inbound Gateway Default Serializer
+
+The default serializer in the inbound gateway has been changed to a `JdkSerializationRedisSerializer` for compatibility
+with the outbound gateway.
+See <<redis-queue-inbound-gateway>> for more information.
 
 ==== HTTP Changes
 

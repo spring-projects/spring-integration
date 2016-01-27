@@ -25,6 +25,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -69,7 +70,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile Executor taskExecutor;
 
-	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
+	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
@@ -84,7 +85,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	private volatile Runnable stopCallback;
 
 	/**
-	 * @param queueName         Must not be an empty String
+	 * @param queueName Must not be an empty String
 	 * @param connectionFactory Must not be null
 	 */
 	public RedisQueueInboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
