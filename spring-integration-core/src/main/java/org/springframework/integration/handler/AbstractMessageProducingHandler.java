@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,14 @@ import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -51,6 +54,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private volatile String outputChannelName;
 
+	private volatile boolean asyncReplySupported;
+
 	/**
 	 * Set the timeout for sending reply Messages.
 	 * @param sendTimeout The send timeout.
@@ -67,6 +72,18 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
+	}
+
+	/**
+	 * Allow async replies. If the handler reply is a {@link ListenableFuture} send
+	 * the output when it is satisfied rather than sending the future as the result.
+	 * Only subclasses that support this feature should set it.
+	 * @param asyncReplySupported true to allow.
+	 *
+	 * @since 4.3
+	 */
+	protected void setAsyncReplySupported(boolean asyncReplySupported) {
+		this.asyncReplySupported = asyncReplySupported;
 	}
 
 	@Override
@@ -112,8 +129,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
-	protected void produceOutput(Object reply, Message<?> requestMessage) {
-		MessageHeaders requestHeaders = requestMessage.getHeaders();
+	protected void produceOutput(Object reply, final Message<?> requestMessage) {
+		final MessageHeaders requestHeaders = requestMessage.getHeaders();
 
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
@@ -150,8 +167,30 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 
-		Message<?> replyMessage = createOutputMessage(reply, requestHeaders);
-		sendOutput(replyMessage, replyChannel);
+		if (this.asyncReplySupported && reply instanceof ListenableFuture<?>) {
+			ListenableFuture<?> future = (ListenableFuture<?>) reply;
+			final Object fallbackReplyChannel = replyChannel;
+			future.addCallback(new ListenableFutureCallback<Object>() {
+
+				@Override
+				public void onSuccess(Object result) {
+					sendOutput(createOutputMessage(result, requestHeaders), fallbackReplyChannel);
+				}
+
+				@Override
+				public void onFailure(Throwable ex) {
+					Throwable result = ex;
+					if (!(ex instanceof MessagingException)) {
+						result = new MessageHandlingException(requestMessage, ex);
+					}
+					sendOutput(createOutputMessage(result, requestHeaders), fallbackReplyChannel);
+				}
+
+			});
+		}
+		else {
+			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel);
+		}
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
