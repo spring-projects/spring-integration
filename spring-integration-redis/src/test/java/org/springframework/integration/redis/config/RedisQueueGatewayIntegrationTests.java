@@ -78,10 +78,10 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRequestWithReply() throws Exception {
-		this.sendChannel.send(new GenericMessage<String>("test1"));
+		this.sendChannel.send(new GenericMessage<Integer>(1));
 		Message<?> receive = this.outputChannel.receive(10000);
 		assertNotNull(receive);
-		assertEquals("test1".toUpperCase(), receive.getPayload());
+		assertEquals(2, receive.getPayload());
 	}
 
 	@Test
@@ -124,10 +124,10 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 		this.inboundGateway.setExtractPayload(false);
 		this.outboundGateway.setSerializer(new JdkSerializationRedisSerializer());
 		this.outboundGateway.setExtractPayload(false);
-		this.sendChannel.send(new GenericMessage<String>("test1"));
+		this.sendChannel.send(new GenericMessage<Integer>(2));
 		Message<?> receive = this.outputChannel.receive(10000);
 		assertNotNull(receive);
-		assertEquals("test1".toUpperCase(), receive.getPayload());
+		assertEquals(3, receive.getPayload());
 		this.inboundGateway.setSerializer(new StringRedisSerializer());
 		this.inboundGateway.setExtractPayload(true);
 		this.outboundGateway.setSerializer(new StringRedisSerializer());
