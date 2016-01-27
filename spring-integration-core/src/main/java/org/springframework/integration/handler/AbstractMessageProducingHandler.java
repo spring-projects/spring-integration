@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,14 @@ import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -51,6 +54,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private volatile String outputChannelName;
 
+	private volatile boolean asyncReplySupported;
+
 	/**
 	 * Set the timeout for sending reply Messages.
 	 * @param sendTimeout The send timeout.
@@ -67,6 +72,18 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
+	}
+
+	/**
+	 * Allow async replies. If the handler reply is a {@link ListenableFuture} send
+	 * the output when it is satisfied rather than sending the future as the result.
+	 * Only subclasses that support this feature should set it.
+	 * @param asyncReplySupported true to allow.
+	 *
+	 * @since 4.3
+	 */
+	protected void setAsyncReplySupported(boolean asyncReplySupported) {
+		this.asyncReplySupported = asyncReplySupported;
 	}
 
 	@Override
@@ -112,8 +129,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
-	protected void produceOutput(Object reply, Message<?> requestMessage) {
-		MessageHeaders requestHeaders = requestMessage.getHeaders();
+	protected void produceOutput(Object reply, final Message<?> requestMessage) {
+		final MessageHeaders requestHeaders = requestMessage.getHeaders();
 
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
@@ -150,8 +167,55 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 
-		Message<?> replyMessage = createOutputMessage(reply, requestHeaders);
-		sendOutput(replyMessage, replyChannel);
+		if (this.asyncReplySupported && reply instanceof ListenableFuture<?>) {
+			ListenableFuture<?> future = (ListenableFuture<?>) reply;
+			final Object theReplyChannel = replyChannel;
+			future.addCallback(new ListenableFutureCallback<Object>() {
+
+				@Override
+				public void onSuccess(Object result) {
+					try {
+						sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
+					}
+					catch (Exception e) {
+						Exception exceptionToLogAndSend = e;
+						if (!(e instanceof MessagingException)) {
+							exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
+						}
+						logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+						onFailure(exceptionToLogAndSend);
+					}
+				}
+
+				@Override
+				public void onFailure(Throwable ex) {
+					Object errorChannel = requestHeaders.getErrorChannel();
+					Throwable result = ex;
+					if (!(ex instanceof MessagingException)) {
+						result = new MessageHandlingException(requestMessage, ex);
+					}
+					if (errorChannel == null) {
+						logger.error("Async exception received and no 'errorChannel' header exists; cannot route "
+								+ "exception to caller", result);
+					}
+					else {
+						try {
+							sendOutput(createOutputMessage(result, requestHeaders), errorChannel, true);
+						}
+						catch (Exception e) {
+							Exception exceptionToLog = e;
+							if (!(e instanceof MessagingException)) {
+								exceptionToLog = new MessageHandlingException(requestMessage, e);
+							}
+							logger.error("Failed to send async reply", exceptionToLog);
+						}
+					}
+				}
+			});
+		}
+		else {
+			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
+		}
 	}
 
 	private Object getOutputChannelFromRoutingSlip(Object reply, Message<?> requestMessage, List<?> routingSlip,
@@ -216,10 +280,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send
 	 * @param replyChannel the 'replyChannel' value from the original request
+	 * @param isError - this is an error, use the replyChannel argument (must not be null), not
+	 * the configured output channel.
 	 */
-	private void sendOutput(Object output, Object replyChannel) {
+	private void sendOutput(Object output, Object replyChannel, boolean isError) {
 		MessageChannel outputChannel = getOutputChannel();
-		if (outputChannel != null) {
+		if (!isError && outputChannel != null) {
 			replyChannel = outputChannel;
 		}
 		if (replyChannel == null) {
