@@ -732,7 +732,7 @@ Mutually exclusive with 'redis-template' attribute.
 <8> The `RedisSerializer` bean reference.
 Can be an empty string, which means 'no serializer'.
 In this case the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
-By default it is a `StringRedisSerializer`.
+By default it is a `JdkSerializationRedisSerializer`.
 
 
 <9> The timeout in milliseconds to wait until the receive message will be get or not.

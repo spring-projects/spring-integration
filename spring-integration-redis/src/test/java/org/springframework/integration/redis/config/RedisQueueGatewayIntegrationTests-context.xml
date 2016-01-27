@@ -28,20 +28,15 @@
 									  queue="#{redisQueue.toString()}"
 									  reply-timeout="1000"
 									  requires-reply="true"
-									  reply-channel="outputChannel"
-									  serializer="serializer"/>
-
-
-	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+									  reply-channel="outputChannel"/>
 
 	<int-redis:queue-inbound-gateway id="inboundGateway"
 									 queue="#{redisQueue.toString()}"
 									 request-channel="requestChannel"
-									 serializer="serializer"
 									 reply-timeout="20001"
 									 receive-timeout="100"
 									 request-timeout="20000"/>
 
-	<int:service-activator input-channel="requestChannel" expression="payload.toUpperCase()"/>
+	<int:service-activator input-channel="requestChannel" expression="payload + 1"/>
 
 </beans>
