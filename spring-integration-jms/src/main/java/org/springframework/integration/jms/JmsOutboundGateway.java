@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1038,7 +1038,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			this.replies.remove(correlationId);
+			if (correlationId != null) {
+				this.replies.remove(correlationId);
+			}
 		}
 	}
 
@@ -1077,7 +1079,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			this.replies.remove(correlationId);
+			if (correlationId != null) {
+				this.replies.remove(correlationId);
+			}
 		}
 	}
 
@@ -1488,5 +1492,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		public Executor getTaskExecutor() {
 			return taskExecutor;
 		}
+
 	}
+
 }
