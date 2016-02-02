@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.gemstone.gemfire.cache.EntryEvent;
 import com.gemstone.gemfire.internal.cache.DistributedRegion;
+import com.gemstone.gemfire.internal.cache.LocalRegion;
 
 /**
  * @author David Turanski
@@ -53,13 +54,13 @@ public class GemfireInboundChannelAdapterTests {
 	SubscribableChannel errorChannel;
 
 	@Autowired
-	DistributedRegion region1;
+	LocalRegion region1;
 
 	@Autowired
-	DistributedRegion region2;
+	LocalRegion region2;
 
 	@Autowired
-	DistributedRegion region3;
+	LocalRegion region3;
 
 	@Test
 	public void testGemfireInboundChannelAdapterWithExpression() {

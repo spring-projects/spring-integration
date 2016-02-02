@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -67,7 +68,7 @@ public class GemfireGroupStoreTests {
 
 	private Region<Object, Object> region;
 
-//	@Rule
+	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
@@ -383,8 +384,10 @@ public class GemfireGroupStoreTests {
 
 	@After
 	public void cleanup() {
-		this.cache.close();
-		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+		if (this.cache != null) {
+			this.cache.close();
+			Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+		}
 	}
 
 }
