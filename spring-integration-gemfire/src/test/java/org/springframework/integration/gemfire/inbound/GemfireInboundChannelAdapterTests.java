@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,15 +20,15 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.gemstone.gemfire.cache.EntryEvent;
-import com.gemstone.gemfire.internal.cache.DistributedRegion;
+import com.gemstone.gemfire.internal.cache.LocalRegion;
 
 /**
  * @author David Turanski
@@ -50,13 +50,13 @@ public class GemfireInboundChannelAdapterTests {
 	SubscribableChannel errorChannel;
 
 	@Autowired
-	DistributedRegion region1;
+	LocalRegion region1;
 
 	@Autowired
-	DistributedRegion region2;
+	LocalRegion region2;
 
 	@Autowired
-	DistributedRegion region3;
+	LocalRegion region3;
 
 
 
@@ -86,6 +86,7 @@ public class GemfireInboundChannelAdapterTests {
 	@Test
 	public void testErrorChannel() {
 		channel3.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new MessagingException("got an error");
 			}
@@ -102,6 +103,7 @@ public class GemfireInboundChannelAdapterTests {
 	static class ErrorHandler implements MessageHandler {
 		public int count = 0;
 
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			assertTrue(message instanceof ErrorMessage);
 			count++;
@@ -110,6 +112,7 @@ public class GemfireInboundChannelAdapterTests {
 
 	static class EventHandler implements MessageHandler {
 		public Object event = null;
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			event = message.getPayload();
 		}

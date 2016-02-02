@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -32,6 +32,7 @@ import org.springframework.integration.gemfire.fork.ForkUtil;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,12 +42,13 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
 /**
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class CqInboundChannelAdapterTests {
-	static ConfigurableApplicationContext staticCtx;
 
 	@Autowired
 	LocalRegion region;
@@ -64,20 +66,15 @@ public class CqInboundChannelAdapterTests {
 	ContinuousQueryMessageProducer withDurable;
 
 	static OutputStream os;
+
 	@BeforeClass
 	public static void startUp() throws Exception {
 		os = ForkUtil.cacheServer();
 	}
 
-
-	@Before
-	public void setUp() {
-		staticCtx = applicationContext;
-		assertTrue(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class));
-	}
-
 	@Test
 	public void testCqEvent()  throws InterruptedException {
+		assertTrue(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class));
 		region.put("one",1);
 		Message<?> msg = outputChannel1.receive(10000);
 		assertNotNull(msg);
@@ -94,10 +91,6 @@ public class CqInboundChannelAdapterTests {
 
 	@AfterClass
 	public static void cleanUp()  {
-		/*
-		 * Avoid shutdown errors
-		 */
-		staticCtx.close();
 		sendSignal();
 	}
 

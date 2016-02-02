@@ -381,8 +381,10 @@ public class GemfireGroupStoreTests {
 
 	@After
 	public void cleanup() {
-		this.cache.close();
-		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+		if (this.cache != null) {
+			this.cache.close();
+			Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+		}
 	}
 
 }

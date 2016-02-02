@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/gemfire
-		http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<gfe:cache id="gemfire-cache-2"/>
-
-	<gfe:replicated-region id="region1" cache-ref="gemfire-cache-2"/>
+	<bean id="region" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="com.gemstone.gemfire.cache.Region"/>
+	</bean>
 
 	<int-gfe:inbound-channel-adapter id="channel1"
-									 region="region1"
+									 region="region"
 									 cache-events="CREATED"
 									 expression="newValue"
 									 auto-startup="false"

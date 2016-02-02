@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		assertEquals(1, region.size());
 		assertEquals("bar", region.get("foo"));
+		cache.close();
 	}
 
 	@Test
@@ -105,6 +106,7 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("test"));
 		assertEquals(3, region.size());
 		assertEquals(10L, region.get("baz"));
+		cache.close();
 	}
 
 }
