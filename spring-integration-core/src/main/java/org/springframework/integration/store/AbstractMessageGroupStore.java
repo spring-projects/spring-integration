@@ -26,6 +26,7 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 
@@ -107,6 +108,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	@Override
+	@ManagedOperation
 	public synchronized int expireMessageGroups(long timeout) {
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;
