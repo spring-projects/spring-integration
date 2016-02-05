@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,11 +53,13 @@ import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
 import org.springframework.integration.util.WhileLockedProcessor;
+import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -100,6 +104,9 @@ import org.springframework.util.StringUtils;
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, MessageTriggerAction {
+
+	private static final boolean nioFilesPresent = ClassUtils.isPresent("java.nio.file.Files",
+			FileWritingMessageHandler.class.getClassLoader());
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -463,7 +470,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
-			if (sourceFile.renameTo(resultFile)) {
+			if (rename(sourceFile, resultFile)) {
 				return resultFile;
 			}
 			if (logger.isInfoEnabled()) {
@@ -680,7 +687,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (resultFile.exists()) {
 			if (resultFile.setWritable(true, false) && resultFile.delete()) {
-				if (!tempFile.renameTo(resultFile)) {
+				if (!rename(tempFile, resultFile)) {
 					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
 							"' to '" + resultFile.getAbsolutePath() + "'");
 				}
@@ -692,7 +699,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		else {
-			if (!tempFile.renameTo(resultFile)) {
+			if (!rename(tempFile, resultFile)) {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
 						"' to '" + resultFile.getAbsolutePath() + "'");
 			}
@@ -832,6 +839,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
+	private static boolean rename(File source, File target) throws IOException {
+		return (nioFilesPresent && filesMove(source, target)) || source.renameTo(target);
+	}
+
+	@UsesJava7
+	private static boolean filesMove(File source, File target) throws IOException {
+		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		return true;
+	}
 
 	private static final class FileState {
 
