@@ -38,6 +38,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -286,6 +287,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
+	@ManagedOperation
 	public int expireMessageGroups(long timeout) {
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;

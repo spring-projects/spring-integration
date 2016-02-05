@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 
@@ -94,11 +95,12 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		expiryCallbacks.add(callback);
+		this.expiryCallbacks.add(callback);
 	}
 
 	@Override
-	public int expireMessageGroups(long timeout) {
+	@ManagedOperation
+	public synchronized int expireMessageGroups(long timeout) {
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;
 		for (MessageGroup group : this) {

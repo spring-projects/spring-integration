@@ -15,6 +15,7 @@ package org.springframework.integration.store;
 import java.util.Iterator;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 
 /**
@@ -77,6 +78,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 *
 	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
+	@ManagedOperation
 	int expireMessageGroups(long timeout);
 
 	/**
@@ -121,7 +123,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	/**
 	 * Invoked when a MessageGroupStore expires a group.
 	 */
-	public interface MessageGroupCallback {
+	interface MessageGroupCallback {
 
 		void execute(MessageGroupStore messageGroupStore, MessageGroup group);
 
