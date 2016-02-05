@@ -24,20 +24,29 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -62,9 +71,11 @@ public class AsyncHandlerTests {
 
 	private volatile Exception failedCallbackException;
 
+	private volatile String failedCallbackMessage;
+
 	private volatile CountDownLatch exceptionLatch = new CountDownLatch(1);
 
-	private volatile CountDownLatch noOutputChannelLatch = new CountDownLatch(1);
+	private Log logger;
 
 	@Before
 	public void setup() {
@@ -81,25 +92,13 @@ public class AsyncHandlerTests {
 							latch.await(10, TimeUnit.SECONDS);
 							switch (whichTest) {
 								case 0:
-									try {
-										future.set("reply");
-									}
-									catch (Exception e) {
-										failedCallbackException = e;
-										noOutputChannelLatch.countDown();
-									}
+									future.set("reply");
 									break;
 								case 1:
 									future.setException(new RuntimeException("foo"));
 									break;
 								case 2:
-									try {
-										future.setException(new MessagingException(requestMessage));
-									}
-									catch (Exception e) {
-										failedCallbackException = e;
-										exceptionLatch.countDown();
-									}
+									future.setException(new MessagingException(requestMessage));
 							}
 						}
 						catch (InterruptedException e) {
@@ -115,6 +114,19 @@ public class AsyncHandlerTests {
 		this.handler.setAsyncReplySupported(true);
 		this.handler.setOutputChannel(this.output);
 		this.latch = new CountDownLatch(1);
+		this.logger = spy(TestUtils.getPropertyValue(this.handler, "logger", Log.class));
+		new DirectFieldAccessor(this.handler).setPropertyValue("logger", logger);
+		doAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				failedCallbackMessage = (String) invocation.getArguments()[0];
+				failedCallbackException = (Exception) invocation.getArguments()[1];
+				exceptionLatch.countDown();
+				return null;
+			}
+
+		}).when(logger).error(anyString(), any(Throwable.class));
 	}
 
 	@Test
@@ -153,7 +165,7 @@ public class AsyncHandlerTests {
 		this.handler.handleMessage(new GenericMessage<String>("foo"));
 		assertNull(this.output.receive(0));
 		this.latch.countDown();
-		assertTrue(this.noOutputChannelLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(this.exceptionLatch.await(10, TimeUnit.SECONDS));
 		assertNotNull(this.failedCallbackException);
 		assertThat(this.failedCallbackException.getMessage(), containsString("or replyChannel header"));
 	}
@@ -203,7 +215,7 @@ public class AsyncHandlerTests {
 		this.latch.countDown();
 		assertTrue(this.exceptionLatch.await(10, TimeUnit.SECONDS));
 		assertNotNull(this.failedCallbackException);
-		assertThat(this.failedCallbackException.getMessage(), containsString("no 'errorChannel' header"));
+		assertThat(this.failedCallbackMessage, containsString("no 'errorChannel' header"));
 	}
 
 	@Test

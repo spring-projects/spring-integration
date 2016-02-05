@@ -174,24 +174,42 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 				@Override
 				public void onSuccess(Object result) {
-					sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
+					try {
+						sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
+					}
+					catch (Exception e) {
+						Exception exceptionToLog = e;
+						if (!(e instanceof MessagingException)) {
+							exceptionToLog = new MessageHandlingException(requestMessage, e);
+						}
+						logger.error("Failed to send async reply: " + result.toString(), exceptionToLog);
+					}
 				}
 
 				@Override
 				public void onFailure(Throwable ex) {
 					Object errorChannel = requestHeaders.getErrorChannel();
-					if (errorChannel == null) {
-						throw new MessageHandlingException(requestMessage,
-								"Async exception received and no 'errorChannel' header exists; cannot route"
-								+ "exception to caller", ex);
-					}
 					Throwable result = ex;
 					if (!(ex instanceof MessagingException)) {
 						result = new MessageHandlingException(requestMessage, ex);
 					}
-					sendOutput(createOutputMessage(result, requestHeaders), errorChannel, true);
+					if (errorChannel == null) {
+						logger.error("Async exception received and no 'errorChannel' header exists; cannot route "
+								+ "exception to caller", result);
+					}
+					else {
+						try {
+							sendOutput(createOutputMessage(result, requestHeaders), errorChannel, true);
+						}
+						catch (Exception e) {
+							Exception exceptionToLog = e;
+							if (!(e instanceof MessagingException)) {
+								exceptionToLog = new MessageHandlingException(requestMessage, e);
+							}
+							logger.error("Failed to send async reply", exceptionToLog);
+						}
+					}
 				}
-
 			});
 		}
 		else {
