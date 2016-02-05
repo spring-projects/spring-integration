@@ -342,13 +342,13 @@ _Optional_, by default a volatile in-memory store.
 
 <8> Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' once their containing `MessageGroup` is expired (see `MessageGroupStore.expireMessageGroups(long)`).
 One way of expiring `MessageGroup` s is by configuring a `MessageGroupStoreReaper`.
-However `MessageGroup` s can alternatively be expired by simply calling `MessageGroupStore.expireMessageGroup(groupId)`.
+However `MessageGroup` s can alternatively be expired by simply calling `MessageGroupStore.expireMessageGroups(timeout)`.
 That could be accomplished via a Control Bus operation or by simply invoking that method if you have a reference to the `MessageGroupStore` instance.
 Otherwise by itself this attribute has no behavior.
 It only serves as an indicator of what to do (discard or send to the output/reply channel) with Messages that are still in the `MessageGroup` that is about to be expired.
 _Optional_.
-_Default - 'false'_.
-*NOTE:* This attribute is more properly 'send-partial-result-on-timeout' because the group may not actually expire if
+_Default - false_.
+*NOTE:* This attribute is more properly `send-partial-result-on-timeout` because the group may not actually expire if
 `expire-groups-upon-timeout` is set to `false`.
 
 
@@ -367,8 +367,7 @@ _Optional_.
 <10> A reference to a bean that implements the message correlation (grouping) algorithm.
 The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
 In the latter case the correlation-strategy-method attribute must be defined as well.
-_Optional (by default, the aggregator will use
-        the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header) _.
+_Optional (by default, the aggregator will use the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header)_.
 
 
 

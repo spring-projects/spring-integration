@@ -96,8 +96,7 @@ _Optional_.
 <9> A reference to a bean that implements the message correlation (grouping) algorithm.
 The bean can be an implementation of the `CorrelationStrategy` interface or a POJO.
 In the latter case the correlation-strategy-method attribute must be defined as well.
-_Optional (by default, the aggregator will use
-          the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header) _.
+_Optional (by default, the aggregator will use the `IntegrationMessageHeaderAccessor.CORRELATION_ID` header)_.
 
 
 
