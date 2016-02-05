@@ -169,5 +169,22 @@
 	<bean id="messageSessionCallback"
 		  class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests$TestMessageSessionCallback"/>
 
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundLs"
+							  command="ls"
+							  command-options="-1"
+							  reply-channel="output"/>
+
+	<int-ftp:inbound-channel-adapter id="ftpInbound"
+									 channel="output"
+									 auto-startup="false"
+									 session-factory="ftpSessionFactory"
+									 auto-create-local-directory="true"
+									 delete-remote-files="false"
+									 filename-pattern="*.txt"
+									 temporary-file-suffix=".foo"
+									 local-directory="#{T (System).getProperty('java.io.tmpdir') + T (java.util.UUID).randomUUID().toString()}">
+		<int:poller fixed-delay="100"/>
+	</int-ftp:inbound-channel-adapter>
 
 </beans>

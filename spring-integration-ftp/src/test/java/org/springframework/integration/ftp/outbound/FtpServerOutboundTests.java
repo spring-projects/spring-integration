@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package org.springframework.integration.ftp.outbound;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -44,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -57,6 +61,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.InputStreamCallback;
@@ -139,6 +144,12 @@ public class FtpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundCallback;
 
+	@Autowired
+	private DirectChannel inboundLs;
+
+	@Autowired
+	private SourcePollingChannelAdapter ftpInbound;
+
 	@Before
 	public void setup() {
 		this.ftpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
@@ -183,7 +194,7 @@ public class FtpServerOutboundTests {
 	@SuppressWarnings("unchecked")
 	public void testInt2866LocalDirectoryExpressionMGET() {
 		String dir = "ftpSource/";
-		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
+		this.inboundMGet.send(new GenericMessage<Object>("*.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
@@ -209,7 +220,7 @@ public class FtpServerOutboundTests {
 	@SuppressWarnings("unchecked")
 	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
 		String dir = "ftpSource/";
-		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
@@ -545,6 +556,51 @@ public class FtpServerOutboundTests {
 		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testLsForNullDir() throws IOException {
+		Session<FTPFile> session = ftpSessionFactory.getSession();
+		((FTPClient) session.getClientInstance()).changeWorkingDirectory("ftpSource");
+		session.close();
+
+		this.inboundLs.send(new GenericMessage<String>("foo"));
+		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(List.class));
+		List<String> files = (List<String>) receive.getPayload();
+		assertEquals(2, files.size());
+		assertThat(files, containsInAnyOrder("ftpSource1.txt", "ftpSource2.txt"));
+
+		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
+		for (FTPFile ftpFile : ftpFiles) {
+			if (!ftpFile.isDirectory()) {
+				assertTrue(files.contains(ftpFile.getName()));
+			}
+		}
+	}
+
+	@Test
+	public void testInboundChannelAdapterWithNullDir() throws IOException {
+		Session<FTPFile> session = ftpSessionFactory.getSession();
+		((FTPClient) session.getClientInstance()).changeWorkingDirectory("ftpSource");
+		session.close();
+		this.ftpInbound.start();
+
+		Message<?> message = this.output.receive(10000);
+		assertNotNull(message);
+		assertThat(message.getPayload(), instanceOf(File.class));
+		assertEquals("ftpSource1.txt", ((File) message.getPayload()).getName());
+
+		message = this.output.receive(10000);
+		assertNotNull(message);
+		assertThat(message.getPayload(), instanceOf(File.class));
+		assertEquals("ftpSource2.txt", ((File) message.getPayload()).getName());
+
+		assertNull(this.output.receive(10));
+
+		this.ftpInbound.stop();
 	}
 
 	public static class SortingFileListFilter implements FileListFilter<File> {

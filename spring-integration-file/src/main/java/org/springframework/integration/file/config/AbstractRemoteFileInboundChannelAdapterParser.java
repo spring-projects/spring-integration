@@ -46,7 +46,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 		// configure the InboundFileSynchronizer properties
 		BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression(
-				"remote-directory", "remote-directory-expression", parserContext, element, true);
+				"remote-directory", "remote-directory-expression", parserContext, element, false);
 		synchronizerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "preserve-timestamp");

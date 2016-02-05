@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -621,10 +622,8 @@ public class RemoteFileOutboundGatewayTests {
 		assertEquals(outFile, out.getPayload());
 		assertTrue(outFile.exists());
 		outFile.delete();
-		assertEquals("/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals("f1",
-				out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertNull(out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+		assertEquals("f1", out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
 
 	@SuppressWarnings("unchecked")

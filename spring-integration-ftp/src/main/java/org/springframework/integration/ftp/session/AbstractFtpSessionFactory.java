@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
-import java.net.SocketException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,8 +38,6 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory<FTPFile> {
-
-	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -172,7 +169,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
-	private T createClient() throws SocketException, IOException {
+	private T createClient() throws IOException {
 		final T client = this.createClientInstance();
 		Assert.notNull(client, "client must not be null");
 		client.configure(this.config);
@@ -200,7 +197,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 		// Login
 		if (!client.login(username, password)) {
-			throw new IllegalStateException("Login failed. The respponse from the server is: " +
+			throw new IllegalStateException("Login failed. The response from the server is: " +
 					client.getReplyString());
 		}
 

@@ -191,6 +191,9 @@ Starting with _version 4.2_, you can specify `remote-directory-expression` inste
 you to dynamically determine the directory on each poll.
 e.g `remote-directory-expression="@myBean.determineRemoteDir()"`.
 
+Starting with _version 4.3_, the `remote-directory` attributes can be omitted assuming `null`.
+However, according to the FTP Client logic, the working directory is used as a default remote directory for the `LS` command.
+
 Sometimes file filtering based on the simple pattern specified via `filename-pattern` attribute might not be sufficient.
 If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g.
 `filename-regex=".*\.test$"`).
@@ -255,7 +258,10 @@ Here is an example that uses a custom Filter implementation.
 
 _Poller configuration notes for the inbound FTP adapter_
 
-The job of the inbound FTP adapter consists of two tasks: _1) Communicate with a remote server in order to transfer files from a remote directory to a local directory.__2) For each transferred file, generate a Message with that file as a payload and send it to the channel identified by the 'channel' attribute._ That is why they are called 'channel-adapters' rather than just 'adapters'.
+The job of the inbound FTP adapter consists of two tasks:
+_1) Communicate with a remote server in order to transfer files from a remote directory to a local directory._
+_2) For each transferred file, generate a Message with that file as a payload and send it to the channel identified by the 'channel' attribute._
+That is why they are called 'channel-adapters' rather than just 'adapters'.
 The main job of such an adapter is to generate a Message to be sent to a Message Channel.
 Essentially, the second task mentioned above takes precedence in such a way that *IF* your local directory already has one or more files it will first generate Messages from those, and *ONLY* when all local files have been processed, will it initiate the remote communication to retrieve more files.
 
@@ -406,6 +412,13 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If the `-dirs` option is included, each recursive directory is also returned as an element in the list.
 In this case, it is recommended that the `-1` is not used because you would not be able to determine files Vs.
 directories, which is achievable using the `FileInfo` objects.
+
+Starting with _version 4.3_, the `FtpSession` supports `null` for the `list()` and `listNames()` method,
+therefore the `expression` attribute can be omitted.
+From Java perspective there are two new constructor without `expression` argument for convenience.
+The `null` for `LS` command is treated as an FTP Client working directory.
+The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the
+`DefaultFtpSessionFactory` and implement `postProcessClientBeforeConnect()` callback.
 
 *get*
 
