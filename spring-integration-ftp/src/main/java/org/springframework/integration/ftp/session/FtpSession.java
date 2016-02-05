@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FtpSession implements Session<FTPFile> {
@@ -55,22 +56,21 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
-		boolean completed = this.client.deleteFile(path);
-	 	if (!completed) {
+	 	if (!this.client.deleteFile(path)) {
 			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
 		}
-		return completed;
+		else {
+		    return true;
+	    }
 	}
 
 	@Override
 	public FTPFile[] list(String path) throws IOException {
-		Assert.hasText(path, "path must not be null");
 		return this.client.listFiles(path);
 	}
 
 	@Override
 	public String[] listNames(String path) throws IOException {
-		Assert.hasText(path, "path must not be null");
 		return this.client.listNames(path);
 	}
 
@@ -83,7 +83,7 @@ public class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to copy '" + path +
 					"'. Server replied with: " + this.client.getReplyString());
 		}
-		logger.info("File has been successfully transfered from: " + path);
+		logger.info("File has been successfully transferred from: " + path);
 	}
 
 	@Override
@@ -93,7 +93,8 @@ public class FtpSession implements Session<FTPFile> {
 		}
 		InputStream inputStream = this.client.retrieveFileStream(source);
 		if (inputStream == null) {
-			throw new IOException("Failed to obtain InputStream for remote file " + source + ": " + this.client.getReplyCode());
+			throw new IOException("Failed to obtain InputStream for remote file " + source + ": "
+					+ this.client.getReplyCode());
 		}
 		return inputStream;
 	}
@@ -123,7 +124,7 @@ public class FtpSession implements Session<FTPFile> {
 					+ "'. Server replied with: " + this.client.getReplyString());
 		}
 		if (logger.isInfoEnabled()) {
-			logger.info("File has been successfully transfered to: " + path);
+			logger.info("File has been successfully transferred to: " + path);
 		}
 	}
 
@@ -196,7 +197,8 @@ public class FtpSession implements Session<FTPFile> {
 		Assert.hasText(path, "'path' must not be empty");
 
 		String currentWorkingPath = this.client.printWorkingDirectory();
-		Assert.state(currentWorkingPath != null, "working directory cannot be determined, therefore exists check can not be completed");
+		Assert.state(currentWorkingPath != null,
+				"working directory cannot be determined, therefore exists check can not be completed");
 		boolean exists = false;
 
 		try {

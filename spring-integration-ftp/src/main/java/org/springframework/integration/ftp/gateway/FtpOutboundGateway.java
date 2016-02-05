@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,32 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	 */
 	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command, String expression) {
 		super(remoteFileTemplate, command, expression);
+	}
+
+	/**
+	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
+	 * etc).
+	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
+	 * the {@code workingDirectory} from the FTP Client.
+	 * @param sessionFactory the session factory.
+	 * @param command the command.
+	 * @since 4.3
+	 */
+	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command) {
+		this(sessionFactory, command, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied remote file template, a command ('ls',
+	 * 'get' etc).
+	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
+	 * the {@code workingDirectory} from the FTP Client.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param command the command.
+	 * @since 4.3
+	 */
+	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command) {
+		this(remoteFileTemplate, command, null);
 	}
 
 	@Override

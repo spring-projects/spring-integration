@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class AbstractRemoteFileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -46,8 +47,10 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 		// configure the InboundFileSynchronizer properties
 		BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression(
-				"remote-directory", "remote-directory-expression", parserContext, element, true);
-		synchronizerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
+				"remote-directory", "remote-directory-expression", parserContext, element, false);
+		if (expressionDef != null) {
+			synchronizerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "preserve-timestamp");
 
@@ -57,7 +60,8 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		this.configureFilter(synchronizerBuilder, element, parserContext);
 
 		// build the MessageSource
-		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getMessageSourceClassname());
+		BeanDefinitionBuilder messageSourceBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(getMessageSourceClassname());
 		messageSourceBuilder.addConstructorArgValue(synchronizerBuilder.getBeanDefinition());
 		String comparator = element.getAttribute("comparator");
 		if (StringUtils.hasText(comparator)) {
@@ -65,17 +69,21 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageSourceBuilder, element, "local-filter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-local-directory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element,
+				"auto-create-local-directory");
 		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");
 		if (StringUtils.hasText(localFileGeneratorExpression)) {
-			BeanDefinitionBuilder localFileGeneratorExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			BeanDefinitionBuilder localFileGeneratorExpressionBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
-			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
+			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression",
+					localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
 		return messageSourceBuilder.getBeanDefinition();
 	}
 
-	private void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext) {
+	private void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element,
+	                             ParserContext parserContext) {
 		String filter = element.getAttribute("filter");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String fileNameRegex = element.getAttribute("filename-regex");

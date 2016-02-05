@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,6 +200,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
+		doInit();
+	}
+
+	/**
+	 * Subclasses can override to perform initialization - called from
+	 * {@link InitializingBean#afterPropertiesSet()}.
+	 */
+	protected void doInit() {
 	}
 
 	protected final List<F> filterFiles(F[] files) {
@@ -271,7 +279,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			Session<F> session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
-		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;
+		String remoteFilePath = remoteDirectoryPath != null
+				? (remoteDirectoryPath + remoteFileSeparator + remoteFileName)
+				: remoteFileName;
 		if (!this.isFile(remoteFile)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("cannot copy, not a file: " + remoteFilePath);
