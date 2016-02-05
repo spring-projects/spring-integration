@@ -169,27 +169,33 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		if (this.asyncReplySupported && reply instanceof ListenableFuture<?>) {
 			ListenableFuture<?> future = (ListenableFuture<?>) reply;
-			final Object fallbackReplyChannel = replyChannel;
+			final Object theReplyChannel = replyChannel;
 			future.addCallback(new ListenableFutureCallback<Object>() {
 
 				@Override
 				public void onSuccess(Object result) {
-					sendOutput(createOutputMessage(result, requestHeaders), fallbackReplyChannel);
+					sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
 				}
 
 				@Override
 				public void onFailure(Throwable ex) {
+					Object errorChannel = requestHeaders.getErrorChannel();
+					if (errorChannel == null) {
+						throw new MessageHandlingException(requestMessage,
+								"Async exception received and no 'errorChannel' header exists; cannot route"
+								+ "exception to caller", ex);
+					}
 					Throwable result = ex;
 					if (!(ex instanceof MessagingException)) {
 						result = new MessageHandlingException(requestMessage, ex);
 					}
-					sendOutput(createOutputMessage(result, requestHeaders), fallbackReplyChannel);
+					sendOutput(createOutputMessage(result, requestHeaders), errorChannel, true);
 				}
 
 			});
 		}
 		else {
-			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel);
+			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
 		}
 	}
 
@@ -255,10 +261,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send
 	 * @param replyChannel the 'replyChannel' value from the original request
+	 * @param force - use the replyChannel argument (must not be null)
 	 */
-	private void sendOutput(Object output, Object replyChannel) {
+	private void sendOutput(Object output, Object replyChannel, boolean force) {
 		MessageChannel outputChannel = getOutputChannel();
-		if (outputChannel != null) {
+		if (!force && outputChannel != null) {
 			replyChannel = outputChannel;
 		}
 		if (replyChannel == null) {
