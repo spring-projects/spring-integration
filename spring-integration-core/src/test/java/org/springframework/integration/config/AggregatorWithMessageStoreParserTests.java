@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,31 +26,36 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class AggregatorWithMessageStoreParserTests {
-	
+
 	@Autowired
 	@Qualifier("input")
 	private MessageChannel input;
-	
+
 	@Autowired
 	private TestAggregatorBean aggregatorBean;
-	
+
 	@Autowired
 	private MessageGroupStore messageGroupStore;
+
+    @Autowired
+	private MessageChannel controlBusChannel;
 
     @Test
     @DirtiesContext
     public void testAggregation() {
- 
         input.send(createMessage("123", "id1", 3, 1, null));
         assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
         input.send(createMessage("789", "id1", 3, 3, null));
@@ -67,12 +72,11 @@ public class AggregatorWithMessageStoreParserTests {
     @Test
     @DirtiesContext
     public void testExpiry() {
- 
         input.send(createMessage("123", "id1", 3, 1, null));
         assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
         input.send(createMessage("456", "id1", 3, 2, null));
         assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
-        messageGroupStore.expireMessageGroups(-10000);
+	    this.controlBusChannel.send(new GenericMessage<Object>("@messageStore.expireMessageGroups(-10000)"));
         assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
                 .getAggregatedMessages().size());
         Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
