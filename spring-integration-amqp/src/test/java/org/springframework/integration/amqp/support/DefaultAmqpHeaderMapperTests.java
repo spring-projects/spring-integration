@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 
 /**
  * @author Mark Fisher
@@ -121,6 +122,13 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 
 		assertEquals("text/html", amqpProperties.getContentType());
+
+		headerMap.put(AmqpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
+		integrationHeaders = new MessageHeaders(headerMap);
+		amqpProperties = new MessageProperties();
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
+
+		assertEquals(MimeTypeUtils.APPLICATION_JSON_VALUE, amqpProperties.getContentType());
 	}
 
 	@Test
