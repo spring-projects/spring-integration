@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,18 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private final CountDownLatch listenerRegisteredLatch = new CountDownLatch(1);
 
+	private final boolean server;
+
+	private final AtomicLong sequence = new AtomicLong();
+
+	private final ApplicationEventPublisher applicationEventPublisher;
+
+	private final AtomicBoolean closePublished = new AtomicBoolean();
+
+	private final AtomicBoolean exceptionSent = new AtomicBoolean();
+
+	private final SocketInfo socketInfo;
+
 	@SuppressWarnings("rawtypes")
 	private volatile Deserializer deserializer;
 
@@ -66,23 +78,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private volatile TcpSender sender;
 
-	private final boolean server;
-
 	private volatile String connectionId;
-
-	private final AtomicLong sequence = new AtomicLong();
 
 	private volatile String hostName = "unknown";
 
 	private volatile String hostAddress = "unknown";
 
 	private volatile String connectionFactoryName = "unknown";
-
-	private final ApplicationEventPublisher applicationEventPublisher;
-
-	private final AtomicBoolean closePublished = new AtomicBoolean();
-
-	private final AtomicBoolean exceptionSent = new AtomicBoolean();
 
 	private volatile boolean noReadErrorOnClose;
 
@@ -95,6 +97,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	public TcpConnectionSupport(ApplicationEventPublisher applicationEventPublisher) {
 		this.server = false;
 		this.applicationEventPublisher = applicationEventPublisher;
+		this.socketInfo = null;
 	}
 
 	/**
@@ -112,6 +115,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
 			String connectionFactoryName) {
+		this.socketInfo = new SocketInfo(socket);
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
@@ -322,6 +326,14 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	@Override
 	public String getConnectionId() {
 		return this.connectionId;
+	}
+
+	/**
+	 * @since 4.2.5
+	 */
+	@Override
+	public SocketInfo getSocketInfo() {
+		return this.socketInfo;
 	}
 
 	protected boolean isNoReadErrorOnClose() {
