@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,5 +124,13 @@ public interface TcpConnection extends Runnable {
 	 * @since 4.2
 	 */
 	SSLSession getSslSession();
+
+	/**
+	 * Provides getters for {@link Socket} properties.
+	 * @return the socketInfo - may be null, for example in interceptors; interceptors
+	 * should override and delegate to the actual TcpConnection.
+	 * @since 4.3
+	 */
+	public SocketInfo getSocketInfo();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,10 @@ public class TcpMessageMapper implements
 			.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
 			.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
 			.setHeader(IpHeaders.CONNECTION_ID, connectionId);
+		SocketInfo socketInfo = connection.getSocketInfo();
+		if (socketInfo != null) {
+			messageBuilder.setHeader(IpHeaders.LOCAL_ADDRESS, socketInfo.getLocalAddress());
+		}
 		if (this.applySequence) {
 			messageBuilder
 				.setCorrelationId(connectionId)
