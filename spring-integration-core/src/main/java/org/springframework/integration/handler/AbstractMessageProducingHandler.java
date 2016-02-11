@@ -178,11 +178,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 						sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
 					}
 					catch (Exception e) {
-						Exception exceptionToLog = e;
+						Exception exceptionToLogAndSend = e;
 						if (!(e instanceof MessagingException)) {
-							exceptionToLog = new MessageHandlingException(requestMessage, e);
+							exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
 						}
-						logger.error("Failed to send async reply: " + result.toString(), exceptionToLog);
+						logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+						onFailure(exceptionToLogAndSend);
 					}
 				}
 
@@ -279,11 +280,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send
 	 * @param replyChannel the 'replyChannel' value from the original request
-	 * @param force - use the replyChannel argument (must not be null)
+	 * @param isError - this is an error, use the replyChannel argument (must not be null), not
+	 * the configured output channel.
 	 */
-	private void sendOutput(Object output, Object replyChannel, boolean force) {
+	private void sendOutput(Object output, Object replyChannel, boolean isError) {
 		MessageChannel outputChannel = getOutputChannel();
-		if (!force && outputChannel != null) {
+		if (!isError && outputChannel != null) {
 			replyChannel = outputChannel;
 		}
 		if (replyChannel == null) {
