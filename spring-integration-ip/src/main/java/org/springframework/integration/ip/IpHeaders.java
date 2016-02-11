@@ -78,6 +78,12 @@ public final class IpHeaders {
 	 */
 	public static final String ACTUAL_CONNECTION_ID = IP + "actualConnectionId";
 
+	/**
+	 * The local address (InetAddress) that the socket is connected to.
+	 * @since 4.2.5.
+	 */
+	public static final String LOCAL_ADDRESS = IP + "localInetAddress";
+
 	private IpHeaders() {}
 
 }

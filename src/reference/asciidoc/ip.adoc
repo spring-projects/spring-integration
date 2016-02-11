@@ -1365,6 +1365,9 @@ If `lookupHost` is `false`, this will contain the ip address.
 | ip_port
 | PORT
 | The remote port for a UDP packet.
+| ip_localInetAddress
+| IP_LOCAL_ADDRESS
+| The local `InetAddress` to which the socket is connected (since _version 4.2.5_).
 | ip_ackTo
 | ACKADDRESS
 | The remote ip address to which UDP application-level acks will be sent.
