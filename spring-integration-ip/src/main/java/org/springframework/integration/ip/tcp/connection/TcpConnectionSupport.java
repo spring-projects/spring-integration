@@ -329,11 +329,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Provides getters for {@link Socket} properties.
-	 * @return the socketInfo - may be null, for example in interceptors; interceptors
-	 * should override and delegate to the actual TcpConnection.
 	 * @since 4.2.5
 	 */
+	@Override
 	public SocketInfo getSocketInfo() {
 		return this.socketInfo;
 	}

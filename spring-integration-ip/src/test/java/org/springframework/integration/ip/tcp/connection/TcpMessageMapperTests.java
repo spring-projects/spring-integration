@@ -70,7 +70,7 @@ public class TcpMessageMapperTests {
 	public void testToMessage() throws Exception {
 
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+		TcpConnection connection = mock(TcpConnection.class);
 		Socket socket = mock(Socket.class);
 		InetAddress local = mock(InetAddress.class);
 		SocketInfo info = new SocketInfo(socket);

@@ -132,11 +132,9 @@ public class TcpMessageMapper implements
 			.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
 			.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
 			.setHeader(IpHeaders.CONNECTION_ID, connectionId);
-		if (connection instanceof TcpConnectionSupport) {
-			SocketInfo socketInfo = ((TcpConnectionSupport) connection).getSocketInfo();
-			if (socketInfo != null) {
-				messageBuilder.setHeader(IpHeaders.LOCAL_ADDRESS, socketInfo.getLocalAddress());
-			}
+		SocketInfo socketInfo = connection.getSocketInfo();
+		if (socketInfo != null) {
+			messageBuilder.setHeader(IpHeaders.LOCAL_ADDRESS, socketInfo.getLocalAddress());
 		}
 		if (this.applySequence) {
 			messageBuilder
