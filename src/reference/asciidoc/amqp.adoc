@@ -1059,11 +1059,14 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 === AMQP Message Headers
 
 The Spring Integration AMQP Adapters will map standard AMQP properties automatically.
-These properties will be copied by default to and from Spring Integration `MessageHeaders` using the http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[DefaultAmqpHeaderMapper].
+These properties will be copied by default to and from Spring Integration `MessageHeaders` using the
+http://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[DefaultAmqpHeaderMapper].
 
 Of course, you can pass in your own implementation of AMQP specific header mappers, as the adapters have respective properties to support that.
 
-Any user-defined headers within the AMQP http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] will NOT be copied to or from an AMQP Message, unless explicitly specified by the _requestHeaderNames_ and/or _replyHeaderNames_ properties of the `DefaultAmqpHeaderMapper`.
+Any user-defined headers within the AMQP http://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] will NOT
+be copied to or from an AMQP Message, unless explicitly specified by the _requestHeaderNames_ and/or
+_replyHeaderNames_ properties of the `DefaultAmqpHeaderMapper`.
 
 TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 For example, if you need to copy all user-defined headers simply use the wildcard character `*`, but see the CAUTION below.
@@ -1141,6 +1144,14 @@ For example, to avoid copying the `x-received-from` header back to the reply you
 before sending the reply to the AMQP Inbound Gateway.
 Alternatively, you could explicitly list those properties that you actually want mapped instead of using
 wildcards.
+
+Starting with _version 4.3_, patterns in the header mappings can be negated by preceding the pattern with `!`.
+Negated patterns get priority, so a list such as
+`STANDARD_REQUEST_HEADERS,foo,ba*,!bar,!baz,qux,!foo` will *NOT* map `foo`
+(nor `bar` nor `baz`); the standard headers plus `bad`, `qux` will be mapped.
+
+IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
+`\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
 
 === AMQP Samples
 

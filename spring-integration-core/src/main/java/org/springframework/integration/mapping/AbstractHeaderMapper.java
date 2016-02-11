@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -139,7 +140,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @return a header mapper that match if any of the specified patters match
 	 */
 	protected HeaderMatcher createHeaderMatcher(Collection<String> patterns) {
-		Collection<HeaderMatcher> matchers = new ArrayList<HeaderMatcher>();
+		List<HeaderMatcher> matchers = new ArrayList<HeaderMatcher>();
 		for (String pattern : patterns) {
 			if (STANDARD_REQUEST_HEADER_NAME_PATTERN.equals(pattern)) {
 				matchers.add(new ContentBasedHeaderMatcher(true, this.requestHeaderNames));
@@ -151,7 +152,22 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				matchers.add(new PrefixBasedMatcher(false, this.standardHeaderPrefix));
 			}
 			else {
-				matchers.add(new PatternBasedHeaderMatcher(Collections.singleton(pattern)));
+				String thePattern = pattern;
+				boolean negate = false;
+				if (pattern.startsWith("!")) {
+					thePattern = pattern.substring(1);
+					negate = true;
+				}
+				else if (pattern.startsWith("\\!")) {
+					thePattern = pattern.substring(1);
+				}
+				if (negate) {
+					// negative matchers get priority
+					matchers.add(0, new PatternBasedHeaderMatcher(Collections.singleton(thePattern), negate));
+				}
+				else {
+					matchers.add(new PatternBasedHeaderMatcher(Collections.singleton(thePattern), negate));
+				}
 			}
 		}
 		return new CompositeHeaderMatcher(matchers);
@@ -343,6 +359,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		 */
 		boolean matchHeader(String headerName);
 
+		/**
+		 * Return true if this match should be excplicitly excluded from the mapping.
+		 * @return true if negated.
+		 */
+		boolean isNegated();
+
 	}
 
 	/**
@@ -388,6 +410,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return false;
 		}
 
+		@Override
+		public boolean isNegated() {
+			return false;
+		}
+
 	}
 
 	/**
@@ -402,10 +429,17 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 		private final Collection<String> patterns;
 
+		private final boolean negate;
+
 		public PatternBasedHeaderMatcher(Collection<String> patterns) {
+			this(patterns, false);
+		}
+
+		public PatternBasedHeaderMatcher(Collection<String> patterns, boolean negate) {
 			Assert.notNull(patterns, "Patters must no be null");
 			Assert.notEmpty(patterns, "At least one pattern must be specified");
 			this.patterns = patterns;
+			this.negate = negate;
 		}
 
 		@Override
@@ -421,6 +455,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				}
 			}
 			return false;
+		}
+
+		@Override
+		public boolean isNegated() {
+			return this.negate;
 		}
 
 	}
@@ -457,6 +496,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return result;
 		}
 
+		@Override
+		public boolean isNegated() {
+			return false;
+		}
+
 	}
 
 	/**
@@ -464,7 +508,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * {@link HeaderMatcher}s matches to the {@code headerName}.
 	 * @since 4.1
 	 */
-	protected static class CompositeHeaderMatcher implements HeaderMatcher {
+	protected static class CompositeHeaderMatcher implements HeaderMatcher{
 
 		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
 
@@ -482,12 +526,20 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		public boolean matchHeader(String headerName) {
 			for (HeaderMatcher strategy : this.strategies) {
 				if (strategy.matchHeader(headerName)) {
+					if (strategy.isNegated()) {
+						break;
+					}
 					return true;
 				}
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
 			}
+			return false;
+		}
+
+		@Override
+		public boolean isNegated() {
 			return false;
 		}
 
