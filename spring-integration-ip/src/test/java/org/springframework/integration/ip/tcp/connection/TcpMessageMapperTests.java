@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,19 +70,22 @@ public class TcpMessageMapperTests {
 	public void testToMessage() throws Exception {
 
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		TcpConnection connection = mock(TcpConnection.class);
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+		Socket socket = mock(Socket.class);
+		InetAddress local = mock(InetAddress.class);
+		SocketInfo info = new SocketInfo(socket);
+		when(socket.getLocalAddress()).thenReturn(local);
 		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
 		when(connection.getHostName()).thenReturn("MyHost");
 		when(connection.getHostAddress()).thenReturn("1.1.1.1");
 		when(connection.getPort()).thenReturn(1234);
+		when(connection.getSocketInfo()).thenReturn(info);
 		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals("MyHost", message
-				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals("1.1.1.1", message
-				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(1234, message
-				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
 	}
 
 	@Test
