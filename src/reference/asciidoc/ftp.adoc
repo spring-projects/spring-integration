@@ -191,8 +191,8 @@ Starting with _version 4.2_, you can specify `remote-directory-expression` inste
 you to dynamically determine the directory on each poll.
 e.g `remote-directory-expression="@myBean.determineRemoteDir()"`.
 
-Starting with _version 4.3_, the `remote-directory` attributes can be omitted assuming `null`.
-However, according to the FTP Client logic, the working directory is used as a default remote directory for the `LS` command.
+Starting with _version 4.3_, the `remote-directory`/`remote-directory-expression` attributes can be omitted assuming `null`.
+However, according to the FTP protocol, the Client working directory is used as a default remote directory.
 
 Sometimes file filtering based on the simple pattern specified via `filename-pattern` attribute might not be sufficient.
 If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g.
@@ -416,7 +416,7 @@ directories, which is achievable using the `FileInfo` objects.
 Starting with _version 4.3_, the `FtpSession` supports `null` for the `list()` and `listNames()` method,
 therefore the `expression` attribute can be omitted.
 From Java perspective there are two new constructor without `expression` argument for convenience.
-The `null` for `LS` command is treated as an FTP Client working directory.
+The `null` for `LS` command is treated as an Client working directory according to the FTP protocol.
 The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the
 `DefaultFtpSessionFactory` and implement `postProcessClientBeforeConnect()` callback.
 
