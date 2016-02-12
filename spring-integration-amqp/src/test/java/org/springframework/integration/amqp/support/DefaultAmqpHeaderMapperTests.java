@@ -60,6 +60,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
 		byte[] testCorrelationId = new byte[] {1, 2, 3};
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
+		headerMap.put(AmqpHeaders.DELAY, 1234);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		headerMap.put(AmqpHeaders.DELIVERY_TAG, 1234L);
 		headerMap.put(AmqpHeaders.EXPIRATION, "test.expiration");
@@ -93,6 +94,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(99L, amqpProperties.getContentLength());
 		assertEquals("test.contentType", amqpProperties.getContentType());
 		assertEquals(testCorrelationId, amqpProperties.getCorrelationId());
+		assertEquals(Integer.valueOf(1234), amqpProperties.getDelay());
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
 		assertEquals(1234L, amqpProperties.getDeliveryTag());
 		assertEquals("test.expiration", amqpProperties.getExpiration());
@@ -164,6 +166,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setMessageCount(42);
 		amqpProperties.setMessageId("test.messageId");
 		amqpProperties.setPriority(22);
+		amqpProperties.setReceivedDelay(4567);
 		amqpProperties.setReceivedExchange("test.receivedExchange");
 		amqpProperties.setReceivedRoutingKey("test.receivedRoutingKey");
 		amqpProperties.setRedelivered(true);
@@ -186,6 +189,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.expiration", headerMap.get(AmqpHeaders.EXPIRATION));
 		assertEquals(42, headerMap.get(AmqpHeaders.MESSAGE_COUNT));
 		assertEquals("test.messageId", headerMap.get(AmqpHeaders.MESSAGE_ID));
+		assertEquals(4567, headerMap.get(AmqpHeaders.RECEIVED_DELAY));
 		assertEquals("test.receivedExchange", headerMap.get(AmqpHeaders.RECEIVED_EXCHANGE));
 		assertEquals("test.receivedRoutingKey", headerMap.get(AmqpHeaders.RECEIVED_ROUTING_KEY));
 		assertEquals("test.replyTo", headerMap.get(AmqpHeaders.REPLY_TO));
