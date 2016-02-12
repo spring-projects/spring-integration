@@ -70,11 +70,13 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_LENGTH);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_TYPE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.CORRELATION_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELAY);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_MODE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_TAG);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.EXPIRATION);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_COUNT);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_DELAY);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_EXCHANGE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_ROUTING_KEY);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.REDELIVERED);
@@ -169,6 +171,10 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (priority != null && priority > 0) {
 				headers.put(IntegrationMessageHeaderAccessor.PRIORITY, priority);
 			}
+			Integer receivedDelay = amqpMessageProperties.getReceivedDelay();
+			if (receivedDelay != null) {
+				headers.put(AmqpHeaders.RECEIVED_DELAY, receivedDelay);
+			}
 			String receivedExchange = amqpMessageProperties.getReceivedExchange();
 			if (StringUtils.hasText(receivedExchange)) {
 				headers.put(AmqpHeaders.RECEIVED_EXCHANGE, receivedExchange);
@@ -252,6 +258,10 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		Object correlationId = headers.get(AmqpHeaders.CORRELATION_ID);
 		if (correlationId instanceof byte[]) {
 			amqpMessageProperties.setCorrelationId((byte[]) correlationId);
+		}
+		Integer delay = getHeaderIfAvailable(headers, AmqpHeaders.DELAY, Integer.class);
+		if (delay != null) {
+			amqpMessageProperties.setDelay(delay);
 		}
 		MessageDeliveryMode deliveryMode = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class);
 		if (deliveryMode != null) {
