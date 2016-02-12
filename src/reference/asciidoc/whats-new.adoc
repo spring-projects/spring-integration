@@ -47,7 +47,7 @@ There is a change in behavior when a POJO aggregator releases a collection of `M
 your application does that, you will need to make a small change to your POJO. See this <<agg-message-collection>> note
 for more information.
 
-==== TCP Changes
+==== TCP/UDP Changes
 
 A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
 See <<tcp-events>> for more information.
