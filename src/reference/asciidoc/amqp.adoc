@@ -1085,6 +1085,8 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 
 * amqp_correlationId
 
+* amqp_delay
+
 * amqp_deliveryMode
 
 * amqp_deliveryTag
@@ -1094,6 +1096,8 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 * amqp_messageCount
 
 * amqp_messageId
+
+* amqp_receivedDelay
 
 * amqp_receivedExchange
 

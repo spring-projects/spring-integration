@@ -74,9 +74,17 @@ See <<file-flushing>> for more information.
 
 ==== AMQP Changes
 
+===== Content Type Message Converter
+
 The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
 that the converter can be chosen based on the message content type.
 See <<content-type-conversion-outbound>> for more information.
+
+===== Headers for Delayed Message Handling
+
+Spring AMQP 1.6 adds support for
+https://www.rabbitmq.com/blog/2015/04/16/scheduling-messages-with-rabbitmq/[Delayed Message Exchanges].
+Header mapping now supports the headers (`amqp_delay` and `amqp_receivedDelay`) used by this feature.
 
 ==== Redis Changes
 
