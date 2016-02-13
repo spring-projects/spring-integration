@@ -189,8 +189,10 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 			@Override
-			public String[] listNames(String path) throws IOException {
-				return new String[] { path1, path2 };
+			public TestLsEntry[] list(String path) throws IOException {
+				return new TestLsEntry[] {
+						new TestLsEntry(path1.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--"),
+						new TestLsEntry(path2.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--")};
 			}
 
 		});
@@ -221,8 +223,8 @@ public class RemoteFileOutboundGatewayTests {
 			}
 
 			@Override
-			public String[] listNames(String path) throws IOException {
-				return new String[]{"f1"};
+			public TestLsEntry[] list(String path) throws IOException {
+				return new TestLsEntry[]{new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--")};
 			}
 
 		});

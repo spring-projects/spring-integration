@@ -18,7 +18,7 @@ package org.springframework.integration.ftp.inbound;
 
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -41,21 +41,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {
 		super(sessionFactory);
-	}
-
-	@Override
-	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		if (remoteDirectoryExpression != null) {
-			super.setRemoteDirectoryExpression(remoteDirectoryExpression);
-		}
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		if (getRemoteDirectoryExpression() == null) {
-			setRemoteDirectory(null);
-		}
-		super.afterPropertiesSet();
+		setRemoteDirectoryExpression(new LiteralExpression(null));
 	}
 
 	@Override

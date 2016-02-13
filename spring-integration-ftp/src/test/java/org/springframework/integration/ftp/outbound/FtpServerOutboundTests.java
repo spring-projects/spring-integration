@@ -17,10 +17,12 @@
 package org.springframework.integration.ftp.outbound;
 
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -218,6 +220,24 @@ public class FtpServerOutboundTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	public void testMGETOnNullDir() throws IOException {
+		Session<FTPFile> session = ftpSessionFactory.getSession();
+		((FTPClient) session.getClientInstance()).changeWorkingDirectory("ftpSource");
+		session.close();
+
+		this.inboundMGet.send(new GenericMessage<Object>(""));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+
+		for (File file : localFiles) {
+			assertThat(file.getName(), isOneOf("localTarget1.txt", "localTarget2.txt"));
+			assertThat(file.getName(), not(containsString("null")));
+		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
 		String dir = "ftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
@@ -410,17 +430,19 @@ public class FtpServerOutboundTests {
 	@Test
 	public void testMgetPartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		doAnswer(new Answer<String[]>() {
+		doAnswer(new Answer<FTPFile[]>() {
 
 			@Override
-			public String[] answer(InvocationOnMock invocation) throws Throwable {
-				String[] files = (String[]) invocation.callRealMethod();
+			public FTPFile[] answer(InvocationOnMock invocation) throws Throwable {
+				FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
 				// add an extra file where the get will fail
 				files = Arrays.copyOf(files, files.length + 1);
-				files[files.length - 1] = "bogus.txt";
+				FTPFile bogusFile = new FTPFile();
+				bogusFile.setName("bogus.txt");
+				files[files.length - 1] = bogusFile;
 				return files;
 			}
-		}).when(session).listNames("ftpSource/subFtpSource/*");
+		}).when(session).list("ftpSource/subFtpSource/*");
 		String dir = "ftpSource/subFtpSource/";
 		try {
 			this.inboundMGet.send(new GenericMessage<Object>(dir + "*"));

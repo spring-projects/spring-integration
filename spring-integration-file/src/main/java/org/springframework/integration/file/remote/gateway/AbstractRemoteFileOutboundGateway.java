@@ -549,8 +549,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 				@Override
 				public File doInSession(Session<F> session) throws IOException {
-					return AbstractRemoteFileOutboundGateway.this.get(requestMessage, session, remoteDir,
-							remoteFilePath, remoteFilename, true);
+					return get(requestMessage, session, remoteDir, remoteFilePath, remoteFilename, true);
 
 				}
 			});
@@ -570,7 +569,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 			@Override
 			public List<File> doInSession(Session<F> session) throws IOException {
-				return AbstractRemoteFileOutboundGateway.this.mGet(requestMessage, session, remoteDir, remoteFilename);
+				return mGet(requestMessage, session, remoteDir, remoteFilename);
 			}
 		});
 		return this.getMessageBuilderFactory().withPayload(payload)
@@ -715,13 +714,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory) throws IOException {
 		List<F> lsFiles = new ArrayList<F>();
-		String remoteDirectory = null;
-		if (directory != null) {
-			remoteDirectory = (directory + subDirectory);
-		}
-		else if (StringUtils.hasText(subDirectory)) {
-			remoteDirectory = "." + this.remoteFileTemplate.getRemoteFileSeparator() + subDirectory;
-		}
+		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
 		F[] files = session.list(remoteDirectory);
 		boolean recursion = this.options.contains(Option.RECURSIVE);
@@ -746,6 +739,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		return lsFiles;
+	}
+
+	private String buildRemotePath(String parent, String child) {
+		String remotePath = null;
+		if (parent != null) {
+			remotePath = (parent + child);
+		}
+		else if (StringUtils.hasText(child)) {
+			remotePath = "." + this.remoteFileTemplate.getRemoteFileSeparator() + child;
+		}
+		return remotePath;
 	}
 
 	protected final List<F> filterFiles(F[] files) {
@@ -875,46 +879,46 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return mGetWithRecursion(message, session, remoteDirectory, remoteFilename);
 		}
 		else {
-			remoteDirectory = (remoteDirectory != null
-					? remoteDirectory
-					: "." + this.remoteFileTemplate.getRemoteFileSeparator());
 			return mGetWithoutRecursion(message, session, remoteDirectory, remoteFilename);
 		}
 	}
 
 	private List<File> mGetWithoutRecursion(Message<?> message, Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		String path = generateFullPath(remoteDirectory, remoteFilename);
-		String[] fileNames = session.listNames(path);
-		if (fileNames == null) {
-			fileNames = new String[0];
-		}
-		if (fileNames.length == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
-			throw new MessagingException("No files found at " + remoteDirectory
+		List<File> files = new ArrayList<File>();
+		String remotePath = buildRemotePath(remoteDirectory, remoteFilename);
+		@SuppressWarnings("unchecked")
+		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(session, remotePath);
+		if (remoteFiles.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
+			throw new MessagingException("No files found at "
+					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")
 					+ " with pattern " + remoteFilename);
 		}
-		List<File> files = new ArrayList<File>();
-		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
 		try {
-			for (String fileName : fileNames) {
-				File file;
-				if (fileName.contains(remoteFileSeparator) &&
-						fileName.startsWith(remoteDirectory)) { // the server returned the full path
-					file = this.get(message, session, remoteDirectory, fileName,
-							fileName.substring(fileName.lastIndexOf(remoteFileSeparator)), false);
+			for (AbstractFileInfo<F> lsEntry : remoteFiles) {
+				if (lsEntry.isDirectory()) {
+					continue;
 				}
-				else {
-					file = this.get(message, session, remoteDirectory,
-							this.generateFullPath(remoteDirectory, fileName), fileName, false);
-				}
+				String fullFileName = remoteDirectory != null
+						? remoteDirectory + getFilename(lsEntry)
+						: getFilename(lsEntry);
+				/*
+				 * With recursion, the filename might contain subdirectory information
+				 * normalize each file separately.
+				 */
+				String fileName = this.getRemoteFilename(fullFileName);
+				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
+				File file = this.get(message, session, actualRemoteDirectory,
+						fullFileName, fileName, false);
 				files.add(file);
 			}
 		}
 		catch (Exception e) {
 			if (files.size() > 0) {
 				throw new PartialSuccessException(message,
-						"Partially successful 'mget' operation on " + remoteDirectory, e, files,
-						Arrays.asList(fileNames));
+						"Partially successful recursive 'mget' operation on "
+								+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory"),
+						e, files, remoteFiles);
 			}
 			else if (e instanceof MessagingException) {
 				throw (MessagingException) e;
@@ -975,21 +979,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return null;
 		}
 		return remoteDir;
-	}
-
-	private String generateFullPath(String remoteDirectory, String remoteFilename) {
-		String path;
-		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
-		if (remoteFileSeparator.equals(remoteDirectory)) {
-			path = remoteFilename;
-		}
-		else if (remoteDirectory.endsWith(remoteFileSeparator)) {
-			path = remoteDirectory + remoteFilename;
-		}
-		else {
-			path = remoteDirectory + remoteFileSeparator + remoteFilename;
-		}
-		return path;
 	}
 
 	/**

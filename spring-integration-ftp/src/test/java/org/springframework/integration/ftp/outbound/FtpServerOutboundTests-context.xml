@@ -41,8 +41,9 @@
 	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
 							  request-channel="inboundMGet"
 							  command="mget"
+							  command-options="-f"
 							  expression="payload"
-							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@ftpServer.targetLocalDirectoryName + (#remoteDirectory ?: '')"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 

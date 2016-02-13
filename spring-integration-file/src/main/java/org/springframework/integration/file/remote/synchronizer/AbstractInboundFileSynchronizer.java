@@ -199,7 +199,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	@Override
-	public void afterPropertiesSet() {
+	public final void afterPropertiesSet() {
 		Assert.state(this.remoteDirectoryExpression != null, "'remoteDirectoryExpression' must not be null");
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
