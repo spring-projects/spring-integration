@@ -66,7 +66,7 @@ Each is briefly described in the sections below.
 ===== PublishSubscribeChannel
 
 The `PublishSubscribeChannel` implementation broadcasts any Message sent to it to all of its subscribed handlers.
-This is most often used for sending_Event Messages_ whose primary role is notification as opposed to _Document Messages_ which are generally intended to be processed by a single handler.
+This is most often used for sending _Event Messages_ whose primary role is notification as opposed to _Document Messages_ which are generally intended to be processed by a single handler.
 Note that the `PublishSubscribeChannel` is intended for sending only.
 Since it broadcasts to its subscribers directly when its` send(Message)` method is invoked, consumers cannot poll for Messages (it does not implement `PollableChannel` and therefore has no `receive()` method).
 Instead, any subscriber must be a `MessageHandler` itself, and the subscriber's `handleMessage(Message)` method will be invoked in turn.
@@ -142,7 +142,7 @@ The general idea is to define the channels for an application and then to consid
 Likewise, if a channel needs to broadcast messages, it should not be a `DirectChannel` but rather a `PublishSubscribeChannel`.
 Below you will see how each of these can be configured.
 
-The `DirectChannel` internally delegates to a Message Dispatcher to invoke its subscribed Message Handlers, and that dispatcher can have a load-balancing strategy exposed via_load-balancer_ or _load-balancer-ref_ attributes (mutually exclusive).
+The `DirectChannel` internally delegates to a Message Dispatcher to invoke its subscribed Message Handlers, and that dispatcher can have a load-balancing strategy exposed via _load-balancer_ or _load-balancer-ref_ attributes (mutually exclusive).
 The load balancing strategy is used by the Message Dispatcher to help determine how Messages are distributed amongst Message Handlers in the case that there are multiple Message Handlers subscribed to the same channel.
 As a convinience the _load-balancer_ attribute exposes enumeration of values pointing to pre-existing implementations of `LoadBalancingStrategy`.
 The "round-robin" (load-balances across the handlers in rotation) and "none" (for the cases where one wants to explicitely disable load balancing) are the only available values.
@@ -297,7 +297,7 @@ Note, the Channel invokes these methods on the ChannelInterceptor List in the re
 [[channel-template]]
 ==== MessagingTemplate
 
-As you will see when the endpoints and their various configuration options are introduced, Spring Integration provides a foundation for messaging components that enables non-invasive invocation of your application code_from the messaging system_.
+As you will see when the endpoints and their various configuration options are introduced, Spring Integration provides a foundation for messaging components that enables non-invasive invocation of your application code _from the messaging system_.
 However, sometimes it is necessary to invoke the messaging system _from your application code_.
 For convenience when implementing such use-cases, Spring Integration provides a `MessagingTemplate` that supports a variety of operations across the Message Channels, including request/reply scenarios.
 For example, it is possible to send a request and wait for a reply.
