@@ -184,7 +184,9 @@
 									 delete-remote-files="false"
 									 filename-pattern="*.txt"
 									 temporary-file-suffix=".foo"
-									 local-directory="#{T (System).getProperty('java.io.tmpdir') + T (java.util.UUID).randomUUID().toString()}">
+									 local-directory="#{T (System).getProperty('java.io.tmpdir')
+															 + T(java.io.File).separator
+															 + T (java.util.UUID).randomUUID().toString()}">
 		<int:poller fixed-delay="100"/>
 	</int-ftp:inbound-channel-adapter>
 
