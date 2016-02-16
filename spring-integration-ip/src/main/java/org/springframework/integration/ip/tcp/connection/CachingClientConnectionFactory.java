@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -137,7 +138,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private class CachedConnection extends TcpConnectionInterceptorSupport {
 
-		private volatile boolean released;
+		private final AtomicBoolean released = new AtomicBoolean();
 
 		private CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
 			super.setTheConnection(connection);
@@ -146,7 +147,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public void close() {
-			if (this.released) {
+			if (!this.released.compareAndSet(false, true)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Connection " + getConnectionId() + " has already been released");
 				}
@@ -163,7 +164,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					super.close();
 				}
 				pool.releaseItem(getTheConnection());
-				this.released = true;
 			}
 		}
 
