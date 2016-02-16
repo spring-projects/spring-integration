@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,6 +65,13 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	@BeforeClass
 	public static void getClient() throws Exception {
 		client = createNewClient();
+	}
+
+	@AfterClass
+	public static void closeClient() {
+		if (client != null) {
+			client.close();
+		}
 	}
 
 	@Test
