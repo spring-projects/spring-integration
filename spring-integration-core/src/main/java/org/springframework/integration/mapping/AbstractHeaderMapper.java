@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -139,7 +139,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @return a header mapper that match if any of the specified patters match
 	 */
 	protected HeaderMatcher createHeaderMatcher(Collection<String> patterns) {
-		Collection<HeaderMatcher> matchers = new ArrayList<HeaderMatcher>();
+		List<HeaderMatcher> matchers = new ArrayList<HeaderMatcher>();
 		for (String pattern : patterns) {
 			if (STANDARD_REQUEST_HEADER_NAME_PATTERN.equals(pattern)) {
 				matchers.add(new ContentBasedHeaderMatcher(true, this.requestHeaderNames));
@@ -151,7 +151,22 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				matchers.add(new PrefixBasedMatcher(false, this.standardHeaderPrefix));
 			}
 			else {
-				matchers.add(new PatternBasedHeaderMatcher(Collections.singleton(pattern)));
+				String thePattern = pattern;
+				boolean negate = false;
+				if (pattern.startsWith("!")) {
+					thePattern = pattern.substring(1);
+					negate = true;
+				}
+				else if (pattern.startsWith("\\!")) {
+					thePattern = pattern.substring(1);
+				}
+				if (negate) {
+					// negative matchers get priority
+					matchers.add(0, new SinglePatternBasedHeaderMatcher(thePattern, negate));
+				}
+				else {
+					matchers.add(new SinglePatternBasedHeaderMatcher(thePattern, negate));
+				}
 			}
 		}
 		return new CompositeHeaderMatcher(matchers);
@@ -343,6 +358,12 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		 */
 		boolean matchHeader(String headerName);
 
+		/**
+		 * Return true if this match should be excplicitly excluded from the mapping.
+		 * @return true if negated.
+		 */
+		boolean isNegated();
+
 	}
 
 	/**
@@ -388,31 +409,41 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return false;
 		}
 
+		@Override
+		public boolean isNegated() {
+			return false;
+		}
+
 	}
 
 	/**
 	 * A pattern-based {@link HeaderMatcher} that matches if the specified
-	 * header match one of the specified simple patterns.
+	 * header matches one of the specified simple patterns.
 	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
 	 * @since 4.1
+	 * @deprecated since 4.3 - use a {@link CompositeHeaderMatcher} with
+	 * {@link SinglePatternBasedHeaderMatcher}s instead.
 	 */
+	@Deprecated
 	protected static class PatternBasedHeaderMatcher implements HeaderMatcher {
 
 		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
 
-		private final Collection<String> patterns;
+		private final Collection<String> patterns = new ArrayList<String>();
 
 		public PatternBasedHeaderMatcher(Collection<String> patterns) {
-			Assert.notNull(patterns, "Patters must no be null");
+			Assert.notNull(patterns, "Patterns must no be null");
 			Assert.notEmpty(patterns, "At least one pattern must be specified");
-			this.patterns = patterns;
+			for (String pattern : patterns) {
+				this.patterns.add(pattern.toLowerCase());
+			}
 		}
 
 		@Override
 		public boolean matchHeader(String headerName) {
 			String header = headerName.toLowerCase();
 			for (String pattern : this.patterns) {
-				if (PatternMatchUtils.simpleMatch(pattern.toLowerCase(), header)) {
+				if (PatternMatchUtils.simpleMatch(pattern, header)) {
 					if (logger.isDebugEnabled()) {
 						logger.debug(MessageFormat.format(
 								"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
@@ -421,6 +452,55 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 				}
 			}
 			return false;
+		}
+
+		@Override
+		public boolean isNegated() {
+			return false;
+		}
+
+	}
+
+	/**
+	 * A pattern-based {@link HeaderMatcher} that matches if the specified
+	 * header matches the specified simple pattern.
+	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
+	 * @since 4.3
+	 */
+	protected static class SinglePatternBasedHeaderMatcher implements HeaderMatcher {
+
+		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
+
+		private final String pattern;
+
+		private final boolean negate;
+
+		public SinglePatternBasedHeaderMatcher(String pattern) {
+			this(pattern, false);
+		}
+
+		public SinglePatternBasedHeaderMatcher(String pattern, boolean negate) {
+			Assert.notNull(pattern, "Pattern must no be null");
+			this.pattern = pattern.toLowerCase();
+			this.negate = negate;
+		}
+
+		@Override
+		public boolean matchHeader(String headerName) {
+			String header = headerName.toLowerCase();
+			if (PatternMatchUtils.simpleMatch(this.pattern, header)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug(MessageFormat.format(
+							"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
+				}
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean isNegated() {
+			return this.negate;
 		}
 
 	}
@@ -457,6 +537,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return result;
 		}
 
+		@Override
+		public boolean isNegated() {
+			return false;
+		}
+
 	}
 
 	/**
@@ -464,14 +549,14 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * {@link HeaderMatcher}s matches to the {@code headerName}.
 	 * @since 4.1
 	 */
-	protected static class CompositeHeaderMatcher implements HeaderMatcher {
+	protected static class CompositeHeaderMatcher implements HeaderMatcher{
 
 		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
 
-		private final Collection<HeaderMatcher> strategies;
+		private final Collection<HeaderMatcher> matchers;
 
 		CompositeHeaderMatcher(Collection<HeaderMatcher> strategies) {
-			this.strategies = strategies;
+			this.matchers = strategies;
 		}
 
 		CompositeHeaderMatcher(HeaderMatcher... strategies) {
@@ -480,14 +565,22 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 		@Override
 		public boolean matchHeader(String headerName) {
-			for (HeaderMatcher strategy : this.strategies) {
+			for (HeaderMatcher strategy : this.matchers) {
 				if (strategy.matchHeader(headerName)) {
+					if (strategy.isNegated()) {
+						break;
+					}
 					return true;
 				}
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
 			}
+			return false;
+		}
+
+		@Override
+		public boolean isNegated() {
 			return false;
 		}
 

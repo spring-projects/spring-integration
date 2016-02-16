@@ -165,3 +165,34 @@ If you wish to partially encode some of the URL, this can be achieved using an `
 ----
 
 Note, `encode-uri` is ignored, if `DestinationProvider` is supplied.
+
+[[ws-message-headers]]
+=== WS Message Headers
+
+The Spring Integration WebService Gateways will map the SOAP Action header automatically.
+It will be copied by default to and from Spring Integration `MessageHeaders` using the
+http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[DefaultSoapHeaderMapper].
+
+Of course, you can pass in your own implementation of SOAP specific header mappers, as the gateways have respective properties to support that.
+
+Any user-defined headers will NOT
+be copied to or from an SOAP Message, unless explicitly specified by the _requestHeaderNames_ and/or
+_replyHeaderNames_ properties of the `DefaultSoapHeaderMapper`.
+
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
+For example, if you need to copy all user-defined headers simply use the wildcard character `*`.
+
+Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultSoapHeaderMapper` superclass) allows the
+`NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ and/or _replyHeaderNames_
+properties (in addition to existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all
+user-defined headers.
+Note, it is recommended to use the combination like this `STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS` instead of a
+`*`, to avoid mapping of _request_ headers to the reply.
+
+Starting with _version 4.3_, patterns in the header mappings can be negated by preceding the pattern with `!`.
+Negated patterns get priority, so a list such as
+`STANDARD_REQUEST_HEADERS,foo,ba*,!bar,!baz,qux,!foo` will *NOT* map `foo`
+(nor `bar` nor `baz`); the standard headers plus `bad`, `qux` will be mapped.
+
+IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
+`\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.

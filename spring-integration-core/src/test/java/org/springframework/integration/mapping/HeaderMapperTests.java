@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,6 @@ package org.springframework.integration.mapping;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.springframework.integration.mapping.AbstractHeaderMapper.CompositeHeaderMatcher;
-import static org.springframework.integration.mapping.AbstractHeaderMapper.ContentBasedHeaderMatcher;
-import static org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatcher;
-import static org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
-import static org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +28,12 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.mapping.AbstractHeaderMapper.CompositeHeaderMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.ContentBasedHeaderMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.SinglePatternBasedHeaderMatcher;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -238,6 +239,33 @@ public class HeaderMapperTests {
 	}
 
 	@Test
+	public void fromHeadersToRequestWithStandardRequestPatternAndNegatives() {
+		this.mapper.setRequestHeaderNames("foo", "!foo", "bar", "!baz", "\\!qux", "!fiz*",
+				GenericTestHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put(GenericTestHeaders.APP_ID, "myAppId");
+		headers.put(GenericTestHeaders.REDELIVERED, true);
+		headers.put(GenericTestHeaders.REQUEST_ONLY, "request-456");
+		headers.put(GenericTestHeaders.REPLY_ONLY, "reply-456");
+		headers.put("foo", "foo");
+		headers.put("bar", "bar");
+		headers.put("baz", "baz");
+		headers.put("!qux", "qux");
+		headers.put("fizbuz", "fizbuz");
+		MessageHeaders messageHeaders = new MessageHeaders(headers);
+		GenericTestProperties properties = new GenericTestProperties();
+		this.mapper.fromHeadersToRequest(messageHeaders, properties);
+		assertEquals("myAppId", properties.getAppId());
+		assertNull(properties.getTransactionSize());
+		assertEquals(true, properties.getRedelivered());
+		assertEquals("request-456", properties.getRequestOnly());
+		assertNull(properties.getReplyOnly());
+		assertEquals("bar", properties.getUserDefinedHeaders().get("bar"));
+		assertEquals("qux", properties.getUserDefinedHeaders().get("!qux"));
+		assertEquals(2, properties.getUserDefinedHeaders().size());
+	}
+
+	@Test
 	public void fromHeadersToReply() {
 		MessageHeaders messageHeaders = createSimpleMessageHeaders();
 		GenericTestProperties properties = new GenericTestProperties();
@@ -296,8 +324,9 @@ public class HeaderMapperTests {
 
 	@Test
 	public void prefixHeaderPatternMatching() {
+		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
-				new PatternBasedHeaderMatcher(Collections.singleton("foo*"));
+				new PatternBasedHeaderMatcher(Collections.singleton("fOo*"));
 
 		assertMapping(strategy, "foo", true);
 		assertMapping(strategy, "foo123", true);
@@ -309,8 +338,35 @@ public class HeaderMapperTests {
 
 	@Test
 	public void suffixHeaderPatternMatching() {
+		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
-				new PatternBasedHeaderMatcher(Collections.singleton("*foo"));
+				new PatternBasedHeaderMatcher(Collections.singleton("*fOo"));
+
+		assertMapping(strategy, "foo", true);
+		assertMapping(strategy, "123foo", true);
+		assertMapping(strategy, "FoO", true);
+
+		assertMapping(strategy, "foo123", false);
+		assertMapping(strategy, "foo_", false);
+	}
+
+	@Test
+	public void prefixSingleHeaderPatternMatching() {
+		SinglePatternBasedHeaderMatcher strategy =
+				new SinglePatternBasedHeaderMatcher("Foo*");
+
+		assertMapping(strategy, "foo", true);
+		assertMapping(strategy, "foo123", true);
+		assertMapping(strategy, "FoO", true);
+
+		assertMapping(strategy, "123foo", false);
+		assertMapping(strategy, "_foo", false);
+	}
+
+	@Test
+	public void suffixSingleHeaderPatternMatching() {
+		SinglePatternBasedHeaderMatcher strategy =
+				new SinglePatternBasedHeaderMatcher("*fOo");
 
 		assertMapping(strategy, "foo", true);
 		assertMapping(strategy, "123foo", true);
@@ -322,7 +378,7 @@ public class HeaderMapperTests {
 
 	@Test
 	public void contentHeaderMatching() {
-		AbstractHeaderMapper.ContentBasedHeaderMatcher strategy =
+		ContentBasedHeaderMatcher strategy =
 				new ContentBasedHeaderMatcher(true, Arrays.asList("foo", "bar"));
 
 		assertMapping(strategy, "foo", true);

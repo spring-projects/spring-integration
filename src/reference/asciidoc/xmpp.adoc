@@ -219,3 +219,40 @@ public class CustomConnectionConfiguration {
 ----
 
 For more information on the JavaConfig style of Application Context configuration, refer to the following section in the Spring Reference Manual: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
+
+[[xmpp-message-headers]]
+=== XMPP Message Headers
+
+The Spring Integration XMPP Adapters will map standard XMPP properties automatically.
+These properties will be copied by default to and from Spring Integration `MessageHeaders` using the
+http://docs.spring.io/spring-integration/api/org/springframework/integration/xmpp/support/DefaultXmppHeaderMapper.html[DefaultXmppHeaderMapper].
+
+Any user-defined headers will NOT be copied to or from an XMPP Message, unless explicitly specified by the
+_requestHeaderNames_ and/or _replyHeaderNames_ properties of the `DefaultXmppHeaderMapper`.
+
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to
+be matched.
+
+Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultXmppHeaderMapper` superclass) allows the
+`NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ property (in addition to existing
+`STANDARD_REQUEST_HEADERS`) to map all user-defined headers.
+
+Class `org.springframework.xmpp.XmppHeaders` identifies the default headers that will be used by the `DefaultXmppHeaderMapper`:
+
+* xmpp_from
+
+* xmpp_subject
+
+* xmpp_thread
+
+* xmpp_to
+
+* xmpp_type
+
+Starting with _version 4.3_, patterns in the header mappings can be negated by preceding the pattern with `!`.
+Negated patterns get priority, so a list such as
+`STANDARD_REQUEST_HEADERS,foo,ba*,!bar,!baz,qux,!foo` will *NOT* map `foo`
+(nor `bar` nor `baz`); the standard headers plus `bad`, `qux` will be mapped.
+
+IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
+`\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
