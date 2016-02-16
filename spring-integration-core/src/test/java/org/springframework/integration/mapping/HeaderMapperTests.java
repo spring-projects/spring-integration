@@ -33,6 +33,7 @@ import org.springframework.integration.mapping.AbstractHeaderMapper.ContentBased
 import org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
+import org.springframework.integration.mapping.AbstractHeaderMapper.SinglePatternBasedHeaderMatcher;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -323,8 +324,9 @@ public class HeaderMapperTests {
 
 	@Test
 	public void prefixHeaderPatternMatching() {
+		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
-				new PatternBasedHeaderMatcher(Collections.singleton("foo*"));
+				new PatternBasedHeaderMatcher(Collections.singleton("fOo*"));
 
 		assertMapping(strategy, "foo", true);
 		assertMapping(strategy, "foo123", true);
@@ -336,8 +338,35 @@ public class HeaderMapperTests {
 
 	@Test
 	public void suffixHeaderPatternMatching() {
+		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
-				new PatternBasedHeaderMatcher(Collections.singleton("*foo"));
+				new PatternBasedHeaderMatcher(Collections.singleton("*fOo"));
+
+		assertMapping(strategy, "foo", true);
+		assertMapping(strategy, "123foo", true);
+		assertMapping(strategy, "FoO", true);
+
+		assertMapping(strategy, "foo123", false);
+		assertMapping(strategy, "foo_", false);
+	}
+
+	@Test
+	public void prefixSingleHeaderPatternMatching() {
+		SinglePatternBasedHeaderMatcher strategy =
+				new SinglePatternBasedHeaderMatcher("Foo*");
+
+		assertMapping(strategy, "foo", true);
+		assertMapping(strategy, "foo123", true);
+		assertMapping(strategy, "FoO", true);
+
+		assertMapping(strategy, "123foo", false);
+		assertMapping(strategy, "_foo", false);
+	}
+
+	@Test
+	public void suffixSingleHeaderPatternMatching() {
+		SinglePatternBasedHeaderMatcher strategy =
+				new SinglePatternBasedHeaderMatcher("*fOo");
 
 		assertMapping(strategy, "foo", true);
 		assertMapping(strategy, "123foo", true);
