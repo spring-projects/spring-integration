@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,6 +160,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.remoteDirectoryExpression = remoteDirectoryExpression;
 	}
 
+	protected Expression getRemoteDirectoryExpression() {
+		return this.remoteDirectoryExpression;
+	}
+
 	/**
 	 * Set the filter to be applied to the remote files before transferring.
 	 * @param filter the file list filter.
@@ -271,7 +275,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			Session<F> session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
-		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;
+		String remoteFilePath = remoteDirectoryPath != null
+				? (remoteDirectoryPath + remoteFileSeparator + remoteFileName)
+				: remoteFileName;
 		if (!this.isFile(remoteFile)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("cannot copy, not a file: " + remoteFilePath);
