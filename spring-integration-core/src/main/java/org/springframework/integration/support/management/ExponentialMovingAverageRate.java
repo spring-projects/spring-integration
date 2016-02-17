@@ -53,9 +53,9 @@ public class ExponentialMovingAverageRate {
 
 	private final double period;
 
-	private final Deque<Long> times = new ArrayDeque<Long>();
+	final Deque<Long> times = new ArrayDeque<Long>();
 
-	private final int retention;
+	final int retention;
 
 	private final int window;
 
@@ -205,7 +205,7 @@ public class ExponentialMovingAverageRate {
 
 	private synchronized double lastTime() {
 		if (this.times.size() > 0) {
-			return this.times.peekFirst() / this.factor;
+			return this.times.peekLast() / this.factor;
 		}
 		else {
 			 return this.t0;

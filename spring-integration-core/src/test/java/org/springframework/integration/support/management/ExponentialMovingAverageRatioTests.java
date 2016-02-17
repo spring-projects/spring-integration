@@ -18,6 +18,7 @@ package org.springframework.integration.support.management;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
 import org.hamcrest.Matchers;
@@ -44,8 +45,33 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetTimeSinceLastMeasurement() throws Exception {
-		history.success(System.nanoTime() - 20000000);
-		assertThat(history.getTimeSinceLastMeasurement(), Matchers.greaterThan(0.));
+		long sleepTime = 20L;
+		// fill history with the same value.
+		long now = System.nanoTime();
+		for (int i=0; i< history.retention; i++) {
+			history.success(now);
+		}
+		assertEquals(Long.valueOf(now), history.times.peekFirst());
+		assertEquals(Long.valueOf(now), history.times.peekLast());
+
+		Thread.sleep(sleepTime);
+
+		//increment just so we'll have a different value between first and last
+		history.success(System.nanoTime());
+		assertNotEquals(history.times.peekFirst(), history.times.peekLast());
+
+		Thread.sleep(sleepTime);
+
+		/*
+		 * We've called Thread.sleep twice with the same value in quick
+		 * succession. If timeSinceLastSend is pulling off the correct end of
+		 * the queue, then we should be closer to the sleep time than we are to
+		 * 2 x sleepTime, but we should definitely be greater than the sleep
+		 * time.
+		 */
+		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
+		assertThat(timeSinceLastMeasurement, Matchers.greaterThan(Double.valueOf(sleepTime / 100)));
+		assertThat(timeSinceLastMeasurement, Matchers.lessThanOrEqualTo(1.5 * sleepTime / 100));
 	}
 
 	@Test
