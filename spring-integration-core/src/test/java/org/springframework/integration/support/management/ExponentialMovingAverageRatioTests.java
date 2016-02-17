@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,22 @@ package org.springframework.integration.support.management;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
+
+import java.util.Deque;
 
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.test.util.TestUtils;
+
 /**
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
- *
+ * @author Steven Swor
  */
 public class ExponentialMovingAverageRatioTests {
 
@@ -43,9 +48,32 @@ public class ExponentialMovingAverageRatioTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testGetTimeSinceLastMeasurement() throws Exception {
-		history.success(System.nanoTime() - 20000000);
-		assertThat(history.getTimeSinceLastMeasurement(), Matchers.greaterThan(0.));
+		long sleepTime = 20L;
+		// fill history with the same value.
+		long now = System.nanoTime() - 2 * sleepTime * 1000000;
+		for (int i = 0; i < TestUtils.getPropertyValue(history, "retention", Integer.class); i++) {
+			history.success(now);
+		}
+		final Deque<Long> times = TestUtils.getPropertyValue(history, "times", Deque.class);
+		assertEquals(Long.valueOf(now), times.peekFirst());
+		assertEquals(Long.valueOf(now), times.peekLast());
+
+		//increment just so we'll have a different value between first and last
+		history.success(System.nanoTime() - sleepTime * 1000000);
+		assertNotEquals(times.peekFirst(), times.peekLast());
+
+		/*
+		 * We've called Thread.sleep twice with the same value in quick
+		 * succession. If timeSinceLastSend is pulling off the correct end of
+		 * the queue, then we should be closer to the sleep time than we are to
+		 * 2 x sleepTime, but we should definitely be greater than the sleep
+		 * time.
+		 */
+		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
+		assertThat(timeSinceLastMeasurement, Matchers.greaterThan((double) (sleepTime / 100)));
+		assertThat(timeSinceLastMeasurement, Matchers.lessThanOrEqualTo(1.5 * sleepTime / 100));
 	}
 
 	@Test
@@ -152,7 +180,8 @@ public class ExponentialMovingAverageRatioTests {
 		assertEquals(0.9, ratio.getMean(), 0.03);
 	}
 
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void testPerf() {
 		ExponentialMovingAverageRatio ratio = new ExponentialMovingAverageRatio(60, 10);
 		for (int i = 0; i < 100000; i++) {
