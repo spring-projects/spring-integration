@@ -17,12 +17,12 @@ import java.util.Deque;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -65,7 +65,7 @@ public class ExponentialMovingAverageRateTests {
 
 		//increment just so we'll have a different value between first and last
 		history.increment(System.nanoTime());
-		Assert.assertNotEquals(times.peekFirst(), times.peekLast());
+		assertNotEquals(times.peekFirst(), times.peekLast());
 
 		Thread.sleep(sleepTime);
 
