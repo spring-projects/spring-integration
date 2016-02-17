@@ -1,11 +1,14 @@
 language: java
 jdk: oraclejdk8
 sudo: false
+cache:
+  directories:
+  - $HOME/.gradle
 services:
   - mongodb
   - rabbitmq
   - redis-server
 env:
-  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true
+  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true NO_REFERENCE_TASK=true
 #script:
-#  - ./gradlew build --parallel
+#  - travis_wait ./gradlew build
