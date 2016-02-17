@@ -786,6 +786,10 @@ reference {
 
 reference.dependsOn asciidoctor
 
+[asciidoctor, reference, referenceEpub, referenceHtmlMulti, referenceHtmlSingle, referencePdf].each {
+	it.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
+}
+
 apply plugin: 'sonar-runner'
 
 sonarRunner {

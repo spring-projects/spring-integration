@@ -6,6 +6,6 @@ services:
   - rabbitmq
   - redis-server
 env:
-  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true
+  - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true NO_REFERENCE_TASK=true
 #script:
 #  - ./gradlew build --parallel
