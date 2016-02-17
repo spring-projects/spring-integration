@@ -53,9 +53,9 @@ public class ExponentialMovingAverageRate {
 
 	private final double period;
 
-	final Deque<Long> times = new ArrayDeque<Long>();
+	private final Deque<Long> times = new ArrayDeque<Long>();
 
-	final int retention;
+	private final int retention;
 
 	private final int window;
 

@@ -51,11 +51,11 @@ public class ExponentialMovingAverageRatio {
 
 	private final double lapse;
 
-	final Deque<Long> times = new ArrayDeque<Long>();
+	private final Deque<Long> times = new ArrayDeque<Long>();
 
 	private final Deque<Integer> values = new ArrayDeque<Integer>();
 
-	final int retention;
+	private final int retention;
 
 	private final int window;
 

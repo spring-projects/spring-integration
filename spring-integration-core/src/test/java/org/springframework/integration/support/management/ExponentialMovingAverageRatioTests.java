@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.support.management;
 
+import java.util.Deque;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
@@ -24,6 +26,8 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Dave Syer
@@ -44,21 +48,23 @@ public class ExponentialMovingAverageRatioTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testGetTimeSinceLastMeasurement() throws Exception {
 		long sleepTime = 20L;
 		// fill history with the same value.
 		long now = System.nanoTime();
-		for (int i=0; i< history.retention; i++) {
+		for (int i=0; i< TestUtils.getPropertyValue(history,"retention", Integer.class); i++) {
 			history.success(now);
 		}
-		assertEquals(Long.valueOf(now), history.times.peekFirst());
-		assertEquals(Long.valueOf(now), history.times.peekLast());
+		final Deque<Long> times = TestUtils.getPropertyValue(history, "times", Deque.class);
+		assertEquals(Long.valueOf(now), times.peekFirst());
+		assertEquals(Long.valueOf(now), times.peekLast());
 
 		Thread.sleep(sleepTime);
 
 		//increment just so we'll have a different value between first and last
 		history.success(System.nanoTime());
-		assertNotEquals(history.times.peekFirst(), history.times.peekLast());
+		assertNotEquals(times.peekFirst(), times.peekLast());
 
 		Thread.sleep(sleepTime);
 
