@@ -224,7 +224,7 @@ public class ExponentialMovingAverageRatio {
 
 	private synchronized double lastTime() {
 		if (this.times.size() > 0) {
-			return this.times.peekFirst();
+			return this.times.peekLast();
 		}
 		else {
 			return this.t0 * this.factor;

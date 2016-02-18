@@ -12,9 +12,12 @@
  */
 package org.springframework.integration.support.management;
 
+import java.util.Deque;
+
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -23,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.StopWatch;
 
 /**
@@ -44,10 +48,37 @@ public class ExponentialMovingAverageRateTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testGetTimeSinceLastMeasurement() throws Exception {
-		history.increment();
-		Thread.sleep(20L);
-		assertTrue(history.getTimeSinceLastMeasurement() > 0);
+		long sleepTime = 20L;
+
+		// fill history with the same value.
+		long now = System.nanoTime();
+		for (int i=0; i< TestUtils.getPropertyValue(history, "retention", Integer.class); i++) {
+			history.increment(now);
+		}
+		final Deque<Long> times = TestUtils.getPropertyValue(history, "times", Deque.class);
+		assertEquals(Long.valueOf(now), times.peekFirst());
+		assertEquals(Long.valueOf(now), times.peekLast());
+
+		Thread.sleep(sleepTime);
+
+		//increment just so we'll have a different value between first and last
+		history.increment(System.nanoTime());
+		assertNotEquals(times.peekFirst(), times.peekLast());
+
+		Thread.sleep(sleepTime);
+
+		/*
+		 * We've called Thread.sleep twice with the same value in quick
+		 * succession. If timeSinceLastSend is pulling off the correct end of
+		 * the queue, then we should be closer to the sleep time than we are to
+		 * 2 x sleepTime, but we should definitely be greater than the sleep
+		 * time.
+		*/
+		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
+		assertTrue(timeSinceLastMeasurement > sleepTime);
+		assertTrue(timeSinceLastMeasurement <= (1.5 * sleepTime));
 	}
 
 	@Test
