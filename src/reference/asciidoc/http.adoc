@@ -377,7 +377,7 @@ inbound adapter.
     <int:header-enricher>
         <int:header name="http_statusCode" value="504" />
     </int:header-enricher>
-    <int:transformer expression="payload.message" />
+    <int:transformer expression="payload.failedMessage" />
 </int:chain>
 ----
 
