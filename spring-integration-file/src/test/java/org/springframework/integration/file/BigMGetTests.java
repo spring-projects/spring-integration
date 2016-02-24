@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file.test;
+
+package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,6 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
  * Created this test because a customer reported hanging with large mget.
  *
  * Could not reproduce; code is checked in, but test is @Ignored.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -61,4 +63,5 @@ public abstract class BigMGetTests {
 		Message<List<File>> results = (Message<List<File>>) resultChannel.receive(600000);
 		return results;
 	}
+
 }
