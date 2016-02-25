@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
-import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.util.StringUtils;
 
 /**
- * @author Artem Bilan.
+ * @author Artem Bilan
+ * @author Gary Russell
  */
 public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapterParser {
 
@@ -38,65 +38,16 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 				BeanDefinitionBuilder.genericBeanDefinition(KafkaMessageDrivenChannelAdapter.class);
 
 		String container = element.getAttribute("listener-container");
-		String connectionFactory = element.getAttribute("connection-factory");
-		String topics = element.getAttribute("topics");
-		String offsetManager = element.getAttribute("offset-manager");
-		String errorHandler = element.getAttribute("error-handler");
-		String taskExecutor = element.getAttribute("task-executor");
-		String concurrency = element.getAttribute("concurrency");
-		String stopTimeout = element.getAttribute("stop-timeout");
-		String maxFetch = element.getAttribute("max-fetch");
-		String queueSize = element.getAttribute("queue-size");
-
-		if (StringUtils.hasText(container) &&
-				(StringUtils.hasText(connectionFactory) || StringUtils.hasText(topics)
-						|| StringUtils.hasText(offsetManager) || StringUtils.hasText(errorHandler)
-						|| StringUtils.hasText(taskExecutor) || StringUtils.hasText(concurrency)
-						|| StringUtils.hasText(maxFetch) || StringUtils.hasText(queueSize)
-						|| StringUtils.hasText(stopTimeout))) {
-			parserContext.getReaderContext().error("The 'listener-container' is mutually exclusive with " +
-					"'connection-factory', 'topics', 'offset-manager', 'error-handler', 'task-executor', " +
-					"'concurrency', 'stop-timeout', 'max-fetch' and 'queue-size'.", element);
-		}
-
 		if (StringUtils.hasText(container)) {
 			builder.addConstructorArgReference(container);
 		}
 		else {
-			if (!StringUtils.hasText(connectionFactory)) {
-				parserContext.getReaderContext().error("The 'connection-factory' attribute is required when " +
-						"'listener-container' isn't provided.", element);
-			}
-			if (!StringUtils.hasText(topics)) {
-				parserContext.getReaderContext().error("The 'topics' attribute is required when " +
-						"'listener-container' isn't provided.", element);
-			}
-
-			BeanDefinitionBuilder containerBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(KafkaMessageListenerContainer.class);
-
-			containerBuilder.addConstructorArgReference(connectionFactory)
-					.addConstructorArgValue(topics);
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(containerBuilder, element, "offset-manager");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(containerBuilder, element, "error-handler");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
-					containerBuilder, element, "task-executor", "fetchTaskExecutor");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "concurrency");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "max-fetch");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "stop-timeout");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "queue-size");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(containerBuilder, element, "auto-commit-on-error");
-			builder.addConstructorArgValue(containerBuilder.getBeanDefinition());
+			parserContext.getReaderContext().error("The 'listener-container' attribute is required.", element);
 		}
 
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "key-decoder");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "payload-decoder");
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				"auto-commit", "autoCommitOffset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				"use-context-message-builder", "useMessageBuilderFactory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
