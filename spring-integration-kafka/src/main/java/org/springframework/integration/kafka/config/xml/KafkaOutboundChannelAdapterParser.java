@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.kafka.config.xml;
 
 import org.w3c.dom.Element;
@@ -24,12 +25,12 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  *
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 0.5
  *
  */
@@ -40,11 +41,9 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 		final BeanDefinitionBuilder kafkaProducerMessageHandlerBuilder =
 								BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
 
-		final String kafkaServerBeanName = element.getAttribute("kafka-producer-context-ref");
+		final String kafkaTemplateBeanName = element.getAttribute("kafka-template");
 
-		if (StringUtils.hasText(kafkaServerBeanName)) {
-			kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaServerBeanName);
-		}
+		kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaTemplateBeanName);
 
 		BeanDefinition topicExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("topic", "topic-expression",

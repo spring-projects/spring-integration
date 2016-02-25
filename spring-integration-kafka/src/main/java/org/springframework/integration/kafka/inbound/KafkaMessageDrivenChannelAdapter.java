@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,19 @@ package org.springframework.integration.kafka.inbound;
 
 import java.util.Map;
 
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.kafka.core.KafkaMessageMetadata;
-import org.springframework.integration.kafka.listener.AbstractDecodingAcknowledgingMessageListener;
-import org.springframework.integration.kafka.listener.AbstractDecodingMessageListener;
-import org.springframework.integration.kafka.listener.Acknowledgment;
-import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode;
+import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -39,14 +38,13 @@ import org.springframework.util.Assert;
 
 /**
  * @author Marius Bogoevici
+ * @author Gary Russell
+ *
+ * TODO: Use the MessagingMessageConverter from spring-kafka
  */
-public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport implements OrderlyShutdownCapable {
+public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable {
 
-	private final KafkaMessageListenerContainer messageListenerContainer;
-
-	private Decoder<?> keyDecoder = new DefaultDecoder(null);
-
-	private Decoder<?> payloadDecoder = new DefaultDecoder(null);
+	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
 	private boolean generateMessageId = false;
 
@@ -54,40 +52,19 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 	private boolean useMessageBuilderFactory = false;
 
-	private boolean autoCommitOffset = true;
-
-	public KafkaMessageDrivenChannelAdapter(KafkaMessageListenerContainer messageListenerContainer) {
-		Assert.notNull(messageListenerContainer);
-		Assert.isNull(messageListenerContainer.getMessageListener());
+	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
+		Assert.notNull(messageListenerContainer, "messageListenerContainer is required");
+		Assert.isNull(messageListenerContainer.getMessageListener(), "Container must not already have a listener");
 		this.messageListenerContainer = messageListenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
 	}
 
-	public void setKeyDecoder(Decoder<?> keyDecoder) {
-		this.keyDecoder = keyDecoder;
-	}
-
-	public void setPayloadDecoder(Decoder<?> payloadDecoder) {
-		this.payloadDecoder = payloadDecoder;
-	}
-
 	/**
-	 * Automatically commit the offsets when 'true'. When 'false', the
-	 * adapter inserts a 'kafka_acknowledgment` header allowing the user to manually
-	 * commit the offset using the {@link Acknowledgment#acknowledge()} method.
-	 * Default 'true'.
-	 * @param autoCommitOffset false to not auto-commit (default true).
-	 */
-	public void setAutoCommitOffset(boolean autoCommitOffset) {
-		this.autoCommitOffset = autoCommitOffset;
-	}
-
-	/**
-	 * Generate {@link Message} {@code ids} for produced messages.
-	 * If set to {@code false}, will try to use a default value. By default set to {@code false}.
-	 * Note that this option is only guaranteed to work when
-	 * {@link #setUseMessageBuilderFactory(boolean) useMessageBuilderFactory} is false (default).
-	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
+	 * Generate {@link Message} {@code ids} for produced messages. If set to {@code false}
+	 * , will try to use a default value. By default set to {@code false}. Note that this
+	 * option is only guaranteed to work when {@link #setUseMessageBuilderFactory(boolean)
+	 * useMessageBuilderFactory} is false (default). If the latter is set to {@code true},
+	 * then some {@link MessageBuilderFactory} implementations such as
 	 * {@link DefaultMessageBuilderFactory} may ignore it.
 	 * @param generateMessageId true if a message id should be generated
 	 * @since 1.1
@@ -97,11 +74,11 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	}
 
 	/**
-	 * Generate {@code timestamp} for produced messages. If set to {@code false}, -1 is used instead.
-	 * By default set to {@code false}.
-	 * Note that this option is only guaranteed to work when
-	 * {@link #setUseMessageBuilderFactory(boolean) useMessageBuilderFactory} is false (default).
-	 * If the latter is set to {@code true}, then some {@link MessageBuilderFactory} implementations such as
+	 * Generate {@code timestamp} for produced messages. If set to {@code false}, -1 is
+	 * used instead. By default set to {@code false}. Note that this option is only
+	 * guaranteed to work when {@link #setUseMessageBuilderFactory(boolean)
+	 * useMessageBuilderFactory} is false (default). If the latter is set to {@code true},
+	 * then some {@link MessageBuilderFactory} implementations such as
 	 * {@link DefaultMessageBuilderFactory} may ignore it.
 	 * @param generateTimestamp true if a timestamp should be generated
 	 * @since 1.1
@@ -111,9 +88,10 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 	}
 
 	/**
-	 * Use the {@link MessageBuilderFactory} returned by {@link #getMessageBuilderFactory()} to create messages.
-	 * @param useMessageBuilderFactory true if the {@link MessageBuilderFactory} returned by
-	 * {@link #getMessageBuilderFactory()} should be used.
+	 * Use the {@link MessageBuilderFactory} returned by
+	 * {@link #getMessageBuilderFactory()} to create messages.
+	 * @param useMessageBuilderFactory true if the {@link MessageBuilderFactory} returned
+	 * by {@link #getMessageBuilderFactory()} should be used.
 	 * @since 1.1
 	 */
 	public void setUseMessageBuilderFactory(boolean useMessageBuilderFactory) {
@@ -122,9 +100,10 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 
 	@Override
 	protected void onInit() {
-		this.messageListenerContainer.setMessageListener(autoCommitOffset ?
-				new AutoAcknowledgingChannelForwardingMessageListener()
-				: new AcknowledgingChannelForwardingMessageListener());
+		this.messageListenerContainer.setMessageListener(
+				!AckMode.MANUAL.equals(this.messageListenerContainer.getAckMode())
+					? new AutoAcknowledgingChannelForwardingMessageListener()
+					: new AcknowledgingChannelForwardingMessageListener());
 		if (!this.generateMessageId && !this.generateTimestamp
 				&& (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory)) {
 			setMessageBuilderFactory(new MutableMessageBuilderFactory());
@@ -158,61 +137,46 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		return getPhase();
 	}
 
-	@SuppressWarnings("rawtypes")
-	private class AutoAcknowledgingChannelForwardingMessageListener extends AbstractDecodingMessageListener {
-
-		@SuppressWarnings("unchecked")
-		public AutoAcknowledgingChannelForwardingMessageListener() {
-			super(keyDecoder, payloadDecoder);
-		}
+	private class AutoAcknowledgingChannelForwardingMessageListener implements MessageListener<K, V> {
 
 		@Override
-		public void doOnMessage(Object key, Object payload, KafkaMessageMetadata metadata) {
-			sendMessage(toMessage(key, payload, metadata, null));
+		public void onMessage(ConsumerRecord<K, V> record) {
+			sendMessage(toMessage(record, null));
 		}
 
 	}
 
-	@SuppressWarnings("rawtypes")
-	private class AcknowledgingChannelForwardingMessageListener extends AbstractDecodingAcknowledgingMessageListener {
-
-		@SuppressWarnings("unchecked")
-		public AcknowledgingChannelForwardingMessageListener() {
-			super(keyDecoder, payloadDecoder);
-		}
+	private class AcknowledgingChannelForwardingMessageListener implements AcknowledgingMessageListener<K, V> {
 
 		@Override
-		public void doOnMessage(Object key, Object payload, KafkaMessageMetadata metadata,
-				Acknowledgment acknowledgment) {
-
-			sendMessage(toMessage(key, payload, metadata, acknowledgment));
+		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
+			sendMessage(toMessage(record, acknowledgment));
 		}
+
 	}
 
-	private Message<Object> toMessage(Object key, Object payload, KafkaMessageMetadata metadata,
-			Acknowledgment acknowledgment) {
+	private Message<V> toMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
 
 		KafkaMessageHeaders kafkaMessageHeaders = new KafkaMessageHeaders(generateMessageId, generateTimestamp);
 
 		Map<String, Object> rawHeaders = kafkaMessageHeaders.getRawHeaders();
-		rawHeaders.put(KafkaHeaders.MESSAGE_KEY, key);
-		rawHeaders.put(KafkaHeaders.TOPIC, metadata.getPartition().getTopic());
-		rawHeaders.put(KafkaHeaders.PARTITION_ID, metadata.getPartition().getId());
-		rawHeaders.put(KafkaHeaders.OFFSET, metadata.getOffset());
-		rawHeaders.put(KafkaHeaders.NEXT_OFFSET, metadata.getNextOffset());
+		rawHeaders.put(KafkaHeaders.MESSAGE_KEY, record.key());
+		rawHeaders.put(KafkaHeaders.TOPIC, record.topic());
+		rawHeaders.put(KafkaHeaders.PARTITION_ID, record.partition());
+		rawHeaders.put(KafkaHeaders.OFFSET, record.offset());
 
-		if (!this.autoCommitOffset) {
+		if (acknowledgment != null) {
 			rawHeaders.put(KafkaHeaders.ACKNOWLEDGMENT, acknowledgment);
 		}
 
 		if (this.useMessageBuilderFactory) {
 			return getMessageBuilderFactory()
-					.withPayload(payload)
+					.withPayload(record.value())
 					.copyHeaders(kafkaMessageHeaders)
 					.build();
 		}
 		else {
-			return MessageBuilder.createMessage(payload, kafkaMessageHeaders);
+			return MessageBuilder.createMessage(record.value(), kafkaMessageHeaders);
 		}
 	}
 
@@ -229,4 +193,5 @@ public class KafkaMessageDrivenChannelAdapter extends MessageProducerSupport imp
 		}
 
 	}
+
 }

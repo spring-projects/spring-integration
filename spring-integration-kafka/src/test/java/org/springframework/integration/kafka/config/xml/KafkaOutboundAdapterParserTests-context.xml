@@ -9,58 +9,31 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
-	<int:channel id="inputToKafka">
-		<int:queue/>
-	</int:channel>
+	<int:channel id="inputToKafka" />
 
 	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
-										kafka-producer-context-ref="kafkaProducerContext"
+										kafka-template="template"
 										auto-startup="false"
 										channel="inputToKafka"
 										order="3"
 										topic="foo"
 										message-key-expression="'bar'"
 										partition-id-expression="2">
-		<int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
 		<int-kafka:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
 		</int-kafka:request-handler-advice-chain>
 	</int-kafka:outbound-channel-adapter>
 
-	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapterWithHeaderRoutingDisabled"
-										kafka-producer-context-ref="kafkaProducerContext"
-										auto-startup="false"
-										channel="inputToKafka"
-										order="3"
-										topic="foo"
-										message-key-expression="'bar'"
-										partition-id-expression="2"
-										enable-header-routing="false">
-		<int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
-	</int-kafka:outbound-channel-adapter>
-
-	<task:executor id="taskExecutor" pool-size="5" keep-alive="120" queue-capacity="500"/>
-
-	<bean id="kafkaEncoder"
-		  class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder">
-		<constructor-arg value="java.lang.String"/>
+	<bean id="template" class="org.springframework.kafka.core.KafkaTemplate">
+		<constructor-arg>
+			<bean class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+				<constructor-arg>
+					<map>
+						<entry key="" value="" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
 	</bean>
-
-	<int-kafka:producer-context id="kafkaProducerContext">
-		<int-kafka:producer-configurations>
-			<int-kafka:producer-configuration broker-list="localhost:9092"
-											  key-class-type="java.lang.String"
-											  value-class-type="java.lang.String"
-											  topic="test1"
-											  value-encoder="kafkaEncoder"
-											  key-encoder="kafkaEncoder"
-											  compression-type="none"/>
-			<int-kafka:producer-configuration broker-list="localhost:9092"
-											  topic="test2"
-											  value-encoder="kafkaEncoder"
-											  key-encoder="kafkaEncoder"
-											  compression-type="none"/>
-		</int-kafka:producer-configurations>
-	</int-kafka:producer-context>
 
 </beans>
