@@ -36,6 +36,30 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="compile-static" default="false">
+					<xsd:annotation>
+						<xsd:documentation>
+							Indicates if the target Groovy script should be compiled statically.
+							The @CompileStatic hint is applied for the Groovy compiler.
+							This attribute is ignored if the 'compiler-configuration' reference is specified.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
+				</xsd:attribute>
+				<xsd:attribute name="compiler-configuration">
+					<xsd:annotation>
+						<xsd:documentation>
+							Reference to a CompilerConfiguration bean to be applied to the underlying GroovyClassLoader
+							for this script compilation.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:expected-type
+									type="org.codehaus.groovy.control.CompilerConfiguration" />
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
