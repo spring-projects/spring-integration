@@ -12,8 +12,8 @@
 	</splitter>
 
 	<splitter input-channel="inlineScriptInput">
-		<groovy:script><![CDATA[
-				return payload.split('\\s+')
+		<groovy:script compile-static="true"><![CDATA[
+			((String) binding.variables.payload).split('\\s+')
 		]]></groovy:script>
 	</splitter>
 

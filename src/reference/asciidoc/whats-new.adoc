@@ -136,3 +136,8 @@ See <<router>> for more information.
 AMQP, WS and XMPP header mappings (e.g. `request-header-mapping`, `reply-header-mapping`) now support negated
 patterns.
 See <<amqp-message-headers>>, <<ws-message-headers>>, and <<xmpp-message-headers>> for more information.
+
+==== Groovy Scripts
+
+Groovy scripts can now be configured with the `compile-static` hint or any other `CompilerConfiguration` options.
+See <<groovy-config>> for more information.

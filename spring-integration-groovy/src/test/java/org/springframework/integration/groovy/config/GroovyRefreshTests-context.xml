@@ -6,7 +6,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/groovy http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-		
+
 	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer" xmlns="http://www.springframework.org/schema/beans">
 		<property name="customEditors">
 			<map>
@@ -16,7 +16,7 @@
 	</bean>
 
 	<transformer input-channel="referencedScriptInput">
-		<groovy:script location="GroovyRefreshTests.groovy" refresh-check-delay="0"/>
+		<groovy:script location="GroovyRefreshTests.groovy" refresh-check-delay="0" compile-static="true"/>
 	</transformer>
 
 </beans:beans>

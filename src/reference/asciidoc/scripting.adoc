@@ -10,7 +10,7 @@ Sun developed a JSR223 reference implementation which works with Java 5 but it i
 
 In order to use a JVM scripting language, a JSR223 implementation for that language must be included in your class path.
 Java 6 natively supports Javascript.
-The http://groovy.codehaus.org[Groovy] and http://jruby.org/[JRuby] projects provide JSR233 support in their standard distribution.
+The http://www.groovy-lang.org/[Groovy] and http://jruby.org/[JRuby] projects provide JSR233 support in their standard distribution.
 Other language implementations may be available or under development.
 Please refer to the appropriate project website for more information.
 
