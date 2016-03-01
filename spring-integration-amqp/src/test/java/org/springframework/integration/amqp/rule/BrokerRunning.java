@@ -132,4 +132,13 @@ public class BrokerRunning extends TestWatcher {
 		return super.apply(base, description);
 	}
 
+	public void removeTestQueues() {
+		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+		RabbitAdmin admin = new RabbitAdmin(connectionFactory);
+		for (Queue queue : this.queues) {
+			admin.deleteQueue(queue.getName());
+		}
+		connectionFactory.destroy();
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -320,12 +319,13 @@ public class AmqpOutboundChannelAdapterParserTests {
 		handler.setApplicationContext(context);
 		handler.setBeanFactory(context);
 		handler.afterPropertiesSet();
-		ContextRefreshedEvent event = new ContextRefreshedEvent(context);
-		handler.onApplicationEvent(event);
+		handler.start();
+		handler.stop();
 		verify(logger, never()).error(Matchers.anyString(), any(RuntimeException.class));
 		handler.setLazyConnect(false);
-		handler.onApplicationEvent(event);
+		handler.start();
 		verify(logger).error("Failed to eagerly establish the connection.", toBeThrown);
+		handler.stop();
 	}
 
 

@@ -11,6 +11,7 @@ The following adapters are available:
 * <<amqp-inbound-gateway,Inbound Gateway>>
 * <<amqp-outbound-channel-adapter,Outbound Channel Adapter>>
 * <<amqp-outbound-gateway,Outbound Gateway>>
+* <<amqp-async-outbound-gateway,Async Outbound Gateway>>
 
 Spring Integration also provides a point-to-point Message Channel as well as a publish/subscribe Message Channel backed by AMQP Exchanges and Queues.
 
@@ -529,7 +530,7 @@ Mutually exclusive with 'exchange-name'.
 _Optional_.
 
 
-<6> The order for this consumer when multiple consumers are registered thereby enabling load- balancing and/or failover.
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
 _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 
 
@@ -545,11 +546,12 @@ Mutually exclusive with 'routing-key'.
 _Optional_.
 
 
-<9> The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'.
-Overridden if the 'header-mapper' sets the delivery mode.
-The 'DefaultHeaderMapper' sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
-If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
-If that is not customized at all, the default is 'PERSISTENT'.
+<9> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
 _Optional_.
 
 
@@ -693,7 +695,7 @@ public class AmqpJavaApplication {
 [[amqp-outbound-gateway]]
 === Outbound Gateway
 
-A configuration sample for an AMQP Outbound Gateway is shown below.
+Configuration for an AMQP Outbound Gateway is shown below.
 
 [source,xml]
 ----
@@ -740,11 +742,11 @@ Mutually exclusive with 'exchange-name'.
 _Optional_.
 
 
-<6> The order for this consumer when multiple consumers are registered thereby enabling load- balancing and/or failover.
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
 _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 
 
-<7> Message Channel to which replies should be sent after being received from an AQMP Queue and converted._Optional_.
+<7> Message Channel to which replies should be sent after being received from an AMQP Queue and converted._Optional_.
 
 
 <8> The time the gateway will wait when sending the reply message to the `reply-channel`.
@@ -769,11 +771,12 @@ Mutually exclusive with 'routing-key'.
 _Optional_.
 
 
-<12> The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'.
-Overridden if the 'header-mapper' sets the delivery mode.
-The 'DefaultHeaderMapper' sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
-If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
-If that is not customized at all, the default is 'PERSISTENT'.
+<12> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
 _Optional_.
 
 <13> Since _version 4.2_. An expression defining correlation data.
@@ -803,7 +806,7 @@ _Optional_.
 
 
 <17> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
-This allows "fail fast" detection of bad configuration, but will also cause initialization to fail if the broker is down.
+This allows "fail fast" detection of bad configuration, by logging an error message if the broker is down.
 When true (default), the connection is established (if it doesn't already exist because some other component established it) when the first message is sent.
 
 
@@ -904,6 +907,188 @@ public class AmqpJavaApplication {
 
     }
 }
+----
+
+[[amqp-async-outbound-gateway]]
+=== Async Outbound Gateway
+
+The gateway discussed in the previous section is synchronous, in that the sending thread is suspended until a
+reply is received (or a timeout occurs).
+Spring Integration _version 4.3_ added this asynchronous gateway, which uses the `AsyncRabbitTemplate` from Spring AMQP.
+When a message is sent, the thread returns immediately and the reply is sent on the template's listener container
+thread when it is received.
+
+Configuration for an AMQP Async Outbound Gateway is shown below.
+
+[source,xml]
+----
+<int-amqp:outbound-gateway id="inboundGateway" <1>
+                           request-channel="myRequestChannel" <2>
+                           async-template="" <3>
+                           exchange-name="" <4>
+                           exchange-name-expression="" <5>
+                           order="1" <6>
+                           reply-channel="" <7>
+                           reply-timeout="" <8>
+                           requires-reply="" <9>
+                           routing-key="" <10>
+                           routing-key-expression="" <11>
+                           default-delivery-mode"" <12>
+                           confirm-correlation-expression="" <13>
+                           confirm-ack-channel="" <14>
+                           confirm-nack-channel="" <15>
+                           return-channel="" <16>
+                           lazy-connect="true" /> <17>
+
+----
+
+<1> Unique ID for this adapter.
+_Optional_.
+
+
+<2> Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+_Required_.
+
+
+<3> Bean Reference to the configured `AsyncRabbitTemplate` _Optional (Defaults to "asyncRabbitTemplate")_.
+
+
+<4> The name of the AMQP Exchange to which Messages should be sent.
+If not provided, Messages will be sent to the default, no-name Exchange.
+Mutually exclusive with 'exchange-name-expression'.
+_Optional_.
+
+
+<5> A SpEL expression that is evaluated to determine the name of the AMQP Exchange to which Messages should be sent,
+with the message as the root object.
+If not provided, Messages will be sent to the default, no-name Exchange.
+Mutually exclusive with 'exchange-name'.
+_Optional_.
+
+
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
+_Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
+
+
+<7> Message Channel to which replies should be sent after being received from an AMQP Queue and converted. _Optional_.
+
+
+<8> The time the gateway will wait when sending the reply message to the `reply-channel`.
+This only applies if the `reply-channel` can block - such as a `QueueChannel` with a capacity limit that is currently full.
+Default: infinity.
+
+<9> When `true`, the gateway will send an error message to the inbound message's `errorChannel` header if no reply
+message is received within the `AsyncRabbitTemplate`'s `receiveTimeout` property. Default: `true`.
+
+<10> The routing-key to use when sending Messages.
+By default, this will be an empty String.
+Mutually exclusive with 'routing-key-expression'.
+_Optional_.
+
+
+<11> A SpEL expression that is evaluated to determine the routing-key to use when sending Messages, with the message as the root object (e.g.
+'payload.key').
+By default, this will be an empty String.
+Mutually exclusive with 'routing-key'.
+_Optional_.
+
+
+<12> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
+_Optional_.
+
+<13> An expression defining correlation data.
+When provided, this configures the underlying amqp template to receive publisher confirms.
+Requires a dedicated `RabbitTemplate` and a `CachingConnectionFactory` with the `publisherConfirms` property set to
+`true`. When a publisher confirm is received, and correlation data is supplied, it is written to either the
+confirm-ack-channel, or the confirm-nack-channel, depending on the confirmation type. The payload of the confirm is
+the correlation data as defined by this expression and the message will have a header 'amqp_publishConfirm' set to true
+(ack) or false (nack).
+For nacks, an additional header `amqp_publishConfirmNackCause` is provided.
+Examples: "headers['myCorrelationData']", "payload".
+If the expression resolves to a `Message<?>` instance (such as "`#this`"), the message
+emitted on the ack/nack channel is based on that message, with the additional header(s) added.
+_Optional_.
+
+<14> The channel to which positive (ack) publisher confirms are sent; payload is the correlation
+data defined by the _confirm-correlation-expression_.
+Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to true.
+_Optional, default=nullChannel_.
+
+<15> Since _version 4.2_. The channel to which negative (nack) publisher confirms are sent; payload is the correlation
+data defined by the _confirm-correlation-expression_.
+Requires the underlying `AsyncRabbitTemplate` to have its `enableConfirms` property set to true.
+_Optional, default=nullChannel_.
+
+<16> The channel to which returned messages are sent.
+When provided, the underlying amqp template is configured to return undeliverable messages to the gateway.
+The message will be constructed from the data received from amqp, with the following additional headers:
+_amqp_returnReplyCode, amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
+Requires the underlying `AsyncRabbitTemplate` to have its `mandatory` property set to true.
+_Optional_.
+
+<17> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
+This allows "fail fast" detection of bad configuration, by logging an error message if the broker is down.
+When true (default), the connection is established (if it doesn't already exist because some other component established
+it) when the first message is sent.
+
+
+[IMPORTANT]
+.RabbitTemplate
+=====
+When using confirms and returns, it is recommended that the `RabbitTemplate` wired into the `AsyncRabbitTemplate` be
+dedicated.
+Otherwise, unexpected side-effects may be encountered.
+=====
+
+==== Configuring with Java Configuration
+
+The following configuration provides an example of configuring the outbound gateway using Java configuration:
+[source, java]
+----
+@Configuration
+public class AmqpAsyncConfig {
+
+    @Bean
+    @ServiceActivator(inputChannel = "amqpOutboundChannel")
+    public AsyncAmqpOutboundGateway amqpOutbound(AmqpTemplate asyncTemplate) {
+        AsyncAmqpOutboundGateway outbound = new AsyncAmqpOutboundGateway(asyncTemplate);
+        outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
+        return outbound;
+    }
+
+    @Bean
+    public AsyncRabbitTemplate asyncTemplate(RabbitTemplate rabbitTemplate,
+                     SimpleMessageListenerContainer replyContainer) {
+        return new AsyncRabbitTemplate(rabbitTemplate, replyContainer);
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer replyContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(ccf);
+        container.setQueueNames("asyncRQ1");
+        return container;
+    }
+
+    @Bean
+    public MessageChannel amqpOutboundChannel() {
+        return new DirectChannel();
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the outbound adapter using the Java DSL:
+
+[source, java]
+----
+// To be supplied when the DSL Amqp factory class adds support for the async gateway.
 ----
 
 [[content-type-conversion-outbound]]

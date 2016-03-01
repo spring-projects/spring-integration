@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,14 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for the AMQP schema.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
+	@Override
 	public void init() {
 		this.registerBeanDefinitionParser("channel", new AmqpChannelParser());
 		this.registerBeanDefinitionParser("publish-subscribe-channel", new AmqpChannelParser());
@@ -33,6 +35,7 @@ public class AmqpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("inbound-gateway", new AmqpInboundGatewayParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new AmqpOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-gateway", new AmqpOutboundGatewayParser());
+		this.registerBeanDefinitionParser("outbound-async-gateway", new AmqpOutboundGatewayParser());
 	}
 
 }
