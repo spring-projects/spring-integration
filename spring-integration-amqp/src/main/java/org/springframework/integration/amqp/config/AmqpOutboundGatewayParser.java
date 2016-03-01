@@ -22,6 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.amqp.outbound.AsyncOutboundGateway;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -47,13 +48,25 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AmqpOutboundEndpoint.class);
-		String amqpTemplateRef = element.getAttribute("amqp-template");
-		if (!StringUtils.hasText(amqpTemplateRef)) {
-			amqpTemplateRef = "amqpTemplate";
+		BeanDefinitionBuilder builder;
+		boolean async = element.getLocalName().contains("async");
+		if (async) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncOutboundGateway.class);
+			String asyncTemplateRef = element.getAttribute("async-template");
+			if (!StringUtils.hasText(asyncTemplateRef)) {
+				asyncTemplateRef = "asyncRabbitTemplate";
+			}
+			builder.addConstructorArgReference(asyncTemplateRef);
 		}
-		builder.addConstructorArgReference(amqpTemplateRef);
-		builder.addPropertyValue("expectReply", true);
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(AmqpOutboundEndpoint.class);
+			String amqpTemplateRef = element.getAttribute("amqp-template");
+			if (!StringUtils.hasText(amqpTemplateRef)) {
+				amqpTemplateRef = "amqpTemplate";
+			}
+			builder.addConstructorArgReference(amqpTemplateRef);
+			builder.addPropertyValue("expectReply", true);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name", true);
 		BeanDefinition exchangeNameExpression =
 				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("exchange-name-expression", element);

@@ -42,7 +42,9 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.amqp.outbound.AsyncOutboundGateway;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.Orderable;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -70,10 +72,21 @@ public class AmqpOutboundGatewayParserTests {
 		Object edc = context.getBean("rabbitGateway");
 		assertFalse(TestUtils.getPropertyValue(edc, "autoStartup", Boolean.class));
 		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
-		assertEquals(5, gateway.getOrder());
-		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
+		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+		checkGWProps(context, gateway);
+
+		AsyncOutboundGateway async = context.getBean("asyncGateway.handler", AsyncOutboundGateway.class);
+		assertEquals("amqp:outbound-async-gateway", async.getComponentType());
+		checkGWProps(context, async);
+		assertSame(context.getBean("asyncTemplate"), TestUtils.getPropertyValue(async, "template"));
+
+		context.close();
+	}
+
+	protected void checkGWProps(ConfigurableApplicationContext context, Orderable gateway) {
+		assertEquals(5, gateway.getOrder());
+		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
 		assertSame(returnChannel, TestUtils.getPropertyValue(gateway, "returnChannel"));
 
@@ -81,8 +94,6 @@ public class AmqpOutboundGatewayParserTests {
 
 		assertEquals(Long.valueOf(777), sendTimeout);
 		assertTrue(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class));
-
-		context.close();
 	}
 
 	@SuppressWarnings("rawtypes")
