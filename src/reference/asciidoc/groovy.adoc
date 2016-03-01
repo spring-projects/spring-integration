@@ -42,7 +42,7 @@ For example, this might be useful if you want to implement a domain-specific lan
 <beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>
 ----
 
-Setting a custom GroovyObjectCustomizer is not mutually exclusive with `<variable>` sub-elements or the `script-variable-generator` attribute.
+Setting a custom `GroovyObjectCustomizer` is not mutually exclusive with `<variable>` sub-elements or the `script-variable-generator` attribute.
 It can also be provided when defining an inline script.
 
 With _Spring Integration 3.0_, in addition to the `variable` sub-element, the `variables` attribute has been introduced.
@@ -88,14 +88,14 @@ String filter(Map headers) {
 filter(headers)
 ----
 
-With that, the `filter()` method will be transformed and compiled to static bytecode, bypassing the Groovy
-dynamic phases of invocation.
+With that, the `filter()` method will be transformed and compiled to static Java code, bypassing the Groovy
+dynamic phases of invocation, like `getProperty()` factories and `CallSite` proxies.
 
 Starting with _version 4.3_, Spring Integration Groovy components can be configured with the `compile-static` `boolean`
 option, specifying that `ASTTransformationCustomizer` for `@CompileStatic` should be added to the internal
 `CompilerConfiguration`.
 With that in place, we can omit the method declaration with `@CompileStatic` in our script code and still get compiled
-bytecode.
+plain Java code.
 In this case our script can still be short but still needs to be a little more verbose than interpreted script:
 
 [source,groovy]
@@ -110,7 +110,13 @@ With this attribute, you can provide any other required Groovy compiler customiz
 For more information about this feature, please, refer to the Groovy Documentation:
 http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
 
-NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`.
+NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`
+and overrides the `compileStatic` option.
+If `CompileStatic` is still requirement, a `new ASTTransformationCustomizer(CompileStatic.class)` should be manually
+added into the `CompilationCustomizers` of that custom `compilerConfiguration`.
+
+NOTE: The Groovy compiler customization does not have any effect to the `refresh-check-delay` option
+and reloadable scripts can be statically compiled, too.
 
 [[groovy-control-bus]]
 ==== Control Bus
