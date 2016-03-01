@@ -63,10 +63,12 @@ For more information regarding `<variable>`, `variables`, and `script-variable-g
 
 _Groovy Script Compiler Customization_
 
-The `@CompileStatic` hint is the most popular and enough powerful Groovy compiler customization option,
+The `@CompileStatic` hint is the most popular Groovy compiler customization option,
 which can be used on the class or method level.
-See more information in the Groovy http://docs.groovy-lang.org/latest/html/documentation/index.html#_static_compilation[Reference Manual].
-Therefore for the short scripts, used in the integration scenarios, we are forced to change something like this
+See more information in the Groovy
+http://docs.groovy-lang.org/latest/html/documentation/index.html#_static_compilation[Reference Manual] and,
+specifically, http://docs.groovy-lang.org/latest/html/documentation/index.html#compilestatic-annotation[@CompileStatic].
+To utilize this feature for short scripts (in integration scenarios), we are forced to change a simple script like this
 (a `<filter>` script):
 
 [source,groovy]
@@ -74,7 +76,7 @@ Therefore for the short scripts, used in the integration scenarios, we are force
 headers.type == 'good'
 ----
 
-into the more Java-friendly code:
+to more Java-like code:
 
 [source,groovy]
 ----
@@ -86,27 +88,29 @@ String filter(Map headers) {
 filter(headers)
 ----
 
-With that the `filter()` method will be transformed and compiled to static Java code bypassing the Groovy
+With that, the `filter()` method will be transformed and compiled to static bytecode, bypassing the Groovy
 dynamic phases of invocation.
 
-Starting with _version 4.3_ the Groovy components can be configured with the `compile-static` `boolean` option,
-specifying that `ASTTransformationCustomizer` for the `@CompileStatic` should be added to the internal
+Starting with _version 4.3_, Spring Integration Groovy components can be configured with the `compile-static` `boolean`
+option, specifying that `ASTTransformationCustomizer` for `@CompileStatic` should be added to the internal
 `CompilerConfiguration`.
-With that we can omit the method declaration with `@CompileStatic` in our script code and still get a gain from
-its purpose through the manual Groovy Script compiler customization.
-In this case our script can still be short but should be changed to the Java code style a bit:
+With that in place, we can omit the method declaration with `@CompileStatic` in our script code and still get compiled
+bytecode.
+In this case our script can still be short but still needs to be a little more verbose than interpreted script:
+
 [source,groovy]
 ----
 binding.variables.headers.type == 'good'
 ----
-Where we can get access to our `headers` and `payload` (or any other) variables only through the `groovy.lang.Script`
-`binding` property, since with the `@CompileStatic` we don't have the  dynamic `GroovyObject.getProperty()` nature any more.
+Where we can access the `headers` and `payload` (or any other) variables only through the `groovy.lang.Script`
+`binding` property since, with `@CompileStatic`, we don't have the  dynamic `GroovyObject.getProperty()` capability.
 
-In addition, the `compiler-configuration` bean reference has been introduced, too.
-Alongside with the `@CompileStatic` over `ASTTransformationCustomizer`, using `compilerConfiguration`
-you can provide any other required Groovy compiler customizations, e.g. `ImportCustomizer`.
+In addition, the `compiler-configuration` bean reference has been introduced.
+With this attribute, you can provide any other required Groovy compiler customizations, e.g. `ImportCustomizer`.
 For more information about this feature, please, refer to the Groovy Documentation:
-http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration ].
+http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
+
+NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`.
 
 [[groovy-control-bus]]
 ==== Control Bus
