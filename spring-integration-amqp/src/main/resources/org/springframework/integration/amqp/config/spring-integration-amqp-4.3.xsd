@@ -93,7 +93,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 	Configures a gateway that will publish an AMQP Message to the provided Exchange
-	and expect a reply Message.
+	and expect a reply Message. The thread blocks waiting for a reply or timeout; uses
+	'RabbitTemplate.sendAndReceive()'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -130,7 +131,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 	Configures a gateway that will publish an AMQP Message to the provided Exchange
-	and expect a reply Message.
+	and expect a reply Message. The sending thread returns immediately; the reply
+	is sent asynchronously; uses 'AsyncRabbitTemplate.sendAndReceive()'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

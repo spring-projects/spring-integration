@@ -22,7 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
-import org.springframework.integration.amqp.outbound.AsyncOutboundGateway;
+import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -51,7 +51,7 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder;
 		boolean async = element.getLocalName().contains("async");
 		if (async) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncOutboundGateway.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncAmqpOutboundGateway.class);
 			String asyncTemplateRef = element.getAttribute("async-template");
 			if (!StringUtils.hasText(asyncTemplateRef)) {
 				asyncTemplateRef = "asyncRabbitTemplate";

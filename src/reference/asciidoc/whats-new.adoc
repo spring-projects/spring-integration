@@ -9,6 +9,10 @@ development process.
 [[x4.3-new-components]]
 === New Components
 
+==== AMQP Async Outbound Gateway
+
+See <<amqp-async-outbound-gateway>>.
+
 ==== MessageGroupFactory
 
 The new `MessageGroupFactory` strategy has been introduced to allow a control over `MessageGroup` instances

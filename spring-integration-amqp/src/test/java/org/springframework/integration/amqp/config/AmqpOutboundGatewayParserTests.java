@@ -42,7 +42,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
-import org.springframework.integration.amqp.outbound.AsyncOutboundGateway;
+import org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -76,7 +76,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		checkGWProps(context, gateway);
 
-		AsyncOutboundGateway async = context.getBean("asyncGateway.handler", AsyncOutboundGateway.class);
+		AsyncAmqpOutboundGateway async = context.getBean("asyncGateway.handler", AsyncAmqpOutboundGateway.class);
 		assertEquals("amqp:outbound-async-gateway", async.getComponentType());
 		checkGWProps(context, async);
 		assertSame(context.getBean("asyncTemplate"), TestUtils.getPropertyValue(async, "template"));

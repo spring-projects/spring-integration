@@ -251,7 +251,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	@Override
 	protected final void doInit() {
-		Assert.state(exchangeNameExpression == null || exchangeName == null,
+		Assert.state(this.exchangeNameExpression == null || this.exchangeName == null,
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.exchangeNameExpression != null) {

@@ -20,14 +20,12 @@ import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFutureCallback;
-
-import reactor.core.support.Assert;
 
 /**
  * An outbound gateway where the sending thread is released immediately and the reply
@@ -37,19 +35,19 @@ import reactor.core.support.Assert;
  * @since 4.3
  *
  */
-public class AsyncOutboundGateway extends AbstractAmqpOutboundEndpoint {
+public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 	private final AsyncRabbitTemplate template;
 
-	private MessageConverter messageConverter = new SimpleMessageConverter();
+	private final MessageConverter messageConverter;
 
-	public AsyncOutboundGateway(AsyncRabbitTemplate template) {
+	public AsyncAmqpOutboundGateway(AsyncRabbitTemplate template) {
 		Assert.notNull(template, "AsyncRabbitTemplate cannot be null");
 		this.template = template;
-	}
-
-	public void setMessageConverter(MessageConverter messageConverter) {
-		this.messageConverter = messageConverter;
+		this.messageConverter = template.getMessageConverter();
+		Assert.notNull(this.messageConverter, "the template's message converter cannot be null");
+		setConnectionFactory(this.template.getConnectionFactory());
+		setAsyncReplySupported(true);
 	}
 
 	@Override
@@ -58,16 +56,7 @@ public class AsyncOutboundGateway extends AbstractAmqpOutboundEndpoint {
 	}
 
 	@Override
-	protected void endpointInit() {
-		super.endpointInit();
-		setAsyncReplySupported(true);
-		// TODO - add getConnectionFactory() to async template.
-		// this.setConnectionFactory(template.getConnectionFactory());
-	}
-
-	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.state(getAsyncReplySupported(), "Gateway not initialized - did you call afterPropertiesSet() ?");
 		RabbitMessageFuture future = this.template.sendAndReceive(generateExchangeName(requestMessage),
 				generateRoutingKey(requestMessage), mapMessage(requestMessage, this.messageConverter));
 		future.addCallback(new FutureCallback(requestMessage));
@@ -91,12 +80,12 @@ public class AsyncOutboundGateway extends AbstractAmqpOutboundEndpoint {
 			Message<?> replyMessage = null;
 			try {
 				replyMessage = buildReplyMessage(messageConverter, result);
-				sendOutputs(replyMessage, requestMessage);
+				sendOutputs(replyMessage, this.requestMessage);
 			}
 			catch (Exception e) {
 				Exception exceptionToLogAndSend = e;
 				if (!(e instanceof MessagingException)) {
-					exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
+					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, e);
 					if (replyMessage != null) {
 						exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
 					}
