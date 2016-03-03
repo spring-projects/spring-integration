@@ -530,7 +530,7 @@ Mutually exclusive with 'exchange-name'.
 _Optional_.
 
 
-<6> The order for this consumer when multiple consumers are registered thereby enabling load- balancing and/or failover.
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
 _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 
 
@@ -546,11 +546,12 @@ Mutually exclusive with 'routing-key'.
 _Optional_.
 
 
-<9> The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'.
-Overridden if the 'header-mapper' sets the delivery mode.
-The 'DefaultHeaderMapper' sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
-If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
-If that is not customized at all, the default is 'PERSISTENT'.
+<9> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
 _Optional_.
 
 
@@ -741,11 +742,11 @@ Mutually exclusive with 'exchange-name'.
 _Optional_.
 
 
-<6> The order for this consumer when multiple consumers are registered thereby enabling load- balancing and/or failover.
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
 _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 
 
-<7> Message Channel to which replies should be sent after being received from an AQMP Queue and converted._Optional_.
+<7> Message Channel to which replies should be sent after being received from an AMQP Queue and converted._Optional_.
 
 
 <8> The time the gateway will wait when sending the reply message to the `reply-channel`.
@@ -770,11 +771,12 @@ Mutually exclusive with 'routing-key'.
 _Optional_.
 
 
-<12> The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'.
-Overridden if the 'header-mapper' sets the delivery mode.
-The 'DefaultHeaderMapper' sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
-If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
-If that is not customized at all, the default is 'PERSISTENT'.
+<12> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
 _Optional_.
 
 <13> Since _version 4.2_. An expression defining correlation data.
@@ -963,11 +965,11 @@ Mutually exclusive with 'exchange-name'.
 _Optional_.
 
 
-<6> The order for this consumer when multiple consumers are registered thereby enabling load- balancing and/or failover.
+<6> The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
 _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 
 
-<7> Message Channel to which replies should be sent after being received from an AQMP Queue and converted._Optional_.
+<7> Message Channel to which replies should be sent after being received from an AMQP Queue and converted. _Optional_.
 
 
 <8> The time the gateway will wait when sending the reply message to the `reply-channel`.
@@ -988,11 +990,12 @@ Mutually exclusive with 'routing-key'.
 _Optional_.
 
 
-<11> The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'.
-Overridden if the 'header-mapper' sets the delivery mode.
-The 'DefaultHeaderMapper' sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
-If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter' used by the 'RabbitTemplate'.
-If that is not customized at all, the default is 'PERSISTENT'.
+<11> The default delivery mode for messages; `PERSISTENT` or `NON_PERSISTENT`.
+Overridden if the `header-mapper` sets the delivery mode.
+The `DefaultHeaderMapper` sets the value if the Spring Integration message header `amqp_deliveryMode` is present.
+If this attribute is not supplied and the header mapper doesn't set it, the default depends on the underlying
+spring-amqp `MessagePropertiesConverter` used by the `RabbitTemplate`.
+If that is not customized at all, the default is `PERSISTENT`.
 _Optional_.
 
 <12> An expression defining correlation data.
@@ -1032,7 +1035,7 @@ it) when the first message is sent.
 
 
 [IMPORTANT]
-.RabbbitTemplate
+.RabbitTemplate
 =====
 When using confirms and returns, it is recommended that the `RabbitTemplate` wired into the `AsyncRabbitTemplate` be
 dedicated.
@@ -1049,8 +1052,8 @@ public class AmqpAsyncConfig {
 
     @Bean
     @ServiceActivator(inputChannel = "amqpOutboundChannel")
-    public AmqpOutboundEndpoint amqpOutbound(AmqpTemplate asyncTemplate) {
-        AmqpAsyncOutboundGateway outbound = new AmqpOutboundEndpoint(asyncTemplate);
+    public AsyncAmqpOutboundGateway amqpOutbound(AmqpTemplate asyncTemplate) {
+        AsyncAmqpOutboundGateway outbound = new AsyncAmqpOutboundGateway(asyncTemplate);
         outbound.setRoutingKey("foo"); // default exchange - route to queue 'foo'
         return outbound;
     }
