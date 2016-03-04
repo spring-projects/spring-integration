@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.jms.JMSException;
 
-import org.apache.log4j.Level;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -34,7 +32,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsOutboundGateway;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -30,7 +29,6 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
-import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -138,6 +136,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		initializeAdapter();
 	}
 
+	@Override
 	public SourcePollingChannelAdapter getObject() throws Exception {
 		if (this.adapter == null) {
 			initializeAdapter();
@@ -145,10 +144,12 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 		return this.adapter;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		return SourcePollingChannelAdapter.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}
@@ -203,30 +204,36 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	 * SmartLifecycle implementation (delegates to the created adapter)
 	 */
 
+	@Override
 	public boolean isAutoStartup() {
 		return (this.adapter == null) || this.adapter.isAutoStartup();
 	}
 
+	@Override
 	public int getPhase() {
 		return (this.adapter != null) ? this.adapter.getPhase() : 0;
 	}
 
+	@Override
 	public boolean isRunning() {
 		return (this.adapter != null) && this.adapter.isRunning();
 	}
 
+	@Override
 	public void start() {
 		if (this.adapter != null) {
 			this.adapter.start();
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.adapter != null) {
 			this.adapter.stop();
 		}
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		if (this.adapter != null) {
 			this.adapter.stop(callback);

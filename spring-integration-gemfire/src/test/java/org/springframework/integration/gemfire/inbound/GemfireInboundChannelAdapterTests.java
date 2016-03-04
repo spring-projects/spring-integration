@@ -20,8 +20,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,7 +29,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.gemstone.gemfire.cache.EntryEvent;
-import com.gemstone.gemfire.internal.cache.DistributedRegion;
 import com.gemstone.gemfire.internal.cache.LocalRegion;
 
 /**
@@ -88,6 +87,7 @@ public class GemfireInboundChannelAdapterTests {
 	@Test
 	public void testErrorChannel() {
 		channel3.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new MessagingException("got an error");
 			}
@@ -104,6 +104,7 @@ public class GemfireInboundChannelAdapterTests {
 
 		public int count = 0;
 
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			assertTrue(message instanceof ErrorMessage);
 			count++;
@@ -115,6 +116,7 @@ public class GemfireInboundChannelAdapterTests {
 
 		public Object event = null;
 
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			event = message.getPayload();
 		}

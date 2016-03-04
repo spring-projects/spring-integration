@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.util;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * An {@link Iterator} implementation to convert each item from the target

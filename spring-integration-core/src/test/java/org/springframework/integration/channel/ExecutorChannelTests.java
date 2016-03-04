@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,32 +25,25 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
@@ -233,6 +226,7 @@ public class ExecutorChannelTests {
 			this.latch = latch;
 		}
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.thread = Thread.currentThread();
 			if (this.shouldFail) {
@@ -246,7 +240,7 @@ public class ExecutorChannelTests {
 	private static class BeforeHandleInterceptor extends ChannelInterceptorAdapter
 			implements ExecutorChannelInterceptor {
 
-		private AtomicInteger counter = new AtomicInteger();
+		private final AtomicInteger counter = new AtomicInteger();
 
 		private volatile boolean afterHandledInvoked;
 
