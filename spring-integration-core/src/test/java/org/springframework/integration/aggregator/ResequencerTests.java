@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -37,9 +40,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * @author Marius Bogoevici
@@ -73,9 +73,9 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message3);
 		this.resequencer.handleMessage(message2);
-		Message<?> reply1 = replyChannel.receive(0);
-		Message<?> reply2 = replyChannel.receive(0);
-		Message<?> reply3 = replyChannel.receive(0);
+		Message<?> reply1 = replyChannel.receive(10000);
+		Message<?> reply2 = replyChannel.receive(10000);
+		Message<?> reply3 = replyChannel.receive(10000);
 		assertNotNull(reply1);
 		assertThat( new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber(), is(1));
 		assertNotNull(reply2);
@@ -97,10 +97,10 @@ public class ResequencerTests {
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 
 		this.resequencer.handleMessage(message3);
-		assertNull(replyChannel.receive(0));
+		assertNull(replyChannel.receive(10));
 		this.resequencer.handleMessage(message1);
-		assertNotNull(replyChannel.receive(0));
-		assertNull(replyChannel.receive(0));
+		assertNotNull(replyChannel.receive(10000));
+		assertNull(replyChannel.receive(10));
 	}
 
 	@Test
@@ -126,20 +126,20 @@ public class ResequencerTests {
 		Message<?> message5 = MessageBuilder.withPayload("5").setSequenceNumber(5).setReplyChannel(replyChannel).build();
 
 		this.resequencer.handleMessage(message3);
-		assertNull(replyChannel.receive(0));
+		assertNull(replyChannel.receive(10));
 		this.resequencer.handleMessage(message1);
-		assertNotNull(replyChannel.receive(0));
+		assertNotNull(replyChannel.receive(10000));
 
 		this.resequencer.handleMessage(message2);
 
-		assertNotNull(replyChannel.receive(0));
-		assertNotNull(replyChannel.receive(0));
-		assertNull(replyChannel.receive(0));
+		assertNotNull(replyChannel.receive(10000));
+		assertNotNull(replyChannel.receive(10000));
+		assertNull(replyChannel.receive(10));
 
 		this.resequencer.handleMessage(message5);
-		assertNull(replyChannel.receive(0));
+		assertNull(replyChannel.receive(10));
 		this.resequencer.handleMessage(message4);
-		assertNotNull(replyChannel.receive(0));
+		assertNotNull(replyChannel.receive(10000));
 	}
 
 	@Test
@@ -152,9 +152,9 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message3);
 		this.resequencer.handleMessage(message3);
 		this.resequencer.handleMessage(message2);
-		Message<?> reply1 = replyChannel.receive(0);
-		Message<?> reply2 = replyChannel.receive(0);
-		Message<?> reply3 = replyChannel.receive(0);
+		Message<?> reply1 = replyChannel.receive(10000);
+		Message<?> reply2 = replyChannel.receive(10000);
+		Message<?> reply3 = replyChannel.receive(10000);
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
@@ -174,9 +174,9 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		this.resequencer.handleMessage(message3);
-		Message<?> reply1 = replyChannel.receive(0);
-		Message<?> reply2 = replyChannel.receive(0);
-		Message<?> reply3 = replyChannel.receive(0);
+		Message<?> reply1 = replyChannel.receive(10000);
+		Message<?> reply2 = replyChannel.receive(10000);
+		Message<?> reply3 = replyChannel.receive(10000);
 		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
@@ -185,8 +185,8 @@ public class ResequencerTests {
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		this.resequencer.handleMessage(message4);
-		reply3 = replyChannel.receive(0);
-		Message<?> reply4 = replyChannel.receive(0);
+		reply3 = replyChannel.receive(10000);
+		Message<?> reply4 = replyChannel.receive(10000);
 		assertNotNull(reply3);
 		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
@@ -204,9 +204,9 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		this.resequencer.handleMessage(message3);
-		Message<?> reply1 = replyChannel.receive(0);
-		Message<?> reply2 = replyChannel.receive(0);
-		Message<?> reply3 = replyChannel.receive(0);
+		Message<?> reply1 = replyChannel.receive(10000);
+		Message<?> reply2 = replyChannel.receive(10000);
+		Message<?> reply3 = replyChannel.receive(10000);
 		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
@@ -215,8 +215,8 @@ public class ResequencerTests {
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		this.resequencer.handleMessage(message4);
-		reply3 = replyChannel.receive(0);
-		Message<?> reply4 = replyChannel.receive(0);
+		reply3 = replyChannel.receive(10000);
+		Message<?> reply4 = replyChannel.receive(10000);
 		assertNotNull(reply3);
 		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
@@ -234,9 +234,9 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		assertEquals(1, store.expireMessageGroups(-10000));
-		Message<?> reply1 = discardChannel.receive(0);
-		Message<?> reply2 = discardChannel.receive(0);
-		Message<?> reply3 = discardChannel.receive(0);
+		Message<?> reply1 = discardChannel.receive(10000);
+		Message<?> reply2 = discardChannel.receive(10000);
+		Message<?> reply3 = discardChannel.receive(10);
 		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
 		assertNotNull(reply2);
@@ -247,7 +247,7 @@ public class ResequencerTests {
 		assertEquals("[1, 2]", sequence.toString());
 		// Once a group is expired, late messages are discarded immediately by default
 		this.resequencer.handleMessage(message3);
-		reply3 = discardChannel.receive(0);
+		reply3 = discardChannel.receive(10000);
 		assertNotNull(reply3);
 	}
 
@@ -261,8 +261,8 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
-		Message<?> discard1 = discardChannel.receive(0);
-		Message<?> discard2 = discardChannel.receive(0);
+		Message<?> discard1 = discardChannel.receive(10000);
+		Message<?> discard2 = discardChannel.receive(10);
 		// message2 has been discarded because it came in with the wrong sequence size
 		assertNotNull(discard1);
 		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(discard1).getSequenceNumber());
@@ -277,7 +277,7 @@ public class ResequencerTests {
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
-		Message<?> reply1 = discardChannel.receive(0);
+		Message<?> reply1 = discardChannel.receive(10);
 		// No message has been received - the message has been rejected.
 		assertNull(reply1);
 	}
@@ -301,10 +301,10 @@ public class ResequencerTests {
 		assertNull(reply3);
 		// after sending the last message, the whole sequence should have been sent
 		this.resequencer.handleMessage(message4);
-		reply1 = replyChannel.receive(0);
-		reply2 = replyChannel.receive(0);
-		reply3 = replyChannel.receive(0);
-		Message<?> reply4 = replyChannel.receive(0);
+		reply1 = replyChannel.receive(10000);
+		reply2 = replyChannel.receive(10000);
+		reply3 = replyChannel.receive(10000);
+		Message<?> reply4 = replyChannel.receive(10000);
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
@@ -341,13 +341,13 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message2);
 		Message<?> out1 = replyChannel.receive(10);
 		assertNull(out1);
-		out1 = discardChannel.receive(1000);
+		out1 = discardChannel.receive(10000);
 		assertNotNull(out1);
-		Message<?> out2 = discardChannel.receive(10);
+		Message<?> out2 = discardChannel.receive(10000);
 		assertNotNull(out2);
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
 		this.resequencer.handleMessage(message1);
-		Message<?> out3 = discardChannel.receive(0);
+		Message<?> out3 = discardChannel.receive(10000);
 		assertNotNull(out3);
 	}
 
@@ -367,17 +367,17 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, null);
 		this.resequencer.handleMessage(message3);
 		this.resequencer.handleMessage(message2);
-		Message<?> out1 = replyChannel.receive(0);
+		Message<?> out1 = replyChannel.receive(10);
 		assertNull(out1);
-		out1 = discardChannel.receive(1000);
+		out1 = discardChannel.receive(10000);
 		assertNotNull(out1);
-		Message<?> out2 = discardChannel.receive(10);
+		Message<?> out2 = discardChannel.receive(10000);
 		assertNotNull(out2);
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, null);
 		this.resequencer.handleMessage(message1);
-		Message<?> out3 = discardChannel.receive(0);
+		Message<?> out3 = discardChannel.receive(100);
 		assertNull(out3);
-		out3 = discardChannel.receive(1000);
+		out3 = discardChannel.receive(10000);
 		assertNotNull(out3);
 	}
 
