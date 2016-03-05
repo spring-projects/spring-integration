@@ -59,6 +59,8 @@ subprojects { subproject ->
 	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 
+	apply from:   "${rootDir}/src/checkstyle/fixHeaders.gradle"
+
 	if (project.hasProperty('platformVersion')) {
 		apply plugin: 'spring-io'
 
@@ -241,6 +243,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = new File(rootDir, "src/checkstyle/checkstyle.xml")
+//		ignoreFailures = true
 	}
 
 	artifacts {

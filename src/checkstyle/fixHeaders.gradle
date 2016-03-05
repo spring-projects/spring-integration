@@ -1,0 +1,52 @@
+task fixHeaders << {
+
+	def headerTemplate =
+			'''/*
+ * Copyright {year} the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+'''
+	def now = Calendar.instance.get(Calendar.YEAR) as String
+
+	fileTree("${buildDir}/reports/checkstyle").include('*.xml').each { report ->
+		def xml = new XmlParser(false, false).parse(report)
+		xml.file.each {
+			if (it.error.@source == ['com.puppycrawl.tools.checkstyle.checks.header.RegexpHeaderCheck']) {
+				def years = now
+				def file = new File(it.@name)
+				def line
+				file.withReader { reader ->
+					while (line = reader.readLine()) {
+						def matcher = line =~ /Copyright (20\d\d(?:-20\d\d)?)/
+						if (matcher.count) {
+							years = matcher[0][1]
+							if (years != now) {
+								years = years.take(4) + "-$now"
+							}
+							break
+						}
+					}
+				}
+
+				def header = headerTemplate.replaceFirst(/\{year}/, years)
+
+				def sourceCode = file.text
+				sourceCode = sourceCode.replaceFirst(/(?s)(?:.*)(package.*)/, "${header}\$1")
+				file.write(sourceCode)
+				println "Header fixed for $file"
+			}
+		}
+	}
+}
