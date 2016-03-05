@@ -1,17 +1,17 @@
 /*
- * Copyright 2015 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.springframework.integration.file.splitter;
@@ -74,7 +74,7 @@ public class FileSplitterTests {
 
 	private static File file;
 
-	static final String SAMPLE_CONTENT = "HelloWorld\n√§√∂√º√ü";
+	static final String SAMPLE_CONTENT = "HelloWorld\n‰ˆ¸ﬂ";
 
 	@Autowired
 	private MessageChannel input1;
@@ -108,8 +108,8 @@ public class FileSplitterTests {
 		assertEquals("HelloWorld", receive.getPayload());
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
-		assertEquals("√§√∂√º√ü", receive.getPayload());
+		assertNotNull(receive); //‰ˆ¸ﬂ
+		assertEquals("‰ˆ¸ﬂ", receive.getPayload());
 		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
 		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
 		assertNull(this.output.receive(1));
@@ -119,7 +119,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertEquals(file, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
 		assertEquals(file.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
 		assertNull(this.output.receive(1));
@@ -129,7 +129,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertNull(this.output.receive(1));
 
 		this.input2.send(new GenericMessage<File>(file));
@@ -137,7 +137,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertNull(this.output.receive(1));
 
 		this.input2.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
@@ -145,7 +145,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertNull(this.output.receive(1));
 
 		try {
@@ -168,7 +168,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertNull(this.output.receive(1));
 
 		this.input3.send(new GenericMessage<InputStream>(new ByteArrayInputStream(SAMPLE_CONTENT.getBytes("UTF-8"))));
@@ -176,7 +176,7 @@ public class FileSplitterTests {
 		assertNotNull(receive); //HelloWorld
 		assertEquals(0, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
 		receive = this.output.receive(10000);
-		assertNotNull(receive); //√§√∂√º√ü
+		assertNotNull(receive); //‰ˆ¸ﬂ
 		assertNull(this.output.receive(1));
 	}
 

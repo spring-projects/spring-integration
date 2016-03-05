@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * A stereotype annotation to provide an Integration Messaging Gateway Proxy
  * ({@code <gateway/>}) as an abstraction over the messaging API. The target
- * applicationâ€™s business logic may be completely unaware of the Spring Integration
+ * application’s business logic may be completely unaware of the Spring Integration
  * API, with the code interacting only via the interface.
  * <p>
  * Important: The {@link IntegrationComponentScan} annotation is required along with
@@ -78,7 +78,7 @@ public @interface MessagingGateway {
 	/**
 	 * Provides the amount of time dispatcher would wait to send a {@code Message}.
 	 * This timeout would only apply if there is a potential to block in the send call.
-	 * For example if this gateway is hooked up to a {@code QueueChannel}.Â 
+	 * For example if this gateway is hooked up to a {@code QueueChannel}. 
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	String defaultRequestTimeout() default "-9223372036854775808";
