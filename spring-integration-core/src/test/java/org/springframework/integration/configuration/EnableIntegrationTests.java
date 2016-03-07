@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
@@ -92,6 +94,7 @@ import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
@@ -265,11 +268,15 @@ public class EnableIntegrationTests {
 	private MessageChannel controlBusChannel;
 
 	@Autowired
+	private CountDownLatch inputReceiveLatch;
+
+	@Autowired
 	@Qualifier("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator")
 	private AbstractEndpoint sendAsyncHandler;
 
 	@Autowired
-	private CountDownLatch inputReceiveLatch;
+	@Qualifier("enableIntegrationTests.ChildConfiguration.autoCreatedChannelMessageSource.inboundChannelAdapter")
+	private Lifecycle autoCreatedChannelMessageSourceAdapter;
 
 	@Test
 	public void testAnnotatedServiceActivator() throws Exception {
@@ -645,6 +652,21 @@ public class EnableIntegrationTests {
 		assertEquals(2, lifecycles.get("foo").size());
 	}
 
+	@Test
+	public void testSourcePollingChannelAdapterOutputChannelLateBinding() {
+		QueueChannel testChannel = new QueueChannel();
+		ConfigurableListableBeanFactory beanFactory =
+				(ConfigurableListableBeanFactory) this.context.getAutowireCapableBeanFactory();
+		beanFactory.registerSingleton("lateBindingChannel", testChannel);
+		beanFactory.initializeBean(testChannel, "lateBindingChannel");
+
+		this.autoCreatedChannelMessageSourceAdapter.start();
+		Message<?> receive = testChannel.receive(10000);
+		assertNotNull(receive);
+		assertEquals("bar", receive.getPayload());
+		this.autoCreatedChannelMessageSourceAdapter.stop();
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -854,8 +876,6 @@ public class EnableIntegrationTests {
 	@GlobalChannelInterceptor
 	public static class TestChannelInterceptor extends ChannelInterceptorAdapter {
 
-		private final Log logger = LogFactory.getLog(TestChannelInterceptor.class);
-
 		private final AtomicInteger invoked = new AtomicInteger();
 
 		@Override
@@ -1048,6 +1068,14 @@ public class EnableIntegrationTests {
 		@GlobalChannelInterceptor(patterns = "*")
 		public WireTap baz() {
 			return new WireTap(new NullChannel());
+		}
+
+		//Before INT-3961 it fails with the DestinationResolutionException
+		@InboundChannelAdapter(channel = "lateBindingChannel", autoStartup = "false",
+				poller = @Poller(fixedDelay = "100"))
+		@Bean
+		public MessageSource<String> autoCreatedChannelMessageSource() {
+			return () -> new GenericMessage<>("bar");
 		}
 
 	}
@@ -1307,7 +1335,7 @@ public class EnableIntegrationTests {
 	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
-			defaultRequestTimeout="${default.request.timeout:12300}", defaultReplyTimeout="#{13400}",
+			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 
@@ -1440,6 +1468,7 @@ public class EnableIntegrationTests {
 			adviceChain = {"annAdvice"},
 			poller = @Poller(fixedDelay = "1000"))
 	public @interface MyServiceActivatorNoLocalAtts {
+
 	}
 
 	@Target(ElementType.METHOD)
@@ -1521,6 +1550,7 @@ public class EnableIntegrationTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@BridgeTo(autoStartup = "false")
 	public @interface MyBridgeTo {
+
 	}
 
 	// Error because the annotation is on a class; it must be on an interface
