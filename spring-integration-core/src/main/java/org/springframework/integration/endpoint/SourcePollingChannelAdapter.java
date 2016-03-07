@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private volatile MessageChannel outputChannel;
 
+	private volatile String outputChannelName;
+
 	private volatile boolean shouldTrack;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
@@ -73,6 +75,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setOutputChannelName(String outputChannelName) {
+		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
+		this.outputChannelName = outputChannelName;
 	}
 
 	/**
@@ -145,11 +152,25 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
-		Assert.notNull(this.outputChannel, "outputChannel must not be null");
+		Assert.state((this.outputChannelName == null && this.outputChannel != null)
+				|| (this.outputChannelName != null && this.outputChannel == null),
+				"One and only one of 'outputChannelName' or 'outputChannel' is required.");
 		super.onInit();
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 		}
+	}
+
+	public MessageChannel getOutputChannel() {
+		if (this.outputChannelName != null) {
+			synchronized (this) {
+				if (this.outputChannelName != null) {
+					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+					this.outputChannelName = null;
+				}
+			}
+		}
+		return this.outputChannel;
 	}
 
 	@Override
@@ -158,7 +179,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		try {
-			this.messagingTemplate.send(this.outputChannel, message);
+			this.messagingTemplate.send(getOutputChannel(), message);
 		}
 		catch (Exception e) {
 			if (e instanceof MessagingException) {

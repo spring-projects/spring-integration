@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -72,10 +71,8 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			return null;
 		}
 
-		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
-
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		adapter.setOutputChannel(channel);
+		adapter.setOutputChannelName(channelName);
 		adapter.setSource(messageSource);
 		configurePollingEndpoint(adapter, annotations);
 

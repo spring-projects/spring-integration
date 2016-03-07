@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.springframework.core.annotation.AliasFor;
 
 /**
  * Indicates that a method is capable of producing a {@link org.springframework.messaging.Message}
@@ -53,9 +55,18 @@ import java.lang.annotation.Target;
 public @interface InboundChannelAdapter {
 
 	/**
+	 * Alias for the {@link #channel()} attribute.
 	 * @return the 'channel' bean name to send the {@link org.springframework.messaging.Message}.
 	 */
-	String value();
+	@AliasFor("channel")
+	String value() default "";
+
+	/**
+	 * @return the 'channel' bean name to send the {@link org.springframework.messaging.Message}.
+	 * @since 4.2.6
+	 */
+	@AliasFor("value")
+	String channel() default "";
 
 	/*
 	 {@code SmartLifecycle} options.

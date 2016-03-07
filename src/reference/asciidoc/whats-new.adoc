@@ -141,3 +141,10 @@ See <<amqp-message-headers>>, <<ws-message-headers>>, and <<xmpp-message-headers
 
 Groovy scripts can now be configured with the `compile-static` hint or any other `CompilerConfiguration` options.
 See <<groovy-config>> for more information.
+
+==== @InboundChannelAdapter
+
+The `@InboundChannelAdapter` has now an alias `channel` attribute for regular `value`.
+In addition the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean
+from its provided name (`outputChannelName` options) in late-binding manner.
+See <<annotations>> for more information.
