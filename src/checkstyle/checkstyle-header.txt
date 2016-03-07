@@ -13,4 +13,5 @@
 ^\Q * See the License for the specific language governing permissions and\E$
 ^\Q * limitations under the License.\E$
 ^\Q */\E$
+^$
 ^.*$
