@@ -81,7 +81,7 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
- * @author Enrique Rodríguez
+ * @author Enrique Rodriguez
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
