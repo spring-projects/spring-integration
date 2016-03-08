@@ -438,6 +438,14 @@ public String foo() {
 }
 ----
 
+Starting with _version 4.3_ the `channel` alias for the `value` annotation attribute has been introduced for better
+source code readability.
+Also the target `MessageChannel` bean is resolved in the `SourcePollingChannelAdapter` by the provided name
+(`outputChannelName` options) on the first `receive()` call, not during
+initialization phase.
+It allows the 'late binding' logic, when the target `MessageChannel` bean from the consumer perspective
+is created and registered a bit later than the `@InboundChannelAdapter` parsing phase.
+
 The first example requires that the default poller has been declared elsewhere in the application context.
 
 *@MessagingGateway*
