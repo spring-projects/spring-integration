@@ -188,6 +188,8 @@ public class SftpServerOutboundTests {
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
 
+		assertThat(localFiles.size(), Matchers.greaterThan(0));
+
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 					Matchers.containsString(dir));
@@ -198,6 +200,8 @@ public class SftpServerOutboundTests {
 		result = this.output.receive(1000);
 		assertNotNull(result);
 		localFiles = (List<File>) result.getPayload();
+
+		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),

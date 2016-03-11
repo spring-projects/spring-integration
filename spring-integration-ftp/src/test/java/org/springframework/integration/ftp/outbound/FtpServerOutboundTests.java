@@ -195,10 +195,12 @@ public class FtpServerOutboundTests {
 	@SuppressWarnings("unchecked")
 	public void testInt2866LocalDirectoryExpressionMGET() {
 		String dir = "ftpSource/";
-		this.inboundMGet.send(new GenericMessage<Object>("*.txt"));
+		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
+
+		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
@@ -210,6 +212,8 @@ public class FtpServerOutboundTests {
 		result = this.output.receive(1000);
 		assertNotNull(result);
 		localFiles = (List<File>) result.getPayload();
+
+		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
@@ -228,6 +232,8 @@ public class FtpServerOutboundTests {
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
+
+		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
 			assertThat(file.getName(), isOneOf("localTarget1.txt", "localTarget2.txt"));
