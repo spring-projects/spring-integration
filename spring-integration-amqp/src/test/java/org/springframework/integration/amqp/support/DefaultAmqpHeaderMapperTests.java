@@ -51,7 +51,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void fromHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(AmqpHeaders.APP_ID, "test.appId");
 		headerMap.put(AmqpHeaders.CLUSTER_ID, "test.clusterId");
@@ -113,7 +113,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void fromHeadersWithContentTypeAsMediaType() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 
 		MediaType contentType = MediaType.parseMediaType("text/html");
@@ -135,7 +135,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void fromHeadersWithContentTypeAsMimeType() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 
 		MimeType contentType = MimeType.valueOf("text/html");
@@ -151,7 +151,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void toHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -203,7 +203,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test // INT-3586 requires Spring AMQP 1.4.2
 	public void testToHeadersConsumerMetadata() {
 		try {
-			DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+			DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 			MessageProperties amqpProperties = new MessageProperties();
 			amqpProperties.setConsumerTag("consumerTag");
 			amqpProperties.setConsumerQueue("consumerQueue");
@@ -218,7 +218,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void messageIdNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.ID, "msg-id");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
@@ -229,7 +229,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void messageTimestampNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.TIMESTAMP, 1234L);
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
@@ -240,7 +240,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test // INT-2090
 	public void jsonTypeIdNotOverwritten() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageConverter converter = new Jackson2JsonMessageConverter();
 		MessageProperties amqpProperties = new MessageProperties();
 		converter.toMessage("123", amqpProperties);
@@ -251,6 +251,37 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("java.lang.String", amqpProperties.getHeaders().get("__TypeId__"));
 		Object result = converter.fromMessage(new Message("123".getBytes(), amqpProperties));
 		assertEquals(String.class, result.getClass());
+	}
+
+	@Test
+	public void inboundOutbound() {
+		DefaultAmqpHeaderMapper mapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
+		amqpProperties.getHeaders().put("foo", "bar");
+		amqpProperties.getHeaders().put("x-foo", "bar");
+		Map<String, Object> headers = mapper.toHeadersFromRequest(amqpProperties);
+		assertNull(headers.get(AmqpHeaders.DELIVERY_MODE));
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, headers.get(DefaultAmqpHeaderMapper.RECEIVED_DELIVERY_MODE));
+		assertEquals("bar", headers.get("foo"));
+		assertNull(headers.get("x-foo"));
+
+		amqpProperties.setDeliveryMode(null);
+		headers.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
+		mapper.fromHeadersToReply(new MessageHeaders(headers), amqpProperties);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
+		assertEquals("bar", amqpProperties.getHeaders().get("foo"));
+
+
+		mapper = DefaultAmqpHeaderMapper.outboundMapper();
+		mapper.fromHeadersToRequest(new MessageHeaders(headers), amqpProperties);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
+		assertEquals("bar", amqpProperties.getHeaders().get("foo"));
+
+		headers = mapper.toHeadersFromReply(amqpProperties);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, headers.get(DefaultAmqpHeaderMapper.RECEIVED_DELIVERY_MODE));
+		assertNull(headers.get(AmqpHeaders.DELIVERY_MODE));
+		assertEquals("bar", headers.get("foo"));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class InboundEndpointTests {
 		amqpMessageProperties.setDeliveryTag(123L);
 		org.springframework.amqp.core.Message amqpMessage =
 				new SimpleMessageConverter().toMessage(jsonMessage.getPayload(), amqpMessageProperties);
-		new DefaultAmqpHeaderMapper().fromHeadersToRequest(jsonMessage.getHeaders(), amqpMessageProperties);
+		DefaultAmqpHeaderMapper.inboundMapper().fromHeadersToRequest(jsonMessage.getHeaders(), amqpMessageProperties);
 
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		Channel rabbitChannel = mock(Channel.class);

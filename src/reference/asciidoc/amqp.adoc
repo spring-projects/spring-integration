@@ -1058,23 +1058,32 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 [[amqp-message-headers]]
 === AMQP Message Headers
 
-The Spring Integration AMQP Adapters will map standard AMQP properties automatically.
+The Spring Integration AMQP Adapters will map all AMQP properties and headers automatically.
+(This is a change in 4.3 - previously, only standard headers were mapped).
 These properties will be copied by default to and from Spring Integration `MessageHeaders` using the
 http://docs.spring.io/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html[DefaultAmqpHeaderMapper].
 
-Of course, you can pass in your own implementation of AMQP specific header mappers, as the adapters have respective properties to support that.
+Of course, you can pass in your own implementation of AMQP specific header mappers, as the adapters have respective
+properties to support that.
 
-Any user-defined headers within the AMQP http://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] will NOT
-be copied to or from an AMQP Message, unless explicitly specified by the _requestHeaderNames_ and/or
+Any user-defined headers within the AMQP http://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] WILL
+be copied to or from an AMQP Message, unless explicitly negated by the _requestHeaderNames_ and/or
 _replyHeaderNames_ properties of the `DefaultAmqpHeaderMapper`.
+For an inbound mapper, the deliveryMode and all `x-*` headers are not mapped by default.
 
-TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
-For example, if you need to copy all user-defined headers simply use the wildcard character `*`, but see the CAUTION below.
+To override the default, and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
+`STANDARD_REPLY_HEADERS` in the properties.
 
-Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) allows the `NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ and/or _replyHeaderNames_ properties (in addition to existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
-Note, it is recommended to use the combination like this `STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS` instead of generic `*`, to avoid mapping of _request_ headers to the reply.
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo")
+to be matched.
+`*` matches all headers.
 
-Class `org.springframework.amqp.support.AmqpHeaders` identifies the default headers that will be used by the `DefaultAmqpHeaderMapper`:
+Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultAmqpHeaderMapper` superclass) allows the
+`NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ and/or _replyHeaderNames_ properties
+(in addition to the existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
+
+Class `org.springframework.amqp.support.AmqpHeaders` identifies the default headers that will be used by the
+`DefaultAmqpHeaderMapper`:
 
 * amqp_appId
 
@@ -1101,6 +1110,8 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 * amqp_messageId
 
 * amqp_receivedDelay
+
+* amqp_receivedDeliveryMode
 
 * amqp_receivedExchange
 
@@ -1144,6 +1155,10 @@ For example, to avoid copying the `x-received-from` header back to the reply you
 before sending the reply to the AMQP Inbound Gateway.
 Alternatively, you could explicitly list those properties that you actually want mapped instead of using
 wildcards.
+For these reasons, for inbound messages, the mapper by default does not map any `x-*` headers; it also does not map
+the `deliveryMode` to `amqp_deliveryMode` header, to avoid propagation of that header from an inbound message to an
+outbound message.
+Instead, this header is mapped to `amqp_receivedDeliveryMode`, which is not mapped on output.
 
 Starting with _version 4.3_, patterns in the header mappings can be negated by preceding the pattern with `!`.
 Negated patterns get priority, so a list such as

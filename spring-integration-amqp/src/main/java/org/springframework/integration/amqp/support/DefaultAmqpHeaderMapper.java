@@ -61,6 +61,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	static final boolean CONSUMER_METADATA_PRESENT;
 
+	// TODO: Move to AmqpHeaders
+	public final static String RECEIVED_DELIVERY_MODE = AmqpHeaders.PREFIX + "receivedDeliveryMode";
+
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
@@ -112,6 +115,11 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		CONSUMER_METADATA_PRESENT = consumerTagHeader.get();
 	}
 
+	/**
+	 * @deprecated - use {@link #inboundMapper()} and {@link #outboundMapper()} depending
+	 * on the context in which the mapper is to be used.
+	 */
+	@Deprecated
 	public DefaultAmqpHeaderMapper() {
 		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 	}
@@ -150,6 +158,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			MessageDeliveryMode deliveryMode = amqpMessageProperties.getDeliveryMode();
 			if (deliveryMode != null) {
 				headers.put(AmqpHeaders.DELIVERY_MODE, deliveryMode);
+				headers.put(RECEIVED_DELIVERY_MODE, deliveryMode);
 			}
 			long deliveryTag = amqpMessageProperties.getDeliveryTag();
 			if (deliveryTag > 0) {
@@ -403,6 +412,52 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (consumerQueue != null) {
 			headers.put(AmqpHeaders.CONSUMER_QUEUE, consumerQueue);
 		}
+	}
+
+	public static DefaultAmqpHeaderMapper inboundMapper() {
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(inboundRequestHeaders());
+		mapper.setReplyHeaderNames(inboundReplyHeaders());
+		return mapper;
+	}
+
+	public static DefaultAmqpHeaderMapper outboundMapper() {
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(outboundRequestHeaders());
+		mapper.setReplyHeaderNames(outboundReplyHeaders());
+		return mapper;
+	}
+
+	/**
+	 * @return the default request headers for an inbound mapper.
+	 */
+	public static String[] inboundRequestHeaders() {
+		return safeInboundHeaders();
+	}
+
+	/**
+	 * @return the default reply headers for an inbound mapper.
+	 */
+	public static String[] inboundReplyHeaders() {
+		return new String[] { "*" };
+	}
+
+	/**
+	 * @return the default request headers for an outbound mapper.
+	 */
+	public static String[] outboundRequestHeaders() {
+		return new String[] { "*" };
+	}
+
+	/**
+	 * @return the default reply headers for an outbound mapper.
+	 */
+	public static String[] outboundReplyHeaders() {
+		return safeInboundHeaders();
+	}
+
+	private static String[] safeInboundHeaders() {
+		return new String[] { "!" + AmqpHeaders.DELIVERY_MODE, RECEIVED_DELIVERY_MODE, "!x-*", "*" };
 	}
 
 }
