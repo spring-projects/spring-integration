@@ -61,9 +61,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	static final boolean CONSUMER_METADATA_PRESENT;
 
-	// TODO: Move to AmqpHeaders
-	public final static String RECEIVED_DELIVERY_MODE = AmqpHeaders.PREFIX + "receivedDeliveryMode";
-
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
@@ -80,6 +77,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_COUNT);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_DELAY);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_DELIVERY_MODE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_EXCHANGE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_ROUTING_KEY);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.REDELIVERED);
@@ -155,10 +153,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (correlationId != null && correlationId.length > 0) {
 				headers.put(AmqpHeaders.CORRELATION_ID, correlationId);
 			}
-			MessageDeliveryMode deliveryMode = amqpMessageProperties.getDeliveryMode();
-			if (deliveryMode != null) {
-				headers.put(AmqpHeaders.DELIVERY_MODE, deliveryMode);
-				headers.put(RECEIVED_DELIVERY_MODE, deliveryMode);
+			MessageDeliveryMode receivedDeliveryMode = amqpMessageProperties.getReceivedDeliveryMode();
+			if (receivedDeliveryMode != null) {
+				headers.put(AmqpHeaders.RECEIVED_DELIVERY_MODE, receivedDeliveryMode);
 			}
 			long deliveryTag = amqpMessageProperties.getDeliveryTag();
 			if (deliveryTag > 0) {
@@ -457,7 +454,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	private static String[] safeInboundHeaders() {
-		return new String[] { "!" + AmqpHeaders.DELIVERY_MODE, RECEIVED_DELIVERY_MODE, "!x-*", "*" };
+		return new String[] { "!x-*", "*" };
 	}
 
 }
