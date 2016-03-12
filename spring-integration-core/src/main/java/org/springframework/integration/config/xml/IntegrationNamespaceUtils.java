@@ -326,6 +326,21 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
 								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
+		configureHeaderMapper(element, rootBuilder, parserContext,
+				BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass), replyHeaderValue);
+	}
+
+	/**
+	 * Utility method to configure a HeaderMapper for Inbound and Outbound channel adapters/gateway.
+	 *
+	 * @param element The element.
+	 * @param rootBuilder The root builder.
+	 * @param parserContext The parser context.
+	 * @param headerMapperBuilder The header mapper builder.
+	 * @param replyHeaderValue The reply header value.
+	 */
+	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
+					ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder, String replyHeaderValue) {
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
 		if (!StringUtils.hasText(replyHeaderValue)){
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
@@ -343,7 +358,6 @@ public abstract class IntegrationNamespaceUtils {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
 
 		if (hasMappedRequestHeaders || hasMappedReplyHeaders){
-			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
 
 			if (hasMappedRequestHeaders) {
 				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
@@ -355,7 +369,6 @@ public abstract class IntegrationNamespaceUtils {
 			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 	}
-
 	/**
 	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
 	 * with "transactionManager" and other "transactionDefinition" properties.

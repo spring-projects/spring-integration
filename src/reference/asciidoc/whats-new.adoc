@@ -133,9 +133,19 @@ See <<router>> for more information.
 
 ==== Header Mapping
 
+===== General
+
 AMQP, WS and XMPP header mappings (e.g. `request-header-mapping`, `reply-header-mapping`) now support negated
 patterns.
 See <<amqp-message-headers>>, <<ws-message-headers>>, and <<xmpp-message-headers>> for more information.
+
+===== AMQP Header Mapping
+
+Previously, only standard AMQP headers were mapped by default; users had to explicitly enable mapping of user-defined
+headers.
+With this release all headers are mapped by default.
+In addition, the inbound `amqp_deliveryMode` header is no longer mapped by default.
+See <<amqp-message-headers>> for more information.
 
 ==== Groovy Scripts
 

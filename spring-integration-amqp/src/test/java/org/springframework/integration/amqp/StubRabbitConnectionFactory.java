@@ -102,6 +102,12 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public boolean isOpen() {
 			return false;
 		}
+
+		@Override
+		public int getLocalPort() {
+			return 0;
+		}
+
 	}
 
 	private static class StubChannel implements Channel {
