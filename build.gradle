@@ -133,7 +133,7 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.13"
 		tomcatVersion = "8.0.30"
 		smack3Version = '3.2.1'
-		smackVersion = '4.1.5'
+		smackVersion = '4.1.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.0.BUILD-SNAPSHOT'
 //		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '1.10.0.M1'
@@ -705,6 +705,7 @@ project('spring-integration-xmpp') {
 		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 
 		testCompile project(":spring-integration-stream")
+		testCompile "org.igniterealtime.smack:smack-experimental:$smackVersion"
 	}
 }
 

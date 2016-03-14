@@ -9,24 +9,35 @@
 				http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 				http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<beans:bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
+	<beans:bean id="testConnection" class="org.mockito.Mockito" factory-method="spy">
+		<beans:constructor-arg>
+			<beans:bean class="org.jivesoftware.smack.tcp.XMPPTCPConnection">
+				<beans:constructor-arg value="guest"/>
+				<beans:constructor-arg value="guest"/>
+			</beans:bean>
+		</beans:constructor-arg>
 	</beans:bean>
 
 	<channel id="xmppInbound">
 		<queue/>
 	</channel>
 
+	<beans:bean id="stanzaFilter" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.jivesoftware.smack.filter.StanzaFilter"/>
+	</beans:bean>
+
+
 	<xmpp:inbound-channel-adapter id="xmppInboundAdapter" channel="xmppInbound"
-			xmpp-connection="testConnection" extract-payload="false"
-			auto-startup="false" error-channel="errorChannel"
-			mapped-request-headers="foo*, xmpp*"/>
+								  xmpp-connection="testConnection" payload-expression="#root"
+								  auto-startup="false" error-channel="errorChannel"
+								  mapped-request-headers="foo*, xmpp*"
+								  stanza-filter="stanzaFilter"/>
 
 	<xmpp:inbound-channel-adapter id="autoChannel"
-			xmpp-connection="testConnection" extract-payload="false"
-			auto-startup="false" error-channel="errorChannel"
-			mapped-request-headers="foo*, xmpp*"/>
+								  xmpp-connection="testConnection" extract-payload="false"
+								  auto-startup="false" error-channel="errorChannel"
+								  mapped-request-headers="foo*, xmpp*"/>
 
-	<bridge input-channel="autoChannel" output-channel="nullChannel" />
+	<bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
 </beans:beans>
