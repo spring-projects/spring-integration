@@ -102,11 +102,38 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="xmppInboundAdapterType">
-					<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+					<xsd:attribute name="extract-payload" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-							Specifies if generated Message payload should consist of only
-							the text of the XMPP message or the entire XMPP (Smack API specific) message. Default is true.
+								[DEPRECATED]
+								Specifies if generated Message payload should consist of only
+								the text of the XMPP message or the entire XMPP (Smack API specific) message.
+								Default is true.
+								Deprecated since 4.3 in favor of 'payload-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="payload-expression">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to evaluate a 'payload' with the incoming
+								'org.jivesoftware.smack.packet.Message' as root object.
+								It useful in case of custom (XEP) XMPP interactions, e.g. GCM.
+								By default a Message 'body' is used as 'payload'.
+								Replaces 'extract-payload' attribute since 4.3.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="stanza-filter">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.jivesoftware.smack.filter.StanzaFilter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to an XMPP 'org.jivesoftware.smack.filter.StanzaFilter' bean.
+								See 'XMPPConnection.addAsyncStanzaListener(StanzaListener, StanzaFilter)' JavaDocs.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

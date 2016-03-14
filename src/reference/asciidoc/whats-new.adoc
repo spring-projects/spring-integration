@@ -162,3 +162,8 @@ The `@InboundChannelAdapter` has now an alias `channel` attribute for regular `v
 In addition the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean
 from its provided name (`outputChannelName` options) in late-binding manner.
 See <<annotations>> for more information.
+
+==== XMPP changes
+
+The XMPP Extensions (XEP) are now supported by the XMPP channel adapters.
+See <<xmpp-extensions>> for more information.

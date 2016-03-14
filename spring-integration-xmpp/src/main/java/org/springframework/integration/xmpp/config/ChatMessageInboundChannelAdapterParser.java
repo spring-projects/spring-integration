@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.xmpp.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -27,6 +28,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ChatMessageInboundChannelAdapterParser extends AbstractXmppInboundChannelAdapterParser {
@@ -38,7 +40,17 @@ public class ChatMessageInboundChannelAdapterParser extends AbstractXmppInboundC
 
 	@Override
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		if (element.hasAttribute("extract-payload")) {
+			parserContext.getReaderContext()
+					.warning("The 'extract-payload' is deprecated. Use 'payload-expression' instead.", element);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		}
+		BeanDefinition expression =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("payload-expression", element);
+		if (expression != null) {
+			builder.addPropertyValue("payloadExpression", expression);
+		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "stanza-filter");
 	}
 
 }

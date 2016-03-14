@@ -18,9 +18,10 @@ package org.springframework.integration.xmpp.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 
+import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,13 +30,19 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smack.util.PacketParserUtils;
+import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
@@ -63,7 +70,7 @@ public class ChatMessageListeningEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
-		doAnswer(new Answer<Object>() {
+		willAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -71,9 +78,10 @@ public class ChatMessageListeningEndpointTests {
 				return null;
 			}
 
-		}).when(connection).addAsyncStanzaListener(Mockito.any(StanzaListener.class), Mockito.any(StanzaFilter.class));
+		}).given(connection)
+				.addAsyncStanzaListener(Mockito.any(StanzaListener.class), Mockito.any(StanzaFilter.class));
 
-		doAnswer(new Answer<Object>() {
+		willAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -81,7 +89,8 @@ public class ChatMessageListeningEndpointTests {
 				return null;
 			}
 
-		}).when(connection).removeAsyncStanzaListener(Mockito.any(StanzaListener.class));
+		}).given(connection)
+				.removeAsyncStanzaListener(Mockito.any(StanzaListener.class));
 
 		assertEquals(0, packetListSet.size());
 		endpoint.setOutputChannel(new QueueChannel());
@@ -149,6 +158,59 @@ public class ChatMessageListeningEndpointTests {
 		ErrorMessage msg =
 				(ErrorMessage) errorChannel.receive();
 		assertEquals("hello", ((MessagingException) msg.getPayload()).getFailedMessage().getPayload());
+	}
+
+	@Test
+	public void testGcmExtension() throws Exception {
+		String data = "{\n" +
+				"      \"to\":\"me\",\n" +
+				"     \"notification\": {\n" +
+				"        \"title\": \"Something interesting\",\n" +
+				"        \"text\": \"Here we go\"\n" +
+				"           },\n" +
+				"      \"time_to_live\":\"600\"\n" +
+				"      }\n" +
+				"}";
+		GcmPacketExtension packetExtension = new GcmPacketExtension(data);
+		final Message smackMessage = new Message();
+		smackMessage.addExtension(packetExtension);
+
+		class TestXMPPConnection extends XMPPTCPConnection {
+
+			private TestXMPPConnection() {
+				super(null);
+			}
+
+			@Override
+			protected void parseAndProcessStanza(XmlPullParser parser) throws Exception {
+				super.parseAndProcessStanza(parser);
+			}
+
+		}
+
+		TestXMPPConnection testXMPPConnection = new TestXMPPConnection();
+
+		QueueChannel inputChannel = new QueueChannel();
+
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(testXMPPConnection);
+		Expression payloadExpression = new SpelExpressionParser()
+				.parseExpression("getExtension('google:mobile:data').json");
+		endpoint.setPayloadExpression(payloadExpression);
+		endpoint.setOutputChannel(inputChannel);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+
+		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		xmlPullParser.next();
+		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
+
+		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
+		assertNotNull(receive);
+
+		assertEquals(data, receive.getPayload());
+
+		endpoint.stop();
 	}
 
 }

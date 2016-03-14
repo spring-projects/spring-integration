@@ -704,6 +704,7 @@ project('spring-integration-xmpp') {
 		compile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 
 		testCompile project(":spring-integration-stream")
+		testCompile "org.igniterealtime.smack:smack-experimental:$smackVersion"
 	}
 }
 

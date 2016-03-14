@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
@@ -34,10 +35,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +50,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Florian Schmaus
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,6 +71,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	private ChatMessageListeningEndpoint autoChannelAdapter;
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void testInboundAdapter() {
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");
@@ -77,7 +80,16 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(adapter, "outputChannel");
 		assertEquals("xmppInbound", channel.getComponentName());
 		XMPPConnection connection = (XMPPConnection) TestUtils.getPropertyValue(adapter, "xmppConnection");
-		assertEquals(connection, context.getBean("testConnection"));
+		assertSame(connection, context.getBean("testConnection"));
+		Object stanzaFilter = context.getBean("stanzaFilter");
+		assertSame(stanzaFilter, TestUtils.getPropertyValue(adapter, "stanzaFilter"));
+		assertEquals("#root", TestUtils.getPropertyValue(adapter, "payloadExpression.expression"));
+		adapter.start();
+		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
+		assertEquals(1, asyncRecvListeners.size());
+		assertSame(stanzaFilter,
+				TestUtils.getPropertyValue(asyncRecvListeners.values().iterator().next(), "packetFilter"));
+		adapter.stop();
 	}
 
 	@Test
