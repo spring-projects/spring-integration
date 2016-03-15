@@ -254,13 +254,13 @@
 			<xsd:attribute name="header-mapper">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
+						Reference to a SoapHeaderMapper implementation
 						that this gateway will use to map between Spring Integration
 						MessageHeaders and the SoapHeader.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+							<tool:expected-type type="org.springframework.integration.ws.SoapHeaderMapper"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -381,13 +381,13 @@ this list can also be simple patterns to be matched against the header names (e.
 			<xsd:attribute name="header-mapper">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
+						Reference to a SoapHeaderMapper implementation
 						that this gateway will use to map between Spring Integration
 						MessageHeaders and the SoapHeader.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+							<tool:expected-type type="org.springframework.integration.ws.SoapHeaderMapper"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
