@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class OutboundEndpointTests {
 		TestRabbitTemplate amqpTemplate = spy(new TestRabbitTemplate(connectionFactory));
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
 		endpoint.setExpectReply(true);
-		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper mapper = DefaultAmqpHeaderMapper.inboundMapper();
 		mapper.setRequestHeaderNames("*");
 		endpoint.setHeaderMapper(mapper);
 		final AtomicReference<Message> amqpMessage =

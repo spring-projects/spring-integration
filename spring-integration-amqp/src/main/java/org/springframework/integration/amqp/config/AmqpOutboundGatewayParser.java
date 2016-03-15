@@ -82,7 +82,10 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-ack-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-nack-channel");
 
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class,
+		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(DefaultAmqpHeaderMapper.class);
+		mapperBuilder.setFactoryMethod("outboundMapper");
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, mapperBuilder,
 				null);
 
 		return builder;

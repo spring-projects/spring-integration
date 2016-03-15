@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,8 +187,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		listener.onMessage(amqpMessage, null);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
 		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
-		assertNull(siMessage.getHeaders().get("bar"));
-		assertNull(siMessage.getHeaders().get("foo"));
+		assertNotNull(siMessage.getHeaders().get("bar"));
+		assertNotNull(siMessage.getHeaders().get("foo"));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
@@ -199,7 +199,7 @@ public class AmqpInboundChannelAdapterParserTests {
 	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
 		try {
 			new ClassPathXmlApplicationContext("AmqpInboundChannelAdapterParserTests-headerMapper-fail-context.xml",
-					this.getClass());
+					this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +

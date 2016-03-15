@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,6 +186,7 @@ public class AmqpOutboundGatewayParserTests {
 				amqpProperties.setHeader("foobar", "foobar");
 				amqpProperties.setHeader("bar", "bar");
 				assertEquals(MessageDeliveryMode.PERSISTENT, properties.getDeliveryMode());
+				amqpProperties.setReceivedDeliveryMode(properties.getDeliveryMode());
 				return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 			}
 		})
@@ -207,7 +208,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
 		assertNull(replyMessage.getHeaders().get("foobar"));
-		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
+		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.RECEIVED_DELIVERY_MODE));
 		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNotNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
 		context.close();

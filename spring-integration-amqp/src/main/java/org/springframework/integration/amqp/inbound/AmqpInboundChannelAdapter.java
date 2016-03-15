@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
 
-import com.rabbitmq.client.Channel;
-
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
@@ -32,6 +30,8 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -49,7 +49,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 
 	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
