@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,19 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link AbstractMessageHandler} implementation to publish an incoming message
+ * as a JMX {@link Notification}.
+ * The {@link OutboundMessageMapper} is used to convert a {@link Message} to the {@link Notification}.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class NotificationPublishingMessageHandler extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
+public class NotificationPublishingMessageHandler extends AbstractMessageHandler
+		implements BeanFactoryAware, InitializingBean {
 
 	private final PublisherDelegate delegate = new PublisherDelegate();
 
@@ -76,7 +83,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * a default implementation will be used such that String-typed payloads will be
 	 * passed as the 'message' of the Notification and all other payload types
 	 * will be passed as the 'userData' of the Notification.
-	 *
 	 * @param notificationMapper The notification mapper.
 	 */
 	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
@@ -88,7 +94,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 * use by default when <em>no</em> explicit Notification mapper
 	 * has been configured. If not provided, then a notification type header will
 	 * be required for each message being mapped into a Notification.
-	 *
 	 * @param defaultNotificationType The default notification type.
 	 */
 	public void setDefaultNotificationType(String defaultNotificationType) {
@@ -134,7 +139,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	 */
 	@ManagedResource
 	@IntegrationManagedResource
-	private static class PublisherDelegate implements NotificationPublisherAware {
+	public static class PublisherDelegate implements NotificationPublisherAware {
 
 		private volatile NotificationPublisher notificationPublisher;
 
@@ -147,6 +152,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 			Assert.state(this.notificationPublisher != null, "NotificationPublisher must not be null.");
 			this.notificationPublisher.sendNotification(notification);
 		}
+
 	}
 
 }
