@@ -102,6 +102,18 @@ for the XHTML protocol:
 payload-expression="getExtension(T(org.jivesoftware.smackx.xhtmlim.packet.XHTMLExtension).NAMESPACE).bodies[0]"
 ----
 
+To simplify the access to the Extension in the XMPP Message, the `extension` variable is added into the
+`EvaluationContext`.
+Note, it is done only when one and only one Extension is present in the Message.
+The samples above with the `namespace` manipulations can be simplified to something like:
+
+[source,xml]
+ ----
+ payload-expression="#extension.json"
+ payload-expression="#extension.bodies[0]"
+ ----
+
+
 NOTE: The `extract-payload` option has been deprecated in favor of the new `payload-expression` one.
 
 [[xmpp-message-outbound-channel-adapter]]
@@ -242,7 +254,8 @@ public class CustomConnectionConfiguration {
 }
 ----
 
-For more information on the JavaConfig style of Application Context configuration, refer to the following section in the Spring Reference Manual: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
+For more information on the JavaConfig style of Application Context configuration, refer to the following section
+in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-java[Spring Reference Manual].
 
 [[xmpp-message-headers]]
 === XMPP Message Headers

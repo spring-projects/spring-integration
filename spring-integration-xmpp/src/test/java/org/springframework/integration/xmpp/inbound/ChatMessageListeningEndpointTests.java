@@ -239,8 +239,7 @@ public class ChatMessageListeningEndpointTests {
 		QueueChannel inputChannel = new QueueChannel();
 
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(testXMPPConnection);
-		Expression payloadExpression = new SpelExpressionParser()
-				.parseExpression("#extension.json");
+		Expression payloadExpression = new SpelExpressionParser().parseExpression("#extension.json");
 		endpoint.setPayloadExpression(payloadExpression);
 		endpoint.setOutputChannel(inputChannel);
 		endpoint.setBeanFactory(mock(BeanFactory.class));
