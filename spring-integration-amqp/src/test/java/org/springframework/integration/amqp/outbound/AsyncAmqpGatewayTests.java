@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.outbound;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -31,11 +34,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.mockito.Matchers;
 
+import org.springframework.amqp.core.AmqpReplyTimeoutException;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate;
-import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -85,12 +89,13 @@ public class AsyncAmqpGatewayTests {
 		AsyncRabbitTemplate asyncTemplate = spy(new AsyncRabbitTemplate(template, container));
 		asyncTemplate.setEnableConfirms(true);
 		asyncTemplate.setMandatory(true);
+		asyncTemplate.start();
 
 		SimpleMessageListenerContainer receiver = new SimpleMessageListenerContainer(ccf);
 		receiver.setBeanName("receiver");
 		receiver.setQueueNames("asyncQ1");
 		final CountDownLatch waitForAckBeforeReplying = new CountDownLatch(1);
-		receiver.setMessageListener(new MessageListenerAdapter(new Object() {
+		MessageListenerAdapter messageListener = new MessageListenerAdapter(new Object() {
 
 			@SuppressWarnings("unused")
 			public String handleMessage(String foo) {
@@ -103,16 +108,22 @@ public class AsyncAmqpGatewayTests {
 				return foo.toUpperCase();
 			}
 
-		}));
+		});
+		receiver.setMessageListener(messageListener);
 		receiver.afterPropertiesSet();
 		receiver.start();
 
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(asyncTemplate);
 		QueueChannel outputChannel = new QueueChannel();
+		outputChannel.setBeanName("output");
 		QueueChannel returnChannel = new QueueChannel();
+		returnChannel.setBeanName("returns");
 		QueueChannel ackChannel = new QueueChannel();
+		ackChannel.setBeanName("acks");
 		QueueChannel nackChannel = new QueueChannel();
+		nackChannel.setBeanName("nacks");
 		QueueChannel errorChannel = new QueueChannel();
+		errorChannel.setBeanName("errors");
 		gateway.setOutputChannel(outputChannel);
 		gateway.setReturnChannel(returnChannel);
 		gateway.setConfirmAckChannel(ackChannel);
@@ -137,6 +148,30 @@ public class AsyncAmqpGatewayTests {
 		assertNotNull(received);
 		assertEquals("FOO", received.getPayload());
 
+		// timeout
+		asyncTemplate.setReceiveTimeout(100);
+		receiver.setMessageListener(new MessageListener() {
+
+			@Override
+			public void onMessage(org.springframework.amqp.core.Message message) {
+			}
+
+		});
+		gateway.handleMessage(message);
+		assertNull(errorChannel.receive(1000));
+
+		gateway.setRequiresReply(true);
+		gateway.handleMessage(message);
+
+		received = errorChannel.receive(10000);
+		assertThat(received, instanceOf(ErrorMessage.class));
+		ErrorMessage error = (ErrorMessage) received;
+		assertThat(error.getPayload(), instanceOf(MessagingException.class));
+		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(AmqpReplyTimeoutException.class));
+		asyncTemplate.setReceiveTimeout(30000);
+		receiver.setMessageListener(messageListener);
+
+		// error on sending result
 		DirectChannel errorForce = new DirectChannel();
 		errorForce.subscribe(new MessageHandler() {
 
@@ -150,7 +185,7 @@ public class AsyncAmqpGatewayTests {
 		gateway.handleMessage(message);
 		received = errorChannel.receive(10000);
 		assertThat(received, instanceOf(ErrorMessage.class));
-		ErrorMessage error = (ErrorMessage) received;
+		error = (ErrorMessage) received;
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));
 		assertEquals("FOO", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
 
@@ -161,9 +196,9 @@ public class AsyncAmqpGatewayTests {
 		assertEquals("foo", returned.getPayload());
 
 		// Simulate a nack - hard to get Rabbit to generate one
-		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null);
+		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null, null);
 		doReturn(future).when(asyncTemplate).sendAndReceive(anyString(), anyString(),
-				Matchers.any(org.springframework.amqp.core.Message.class));
+				any(org.springframework.amqp.core.Message.class));
 		DirectFieldAccessor dfa = new DirectFieldAccessor(future);
 		dfa.setPropertyValue("nackCause", "nacknack");
 		SettableListenableFuture<Boolean> confirmFuture = new SettableListenableFuture<Boolean>();
@@ -178,6 +213,7 @@ public class AsyncAmqpGatewayTests {
 		assertEquals("nacknack", ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE));
 		assertEquals(false, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
 
+		asyncTemplate.stop();
 		receiver.stop();
 	}
 

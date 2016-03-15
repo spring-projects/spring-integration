@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.outbound;
 
 import java.util.HashMap;
@@ -60,7 +61,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
 	private volatile Expression confirmCorrelationExpression;
 

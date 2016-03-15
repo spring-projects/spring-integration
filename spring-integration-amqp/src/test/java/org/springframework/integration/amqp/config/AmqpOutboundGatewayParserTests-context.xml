@@ -88,6 +88,7 @@
 	<amqp:outbound-async-gateway id="asyncGateway" request-channel="toRabbit0"
 		reply-channel="fromRabbit"
 		reply-timeout="777"
+		requires-reply="false"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		async-template="asyncTemplate"
@@ -97,7 +98,7 @@
 		<int:poller fixed-delay="100"/>
 	</amqp:outbound-async-gateway>
 
-	<bean id="asyncTemplate" class="org.springframework.amqp.rabbit.core.AsyncRabbitTemplate">
+	<bean id="asyncTemplate" class="org.springframework.amqp.rabbit.AsyncRabbitTemplate">
 		<constructor-arg>
 			<bean class="org.springframework.amqp.rabbit.core.RabbitTemplate">
 				<constructor-arg ref="connectionFactory" />

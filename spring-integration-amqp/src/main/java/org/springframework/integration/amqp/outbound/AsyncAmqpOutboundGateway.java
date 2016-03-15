@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.amqp.outbound;
 
 import org.springframework.amqp.core.AmqpMessageReturnedException;
-import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate;
-import org.springframework.amqp.rabbit.core.AsyncRabbitTemplate.RabbitMessageFuture;
+import org.springframework.amqp.core.AmqpReplyTimeoutException;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -41,6 +44,8 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 	private final MessageConverter messageConverter;
 
+	private volatile boolean requiresReply; // overrides super
+
 	public AsyncAmqpOutboundGateway(AsyncRabbitTemplate template) {
 		Assert.notNull(template, "AsyncRabbitTemplate cannot be null");
 		this.template = template;
@@ -48,6 +53,12 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 		Assert.notNull(this.messageConverter, "the template's message converter cannot be null");
 		setConnectionFactory(this.template.getConnectionFactory());
 		setAsyncReplySupported(true);
+	}
+
+	@Override
+	public void setRequiresReply(boolean requiresReply) {
+		super.setRequiresReply(false);
+		this.requiresReply = requiresReply;
 	}
 
 	@Override
@@ -97,6 +108,19 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 		@Override
 		public void onFailure(Throwable ex) {
+			Throwable exceptionToSend = ex;
+			if (ex instanceof AmqpReplyTimeoutException) {
+				if (AsyncAmqpOutboundGateway.this.requiresReply) {
+					exceptionToSend = new ReplyRequiredException(this.requestMessage, "Timeout on async request/reply",
+							ex);
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Reply not required and async timeout for " + this.requestMessage);
+					}
+					return;
+				}
+			}
 			if (ex instanceof AmqpMessageReturnedException) {
 				if (getReturnChannel() == null) {
 					logger.error("Returned message received and no return channel "
@@ -111,7 +135,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 				}
 			}
 			else {
-				sendErrorMessage(ex, this.requestMessage.getHeaders().getErrorChannel());
+				sendErrorMessage(exceptionToSend, this.requestMessage.getHeaders().getErrorChannel());
 			}
 		}
 

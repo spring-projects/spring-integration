@@ -57,7 +57,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.requiresReply = requiresReply;
 	}
 
-
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notNull(adviceChain, "adviceChain cannot be null");
 		this.adviceChain = adviceChain;
