@@ -16,15 +16,20 @@
 
 package org.springframework.integration.xmpp.inbound;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -34,11 +39,13 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.xmlpull.v1.XmlPullParser;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.expression.Expression;
@@ -85,7 +92,7 @@ public class ChatMessageListeningEndpointTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.remove((StanzaListener) invocation.getArguments()[0]);
+				packetListSet.remove(invocation.getArguments()[0]);
 				return null;
 			}
 
@@ -161,6 +168,58 @@ public class ChatMessageListeningEndpointTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
+	public void testExpression() throws Exception {
+		TestXMPPConnection testXMPPConnection = new TestXMPPConnection();
+
+		QueueChannel inputChannel = new QueueChannel();
+
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(testXMPPConnection);
+		endpoint.setExtractPayload(false);
+		endpoint.setOutputChannel(inputChannel);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+
+		Message smackMessage = new Message();
+		smackMessage.setBody("foo");
+
+		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		xmlPullParser.next();
+		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
+
+		org.springframework.messaging.Message<?> receive = inputChannel.receive(10000);
+		assertNotNull(receive);
+
+		Object payload = receive.getPayload();
+		assertThat(payload, instanceOf(Message.class));
+		assertEquals(smackMessage.getStanzaId(), ((Message) payload).getStanzaId());
+		assertEquals(smackMessage.getBody(), ((Message) payload).getBody());
+
+		Log logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", Log.class));
+		given(logger.isInfoEnabled()).willReturn(true);
+
+		new DirectFieldAccessor(endpoint).setPropertyValue("logger", logger);
+
+		endpoint.setPayloadExpression(null);
+
+		smackMessage = new Message();
+		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		xmlPullParser.next();
+		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
+
+		ArgumentCaptor<String> argumentCaptor = new ArgumentCaptor<String>();
+
+		verify(logger).info(argumentCaptor.capture());
+
+
+		assertEquals("The XMPP Message [" + smackMessage + "] with empty body is ignored.",
+				argumentCaptor.getValue());
+
+		endpoint.stop();
+	}
+
+	@Test
 	public void testGcmExtension() throws Exception {
 		String data = "{\n" +
 				"      \"to\":\"me\",\n" +
@@ -172,21 +231,8 @@ public class ChatMessageListeningEndpointTests {
 				"      }\n" +
 				"}";
 		GcmPacketExtension packetExtension = new GcmPacketExtension(data);
-		final Message smackMessage = new Message();
+		Message smackMessage = new Message();
 		smackMessage.addExtension(packetExtension);
-
-		class TestXMPPConnection extends XMPPTCPConnection {
-
-			private TestXMPPConnection() {
-				super(null);
-			}
-
-			@Override
-			protected void parseAndProcessStanza(XmlPullParser parser) throws Exception {
-				super.parseAndProcessStanza(parser);
-			}
-
-		}
 
 		TestXMPPConnection testXMPPConnection = new TestXMPPConnection();
 
@@ -212,5 +258,20 @@ public class ChatMessageListeningEndpointTests {
 
 		endpoint.stop();
 	}
+
+	private static class TestXMPPConnection extends XMPPTCPConnection {
+
+		private TestXMPPConnection() {
+			super(null);
+		}
+
+		@Override
+		protected void parseAndProcessStanza(XmlPullParser parser) throws Exception {
+			super.parseAndProcessStanza(parser);
+		}
+
+	}
+
+
 
 }

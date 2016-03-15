@@ -76,9 +76,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	@Deprecated
 	public void setExtractPayload(boolean extractPayload) {
 		if (this.payloadExpression == null) {
-			setPayloadExpression(extractPayload ?
-					EXPRESSION_PARSER.parseExpression("payload")
-					: EXPRESSION_PARSER.parseExpression("#this"));
+			setPayloadExpression(extractPayload ? null : EXPRESSION_PARSER.parseExpression("#this"));
 		}
 	}
 
@@ -98,6 +96,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	 * @param payloadExpression the {@link Expression} for payload evaluation.
 	 * @since 4.3
 	 * @see StanzaListener
+	 * @see org.jivesoftware.smack.packet.Message
 	 */
 	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
@@ -147,6 +146,16 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 					sendMessage(getMessageBuilderFactory()
 							.withPayload(messageBody)
 							.copyHeaders(mappedHeaders).build());
+				}
+				else if (logger.isInfoEnabled()) {
+					if (ChatMessageListeningEndpoint.this.payloadExpression != null) {
+						logger.info("The 'payloadExpression' ["
+								+ ChatMessageListeningEndpoint.this.payloadExpression.getExpressionString()
+						+ "] has been evaluated to 'null'. The XMPP Message [" + xmppMessage + "] is ignored.");
+					}
+					else {
+						logger.info("The XMPP Message [" + xmppMessage + "] with empty body is ignored.");
+					}
 				}
 			}
 		}

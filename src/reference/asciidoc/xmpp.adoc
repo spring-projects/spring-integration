@@ -297,7 +297,7 @@ This is important because the XMPP specification deliberately describes only a s
 - How servers can communicate with each other to relay messages
 - and a few other basic building blocks.
 
-Once you have implemented this stuff, you have an XMPP client and can send any kind of data you like.
+Once you have implemented this, you have an XMPP client and can send any kind of data you like.
 But that's not the end.
 
 For example, perhaps you decide that you want to include formatting in a message (bold, italic, etc.) which is not
