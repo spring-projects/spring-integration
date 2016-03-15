@@ -57,7 +57,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.requiresReply = requiresReply;
 	}
 
-
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notNull(adviceChain, "adviceChain cannot be null");
 		this.adviceChain = adviceChain;
@@ -108,7 +107,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			throw new ReplyRequiredException(message, "No reply produced by handler '" +
 					getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
-		else if (logger.isDebugEnabled()) {
+		else if (!getAsyncReplySupported() && logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
 		}
 	}

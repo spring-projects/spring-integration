@@ -32,6 +32,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -82,8 +83,17 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 *
 	 * @since 4.3
 	 */
-	protected void setAsyncReplySupported(boolean asyncReplySupported) {
+	protected final void setAsyncReplySupported(boolean asyncReplySupported) {
 		this.asyncReplySupported = asyncReplySupported;
+	}
+
+	/**
+	 * @see #setAsyncReplySupported(boolean)
+	 * @return true if this handler supports async replies.
+	 * @since 4.3
+	 */
+	protected boolean getAsyncReplySupported() {
+		return this.asyncReplySupported;
 	}
 
 	@Override
@@ -174,13 +184,18 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 				@Override
 				public void onSuccess(Object result) {
+					Message<?> replyMessage = null;
 					try {
-						sendOutput(createOutputMessage(result, requestHeaders), theReplyChannel, false);
+						replyMessage = createOutputMessage(result, requestHeaders);
+						sendOutput(replyMessage, theReplyChannel, false);
 					}
 					catch (Exception e) {
 						Exception exceptionToLogAndSend = e;
 						if (!(e instanceof MessagingException)) {
 							exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
+							if (replyMessage != null) {
+								exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
+							}
 						}
 						logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
 						onFailure(exceptionToLogAndSend);
@@ -200,7 +215,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 					}
 					else {
 						try {
-							sendOutput(createOutputMessage(result, requestHeaders), errorChannel, true);
+							sendOutput(new ErrorMessage(result), errorChannel, true);
 						}
 						catch (Exception e) {
 							Exception exceptionToLog = e;
@@ -254,7 +269,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
-	private Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
+	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		if (output instanceof Message<?>) {
 			if (!this.shouldCopyRequestHeaders()) {
@@ -280,12 +295,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param output the output object to send
 	 * @param replyChannel the 'replyChannel' value from the original request
-	 * @param isError - this is an error, use the replyChannel argument (must not be null), not
+	 * @param useArgChannel - use the replyChannel argument (must not be null), not
 	 * the configured output channel.
 	 */
-	private void sendOutput(Object output, Object replyChannel, boolean isError) {
+	protected void sendOutput(Object output, Object replyChannel, boolean useArgChannel) {
 		MessageChannel outputChannel = getOutputChannel();
-		if (!isError && outputChannel != null) {
+		if (!useArgChannel && outputChannel != null) {
 			replyChannel = outputChannel;
 		}
 		if (replyChannel == null) {
