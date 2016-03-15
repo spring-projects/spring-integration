@@ -240,7 +240,7 @@ public class ChatMessageListeningEndpointTests {
 
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(testXMPPConnection);
 		Expression payloadExpression = new SpelExpressionParser()
-				.parseExpression("getExtension('google:mobile:data').json");
+				.parseExpression("#extension.json");
 		endpoint.setPayloadExpression(payloadExpression);
 		endpoint.setOutputChannel(inputChannel);
 		endpoint.setBeanFactory(mock(BeanFactory.class));
