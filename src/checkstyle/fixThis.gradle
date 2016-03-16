@@ -1,0 +1,65 @@
+task fixThis << {
+	fileTree("${buildDir}/reports/checkstyle").include('*.xml').each { report ->
+		println "processing $report"
+		def xml = new XmlParser(false, false).parse(report)
+		xml.file.each { f ->
+			// println "processing $f"
+			def errors = f.error
+			def hasThisError = false
+			def thisErrors = []
+			errors.each { error ->
+				if (error.@source == 'com.puppycrawl.tools.checkstyle.checks.coding.RequireThisCheck') {
+					thisErrors.add(error)
+					hasThisError = true
+				}
+			}
+			// println hasThisError
+			// println f.@name
+			if (hasThisError) {
+				def errorInx = 0
+				def error = thisErrors[errorInx++]
+				def lx = Integer.valueOf(error.@line)
+				println error
+				def file = new File(f.@name)
+				def outSource = ''
+				def ln = 0
+				file.eachLine { line ->
+					// println line
+					ln++
+					def matcher = line =~ /Copyright (20\d\d)(?:-20\d\d)?/
+					if (matcher.count) {
+						def years = matcher[0][1]
+						if (years != now) {
+							years = years + "-$now"
+						}
+						line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, years)
+					}
+					if (error && ln == lx) {
+						// println line
+						def beforeIndex = Integer.valueOf(error.@column) - 1
+						def chars = line.toCharArray()
+						for (int i = 0; i < beforeIndex; i++) {
+							if (chars[i] == '\t') { // tabs before code == 8
+								beforeIndex -= 7;
+							}
+							else if (chars[i] != ' ') { // tabs after code start are only counted as 1
+								break;
+							}
+						}
+						line = line.substring(0, beforeIndex) + "this." + line.substring(beforeIndex)
+						// println line
+						error = thisErrors[errorInx++]
+						while (error && lx == Integer.valueOf(error.@line)) {
+							error = thisErrors[errorInx++]
+						}
+						if (error) {
+							lx = Integer.valueOf(error.@line)
+						}
+					}
+					outSource += line + '\n'
+				}
+				file.write(outSource)
+			}
+		}
+	}
+}

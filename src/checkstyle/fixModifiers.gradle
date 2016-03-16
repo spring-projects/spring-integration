@@ -1,0 +1,50 @@
+task fixModifiers << {
+	fileTree("${buildDir}/reports/checkstyle").include('*.xml').each { report ->
+		def xml = new XmlParser(false, false).parse(report)
+		xml.file.each { f ->
+			def errors = f.error
+			def modifierErrors = []
+			errors.each { error ->
+				if (error.@source == 'com.puppycrawl.tools.checkstyle.checks.modifier.RedundantModifierCheck') {
+					modifierErrors.add(error)
+				}
+			}
+			if (modifierErrors) {
+				def errorInx = 0
+				def error = modifierErrors[errorInx++]
+				def file = new File(f.@name)
+				println "Fixing file $file ..."
+				boolean headerFixed
+				def outSource = ''
+				file.eachLine { line, ln ->
+					if (!headerFixed) {
+						def matcher = line =~ /Copyright (20\d\d)(?:-20\d\d)?/
+						if (matcher.count) {
+							def years = matcher[0][1]
+							if (years != now) {
+								years = years + "-$now"
+							}
+							line = line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, years)
+							headerFixed = true
+						}
+					}
+
+					while (error && ln == (error.@line as int)) {
+						def message = error.@message
+						def modifier = message.substring(message.indexOf('\'') + 1, message.lastIndexOf('\''))
+
+						line = line.replaceFirst(modifier + ' ', '')
+
+						println "Fixed line $line"
+
+						error = modifierErrors[errorInx++]
+					}
+
+					outSource += line + '\n'
+				}
+				file.write(outSource)
+				println()
+			}
+		}
+	}
+}
