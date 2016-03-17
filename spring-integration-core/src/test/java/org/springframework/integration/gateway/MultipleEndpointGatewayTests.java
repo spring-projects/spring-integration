@@ -58,8 +58,8 @@ public class MultipleEndpointGatewayTests {
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
 	
-	public static interface SampleGateway{
-		public Object echo(Object value);
+	public interface SampleGateway{
+		Object echo(Object value);
 	}
 	
 	public static class SampleEchoService {

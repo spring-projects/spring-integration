@@ -82,12 +82,12 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	@Override
-	protected final boolean isHandler(Class<?> beanType) {
+	protected boolean isHandler(Class<?> beanType) {
 		return HttpRequestHandlingEndpointSupport.class.isAssignableFrom(beanType);
 	}
 
 	@Override
-	protected final HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+	protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
 		if (handler instanceof HandlerMethod) {
 			HandlerMethod handlerMethod = (HandlerMethod) handler;
 			Object bean = handlerMethod.getBean();
@@ -109,7 +109,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	@Override
-	protected final void detectHandlerMethods(Object handler) {
+	protected void detectHandlerMethods(Object handler) {
 		if (handler instanceof String) {
 			handler = this.getApplicationContext().getBean((String) handler);
 		}

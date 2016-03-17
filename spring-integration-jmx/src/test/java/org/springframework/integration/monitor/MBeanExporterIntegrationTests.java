@@ -366,7 +366,7 @@ public class MBeanExporterIntegrationTests {
 
 	}
 
-	public static interface Service {
+	public interface Service {
 		String execute() throws Exception;
 		int getCounter();
 	}
@@ -387,7 +387,7 @@ public class MBeanExporterIntegrationTests {
 		}
 	}
 
-	public static interface ActiveChannel {
+	public interface ActiveChannel {
 		boolean isStopCalled();
 	}
 

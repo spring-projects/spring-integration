@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ import java.util.Map;
  */
 interface PublisherMetadataSource {
 
-	static final String METHOD_NAME_VARIABLE_NAME = "method";
+	String METHOD_NAME_VARIABLE_NAME = "method";
 
-	static final String ARGUMENT_MAP_VARIABLE_NAME = "args";
+	String ARGUMENT_MAP_VARIABLE_NAME = "args";
 
-	static final String RETURN_VALUE_VARIABLE_NAME = "return";
+	String RETURN_VALUE_VARIABLE_NAME = "return";
 
-	static final String EXCEPTION_VARIABLE_NAME = "exception";
+	String EXCEPTION_VARIABLE_NAME = "exception";
 
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,13 +106,13 @@ public class HeaderEnrichedGatewayTests {
 	}
 
 
-	public static interface SampleGateway {
+	public interface SampleGateway {
 
-		public void sendString(String value);
+		void sendString(String value);
 
-		public void sendInteger(Integer value);
+		void sendInteger(Integer value);
 
-		public void sendStringWithParameterHeaders(String value,
+		void sendStringWithParameterHeaders(String value,
 				@Header("headerA") String headerA, @Header("headerB") String headerB);
 
 	}

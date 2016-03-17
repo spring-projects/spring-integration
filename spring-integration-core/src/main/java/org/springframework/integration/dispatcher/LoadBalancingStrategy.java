@@ -31,6 +31,6 @@ import org.springframework.messaging.MessageHandler;
  */
 public interface LoadBalancingStrategy {
 
-	public Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers);
+	Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers);
 
 }

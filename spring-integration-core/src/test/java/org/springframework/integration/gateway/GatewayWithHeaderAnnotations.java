@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,9 +48,9 @@ public class GatewayWithHeaderAnnotations {
 	}
 
 
-	public static interface TestService {
+	public interface TestService {
 		// wrt INT-1205, priority no longer has a $ prefix, so here we are testing the $custom header as well
-		public String test(String str, @Header(IntegrationMessageHeaderAccessor.PRIORITY) int priority,
+		String test(String str, @Header(IntegrationMessageHeaderAccessor.PRIORITY) int priority,
 				@Header("$custom") String custom);
 
 	}

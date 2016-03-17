@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,42 +27,42 @@ public interface FileInfo<F> {
 	/**
 	 * @return true if the remote file is a directory
 	 */
-	public abstract boolean isDirectory();
+	boolean isDirectory();
 
 	/**
 	 * @return true if the remote file is a link
 	 */
-	public abstract boolean isLink();
+	boolean isLink();
 
 	/**
 	 * @return the size of the remote file
 	 */
-	public abstract long getSize();
+	long getSize();
 
 	/**
 	 * @return the modified time of the remote file
 	 */
-	public abstract long getModified();
+	long getModified();
 
 	/**
 	 * @return the name of the remote file
 	 */
-	public abstract String getFilename();
+	String getFilename();
 
 	/**
 	 * @return the remote directory in which the file resides
 	 */
-	public abstract String getRemoteDirectory();
+	String getRemoteDirectory();
 
 	/**
 	 * @return a string representing the permissions of the remote
 	 * file (e.g. -rw-r--r--).
 	 */
-	public String getPermissions();
+	String getPermissions();
 
 	/**
 	 * @return the actual implementation from the underlying
 	 * library,  more sophisticated access is needed.
 	 */
-	public F getFileInfo();
+	F getFileInfo();
 }

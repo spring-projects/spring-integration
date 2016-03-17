@@ -91,7 +91,7 @@ public class MutableMessageBuilderFactoryTests {
 		}
 
 		@MessagingGateway
-		static interface TestGateway {
+		interface TestGateway {
 
 			@Gateway(requestChannel = "input")
 			void input(String payload);

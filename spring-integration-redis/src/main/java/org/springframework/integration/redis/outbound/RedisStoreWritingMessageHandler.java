@@ -480,6 +480,6 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private interface PipelineCallback {
-		public void process();
+		void process();
 	}
 }

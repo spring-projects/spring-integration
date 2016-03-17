@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,10 +70,10 @@ public class MultiMethodGatewayConfigTests {
 		}
 	}
 
-	public static interface TestGateway {
-		public String echo(String str);
-		public String echoViaDefault(String str);
-		public String echoUpperCase(String str);
+	public interface TestGateway {
+		String echo(String str);
+		String echoViaDefault(String str);
+		String echoUpperCase(String str);
 	}
 
 }

@@ -110,7 +110,7 @@ public class InnerGatewayWithChainTests {
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
-	public static interface TestGateway{
-		public String echo(int value);
+	public interface TestGateway{
+		String echo(int value);
 	}
 }

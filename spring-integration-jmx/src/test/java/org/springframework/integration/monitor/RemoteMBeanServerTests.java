@@ -92,7 +92,7 @@ public class RemoteMBeanServerTests {
 		assertEquals("bar", message.getPayload());
 	}
 
-	public static interface TesterMBean {
+	public interface TesterMBean {
 
 		String getFoo();
 

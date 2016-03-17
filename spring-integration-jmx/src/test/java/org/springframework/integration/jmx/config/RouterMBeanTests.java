@@ -98,7 +98,7 @@ public class RouterMBeanTests {
 		assertEquals(0, names.size());
 	}
 
-	public static interface Service {
+	public interface Service {
 		void send(String input);
 	}
 

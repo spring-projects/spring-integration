@@ -62,7 +62,7 @@ public class ClientModeControlBusTests {
 		controlBus.voidResult("@tcpIn.retryConnection()");
 	}
 
-	public static interface ControlBus {
+	public interface ControlBus {
 
 		boolean boolResult(String command);
 

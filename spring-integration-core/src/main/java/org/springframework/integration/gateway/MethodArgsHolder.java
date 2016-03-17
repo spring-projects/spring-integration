@@ -40,11 +40,11 @@ public final class MethodArgsHolder {
 		this.args = args;//NOSONAR - direct storage
 	}
 
-	public final Method getMethod() {
+	public Method getMethod() {
 		return method;
 	}
 
-	public final Object[] getArgs() {
+	public Object[] getArgs() {
 		return args;//NOSONAR - direct access
 	}
 

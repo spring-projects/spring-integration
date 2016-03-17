@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import org.w3c.dom.Node;
  */
 public interface XmlPayloadConverter {
 
-	public Document convertToDocument(Object object);
+	Document convertToDocument(Object object);
 
-	public Node convertToNode(Object object);
+	Node convertToNode(Object object);
 
-	public Source convertToSource(Object object);
+	Source convertToSource(Object object);
 
 }

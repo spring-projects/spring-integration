@@ -74,7 +74,7 @@ public class GatewayXmlAndAnnotationTests {
 		assertEquals(4, assertions);
 	}
 
-	public static interface AGateway {
+	public interface AGateway {
 		@Gateway
 		String annotationShouldntOverrideDefault(String foo);
 

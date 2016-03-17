@@ -104,7 +104,7 @@ public class HandlerMonitoringIntegrationTests {
 		return context;
 	}
 
-	public static interface Service {
+	public interface Service {
 		void execute(String input) throws Exception;
 		int getCounter();
 	}

@@ -397,19 +397,19 @@ public class GatewayInterfaceTests {
 	public interface Foo {
 
 		@Gateway(requestChannel="requestChannelFoo")
-		public void foo(String payload);
+		void foo(String payload);
 
-		public void baz(String payload);
+		void baz(String payload);
 
-		public String lateReply(String payload);
+		String lateReply(String payload);
 
 	}
 
-	public static interface Bar extends Foo {
+	public interface Bar extends Foo {
 		@Gateway(requestChannel="requestChannelBar")
-		public void bar(String payload);
+		void bar(String payload);
 
-		public void qux(String payload, @Header("name") String nameHeader);
+		void qux(String payload, @Header("name") String nameHeader);
 	}
 
 	public static class NotAnInterface {
@@ -418,7 +418,7 @@ public class GatewayInterfaceTests {
 
 	public interface Baz {
 
-		public void baz(String payload);
+		void baz(String payload);
 	}
 
 	public static class BazMapper implements MethodArgsMessageMapper {

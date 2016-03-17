@@ -147,7 +147,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 
 
-	public static interface TestGateway {
+	public interface TestGateway {
 
 		String service(String payload);
 

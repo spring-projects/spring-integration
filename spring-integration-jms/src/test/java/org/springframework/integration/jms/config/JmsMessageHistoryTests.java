@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,11 +64,11 @@ public class JmsMessageHistoryTests {
 
 
 
-	public static interface SampleGateway {
+	public interface SampleGateway {
 
-		public void send(String value);
+		void send(String value);
 
-		public Message<?> echo(String value);
+		Message<?> echo(String value);
 
 	}
 

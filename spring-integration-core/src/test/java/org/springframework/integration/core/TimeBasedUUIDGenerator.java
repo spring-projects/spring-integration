@@ -83,7 +83,7 @@ class TimeBasedUUIDGenerator {
 			return new UUID(time, lsb);
 		}
 	}
-	private static final long getMac(){
+	private static long getMac(){
 		long  macAddressAsLong = 0;
 		try {
 			InetAddress address = InetAddress.getLocalHost();

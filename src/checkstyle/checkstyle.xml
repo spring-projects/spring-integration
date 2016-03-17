@@ -125,7 +125,7 @@
 <!-- 		<module name="OuterTypeFilename" /> -->
 
 		<!-- Modifiers -->
-<!-- 		<module name="RedundantModifier" /> -->
+ 		<module name="RedundantModifier" />
 
 		<!-- Regexp -->
 <!--  		<module name="RegexpSinglelineJava"> -->

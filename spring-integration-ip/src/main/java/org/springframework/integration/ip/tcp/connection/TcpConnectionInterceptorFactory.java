@@ -32,6 +32,6 @@ public interface TcpConnectionInterceptorFactory {
 	 *
 	 * @return the TcpInterceptor
 	 */
-	abstract TcpConnectionInterceptorSupport getInterceptor();
+	TcpConnectionInterceptorSupport getInterceptor();
 }
 

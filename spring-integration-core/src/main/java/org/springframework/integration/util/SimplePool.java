@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,7 +255,7 @@ public class SimplePool<T> implements Pool<T> {
 	 * various pool operations.
 	 *
 	 */
-	public static interface PoolItemCallback<T> {
+	public interface PoolItemCallback<T> {
 
 		/**
 		 * Called by the pool when a new instance is required to populate the pool. Only

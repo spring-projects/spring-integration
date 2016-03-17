@@ -435,7 +435,7 @@ public class StompIntegrationTests {
 
 	@MessagingGateway
 	@Controller
-	static interface WebSocketGateway {
+	interface WebSocketGateway {
 
 		@MessageMapping("/greeting")
 		@SendToUser("/queue/answer")

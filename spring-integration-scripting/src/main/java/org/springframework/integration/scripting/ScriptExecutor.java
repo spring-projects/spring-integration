@@ -30,13 +30,13 @@ public interface ScriptExecutor {
 	 * @param scriptSource The script source.
 	 * @return The result of the execution.
 	 */
-	public abstract Object executeScript(ScriptSource scriptSource);
+	Object executeScript(ScriptSource scriptSource);
 
 	/**
 	 * @param scriptSource The script source.
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 */
-	public abstract Object executeScript(ScriptSource scriptSource, Map<String,Object> variables);
+	Object executeScript(ScriptSource scriptSource, Map<String,Object> variables);
 
 }

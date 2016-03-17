@@ -37,6 +37,6 @@ public interface PostProcessingMessageHandler {
 	 * @param message The message.
 	 * @return The post-processed result.
 	 */
-	public Object postProcess(Message<?> message, Object result);
+	Object postProcess(Message<?> message, Object result);
 
 }
