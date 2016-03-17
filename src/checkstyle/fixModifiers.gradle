@@ -18,12 +18,13 @@ task fixModifiers << {
 				def outSource = ''
 				file.eachLine { line, ln ->
 					if (!headerFixed) {
-						def matcher = line =~ /Copyright (20\d\d)(?:-20\d\d)?/
+						def matcher = line =~ /Copyright (20\d\d)(?:-(20\d\d))?/
 						if (matcher.count) {
-							def years = matcher[0][1]
-							if (years != now) {
-								years = years + "-$now"
-								line = line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, years)
+							def year1 = matcher[0][1]
+							if (now != year1) {
+								if (now != matcher[0][2]) {
+									line = line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, year1 + "-$now")
+								}
 							}
 							headerFixed = true
 						}
