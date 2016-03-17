@@ -91,17 +91,17 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			}
 		};
 
-		for (TypeFilter typeFilter : componentRegistrars.keySet()) {
+		for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
 			scanner.addIncludeFilter(typeFilter);
 		}
 
-		scanner.setResourceLoader(resourceLoader);
+		scanner.setResourceLoader(this.resourceLoader);
 
 		for (String basePackage : basePackages) {
 			Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
 			for (BeanDefinition candidateComponent : candidateComponents) {
 				if (candidateComponent instanceof AnnotatedBeanDefinition) {
-					for (ImportBeanDefinitionRegistrar importBeanDefinitionRegistrar : componentRegistrars.values()) {
+					for (ImportBeanDefinitionRegistrar importBeanDefinitionRegistrar : this.componentRegistrars.values()) {
 						importBeanDefinitionRegistrar.registerBeanDefinitions(((AnnotatedBeanDefinition) candidateComponent).getMetadata(),
 								registry);
 					}

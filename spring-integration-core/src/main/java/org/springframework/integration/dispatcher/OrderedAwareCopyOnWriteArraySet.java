@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,21 +61,21 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 
 	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
-	private final ReadLock readLock = rwl.readLock();
+	private final ReadLock readLock = this.rwl.readLock();
 
-	private final WriteLock writeLock = rwl.writeLock();
+	private final WriteLock writeLock = this.rwl.writeLock();
 
 	private final CopyOnWriteArraySet<E> elements;
 
 	private final Set<E> unmodifiableElements;
 
 	OrderedAwareCopyOnWriteArraySet() {
-		elements = new CopyOnWriteArraySet<E>();
-		unmodifiableElements = Collections.unmodifiableSet(elements);
+		this.elements = new CopyOnWriteArraySet<E>();
+		this.unmodifiableElements = Collections.unmodifiableSet(this.elements);
 	}
 
 	public Set<E> asUnmodifiableSet() {
-		return unmodifiableElements;
+		return this.unmodifiableElements;
 	}
 
 	/**
@@ -86,19 +86,19 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	@Override
 	public boolean add(E o) {
 		Assert.notNull(o,"Can not add NULL object");
-		writeLock.lock();
+		this.writeLock.lock();
 		try {
 			boolean present = false;
 			if (o instanceof Ordered){
 				present = this.addOrderedElement((Ordered) o);
 			}
 			else {
-				present = elements.add(o);
+				present = this.elements.add(o);
 			}
 			return present;
 		}
 		finally {
-			writeLock.unlock();
+			this.writeLock.unlock();
 		}
 	}
 
@@ -108,7 +108,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		Assert.notNull(c,"Can not merge with NULL set");
-		writeLock.lock();
+		this.writeLock.lock();
 		try {
 			for (E object : c) {
 				this.add(object);
@@ -116,7 +116,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 			return true;
 		}
 		finally {
-			writeLock.unlock();
+			this.writeLock.unlock();
 		}
 	}
 
@@ -125,14 +125,14 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	 */
 	@Override
 	public boolean remove(Object o) {
-		writeLock.lock();
+		this.writeLock.lock();
 		try {
-			boolean removed = elements.remove(o);
+			boolean removed = this.elements.remove(o);
 			//unmodifiableElements = Collections.unmodifiableSet(this);
 			return removed;
 		}
 		finally {
-			writeLock.unlock();
+			this.writeLock.unlock();
 		}
 	}
 
@@ -144,59 +144,59 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 		if (CollectionUtils.isEmpty(c)){
 			return false;
 		}
-		writeLock.lock();
+		this.writeLock.lock();
 		try {
-			return elements.removeAll(c);
+			return this.elements.removeAll(c);
 		}
 		finally {
-			writeLock.unlock();
+			this.writeLock.unlock();
 		}
 	}
 
 	@Override
 	public <T> T[] toArray(T[] a) {
-		readLock.lock();
+		this.readLock.lock();
 		try {
-			return elements.toArray(a);
+			return this.elements.toArray(a);
 		}
 		finally {
-			readLock.unlock();
+			this.readLock.unlock();
 		}
 	}
 
 	@Override
 	public String toString() {
-		readLock.lock();
+		this.readLock.lock();
 		try {
-			return StringUtils.collectionToCommaDelimitedString(elements);
+			return StringUtils.collectionToCommaDelimitedString(this.elements);
 		}
 		finally {
-			readLock.unlock();
+			this.readLock.unlock();
 		}
 	}
 
 	@SuppressWarnings("rawtypes")
 	private boolean addOrderedElement(Ordered adding) {
 		boolean added = false;
-		E[] tempUnorderedElements = (E[]) elements.toArray();
-		if (elements.contains(adding)) {
+		E[] tempUnorderedElements = (E[]) this.elements.toArray();
+		if (this.elements.contains(adding)) {
 			return false;
 		}
-		elements.clear();
+		this.elements.clear();
 
 		if (tempUnorderedElements.length == 0) {
-			added = elements.add((E) adding);
+			added = this.elements.add((E) adding);
 		}
 		else {
 			Set tempSet = new LinkedHashSet();
 			for (E current : tempUnorderedElements) {
 				if (current instanceof Ordered) {
 					if (this.comparator.compare(adding, current) < 0) {
-						added = elements.add((E) adding);
-						elements.add(current);
+						added = this.elements.add((E) adding);
+						this.elements.add(current);
 					}
 					else {
-						elements.add(current);
+						this.elements.add(current);
 					}
 				}
 				else {
@@ -204,10 +204,10 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 				}
 			}
 			if (!added) {
-				added = elements.add((E) adding);
+				added = this.elements.add((E) adding);
 			}
 			for (Object object : tempSet) {
-				elements.add((E) object);
+				this.elements.add((E) object);
 			}
 		}
 		return added;

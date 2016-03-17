@@ -51,23 +51,23 @@ public class StompReceiptEvent extends StompIntegrationEvent {
 	}
 
 	public String getDestination() {
-		return destination;
+		return this.destination;
 	}
 
 	public String getReceiptId() {
-		return receiptId;
+		return this.receiptId;
 	}
 
 	public StompCommand getStompCommand() {
-		return stompCommand;
+		return this.stompCommand;
 	}
 
 	public boolean isLost() {
-		return lost;
+		return this.lost;
 	}
 
 	public Message<?> getMessage() {
-		return message;
+		return this.message;
 	}
 
 	public void setMessage(Message<?> message) {
@@ -76,8 +76,8 @@ public class StompReceiptEvent extends StompIntegrationEvent {
 
 	@Override
 	public String toString() {
-		return "StompReceiptEvent [destination=" + destination + ", receiptId=" + receiptId + ", stompCommand="
-				+ stompCommand + ", lost=" + lost + ", message=" + message + "]";
+		return "StompReceiptEvent [destination=" + this.destination + ", receiptId=" + this.receiptId + ", stompCommand="
+				+ this.stompCommand + ", lost=" + this.lost + ", message=" + this.message + "]";
 	}
 
 }

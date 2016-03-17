@@ -87,7 +87,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	protected long getMissingFileDelay() {
-		return tailAttemptsDelay;
+		return this.tailAttemptsDelay;
 	}
 
 	protected TaskExecutor getTaskExecutor() {
@@ -131,11 +131,11 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 
 		protected String getMessage() {
-			return message;
+			return this.message;
 		}
 
 		public File getFile() {
-			return file;
+			return this.file;
 		}
 
 		@Override

@@ -285,7 +285,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {
-		public CheckedException(String string) {
+		CheckedException(String string) {
 			super(string);
 		}
 	}

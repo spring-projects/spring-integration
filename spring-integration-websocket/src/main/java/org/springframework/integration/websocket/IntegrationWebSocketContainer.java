@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 					session.close(CloseStatus.GOING_AWAY);
 				}
 				catch (Exception e) {
-					logger.error("Failed to close session id '" + session.getId() + "': " + e.getMessage());
+					this.logger.error("Failed to close session id '" + session.getId() + "': " + e.getMessage());
 				}
 			}
 		}
@@ -160,8 +160,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 					IntegrationWebSocketContainer.this.sendBufferSizeLimit);
 
 			IntegrationWebSocketContainer.this.sessions.put(session.getId(), session);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Started WebSocket session = " + session.getId() + ", number of sessions = "
+			if (IntegrationWebSocketContainer.this.logger.isDebugEnabled()) {
+				IntegrationWebSocketContainer.this.logger.debug("Started WebSocket session = " + session.getId() + ", number of sessions = "
 						+ IntegrationWebSocketContainer.this.sessions.size());
 			}
 			if (IntegrationWebSocketContainer.this.messageListener != null) {
@@ -190,8 +190,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 			if (IntegrationWebSocketContainer.this.messageListener != null) {
 				IntegrationWebSocketContainer.this.messageListener.onMessage(session, message);
 			}
-			else if (logger.isInfoEnabled()) {
-				logger.info("This 'WebSocketHandlerContainer' isn't configured with 'WebSocketMessageListener'."
+			else if (IntegrationWebSocketContainer.this.logger.isInfoEnabled()) {
+				IntegrationWebSocketContainer.this.logger.info("This 'WebSocketHandlerContainer' isn't configured with 'WebSocketMessageListener'."
 						+ " Received messages are ignored. Current message is: " + message);
 			}
 		}

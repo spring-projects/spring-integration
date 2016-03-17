@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
-			if (!syncQueue.offer(message, timeout, TimeUnit.MILLISECONDS)) {
+			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
 			}

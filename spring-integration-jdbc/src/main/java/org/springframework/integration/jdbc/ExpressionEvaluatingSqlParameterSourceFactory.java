@@ -172,15 +172,15 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		}
 
 		public Object doGetValue(String paramName, boolean calledFromHasValue) throws IllegalArgumentException {
-			if (values.containsKey(paramName)) {
-				Object cachedByHasValue = values.get(paramName);
+			if (this.values.containsKey(paramName)) {
+				Object cachedByHasValue = this.values.get(paramName);
 				if (!this.cache) {
-					values.remove(paramName);
+					this.values.remove(paramName);
 				}
 				return cachedByHasValue;
 			}
 
-			if (!parameterExpressions.containsKey(paramName)) {
+			if (!this.parameterExpressions.containsKey(paramName)) {
 				Expression[] expressions = new Expression[] {
 						PARSER.parseExpression(paramName),
 						PARSER.parseExpression("#root.![" + paramName + "]")
@@ -191,16 +191,16 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 			Expression expression = null;
 
-			if (input instanceof Collection<?>) {
-				expression = parameterExpressions.get(paramName)[1];
+			if (this.input instanceof Collection<?>) {
+				expression = this.parameterExpressions.get(paramName)[1];
 			}
 			else {
-				expression = parameterExpressions.get(paramName)[0];
+				expression = this.parameterExpressions.get(paramName)[0];
 			}
 
-			Object value = evaluateExpression(expression, input);
+			Object value = evaluateExpression(expression, this.input);
 			if (this.cache || calledFromHasValue) {
-				values.put(paramName, value);
+				this.values.put(paramName, value);
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Resolved expression " + expression + " to " + value);
@@ -221,7 +221,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 					logger.debug("Could not evaluate expression", e);
 				}
 				if (this.cache) {
-					values.put(paramName, ERROR);
+					this.values.put(paramName, ERROR);
 				}
 				return false;
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	public void setRequestChannelName(String requestChannelName) {
-		gatewayDelegate.setRequestChannelName(requestChannelName);
+		this.gatewayDelegate.setRequestChannelName(requestChannelName);
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {
@@ -122,7 +122,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	public void setReplyChannelName(String replyChannelName) {
-		gatewayDelegate.setReplyChannelName(replyChannelName);
+		this.gatewayDelegate.setReplyChannelName(replyChannelName);
 	}
 
 	public void setErrorChannel(MessageChannel errorChannel) {
@@ -130,7 +130,7 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	public void setErrorChannelName(String errorChannelName) {
-		gatewayDelegate.setErrorChannelName(errorChannelName);
+		this.gatewayDelegate.setErrorChannelName(errorChannelName);
 	}
 
 	public void setRequestTimeout(long requestTimeout) {
@@ -314,13 +314,13 @@ public class ChannelPublishingJmsMessageListener
 		try {
 			if (this.extractRequestPayload) {
 				result = this.messageConverter.fromMessage(jmsMessage);
-				if (logger.isDebugEnabled()) {
-					logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload ["
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload ["
 							+ result + "]");
 				}
 			}
 
-			Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
+			Map<String, Object> headers = this.headerMapper.toHeaders(jmsMessage);
 			requestMessage = (result instanceof Message<?>) ?
 					this.messageBuilderFactory.fromMessage((Message<?>) result).copyHeaders(headers).build() :
 					this.messageBuilderFactory.withPayload(result).copyHeaders(headers).build();
@@ -341,8 +341,8 @@ public class ChannelPublishingJmsMessageListener
 				Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
 				if (replyMessage != null) {
 					Destination destination = this.getReplyDestination(jmsMessage, session);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Reply destination: " + destination);
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("Reply destination: " + destination);
 					}
 					if (destination != null) {
 						// convert SI Message to JMS Message
@@ -353,18 +353,18 @@ public class ChannelPublishingJmsMessageListener
 						try {
 							javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
 							// map SI Message Headers to JMS Message Properties/Headers
-							headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
+							this.headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
 							this.copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
 							this.sendReply(jmsReply, destination, session);
 						}
 						catch (RuntimeException e) {
-							logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
+							this.logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
 							throw e;
 						}
 					}
 				}
-				else if (logger.isDebugEnabled()) {
-					logger.debug("expected a reply but none was received");
+				else if (this.logger.isDebugEnabled()) {
+					this.logger.debug("expected a reply but none was received");
 				}
 			}
 		}
@@ -398,8 +398,8 @@ public class ChannelPublishingJmsMessageListener
 				if (value != null) {
 					replyMessage.setStringProperty(this.correlationKey, value);
 				}
-				else if (logger.isWarnEnabled()) {
-					logger.warn("No property value available on request Message for correlationKey '"
+				else if (this.logger.isWarnEnabled()) {
+					this.logger.warn("No property value available on request Message for correlationKey '"
 							+ this.correlationKey + "'");
 				}
 			}
@@ -511,7 +511,7 @@ public class ChannelPublishingJmsMessageListener
 
 		@Override
 		public String getComponentType() {
-			if (expectReply) {
+			if (ChannelPublishingJmsMessageListener.this.expectReply) {
 				return "jms:inbound-gateway";
 			}
 			else {

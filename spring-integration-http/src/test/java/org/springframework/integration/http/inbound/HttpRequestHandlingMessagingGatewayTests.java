@@ -427,7 +427,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 
 	private static class TestHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
 
-		public TestHttpMessageConverter() {
+		TestHttpMessageConverter() {
 			setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
 		}
 

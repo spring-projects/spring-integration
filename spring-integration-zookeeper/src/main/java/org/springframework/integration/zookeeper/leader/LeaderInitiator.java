@@ -112,7 +112,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public boolean isRunning() {
-		return running;
+		return this.running;
 	}
 
 	@Override
@@ -148,12 +148,12 @@ public class LeaderInitiator implements SmartLifecycle {
 	public void start() {
 		synchronized(this.lifecycleMonitor) {
 			if (!this.running) {
-				if (client.getState() != CuratorFrameworkState.STARTED) {
+				if (this.client.getState() != CuratorFrameworkState.STARTED) {
 					// we want to do curator start here because it needs to
 					// be started before leader selector and it gets a little
 					// complicated to control ordering via beans so that
 					// curator is fully started.
-					client.start();
+					this.client.start();
 				}
 				this.leaderSelector = new LeaderSelector(this.client, buildLeaderPath(), new LeaderListener());
 				this.leaderSelector.setId(this.candidate.getId());
@@ -201,14 +201,14 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	private String buildLeaderPath() {
 
-		String ns = StringUtils.hasText(namespace) ? namespace : DEFAULT_NAMESPACE;
+		String ns = StringUtils.hasText(this.namespace) ? this.namespace : DEFAULT_NAMESPACE;
 		if (!ns.startsWith("/")) {
 			ns = "/" + ns;
 		}
 		if (!ns.endsWith("/")) {
 			ns = ns + "/";
 		}
-		return String.format(ns + "%s", candidate.getRole());
+		return String.format(ns + "%s", this.candidate.getRole());
 	}
 
 	/**
@@ -221,9 +221,9 @@ public class LeaderInitiator implements SmartLifecycle {
 			CuratorContext context = new CuratorContext();
 
 			try {
-				candidate.onGranted(context);
-				if (leaderEventPublisher != null) {
-					leaderEventPublisher.publishOnGranted(LeaderInitiator.this, context, candidate.getRole());
+				LeaderInitiator.this.candidate.onGranted(context);
+				if (LeaderInitiator.this.leaderEventPublisher != null) {
+					LeaderInitiator.this.leaderEventPublisher.publishOnGranted(LeaderInitiator.this, context, LeaderInitiator.this.candidate.getRole());
 				}
 
 				// when this method exits, the leadership will be revoked;
@@ -237,9 +237,9 @@ public class LeaderInitiator implements SmartLifecycle {
 				// reset the interrupt flag as the interrupt is handled.
 			}
 			finally {
-				candidate.onRevoked(context);
-				if (leaderEventPublisher != null) {
-					leaderEventPublisher.publishOnRevoked(LeaderInitiator.this, context, candidate.getRole());
+				LeaderInitiator.this.candidate.onRevoked(context);
+				if (LeaderInitiator.this.leaderEventPublisher != null) {
+					LeaderInitiator.this.leaderEventPublisher.publishOnRevoked(LeaderInitiator.this, context, LeaderInitiator.this.candidate.getRole());
 				}
 			}
 		}
@@ -252,18 +252,18 @@ public class LeaderInitiator implements SmartLifecycle {
 
 		@Override
 		public boolean isLeader() {
-			return leaderSelector.hasLeadership();
+			return LeaderInitiator.this.leaderSelector.hasLeadership();
 		}
 
 		@Override
 		public void yield() {
-			leaderSelector.interruptLeadership();
+			LeaderInitiator.this.leaderSelector.interruptLeadership();
 		}
 
 		@Override
 		public String toString() {
 			return String.format("CuratorContext{role=%s, id=%s, isLeader=%s}",
-					candidate.getRole(), candidate.getId(), isLeader());
+					LeaderInitiator.this.candidate.getRole(), LeaderInitiator.this.candidate.getId(), isLeader());
 		}
 
 	}

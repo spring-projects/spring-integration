@@ -48,13 +48,13 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	@Override
 	public void onGranted(Context ctx) {
-		logger.info("{} has been granted leadership; context: {}", this, ctx);
-		leaderContext = ctx;
+		this.logger.info("{} has been granted leadership; context: {}", this, ctx);
+		this.leaderContext = ctx;
 	}
 
 	@Override
 	public void onRevoked(Context ctx) {
-		logger.info("{} leadership has been revoked", this, ctx);
+		this.logger.info("{} leadership has been revoked", this, ctx);
 	}
 
 	/**
@@ -64,8 +64,8 @@ public class DefaultCandidate extends AbstractCandidate {
 	 * leader initiator.
 	 */
 	public void yieldLeadership() {
-		if (leaderContext != null) {
-			leaderContext.yield();
+		if (this.leaderContext != null) {
+			this.leaderContext.yield();
 		}
 	}
 

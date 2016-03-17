@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,11 +150,11 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 		boolean isMessageMethod = method.getName().equals("handleMessage")
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 		if (!isMessageHandler || !isMessageMethod) {
-			if (logger.isWarnEnabled()) {
+			if (this.logger.isWarnEnabled()) {
 				String clazzName = invocationThis == null
 						? method.getDeclaringClass().getName()
 						: invocationThis.getClass().getName();
-				logger.warn("This advice " + this.getClass().getName() +
+				this.logger.warn("This advice " + this.getClass().getName() +
 						" can only be used for MessageHandlers; an attempt to advise method '"
 						+ method.getName() + "' in '" + clazzName + "' is ignored");
 			}

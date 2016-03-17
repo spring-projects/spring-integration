@@ -96,7 +96,7 @@ public class PartialSuccessException extends MessagingException {
 	@Override
 	public String toString() {
 		return "PartialSuccessException [" + getMessage() + ":" + getCause().getMessage()
-				+ ", partialResults=" + partialResults + ", derivedInput=" + derivedInput
+				+ ", partialResults=" + this.partialResults + ", derivedInput=" + this.derivedInput
 				+ ", failedMessage=" + getFailedMessage() + "]";
 	}
 

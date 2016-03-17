@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,11 +108,11 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 		Assert.isTrue(this.handlers.size() == new HashSet<MessageHandler>(this.handlers).size(),
 				"duplicate handlers are not allowed in a chain");
 		for (int i = 0; i < this.handlers.size(); i++) {
-			MessageHandler handler = handlers.get(i);
-			if (i < handlers.size() - 1) { // not the last handler
+			MessageHandler handler = this.handlers.get(i);
+			if (i < this.handlers.size() - 1) { // not the last handler
 				Assert.isInstanceOf(MessageProducer.class, handler, "All handlers except for " +
 						"the last one in the chain must implement the MessageProducer interface.");
-				final MessageHandler nextHandler = handlers.get(i + 1);
+				final MessageHandler nextHandler = this.handlers.get(i + 1);
 				final MessageChannel nextChannel = new MessageChannel() {
 					@Override
 					public boolean send(Message<?> message, long timeout) {

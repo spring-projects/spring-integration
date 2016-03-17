@@ -80,7 +80,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		private volatile long lastFailure;
 
 		private long getLastFailure() {
-			return lastFailure;
+			return this.lastFailure;
 		}
 
 		private void setLastFailure(long lastFailure) {
@@ -88,7 +88,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 
 		private AtomicInteger getFailures() {
-			return failures;
+			return this.failures;
 		}
 	}
 

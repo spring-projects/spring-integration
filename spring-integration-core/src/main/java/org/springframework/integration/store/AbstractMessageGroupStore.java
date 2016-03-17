@@ -90,7 +90,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	public boolean isTimeoutOnIdle() {
-		return timeoutOnIdle;
+		return this.timeoutOnIdle;
 	}
 
 	/**
@@ -183,14 +183,14 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 		RuntimeException exception = null;
 
-		for (MessageGroupCallback callback : expiryCallbacks) {
+		for (MessageGroupCallback callback : this.expiryCallbacks) {
 			try {
 				callback.execute(this, group);
 			} catch (RuntimeException e) {
 				if (exception == null) {
 					exception = e;
 				}
-				logger.error("Exception in expiry callback", e);
+				this.logger.error("Exception in expiry callback", e);
 			}
 		}
 

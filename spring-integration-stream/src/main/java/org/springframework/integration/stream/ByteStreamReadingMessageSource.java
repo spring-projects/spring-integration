@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,11 @@ public class ByteStreamReadingMessageSource extends IntegrationObjectSupport imp
 			byte[] bytes;
 			int bytesRead = 0;
 			synchronized (this.streamMonitor) {
-				if (stream.available() == 0) {
+				if (this.stream.available() == 0) {
 					return null;
 				}
-				bytes = new byte[bytesPerMessage];
-				bytesRead = stream.read(bytes, 0, bytes.length);
+				bytes = new byte[this.bytesPerMessage];
+				bytesRead = this.stream.read(bytes, 0, bytes.length);
 			}
 			if (bytesRead <= 0) {
 				return null;

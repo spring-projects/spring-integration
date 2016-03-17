@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * @since 4.2
 	 */
 	public DirectoryScanner getScanner() {
-		return scanner;
+		return this.scanner;
 	}
 
 	/**
@@ -243,12 +243,12 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	@Override
 	protected void onInit() {
-		Assert.notNull(directory, "'directory' must not be null");
+		Assert.notNull(this.directory, "'directory' must not be null");
 		if (!this.directory.exists() && this.autoCreateDirectory) {
 			this.directory.mkdirs();
 		}
 		Assert.isTrue(this.directory.exists(),
-				"Source directory [" + directory + "] does not exist.");
+				"Source directory [" + this.directory + "] does not exist.");
 		Assert.isTrue(this.directory.isDirectory(),
 				"Source path [" + this.directory + "] does not point to a directory.");
 		Assert.isTrue(this.directory.canRead(),
@@ -268,16 +268,16 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		Message<File> message = null;
 
 		// rescan only if needed or explicitly configured
-		if (scanEachPoll || toBeReceived.isEmpty()) {
+		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
 			scanInputDirectory();
 		}
 
-		File file = toBeReceived.poll();
+		File file = this.toBeReceived.poll();
 
 		// file == null means the queue was empty
 		// we can't rely on isEmpty for concurrency reasons
-		while ((file != null) && !scanner.tryClaim(file)) {
-			file = toBeReceived.poll();
+		while ((file != null) && !this.scanner.tryClaim(file)) {
+			file = this.toBeReceived.poll();
 		}
 
 		if (file != null) {
@@ -290,10 +290,10 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	private void scanInputDirectory() {
-		List<File> filteredFiles = scanner.listFiles(directory);
+		List<File> filteredFiles = this.scanner.listFiles(this.directory);
 		Set<File> freshFiles = new LinkedHashSet<File>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
-			toBeReceived.addAll(freshFiles);
+			this.toBeReceived.addAll(freshFiles);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Added to queue: " + freshFiles);
 			}
@@ -310,7 +310,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		if (logger.isWarnEnabled()) {
 			logger.warn("Failed to send: " + failedMessage);
 		}
-		toBeReceived.offer(failedMessage.getPayload());
+		this.toBeReceived.offer(failedMessage.getPayload());
 	}
 
 	/**

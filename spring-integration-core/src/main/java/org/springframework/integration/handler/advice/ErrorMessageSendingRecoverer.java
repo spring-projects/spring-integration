@@ -80,7 +80,7 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, B
 			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
 			logger.debug("Sending ErrorMessage " + supplement, lastThrowable);
 		}
-		messagingTemplate.send(new ErrorMessage(lastThrowable));
+		this.messagingTemplate.send(new ErrorMessage(lastThrowable));
 		return null;
 	}
 

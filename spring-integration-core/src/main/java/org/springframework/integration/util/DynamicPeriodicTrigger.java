@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	public long getPeriod() {
-		return period;
+		return this.period;
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	public TimeUnit getTimeUnit() {
-		return timeUnit;
+		return this.timeUnit;
 	}
 
 	public void setTimeUnit(TimeUnit timeUnit) {
@@ -130,11 +130,11 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	public long getInitialDelay() {
-		return initialDelay;
+		return this.initialDelay;
 	}
 
 	public boolean isFixedRate() {
-		return fixedRate;
+		return this.fixedRate;
 	}
 
 	@Override

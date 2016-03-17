@@ -77,8 +77,8 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 
 	protected Object evaluatePayloadExpression(Object payload){
 		Object evaluationResult = payload;
-		if (payloadExpression != null) {
-			evaluationResult = payloadExpression.getValue(this.evaluationContext, payload);
+		if (this.payloadExpression != null) {
+			evaluationResult = this.payloadExpression.getValue(this.evaluationContext, payload);
 		}
 		return evaluationResult;
 	}

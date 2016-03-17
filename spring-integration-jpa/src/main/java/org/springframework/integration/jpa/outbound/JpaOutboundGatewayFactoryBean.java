@@ -153,7 +153,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 	@Override
 	protected MessageHandler createInstance() {
-		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(jpaExecutor);
+		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(this.jpaExecutor);
 		jpaOutboundGateway.setGatewayType(this.gatewayType);
 		jpaOutboundGateway.setProducesReply(this.producesReply);
 		jpaOutboundGateway.setOutputChannel(this.outputChannel);
@@ -169,8 +169,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
 
 			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
-			if (!CollectionUtils.isEmpty(txAdviceChain)) {
-				for (Advice advice : txAdviceChain) {
+			if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
+				for (Advice advice : this.txAdviceChain) {
 					proxyFactory.addAdvice(advice);
 				}
 			}

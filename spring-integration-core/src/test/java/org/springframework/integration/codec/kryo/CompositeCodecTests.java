@@ -58,7 +58,7 @@ public class CompositeCodecTests {
 
 		private int val2;
 
-		public SomeClassWithNoDefaultConstructors(String val1, int val2) {
+		SomeClassWithNoDefaultConstructors(String val1, int val2) {
 			this.val1 = val1;
 			this.val2 = val2;
 		}

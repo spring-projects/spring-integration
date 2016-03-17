@@ -134,8 +134,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		if (connectionFactoryName != null) {
 			this.connectionFactoryName = connectionFactoryName;
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("New connection " + this.getConnectionId());
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("New connection " + this.getConnectionId());
 		}
 	}
 
@@ -181,7 +181,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @return the mapper
 	 */
 	public TcpMessageMapper getMapper() {
-		return mapper;
+		return this.mapper;
 	}
 
 	/**
@@ -277,8 +277,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	@Override
 	public TcpListener getListener() {
 		if (this.manualListenerRegistration) {
-			if (logger.isDebugEnabled()) {
-				logger.debug(getConnectionId() + " Waiting for listener registration");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(getConnectionId() + " Waiting for listener registration");
 			}
 			waitForListenerRegistration();
 		}
@@ -287,8 +287,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private void waitForListenerRegistration() {
 		try {
-			Assert.state(listenerRegisteredLatch.await(1, TimeUnit.MINUTES), "TcpListener not registered");
-			manualListenerRegistration = false;
+			Assert.state(this.listenerRegisteredLatch.await(1, TimeUnit.MINUTES), "TcpListener not registered");
+			this.manualListenerRegistration = false;
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -300,12 +300,12 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @return the sender
 	 */
 	public TcpSender getSender() {
-		return sender;
+		return this.sender;
 	}
 
 	@Override
 	public boolean isServer() {
-		return server;
+		return this.server;
 	}
 
 	@Override
@@ -337,7 +337,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected boolean isNoReadErrorOnClose() {
-		return noReadErrorOnClose;
+		return this.noReadErrorOnClose;
 	}
 
 	protected void setNoReadErrorOnClose(boolean noReadErrorOnClose) {
@@ -384,21 +384,21 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private void doPublish(TcpConnectionEvent event) {
 		try {
 			if (this.applicationEventPublisher == null) {
-				logger.warn("No publisher available to publish " + event);
+				this.logger.warn("No publisher available to publish " + event);
 			}
 			else {
 				this.applicationEventPublisher.publishEvent(event);
-				if (logger.isTraceEnabled()) {
-					logger.trace("Published: " + event);
+				if (this.logger.isTraceEnabled()) {
+					this.logger.trace("Published: " + event);
 				}
 			}
 		}
 		catch (Exception e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Failed to publish " + event, e);
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Failed to publish " + event, e);
 			}
-			else if (logger.isWarnEnabled()) {
-				logger.warn("Failed to publish " + event + ":" + e.getMessage());
+			else if (this.logger.isWarnEnabled()) {
+				this.logger.warn("Failed to publish " + event + ":" + e.getMessage());
 			}
 		}
 	}

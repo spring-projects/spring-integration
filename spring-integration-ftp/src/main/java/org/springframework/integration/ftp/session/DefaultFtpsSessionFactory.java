@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 	@Override
 	protected void postProcessClientBeforeConnect(FTPSClient ftpsClient) throws IOException {
 		if (StringUtils.hasText(this.authValue)) {
-			ftpsClient.setAuthValue(authValue);
+			ftpsClient.setAuthValue(this.authValue);
 		}
 		if (this.trustManager != null) {
 			ftpsClient.setTrustManager(this.trustManager);
@@ -164,7 +164,7 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 			ftpsClient.setEnabledSessionCreation(this.sessionCreation);
 		}
 		if (this.keyManager != null) {
-			ftpsClient.setKeyManager(keyManager);
+			ftpsClient.setKeyManager(this.keyManager);
 		}
 		if (this.needClientAuth != null) {
 			ftpsClient.setNeedClientAuth(this.needClientAuth);

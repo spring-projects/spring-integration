@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 		@Override
 		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException {
-			MarshallingUtils.marshal(marshaller, payload, message);
+			MarshallingUtils.marshal(MarshallingWebServiceOutboundGateway.this.marshaller, payload, message);
 		}
 	}
 
@@ -134,7 +134,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 		@Override
 		public Object doExtractData(WebServiceMessage message) throws IOException {
-			return MarshallingUtils.unmarshal(unmarshaller, message);
+			return MarshallingUtils.unmarshal(MarshallingWebServiceOutboundGateway.this.unmarshaller, message);
 		}
 	}
 }

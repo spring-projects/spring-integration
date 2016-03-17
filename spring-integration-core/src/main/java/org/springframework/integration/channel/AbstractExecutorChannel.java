@@ -137,7 +137,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 			Assert.notNull(messageHandler, "'messageHandler' must not be null");
 			Deque<ExecutorChannelInterceptor> interceptorStack = null;
 			try {
-				if (executorInterceptorsSize > 0) {
+				if (AbstractExecutorChannel.this.executorInterceptorsSize > 0) {
 					interceptorStack = new ArrayDeque<ExecutorChannelInterceptor>();
 					message = applyBeforeHandle(message, interceptorStack);
 					if (message == null) {

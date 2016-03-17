@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,14 +137,14 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("target received null payload");
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("target received null payload");
 			}
 			return;
 		}
 		try {
 			if (payload instanceof String) {
-				writer.write((String) payload);
+				this.writer.write((String) payload);
 			}
 			else if (payload instanceof char[]) {
 				this.writer.write((char[]) payload);
@@ -157,12 +157,12 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 				((Exception) payload).printStackTrace(printWriter);
 			}
 			else {
-				writer.write(payload.toString());
+				this.writer.write(payload.toString());
 			}
 			if (this.shouldAppendNewLine) {
-				writer.newLine();
+				this.writer.newLine();
 			}
-			writer.flush();
+			this.writer.flush();
 		}
 		catch (IOException e) {
 			throw new MessagingException("IO failure occurred in target", e);

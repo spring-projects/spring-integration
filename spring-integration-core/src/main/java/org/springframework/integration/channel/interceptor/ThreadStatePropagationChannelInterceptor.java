@@ -115,8 +115,8 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		@Override
 		public String toString() {
 			return "MessageWithThreadState{" +
-					"message=" + message +
-					", state=" + state +
+					"message=" + this.message +
+					", state=" + this.state +
 					'}';
 		}
 

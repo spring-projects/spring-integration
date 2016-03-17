@@ -55,8 +55,8 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 		this.scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
 		Assert.notNull(this.scriptEngine, invalidLanguageMessage(this.language));
-		if (logger.isDebugEnabled()) {
-			logger.debug("Using script engine : " + scriptEngine.getFactory().getEngineName());
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Using script engine : " + this.scriptEngine.getFactory().getEngineName());
 		}
 	}
 
@@ -72,23 +72,23 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 		try {
 			String script = scriptSource.getScriptAsString();
 			Date start = new Date();
-			if (logger.isDebugEnabled()) {
-				logger.debug("executing script: " + script);
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("executing script: " + script);
 			}
 
 			Bindings bindings = null;
 			if (variables != null && variables.size() > 0) {
 				bindings = new SimpleBindings(variables);
-				result = scriptEngine.eval(script, bindings);
+				result = this.scriptEngine.eval(script, bindings);
 			}
 			else {
-				result = scriptEngine.eval(script);
+				result = this.scriptEngine.eval(script);
 			}
 
-			result = postProcess(result, scriptEngine, script, bindings);
+			result = postProcess(result, this.scriptEngine, script, bindings);
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
 			}
 		}
 

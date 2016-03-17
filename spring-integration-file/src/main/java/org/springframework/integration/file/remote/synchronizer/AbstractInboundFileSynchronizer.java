@@ -215,7 +215,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	protected String getTemporaryFileSuffix() {
-		return temporaryFileSuffix;
+		return this.temporaryFileSuffix;
 	}
 
 	@Override
@@ -227,12 +227,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	@Override
 	public void synchronizeToLocalDirectory(final File localDirectory) {
+		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
 		try {
 			int transferred = this.remoteFileTemplate.execute(new SessionCallback<F, Integer>() {
 
 				@Override
 				public Integer doInSession(Session<F> session) throws IOException {
-					String remoteDirectory = remoteDirectoryExpression.getValue(evaluationContext, String.class);
 					F[] files = session.list(remoteDirectory);
 					if (!ObjectUtils.isEmpty(files)) {
 						List<F> filteredFiles = filterFiles(files);
@@ -266,8 +266,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					}
 				}
 			});
-			if (logger.isDebugEnabled()) {
-				logger.debug(transferred + " files transferred");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug(transferred + " files transferred");
 			}
 		}
 		catch (Exception e) {
@@ -280,11 +280,11 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath != null
-				? (remoteDirectoryPath + remoteFileSeparator + remoteFileName)
+				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
 		if (!this.isFile(remoteFile)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("cannot copy, not a file: " + remoteFilePath);
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("cannot copy, not a file: " + remoteFilePath);
 			}
 			return;
 		}
@@ -316,8 +316,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
-					if (logger.isDebugEnabled()) {
-						logger.debug("deleted " + remoteFilePath);
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("deleted " + remoteFilePath);
 					}
 				}
 			}
@@ -329,7 +329,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	private String generateLocalFileName(String remoteFileName){
 		if (this.localFilenameGeneratorExpression != null){
-			return this.localFilenameGeneratorExpression.getValue(evaluationContext, remoteFileName, String.class);
+			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName, String.class);
 		}
 		return remoteFileName;
 	}

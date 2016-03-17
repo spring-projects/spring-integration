@@ -84,9 +84,11 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 			@Override
 			public void onMessage(Message message, Channel channel) throws Exception {
-				Object payload = messageConverter.fromMessage(message);
-				Map<String, Object> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				if (messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
+				Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
+				Map<String, Object> headers =
+						AmqpInboundChannelAdapter.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
+				if (AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
+						== AcknowledgeMode.MANUAL) {
 					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 					headers.put(AmqpHeaders.CHANNEL, channel);
 				}

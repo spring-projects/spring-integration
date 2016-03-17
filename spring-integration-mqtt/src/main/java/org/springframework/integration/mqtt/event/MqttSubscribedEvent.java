@@ -32,12 +32,12 @@ public class MqttSubscribedEvent extends MqttIntegrationEvent {
 	}
 
 	public String getMessage() {
-		return message;
+		return this.message;
 	}
 
 	@Override
 	public String toString() {
-		return "MqttSubscribedEvent [message=" + message + ", source=" + source + "]";
+		return "MqttSubscribedEvent [message=" + this.message + ", source=" + source + "]";
 	}
 
 }

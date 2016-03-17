@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,21 +38,21 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 
 
 	public ExpressionEvaluatingMessageGroupProcessor(String expression) {
-		processor = new ExpressionEvaluatingMessageListProcessor(expression);
+		this.processor = new ExpressionEvaluatingMessageListProcessor(expression);
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
-		processor.setBeanFactory(beanFactory);
+		this.processor.setBeanFactory(beanFactory);
 	}
 
 	public void setConversionService(ConversionService conversionService) {
-		processor.setConversionService(conversionService);
+		this.processor.setConversionService(conversionService);
 	}
 
 	public void setExpectedType(Class<?> expectedType) {
-		processor.setExpectedType(expectedType);
+		this.processor.setExpectedType(expectedType);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 	 */
 	@Override
 	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
-		return processor.process(group.getMessages());
+		return this.processor.process(group.getMessages());
 	}
 
 }

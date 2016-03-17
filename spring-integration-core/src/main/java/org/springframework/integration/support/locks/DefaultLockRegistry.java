@@ -63,9 +63,9 @@ public final class DefaultLockRegistry implements LockRegistry {
 		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1') ), "Mask must be a power of 2 - 1");
 		this.mask = mask;
 		int arraySize = this.mask+1;
-		lockTable = new ReentrantLock[arraySize];
+		this.lockTable = new ReentrantLock[arraySize];
 		for (int i = 0; i < arraySize; i++) {
-			lockTable[i] = new ReentrantLock();
+			this.lockTable[i] = new ReentrantLock();
 		}
 	}
 

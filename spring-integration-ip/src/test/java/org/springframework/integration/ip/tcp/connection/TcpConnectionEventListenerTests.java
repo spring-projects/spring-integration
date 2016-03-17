@@ -95,7 +95,7 @@ public class TcpConnectionEventListenerTests {
 	@SuppressWarnings("serial")
 	private class FooEvent extends TcpConnectionOpenEvent {
 
-		public FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+		FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
 			super(connection, connectionFactoryName);
 		}
 
@@ -104,7 +104,7 @@ public class TcpConnectionEventListenerTests {
 	@SuppressWarnings("serial")
 	private class BarEvent extends TcpConnectionOpenEvent {
 
-		public BarEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+		BarEvent(TcpConnectionSupport connection, String connectionFactoryName) {
 			super(connection, connectionFactoryName);
 		}
 

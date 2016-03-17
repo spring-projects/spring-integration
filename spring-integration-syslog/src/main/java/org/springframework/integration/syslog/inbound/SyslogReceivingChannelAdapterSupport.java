@@ -77,7 +77,7 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (!converterSet) {
+		if (!this.converterSet) {
 			((DefaultMessageConverter) this.converter).setBeanFactory(this.getBeanFactory());
 		}
 	}
@@ -85,8 +85,8 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 	protected void convertAndSend(Message<?> message) {
 		try {
 			if (message instanceof ErrorMessage) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Error on syslog socket:" + ((ErrorMessage) message).getPayload().getMessage());
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Error on syslog socket:" + ((ErrorMessage) message).getPayload().getMessage());
 				}
 			}
 			else {

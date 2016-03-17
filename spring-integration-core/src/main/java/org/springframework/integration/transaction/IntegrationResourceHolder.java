@@ -47,7 +47,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 	}
 
 	public Message<?> getMessage() {
-		return message;
+		return this.message;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 	 * @return the immutable map.
 	 */
 	public Map<String, Object> getAttributes() {
-		return Collections.unmodifiableMap(attributes);
+		return Collections.unmodifiableMap(this.attributes);
 	}
 
 	@Override

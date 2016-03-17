@@ -92,10 +92,10 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Object correlationKey = correlationStrategy.getCorrelationKey(message);
+		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
-			store.addMessageToGroup(correlationKey, message);
+			this.store.addMessageToGroup(correlationKey, message);
 		}
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("Handled message for key [%s]: %s.", correlationKey, message));
@@ -103,20 +103,20 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	}
 
 	private Object getLock(Object correlationKey) {
-		Object existingLock = correlationLocks.putIfAbsent(correlationKey, correlationKey);
+		Object existingLock = this.correlationLocks.putIfAbsent(correlationKey, correlationKey);
 		return existingLock == null ? correlationKey : existingLock;
 	}
 
 
 	@Override
 	public Message<Object> receive() {
-		for (Object key : correlationLocks.keySet()) {
+		for (Object key : this.correlationLocks.keySet()) {
 			Object lock = getLock(key);
 			synchronized (lock) {
-				MessageGroup group = store.getMessageGroup(key);
+				MessageGroup group = this.store.getMessageGroup(key);
 				//group might be removed by another thread
 				if (group != null) {
-					if (releaseStrategy.canRelease(group)) {
+					if (this.releaseStrategy.canRelease(group)) {
 						Message<?> nextMessage = null;
 
 						Iterator<Message<?>> messages = group.getMessages().iterator();
@@ -140,8 +140,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	}
 
 	private void remove(Object key) {
-		correlationLocks.remove(key);
-		store.removeMessageGroup(key);
+		this.correlationLocks.remove(key);
+		this.store.removeMessageGroup(key);
 	}
 
 }

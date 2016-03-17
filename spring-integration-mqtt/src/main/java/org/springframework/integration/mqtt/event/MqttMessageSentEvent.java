@@ -41,17 +41,17 @@ public class MqttMessageSentEvent extends MqttMessageDeliveryEvent {
 	}
 
 	public Message<?> getMessage() {
-		return message;
+		return this.message;
 	}
 
 	public String getTopic() {
-		return topic;
+		return this.topic;
 	}
 
 	@Override
 	public String toString() {
-		return "MqttMessageSentEvent [message=" + message
-				+ ", topic=" + topic
+		return "MqttMessageSentEvent [message=" + this.message
+				+ ", topic=" + this.topic
 				+ ", clientId=" + getClientId()
 				+ ", clientInstance=" + getClientInstance()
 				+ ", messageId=" + getMessageId()

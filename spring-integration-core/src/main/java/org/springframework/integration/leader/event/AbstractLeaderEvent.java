@@ -62,7 +62,7 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 * @return the context
 	 */
 	public Context getContext() {
-		return context;
+		return this.context;
 	}
 
 	/**
@@ -71,12 +71,12 @@ public abstract class AbstractLeaderEvent extends ApplicationEvent {
 	 * @return the role
 	 */
 	public String getRole() {
-		return role;
+		return this.role;
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [role=" + role + ", context=" + context + ", source=" + source
+		return getClass().getSimpleName() + " [role=" + this.role + ", context=" + this.context + ", source=" + source
 				+ "]";
 	}
 

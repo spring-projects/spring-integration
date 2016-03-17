@@ -1066,7 +1066,7 @@ public class AdvisedMessageHandlerTests {
 
 		public final Throwable throwable;
 
-		public Foo(Throwable throwable) {
+		Foo(Throwable throwable) {
 			this.throwable = throwable;
 		}
 

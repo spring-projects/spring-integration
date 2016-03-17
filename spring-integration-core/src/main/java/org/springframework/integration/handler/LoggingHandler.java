@@ -93,7 +93,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @return The current logging {@link Level}.
 	 */
 	public Level getLevel() {
-		return level;
+		return this.level;
 	}
 
 	/**
@@ -139,33 +139,33 @@ public class LoggingHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		switch (this.level) {
 		case FATAL:
-			if (messageLogger.isFatalEnabled()) {
-				messageLogger.fatal(createLogMessage(message));
+			if (this.messageLogger.isFatalEnabled()) {
+				this.messageLogger.fatal(createLogMessage(message));
 			}
 			break;
 		case ERROR:
-			if (messageLogger.isErrorEnabled()) {
-				messageLogger.error(createLogMessage(message));
+			if (this.messageLogger.isErrorEnabled()) {
+				this.messageLogger.error(createLogMessage(message));
 			}
 			break;
 		case WARN:
-			if (messageLogger.isWarnEnabled()) {
-				messageLogger.warn(createLogMessage(message));
+			if (this.messageLogger.isWarnEnabled()) {
+				this.messageLogger.warn(createLogMessage(message));
 			}
 			break;
 		case INFO:
-			if (messageLogger.isInfoEnabled()) {
-				messageLogger.info(createLogMessage(message));
+			if (this.messageLogger.isInfoEnabled()) {
+				this.messageLogger.info(createLogMessage(message));
 			}
 			break;
 		case DEBUG:
-			if (messageLogger.isDebugEnabled()) {
-				messageLogger.debug(createLogMessage(message));
+			if (this.messageLogger.isDebugEnabled()) {
+				this.messageLogger.debug(createLogMessage(message));
 			}
 			break;
 		case TRACE:
-			if (messageLogger.isTraceEnabled()) {
-				messageLogger.trace(createLogMessage(message));
+			if (this.messageLogger.isTraceEnabled()) {
+				this.messageLogger.trace(createLogMessage(message));
 			}
 			break;
 		default:

@@ -47,7 +47,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getOrigin() {
-		return origin;
+		return this.origin;
 	}
 
 	public void setAllowedHeaders(String... allowedHeaders) {
@@ -55,7 +55,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getAllowedHeaders() {
-		return allowedHeaders;
+		return this.allowedHeaders;
 	}
 
 	public void setExposedHeaders(String... exposedHeaders) {
@@ -63,7 +63,7 @@ public class CrossOrigin {
 	}
 
 	public String[] getExposedHeaders() {
-		return exposedHeaders;
+		return this.exposedHeaders;
 	}
 
 	public void setMethod(RequestMethod... method) {
@@ -71,7 +71,7 @@ public class CrossOrigin {
 	}
 
 	public RequestMethod[] getMethod() {
-		return method;
+		return this.method;
 	}
 
 	public void setAllowCredentials(Boolean allowCredentials) {
@@ -79,7 +79,7 @@ public class CrossOrigin {
 	}
 
 	public Boolean getAllowCredentials() {
-		return allowCredentials;
+		return this.allowCredentials;
 	}
 
 	public void setMaxAge(long maxAge) {
@@ -87,7 +87,7 @@ public class CrossOrigin {
 	}
 
 	public long getMaxAge() {
-		return maxAge;
+		return this.maxAge;
 	}
 
 }

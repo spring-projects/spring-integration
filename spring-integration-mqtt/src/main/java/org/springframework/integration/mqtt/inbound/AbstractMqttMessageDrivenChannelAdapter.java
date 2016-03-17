@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,15 +109,15 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	}
 
 	protected String getUrl() {
-		return url;
+		return this.url;
 	}
 
 	protected String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	protected MqttMessageConverter getConverter() {
-		return converter;
+		return this.converter;
 	}
 
 	@ManagedAttribute
@@ -264,7 +264,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		}
 
 		private int getQos() {
-			return qos;
+			return this.qos;
 		}
 
 		private void setQos(int qos) {
@@ -272,12 +272,12 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		}
 
 		private String getTopic() {
-			return topic;
+			return this.topic;
 		}
 
 		@Override
 		public int hashCode() {
-			return topic.hashCode();
+			return this.topic.hashCode();
 		}
 
 		@Override
@@ -292,12 +292,12 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 				return false;
 			}
 			Topic other = (Topic) obj;
-			if (topic == null) {
+			if (this.topic == null) {
 				if (other.topic != null) {
 					return false;
 				}
 			}
-			else if (!topic.equals(other.topic)) {
+			else if (!this.topic.equals(other.topic)) {
 				return false;
 			}
 			return true;
@@ -305,7 +305,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 		@Override
 		public String toString() {
-			return "Topic [topic=" + topic + ", qos=" + qos + "]";
+			return "Topic [topic=" + this.topic + ", qos=" + this.qos + "]";
 		}
 
 	}

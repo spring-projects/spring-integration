@@ -47,7 +47,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 
 	@Override
 	public ParameterSource createParameterSource(Object input) {
-		ParameterSource toReturn = new StaticBeanPropertyParameterSource(input, staticParameters);
+		ParameterSource toReturn = new StaticBeanPropertyParameterSource(input, this.staticParameters);
 		return toReturn;
 	}
 
@@ -65,13 +65,13 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 
 		@Override
 		public Object getValue(String paramName) {
-			return staticParameters.containsKey(paramName) ? staticParameters.get(paramName) : input
+			return this.staticParameters.containsKey(paramName) ? this.staticParameters.get(paramName) : this.input
 					.getValue(paramName);
 		}
 
 		@Override
 		public boolean hasValue(String paramName) {
-			return staticParameters.containsKey(paramName) || input.hasValue(paramName);
+			return this.staticParameters.containsKey(paramName) || this.input.hasValue(paramName);
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBa
 				? System.currentTimeMillis()
 				: document.getCreatedTime();
 
-		Message<?> result = messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+		Message<?> result = this.messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, createdDate).build();
 
 		@SuppressWarnings("unchecked")
@@ -212,7 +212,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBa
 		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
 
 		document.setCreatedTime(createdDate);
-		mongoTemplate.insert(document, collectionName);
+		this.mongoTemplate.insert(document, this.collectionName);
 	}
 
 	protected static Query groupIdQuery(Object groupId) {
@@ -241,10 +241,10 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBa
 		@Override
 		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			if (Message.class.isAssignableFrom(sourceType.getObjectType())) {
-				return serializingConverter.convert(source);
+				return this.serializingConverter.convert(source);
 			}
 			else {
-				return deserializingConverter.convert((byte[]) source);
+				return this.deserializingConverter.convert((byte[]) source);
 			}
 		}
 

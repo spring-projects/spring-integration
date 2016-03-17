@@ -43,11 +43,11 @@ public class TcpDeserializationExceptionEvent extends IpIntegrationEvent {
 	}
 
 	public byte[] getBuffer() {
-		return buffer;//NOSONAR - direct access
+		return this.buffer;//NOSONAR - direct access
 	}
 
 	public int getOffset() {
-		return offset;
+		return this.offset;
 	}
 
 }

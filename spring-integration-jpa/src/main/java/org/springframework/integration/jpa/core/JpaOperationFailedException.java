@@ -60,7 +60,7 @@ public class JpaOperationFailedException extends RuntimeException {
 	}
 
 	public String getOffendingJPAQl() {
-		return offendingJPAQl;
+		return this.offendingJPAQl;
 	}
 
 	public void setOffendingJPAQl(String offendingJPAQl) {

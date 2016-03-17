@@ -78,13 +78,14 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 
-		Map<String, Object> resultMap = executor.executeStoredProcedure(message);
+		Map<String, Object> resultMap = this.executor.executeStoredProcedure(message);
 
 		if (logger.isDebugEnabled()) {
 
 			if (resultMap != null && !resultMap.isEmpty()) {
 				logger.debug(String.format("The StoredProcMessageHandler ignores return "
-					+ "values, but the called Stored Procedure '%s' returned data: '%s'", executor.getStoredProcedureName(), resultMap));
+					+ "values, but the called Stored Procedure '%s' returned data: '%s'",
+						this.executor.getStoredProcedureName(), resultMap));
 			}
 
 		}

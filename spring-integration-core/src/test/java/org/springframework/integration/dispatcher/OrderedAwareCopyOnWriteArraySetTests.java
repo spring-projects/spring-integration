@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,7 +277,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	}
 	private static class Foo implements Ordered {
 		private final int order;
-		public Foo(int order){
+		Foo(int order){
 			this.order = order;
 		}
 		public int getOrder() {

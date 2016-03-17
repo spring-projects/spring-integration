@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -537,8 +537,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
-						if (logger.isDebugEnabled()) {
-							logger.debug(interceptor.getClass().getSimpleName()
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug(interceptor.getClass().getSimpleName()
 									+ " returned null from preSend, i.e. precluding the send.");
 						}
 						afterSendCompletion(null, channel, false, null, interceptorStack);
@@ -552,7 +552,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 			if (this.size > 0) {
-				for (ChannelInterceptor interceptor : interceptors) {
+				for (ChannelInterceptor interceptor : this.interceptors) {
 					interceptor.postSend(message, channel, sent);
 				}
 			}
@@ -566,14 +566,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					interceptor.afterSendCompletion(message, channel, sent, ex);
 				}
 				catch (Exception ex2) {
-					logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
+					this.logger.error("Exception from afterSendCompletion in " + interceptor, ex2);
 				}
 			}
 		}
 
 		public boolean preReceive(MessageChannel channel, Deque<ChannelInterceptor> interceptorStack) {
 			if (this.size > 0) {
-				for (ChannelInterceptor interceptor : interceptors) {
+				for (ChannelInterceptor interceptor : this.interceptors) {
 					if (!interceptor.preReceive(channel)) {
 						afterReceiveCompletion(null, channel, null, interceptorStack);
 						return false;
@@ -586,7 +586,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 			if (this.size > 0) {
-				for (ChannelInterceptor interceptor : interceptors) {
+				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.postReceive(message, channel);
 					if (message == null) {
 						return null;
@@ -604,7 +604,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					interceptor.afterReceiveCompletion(message, channel, ex);
 				}
 				catch (Exception ex2) {
-					logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
+					this.logger.error("Exception from afterReceiveCompletion in " + interceptor, ex2);
 				}
 			}
 		}

@@ -86,7 +86,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		messageHolder.set(message);
 
 		try {
-			return retryTemplate.execute(new RetryCallback<Object, Exception>() {
+			return this.retryTemplate.execute(new RetryCallback<Object, Exception>() {
 
 				@Override
 				public Object doWithRetry(RetryContext context) throws Exception {

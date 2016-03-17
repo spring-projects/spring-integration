@@ -42,15 +42,15 @@ public abstract class MqttMessageDeliveryEvent extends MqttIntegrationEvent {
 	}
 
 	public int getMessageId() {
-		return messageId;
+		return this.messageId;
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	public int getClientInstance() {
-		return clientInstance;
+		return this.clientInstance;
 	}
 
 }

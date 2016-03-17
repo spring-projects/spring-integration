@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 				this.source = new FileReadingMessageSource(this.comparator);
 			}
 			else if (queueSizeSet) {
-				this.source = new FileReadingMessageSource(queueSize);
+				this.source = new FileReadingMessageSource(this.queueSize);
 			}
 			else {
 				this.source = new FileReadingMessageSource();
@@ -155,7 +155,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 					compositeFileListFilter.addFilter(this.filter);
 					compositeFileListFilter.addFilter(this.locker);
 					this.source.setFilter(compositeFileListFilter);
-					this.source.setLocker(locker);
+					this.source.setLocker(this.locker);
 				}
 			}
 			else if (this.locker != null) {
@@ -163,7 +163,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 				compositeFileListFilter.addFilter(new FileListFilterFactoryBean().getObject());
 				compositeFileListFilter.addFilter(this.locker);
 				this.source.setFilter(compositeFileListFilter);
-				this.source.setLocker(locker);
+				this.source.setLocker(this.locker);
 			}
 			if (this.scanEachPoll != null) {
 				this.source.setScanEachPoll(this.scanEachPoll);

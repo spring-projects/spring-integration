@@ -97,7 +97,7 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 		else {
 			throw new IllegalStateException("Expected a digit or '<', got 0x" + Integer.toHexString(peek));
 		}
-		return parser.parse(line, octetCount, shortRead);
+		return this.parser.parse(line, octetCount, shortRead);
 	}
 
 	private boolean isDigit(int peek) {

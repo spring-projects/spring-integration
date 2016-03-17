@@ -70,7 +70,7 @@ public class AggregatingMessageChannelMetrics extends DefaultMessageChannelMetri
 		long count = this.sendCount.getAndIncrement();
 		if (isFullStatsEnabled() && count % this.sampleSize == 0) {
 			this.start = System.nanoTime();
-			this.sendRate.increment(start);
+			this.sendRate.increment(this.start);
 		}
 		return new AggregatingChannelMetricsContext(this.start, count + 1);
 	}

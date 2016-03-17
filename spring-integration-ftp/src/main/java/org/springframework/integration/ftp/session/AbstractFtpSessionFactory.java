@@ -192,12 +192,12 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
 			throw new MessagingException("Connecting to server [" +
-					host + ":" + port + "] failed. Please check the connection.");
+					this.host + ":" + this.port + "] failed. Please check the connection.");
 		}
-		logger.debug("Connected to server [" + host + ":" + port + "]");
+		this.logger.debug("Connected to server [" + this.host + ":" + this.port + "]");
 
 		// Login
-		if (!client.login(username, password)) {
+		if (!client.login(this.username, this.password)) {
 			throw new IllegalStateException("Login failed. The response from the server is: " +
 					client.getReplyString());
 		}
@@ -205,9 +205,9 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.postProcessClientAfterConnect(client);
 
 		this.updateClientMode(client);
-		client.setFileType(fileType);
-		client.setBufferSize(bufferSize);
-		client.setControlEncoding(controlEncoding);
+		client.setFileType(this.fileType);
+		client.setBufferSize(this.bufferSize);
+		client.setControlEncoding(this.controlEncoding);
 		return client;
 	}
 

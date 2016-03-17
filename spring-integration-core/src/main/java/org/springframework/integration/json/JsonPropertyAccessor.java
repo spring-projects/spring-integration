@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,15 +155,15 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public String toString() {
-			if (node == null) {
+			if (this.node == null) {
 				return "null";
 			}
-			if (node.isValueNode()) {
+			if (this.node.isValueNode()) {
 				// This is to avoid quotes around a TextNode for example
-				return node.asText();
+				return this.node.asText();
 			}
 			else {
-				return node.toString();
+				return this.node.toString();
 			}
 		}
 

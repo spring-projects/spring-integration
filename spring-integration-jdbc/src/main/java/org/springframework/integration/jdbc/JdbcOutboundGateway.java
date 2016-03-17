@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,18 +73,18 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 		}
 
 		if (StringUtils.hasText(selectQuery)) {
-			poller = new JdbcPollingChannelAdapter(jdbcOperations, selectQuery);
-			poller.setMaxRowsPerPoll(1);
+			this.poller = new JdbcPollingChannelAdapter(jdbcOperations, selectQuery);
+			this.poller.setMaxRowsPerPoll(1);
 		}
 		else {
-			poller = null;
+			this.poller = null;
 		}
 
 		if (StringUtils.hasText(updateQuery)) {
-			handler = new JdbcMessageHandler(jdbcOperations, updateQuery);
+			this.handler = new JdbcMessageHandler(jdbcOperations, updateQuery);
 		}
 		else {
-			handler = null;
+			this.handler = null;
 		}
 
 	}
@@ -115,13 +115,13 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	@Override
 	protected void doInit() {
 		if (this.maxRowsPerPoll != null) {
-			Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
-			poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
+			Assert.notNull(this.poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
+			this.poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
 		}
 
 		if (this.handler!= null) {
-			handler.setBeanFactory(this.getBeanFactory());
-			handler.afterPropertiesSet();
+			this.handler.setBeanFactory(this.getBeanFactory());
+			this.handler.afterPropertiesSet();
 		}
 
 		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
@@ -136,26 +136,26 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 		List<?> list;
 
 		if (this.handler != null) {
-			list = handler.executeUpdateQuery(requestMessage, keysGenerated);
+			list = this.handler.executeUpdateQuery(requestMessage, this.keysGenerated);
 		}
 		else {
 			list = Collections.emptyList();
 		}
 
-		if (poller != null) {
-			SqlParameterSource sqlQueryParameterSource = sqlParameterSourceFactory
+		if (this.poller != null) {
+			SqlParameterSource sqlQueryParameterSource = this.sqlParameterSourceFactory
 					.createParameterSource(requestMessage);
-			if (keysGenerated) {
+			if (this.keysGenerated) {
 				if (!list.isEmpty()) {
 					if (list.size() == 1) {
-						sqlQueryParameterSource = sqlParameterSourceFactory.createParameterSource(list.get(0));
+						sqlQueryParameterSource = this.sqlParameterSourceFactory.createParameterSource(list.get(0));
 					}
 					else {
-						sqlQueryParameterSource = sqlParameterSourceFactory.createParameterSource(list);
+						sqlQueryParameterSource = this.sqlParameterSourceFactory.createParameterSource(list);
 					}
 				}
 			}
-			list = poller.doPoll(sqlQueryParameterSource);
+			list = this.poller.doPoll(sqlQueryParameterSource);
 			if (list.isEmpty()) {
 				return null;
 			}
@@ -194,7 +194,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public void setRowMapper(RowMapper<?> rowMapper) {
-		poller.setRowMapper(rowMapper);
+		this.poller.setRowMapper(rowMapper);
 	}
 
 }

@@ -205,8 +205,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			this.populateUserDefinedHeaders(subset, target);
 		}
 		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping from MessageHeaders", e);
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("error occurred while mapping from MessageHeaders", e);
 			}
 		}
 	}
@@ -223,8 +223,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					}
 				}
 				catch (Exception e) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("failed to map from Message header '" + headerName + "' to target", e);
+					if (this.logger.isWarnEnabled()) {
+						this.logger.warn("failed to map from Message header '" + headerName + "' to target", e);
 					}
 				}
 			}
@@ -233,8 +233,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 
 	private boolean isMessageChannel(String headerName, Object headerValue) {
 		if (headerValue instanceof MessageChannel) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cannot map a MessageChannel instance in header " + headerName);
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Cannot map a MessageChannel instance in header " + headerName);
 			}
 			return true;
 		}
@@ -264,8 +264,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					}
 				}
 				catch (Exception e) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("error occurred while mapping header '"
+					if (this.logger.isWarnEnabled()) {
+						this.logger.warn("error occurred while mapping header '"
 								+ entry.getKey() + "' to Message header", e);
 					}
 				}
@@ -285,8 +285,8 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			return null;
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "], it is [" +
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "], it is [" +
 						value.getClass() + "]");
 			}
 			return null;
@@ -489,7 +489,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			if (PatternMatchUtils.simpleMatch(this.pattern, header)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug(MessageFormat.format(
-							"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
+							"headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, this.pattern));
 				}
 				return true;
 			}

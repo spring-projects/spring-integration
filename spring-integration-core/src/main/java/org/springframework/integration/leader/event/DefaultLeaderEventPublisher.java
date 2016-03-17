@@ -48,15 +48,15 @@ public class DefaultLeaderEventPublisher implements LeaderEventPublisher, Applic
 
 	@Override
 	public void publishOnGranted(Object source, Context context, String role) {
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new OnGrantedEvent(source, context, role));
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new OnGrantedEvent(source, context, role));
 		}
 	}
 
 	@Override
 	public void publishOnRevoked(Object source, Context context, String role) {
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new OnRevokedEvent(source, context, role));
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new OnRevokedEvent(source, context, role));
 		}
 	}
 

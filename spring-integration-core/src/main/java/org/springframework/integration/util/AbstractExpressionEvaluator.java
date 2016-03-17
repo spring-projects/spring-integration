@@ -74,7 +74,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected BeanFactory getBeanFactory() {
-		return beanFactory;
+		return this.beanFactory;
 	}
 
 	public void setConversionService(ConversionService conversionService) {
@@ -114,7 +114,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 			}
 			this.evaluationContext.setTypeConverter(this.typeConverter);
 			if (this.beanFactory != null) {
-				ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
+				ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 				if (conversionService != null) {
 					this.typeConverter.setConversionService(conversionService);
 				}
@@ -130,14 +130,14 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
 			if (this.logger.isDebugEnabled()) {
-				logger.debug("SpEL Expression evaluation failed with EvaluationException.", e);
+				this.logger.debug("SpEL Expression evaluation failed with EvaluationException.", e);
 			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), cause == null ? e : cause);
 		}
 		catch (Exception e) {
 			if (this.logger.isDebugEnabled()) {
-				logger.debug("SpEL Expression evaluation failed with Exception." + e);
+				this.logger.debug("SpEL Expression evaluation failed with Exception." + e);
 			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), e);

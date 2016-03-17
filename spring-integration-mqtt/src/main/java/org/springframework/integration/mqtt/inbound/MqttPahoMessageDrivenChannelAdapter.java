@@ -283,7 +283,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 						if (logger.isDebugEnabled()) {
 							logger.debug("Attempting reconnect");
 						}
-						if (!connected) {
+						if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
 							connectAndSubscribe();
 						}
 					}

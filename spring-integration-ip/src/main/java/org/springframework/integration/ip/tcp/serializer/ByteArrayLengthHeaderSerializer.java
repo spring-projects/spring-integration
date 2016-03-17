@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		int messageLength = this.readHeader(inputStream);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Message length is " + messageLength);
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Message length is " + messageLength);
 		}
 		byte[] messagePart = null;
 		try {
@@ -160,8 +160,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				throw new IOException("Stream closed after " + lengthRead + " of " + needed);
 			}
 			lengthRead += len;
-			if (logger.isDebugEnabled()) {
-				logger.debug("Read " + len + " bytes, buffer is now at " +
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Read " + len + " bytes, buffer is now at " +
 							 lengthRead + " of " +
 							 needed);
 			}
@@ -184,7 +184,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		case HEADER_SIZE_UNSIGNED_BYTE:
 			if (length > 0xff) {
 				throw new IllegalArgumentException("Length header:"
-						+ headerSize
+						+ this.headerSize
 						+ " too short to accommodate message length:" + length);
 			}
 			lengthPart.put((byte) length);
@@ -192,13 +192,13 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		case HEADER_SIZE_UNSIGNED_SHORT:
 			if (length > 0xffff) {
 				throw new IllegalArgumentException("Length header:"
-						+ headerSize
+						+ this.headerSize
 						+ " too short to accommodate message length:" + length);
 			}
 			lengthPart.putShort((short) length);
 			break;
 		default:
-			throw new IllegalArgumentException("Bad header size:" + headerSize);
+			throw new IllegalArgumentException("Bad header size:" + this.headerSize);
 		}
 		outputStream.write(lengthPart.array());
 	}
@@ -236,7 +236,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 				messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
 				break;
 			default:
-				throw new IllegalArgumentException("Bad header size:" + headerSize);
+				throw new IllegalArgumentException("Bad header size:" + this.headerSize);
 			}
 			return messageLength;
 		}

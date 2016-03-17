@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	}
 
 	public Boolean isShouldMarkMessagesAsRead() {
-		return shouldMarkMessagesAsRead != null && shouldMarkMessagesAsRead;
+		return this.shouldMarkMessagesAsRead != null && this.shouldMarkMessagesAsRead;
 	}
 
 	public void setMaxFetchSize(int maxFetchSize) {
@@ -194,14 +194,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
-		receiver.setSelectorExpression(selectorExpression);
+		receiver.setSelectorExpression(this.selectorExpression);
 		if (StringUtils.hasText(this.userFlag)) {
 			receiver.setUserFlag(this.userFlag);
 		}
 
 		if (isPop3) {
 			if (this.isShouldMarkMessagesAsRead() && this.logger.isWarnEnabled()) {
-				logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
+				this.logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
 			}
 		}
 		else if (isImap) {

@@ -48,7 +48,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	}
 
 	protected boolean isFullStatsEnabled() {
-		return fullStatsEnabled;
+		return this.fullStatsEnabled;
 	}
 
 	/**

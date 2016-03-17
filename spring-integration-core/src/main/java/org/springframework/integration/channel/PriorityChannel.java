@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class PriorityChannel extends QueueChannel {
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (!upperBound.tryAcquire(timeout)) {
+		if (!this.upperBound.tryAcquire(timeout)) {
 			return false;
 		}
 		message = new MessageWrapper(message);
@@ -98,7 +98,7 @@ public class PriorityChannel extends QueueChannel {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
 			message = ((MessageWrapper)message).getRootMessage();
-			upperBound.release();
+			this.upperBound.release();
 		}
 		return message;
 	}
@@ -142,7 +142,7 @@ public class PriorityChannel extends QueueChannel {
 
 		private MessageWrapper(Message<?> rootMessage){
 			this.rootMessage = rootMessage;
-			this.sequence = sequenceCounter.incrementAndGet();
+			this.sequence = PriorityChannel.this.sequenceCounter.incrementAndGet();
 		}
 
 		public Message<?> getRootMessage(){
@@ -156,7 +156,7 @@ public class PriorityChannel extends QueueChannel {
 
 		@Override
 		public Object getPayload() {
-			return rootMessage.getPayload();
+			return this.rootMessage.getPayload();
 		}
 
 		long getSequence(){

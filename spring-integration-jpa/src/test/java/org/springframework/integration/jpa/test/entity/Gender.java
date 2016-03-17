@@ -33,7 +33,7 @@ public enum Gender {
 	private String identifier;
 	private static Map<String, Gender> identifierMap;
 
-	private Gender(String identifier) {
+	Gender(String identifier) {
 		this.identifier = identifier;
 	}
 

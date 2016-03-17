@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,18 +91,23 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
 
+	protected ConfigurableListableBeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
+
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(InboundChannelAdapter.class, new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(InboundChannelAdapter.class,
+				new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
+		this.postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
 	}
 
 	@Override
@@ -114,14 +119,14 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	public void afterSingletonsInstantiated() {
 		SmartLifecycleRoleController roleController;
 		try {
-			roleController = beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
+			roleController = this.beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
 					SmartLifecycleRoleController.class);
 			for (Entry<String, List<String>> entry : this.lazyLifecycleRoles.entrySet()) {
 				roleController.addLifecyclesToRole(entry.getKey(), entry.getValue());
 			}
 		}
 		catch (NoSuchBeanDefinitionException e) {
-			logger.error("No LifecycleRoleController in the context");
+			this.logger.error("No LifecycleRoleController in the context");
 		}
 	}
 
@@ -133,6 +138,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			// we only post-process stereotype components
 			return bean;
 		}
+
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
 
 			@Override
@@ -140,7 +146,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Map<Class<? extends Annotation>, List<Annotation>> annotationChains =
 						new HashMap<Class<? extends Annotation>, List<Annotation>>();
-				for (Class<? extends Annotation> annotationType : postProcessors.keySet()) {
+				for (Class<? extends Annotation> annotationType :
+						MessagingAnnotationPostProcessor.this.postProcessors.keySet()) {
 					if (AnnotatedElementUtils.isAnnotated(method, annotationType.getName())) {
 						List<Annotation> annotationChain = getAnnotationChain(method, annotationType);
 						if (annotationChain.size() > 0) {
@@ -152,7 +159,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				for (Map.Entry<Class<? extends Annotation>, List<Annotation>> entry : annotationChains.entrySet()) {
 					Class<? extends Annotation> annotationType = entry.getKey();
 					List<Annotation> annotations = entry.getValue();
-					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotationType);
+					MethodAnnotationPostProcessor postProcessor =
+							MessagingAnnotationPostProcessor.this.postProcessors.get(annotationType);
 					if (postProcessor != null && postProcessor.shouldCreateEndpoint(method, annotations)) {
 						Method targetMethod = method;
 						if (AopUtils.isJdkDynamicProxy(bean)) {
@@ -171,7 +179,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
 									String.class);
 							if (StringUtils.hasText(autoStartup)) {
-									autoStartup = beanFactory.resolveEmbeddedValue(autoStartup);
+									autoStartup = getBeanFactory().resolveEmbeddedValue(autoStartup);
 								if (StringUtils.hasText(autoStartup)) {
 									endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 								}
@@ -179,7 +187,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 							String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 							if (StringUtils.hasText(phase)) {
-									phase = beanFactory.resolveEmbeddedValue(phase);
+									phase = getBeanFactory().resolveEmbeddedValue(phase);
 								if (StringUtils.hasText(phase)) {
 									endpoint.setPhase(Integer.parseInt(phase));
 								}
@@ -187,12 +195,13 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 							String endpointBeanName = generateBeanName(beanName, method, annotationType);
 							endpoint.setBeanName(endpointBeanName);
-							beanFactory.registerSingleton(endpointBeanName, endpoint);
-							beanFactory.initializeBean(endpoint, endpointBeanName);
+							getBeanFactory().registerSingleton(endpointBeanName, endpoint);
+							getBeanFactory().initializeBean(endpoint, endpointBeanName);
 
 							Role role = AnnotationUtils.findAnnotation(method, Role.class);
 							if (role != null) {
-								lazyLifecycleRoles.add(role.value(), endpointBeanName);
+								MessagingAnnotationPostProcessor.this.lazyLifecycleRoles.add(role.value(),
+										endpointBeanName);
 							}
 						}
 					}

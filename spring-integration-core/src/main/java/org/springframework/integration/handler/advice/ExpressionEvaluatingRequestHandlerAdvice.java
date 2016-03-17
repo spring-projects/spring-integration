@@ -228,7 +228,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 
 		public Object getEvaluationResult() {
-			return evaluationResult;
+			return this.evaluationResult;
 		}
 
 	}

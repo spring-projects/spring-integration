@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,7 +279,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	protected AsyncTaskExecutor getAsyncExecutor() {
-		return asyncExecutor;
+		return this.asyncExecutor;
 	}
 
 	@Override
@@ -352,7 +352,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			if (returnType.isAssignableFrom(this.asyncSubmitType)) {
 				return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
 			}
-			else if (returnType.isAssignableFrom(asyncSubmitListenableType)) {
+			else if (returnType.isAssignableFrom(this.asyncSubmitListenableType)) {
 				return ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(new AsyncInvocationTask(invocation));
 			}
 			else if (Future.class.isAssignableFrom(returnType)) {
@@ -498,8 +498,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 
 		}
-		else if (methodMetadataMap != null && methodMetadataMap.size() > 0) {
-			GatewayMethodMetadata methodMetadata = methodMetadataMap.get(method.getName());
+		else if (this.methodMetadataMap != null && this.methodMetadataMap.size() > 0) {
+			GatewayMethodMetadata methodMetadata = this.methodMetadataMap.get(method.getName());
 			if (methodMetadata != null) {
 				if (StringUtils.hasText(methodMetadata.getPayloadExpression())) {
 					payloadExpression = methodMetadata.getPayloadExpression();
@@ -593,7 +593,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			return this.getConversionService().convert(source, expectedReturnType);
 		}
 		else {
-			return typeConverter.convertIfNecessary(source, expectedReturnType);
+			return this.typeConverter.convertIfNecessary(source, expectedReturnType);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class GatewayMethodMetadata {
 
 
 	public String getPayloadExpression() {
-		return payloadExpression;
+		return this.payloadExpression;
 	}
 
 	public void setPayloadExpression(String payloadExpression) {
@@ -64,7 +64,7 @@ public class GatewayMethodMetadata {
 	}
 
 	public String getRequestChannelName() {
-		return requestChannelName;
+		return this.requestChannelName;
 	}
 
 	public void setRequestChannelName(String requestChannelName) {
@@ -72,7 +72,7 @@ public class GatewayMethodMetadata {
 	}
 
 	public String getReplyChannelName() {
-		return replyChannelName;
+		return this.replyChannelName;
 	}
 
 	public void setReplyChannelName(String replyChannelName) {
@@ -80,7 +80,7 @@ public class GatewayMethodMetadata {
 	}
 
 	public String getRequestTimeout() {
-		return requestTimeout;
+		return this.requestTimeout;
 	}
 
 	public void setRequestTimeout(String requestTimeout) {
@@ -88,7 +88,7 @@ public class GatewayMethodMetadata {
 	}
 
 	public String getReplyTimeout() {
-		return replyTimeout;
+		return this.replyTimeout;
 	}
 
 	public void setReplyTimeout(String replyTimeout) {

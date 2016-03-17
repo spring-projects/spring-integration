@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -400,7 +400,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(MessageFormat.format("outboundHeaderNames={0}",
-					CollectionUtils.arrayToList(outboundHeaderNames)));
+					CollectionUtils.arrayToList(this.outboundHeaderNames)));
 		}
 		for (Entry<String, Object> entry : headers.entrySet()) {
 			String name = entry.getKey();
@@ -434,7 +434,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public Map<String, Object> toHeaders(HttpHeaders source) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(MessageFormat.format("inboundHeaderNames={0}",
-					CollectionUtils.arrayToList(inboundHeaderNames)));
+					CollectionUtils.arrayToList(this.inboundHeaderNames)));
 		}
 		Map<String, Object> target = new HashMap<String, Object>();
 		Set<String> headerNames = source.keySet();

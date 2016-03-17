@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,12 +283,12 @@ public final class RedisLockRegistry implements LockRegistry {
 
 			@Override
 			public Collection<Lock> doInRedis(RedisConnection connection) throws DataAccessException {
-				Set<byte[]> keys = connection.keys((registryKey + ":*").getBytes());
+				Set<byte[]> keys = connection.keys((RedisLockRegistry.this.registryKey + ":*").getBytes());
 				ArrayList<Lock> list = new ArrayList<Lock>(keys.size());
 				if (keys.size() > 0) {
 					List<byte[]> locks = connection.mGet(keys.toArray(new byte[keys.size()][]));
 					for (byte[] lock : locks) {
-						list.add(lockSerializer.deserialize(lock));
+						list.add(RedisLockRegistry.this.lockSerializer.deserialize(lock));
 					}
 				}
 				return list;
@@ -316,12 +316,12 @@ public final class RedisLockRegistry implements LockRegistry {
 		}
 
 		private String getLockKey() {
-			return lockKey;
+			return this.lockKey;
 		}
 
 		@Override
 		public void lock() {
-			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			localLock.lock();
 			try {
 				while (true) {
@@ -348,7 +348,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
-			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			localLock.lockInterruptibly();
 			try {
 				while (!this.obtainLock()) {
@@ -367,7 +367,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public boolean tryLock() {
-			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			try {
 				if (!localLock.tryLock()) {
 					return false;
@@ -448,7 +448,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			if (!localLock.tryLock(time, unit)) {
 				return false;
 			}
@@ -494,7 +494,7 @@ public final class RedisLockRegistry implements LockRegistry {
 				}
 			}
 			finally {
-				Lock localLock = RedisLockRegistry.this.localRegistry.obtain(lockKey);
+				Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 				localLock.unlock();
 			}
 		}
@@ -532,10 +532,10 @@ public final class RedisLockRegistry implements LockRegistry {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
-			result = prime * result + Arrays.hashCode(lockHost);
-			result = prime * result + ((lockKey == null) ? 0 : lockKey.hashCode());
-			result = prime * result + (int) (lockedAt ^ (lockedAt >>> 32));
-			result = prime * result + ((threadName == null) ? 0 : threadName.hashCode());
+			result = prime * result + Arrays.hashCode(this.lockHost);
+			result = prime * result + ((this.lockKey == null) ? 0 : this.lockKey.hashCode());
+			result = prime * result + (int) (this.lockedAt ^ (this.lockedAt >>> 32));
+			result = prime * result + ((this.threadName == null) ? 0 : this.threadName.hashCode());
 			return result;
 		}
 
@@ -554,21 +554,21 @@ public final class RedisLockRegistry implements LockRegistry {
 			if (!getOuterType().equals(other.getOuterType())) {
 				return false;
 			}
-			if (!Arrays.equals(lockHost, other.lockHost)) {
+			if (!Arrays.equals(this.lockHost, other.lockHost)) {
 				return false;
 			}
-			if (!lockKey.equals(other.lockKey)) {
+			if (!this.lockKey.equals(other.lockKey)) {
 				return false;
 			}
-			if (lockedAt != other.lockedAt) {
+			if (this.lockedAt != other.lockedAt) {
 				return false;
 			}
-			if (threadName == null) {
+			if (this.threadName == null) {
 				if (other.threadName != null) {
 					return false;
 				}
 			}
-			else if (!threadName.equals(other.threadName)) {
+			else if (!this.threadName.equals(other.threadName)) {
 				return false;
 			}
 			return true;

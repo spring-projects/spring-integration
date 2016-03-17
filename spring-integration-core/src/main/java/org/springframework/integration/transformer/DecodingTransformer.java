@@ -82,7 +82,7 @@ public class DecodingTransformer<T> extends AbstractTransformer {
 	protected T doTransform(Message<?> message) throws Exception {
 		Assert.isTrue(message.getPayload() instanceof byte[], "Message payload must be byte[]");
 		byte[] bytes = (byte[]) message.getPayload();
-		return codec.decode(bytes, this.type != null ? this.type : type(message));
+		return this.codec.decode(bytes, this.type != null ? this.type : type(message));
 	}
 
 	@SuppressWarnings("unchecked")

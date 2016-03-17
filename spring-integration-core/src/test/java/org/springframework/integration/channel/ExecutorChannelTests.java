@@ -222,7 +222,7 @@ public class ExecutorChannelTests {
 
 		private volatile boolean shouldFail;
 
-		public TestHandler(CountDownLatch latch) {
+		TestHandler(CountDownLatch latch) {
 			this.latch = latch;
 		}
 

@@ -216,7 +216,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
 
 		document.set_Group_timestamp(createdDate);
-		template.insert(document, collectionName);
+		this.template.insert(document, this.collectionName);
 	}
 
 	@Override
@@ -277,7 +277,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
 		Query query = whereGroupIdOrder(groupId);
-		MessageWrapper messageDocument = template.findOne(query, MessageWrapper.class, collectionName);
+		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
 		long createdTime = 0;
 		int lastReleasedSequence = 0;
@@ -309,8 +309,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 
-		template.findAndRemove(whereMessageIdIsAndGroupIdIs(messageToRemove.getHeaders().getId(), groupId),
-				MessageWrapper.class, collectionName);
+		this.template.findAndRemove(whereMessageIdIsAndGroupIdIs(messageToRemove.getHeaders().getId(), groupId),
+				MessageWrapper.class, this.collectionName);
 		updateGroup(groupId, lastModifiedUpdate());
 		return getMessageGroup(groupId);
 	}
@@ -356,7 +356,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
 
 		@SuppressWarnings("rawtypes")
-		List groupIds = template.getCollection(collectionName)
+		List groupIds = this.template.getCollection(this.collectionName)
 				.distinct(GROUP_ID_KEY, query.getQueryObject());
 
 		for (Object groupId : groupIds) {
@@ -370,7 +370,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = whereGroupIdIs(groupId).with(new Sort(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
-		MessageWrapper messageWrapper = template.findAndRemove(query, MessageWrapper.class, collectionName);
+		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		if (messageWrapper != null) {
 			message = messageWrapper.getMessage();
@@ -501,7 +501,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					messageType = GenericMessage.class.getName();
 				}
 				try {
-					message = (Message<?>) this.read(ClassUtils.forName(messageType.toString(), classLoader), source);
+					message = (Message<?>) this.read(ClassUtils.forName(messageType.toString(), MongoDbMessageStore.this.classLoader), source);
 				}
 				catch (ClassNotFoundException e) {
 					throw new IllegalStateException("failed to load class: " + messageType, e);
@@ -547,7 +547,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 						Class<?> typeClass = null;
 						if (source.containsField("_class")) {
 							Object type = source.get("_class");
-							typeClass = ClassUtils.forName(type.toString(), classLoader);
+							typeClass = ClassUtils.forName(type.toString(), MongoDbMessageStore.this.classLoader);
 						}
 						else if (source instanceof BasicDBList) {
 							typeClass = List.class;
@@ -574,7 +574,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				DBObject payloadObject = (DBObject) payload;
 				Object payloadType = payloadObject.get("_class");
 				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), MongoDbMessageStore.this.classLoader);
 					payload = this.read(payloadClass, payloadObject);
 				}
 				catch (Exception e) {
@@ -698,7 +698,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				DBObject inputMessageObject = (DBObject) source.get("inputMessage");
 				Object inputMessageType = inputMessageObject.get("_class");
 				try {
-					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(), classLoader);
+					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(), MongoDbMessageStore.this.classLoader);
 					inputMessage = (Message<?>) MongoDbMessageStore.this.converter.read(messageClass, inputMessageObject);
 				}
 				catch (Exception e) {
@@ -741,7 +741,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public byte[] convert(Throwable source) {
-			return serializingConverter.convert(source);
+			return this.serializingConverter.convert(source);
 		}
 
 	}
@@ -804,23 +804,23 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		public int get_LastReleasedSequenceNumber() {
-			return _last_released_sequence;
+			return this._last_released_sequence;
 		}
 
 		public long get_Group_timestamp() {
-			return _group_timestamp;
+			return this._group_timestamp;
 		}
 
 		public boolean get_Group_complete() {
-			return _group_complete;
+			return this._group_complete;
 		}
 
 		public Object get_GroupId() {
-			return _groupId;
+			return this._groupId;
 		}
 
 		public Message<?> getMessage() {
-			return message;
+			return this.message;
 		}
 
 		public void set_GroupId(Object groupId) {
@@ -832,7 +832,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		public long get_Group_update_timestamp() {
-			return _group_update_timestamp;
+			return this._group_update_timestamp;
 		}
 
 		public void set_Group_update_timestamp(long lastModified) {

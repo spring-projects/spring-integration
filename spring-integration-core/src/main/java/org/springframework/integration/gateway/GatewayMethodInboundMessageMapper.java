@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
 			String prefix = (arguments.length < this.parameterList.size()) ? "Not enough" : "Too many";
-			throw new IllegalArgumentException(prefix + " parameters provided for method [" + method +
+			throw new IllegalArgumentException(prefix + " parameters provided for method [" + this.method +
 					"], expected " + this.parameterList.size() + " but received " + arguments.length + ".");
 		}
 		return this.mapArgumentsToMessage(arguments);
@@ -325,7 +325,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				}
 				else if (Map.class.isAssignableFrom(methodParameter.getParameterType())) {
 					if (messageOrPayload instanceof Map && !foundPayloadAnnotation) {
-						if (payloadExpression == null){
+						if (GatewayMethodInboundMessageMapper.this.payloadExpression == null){
 							throw new MessagingException("Ambiguous method parameters; found more than one " +
 									"Map-typed parameter and neither one contains a @Payload annotation");
 						}
@@ -337,7 +337,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				}
 			}
 			Assert.isTrue(messageOrPayload != null,
-					"unable to determine a Message or payload parameter on method [" + method + "]");
+					"unable to determine a Message or payload parameter on method [" + GatewayMethodInboundMessageMapper.this.method + "]");
 			AbstractIntegrationMessageBuilder<?> builder = (messageOrPayload instanceof Message)
 					? GatewayMethodInboundMessageMapper.this.messageBuilderFactory.fromMessage((Message<?>) messageOrPayload)
 					: GatewayMethodInboundMessageMapper.this.messageBuilderFactory.withPayload(messageOrPayload);

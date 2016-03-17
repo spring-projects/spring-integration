@@ -262,7 +262,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				this.exchangeNameGenerator.setBeanFactory(beanFactory);
 			}
 		}
-		Assert.state(routingKeyExpression == null || routingKey == null,
+		Assert.state(this.routingKeyExpression == null || this.routingKey == null,
 				"Either a routingKey or a routingKeyExpression can be provided, but not both");
 		if (this.routingKeyExpression != null) {
 			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(this.routingKeyExpression,
@@ -301,7 +301,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		if (!this.running) {
 			if (!this.lazyConnect && this.connectionFactory != null) {
 				try {
-					Connection connection = connectionFactory.createConnection();
+					Connection connection = this.connectionFactory.createConnection();
 					if (connection != null) {
 						connection.close();
 					}
@@ -440,7 +440,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		Message<?> confirmMessage = builder
 				.copyHeaders(headers)
 				.build();
-		if (ack && confirmAckChannel != null) {
+		if (ack && this.confirmAckChannel != null) {
 			sendOutput(confirmMessage, this.confirmAckChannel, true);
 		}
 		else if (!ack && this.confirmNackChannel != null) {

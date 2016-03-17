@@ -89,7 +89,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			processor.setCustomizer(this.customizer);
 		}
 		if (this.beanClassLoader != null) {
-			processor.setBeanClassLoader(beanClassLoader);
+			processor.setBeanClassLoader(this.beanClassLoader);
 		}
 		if (getBeanFactory() != null) {
 			processor.setBeanFactory(getBeanFactory());

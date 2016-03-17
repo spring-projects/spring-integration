@@ -124,8 +124,8 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			}
 		}
 		for (String keyToRemove : conflictKeys) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
 						+ "in MessageGroup with correlation key: " + group.getGroupId());
 			}
 			aggregatedHeaders.remove(keyToRemove);

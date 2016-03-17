@@ -112,7 +112,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	protected ClassLoader getBeanClassLoader() {
-		return beanClassLoader;
+		return this.beanClassLoader;
 	}
 
 	/**
@@ -156,8 +156,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception {
 		List<Advice> receiveOnlyAdviceChain = new ArrayList<Advice>();
-		if (!CollectionUtils.isEmpty(adviceChain)) {
-			for (Advice advice : adviceChain) {
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			for (Advice advice : this.adviceChain) {
 				if (isReceiveOnlyAdvice(advice)) {
 					receiveOnlyAdviceChain.add(advice);
 				}
@@ -165,6 +165,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
+
 			@Override
 			public Boolean call() throws Exception {
 				return doPoll();
@@ -237,13 +238,13 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		boolean result;
 		if (message == null) {
-			if (this.logger.isDebugEnabled()){
+			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Received no Message during the poll, returning 'false'");
 			}
 			result = false;
 		}
 		else {
-			if (this.logger.isDebugEnabled()){
+			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Poll resulted in Message: " + message);
 			}
 			if (holder != null) {
@@ -315,20 +316,22 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 		private final Callable<Boolean> pollingTask;
 
-
 		private Poller(Callable<Boolean> pollingTask) {
 			this.pollingTask = pollingTask;
 		}
 
 		@Override
 		public void run() {
-			taskExecutor.execute(new Runnable() {
+			AbstractPollingEndpoint.this.taskExecutor.execute(new Runnable() {
+
 				@Override
 				public void run() {
 					int count = 0;
-					while (initialized && (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll)) {
+					while (AbstractPollingEndpoint.this.initialized
+							&& (AbstractPollingEndpoint.this.maxMessagesPerPoll <= 0
+							|| count < AbstractPollingEndpoint.this.maxMessagesPerPoll)) {
 						try {
-							if (!pollingTask.call()) {
+							if (!Poller.this.pollingTask.call()) {
 								break;
 							}
 							count++;
@@ -343,6 +346,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						}
 					}
 				}
+
 			});
 		}
 

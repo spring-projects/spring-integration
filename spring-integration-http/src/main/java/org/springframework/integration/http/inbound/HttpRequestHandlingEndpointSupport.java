@@ -195,7 +195,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * @return Whether to expect a reply.
 	 */
 	protected boolean isExpectReply() {
-		return expectReply;
+		return this.expectReply;
 	}
 
 	/**
@@ -283,7 +283,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	public final RequestMapping getRequestMapping() {
-		return requestMapping;
+		return this.requestMapping;
 	}
 
 
@@ -297,7 +297,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	public CrossOrigin getCrossOrigin() {
-		return crossOrigin;
+		return this.crossOrigin;
 	}
 
 	/**

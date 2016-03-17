@@ -77,7 +77,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		private final String text;
 
 		@SuppressWarnings("unused")
-		public TestBean1(String text) {
+		TestBean1(String text) {
 			this.text = text;
 		}
 	}
@@ -87,7 +87,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		private final String text;
 
-		public TestBean2(String text) {
+		TestBean2(String text) {
 			this.text = text;
 		}
 
@@ -101,7 +101,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		private final String text;
 
-		public TestBean3(String text) {
+		TestBean3(String text) {
 			this.text = text;
 		}
 

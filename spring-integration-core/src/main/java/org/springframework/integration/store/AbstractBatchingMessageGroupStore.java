@@ -45,7 +45,7 @@ public abstract class AbstractBatchingMessageGroupStore implements BasicMessageG
 	}
 
 	public int getRemoveBatchSize() {
-		return removeBatchSize;
+		return this.removeBatchSize;
 	}
 
 	/**

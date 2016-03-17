@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 				.withRoot(requestMessage)
 				.build();
 
-		UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
+		UriComponents uriComponents = UriComponentsBuilder.fromUriString(this.uri).buildAndExpand(uriVariables);
 		return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 	}
 

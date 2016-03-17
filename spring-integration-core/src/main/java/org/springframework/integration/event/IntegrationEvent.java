@@ -45,7 +45,7 @@ public abstract class IntegrationEvent extends ApplicationEvent {
 	}
 
 	public Throwable getCause() {
-		return cause;
+		return this.cause;
 	}
 
 	@Override

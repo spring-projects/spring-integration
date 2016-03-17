@@ -69,7 +69,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 			for (MBeanAttributeInfo attrInfo : attributeInfos) {
 				// we don't need to repeat name of this as an attribute
-				if ("ObjectName".equals(attrInfo.getName()) || !filter.accept(objName, attrInfo.getName())) {
+				if ("ObjectName".equals(attrInfo.getName()) || !this.filter.accept(objName, attrInfo.getName())) {
 					continue;
 				}
 

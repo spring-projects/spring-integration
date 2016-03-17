@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class NioFileLocker extends AbstractFileLockerFilter {
      * {@inheritDoc}
      */
     public boolean lock(File fileToLock) {
-        FileLock lock = lockCache.get(fileToLock);
+        FileLock lock = this.lockCache.get(fileToLock);
         if (lock == null) {
             FileLock newLock = null;
             try {
@@ -55,7 +55,7 @@ public class NioFileLocker extends AbstractFileLockerFilter {
                         + fileToLock, e);
             }
             if (newLock != null) {
-                FileLock original = lockCache.putIfAbsent(fileToLock, newLock);
+                FileLock original = this.lockCache.putIfAbsent(fileToLock, newLock);
                 lock = original != null ? original : newLock;
             }
         }
@@ -63,11 +63,11 @@ public class NioFileLocker extends AbstractFileLockerFilter {
     }
 
     public boolean isLockable(File file) {
-        return lockCache.containsKey(file) || !FileChannelCache.isLocked(file);
+        return this.lockCache.containsKey(file) || !FileChannelCache.isLocked(file);
     }
 
     public void unlock(File fileToUnlock) {
-        FileLock fileLock = lockCache.get(fileToUnlock);
+        FileLock fileLock = this.lockCache.get(fileToUnlock);
         try {
             if (fileLock != null) {
                 fileLock.release();

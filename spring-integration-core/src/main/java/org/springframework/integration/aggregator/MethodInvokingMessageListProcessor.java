@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,24 +38,24 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 	private final MessagingMethodInvokerHelper<T> delegate;
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Method method, Class<T> expectedType) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, expectedType, true);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Method method) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, true);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, String methodName, Class<T> expectedType) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName,
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName,
 				expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, String methodName) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, true);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, Object.class, true);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, Object.class, true);
 	}
 
 	@Override
@@ -65,12 +65,12 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 	}
 
 	public String toString() {
-		return delegate.toString();
+		return this.delegate.toString();
 	}
 
 	public T process(Collection<Message<?>> messages, Map<String, Object> aggregateHeaders) {
 		try {
-			return delegate.process(messages, aggregateHeaders);
+			return this.delegate.process(messages, aggregateHeaders);
 		}
 		catch (RuntimeException e) {
 			throw e;

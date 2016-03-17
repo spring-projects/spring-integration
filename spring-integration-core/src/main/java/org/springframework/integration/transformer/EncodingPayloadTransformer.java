@@ -38,7 +38,7 @@ public class EncodingPayloadTransformer<T> extends AbstractPayloadTransformer<T,
 
 	@Override
 	protected byte[] transformPayload(T payload) throws Exception {
-		return codec.encode(payload);
+		return this.codec.encode(payload);
 	}
 
 }

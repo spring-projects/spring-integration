@@ -39,7 +39,7 @@ public class LastModifiedFileListFilter implements FileListFilter<File> {
 	private volatile long age = DEFAULT_AGE;
 
 	public long getAge() {
-		return age;
+		return this.age;
 	}
 
 	/**

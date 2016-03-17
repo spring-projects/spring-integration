@@ -66,7 +66,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 
 		if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-			logger.info("It is useful to provide an explicit 'id' attribute on 'chain' elements " +
+			this.logger.info("It is useful to provide an explicit 'id' attribute on 'chain' elements " +
 					"to simplify the identification of child elements in logs etc.");
 		}
 

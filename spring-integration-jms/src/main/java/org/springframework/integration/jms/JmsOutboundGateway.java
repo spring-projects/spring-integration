@@ -768,7 +768,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
 
 			// map headers
-			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
+			this.headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
 
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
@@ -824,7 +824,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
 
 			// map headers
-			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
+			this.headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
 
 			replyTo = this.determineReplyDestination(requestMessage, session);
 			jmsRequest.setJMSReplyTo(replyTo);
@@ -1122,7 +1122,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private javax.jms.Message receiveReplyMessage(MessageConsumer messageConsumer) throws JMSException {
-		return (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
+		return (this.receiveTimeout >= 0) ? messageConsumer.receive(this.receiveTimeout) : messageConsumer.receive();
 	}
 
 	/**
@@ -1315,11 +1315,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		private long getTimeStamp() {
-			return timeStamp;
+			return this.timeStamp;
 		}
 
 		private javax.jms.Message getReply() {
-			return reply;
+			return this.reply;
 		}
 	}
 
@@ -1330,7 +1330,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (logger.isTraceEnabled()) {
 				logger.trace("Running late reply reaper");
 			}
-			Iterator<Entry<String, TimedReply>> lateReplyIterator = earlyOrLateReplies.entrySet().iterator();
+			Iterator<Entry<String, TimedReply>> lateReplyIterator = JmsOutboundGateway.this.earlyOrLateReplies.entrySet().iterator();
 			long now = System.currentTimeMillis();
 			long expired = now - (JmsOutboundGateway.this.receiveTimeout * 2);
 			while (lateReplyIterator.hasNext()) {
@@ -1355,15 +1355,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		@Override
 		public void run() {
 			synchronized(JmsOutboundGateway.this.lifeCycleMonitor) {
-				if (System.currentTimeMillis() - lastSend > idleReplyContainerTimeout
-						&& replies.size() == 0) {
-					if (replyContainer.isRunning()) {
+				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend > JmsOutboundGateway.this.idleReplyContainerTimeout
+						&& JmsOutboundGateway.this.replies.size() == 0) {
+					if (JmsOutboundGateway.this.replyContainer.isRunning()) {
 						if (logger.isDebugEnabled()) {
 							logger.debug(getComponentName() + ": Stopping idle reply container.");
 						}
-						replyContainer.stop();
-						idleTask.cancel(false);
-						idleTask = null;
+						JmsOutboundGateway.this.replyContainer.stop();
+						JmsOutboundGateway.this.idleTask.cancel(false);
+						JmsOutboundGateway.this.idleTask = null;
 					}
 				}
 			}
@@ -1398,7 +1398,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		private volatile Executor taskExecutor;
 
 		public String getSessionAcknowledgeModeName() {
-			return sessionAcknowledgeModeName;
+			return this.sessionAcknowledgeModeName;
 		}
 
 		public void setSessionAcknowledgeModeName(String sessionAcknowledgeModeName) {
@@ -1406,7 +1406,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Boolean isSessionTransacted() {
-			return sessionTransacted;
+			return this.sessionTransacted;
 		}
 
 		public void setSessionTransacted(Boolean sessionTransacted) {
@@ -1414,7 +1414,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getSessionAcknowledgeMode() {
-			return sessionAcknowledgeMode;
+			return this.sessionAcknowledgeMode;
 		}
 
 		public void setSessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
@@ -1422,7 +1422,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Long getReceiveTimeout() {
-			return receiveTimeout;
+			return this.receiveTimeout;
 		}
 
 		public void setReceiveTimeout(Long receiveTimeout) {
@@ -1430,7 +1430,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Long getRecoveryInterval() {
-			return recoveryInterval;
+			return this.recoveryInterval;
 		}
 
 		public void setRecoveryInterval(Long recoveryInterval) {
@@ -1438,7 +1438,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getCacheLevel() {
-			return cacheLevel;
+			return this.cacheLevel;
 		}
 
 		public void setCacheLevel(Integer cacheLevel) {
@@ -1446,7 +1446,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getConcurrentConsumers() {
-			return concurrentConsumers;
+			return this.concurrentConsumers;
 		}
 
 		public void setConcurrentConsumers(Integer concurrentConsumers) {
@@ -1454,7 +1454,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getMaxConcurrentConsumers() {
-			return maxConcurrentConsumers;
+			return this.maxConcurrentConsumers;
 		}
 
 		public void setMaxConcurrentConsumers(Integer maxConcurrentConsumers) {
@@ -1462,7 +1462,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getMaxMessagesPerTask() {
-			return maxMessagesPerTask;
+			return this.maxMessagesPerTask;
 		}
 
 		public void setMaxMessagesPerTask(Integer maxMessagesPerTask) {
@@ -1470,7 +1470,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getIdleConsumerLimit() {
-			return idleConsumerLimit;
+			return this.idleConsumerLimit;
 		}
 
 		public void setIdleConsumerLimit(Integer idleConsumerLimit) {
@@ -1478,7 +1478,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Integer getIdleTaskExecutionLimit() {
-			return idleTaskExecutionLimit;
+			return this.idleTaskExecutionLimit;
 		}
 
 		public void setIdleTaskExecutionLimit(Integer idleTaskExecutionLimit) {
@@ -1490,7 +1490,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Executor getTaskExecutor() {
-			return taskExecutor;
+			return this.taskExecutor;
 		}
 
 	}

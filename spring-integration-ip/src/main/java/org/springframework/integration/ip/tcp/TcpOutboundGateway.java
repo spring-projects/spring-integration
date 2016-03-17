@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Assert.notNull(connectionFactory, this.getClass().getName() +
+		Assert.notNull(this.connectionFactory, this.getClass().getName() +
 				" requires a client connection factory");
 		boolean haveSemaphore = false;
 		TcpConnection connection = null;
@@ -131,7 +131,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			AsyncReply reply = new AsyncReply(this.remoteTimeoutExpression.getValue(this.evaluationContext,
 					requestMessage, Long.class));
 			connectionId = connection.getConnectionId();
-			pendingReplies.put(connectionId, reply);
+			this.pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Added pending reply " + connectionId);
 			}
@@ -159,7 +159,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 		finally {
 			if (connectionId != null) {
-				pendingReplies.remove(connectionId);
+				this.pendingReplies.remove(connectionId);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Removed pending reply " + connectionId);
 				}
@@ -187,7 +187,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		if (logger.isTraceEnabled()) {
 			logger.trace("onMessage: " + connectionId + "(" + message + ")");
 		}
-		AsyncReply reply = pendingReplies.get(connectionId);
+		AsyncReply reply = this.pendingReplies.get(connectionId);
 		if (reply == null) {
 			if (message instanceof ErrorMessage) {
 				/*
@@ -265,7 +265,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @return the connectionFactory
 	 */
 	protected AbstractConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+		return this.connectionFactory;
 	}
 
 	/**
@@ -305,7 +305,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				Thread.currentThread().interrupt();
 			}
 			boolean waitForMessageAfterError = true;
-			while (reply instanceof ErrorMessage) {
+			while (this.reply instanceof ErrorMessage) {
 				if (waitForMessageAfterError) {
 					/*
 					 * Possible race condition with NIO; we might have received the close
@@ -315,11 +315,11 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					this.secondChanceLatch.await(2, TimeUnit.SECONDS);
 					waitForMessageAfterError = false;
 				}
-				else if (reply.getPayload() instanceof MessagingException) {
-					throw (MessagingException) reply.getPayload();
+				else if (this.reply.getPayload() instanceof MessagingException) {
+					throw (MessagingException) this.reply.getPayload();
 				}
 				else {
-					throw new MessagingException("Exception while awaiting reply", (Throwable) reply.getPayload());
+					throw new MessagingException("Exception while awaiting reply", (Throwable) this.reply.getPayload());
 				}
 			}
 			return this.reply;

@@ -45,7 +45,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	@Override
 	public List<Registration> getRegistrations() {
 		List<Registration> registrations = new ArrayList<Registration>();
-		for (KryoRegistrar registrar : delegates) {
+		for (KryoRegistrar registrar : this.delegates) {
 			registrations.addAll(registrar.getRegistrations());
 		}
 		return registrations;

@@ -183,7 +183,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected void doSend(final DatagramPacket packet) {
 		Message<byte[]> message = null;
 		try {
-			message = mapper.toMessage(packet);
+			message = this.mapper.toMessage(packet);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received:" + message);
 			}

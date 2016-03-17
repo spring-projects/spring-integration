@@ -94,7 +94,7 @@ public class MessageWithContentTypeTests {
 	}
 
 	private static class TestMimeMessage extends MimeMessage{
-		public TestMimeMessage() {
+		TestMimeMessage() {
 			super(Session.getDefaultInstance(new Properties()));
 		}
 	}

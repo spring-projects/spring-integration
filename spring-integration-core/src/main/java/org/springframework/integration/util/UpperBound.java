@@ -45,7 +45,7 @@ public final class UpperBound {
 	}
 
 	public int availablePermits(){
-		if (semaphore == null){
+		if (this.semaphore == null){
 			return Integer.MAX_VALUE;
 		}
 		return this.semaphore.availablePermits();

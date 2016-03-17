@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,16 +126,17 @@ public class CustomConverterMessageProcessingTests {
 
 
 	@SuppressWarnings("unused")
-	private static class TestConverter implements Converter<TestBean1, TestBean2> {
+	public static class TestConverter implements Converter<TestBean1, TestBean2> {
 
 		public TestBean2 convert(TestBean1 source) {
 			return new TestBean2(source.text.toUpperCase());
 		}
+
 	}
 
 
 	@SuppressWarnings("unused")
-	private static class TestService {
+	public static class TestService {
 
 		public Object test(TestBean2 bean) {
 			return bean;
@@ -144,20 +145,22 @@ public class CustomConverterMessageProcessingTests {
 		public boolean filter(TestBean2 bean) {
 			return true;
 		}
+
 	}
 
 
-	private static class TestBean1  {
+	public static class TestBean1  {
 
 		private String text;
 
 		public TestBean1(String text) {
 			this.text = text;
 		}
+
 	}
 
 
-	private static class TestBean2 {
+	public static class TestBean2 {
 
 		private String text;
 
@@ -169,6 +172,7 @@ public class CustomConverterMessageProcessingTests {
 		public String toString() {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
+
 	}
 
 }

@@ -93,7 +93,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	protected void sendToPipe(final ByteBuffer networkBuffer) throws IOException {
 		Assert.notNull(networkBuffer, "rawBuffer cannot be null");
 		if (logger.isDebugEnabled()) {
-			logger.debug("sendToPipe " + sslEngine.getHandshakeStatus() + ", remaining:" + networkBuffer.remaining());
+			logger.debug("sendToPipe " + this.sslEngine.getHandshakeStatus() + ", remaining:" + networkBuffer.remaining());
 		}
 		SSLEngineResult result = null;
 		while (!this.needMoreNetworkData) {
@@ -215,7 +215,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				runTasks();
 			}
 		}
-		HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
+		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
 		if (logger.isDebugEnabled()) {
 			logger.debug("New handshake status " + handshakeStatus);
 		}
@@ -367,7 +367,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Writer waiting for handshake");
 				}
-				if (!semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
+				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
 					throw new MessagingException("SSL Handshaking taking too long");
 				}
 				if (logger.isTraceEnabled()) {
@@ -392,7 +392,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				logger.debug("After wrap:" + resultToString(result) + " Plaintext buffer @" + plainText.position() + "/" + plainText.limit());
 			}
 			if (result.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) {
-				TcpNioSSLConnection.this.encoded = allocateEncryptionBuffer(sslEngine.getSession().getPacketBufferSize());
+				TcpNioSSLConnection.this.encoded = allocateEncryptionBuffer(TcpNioSSLConnection.this.sslEngine.getSession().getPacketBufferSize());
 				result = TcpNioSSLConnection.this.sslEngine.wrap(plainText, TcpNioSSLConnection.this.encoded);
 			}
 			return result;

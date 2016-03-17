@@ -73,16 +73,16 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		KeyStore ts = KeyStore.getInstance("JKS");
 
-		ks.load(keyStore.getInputStream(), keyStorePassword);
-		ts.load(trustStore.getInputStream(), trustStorePassword);
+		ks.load(this.keyStore.getInputStream(), this.keyStorePassword);
+		ts.load(this.trustStore.getInputStream(), this.trustStorePassword);
 
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-		kmf.init(ks, keyStorePassword);
+		kmf.init(ks, this.keyStorePassword);
 
 		TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 		tmf.init(ts);
 
-		SSLContext sslContext = SSLContext.getInstance(protocol);
+		SSLContext sslContext = SSLContext.getInstance(this.protocol);
 
 		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 

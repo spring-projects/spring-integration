@@ -325,7 +325,7 @@ public class MessagingAnnotationPostProcessorTests {
 		private final CountDownLatch latch;
 
 
-		public OutboundOnlyTestBean(CountDownLatch latch) {
+		OutboundOnlyTestBean(CountDownLatch latch) {
 			this.latch = latch;
 		}
 

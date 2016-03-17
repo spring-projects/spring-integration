@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running && this.beanFactory instanceof ListableBeanFactory) {
-				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) beanFactory)) {
+				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) this.beanFactory)) {
 					String componentName = component.getComponentName();
 					boolean shouldTrack = PatternMatchUtils.simpleMatch(this.componentNamePatterns, componentName);
 					component.setShouldTrack(shouldTrack);
@@ -189,7 +189,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running && this.beanFactory instanceof ListableBeanFactory) {
-				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) beanFactory)) {
+				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) this.beanFactory)) {
 					String componentName = component.getComponentName();
 					if (this.currentlyTrackedComponentNames.contains(componentName)) {
 						component.setShouldTrack(false);

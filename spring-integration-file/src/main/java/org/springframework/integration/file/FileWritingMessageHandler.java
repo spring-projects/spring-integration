@@ -251,7 +251,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	protected String getTemporaryFileSuffix() {
-		return temporaryFileSuffix;
+		return this.temporaryFileSuffix;
 	}
 
 	/**
@@ -473,8 +473,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			if (rename(sourceFile, resultFile)) {
 				return resultFile;
 			}
-			if (logger.isInfoEnabled()) {
-				logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
 						sourceFile.getAbsolutePath()));
 			}
 		}
@@ -835,7 +835,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
 		if (state != null) {
-			fileStates.remove(fileToWriteTo.getAbsolutePath());
+			this.fileStates.remove(fileToWriteTo.getAbsolutePath());
 		}
 	}
 
@@ -896,8 +896,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					if (state.lastWrite < expired) {
 						iterator.remove();
 						state.close();
-						if (logger.isDebugEnabled()) {
-							logger.debug("Flushed: " + entry.getKey());
+						if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
+							FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
 						}
 					}
 				}

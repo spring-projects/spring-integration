@@ -371,7 +371,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		@Override
 		public MessageGroup next() {
-			Object messageGroupId = idIterator.next();
+			Object messageGroupId = this.idIterator.next();
 			return getMessageGroup(messageGroupId);
 		}
 

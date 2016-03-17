@@ -41,7 +41,7 @@ public class TcpConnectionFailedCorrelationEvent extends IpIntegrationEvent {
 	}
 
 	public String getConnectionId() {
-		return connectionId;
+		return this.connectionId;
 	}
 
 	@Override

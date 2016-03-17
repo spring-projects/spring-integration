@@ -78,10 +78,10 @@ public class ExponentialMovingAverage {
 	}
 
 	public synchronized void reset() {
-		count = 0;
-		min = Double.MAX_VALUE;
-		max = 0;
-		samples.clear();
+		this.count = 0;
+		this.min = Double.MAX_VALUE;
+		this.max = 0;
+		this.samples.clear();
 	}
 
 	/**
@@ -92,8 +92,8 @@ public class ExponentialMovingAverage {
 		if (this.samples.size() == this.retention) {
 			this.samples.poll();
 		}
-		samples.add(value);
-		count++;//NOSONAR - false positive, we're synchronized
+		this.samples.add(value);
+		this.count++;//NOSONAR - false positive, we're synchronized
 	}
 
 	private Statistics calc() {
@@ -139,14 +139,14 @@ public class ExponentialMovingAverage {
 	 * @return the number of measurements recorded
 	 */
 	public int getCount() {
-		return (int) count;
+		return (int) this.count;
 	}
 
 	/**
 	 * @return the number of measurements recorded
 	 */
 	public long getCountLong() {
-		return count;
+		return this.count;
 	}
 
 	/**

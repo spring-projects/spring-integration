@@ -104,7 +104,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * @since 4.2
 	 */
 	public SessionFactory<F> getSessionFactory() {
-		return sessionFactory;
+		return this.sessionFactory;
 	}
 
 	/**
@@ -129,7 +129,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * @return the remote file separator.
 	 */
 	public final String getRemoteFileSeparator() {
-		return remoteFileSeparator;
+		return this.remoteFileSeparator;
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * system.
 	 */
 	public boolean isUseTemporaryFileName() {
-		return useTemporaryFileName;
+		return this.useTemporaryFileName;
 	}
 
 	/**
@@ -245,7 +245,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
-		if (hasExplicitlySetSuffix && !useTemporaryFileName){
+		if (this.hasExplicitlySetSuffix && !this.useTemporaryFileName){
 			this.logger.warn("Since 'use-temporary-file-name' is set to 'false' the value of 'temporary-file-suffix' has no effect");
 		}
 	}
@@ -333,8 +333,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 		else {
 			// A null holder means a File payload that does not exist.
-			if (logger.isWarnEnabled()) {
-				logger.warn("File " + message.getPayload() + " does not exist");
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("File " + message.getPayload() + " does not exist");
 			}
 			return null;
 		}
@@ -425,8 +425,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 					session.close();
 				}
 				catch (Exception ignored) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("failed to close Session", ignored);
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("failed to close Session", ignored);
 					}
 				}
 			}
@@ -488,7 +488,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with temporary file extension if enabled
 
-		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName ? this.temporaryFileSuffix : "");
+		String tempFilePath = tempRemoteFilePath + (this.useTemporaryFileName ? this.temporaryFileSuffix : "");
 
 		if (this.autoCreateDirectory) {
 			try {
@@ -515,8 +515,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 								"The destination file already exists at '" + remoteFilePath + "'.");
 					}
 					else {
-						if (logger.isDebugEnabled()) {
-							logger.debug("File not transferred to '" + remoteFilePath + "'; already exists.");
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("File not transferred to '" + remoteFilePath + "'; already exists.");
 						}
 					}
 					rename = false;
@@ -560,11 +560,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 
 		public InputStream getStream() {
-			return stream;
+			return this.stream;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 	}

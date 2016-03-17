@@ -56,9 +56,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		if (!isMessageMethod) {
 			boolean isMessageHandler = invocationThis != null
 					&& MessageHandler.class.isAssignableFrom(invocationThis.getClass());
-			if (!isMessageHandler && logger.isWarnEnabled()) {
+			if (!isMessageHandler && this.logger.isWarnEnabled()) {
 				String clazzName = invocationThis == null ? method.getDeclaringClass().getName() : invocationThis.getClass().getName();
-				logger.warn("This advice " + this.getClass().getName() +
+				this.logger.warn("This advice " + this.getClass().getName() +
 						" can only be used for MessageHandlers; an attempt to advise method '" + method.getName() +
 						"' in '" + clazzName + "' is ignored");
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	public final long getReaperDelay() {
-		return reaperDelay;
+		return this.reaperDelay;
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		}
 		if (channel != null && channel instanceof MessageChannel) {
 			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
-			channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
+			this.channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
 					System.currentTimeMillis() + timeToLive));
 			if (logger.isDebugEnabled()) {
 				logger.debug("Registered " + channel + " as " + name);
@@ -238,11 +238,11 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		}
 
 		public final long getExpireAt() {
-			return expireAt;
+			return this.expireAt;
 		}
 
 		public final MessageChannel getChannel() {
-			return channel;
+			return this.channel;
 		}
 
 	}

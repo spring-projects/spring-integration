@@ -215,7 +215,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		if (!CollectionUtils.isEmpty(this.delayedAdviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(releaseHandler);
-			for (Advice advice : delayedAdviceChain) {
+			for (Advice advice : this.delayedAdviceChain) {
 				proxyFactory.addAdvice(advice);
 			}
 			return (MessageHandler) proxyFactory.getProxy(getApplicationContext().getClassLoader());

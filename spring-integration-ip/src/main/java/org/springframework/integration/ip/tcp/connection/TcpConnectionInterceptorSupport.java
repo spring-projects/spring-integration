@@ -185,7 +185,7 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 	 */
 	@Override
 	public TcpListener getListener() {
-		return tcpListener;
+		return this.tcpListener;
 	}
 
 	@Override

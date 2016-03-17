@@ -54,7 +54,7 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	public String getScriptAsString() throws IOException {
 		if (this.script == null || this.isModified()) {
 			this.lastModifiedChecked.set(System.currentTimeMillis());
-			this.script = source.getScriptAsString();
+			this.script = this.source.getScriptAsString();
 		}
 		return this.script;
 	}

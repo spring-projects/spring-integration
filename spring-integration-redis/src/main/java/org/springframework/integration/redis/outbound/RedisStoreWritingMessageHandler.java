@@ -258,19 +258,19 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 		Assert.state(this.initialized, "handler not initialized - afterPropertiesSet() must be called before the first use");
 		try {
-			if (collectionType == CollectionType.ZSET) {
+			if (this.collectionType == CollectionType.ZSET) {
 				this.writeToZset((RedisZSet<Object>) store, message);
 			}
-			else if (collectionType == CollectionType.SET) {
+			else if (this.collectionType == CollectionType.SET) {
 				this.writeToSet((RedisSet<Object>) store, message);
 			}
-			else if (collectionType == CollectionType.LIST) {
+			else if (this.collectionType == CollectionType.LIST) {
 				this.writeToList((RedisList<Object>) store, message);
 			}
-			else if (collectionType == CollectionType.MAP) {
+			else if (this.collectionType == CollectionType.MAP) {
 				this.writeToMap((RedisMap<Object, Object>) store, message);
 			}
-			else if (collectionType == CollectionType.PROPERTIES) {
+			else if (this.collectionType == CollectionType.PROPERTIES) {
 				this.writeToProperties((RedisProperties) store, message);
 			}
 		}
@@ -400,14 +400,14 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private void processInPipeline(PipelineCallback callback) {
 		RedisConnection connection =
-				RedisConnectionUtils.bindConnection(redisTemplate.getConnectionFactory());
+				RedisConnectionUtils.bindConnection(this.redisTemplate.getConnectionFactory());
 		try {
 			connection.openPipeline();
 			callback.process();
 		}
 		finally {
 			connection.closePipeline();
-			RedisConnectionUtils.unbindConnection(redisTemplate.getConnectionFactory());
+			RedisConnectionUtils.unbindConnection(this.redisTemplate.getConnectionFactory());
 		}
 	}
 
@@ -430,7 +430,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			this.doIncrementOrOverwrite(ops, object, score, zsetIncrementScore);
 		}
 		else {
-			logger.debug("Zset Score could not be determined. Using default score of 1");
+			this.logger.debug("Zset Score could not be determined. Using default score of 1");
 			this.doIncrementOrOverwrite(ops, object, Double.valueOf(1), zsetIncrementScore);
 		}
 	}
@@ -448,8 +448,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private boolean verifyAllMapValuesOfTypeNumber(Map<?,?> map) {
 		for (Object value : map.values()) {
 			if (!(value instanceof Number)) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("failed to extract payload elements because '" +
+				if (this.logger.isWarnEnabled()) {
+					this.logger.warn("failed to extract payload elements because '" +
 							value + "' is not of type Number");
 				}
 				return false;

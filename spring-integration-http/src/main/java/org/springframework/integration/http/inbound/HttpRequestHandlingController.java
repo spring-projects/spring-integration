@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,10 +182,10 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 			MapBindingResult errors = new MapBindingResult(new HashMap<String, Object>(), "dummy");
 			PrintWriter stackTrace = new PrintWriter(new StringWriter());
 			e.printStackTrace(stackTrace);
-			errors.reject(errorCode, new Object[] { e, e.getMessage(), stackTrace.toString() },
+			errors.reject(this.errorCode, new Object[] { e, e.getMessage(), stackTrace.toString() },
 					"A Spring Integration handler raised an exception while handling an HTTP request.  The exception is of type "
 							+ e.getClass() + " and it has a message: (" + e.getMessage() + ")");
-			modelAndView.addObject(errorsKey, errors);
+			modelAndView.addObject(this.errorsKey, errors);
 		}
 		return modelAndView;
 	}

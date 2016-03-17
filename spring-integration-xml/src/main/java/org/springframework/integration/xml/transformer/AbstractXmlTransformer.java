@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,23 +58,23 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 	}
 
 	public String getResultType() {
-		return resultType;
+		return this.resultType;
 	}
 
 	public String getResultFactoryName() {
-		return resultFactoryName;
+		return this.resultFactoryName;
 	}
 
 	public ResultFactory getResultFactory() {
-		return resultFactory;
+		return this.resultFactory;
 	}
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		ResultFactory generatedResultFactory = configureResultFactory(resultType, resultFactoryName, this.getBeanFactory());
+		ResultFactory generatedResultFactory = configureResultFactory(this.resultType, this.resultFactoryName, this.getBeanFactory());
 		if (generatedResultFactory != null) {
-			resultFactory = generatedResultFactory;
+			this.resultFactory = generatedResultFactory;
 		}
 	}
 

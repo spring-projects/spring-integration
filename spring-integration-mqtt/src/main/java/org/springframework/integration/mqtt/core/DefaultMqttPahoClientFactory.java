@@ -122,7 +122,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 */
 	@Override
 	public ConsumerStopAction getConsumerStopAction() {
-		return consumerStopAction;
+		return this.consumerStopAction;
 	}
 
 	/**
@@ -198,19 +198,19 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		}
 
 		protected String getTopic() {
-			return topic;
+			return this.topic;
 		}
 
 		protected byte[] getPayload() {
-			return payload;//NOSONAR
+			return this.payload;//NOSONAR
 		}
 
 		protected int getQos() {
-			return qos;
+			return this.qos;
 		}
 
 		protected boolean isRetained() {
-			return retained;
+			return this.retained;
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,7 +221,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 		}
 		catch (IOException e) {
 			// not fatal for the functionality of the component
-			logger.warn("Failed to persist entry. This may result in a duplicate "
+			this.logger.warn("Failed to persist entry. This may result in a duplicate "
 					+ "entry after this component is restarted.", e);
 		}
 		finally {
@@ -232,7 +232,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			}
 			catch (IOException e) {
 				// not fatal for the functionality of the component
-				logger.warn("Failed to close OutputStream to " + this.file.getAbsolutePath(), e);
+				this.logger.warn("Failed to close OutputStream to " + this.file.getAbsolutePath(), e);
 			}
 		}
 	}
@@ -245,7 +245,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 		}
 		catch (Exception e) {
 			// not fatal for the functionality of the component
-			logger.warn("Failed to load entry from the persistent store. This may result in a duplicate " +
+			this.logger.warn("Failed to load entry from the persistent store. This may result in a duplicate " +
 					"entry after this component is restarted", e);
 		}
 		finally {
@@ -256,7 +256,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			}
 			catch (Exception e2) {
 				// non fatal
-				logger.warn("Failed to close InputStream for: " + this.file.getAbsolutePath());
+				this.logger.warn("Failed to close InputStream for: " + this.file.getAbsolutePath());
 			}
 		}
 	}

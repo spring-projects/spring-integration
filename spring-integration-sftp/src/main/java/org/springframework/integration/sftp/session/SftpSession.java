@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,14 +198,14 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.rename(pathFrom, pathTo);
 		}
 		catch (SftpException sftpex) {
-			if (logger.isDebugEnabled()){
-				logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: "
+			if (this.logger.isDebugEnabled()){
+				this.logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: "
 						+ pathTo + " and execute rename again.");
 			}
 			try {
 				this.remove(pathTo);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
 				}
 			}
 			catch (IOException ioex) {
@@ -219,8 +219,8 @@ public class SftpSession implements Session<LsEntry> {
 				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex2);
 			}
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
 		}
 	}
 

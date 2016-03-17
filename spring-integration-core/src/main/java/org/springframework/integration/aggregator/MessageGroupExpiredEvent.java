@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,23 +52,23 @@ public class MessageGroupExpiredEvent extends IntegrationEvent {
 	}
 
 	public Object getGroupId() {
-		return groupId;
+		return this.groupId;
 	}
 
 	public int getMessageCount() {
-		return messageCount;
+		return this.messageCount;
 	}
 
 	protected Date getLastModified() {
-		return lastModified;
+		return this.lastModified;
 	}
 
 	public Date getExpired() {
-		return expired;
+		return this.expired;
 	}
 
 	public boolean isDiscarded() {
-		return discarded;
+		return this.discarded;
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
@@ -107,9 +108,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private final ReadWriteLock idCacheLock = new ReentrantReadWriteLock();
 
-	private final Lock idCacheReadLock = idCacheLock.readLock();
+	private final Lock idCacheReadLock = this.idCacheLock.readLock();
 
-	private final Lock idCacheWriteLock = idCacheLock.writeLock();
+	private final Lock idCacheWriteLock = this.idCacheLock.writeLock();
 
 	/**
 	 * Default value for the table prefix property.
@@ -166,8 +167,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcChannelMessageStore() {
-		deserializer = new DeserializingConverter();
-		serializer = new SerializingConverter();
+		this.deserializer = new DeserializingConverter();
+		this.serializer = new SerializingConverter();
 	}
 
 	/**
@@ -181,7 +182,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource) {
 		this();
-		jdbcTemplate = new JdbcTemplate(dataSource);
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
@@ -196,7 +197,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param dataSource a {@link DataSource}
 	 */
 	public void setDataSource(DataSource dataSource) {
-		jdbcTemplate = new JdbcTemplate(dataSource);
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
 
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
@@ -402,7 +403,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
+		Assert.state(this.jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 		Assert.notNull(this.channelMessageStoreQueryProvider, "A channelMessageStoreQueryProvider must be provided.");
 
 		if (this.messageRowMapper == null) {
@@ -444,31 +445,34 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 
 		final String messageId = getKey(result.getHeaders().getId());
-		final byte[] messageBytes = serializer.convert(result);
+		final byte[] messageBytes = this.serializer.convert(result);
 
-		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
-			@Override
-			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Inserting message with id key=" + messageId);
-				}
-				ps.setString(1, messageId);
-				ps.setString(2, groupKey);
-				ps.setString(3, region);
-				ps.setLong(4, createdDate);
+		this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
+				new PreparedStatementSetter() {
 
-				Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
+					@Override
+					public void setValues(PreparedStatement ps) throws SQLException {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Inserting message with id key=" + messageId);
+						}
+						ps.setString(1, messageId);
+						ps.setString(2, groupKey);
+						ps.setString(3, JdbcChannelMessageStore.this.region);
+						ps.setLong(4, createdDate);
 
-				if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
-					ps.setInt(5, priority);
-				}
-				else {
-					ps.setNull(5, Types.NUMERIC);
-				}
+						Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
 
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
-			}
-		});
+						if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
+							ps.setInt(5, priority);
+						}
+						else {
+							ps.setNull(5, Types.NUMERIC);
+						}
+
+						JdbcChannelMessageStore.this.lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
+					}
+
+				});
 
 		return getMessageGroup(groupId);
 	}
@@ -513,11 +517,11 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @return A transformed query with replacements.
 	 */
 	protected String getQuery(String sqlQuery) {
-		String query = queryCache.get(sqlQuery);
+		String query = this.queryCache.get(sqlQuery);
 
 		if (query == null) {
-			query = StringUtils.replace(sqlQuery, "%PREFIX%", tablePrefix);
-			queryCache.put(sqlQuery, query);
+			query = StringUtils.replace(sqlQuery, "%PREFIX%", this.tablePrefix);
+			this.queryCache.put(sqlQuery, query);
 		}
 
 		return query;
@@ -533,7 +537,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return jdbcTemplate.queryForObject(getQuery(channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
+		return this.jdbcTemplate.queryForObject(getQuery(this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
 				Integer.class, key, this.region);
 	}
 
@@ -572,10 +576,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
 
-		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.jdbcTemplate);
 		final MapSqlParameterSource parameters = new MapSqlParameterSource();
 
-		parameters.addValue("region", region);
+		parameters.addValue("region", this.region);
 		parameters.addValue("group_key", groupIdKey);
 
 		String query;
@@ -591,7 +595,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 				else {
 					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				}
-				parameters.addValue("message_ids", idCache);
+				parameters.addValue("message_ids", this.idCache);
 			}
 			else {
 				if (this.priorityEnabled) {
@@ -601,7 +605,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
 				}
 			}
-			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
+			messages = namedParameterJdbcTemplate.query(query, parameters, this.messageRowMapper);
 		}
 		finally {
 			this.idCacheReadLock.unlock();
@@ -636,8 +640,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final UUID id = messageToRemove.getHeaders().getId();
 
-		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[] {getKey(id), getKey(groupId), region}, new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
+		int updated = this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
+				new Object[]{getKey(id), getKey(groupId), this.region}, new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
 
 		boolean result = updated != 0;
 		if (result) {

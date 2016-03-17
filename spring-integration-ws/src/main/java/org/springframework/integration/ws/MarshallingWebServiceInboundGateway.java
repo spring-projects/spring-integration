@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,15 +89,15 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		Assert.notNull(marshaller, "This implementation requires Marshaller");
-		Assert.notNull(unmarshaller, "This implementation requires Unmarshaller");
+		Assert.notNull(this.marshaller, "This implementation requires Marshaller");
+		Assert.notNull(this.unmarshaller, "This implementation requires Unmarshaller");
 	}
 
 	@Override
 	protected void doInvoke(MessageContext messageContext) throws Exception{
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
-		Object requestObject = MarshallingUtils.unmarshal(unmarshaller, request);
+		Object requestObject = MarshallingUtils.unmarshal(this.unmarshaller, request);
 		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().withPayload(requestObject);
 
 		this.fromSoapHeaders(messageContext, builder);
@@ -108,7 +108,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 			WebServiceMessage response = messageContext.getResponse();
 			this.toSoapHeaders(response, replyMessage);
 
-			MarshallingUtils.marshal(marshaller, replyMessage.getPayload(), response);
+			MarshallingUtils.marshal(this.marshaller, replyMessage.getPayload(), response);
 		}
 	}
 }

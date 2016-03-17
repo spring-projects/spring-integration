@@ -43,17 +43,17 @@ class JSchSessionWrapper {
 	}
 
 	public void close() {
-		if (channels.decrementAndGet() <= 0) {
+		if (this.channels.decrementAndGet() <= 0) {
 			this.session.disconnect();
 		}
 	}
 
 	public final Session getSession() {
-		return session;
+		return this.session;
 	}
 
 	public boolean isConnected() {
-		return session.isConnected();
+		return this.session.isConnected();
 	}
 
 }

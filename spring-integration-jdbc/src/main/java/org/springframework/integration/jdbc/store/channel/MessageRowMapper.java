@@ -44,7 +44,7 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 	}
 
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
+		return (Message<?>) this.deserializer.convert(this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 	}
 
 }

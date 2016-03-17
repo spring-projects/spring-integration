@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
-			localMap.put(parser.parseExpression(key), value);
+			localMap.put(this.parser.parseExpression(key), value);
 		}
 		this.nullResultPropertyExpressions = localMap;
 	}
@@ -121,7 +121,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
-			localMap.put(parser.parseExpression(key), value);
+			localMap.put(this.parser.parseExpression(key), value);
 		}
 		this.propertyExpressions = localMap;
 	}
@@ -290,12 +290,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 				this.gateway.setReplyTimeout(this.replyTimeout);
 			}
 
-			this.gateway.setReplyChannel(replyChannel);
+			this.gateway.setReplyChannel(this.replyChannel);
 			if (this.replyChannelName != null) {
 				this.gateway.setReplyChannelName(this.replyChannelName);
 			}
 
-			this.gateway.setErrorChannel(errorChannel);
+			this.gateway.setErrorChannel(this.errorChannel);
 			if (this.errorChannelName != null) {
 				this.gateway.setErrorChannelName(this.errorChannelName);
 			}

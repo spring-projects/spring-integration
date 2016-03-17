@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -315,7 +315,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent1 extends ApplicationEvent {
 
-		public TestApplicationEvent1() {
+		TestApplicationEvent1() {
 			super("event1");
 		}
 
@@ -324,7 +324,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent2 extends ApplicationEvent {
 
-		public TestApplicationEvent2() {
+		TestApplicationEvent2() {
 			super("event2");
 		}
 
@@ -333,7 +333,7 @@ public class ApplicationEventListeningMessageProducerTests {
 	@SuppressWarnings("serial")
 	private static class TestMessagingEvent extends ApplicationEvent {
 
-		public TestMessagingEvent(Message<?> message) {
+		TestMessagingEvent(Message<?> message) {
 			super(message);
 		}
 

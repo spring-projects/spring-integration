@@ -92,7 +92,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	public void destroy() {
 		if (logger.isDebugEnabled()) {
-			logger.debug(sendDuration);
+			logger.debug(this.sendDuration);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	public String toString() {
 		return String.format("MessageChannelMonitor: [name=%s, sends=%d"
 				+ (this.receiveCount.get() == 0 ? "" : this.receiveCount.get())
-				+ "]", name, sendCount.get());
+				+ "]", name, this.sendCount.get());
 	}
 
 	protected static class DefaultChannelMetricsContext implements MetricsContext {

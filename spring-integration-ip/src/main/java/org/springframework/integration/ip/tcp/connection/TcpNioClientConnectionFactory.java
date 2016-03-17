@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,8 @@ public class TcpNioClientConnectionFactory extends
 			connection.setLastRead(System.currentTimeMillis());
 		}
 		this.channelMap.put(socketChannel, connection);
-		newChannels.add(socketChannel);
-		selector.wakeup();
+		this.newChannels.add(socketChannel);
+		this.selector.wakeup();
 		return wrappedConnection;
 	}
 
@@ -159,16 +159,16 @@ public class TcpNioClientConnectionFactory extends
 					if (getDelayedReads().size() > 0 && (timeout == 0 || getReadDelay() < timeout)) {
 						timeout = getReadDelay();
 					}
-					selectionCount = selector.select(timeout);
+					selectionCount = this.selector.select(timeout);
 				}
 				catch (CancelledKeyException cke) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("CancelledKeyException during Selector.select()");
 					}
 				}
-				while ((newChannel = newChannels.poll()) != null) {
+				while ((newChannel = this.newChannels.poll()) != null) {
 					try {
-						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
+						newChannel.register(this.selector, SelectionKey.OP_READ, this.channelMap.get(newChannel));
 					}
 					catch (ClosedChannelException cce) {
 						if (logger.isDebugEnabled()) {
@@ -176,7 +176,7 @@ public class TcpNioClientConnectionFactory extends
 						}
 					}
 				}
-				this.processNioSelections(selectionCount, selector, null, this.channelMap);
+				this.processNioSelections(selectionCount, this.selector, null, this.channelMap);
 			}
 		}
 		catch (ClosedSelectorException cse) {
@@ -197,21 +197,21 @@ public class TcpNioClientConnectionFactory extends
 	 * @return the usingDirectBuffers
 	 */
 	protected boolean isUsingDirectBuffers() {
-		return usingDirectBuffers;
+		return this.usingDirectBuffers;
 	}
 
 	/**
 	 * @return the connections
 	 */
 	protected Map<SocketChannel, TcpNioConnection> getConnections() {
-		return channelMap;
+		return this.channelMap;
 	}
 
 	/**
 	 * @return the newChannels
 	 */
 	protected BlockingQueue<SocketChannel> getNewChannels() {
-		return newChannels;
+		return this.newChannels;
 	}
 
 }

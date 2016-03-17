@@ -96,7 +96,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
 			TcpConnection connection = null;
 			if (connectionId != null) {
-				connection = connections.get(connectionId);
+				connection = this.connections.get(connectionId);
 			}
 			if (connection != null) {
 				try {
@@ -213,12 +213,12 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void addNewConnection(TcpConnection connection) {
-		connections.put(connection.getConnectionId(), connection);
+		this.connections.put(connection.getConnectionId(), connection);
 	}
 
 	@Override
 	public void removeDeadConnection(TcpConnection connection) {
-		connections.remove(connection.getConnectionId());
+		this.connections.remove(connection.getConnectionId());
 	}
 
 	@Override
@@ -304,21 +304,21 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 * @return the clientConnectionFactory
 	 */
 	protected ConnectionFactory getClientConnectionFactory() {
-		return clientConnectionFactory;
+		return this.clientConnectionFactory;
 	}
 
 	/**
 	 * @return the serverConnectionFactory
 	 */
 	protected ConnectionFactory getServerConnectionFactory() {
-		return serverConnectionFactory;
+		return this.serverConnectionFactory;
 	}
 
 	/**
 	 * @return the connections
 	 */
 	protected Map<String, TcpConnection> getConnections() {
-		return connections;
+		return this.connections;
 	}
 
 	/**

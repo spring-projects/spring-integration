@@ -50,7 +50,7 @@ public class MessageCountReleaseStrategy implements ReleaseStrategy {
 	 * receive messages from the same group concurrently.
 	 */
 	public boolean canRelease(MessageGroup group) {
-		return group.size() >= threshold;
+		return group.size() >= this.threshold;
 	}
 
 }

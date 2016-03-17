@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,13 +168,13 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
 
 		if (StringUtils.hasText(this.beforeCommitExpression)) {
-			processor.setBeforeCommitExpression(PARSER.parseExpression(this.beforeCommitExpression));
+			processor.setBeforeCommitExpression(this.PARSER.parseExpression(this.beforeCommitExpression));
 		}
 		if (StringUtils.hasText(this.afterCommitExpression)) {
-			processor.setAfterCommitExpression(PARSER.parseExpression(this.afterCommitExpression));
+			processor.setAfterCommitExpression(this.PARSER.parseExpression(this.afterCommitExpression));
 		}
 		if (StringUtils.hasText(this.afterRollbackExpression)) {
-			processor.setAfterRollbackExpression(PARSER.parseExpression(this.afterRollbackExpression));
+			processor.setAfterRollbackExpression(this.PARSER.parseExpression(this.afterRollbackExpression));
 		}
 
 		if (StringUtils.hasText(this.beforeCommitChannelName)) {
@@ -198,8 +198,8 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 			processor.setAfterRollbackChannel(this.afterRollbackChannel);
 		}
 
-		if (beanFactory instanceof AutowireCapableBeanFactory) {
-			((AutowireCapableBeanFactory) beanFactory).initializeBean(processor, null);
+		if (this.beanFactory instanceof AutowireCapableBeanFactory) {
+			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor, null);
 		}
 
 		return new DefaultTransactionSynchronizationFactory(processor);

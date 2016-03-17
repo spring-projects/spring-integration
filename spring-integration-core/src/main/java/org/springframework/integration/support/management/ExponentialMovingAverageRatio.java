@@ -84,7 +84,7 @@ public class ExponentialMovingAverageRatio {
 		this.window = window;
 		this.retention = window * 5;
 		this.factor = millis ? 1000000 : 1;
-		this.t0 = System.nanoTime() / factor;
+		this.t0 = System.nanoTime() / this.factor;
 	}
 
 
@@ -119,7 +119,7 @@ public class ExponentialMovingAverageRatio {
 	}
 
 	public synchronized void reset() {
-		t0 = System.nanoTime() / this.factor;
+		this.t0 = System.nanoTime() / this.factor;
 		this.times.clear();
 		this.values.clear();
 		this.count = 0;
@@ -146,7 +146,7 @@ public class ExponentialMovingAverageRatio {
 			copyValues = new ArrayList<Integer>(this.values);
 			count = this.count;
 		}
-		ExponentialMovingAverage cumulative = new ExponentialMovingAverage(window);
+		ExponentialMovingAverage cumulative = new ExponentialMovingAverage(this.window);
 		double t0 = 0;
 		double sum = 0;
 		double weight = 0;

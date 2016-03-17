@@ -167,7 +167,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 		@Override
 		public String pathFor(String key) {
-			return root + key;
+			return this.root + key;
 		}
 
 		@Override

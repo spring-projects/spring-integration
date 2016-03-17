@@ -438,7 +438,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm and get commands");
 		}
-		if ((Command.GET.equals(this.command) && !options.contains(Option.STREAM))
+		if ((Command.GET.equals(this.command) && !this.options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
 			if (this.localDirectoryExpression instanceof LiteralExpression) {
@@ -503,7 +503,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 			@Override
 			public Object doInSession(Session<F> session) throws IOException {
-				return messageSessionCallback.doInSession(session, requestMessage);
+				return AbstractRemoteFileOutboundGateway.this.messageSessionCallback.doInSession(session,
+						requestMessage);
 			}
 
 		});

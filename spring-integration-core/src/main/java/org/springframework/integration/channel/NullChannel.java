@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,8 +198,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public boolean send(Message<?> message) {
-		if (this.loggingEnabled && logger.isDebugEnabled()) {
-			logger.debug("message sent to null channel: " + message);
+		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
+			this.logger.debug("message sent to null channel: " + message);
 		}
 		if (this.countsEnabled) {
 			this.channelMetrics.afterSend(this.channelMetrics.beforeSend(), true);
@@ -214,8 +214,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public Message<?> receive() {
-		if (this.loggingEnabled && logger.isDebugEnabled()) {
-			logger.debug("receive called on null channel");
+		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
+			this.logger.debug("receive called on null channel");
 		}
 		return null;
 	}

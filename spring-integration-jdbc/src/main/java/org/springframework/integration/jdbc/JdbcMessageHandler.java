@@ -159,7 +159,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		List<? extends Map<String, Object>> keys = executeUpdateQuery(message, keysGenerated);
+		List<? extends Map<String, Object>> keys = executeUpdateQuery(message, this.keysGenerated);
 		if (!keys.isEmpty() && logger.isDebugEnabled()) {
 			logger.debug("Generated keys: " + keys);
 		}
@@ -180,13 +180,13 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 							@Override
 							public List<Map<String, Object>> doInPreparedStatement(PreparedStatement ps)
 									throws SQLException {
-								preparedStatementSetter.setValues(ps, message);
+								JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message);
 								ps.executeUpdate();
 								ResultSet keys = ps.getGeneratedKeys();
 								if (keys != null) {
 									try {
 
-										return generatedKeysResultSetExtractor.extractData(keys);
+										return JdbcMessageHandler.this.generatedKeysResultSetExtractor.extractData(keys);
 									}
 									finally {
 										JdbcUtils.closeResultSet(keys);

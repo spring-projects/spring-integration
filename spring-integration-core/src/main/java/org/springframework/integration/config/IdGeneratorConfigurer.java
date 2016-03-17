@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 	private boolean setIdGenerator(ApplicationContext context) {
 		try {
 			IdGenerator idGeneratorBean = context.getBean(IdGenerator.class);
-			if (logger.isDebugEnabled()) {
-				logger.debug("using custom MessageHeaders.IdGenerator [" + idGeneratorBean.getClass() + "]");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("using custom MessageHeaders.IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
@@ -84,8 +84,8 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 				}
 				else {
 					if (IdGeneratorConfigurer.theIdGenerator.getClass() == idGeneratorBean.getClass()) {
-						if (logger.isWarnEnabled()) {
-							logger.warn("Another instance of " + idGeneratorBean.getClass() +
+						if (this.logger.isWarnEnabled()) {
+							this.logger.warn("Another instance of " + idGeneratorBean.getClass() +
 									" has already been established; ignoring");
 						}
 						return true;
@@ -96,8 +96,8 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 					}
 				}
 			}
-			if (logger.isInfoEnabled()) {
-				logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
 			IdGeneratorConfigurer.theIdGenerator = idGeneratorBean;
@@ -105,19 +105,19 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 		catch (NoSuchBeanDefinitionException e) {
 			// No custom IdGenerator. We will use the default.
 			int idBeans = context.getBeansOfType(IdGenerator.class).size();
-			if (idBeans > 1 && logger.isWarnEnabled()) {
-				logger.warn("Found too many 'IdGenerator' beans (" + idBeans + ") " +
+			if (idBeans > 1 && this.logger.isWarnEnabled()) {
+				this.logger.warn("Found too many 'IdGenerator' beans (" + idBeans + ") " +
 						"Will use the existing UUID strategy.");
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use the existing UUID strategy.");
+			else if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use the existing UUID strategy.");
 			}
 			return false;
 		}
 		catch (IllegalStateException e) {
 			// thrown from ReflectionUtils
-			if (logger.isWarnEnabled()) {
-				logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
 						" Will use the existing UUID strategy.", e);
 			}
 			return false;
@@ -133,8 +133,8 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			IdGeneratorConfigurer.theIdGenerator = null;
 		}
 		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders.", e);
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders.", e);
 			}
 		}
 	}

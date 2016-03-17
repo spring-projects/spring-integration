@@ -85,7 +85,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 
 	@Override
 	public String getComponentType() {
-		return expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
+		return this.expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
 	}
 
 	@Override

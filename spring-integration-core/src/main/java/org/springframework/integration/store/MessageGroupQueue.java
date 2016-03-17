@@ -88,8 +88,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		this.messageGroupStore = messageGroupStore;
 		this.groupId = groupId;
 		this.capacity = capacity;
-		if (logger.isWarnEnabled() && !(messageGroupStore instanceof ChannelMessageStore)) {
-			logger.warn(messageGroupStore.getClass().getSimpleName() + " is not optimized for use "
+		if (this.logger.isWarnEnabled() && !(messageGroupStore instanceof ChannelMessageStore)) {
+			this.logger.warn(messageGroupStore.getClass().getSimpleName() + " is not optimized for use "
 					+ "in a 'MessageGroupQueue'; consider using a `ChannelMessageStore'");
 		}
 	}
@@ -106,9 +106,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 					"When using priority, the 'PriorityCapableChannelMessageStore' must have priority enabled.");
 		}
 		else {
-			if (logger.isWarnEnabled() && this.messageGroupStore instanceof PriorityCapableChannelMessageStore
+			if (this.logger.isWarnEnabled() && this.messageGroupStore instanceof PriorityCapableChannelMessageStore
 					&& ((PriorityCapableChannelMessageStore) this.messageGroupStore).isPriorityEnabled()) {
-				logger.warn("It's not recommended to use a priority-based message store " +
+				this.logger.warn("It's not recommended to use a priority-based message store " +
 						"when declaring a non-priority 'MessageGroupQueue'; message retrieval may not be FIFO; " +
 						"set 'priority' to 'true' if that is your intent. If you are using the namespace to " +
 						"define a channel, use '<priority-queue message-store.../> instead.");
@@ -123,7 +123,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	@Override
 	public int size() {
-		return messageGroupStore.messageGroupSize(groupId);
+		return this.messageGroupStore.messageGroupSize(this.groupId);
 	}
 
 	@Override
@@ -201,10 +201,10 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		try {
 			storeLock.lockInterruptibly();
 			try {
-				Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
+				Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 				for (int i = 0; i < maxElements && message != null; i++) {
 					list.add(message);
-					message = this.messageGroupStore.pollMessageFromGroup(groupId);
+					message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 				}
 				this.messageStoreNotFull.signal();
 			}
@@ -213,7 +213,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			}
 		}
 		catch (InterruptedException e) {
-			logger.warn("Queue may not have drained completely since this operation was interrupted", e);
+			this.logger.warn("Queue may not have drained completely since this operation was interrupted", e);
 			Thread.currentThread().interrupt();
 		}
 		collection.addAll(list);
@@ -247,8 +247,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		final Lock storeLock = this.storeLock;
 		storeLock.lockInterruptibly();
 		try {
-			if (capacity != Integer.MAX_VALUE) {
-				while (this.size() == capacity && timeoutInNanos > 0){
+			if (this.capacity != Integer.MAX_VALUE) {
+				while (this.size() == this.capacity && timeoutInNanos > 0){
 					timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
 				}
 			}
@@ -267,8 +267,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		final Lock storeLock = this.storeLock;
 		storeLock.lockInterruptibly();
 		try {
-			if (capacity != Integer.MAX_VALUE) {
-				while (this.size() == capacity){
+			if (this.capacity != Integer.MAX_VALUE) {
+				while (this.size() == this.capacity){
 					this.messageStoreNotFull.await();
 				}
 			}
@@ -281,10 +281,10 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	@Override
 	public int remainingCapacity() {
-		if (capacity == Integer.MAX_VALUE) {
+		if (this.capacity == Integer.MAX_VALUE) {
 			return Integer.MAX_VALUE;
 		}
-		return capacity - this.size();
+		return this.capacity - this.size();
 	}
 
 	@Override
@@ -307,7 +307,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	private Collection<Message<?>> getMessages(){
-		return messageGroupStore.getMessageGroup(groupId).getMessages();
+		return this.messageGroupStore.getMessageGroup(this.groupId).getMessages();
 	}
 
 	/**
@@ -315,7 +315,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	 * IllegalMonitorStateException may be thrown
 	 */
 	private Message<?> doPoll() {
-		Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
+		Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 		this.messageStoreNotFull.signal();
 		return message;
 	}
@@ -326,8 +326,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	 */
 	private boolean doOffer(Message<?> message){
 		boolean offered = false;
-		if (capacity == Integer.MAX_VALUE || this.size() < capacity){
-			messageGroupStore.addMessageToGroup(groupId, message);
+		if (this.capacity == Integer.MAX_VALUE || this.size() < this.capacity){
+			this.messageGroupStore.addMessageToGroup(this.groupId, message);
 			offered = true;
 			this.messageStoreNotEmpty.signal();
 		}

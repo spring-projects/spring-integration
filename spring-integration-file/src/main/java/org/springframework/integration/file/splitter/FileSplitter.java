@@ -301,24 +301,24 @@ public class FileSplitter extends AbstractMessageSplitter {
 		}
 
 		public String getFilePath() {
-			return filePath;
+			return this.filePath;
 		}
 
 		public Mark getMark() {
-			return mark;
+			return this.mark;
 		}
 
 		public long getLineCount() {
-			return lineCount;
+			return this.lineCount;
 		}
 
 		@Override
 		public String toString() {
 			if (this.mark.equals(Mark.START)) {
-				return "FileMarker [filePath=" + filePath + ", mark=" + mark + "]";
+				return "FileMarker [filePath=" + this.filePath + ", mark=" + this.mark + "]";
 			}
 			else {
-				return "FileMarker [filePath=" + filePath + ", mark=" + mark + ", lineCount=" + lineCount + "]";
+				return "FileMarker [filePath=" + this.filePath + ", mark=" + this.mark + ", lineCount=" + this.lineCount + "]";
 			}
 		}
 

@@ -103,7 +103,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			filter.setThrowExceptionOnRejection(this.throwExceptionOnRejection);
 		}
 		if (this.discardChannel != null) {
-			filter.setDiscardChannel(discardChannel);
+			filter.setDiscardChannel(this.discardChannel);
 		}
 		if (this.discardWithinAdvice != null) {
 			filter.setDiscardWithinAdvice(this.discardWithinAdvice);

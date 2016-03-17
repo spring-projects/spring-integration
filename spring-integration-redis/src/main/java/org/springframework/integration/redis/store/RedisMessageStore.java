@@ -58,7 +58,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Object doRetrieve(Object id){
 		Assert.notNull(id, "'id' must not be null");
-		BoundValueOperations<Object, Object> ops = redisTemplate.boundValueOps(id);
+		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		return ops.get();
 	}
 
@@ -67,7 +67,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	protected void doStore(Object id, Object objectToStore) {
 		Assert.notNull(id, "'id' must not be null");
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
-		BoundValueOperations<Object, Object> ops = redisTemplate.boundValueOps(id);
+		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		try {
 			ops.set(objectToStore);
 		}
@@ -84,7 +84,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		Assert.notNull(id, "'id' must not be null");
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null){
-			redisTemplate.delete(id);
+			this.redisTemplate.delete(id);
 		}
 		return removedObject;
 	}
@@ -93,7 +93,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
-		Set<Object> keys = redisTemplate.keys(keyPattern);
+		Set<Object> keys = this.redisTemplate.keys(keyPattern);
 		return keys;
 	}
 }

@@ -87,7 +87,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void onInit() throws Exception {
-		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
+		Assert.notNull(this.topicExpression, "'topicExpression' must not be null.");
 		if (this.messageConverter instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(getBeanFactory());
 		}

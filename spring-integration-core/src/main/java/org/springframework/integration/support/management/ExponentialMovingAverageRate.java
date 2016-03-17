@@ -98,7 +98,7 @@ public class ExponentialMovingAverageRate {
 		this.max = 0;
 		this.count = 0;
 		this.times.clear();
-		t0 = System.nanoTime() / this.factor;
+		this.t0 = System.nanoTime() / this.factor;
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class ExponentialMovingAverageRate {
 			copy = new ArrayList<Long>(this.times);
 			count = this.count;
 		}
-		ExponentialMovingAverage rates = new ExponentialMovingAverage(window);
+		ExponentialMovingAverage rates = new ExponentialMovingAverage(this.window);
 		double t0 = 0;
 		double sum = 0;
 		double weight = 0;
@@ -144,14 +144,14 @@ public class ExponentialMovingAverageRate {
 				continue;
 			}
 			double delta = t - t0;
-			double value = delta > 0 ? delta / period : 0;
+			double value = delta > 0 ? delta / this.period : 0;
 			if (value > max) {
 				max = value;
 			}
 			if (value < min) {
 				min = value;
 			}
-			double alpha = Math.exp(-delta * lapse);
+			double alpha = Math.exp(-delta * this.lapse);
 			t0 = t;
 			sum = alpha * sum + value;
 			weight = alpha * weight + 1;
@@ -203,7 +203,7 @@ public class ExponentialMovingAverageRate {
 		}
 		double t0 = lastTime();
 		double t = System.nanoTime() / this.factor;
-		double value = t > t0 ? (t - t0) / period : 0;
+		double value = t > t0 ? (t - t0) / this.period : 0;
 		return count / (count / calc().getMean() + value);
 	}
 

@@ -73,13 +73,13 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		}
 
 		this.parameters = parameters;
-		expressionEvaluator.getEvaluationContext().setVariable("staticParameters",
+		this.expressionEvaluator.getEvaluationContext().setVariable("staticParameters",
 				ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 
 	}
 
 	public PositionSupportingParameterSource createParameterSource(final Object input) {
-		return new ExpressionEvaluatingParameterSource(input, this.parameters, expressionEvaluator);
+		return new ExpressionEvaluatingParameterSource(input, this.parameters, this.expressionEvaluator);
 	}
 
 
@@ -112,9 +112,9 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 			Assert.isTrue(position >= 0, "The position must be be non-negative.");
 
-			if (position <= parameters.size()) {
+			if (position <= this.parameters.size()) {
 
-				final JpaParameter parameter = parameters.get(position);
+				final JpaParameter parameter = this.parameters.get(position);
 
 				if (parameter.getValue() != null) {
 					return parameter.getValue();
@@ -123,16 +123,16 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 				if (parameter.getExpression() != null) {
 					Expression expression;
 
-					if (input instanceof Collection<?>) {
+					if (this.input instanceof Collection<?>) {
 						expression = parameter.getProjectionExpression();
 					}
 					else {
 						expression = parameter.getSpelExpression();
 					}
 
-					final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
+					final Object value = this.expressionEvaluator.evaluateExpression(expression, this.input);
 					if (parameter.getName() != null) {
-						values.put(parameter.getName(), value);
+						this.values.put(parameter.getName(), value);
 					}
 					if (logger.isDebugEnabled()) {
 						logger.debug("Resolved expression " + expression + " to " + value);
@@ -148,8 +148,8 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		}
 
 		public Object getValue(String paramName) {
-			if (values.containsKey(paramName)) {
-				return values.get(paramName);
+			if (this.values.containsKey(paramName)) {
+				return this.values.get(paramName);
 			}
 
 			if (!this.parametersMap.containsKey(paramName)) {
@@ -162,15 +162,15 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 			Expression expression = null;
 
-			if (input instanceof Collection<?>) {
+			if (this.input instanceof Collection<?>) {
 				expression = jpaParameter.getProjectionExpression();
 			}
 			else {
 				expression = jpaParameter.getSpelExpression();
 			}
 
-			final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
-			values.put(paramName, value);
+			final Object value = this.expressionEvaluator.evaluateExpression(expression, this.input);
+			this.values.put(paramName, value);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Resolved expression " + expression + " to " + value);
 			}
@@ -188,7 +188,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 				if (logger.isDebugEnabled()) {
 					logger.debug("Could not evaluate expression", e);
 				}
-				values.put(paramName, ERROR);
+				this.values.put(paramName, ERROR);
 				return false;
 			}
 			return true;

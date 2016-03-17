@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,11 +96,11 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	protected AmqpAdmin getAdmin() {
-		return admin;
+		return this.admin;
 	}
 
 	protected ConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+		return this.connectionFactory;
 	}
 
 	@Override
@@ -181,7 +181,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {
-					logger.warn("MessageConverter returned null, no Message to dispatch");
+					this.logger.warn("MessageConverter returned null, no Message to dispatch");
 				}
 			}
 			catch (MessageDispatchingException e) {
@@ -189,8 +189,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 						+ this.channel.getFullChannelName() + "'.";
 				if (this.isPubSub) {
 					// log only for backwards compatibility with pub/sub
-					if (logger.isWarnEnabled()) {
-						logger.warn(exceptionMessage, e);
+					if (this.logger.isWarnEnabled()) {
+						this.logger.warn(exceptionMessage, e);
 					}
 				}
 				else {

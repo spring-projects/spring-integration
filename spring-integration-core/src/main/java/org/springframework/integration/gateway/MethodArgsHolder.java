@@ -41,11 +41,11 @@ public final class MethodArgsHolder {
 	}
 
 	public Method getMethod() {
-		return method;
+		return this.method;
 	}
 
 	public Object[] getArgs() {
-		return args;//NOSONAR - direct access
+		return this.args;//NOSONAR - direct access
 	}
 
 }

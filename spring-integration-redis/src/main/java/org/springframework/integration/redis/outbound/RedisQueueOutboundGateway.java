@@ -96,11 +96,11 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 			value = message.getPayload();
 		}
 		if (!(value instanceof byte[])) {
-			if (value instanceof String && !serializerExplicitlySet) {
+			if (value instanceof String && !this.serializerExplicitlySet) {
 				value = stringSerializer.serialize((String) value);
 			}
 			else {
-				value = ((RedisSerializer<Object>) serializer).serialize(value);
+				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
 			}
 		}
 		String uuid = defaultIdGenerator.generateId().toString();
@@ -109,7 +109,7 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		this.boundListOps.leftPush(uuidByte);
 		this.template.boundListOps(uuid).leftPush(value);
 
-		BoundListOperations<String, Object> boundListOperations = template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
+		BoundListOperations<String, Object> boundListOperations = this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
 		byte[] reply = (byte[]) boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		if (reply != null && reply.length > 0) {
 			Object replyMessage = this.serializer.deserialize(reply);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,12 +57,12 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 					throw new SoftEndOfStreamException("Stream closed between payloads");
 				}
 				checkClosure(bite);
-				if (bite == terminator) {
+				if (bite == this.terminator) {
 					break;
 				}
 				buffer[n++] = (byte) bite;
 				if (n >= this.maxMessageSize) {
-					throw new IOException("Terminator '0x" + Integer.toHexString(terminator & 0xff)
+					throw new IOException("Terminator '0x" + Integer.toHexString(this.terminator & 0xff)
 							+ "' not found before max message length: "
 							+ this.maxMessageSize);
 				}
@@ -90,7 +90,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 	@Override
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
-		outputStream.write(terminator);
+		outputStream.write(this.terminator);
 	}
 
 }

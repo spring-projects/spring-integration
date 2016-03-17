@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,13 +86,13 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator  implements Lifecycle {
+public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator implements Lifecycle {
 
 	private static final String CANDIDATE_METHODS = "CANDIDATE_METHODS";
 
 	private static final String CANDIDATE_MESSAGE_METHODS = "CANDIDATE_MESSAGE_METHODS";
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log logger = LogFactory.getLog(MessagingMethodInvokerHelper.class);
 
 	private final Object targetObject;
 
@@ -223,7 +223,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.requiresReply = expectedType != null;
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget =
-				this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
+				this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, this.requiresReply);
 		Map<Class<?>, HandlerMethod> handlerMethods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
 		Map<Class<?>, HandlerMethod> handlerMessageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
 		if ((handlerMethods.size() == 1 && handlerMessageMethods.isEmpty()) ||
@@ -286,13 +286,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
 			TypeConverter typeConverter) {
-		if (expectedType == null) {
+		if (this.expectedType == null) {
 			return true;
 		}
 		List<Method> methods = filter.filter(Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetType)));
 		for (Method method : methods) {
 			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()),
-					TypeDescriptor.valueOf(expectedType))) {
+					TypeDescriptor.valueOf(this.expectedType))) {
 				return true;
 			}
 		}
@@ -379,7 +379,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 				HandlerMethod handlerMethod = null;
 				try {
-					handlerMethod = new HandlerMethod(method, canProcessMessageList);
+					handlerMethod = new HandlerMethod(method, MessagingMethodInvokerHelper.this.canProcessMessageList);
 				}
 				catch (IneligibleMethodException e) {
 					if (logger.isDebugEnabled()) {
@@ -477,7 +477,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 			if (frameworkMethods.size() == 1) {
-				HandlerMethod handlerMethod = new HandlerMethod(frameworkMethods.get(0), canProcessMessageList);
+				HandlerMethod handlerMethod = new HandlerMethod(frameworkMethods.get(0), this.canProcessMessageList);
 				handlerMethods.put(CANDIDATE_METHODS, Collections.<Class<?>, HandlerMethod>singletonMap(Object.class, handlerMethod));
 				handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
 				return handlerMethods;
@@ -612,7 +612,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private HandlerMethod findClosestMatch(Class<?> payloadType) {
-		for (Map<Class<?>, HandlerMethod> handlerMethods : handlerMethodsList) {
+		for (Map<Class<?>, HandlerMethod> handlerMethods : this.handlerMethodsList) {
 			Set<Class<?>> candidates = handlerMethods.keySet();
 			Class<?> match = null;
 			if (!CollectionUtils.isEmpty(candidates)) {
@@ -689,7 +689,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		private boolean isMessageMethod() {
-			return messageMethod;
+			return this.messageMethod;
 		}
 
 		@Override
@@ -758,7 +758,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (Collection.class.isAssignableFrom(parameterType) || parameterType.isArray()) {
-					if (canProcessMessageList) {
+					if (this.canProcessMessageList) {
 						sb.append("messages.![payload]");
 					}
 					else {
@@ -767,7 +767,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (Iterator.class.isAssignableFrom(parameterType)) {
-					if (canProcessMessageList) {
+					if (this.canProcessMessageList) {
 						Type type =  method.getGenericParameterTypes()[i];
 						Type parameterizedType = null;
 						if (type instanceof ParameterizedType){
@@ -807,7 +807,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 			if (hasUnqualifiedMapParameter) {
-				if (targetParameterType != null && Map.class.isAssignableFrom(this.targetParameterType)) {
+				if (this.targetParameterType != null && Map.class.isAssignableFrom(this.targetParameterType)) {
 					throw new IllegalArgumentException(
 							"Unable to determine payload matching parameter due to ambiguous Map typed parameters. "
 									+ "Consider adding the @Payload and or @Headers annotations as appropriate.");
@@ -895,26 +895,26 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		public Object getPayload() {
-			Assert.state(payload != null, "Invalid method parameter for payload: was expecting collection.");
-			return payload;
+			Assert.state(this.payload != null, "Invalid method parameter for payload: was expecting collection.");
+			return this.payload;
 		}
 
 		public Collection<Message<?>> getMessages() {
-			Assert.state(messages != null, "Invalid method parameter for messages: was expecting a single payload.");
-			return messages;
+			Assert.state(this.messages != null, "Invalid method parameter for messages: was expecting a single payload.");
+			return this.messages;
 		}
 
 		public Map<String, ?> getHeaders() {
-			return headers;
+			return this.headers;
 		}
 
 		public Message<?> getMessage() {
-			return message;
+			return this.message;
 		}
 
 		public Class<?> getFirstParameterType() {
-			if (payload != null) {
-				return payload.getClass();
+			if (this.payload != null) {
+				return this.payload.getClass();
 			}
 			return this.messages.getClass();
 		}

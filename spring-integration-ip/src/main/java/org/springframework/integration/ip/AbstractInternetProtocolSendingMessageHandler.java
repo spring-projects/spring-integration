@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @return the host
 	 */
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 
@@ -95,7 +95,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @return the port
 	 */
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 
@@ -103,7 +103,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @return the destinationAddress
 	 */
 	public SocketAddress getDestinationAddress() {
-		return destinationAddress;
+		return this.destinationAddress;
 	}
 
 
@@ -111,7 +111,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @return the soTimeout
 	 */
 	public int getSoTimeout() {
-		return soTimeout;
+		return this.soTimeout;
 	}
 
 
@@ -119,7 +119,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	 * @return the soSendBufferSize
 	 */
 	public int getSoSendBufferSize() {
-		return soSendBufferSize;
+		return this.soSendBufferSize;
 	}
 
 

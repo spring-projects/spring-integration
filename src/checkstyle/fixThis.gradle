@@ -1,64 +1,65 @@
 task fixThis << {
 	fileTree("${buildDir}/reports/checkstyle").include('*.xml').each { report ->
-		println "processing $report"
 		def xml = new XmlParser(false, false).parse(report)
 		xml.file.each { f ->
-			// println "processing $f"
 			def errors = f.error
-			def hasThisError = false
 			def thisErrors = []
 			errors.each { error ->
 				if (error.@source == 'com.puppycrawl.tools.checkstyle.checks.coding.RequireThisCheck') {
 					thisErrors.add(error)
-					hasThisError = true
 				}
 			}
-			// println hasThisError
-			// println f.@name
-			if (hasThisError) {
+			if (thisErrors) {
 				def errorInx = 0
 				def error = thisErrors[errorInx++]
-				def lx = Integer.valueOf(error.@line)
-				println error
 				def file = new File(f.@name)
+				println "Fixing file $file ..."
+				boolean headerFixed
 				def outSource = ''
-				def ln = 0
-				file.eachLine { line ->
-					// println line
-					ln++
-					def matcher = line =~ /Copyright (20\d\d)(?:-20\d\d)?/
-					if (matcher.count) {
-						def years = matcher[0][1]
-						if (years != now) {
-							years = years + "-$now"
+				file.eachLine { line, ln ->
+					if (!headerFixed) {
+						def matcher = line =~ /Copyright (20\d\d)(?:-(20\d\d))?/
+						if (matcher.count) {
+							def year1 = matcher[0][1]
+							if (now != year1) {
+								if (now != matcher[0][2]) {
+									line = line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, year1 + "-$now")
+								}
+							}
+							headerFixed = true
 						}
-						line.replaceFirst(/(20\d\d)(?:-20\d\d)?/, years)
 					}
-					if (error && ln == lx) {
-						// println line
-						def beforeIndex = Integer.valueOf(error.@column) - 1
+
+					if (error && ln == (error.@line as int)) {
+						def message = error.@message
+						def property = message.substring(message.indexOf('\'') + 1, message.lastIndexOf('\''))
+						def thisPrefix = message.substring(message.indexOf('"') + 1, message.lastIndexOf('"'))
+
+
+						def index = (error.@column as int) - 1
 						def chars = line.toCharArray()
-						for (int i = 0; i < beforeIndex; i++) {
+						for (int i = 0; i < index; i++) {
 							if (chars[i] == '\t') { // tabs before code == 8
-								beforeIndex -= 7;
+								index -= 7;
 							}
 							else if (chars[i] != ' ') { // tabs after code start are only counted as 1
 								break;
 							}
 						}
-						line = line.substring(0, beforeIndex) + "this." + line.substring(beforeIndex)
-						// println line
-						error = thisErrors[errorInx++]
-						while (error && lx == Integer.valueOf(error.@line)) {
+
+						line = line.substring(0, index) + thisPrefix + property + line.substring(index + property.length())
+
+						println "Fixed line $line"
+
+						while (error && ln == (error.@line as int)) {
 							error = thisErrors[errorInx++]
 						}
-						if (error) {
-							lx = Integer.valueOf(error.@line)
-						}
 					}
-					outSource += line + '\n'
+
+					outSource += line + System.lineSeparator()
 				}
 				file.write(outSource)
+				println()
 			}
 		}
 	}

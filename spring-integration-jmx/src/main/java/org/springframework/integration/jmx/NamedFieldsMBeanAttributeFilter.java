@@ -38,7 +38,7 @@ public class NamedFieldsMBeanAttributeFilter implements MBeanAttributeFilter {
 
 	@Override
 	public boolean accept(ObjectName objectName, String attributeName) {
-		for (String namedField : namedFields) {
+		for (String namedField : this.namedFields) {
 			if (namedField.equals(attributeName)) {
 				return true;
 			}

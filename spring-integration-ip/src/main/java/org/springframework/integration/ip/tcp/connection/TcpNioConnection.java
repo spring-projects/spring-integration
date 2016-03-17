@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private void doClose() {
 		try {
-			channelInputStream.close();
+			this.channelInputStream.close();
 		}
 		catch (IOException e) {}
 		try {
@@ -309,7 +309,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			logger.trace(getConnectionId() + " checking data avail: " + this.channelInputStream.available() +
 					" pending: " + (this.writingToPipe));
 		}
-		return writingToPipe || this.channelInputStream.available() > 0;
+		return this.writingToPipe || this.channelInputStream.available() > 0;
 	}
 
 	/**
@@ -387,7 +387,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private void doRead() throws Exception {
 		if (this.rawBuffer == null) {
-			this.rawBuffer = allocate(maxMessageSize);
+			this.rawBuffer = allocate(this.maxMessageSize);
 		}
 
 		this.writingLatch = new CountDownLatch(1);
@@ -416,9 +416,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
+				logger.debug("Read " + this.rawBuffer.limit() + " into raw buffer");
 			}
-			this.sendToPipe(rawBuffer);
+			this.sendToPipe(this.rawBuffer);
 		}
 		catch (RejectedExecutionException e) {
 			throw e;
@@ -526,11 +526,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	protected boolean isUsingDirectBuffers() {
-		return usingDirectBuffers;
+		return this.usingDirectBuffers;
 	}
 
 	protected ChannelOutputStream getChannelOutputStream() {
-		return channelOutputStream;
+		return this.channelOutputStream;
 	}
 
 	/**
@@ -538,7 +538,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @return Time of last read.
 	 */
 	public long getLastRead() {
-		return lastRead;
+		return this.lastRead;
 	}
 
 	/**
@@ -553,7 +553,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @return the time of the last send
 	 */
 	public long getLastSend() {
-		return lastSend;
+		return this.lastSend;
 	}
 
 	/**
@@ -599,23 +599,23 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (logger.isDebugEnabled()) {
 				logger.debug(getConnectionId() + " writing " + buffer.remaining());
 			}
-			socketChannel.write(buffer);
+			TcpNioConnection.this.socketChannel.write(buffer);
 			int remaining = buffer.remaining();
 			if (remaining == 0) {
 				return;
 			}
 			if (this.selector == null) {
 				this.selector = Selector.open();
-				this.soTimeout = socketChannel.socket().getSoTimeout();
+				this.soTimeout = TcpNioConnection.this.socketChannel.socket().getSoTimeout();
 			}
-			socketChannel.register(selector, SelectionKey.OP_WRITE);
+			TcpNioConnection.this.socketChannel.register(this.selector, SelectionKey.OP_WRITE);
 			while (remaining > 0) {
 				int selectionCount = this.selector.select(this.soTimeout);
 				if (selectionCount == 0) {
 					throw new SocketTimeoutException("Timeout on write");
 				}
-				selector.selectedKeys().clear();
-				socketChannel.write(buffer);
+				this.selector.selectedKeys().clear();
+				TcpNioConnection.this.socketChannel.write(buffer);
 				remaining = buffer.remaining();
 			}
 		}
@@ -672,7 +672,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		@Override
 		public synchronized int read() throws IOException {
-			if (this.isClosed && available.get() == 0) {
+			if (this.isClosed && this.available.get() == 0) {
 				if (TcpNioConnection.this.timedOut) {
 					throw new SocketTimeoutException("Connection has timed out");
 				}
@@ -701,7 +701,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			byte[] buffer = null;
 			while (buffer == null) {
 				try {
-					buffer = buffers.poll(1, TimeUnit.SECONDS);
+					buffer = this.buffers.poll(1, TimeUnit.SECONDS);
 					if (buffer == null && this.isClosed) {
 						return null;
 					}
@@ -729,7 +729,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					TcpNioConnection.this.writingLatch.countDown();
 				}
 				try {
-					if (!this.buffers.offer(buffer, pipeTimeout, TimeUnit.MILLISECONDS)) {
+					if (!this.buffers.offer(buffer, TcpNioConnection.this.pipeTimeout, TimeUnit.MILLISECONDS)) {
 						throw new IOException("Timed out waiting for buffer space");
 					}
 				}

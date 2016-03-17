@@ -52,7 +52,7 @@ public abstract class AbstractKryoCodec implements Codec {
 			}
 		};
 		// Build pool with SoftReferences enabled (optional)
-		pool = new KryoPool.Builder(factory).softReferences().build();
+		this.pool = new KryoPool.Builder(factory).softReferences().build();
 	}
 
 	@Override

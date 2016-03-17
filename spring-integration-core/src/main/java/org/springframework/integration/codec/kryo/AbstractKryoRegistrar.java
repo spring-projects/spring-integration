@@ -58,8 +58,8 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 			throw new RuntimeException((String.format("registration already exists %s", existing)));
 		}
 
-		if (log.isInfoEnabled()) {
-			log.info(String.format("registering %s with serializer %s", registration,
+		if (this.log.isInfoEnabled()) {
+			this.log.info(String.format("registering %s with serializer %s", registration,
 					registration.getSerializer().getClass().getName()));
 		}
 

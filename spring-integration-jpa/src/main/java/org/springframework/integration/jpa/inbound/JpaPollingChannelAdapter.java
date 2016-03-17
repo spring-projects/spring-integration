@@ -81,7 +81,7 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	 */
 	public Message<Object> receive() {
 
-		final Object payload = jpaExecutor.poll();
+		final Object payload = this.jpaExecutor.poll();
 
 		if (payload == null) {
 			return null;

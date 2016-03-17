@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ public class StringSourceFactory implements SourceFactory {
 
 	private synchronized Transformer getTransformer() {
 		try {
-			return transformerFactory.newTransformer();
+			return this.transformerFactory.newTransformer();
 		}
 		catch (Exception e) {
 			throw new MessagingException("Exception creating transformer", e);

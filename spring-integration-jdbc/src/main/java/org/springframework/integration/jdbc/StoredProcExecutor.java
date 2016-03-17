@@ -188,8 +188,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 											  new ExpressionEvaluatingSqlParameterSourceFactory();
 
 				expressionSourceFactory.setBeanFactory(this.beanFactory);
-				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(procedureParameters));
-				expressionSourceFactory.setParameterExpressions(ProcedureParameter.convertExpressions(procedureParameters));
+				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(this.procedureParameters));
+				expressionSourceFactory.setParameterExpressions(ProcedureParameter.convertExpressions(this.procedureParameters));
 
 				this.sqlParameterSourceFactory = expressionSourceFactory;
 
@@ -234,7 +234,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 						@Override
 						protected boolean removeEldestEntry(Entry<String, SimpleJdbcCallOperations> eldest) {
-							return size() > jdbcCallOperationsCacheSize;
+							return size() > StoredProcExecutor.this.jdbcCallOperationsCacheSize;
 						}
 
 					};
@@ -297,12 +297,12 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	public Map<String, Object> executeStoredProcedure(Message<?> message) {
 
 		Assert.notNull(message, "The message parameter must not be null.");
-		Assert.notNull(usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
+		Assert.notNull(this.usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
 												  + "was Null. Did you call afterPropertiesSet()?");
 
 		final Object input;
 
-		if (usePayloadAsParameterSource) {
+		if (this.usePayloadAsParameterSource) {
 			input = message.getPayload();
 		}
 		else {
@@ -332,13 +332,13 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	private Map<String, Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
 
-		Assert.notNull(sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
+		Assert.notNull(this.sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
 												+ "was Null. Did you call afterPropertiesSet()?");
 
 		SimpleJdbcCallOperations localSimpleJdbcCall = obtainSimpleJdbcCall(storedProcedureName);
 
 		SqlParameterSource storedProcedureParameterSource =
-				sqlParameterSourceFactory.createParameterSource(input);
+				this.sqlParameterSourceFactory.createParameterSource(input);
 
 		return localSimpleJdbcCall.execute(storedProcedureParameterSource);
 
@@ -435,7 +435,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	@ManagedAttribute(defaultValue="Null if not Set.")
 	public String getStoredProcedureName() {
 		return this.storedProcedureNameExpression instanceof LiteralExpression ?
-				storedProcedureNameExpression.getValue(String.class) : null;
+				this.storedProcedureNameExpression.getValue(String.class) : null;
 	}
 
 	/**
@@ -443,7 +443,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * */
 	@ManagedAttribute(defaultValue="Null if not Set.")
 	public String getStoredProcedureNameExpressionAsString() {
-		return this.storedProcedureNameExpression != null ? this.storedProcedureNameExpression.getExpressionString() : null;
+		return this.storedProcedureNameExpression != null
+				? this.storedProcedureNameExpression.getExpressionString()
+				: null;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		if (this.messageConverter instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(this.getBeanFactory());
 		}
-		this.container.setConnectionFactory(connectionFactory);
+		this.container.setConnectionFactory(this.connectionFactory);
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
 					new BeanFactoryChannelResolver(this.getBeanFactory()));
@@ -147,9 +147,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		}
 		this.container.setTaskExecutor(this.taskExecutor);
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
-		adapter.setSerializer(serializer);
+		adapter.setSerializer(this.serializer);
 		adapter.afterPropertiesSet();
-		this.container.addMessageListener(adapter, new ChannelTopic(topicName));
+		this.container.addMessageListener(adapter, new ChannelTopic(this.topicName));
 		this.container.afterPropertiesSet();
 		this.dispatcher.setBeanFactory(this.getBeanFactory());
 		this.initialized = true;
@@ -206,9 +206,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 		@SuppressWarnings({ "unused", "unchecked" })
 		public void handleMessage(String s) {
-			Message<?> siMessage = messageConverter.toMessage(s, null);
+			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(s, null);
 			try {
-				dispatcher.dispatch(siMessage);
+				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}
 			catch (MessageDispatchingException e) {
 				String topicName = SubscribableRedisChannel.this.topicName;

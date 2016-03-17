@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,15 +74,15 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	protected MessageConverter getConverter() {
-		return converter;
+		return this.converter;
 	}
 
 	protected String getUrl() {
-		return url;
+		return this.url;
 	}
 
 	public String getClientId() {
-		return clientId;
+		return this.clientId;
 	}
 
 	/**
@@ -91,7 +91,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	 * @since 4.1
 	 */
 	public int getClientInstance() {
-		return clientInstance;
+		return this.clientInstance;
 	}
 
 	@Override

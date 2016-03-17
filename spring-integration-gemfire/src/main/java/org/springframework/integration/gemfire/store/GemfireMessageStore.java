@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * @param messageStoreRegion The region.
 	 */
 	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
-		cache = null;
+		this.cache = null;
 		this.messageStoreRegion = messageStoreRegion;
 	}
     /**
@@ -98,7 +98,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>() {};
 			messageRegionFactoryBean.setBeanName(MESSAGE_STORE_REGION_NAME);
 			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
-			messageRegionFactoryBean.setCache(cache);
+			messageRegionFactoryBean.setCache(this.cache);
 			messageRegionFactoryBean.afterPropertiesSet();
 			this.messageStoreRegion = messageRegionFactoryBean.getObject();
 		}

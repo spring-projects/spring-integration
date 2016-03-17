@@ -63,7 +63,7 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 
 	public boolean canRelease(MessageGroup messages) {
 		long elapsedTime = System.currentTimeMillis() - findEarliestTimestamp(messages);
-		return messages.isComplete() || messages.getMessages().size() >= threshold || elapsedTime > timeout;
+		return messages.isComplete() || messages.getMessages().size() >= this.threshold || elapsedTime > this.timeout;
 	}
 
 	/**

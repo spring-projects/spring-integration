@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,22 +90,22 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 			}
 			catch (Throwable errorDeliveryError) {//NOSONAR
 				// message will be logged only
-				if (logger.isWarnEnabled()) {
-					logger.warn("Error message was not delivered.", errorDeliveryError);
+				if (this.logger.isWarnEnabled()) {
+					this.logger.warn("Error message was not delivered.", errorDeliveryError);
 				}
 				if (errorDeliveryError instanceof Error) {
 					throw ((Error) errorDeliveryError);
 				}
 			}
 		}
-		if (!sent && logger.isErrorEnabled()) {
+		if (!sent && this.logger.isErrorEnabled()) {
 			Message<?> failedMessage = (t instanceof MessagingException) ?
 					((MessagingException) t).getFailedMessage() : null;
 			if (failedMessage != null) {
-				logger.error("failure occurred in messaging task with message: " + failedMessage, t);
+				this.logger.error("failure occurred in messaging task with message: " + failedMessage, t);
 			}
 			else {
-				logger.error("failure occurred in messaging task", t);
+				this.logger.error("failure occurred in messaging task", t);
 			}
 		}
 	}

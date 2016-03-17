@@ -1100,13 +1100,13 @@ public class RemoteFileOutboundGatewayTests {
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
 		@SuppressWarnings({"rawtypes", "unchecked"})
-		public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
+		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 		                                     String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
 			this.setBeanFactory(mock(BeanFactory.class));
 		}
 
-		public TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
+		TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
 		                                     String expression) {
 			super(remoteFileTemplate, command, expression);
 			this.setBeanFactory(mock(BeanFactory.class));
@@ -1161,7 +1161,7 @@ public class RemoteFileOutboundGatewayTests {
 		private final long modified;
 		private final String permissions;
 
-		public TestLsEntry(String filename, long size, boolean dir, boolean link,
+		TestLsEntry(String filename, long size, boolean dir, boolean link,
 		                   long modified, String permissions) {
 			this.filename = filename;
 			this.size = size;
@@ -1214,7 +1214,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	static class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
 
-		public TestPatternFilter(String path) {
+		TestPatternFilter(String path) {
 			super(path);
 		}
 

@@ -135,7 +135,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 		public void processPacket(final Stanza packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
-				Map<String, ?> mappedHeaders = headerMapper.toHeadersFromRequest(xmppMessage);
+				Map<String, ?> mappedHeaders = ChatMessageListeningEndpoint.this.headerMapper.toHeadersFromRequest(xmppMessage);
 
 				Object messageBody = xmppMessage.getBody();
 

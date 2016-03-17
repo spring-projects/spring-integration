@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,11 +104,11 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * @return true if the server is listening on the port.
 	 */
 	public boolean isListening() {
-		return listening;
+		return this.listening;
 	}
 
 	protected boolean isShuttingDown() {
-		return shuttingDown;
+		return this.shuttingDown;
 	}
 
 	/**
@@ -153,7 +153,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * @return the localAddress
 	 */
 	public String getLocalAddress() {
-		return localAddress;
+		return this.localAddress;
 	}
 
 	/**

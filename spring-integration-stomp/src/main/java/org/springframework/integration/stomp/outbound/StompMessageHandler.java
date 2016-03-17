@@ -147,7 +147,8 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		final StompSession.Receiptable receiptable = stompSession.send(stompHeaders, message.getPayload());
 		if (receiptable.getReceiptId() != null) {
 			final String destination = stompHeaders.getDestination();
-			if (this.applicationEventPublisher != null) {
+			final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
+			if (applicationEventPublisher != null) {
 				receiptable.addReceiptTask(new Runnable() {
 
 					@Override
@@ -238,13 +239,13 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 			}
 			if (thePayload != null) {
 				Message<?> failedMessage = getMessageBuilderFactory().withPayload(thePayload)
-						.copyHeaders(headerMapper.toHeaders(headers))
+						.copyHeaders(StompMessageHandler.this.headerMapper.toHeaders(headers))
 						.build();
 				MessagingException exception = new MessageDeliveryException(failedMessage,
 						"STOMP frame handling error.");
 				logger.error("STOMP frame handling error.", exception);
-				if (applicationEventPublisher != null) {
-					applicationEventPublisher.publishEvent(
+				if (StompMessageHandler.this.applicationEventPublisher != null) {
+					StompMessageHandler.this.applicationEventPublisher.publishEvent(
 							new StompExceptionEvent(StompMessageHandler.this, exception));
 				}
 			}

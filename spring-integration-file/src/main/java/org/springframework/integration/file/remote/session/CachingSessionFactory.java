@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,18 +177,18 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		@Override
 		public synchronized void close() {
-			if (released) {
+			if (this.released) {
 				if (logger.isDebugEnabled()){
-					logger.debug("Session " + targetSession + " already released.");
+					logger.debug("Session " + this.targetSession + " already released.");
 				}
 			}
 			else {
 				if (logger.isDebugEnabled()){
-					logger.debug("Releasing Session " + targetSession + " back to the pool.");
+					logger.debug("Releasing Session " + this.targetSession + " back to the pool.");
 				}
 				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
 					if (logger.isDebugEnabled()){
-						logger.debug("Closing session " + targetSession + " after reset.");
+						logger.debug("Closing session " + this.targetSession + " after reset.");
 					}
 					this.targetSession.close();
 				}
@@ -203,8 +203,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 						//No-op in this context
 					}
 				}
-				pool.releaseItem(this.targetSession);
-				released = true;
+				CachingSessionFactory.this.pool.releaseItem(this.targetSession);
+				this.released = true;
 			}
 		}
 

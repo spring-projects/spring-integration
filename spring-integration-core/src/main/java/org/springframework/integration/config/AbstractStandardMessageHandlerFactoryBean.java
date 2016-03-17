@@ -95,7 +95,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 				}
 				this.checkReuse(actualHandler);
 				this.postProcessReplyProducer(actualHandler);
-				handler = (MessageHandler) targetObject;
+				handler = (MessageHandler) this.targetObject;
 			}
 			else {
 				handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);

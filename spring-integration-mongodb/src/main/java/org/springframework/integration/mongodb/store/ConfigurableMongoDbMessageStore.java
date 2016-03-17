@@ -99,7 +99,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	public boolean isTimeoutOnIdle() {
-		return timeoutOnIdle;
+		return this.timeoutOnIdle;
 	}
 
 	/**
@@ -286,7 +286,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		expiryCallbacks.add(callback);
+		this.expiryCallbacks.add(callback);
 	}
 
 	@Override
@@ -342,7 +342,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 		RuntimeException exception = null;
 
-		for (MessageGroupCallback callback : expiryCallbacks) {
+		for (MessageGroupCallback callback : this.expiryCallbacks) {
 			try {
 				callback.execute(this, group);
 			}

@@ -67,7 +67,7 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)){
 			String extractPayload = element.getAttribute("extract-payload");
 			if (StringUtils.hasText(extractPayload)) {
-				logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");
+				this.logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");
 			}
 		}
 	}

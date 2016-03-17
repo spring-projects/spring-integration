@@ -218,7 +218,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 
 						@Override
 						public Type getPayloadType(StompHeaders headers) {
-							return payloadType;
+							return StompInboundChannelAdapter.this.payloadType;
 						}
 
 						@Override
@@ -229,7 +229,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 							}
 							else {
 								message = getMessageBuilderFactory().withPayload(body)
-										.copyHeaders(headerMapper.toHeaders(headers))
+										.copyHeaders(StompInboundChannelAdapter.this.headerMapper.toHeaders(headers))
 										.build();
 							}
 							sendMessage(message);
@@ -238,7 +238,8 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 					});
 
 			if (this.stompSessionManager.isAutoReceiptEnabled()) {
-				if (this.applicationEventPublisher != null) {
+				final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
+				if (applicationEventPublisher != null) {
 					subscription.addReceiptTask(new Runnable() {
 
 						@Override
@@ -280,7 +281,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
 			StompInboundChannelAdapter.this.stompSession = session;
-			for (String destination : destinations) {
+			for (String destination : StompInboundChannelAdapter.this.destinations) {
 				subscribeDestination(destination);
 			}
 		}
@@ -288,12 +289,12 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 		@Override
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
 				Throwable exception) {
-			if (errorChannel != null) {
+			if (StompInboundChannelAdapter.this.errorChannel != null) {
 				StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(command);
-				headerAccessor.copyHeaders(headerMapper.toHeaders(headers));
+				headerAccessor.copyHeaders(StompInboundChannelAdapter.this.headerMapper.toHeaders(headers));
 				Message<byte[]> failedMessage = MessageBuilder.createMessage(payload,
 						headerAccessor.getMessageHeaders());
-				getMessagingTemplate().send(errorChannel,
+				getMessagingTemplate().send(StompInboundChannelAdapter.this.errorChannel,
 						new ErrorMessage(new MessageHandlingException(failedMessage, exception)));
 			}
 			else {

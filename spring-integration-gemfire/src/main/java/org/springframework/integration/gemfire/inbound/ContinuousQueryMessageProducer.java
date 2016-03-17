@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,11 +98,11 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (queryName == null) {
-			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.query, this, this.durable));
+		if (this.queryName == null) {
+			this.queryListenerContainer.addListener(new ContinuousQueryDefinition(this.query, this, this.durable));
 		}
 		else {
-			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.queryName, this.query, this,
+			this.queryListenerContainer.addListener(new ContinuousQueryDefinition(this.queryName, this.query, this,
 					this.durable));
 		}
 	}
@@ -135,7 +135,7 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 		String eventName = event.getQueryOperation().toString() +
 				(event.getQueryOperation().toString().endsWith("Y") ? "ED" : "D");
 		CqEventType eventType = CqEventType.valueOf(eventName);
-		return supportedEventTypes.contains(eventType);
+		return this.supportedEventTypes.contains(eventType);
 	}
 
 }

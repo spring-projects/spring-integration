@@ -114,7 +114,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			MulticastSocket socket;
 			if (this.isAcknowledge()) {
 				int ackPort = this.getAckPort();
-				if (localAddress == null) {
+				if (this.localAddress == null) {
 					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
 				}
 				else {

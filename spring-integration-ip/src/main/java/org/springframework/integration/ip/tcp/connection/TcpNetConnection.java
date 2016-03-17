@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	public synchronized void send(Message<?> message) throws Exception {
 		if (this.socketOutputStream == null) {
 			int writeBufferSize = this.socket.getSendBufferSize();
-			this.socketOutputStream = new BufferedOutputStream(socket.getOutputStream(),
+			this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
 					writeBufferSize > 0 ? writeBufferSize : 8192);
 		}
 		Object object = this.getMapper().fromMessage(message);

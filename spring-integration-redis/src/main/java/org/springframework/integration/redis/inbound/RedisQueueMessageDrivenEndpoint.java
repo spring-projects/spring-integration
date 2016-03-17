@@ -306,7 +306,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	}
 
 	public boolean isListening() {
-		return listening;
+		return this.listening;
 	}
 
 	/**

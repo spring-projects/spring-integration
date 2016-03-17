@@ -63,7 +63,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					@Override
 					public TcpConnectionSupport createForPool() {
 						try {
-							return targetConnectionFactory.getConnection();
+							return CachingClientConnectionFactory.this.targetConnectionFactory.getConnection();
 						}
 						catch (Exception e) {
 							throw new MessagingException("Failed to obtain connection", e);
@@ -163,7 +163,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					}
 					super.close();
 				}
-				pool.releaseItem(getTheConnection());
+				CachingClientConnectionFactory.this.pool.releaseItem(getTheConnection());
 			}
 		}
 

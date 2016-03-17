@@ -61,10 +61,10 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 
 		@Override
 		public void beforeCommit(boolean readOnly) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("'pre-Committing' transactional resource");
+			if (DefaultTransactionSynchronizationFactory.this.logger.isTraceEnabled()) {
+				DefaultTransactionSynchronizationFactory.this.logger.trace("'pre-Committing' transactional resource");
 			}
-			processor.processBeforeCommit(resourceHolder);
+			DefaultTransactionSynchronizationFactory.this.processor.processBeforeCommit(resourceHolder);
 		}
 
 		@Override
@@ -75,22 +75,22 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		@Override
 		protected void processResourceAfterCommit(IntegrationResourceHolder resourceHolder) {
 
-			if (logger.isTraceEnabled()) {
-				logger.trace("'Committing' transactional resource");
+			if (DefaultTransactionSynchronizationFactory.this.logger.isTraceEnabled()) {
+				DefaultTransactionSynchronizationFactory.this.logger.trace("'Committing' transactional resource");
 			}
 
-			processor.processAfterCommit(resourceHolder);
+			DefaultTransactionSynchronizationFactory.this.processor.processAfterCommit(resourceHolder);
 
 		}
 
 		@Override
 		public void afterCompletion(int status) {
 			if (status != TransactionSynchronization.STATUS_COMMITTED) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("'Rolling back' transactional resource");
+				if (DefaultTransactionSynchronizationFactory.this.logger.isTraceEnabled()) {
+					DefaultTransactionSynchronizationFactory.this.logger.trace("'Rolling back' transactional resource");
 				}
 
-				processor.processAfterRollback(resourceHolder);
+				DefaultTransactionSynchronizationFactory.this.processor.processAfterRollback(resourceHolder);
 
 			}
 			super.afterCompletion(status);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,13 +171,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(
-					"Failure during the destruction of Mail receiver: " + mailReceiver, e);
+					"Failure during the destruction of Mail receiver: " + this.mailReceiver, e);
 		}
 		/*
 		 * If we're running with the default executor, shut it down.
 		 */
 		if (!this.sendingTaskExecutorSet && this.sendingTaskExecutor != null) {
-			((ExecutorService) sendingTaskExecutor).shutdown();
+			((ExecutorService) this.sendingTaskExecutor).shutdown();
 			this.sendingTaskExecutor = null;
 		}
 	}
@@ -187,14 +187,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		@Override
 		public void run() {
 			try {
-				idleTask.run();
+				ImapIdleChannelAdapter.this.idleTask.run();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
 			}
 			catch (Exception e) { //run again after a delay
-				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + reconnectDelay + " milliseconds.", e);
-				receivingTaskTrigger.delayNextExecution();
+				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
+				ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
 				ImapIdleChannelAdapter.this.publishException(e);
 			}
 		}
@@ -211,15 +211,15 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			 * The following shouldn't be necessary because doStart() will have ensured we have
 			 * one. But, just in case...
 			 */
-			Assert.state(sendingTaskExecutor != null, "'sendingTaskExecutor' must not be null");
+			Assert.state(ImapIdleChannelAdapter.this.sendingTaskExecutor != null, "'sendingTaskExecutor' must not be null");
 
 			try {
 				if (logger.isDebugEnabled()) {
 					logger.debug("waiting for mail");
 				}
-				mailReceiver.waitForNewMessages();
-				if (mailReceiver.getFolder().isOpen()) {
-					Message[] mailMessages = mailReceiver.receive();
+				ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
+				if (ImapIdleChannelAdapter.this.mailReceiver.getFolder().isOpen()) {
+					Message[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
 					}
@@ -227,7 +227,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 						Runnable messageSendingTask = createMessageSendingTask(mailMessage);
 
-						sendingTaskExecutor.execute(messageSendingTask);
+						ImapIdleChannelAdapter.this.sendingTaskExecutor.execute(messageSendingTask);
 					}
 				}
 			}
@@ -235,7 +235,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				if (logger.isWarnEnabled()) {
 					logger.warn("error occurred in idle task", e);
 				}
-				if (shouldReconnectAutomatically) {
+				if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
 					throw new IllegalStateException(
 							"Failure in 'idle' task. Will resubmit.", e);
 				}
@@ -255,9 +255,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-					if (transactionSynchronizationFactory != null){
+					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null){
 						TransactionSynchronization synchronization =
-								transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this);
+								ImapIdleChannelAdapter.this.transactionSynchronizationFactory
+										.create(ImapIdleChannelAdapter.this);
 						TransactionSynchronizationManager.registerSynchronization(synchronization);
 						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
 							IntegrationResourceHolder holder =
@@ -271,14 +272,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		};
 
 		// wrap in the TX proxy if necessary
-		if (!CollectionUtils.isEmpty(adviceChain)) {
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
-			if (!CollectionUtils.isEmpty(adviceChain)) {
-				for (Advice advice : adviceChain) {
+			if (!CollectionUtils.isEmpty(this.adviceChain)) {
+				for (Advice advice : this.adviceChain) {
 					proxyFactory.addAdvice(advice);
 				}
 			}
-			sendingTask = (Runnable) proxyFactory.getProxy(classLoader);
+			sendingTask = (Runnable) proxyFactory.getProxy(this.classLoader);
 		}
 		return sendingTask;
 	}
@@ -301,9 +302,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
-			if (delayNextExecution){
-				delayNextExecution = false;
-				return new Date(System.currentTimeMillis() + reconnectDelay);
+			if (this.delayNextExecution){
+				this.delayNextExecution = false;
+				return new Date(System.currentTimeMillis() + ImapIdleChannelAdapter.this.reconnectDelay);
 			}
 			else {
 				return new Date(System.currentTimeMillis());

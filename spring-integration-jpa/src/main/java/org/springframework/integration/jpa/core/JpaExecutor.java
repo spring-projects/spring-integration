@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,7 +299,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			}
 			else {
 				int firstResult = 0;
-				if (firstResultExpression != null) {
+				if (this.firstResultExpression != null) {
 					firstResult = this.getFirstResult(requestMessage);
 				}
 				ParameterSource parameterSource = this.determineParameterSource(requestMessage);
@@ -381,7 +381,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
 		ParameterSource parameterSource;
-		if (usePayloadAsParameterSource) {
+		if (this.usePayloadAsParameterSource) {
 			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
 		}
 		else {

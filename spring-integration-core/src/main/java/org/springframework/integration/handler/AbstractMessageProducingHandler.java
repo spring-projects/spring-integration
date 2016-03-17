@@ -116,7 +116,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				}
 			}
 		}
-		return outputChannel;
+		return this.outputChannel;
 	}
 
 	protected void sendOutputs(Object result, Message<?> requestMessage) {

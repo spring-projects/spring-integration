@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,13 +71,13 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (beanFactory instanceof ConfigurableBeanFactory) {
 			Object typeConverter = ((ConfigurableBeanFactory) beanFactory).getTypeConverter();
 			if (typeConverter instanceof SimpleTypeConverter) {
-				delegate = (SimpleTypeConverter) typeConverter;
+				this.delegate = (SimpleTypeConverter) typeConverter;
 			}
 		}
 	}
 
 	public boolean canConvert(Class<?> sourceType, Class<?> targetType) {
-		if (conversionService.canConvert(sourceType, targetType)) {
+		if (this.conversionService.canConvert(sourceType, targetType)) {
 			return true;
 		}
 		if (!String.class.isAssignableFrom(sourceType) && !String.class.isAssignableFrom(targetType)) {
@@ -85,13 +85,13 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			return false;
 		}
 		if (!String.class.isAssignableFrom(sourceType)) {
-			return delegate.findCustomEditor(sourceType, null) != null || this.getDefaultEditor(sourceType) != null;
+			return this.delegate.findCustomEditor(sourceType, null) != null || this.getDefaultEditor(sourceType) != null;
 		}
-		return delegate.findCustomEditor(targetType, null) != null || this.getDefaultEditor(targetType) != null;
+		return this.delegate.findCustomEditor(targetType, null) != null || this.getDefaultEditor(targetType) != null;
 	}
 
 	public boolean canConvert(TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
-		if (conversionService.canConvert(sourceTypeDescriptor, targetTypeDescriptor)) {
+		if (this.conversionService.canConvert(sourceTypeDescriptor, targetTypeDescriptor)) {
 			return true;
 		}
 		// TODO: what does this mean? This method is not used in SpEL so probably ignorable?
@@ -119,11 +119,11 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 				return value;
 			}
 		}
-		if (conversionService.canConvert(sourceType, targetType)) {
-			return conversionService.convert(value, sourceType, targetType);
+		if (this.conversionService.canConvert(sourceType, targetType)) {
+			return this.conversionService.convert(value, sourceType, targetType);
 		}
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
-			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
+			PropertyEditor editor = this.delegate.findCustomEditor(sourceType.getType(), null);
 			if (editor==null) {
 				editor = this.getDefaultEditor(sourceType.getType());
 			}
@@ -140,19 +140,19 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			}
 		}
 		synchronized (this.delegate) {
-			return delegate.convertIfNecessary(value, targetType.getType());
+			return this.delegate.convertIfNecessary(value, targetType.getType());
 		}
 	}
 
 	private PropertyEditor getDefaultEditor(Class<?> sourceType) {
 		PropertyEditor defaultEditor;
 		if (this.haveCalledDelegateGetDefaultEditor) {
-			defaultEditor= delegate.getDefaultEditor(sourceType);
+			defaultEditor= this.delegate.getDefaultEditor(sourceType);
 		}
 		else {
 			synchronized(this) {
 				// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
-				defaultEditor= delegate.getDefaultEditor(sourceType);
+				defaultEditor= this.delegate.getDefaultEditor(sourceType);
 			}
 			this.haveCalledDelegateGetDefaultEditor = true;
 		}

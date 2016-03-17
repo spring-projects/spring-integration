@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,32 +88,32 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
-		delegate.setCountsEnabled(countsEnabled);
+		this.delegate.setCountsEnabled(countsEnabled);
 	}
 
 	@Override
 	public boolean isCountsEnabled() {
-		return delegate.isCountsEnabled();
+		return this.delegate.isCountsEnabled();
 	}
 
 	@Override
 	public void setLoggingEnabled(boolean enabled) {
-		delegate.setLoggingEnabled(enabled);
+		this.delegate.setLoggingEnabled(enabled);
 	}
 
 	@Override
 	public boolean isLoggingEnabled() {
-		return delegate.isLoggingEnabled();
+		return this.delegate.isLoggingEnabled();
 	}
 
 	@Override
 	public void setManagedName(String name) {
-		delegate.setManagedName(name);
+		this.delegate.setManagedName(name);
 	}
 
 	@Override
 	public void setManagedType(String source) {
-		delegate.setManagedType(source);
+		this.delegate.setManagedType(source);
 	}
 
 }

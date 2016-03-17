@@ -51,7 +51,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	public boolean isRequiresReply() {
-		return requiresReply;
+		return this.requiresReply;
 	}
 
 	public void setRequiresReply(boolean requiresReply) {
@@ -116,7 +116,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	@Override
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		if (this.sendTimeout != null) {
-			handler.setSendTimeout(sendTimeout);
+			handler.setSendTimeout(this.sendTimeout);
 		}
 		if (this.requiresReply != null) {
 			if(handler instanceof AbstractReplyProducingMessageHandler) {
@@ -141,7 +141,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 				((DefaultMessageSplitter) splitter).setDelimiters(this.delimiters);
 			}
 			if (this.applySequence != null) {
-				splitter.setApplySequence(applySequence);
+				splitter.setApplySequence(this.applySequence);
 			}
 		}
 	}

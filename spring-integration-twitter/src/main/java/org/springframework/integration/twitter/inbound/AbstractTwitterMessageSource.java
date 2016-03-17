@@ -179,8 +179,8 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private void refreshTweetQueueIfNecessary() {
 		try {
-			if (tweets.size() <= prefetchThreshold) {
-				List<T> tweets = pollForTweets(lastEnqueuedId);
+			if (this.tweets.size() <= this.prefetchThreshold) {
+				List<T> tweets = pollForTweets(this.lastEnqueuedId);
 				if (!CollectionUtils.isEmpty(tweets)) {
 					enqueueAll(tweets);
 				}

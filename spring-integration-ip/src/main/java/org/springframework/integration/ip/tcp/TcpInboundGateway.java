@@ -127,7 +127,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
 		TcpConnection connection = null;
 		if (connectionId != null) {
-			connection = connections.get(connectionId);
+			connection = this.connections.get(connectionId);
 		}
 		if (connection == null) {
 			publishNoConnectionEvent(message, connectionId);
@@ -185,12 +185,12 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	@Override
 	public void addNewConnection(TcpConnection connection) {
-		connections.put(connection.getConnectionId(), connection);
+		this.connections.put(connection.getConnectionId(), connection);
 	}
 
 	@Override
 	public void removeDeadConnection(TcpConnection connection) {
-		connections.remove(connection.getConnectionId());
+		this.connections.remove(connection.getConnectionId());
 	}
 	@Override
 	public String getComponentType(){
@@ -253,7 +253,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	 */
 	@Override
 	public boolean isClientMode() {
-		return isClientMode;
+		return this.isClientMode;
 	}
 
 	/**
@@ -268,7 +268,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	 * @return the retryInterval
 	 */
 	public long getRetryInterval() {
-		return retryInterval;
+		return this.retryInterval;
 	}
 
 	/**

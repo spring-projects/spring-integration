@@ -29,7 +29,7 @@ class TestAddress {
 	TestAddress() {
 	}
 
-	public TestAddress(int number, String street) {
+	TestAddress(int number, String street) {
 		this.number = number;
 		this.street = street;
 	}

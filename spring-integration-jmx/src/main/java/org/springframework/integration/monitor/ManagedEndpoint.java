@@ -41,19 +41,19 @@ public class ManagedEndpoint implements Lifecycle {
 	@Override
 	@ManagedAttribute
 	public final boolean isRunning() {
-		return delegate.isRunning();
+		return this.delegate.isRunning();
 	}
 
 	@Override
 	@ManagedOperation
 	public final void start() {
-		delegate.start();
+		this.delegate.start();
 	}
 
 	@Override
 	@ManagedOperation
 	public final void stop() {
-		delegate.stop();
+		this.delegate.stop();
 	}
 
 }

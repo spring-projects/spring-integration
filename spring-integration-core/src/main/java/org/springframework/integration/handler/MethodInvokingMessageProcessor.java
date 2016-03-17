@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,31 +45,31 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	private final MessagingMethodInvokerHelper<T> delegate;
 
 	public MethodInvokingMessageProcessor(Object targetObject, Method method) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, false);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, false);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName, boolean canProcessMessageList) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, canProcessMessageList);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, canProcessMessageList);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, false);
+		this.delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, false);
 	}
 
 	@Override
 	public void setConversionService(ConversionService conversionService) {
 		super.setConversionService(conversionService);
-		delegate.setConversionService(conversionService);
+		this.delegate.setConversionService(conversionService);
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
-		delegate.setBeanFactory(beanFactory);
+		this.delegate.setBeanFactory(beanFactory);
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	@Override
 	public T processMessage(Message<?> message) {
 		try {
-			return delegate.process(message);
+			return this.delegate.process(message);
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(message, e);

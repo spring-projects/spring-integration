@@ -197,7 +197,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		}
 		String uuid = null;
 		if (value != null) {
-			if (!active) {
+			if (!this.active) {
 				this.boundListOperations.rightPush(value);
 				return;
 			}
@@ -211,7 +211,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			}
 			Message<Object> requestMessage = null;
 			if (value != null) {
-				if (!active) {
+				if (!this.active) {
 					this.template.boundListOps(uuid).rightPush(value);
 					this.boundListOperations.rightPush(stringSerializer.serialize(uuid));
 					return;
@@ -235,11 +235,11 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 				if (replyMessage != null) {
 					if (this.extractPayload) {
 						if (!(replyMessage.getPayload() instanceof byte[])) {
-							if (replyMessage.getPayload() instanceof String && !serializerExplicitlySet) {
+							if (replyMessage.getPayload() instanceof String && !this.serializerExplicitlySet) {
 								value = stringSerializer.serialize((String) replyMessage.getPayload());
 							}
 							else {
-								value = ((RedisSerializer<Object>) serializer).serialize(replyMessage.getPayload());
+								value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage.getPayload());
 							}
 						}
 						else {
@@ -248,7 +248,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 					}
 					else {
 						if (this.serializer != null) {
-							value = ((RedisSerializer<Object>) serializer).serialize(replyMessage);
+							value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage);
 						}
 					}
 					this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX).leftPush(value);

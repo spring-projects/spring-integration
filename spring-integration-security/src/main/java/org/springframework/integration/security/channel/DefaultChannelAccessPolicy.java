@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,23 +56,23 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null and have at least one entry.");
 		if (sendAccessDefined) {
 			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
-			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
+			this.configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
 			for (String sendAccessValue : sendAccessValues) {
-				configAttributeDefinitionForSend.add(new SecurityConfig(StringUtils.trimAllWhitespace(sendAccessValue)));
+				this.configAttributeDefinitionForSend.add(new SecurityConfig(StringUtils.trimAllWhitespace(sendAccessValue)));
 			}
 		}
 		else {
-			configAttributeDefinitionForSend = Collections.emptySet();
+			this.configAttributeDefinitionForSend = Collections.emptySet();
 		}
 		if (receiveAccessDefined) {
 			String[] receiveAccessValues = StringUtils.commaDelimitedListToStringArray(receiveAccess);
-			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
+			this.configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
 			for (String receiveAccessValue : receiveAccessValues) {
-				configAttributeDefinitionForReceive.add(new SecurityConfig(StringUtils.trimAllWhitespace(receiveAccessValue)));
+				this.configAttributeDefinitionForReceive.add(new SecurityConfig(StringUtils.trimAllWhitespace(receiveAccessValue)));
 			}
 		}
 		else {
-			configAttributeDefinitionForReceive = Collections.emptySet();
+			this.configAttributeDefinitionForReceive = Collections.emptySet();
 		}
 	}
 
@@ -90,22 +90,22 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 		Assert.isTrue(sendAccessDefined || receiveAccessDefined,
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
 		if (sendAccessDefined) {
-			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
+			this.configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
 			for (String sendAccessValue : sendAccess) {
-				configAttributeDefinitionForSend.add(new SecurityConfig(sendAccessValue));
+				this.configAttributeDefinitionForSend.add(new SecurityConfig(sendAccessValue));
 			}
 		}
 		else {
-			configAttributeDefinitionForSend = Collections.emptySet();
+			this.configAttributeDefinitionForSend = Collections.emptySet();
 		}
 		if (receiveAccessDefined) {
-			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
+			this.configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
 			for (String receiveAccessValue : receiveAccess) {
-				configAttributeDefinitionForReceive.add(new SecurityConfig(receiveAccessValue));
+				this.configAttributeDefinitionForReceive.add(new SecurityConfig(receiveAccessValue));
 			}
 		}
 		else {
-			configAttributeDefinitionForReceive = Collections.emptySet();
+			this.configAttributeDefinitionForReceive = Collections.emptySet();
 		}
 	}
 

@@ -164,13 +164,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return idToMessage.size();
+		return this.idToMessage.size();
 	}
 
 	@Override
 	public <T> Message<T> addMessage(Message<T> message) {
 		this.isUsed = true;
-		if (!individualUpperBound.tryAcquire(this.upperBoundTimeout)) {
+		if (!this.individualUpperBound.tryAcquire(this.upperBoundTimeout)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity ("
 					+ this.individualCapacity
@@ -203,7 +203,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		MessageGroup group = groupIdToMessageGroup.get(groupId);
+		MessageGroup group = this.groupIdToMessageGroup.get(groupId);
 		if (group == null) {
 			return getMessageGroupFactory().create(groupId);
 		}
@@ -370,7 +370,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
+		return new HashSet<MessageGroup>(this.groupIdToMessageGroup.values()).iterator();
 	}
 
 	@Override

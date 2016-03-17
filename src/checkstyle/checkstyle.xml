@@ -67,10 +67,10 @@
 <!-- 			<property name="max" value="3" /> -->
 <!-- 		</module> -->
 <!-- 		<module name="MultipleVariableDeclarations" /> -->
-<!-- 		<module name="RequireThis"> -->
-<!-- 			<property name="checkMethods" value="false" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="OneStatementPerLine" /> -->
+ 		<module name="RequireThis">
+ 			<property name="checkMethods" value="false" />
+ 		</module>
+ 		<!--<module name="OneStatementPerLine" /> -->
 
 		<!-- Imports -->
 <!-- 		<module name="AvoidStarImport" /> -->

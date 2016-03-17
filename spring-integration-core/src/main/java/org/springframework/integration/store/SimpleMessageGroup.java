@@ -87,7 +87,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public long getTimestamp() {
-		return timestamp;
+		return this.timestamp;
 	}
 
 	public void setLastModified(long lastModified){
@@ -96,7 +96,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public long getLastModified() {
-		return lastModified;
+		return this.lastModified;
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public int getLastReleasedMessageSequenceNumber() {
-		return lastReleasedMessageSequence;
+		return this.lastReleasedMessageSequence;
 	}
 
 	private boolean addMessage(Message<?> message) {
@@ -123,7 +123,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Collection<Message<?>> getMessages() {
-		return Collections.unmodifiableCollection(messages);
+		return Collections.unmodifiableCollection(this.messages);
 	}
 
 	public void setLastReleasedMessageSequenceNumber(int sequenceNumber){
@@ -132,7 +132,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public Object getGroupId() {
-		return groupId;
+		return this.groupId;
 	}
 
 	@Override
@@ -173,10 +173,10 @@ public class SimpleMessageGroup implements MessageGroup {
 	@Override
 	public String toString() {
 		return "SimpleMessageGroup{" +
-				"groupId=" + groupId +
-				", messages=" + messages +
-				", timestamp=" + timestamp +
-				", lastModified=" + lastModified +
+				"groupId=" + this.groupId +
+				", messages=" + this.messages +
+				", timestamp=" + this.timestamp +
+				", lastModified=" + this.lastModified +
 				'}';
 	}
 

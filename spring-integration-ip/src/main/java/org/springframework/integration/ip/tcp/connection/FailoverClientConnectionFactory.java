@@ -51,7 +51,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		for (AbstractClientConnectionFactory factory : factories) {
+		for (AbstractClientConnectionFactory factory : this.factories) {
 			Assert.state(!(this.isSingleUse() ^ factory.isSingleUse()),
 				"Inconsistent singleUse - delegate factories must match this one");
 			factory.enableManualListenerRegistration();
@@ -304,7 +304,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		@Override
 		public String getConnectionId() {
-			return this.connectionId + ":" + epoch;
+			return this.connectionId + ":" + this.epoch;
 		}
 
 		@Override

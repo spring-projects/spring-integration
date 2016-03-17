@@ -42,7 +42,7 @@ public abstract class WhileLockedProcessor {
 		this.lockRegistry = lockRegistry;
 	}
 	public final void doWhileLocked() throws IOException{
-		Lock lock = lockRegistry.obtain(key);
+		Lock lock = this.lockRegistry.obtain(this.key);
 		try {
 			lock.lockInterruptibly();
 			try {

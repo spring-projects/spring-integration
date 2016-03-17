@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		Assert.isTrue(method.getReturnType().equals(void.class),
 				"MethodInvokingMessageHandler requires a void-returning method");
-		processor = new MethodInvokingMessageProcessor<Object>(object, method);
+		this.processor = new MethodInvokingMessageProcessor<Object>(object, method);
 	}
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
-		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
+		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler impleme
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Object result = processor.processMessage(message);
+		Object result = this.processor.processMessage(message);
 		if (result != null) {
 			throw new MessagingException(message, "the MethodInvokingMessageHandler method must "
 					+ "have a void return, but '" + this + "' received a value: [" + result + "]");

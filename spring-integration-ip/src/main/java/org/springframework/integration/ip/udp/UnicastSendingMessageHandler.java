@@ -261,7 +261,7 @@ public class UnicastSendingMessageHandler extends
 		try {
 			boolean waitForAck = this.waitForAck;
 			if (waitForAck) {
-				countdownLatch = new CountDownLatch(ackCounter);
+				countdownLatch = new CountDownLatch(this.ackCounter);
 				this.ackControl.put(messageId, countdownLatch);
 			}
 			convertAndSend(message);
@@ -282,10 +282,10 @@ public class UnicastSendingMessageHandler extends
 		}
 		catch (Exception e) {
 			try{
-				socket.close();
+				this.socket.close();
 			}
 			catch (Exception e1) { }
-			socket = null;
+			this.socket = null;
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
 		}
 		finally {
@@ -305,10 +305,10 @@ public class UnicastSendingMessageHandler extends
 					catch (IOException e) {
 						logger.error("Error creating socket", e);
 					}
-					ackLatch = new CountDownLatch(1);
+					this.ackLatch = new CountDownLatch(1);
 					this.taskExecutor.execute(this);
 					try {
-						ackLatch.await(10000, TimeUnit.MILLISECONDS);
+						this.ackLatch.await(10000, TimeUnit.MILLISECONDS);
 					}
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
@@ -365,8 +365,8 @@ public class UnicastSendingMessageHandler extends
 
 	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
-			if (acknowledge) {
-				if (localAddress == null) {
+			if (this.acknowledge) {
+				if (this.localAddress == null) {
 					this.socket = this.ackPort == 0 ? new DatagramSocket() : new DatagramSocket(this.ackPort);
 				}
 				else {
@@ -374,7 +374,7 @@ public class UnicastSendingMessageHandler extends
 					this.socket = new DatagramSocket(new InetSocketAddress(whichNic, this.ackPort));
 				}
 				if (this.soReceiveBufferSize > 0) {
-					socket.setReceiveBufferSize(this.soReceiveBufferSize);
+					this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
 				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Listening for acks on port: " + getAckPort());
@@ -445,7 +445,7 @@ public class UnicastSendingMessageHandler extends
 	 * @return the acknowledge
 	 */
 	public boolean isAcknowledge() {
-		return acknowledge;
+		return this.acknowledge;
 	}
 
 	/**
@@ -465,7 +465,7 @@ public class UnicastSendingMessageHandler extends
 	 * @return the soReceiveBufferSize
 	 */
 	public int getSoReceiveBufferSize() {
-		return soReceiveBufferSize;
+		return this.soReceiveBufferSize;
 	}
 
 	@Override
@@ -494,7 +494,7 @@ public class UnicastSendingMessageHandler extends
 	public void run() {
 		try {
 			this.ackThreadRunning = true;
-			ackLatch.countDown();
+			this.ackLatch.countDown();
 			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
 			while(true) {
 				this.getSocket().receive(ackPack);
@@ -527,9 +527,9 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	private void closeSocketIfNeeded() {
-		if (socket != null) {
-			socket.close();
-			socket = null;
+		if (this.socket != null) {
+			this.socket.close();
+			this.socket = null;
 		}
 	}
 

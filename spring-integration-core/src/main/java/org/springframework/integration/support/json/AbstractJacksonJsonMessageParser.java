@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,11 +83,11 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 	protected Object readPayload(P parser, String jsonMessage) throws Exception {
 		try {
-			return objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
+			return this.objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException("Mapping of JSON message '" + jsonMessage +
-					"' to payload type '" + messageMapper.getPayloadType() + "' failed.", e);
+					"' to payload type '" + this.messageMapper.getPayloadType() + "' failed.", e);
 		}
 	}
 

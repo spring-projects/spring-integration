@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,7 +148,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	public ApplicationEventPublisher getApplicationEventPublisher() {
-		return applicationEventPublisher;
+		return this.applicationEventPublisher;
 	}
 
 	/**
@@ -181,7 +181,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soTimeout
 	 */
 	public int getSoTimeout() {
-		return soTimeout;
+		return this.soTimeout;
 	}
 
 	/**
@@ -195,7 +195,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soReceiveBufferSize
 	 */
 	public int getSoReceiveBufferSize() {
-		return soReceiveBufferSize;
+		return this.soReceiveBufferSize;
 	}
 
 	/**
@@ -209,7 +209,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soSendBufferSize
 	 */
 	public int getSoSendBufferSize() {
-		return soSendBufferSize;
+		return this.soSendBufferSize;
 	}
 
 	/**
@@ -223,7 +223,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soTcpNoDelay
 	 */
 	public boolean isSoTcpNoDelay() {
-		return soTcpNoDelay;
+		return this.soTcpNoDelay;
 	}
 
 	/**
@@ -237,7 +237,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soLinger
 	 */
 	public int getSoLinger() {
-		return soLinger;
+		return this.soLinger;
 	}
 
 	/**
@@ -251,7 +251,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soKeepAlive
 	 */
 	public boolean isSoKeepAlive() {
-		return soKeepAlive;
+		return this.soKeepAlive;
 	}
 
 	/**
@@ -265,7 +265,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the soTrafficClass
 	 */
 	public int getSoTrafficClass() {
-		return soTrafficClass;
+		return this.soTrafficClass;
 	}
 
 	/**
@@ -279,49 +279,49 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the host
 	 */
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 	/**
 	 * @return the port
 	 */
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 	/**
 	 * @return the listener
 	 */
 	public TcpListener getListener() {
-		return listener;
+		return this.listener;
 	}
 
 	/**
 	 * @return the sender
 	 */
 	public TcpSender getSender() {
-		return sender;
+		return this.sender;
 	}
 
 	/**
 	 * @return the serializer
 	 */
 	public Serializer<?> getSerializer() {
-		return serializer;
+		return this.serializer;
 	}
 
 	/**
 	 * @return the deserializer
 	 */
 	public Deserializer<?> getDeserializer() {
-		return deserializer;
+		return this.deserializer;
 	}
 
 	/**
 	 * @return the mapper
 	 */
 	public TcpMessageMapper getMapper() {
-		return mapper;
+		return this.mapper;
 	}
 
 	/**
@@ -384,7 +384,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the singleUse
 	 */
 	public boolean isSingleUse() {
-		return singleUse;
+		return this.singleUse;
 	}
 
 	/**
@@ -413,7 +413,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the lookupHost
 	 */
 	public boolean isLookupHost() {
-		return lookupHost;
+		return this.lookupHost;
 	}
 
 	/**
@@ -429,11 +429,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	protected BlockingQueue<PendingIO> getDelayedReads() {
-		return delayedReads;
+		return this.delayedReads;
 	}
 
 	protected long getReadDelay() {
-		return readDelay;
+		return this.readDelay;
 	}
 
 	/**
@@ -574,7 +574,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					logger.debug("Removing closed channel");
 					it.remove();
 				}
-				else if (soTimeout > 0) {
+				else if (this.soTimeout > 0) {
 					TcpNioConnection connection = connections.get(channel);
 					if (now - connection.getLastRead() >= this.soTimeout) {
 						/*
@@ -606,7 +606,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 		this.harvestClosedConnections();
 		if (logger.isTraceEnabled()) {
-			if (host == null) {
+			if (this.host == null) {
 				logger.trace("Port " + this.port + " SelectionCount: " + selectionCount);
 			} else {
 				logger.trace("Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
@@ -829,7 +829,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the active
 	 */
 	protected boolean isActive() {
-		return active;
+		return this.active;
 	}
 
 	/**
@@ -846,7 +846,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	protected TcpSocketSupport getTcpSocketSupport() {
-		return tcpSocketSupport;
+		return this.tcpSocketSupport;
 	}
 
 	public void setTcpSocketSupport(TcpSocketSupport tcpSocketSupport) {

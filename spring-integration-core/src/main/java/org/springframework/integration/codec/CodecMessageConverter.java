@@ -59,7 +59,7 @@ public class CodecMessageConverter extends IntegrationObjectSupport implements M
 	public Message<?> toMessage(Object payload, MessageHeaders headers) {
 		Assert.isInstanceOf(byte[].class, payload);
 		try {
-			Message<?> decoded = (Message<?>) this.codec.decode((byte[]) payload, messageClass);
+			Message<?> decoded = (Message<?>) this.codec.decode((byte[]) payload, this.messageClass);
 			if (headers != null) {
 				AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().fromMessage(decoded);
 				builder.copyHeaders(headers);

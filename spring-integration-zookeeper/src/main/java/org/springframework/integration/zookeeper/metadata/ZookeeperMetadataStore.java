@@ -123,7 +123,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				// so the data actually exists, we can read it
 				try {
 					byte[] bytes = this.client.getData().forPath(getPath(key));
-					return IntegrationUtils.bytesToString(bytes, encoding);
+					return IntegrationUtils.bytesToString(bytes, this.encoding);
 				}
 				catch (Exception exceptionDuringGet) {
 					throw new ZookeeperMetadataStoreException("Exception while reading node with key '" + key + "':", e);
@@ -144,7 +144,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			Stat currentStat = new Stat();
 			try {
 				byte[] bytes = this.client.getData().storingStatIn(currentStat).forPath(getPath(key));
-				if (oldValue.equals(IntegrationUtils.bytesToString(bytes, encoding))) {
+				if (oldValue.equals(IntegrationUtils.bytesToString(bytes, this.encoding))) {
 					updateNode(key, newValue, currentStat.getVersion());
 				}
 				return true;
@@ -221,7 +221,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						return this.updateMap.get(key).getValue();
 					}
 				}
-				return IntegrationUtils.bytesToString(currentData.getData(), encoding);
+				return IntegrationUtils.bytesToString(currentData.getData(), this.encoding);
 			}
 		}
 	}
@@ -235,7 +235,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				this.client.delete().forPath(getPath(key));
 				// we guarantee that the deletion will supersede the existing data
 				this.updateMap.put(key, new LocalChildData(null, Integer.MAX_VALUE));
-				return IntegrationUtils.bytesToString(bytes, encoding);
+				return IntegrationUtils.bytesToString(bytes, this.encoding);
 			}
 			catch (KeeperException.NoNodeException e) {
 				// ignore - the node doesn't exist
@@ -265,7 +265,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public boolean isAutoStartup() {
-		return autoStartup;
+		return this.autoStartup;
 	}
 
 	@Override
@@ -274,12 +274,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			synchronized (this.lifecycleMonitor) {
 				if (!this.running) {
 					try {
-						EnsurePath ensurePath = new EnsurePath(root);
-						ensurePath.ensure(client.getZookeeperClient());
+						EnsurePath ensurePath = new EnsurePath(this.root);
+						ensurePath.ensure(this.client.getZookeeperClient());
 						this.cache = new PathChildrenCache(this.client, this.root, true);
 						this.cache.getListenable().addListener(new MetadataStoreListenerInvokingPathChildrenCacheListener());
 						this.cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
-						running = true;
+						this.running = true;
 					}
 					catch (Exception e) {
 						throw new ZookeeperMetadataStoreException("Exception while starting bean", e);
@@ -312,12 +312,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	@Override
 	public boolean isRunning() {
-		return running;
+		return this.running;
 	}
 
 	@Override
 	public int getPhase() {
-		return phase;
+		return this.phase;
 	}
 
 	private static class LocalChildData {
@@ -358,7 +358,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
+						listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
 					}
 					break;
 				case CHILD_UPDATED:
@@ -369,13 +369,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 						}
 					}
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
+						listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
 					}
 					break;
 				case CHILD_REMOVED:
 					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
 					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData, encoding));
+						listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
 					}
 					break;
 				default:
@@ -387,6 +387,6 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	private String getKey(String path) {
-		return path.replace(root + "/", "");
+		return path.replace(this.root + "/", "");
 	}
 }

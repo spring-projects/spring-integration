@@ -1,8 +1,3 @@
-description = 'Spring Integration'
-
-apply plugin: 'base'
-apply plugin: 'idea'
-
 buildscript {
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
@@ -13,6 +8,16 @@ buildscript {
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 	}
 }
+
+plugins {
+	id "org.sonarqube" version "1.2"
+}
+
+description = 'Spring Integration'
+
+apply plugin: 'base'
+apply plugin: 'idea'
+
 
 def docsDir = 'src/reference/asciidoc' // Will be default with newer asciidoctor plugin
 
@@ -61,6 +66,7 @@ subprojects { subproject ->
 
 	apply from:   "${rootDir}/src/checkstyle/fixHeaders.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixModifiers.gradle"
+	apply from:   "${rootDir}/src/checkstyle/fixThis.gradle"
 
 	if (project.hasProperty('platformVersion')) {
 		apply plugin: 'spring-io'
@@ -243,7 +249,8 @@ subprojects { subproject ->
 	}
 
 	checkstyle {
-		configFile = new File(rootDir, "src/checkstyle/checkstyle.xml")
+		configFile = file("${rootDir}/src/checkstyle/checkstyle.xml")
+		toolVersion = "6.16.1"
 	}
 
 	artifacts {
@@ -251,7 +258,7 @@ subprojects { subproject ->
 		archives javadocJar
 	}
 
-	build.dependsOn jacocoTestReport, check
+	build.dependsOn jacocoTestReport
 }
 
 project('spring-integration-test') {
@@ -801,10 +808,8 @@ reference.dependsOn asciidoctor
 	it.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
 }
 
-apply plugin: 'sonar-runner'
-
-sonarRunner {
-	sonarProperties {
+sonarqube {
+	properties {
 		property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco.exec"
 		property "sonar.links.homepage", linkHomepage
 		property "sonar.links.ci", linkCi
@@ -955,10 +960,4 @@ artifacts {
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds -dist, -docs and -schema distribution archives.'
-}
-
-task wrapper(type: Wrapper) {
-	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '2.5'
-	distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	@Override
 	protected boolean accept(F file) {
 		String key = buildKey(file);
-		synchronized(monitor) {
+		synchronized(this.monitor) {
 			String newValue = value(file);
 			String oldValue = this.store.putIfAbsent(key, newValue);
 			if (oldValue == null) { // not in store

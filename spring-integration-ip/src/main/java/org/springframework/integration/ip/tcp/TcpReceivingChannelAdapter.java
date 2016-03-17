@@ -198,14 +198,14 @@ public class TcpReceivingChannelAdapter
 	 * @return the clientConnectionFactory
 	 */
 	protected ConnectionFactory getClientConnectionFactory() {
-		return clientConnectionFactory;
+		return this.clientConnectionFactory;
 	}
 
 	/**
 	 * @return the serverConnectionFactory
 	 */
 	protected ConnectionFactory getServerConnectionFactory() {
-		return serverConnectionFactory;
+		return this.serverConnectionFactory;
 	}
 
 	/**

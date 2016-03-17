@@ -162,9 +162,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private final Properties objectNameStaticProperties = new Properties();
 
-	private final MetadataMBeanInfoAssembler assembler = new IntegrationMetadataMBeanInfoAssembler(attributeSource);
+	private final MetadataMBeanInfoAssembler assembler = new IntegrationMetadataMBeanInfoAssembler(this.attributeSource);
 
-	private final MetadataNamingStrategy defaultNamingStrategy = new IntegrationMetadataNamingStrategy(attributeSource);
+	private final MetadataNamingStrategy defaultNamingStrategy = new IntegrationMetadataNamingStrategy(this.attributeSource);
 
 	private String[] componentNamePatterns = { "*" };
 
@@ -177,8 +177,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);
-		setNamingStrategy(defaultNamingStrategy);
-		setAssembler(assembler);
+		setNamingStrategy(this.defaultNamingStrategy);
+		setAssembler(this.assembler);
 	}
 
 	/**
@@ -383,13 +383,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@Override
 	public void destroy() {
 		super.destroy();
-		channelsByName.clear();
-		handlersByName.clear();
-		sourcesByName.clear();
-		for (MessageChannelMetrics monitor : channels) {
+		this.channelsByName.clear();
+		this.handlersByName.clear();
+		this.sourcesByName.clear();
+		for (MessageChannelMetrics monitor : this.channels) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
-		for (MessageHandlerMetrics monitor : handlers) {
+		for (MessageHandlerMetrics monitor : this.handlers) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
 	}
@@ -427,7 +427,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			stopMessageSources();
 			stopInboundMessageProducers();
 			// Wait any remaining time for messages to quiesce
-			long timeLeft = shutdownDeadline - System.currentTimeMillis();
+			long timeLeft = this.shutdownDeadline - System.currentTimeMillis();
 			if (timeLeft > 0) {
 				try {
 					Thread.sleep(timeLeft);
@@ -440,7 +440,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			orderlyShutdownCapableComponentsAfter();
 		}
 		finally {
-			shuttingDown.set(false);
+			this.shuttingDown.set(false);
 		}
 	}
 
@@ -526,17 +526,17 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Channel Count")
 	public int getChannelCount() {
-		return channelsByName.size();
+		return this.channelsByName.size();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageHandler Handler Count")
 	public int getHandlerCount() {
-		return handlersByName.size();
+		return this.handlersByName.size();
 	}
 
 	@ManagedAttribute
 	public String[] getHandlerNames() {
-		return handlersByName.keySet().toArray(new String[handlersByName.size()]);
+		return this.handlersByName.keySet().toArray(new String[this.handlersByName.size()]);
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
@@ -547,7 +547,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
 	public long getActiveHandlerCountLong() {
 		int count = 0;
-		for (MessageHandlerMetrics monitor : handlers) {
+		for (MessageHandlerMetrics monitor : this.handlers) {
 			count += monitor.getActiveCountLong();
 		}
 		return count;
@@ -556,7 +556,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
 	public int getQueuedMessageCount() {
 		int count = 0;
-		for (MessageChannelMetrics monitor : channels) {
+		for (MessageChannelMetrics monitor : this.channels) {
 			if (monitor instanceof QueueChannel) {
 				count += ((QueueChannel) monitor).getQueueSize();
 			}
@@ -566,28 +566,28 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@ManagedAttribute
 	public String[] getChannelNames() {
-		return channelsByName.keySet().toArray(new String[channelsByName.size()]);
+		return this.channelsByName.keySet().toArray(new String[this.channelsByName.size()]);
 	}
 
 	public MessageHandlerMetrics getHandlerMetrics(String name) {
-		if (handlersByName.containsKey(name)) {
-			return handlersByName.get(name);
+		if (this.handlersByName.containsKey(name)) {
+			return this.handlersByName.get(name);
 		}
 		logger.debug("No handler found for (" + name + ")");
 		return null;
 	}
 
 	public Statistics getHandlerDuration(String name) {
-		if (handlersByName.containsKey(name)) {
-			return handlersByName.get(name).getDuration();
+		if (this.handlersByName.containsKey(name)) {
+			return this.handlersByName.get(name).getDuration();
 		}
 		logger.debug("No handler found for (" + name + ")");
 		return null;
 	}
 
 	public MessageSourceMetrics getSourceMetrics(String name) {
-		if (sourcesByName.containsKey(name)) {
-			return sourcesByName.get(name);
+		if (this.sourcesByName.containsKey(name)) {
+			return this.sourcesByName.get(name);
 		}
 		logger.debug("No source found for (" + name + ")");
 		return null;
@@ -598,16 +598,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	public long getSourceMessageCountLong(String name) {
-		if (sourcesByName.containsKey(name)) {
-			return sourcesByName.get(name).getMessageCountLong();
+		if (this.sourcesByName.containsKey(name)) {
+			return this.sourcesByName.get(name).getMessageCountLong();
 		}
 		logger.debug("No source found for (" + name + ")");
 		return -1;
 	}
 
 	public MessageChannelMetrics getChannelMetrics(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name);
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name);
 		}
 		logger.debug("No channel found for (" + name + ")");
 		return null;
@@ -618,8 +618,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	public long getChannelSendCountLong(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getSendCountLong();
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name).getSendCountLong();
 		}
 		logger.debug("No channel found for (" + name + ")");
 		return -1;
@@ -630,8 +630,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	public long getChannelSendErrorCountLong(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getSendErrorCountLong();
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name).getSendErrorCountLong();
 		}
 		logger.debug("No channel found for (" + name + ")");
 		return -1;
@@ -642,9 +642,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	public long getChannelReceiveCountLong(String name) {
-		if (channelsByName.containsKey(name)) {
-			if (channelsByName.get(name) instanceof PollableChannelManagement) {
-				return ((PollableChannelManagement) channelsByName.get(name)).getReceiveCountLong();
+		if (this.channelsByName.containsKey(name)) {
+			if (this.channelsByName.get(name) instanceof PollableChannelManagement) {
+				return ((PollableChannelManagement) this.channelsByName.get(name)).getReceiveCountLong();
 			}
 		}
 		logger.debug("No channel found for (" + name + ")");
@@ -653,34 +653,34 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@ManagedOperation
 	public Statistics getChannelSendRate(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getSendRate();
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name).getSendRate();
 		}
 		logger.debug("No channel found for (" + name + ")");
 		return null;
 	}
 
 	public Statistics getChannelErrorRate(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getErrorRate();
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name).getErrorRate();
 		}
 		logger.debug("No channel found for (" + name + ")");
 		return null;
 	}
 
 	private void registerChannels() {
-		for (MessageChannelMetrics monitor : channels) {
+		for (MessageChannelMetrics monitor : this.channels) {
 			String name = ((NamedComponent) monitor).getComponentName();
 			this.allChannelsByName.put(name, monitor);
 			if (!matches(this.componentNamePatterns, name)) {
 				continue;
 			}
 			// Only register once...
-			if (!channelsByName.containsKey(name)) {
+			if (!this.channelsByName.containsKey(name)) {
 				String beanKey = getChannelBeanKey(name);
 				logger.info("Registering MessageChannel " + name);
 				if (name != null) {
-					channelsByName.put(name, monitor);
+					this.channelsByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -688,7 +688,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	private void registerHandlers() {
-		for (MessageHandlerMetrics handler : handlers) {
+		for (MessageHandlerMetrics handler : this.handlers) {
 			MessageHandlerMetrics monitor = enhanceHandlerMonitor(handler);
 			String name = monitor.getManagedName();
 			this.allHandlersByName.put(name, monitor);
@@ -696,10 +696,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				continue;
 			}
 			// Only register once...
-			if (!handlersByName.containsKey(name)) {
+			if (!this.handlersByName.containsKey(name)) {
 				String beanKey = getHandlerBeanKey(monitor);
 				if (name != null) {
-					handlersByName.put(name, monitor);
+					this.handlersByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -707,7 +707,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	private void registerSources() {
-		for (MessageSourceMetrics source : sources) {
+		for (MessageSourceMetrics source : this.sources) {
 			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
 			String name = monitor.getManagedName();
 			this.allSourcesByName.put(name, monitor);
@@ -715,10 +715,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				continue;
 			}
 			// Only register once...
-			if (!sourcesByName.containsKey(name)) {
+			if (!this.sourcesByName.containsKey(name)) {
 				String beanKey = getSourceBeanKey(monitor);
 				if (name != null) {
-					sourcesByName.put(name, monitor);
+					this.sourcesByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -729,7 +729,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		String[] names = this.applicationContext.getBeanNamesForType(AbstractEndpoint.class);
 		Set<String> endpointNames = new HashSet<String>();
 		for (String name : names) {
-			if (!beansByEndpointName.values().contains(name)) {
+			if (!this.beansByEndpointName.values().contains(name)) {
 				AbstractEndpoint endpoint = this.applicationContext.getBean(name, AbstractEndpoint.class);
 				String beanKey;
 				name = endpoint.getComponentName();
@@ -822,28 +822,28 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (name.startsWith("org.springframework.integration")) {
 			name = name + ",source=anonymous";
 		}
-		return String.format(domain + ":type=MessageChannel,name=%s" + getStaticNames(), name);
+		return String.format(this.domain + ":type=MessageChannel,name=%s" + getStaticNames(), name);
 	}
 
 	private String getHandlerBeanKey(MessageHandlerMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
+		return String.format(this.domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
 				handler.getManagedName(), handler.getManagedType());
 	}
 
 	private String getSourceBeanKey(MessageSourceMetrics source) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
+		return String.format(this.domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
 				source.getManagedName(), source.getManagedType());
 	}
 
 	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
+		return String.format(this.domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
 	}
 
 	private String getStaticNames() {
-		if (objectNameStaticProperties.isEmpty()) {
+		if (this.objectNameStaticProperties.isEmpty()) {
 			return "";
 		}
 		StringBuilder builder = new StringBuilder();
@@ -904,10 +904,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 			Object field = getField(target, "inputChannel");
 			if (field != null) {
-				if (!anonymousHandlerCounters.containsKey(field)) {
-					anonymousHandlerCounters.put(field, new AtomicLong());
+				if (!this.anonymousHandlerCounters.containsKey(field)) {
+					this.anonymousHandlerCounters.put(field, new AtomicLong());
 				}
-				AtomicLong count = anonymousHandlerCounters.get(field);
+				AtomicLong count = this.anonymousHandlerCounters.get(field);
 				long total = count.incrementAndGet();
 				String suffix = "";
 				/*
@@ -952,7 +952,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		}
 
 		if (endpointName != null) {
-			beansByEndpointName.put(name, endpointName);
+			this.beansByEndpointName.put(name, endpointName);
 		}
 
 		monitor.setManagedType(source);
@@ -1030,10 +1030,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 
 			if (outputChannel != null) {
-				if (!anonymousSourceCounters.containsKey(outputChannel)) {
-					anonymousSourceCounters.put(outputChannel, new AtomicLong());
+				if (!this.anonymousSourceCounters.containsKey(outputChannel)) {
+					this.anonymousSourceCounters.put(outputChannel, new AtomicLong());
 				}
-				AtomicLong count = anonymousSourceCounters.get(outputChannel);
+				AtomicLong count = this.anonymousSourceCounters.get(outputChannel);
 				long total = count.incrementAndGet();
 				String suffix = "";
 				/*
@@ -1063,7 +1063,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		}
 
 		if (endpointName != null) {
-			beansByEndpointName.put(name, endpointName);
+			this.beansByEndpointName.put(name, endpointName);
 		}
 
 		monitor.setManagedType(source);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,8 +241,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			}
 		}
 		if (!this.store.isConnected()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("connecting to store [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("connecting to store [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 			}
 			this.store.connect();
 		}
@@ -263,8 +263,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (this.folder.isOpen()) {
 			return;
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 		}
 		this.folder.open(this.folderOpenMode);
 	}
@@ -278,8 +278,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		synchronized (this.folderMonitor) {
 			try {
 				this.openFolder();
-				if (logger.isInfoEnabled()) {
-					logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
+				if (this.logger.isInfoEnabled()) {
+					this.logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
 				}
 				Message[] messages = searchForNewMessages();
 				if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
@@ -287,15 +287,15 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
 					messages = reducedMessages;
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("found " + messages.length + " new messages");
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("found " + messages.length + " new messages");
 				}
 				if (messages.length > 0) {
 					fetchMessages(messages);
 				}
 
-				if (logger.isDebugEnabled()) {
-					logger.debug("Received " + messages.length + " messages");
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Received " + messages.length + " messages");
 				}
 
 				Message[] filteredMessages = filterMessagesThruSelector(messages);
@@ -334,8 +334,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		for (Message message : filteredMessages) {
 			if (!recentFlagSupported){
 				if (flags != null && flags.contains(Flags.Flag.USER)){
-					if (logger.isDebugEnabled()){
-						logger.debug("USER flags are supported by this mail server. Flagging message with '"
+					if (this.logger.isDebugEnabled()){
+						this.logger.debug("USER flags are supported by this mail server. Flagging message with '"
 										+ this.userFlag + "' user flag");
 					}
 					Flags siFlags = new Flags();
@@ -343,8 +343,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					message.setFlags(siFlags, true);
 				}
 				else {
-					if (logger.isDebugEnabled()){
-						logger.debug("USER flags are not supported by this mail server. "
+					if (this.logger.isDebugEnabled()){
+						this.logger.debug("USER flags are not supported by this mail server. "
 								+ "Flagging message with system flag");
 					}
 					message.setFlag(Flags.Flag.FLAGGED, true);
@@ -367,8 +367,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					filteredMessages.add(message);
 				}
 				else {
-					if (logger.isDebugEnabled()){
-						logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
+					if (this.logger.isDebugEnabled()){
+						this.logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
 										" and will not be flagged as SEEN.");
 					}
 				}

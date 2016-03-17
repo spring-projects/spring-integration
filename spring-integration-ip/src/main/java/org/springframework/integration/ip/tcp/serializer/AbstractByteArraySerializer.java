@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public abstract class AbstractByteArraySerializer implements
 	 * @return The max message size.
 	 */
 	public int getMaxMessageSize() {
-		return maxMessageSize;
+		return this.maxMessageSize;
 	}
 
 	/**
@@ -70,7 +70,7 @@ public abstract class AbstractByteArraySerializer implements
 
 	protected void checkClosure(int bite) throws IOException {
 		if (bite < 0) {
-			logger.debug("Socket closed during message assembly");
+			this.logger.debug("Socket closed during message assembly");
 			throw new IOException("Socket closed during message assembly");
 		}
 	}
@@ -96,8 +96,8 @@ public abstract class AbstractByteArraySerializer implements
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(event);
 		}
-		else if (logger.isTraceEnabled()) {
-			logger.trace("No event publisher for " + event);
+		else if (this.logger.isTraceEnabled()) {
+			this.logger.trace("No event publisher for " + event);
 		}
 	}
 

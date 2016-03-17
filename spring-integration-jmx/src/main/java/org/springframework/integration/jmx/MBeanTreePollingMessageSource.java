@@ -70,10 +70,10 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 
 		try {
 			Map<String, Object> beans = new HashMap<String, Object>();
-			Set<ObjectInstance> results = server.queryMBeans(queryName, queryExpression);
+			Set<ObjectInstance> results = this.server.queryMBeans(this.queryName, this.queryExpression);
 
 			for (ObjectInstance instance : results) {
-				Object result = converter.convert(server, instance);
+				Object result = this.converter.convert(this.server, instance);
 				beans.put(instance.getObjectName().getCanonicalName(), result);
 			}
 

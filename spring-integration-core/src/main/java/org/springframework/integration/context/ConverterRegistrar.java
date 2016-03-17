@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,10 @@ class ConverterRegistrar implements InitializingBean, BeanFactoryAware {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(beanFactory, "BeanFactory is required");
-		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
+		Assert.notNull(this.beanFactory, "BeanFactory is required");
+		ConversionService conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 		if (conversionService instanceof GenericConversionService) {
-			ConversionServiceFactory.registerConverters(converters, (GenericConversionService) conversionService);
+			ConversionServiceFactory.registerConverters(this.converters, (GenericConversionService) conversionService);
 		}
 		else {
 			Assert.notNull(conversionService, "Failed to locate '" + IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME + "'");

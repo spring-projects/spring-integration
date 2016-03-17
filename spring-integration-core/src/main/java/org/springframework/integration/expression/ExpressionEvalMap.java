@@ -88,7 +88,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 */
 	@Override
 	public Object get(Object key) {
-		Object value = original.get(key);
+		Object value = this.original.get(key);
 		if (value != null) {
 			Expression expression;
 			if (value instanceof Expression) {
@@ -114,32 +114,32 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 	@Override
 	public boolean containsKey(Object key) {
-		return original.containsKey(key);
+		return this.original.containsKey(key);
 	}
 
 	@Override
 	public Set<String> keySet() {
-		return original.keySet();
+		return this.original.keySet();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return original.isEmpty();
+		return this.original.isEmpty();
 	}
 
 	@Override
 	public int size() {
-		return original.size();
+		return this.original.size();
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		return original.equals(o);
+		return this.original.equals(o);
 	}
 
 	@Override
 	public int hashCode() {
-		return original.hashCode();
+		return this.original.hashCode();
 	}
 
 	@Override
@@ -238,7 +238,8 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		private Class<?> returnType;
 
-		private final ExpressionEvalMapComponentsBuilder evalMapComponentsBuilder = new ExpressionEvalMapComponentsBuilderImpl();
+		private final ExpressionEvalMapComponentsBuilder evalMapComponentsBuilder =
+				new ExpressionEvalMapComponentsBuilderImpl();
 
 		private final ExpressionEvalMapFinalBuilder finalBuilder = new ExpressionEvalMapFinalBuilderImpl();
 
@@ -248,7 +249,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		public ExpressionEvalMapFinalBuilder usingCallback(EvaluationCallback callback) {
 			this.evaluationCallback = callback;
-			return finalBuilder;
+			return this.finalBuilder;
 		}
 
 		public ExpressionEvalMapFinalBuilder usingSimpleCallback() {
@@ -277,10 +278,14 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 			@Override
 			public ExpressionEvalMap build() {
-				if (evaluationCallback != null) {
-					return new ExpressionEvalMap(expressions, evaluationCallback);
+				if (ExpressionEvalMapBuilder.this.evaluationCallback != null) {
+					return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions,
+							ExpressionEvalMapBuilder.this.evaluationCallback);
 				}
-				return new ExpressionEvalMap(expressions, new ComponentsEvaluationCallback(context, root, returnType));
+				ComponentsEvaluationCallback evaluationCallback =
+						new ComponentsEvaluationCallback(ExpressionEvalMapBuilder.this.context,
+								ExpressionEvalMapBuilder.this.root, ExpressionEvalMapBuilder.this.returnType);
+				return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions, evaluationCallback);
 			}
 
 		}

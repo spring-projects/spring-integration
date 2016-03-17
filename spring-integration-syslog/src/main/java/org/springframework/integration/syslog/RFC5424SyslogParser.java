@@ -205,7 +205,7 @@ public class RFC5424SyslogParser {
 		private int mark;
 
 		public Reader(String l) {
-			line = l;
+			this.line = l;
 		}
 
 		public void mark() {
@@ -214,23 +214,23 @@ public class RFC5424SyslogParser {
 
 		public String getMarkedSegment() {
 			Assert.state(this.mark <= this.idx, "mark is greater than this.idx");
-			return this.line.substring(mark, this.idx);
+			return this.line.substring(this.mark, this.idx);
 		}
 
 		public int current() {
-			return line.charAt(this.idx);
+			return this.line.charAt(this.idx);
 		}
 
 		public int prev() {
-			return line.charAt(this.idx - 1);
+			return this.line.charAt(this.idx - 1);
 		}
 
 		public int getc() {
-			return line.charAt(this.idx++);
+			return this.line.charAt(this.idx++);
 		}
 
 		public int peek() {
-			return line.charAt(this.idx + 1);
+			return this.line.charAt(this.idx + 1);
 		}
 
 		public void ungetc() {
@@ -271,19 +271,19 @@ public class RFC5424SyslogParser {
 		}
 
 		public boolean is(char c) {
-			return line.charAt(this.idx) == c;
+			return this.line.charAt(this.idx) == c;
 		}
 
 		public boolean was(char c) {
-			return line.charAt(this.idx - 1) == c;
+			return this.line.charAt(this.idx - 1) == c;
 		}
 
 		public boolean isDigit() {
-			return Character.isDigit(line.charAt(this.idx));
+			return Character.isDigit(this.line.charAt(this.idx));
 		}
 
 		public void expect(char c) {
-			if (line.charAt(this.idx++) != c) {
+			if (this.line.charAt(this.idx++) != c) {
 				throw new IllegalStateException("Expected '" + c + "' @" + this.idx);
 			}
 		}
@@ -296,7 +296,7 @@ public class RFC5424SyslogParser {
 		}
 
 		public String rest() {
-			return line.substring(this.idx);
+			return this.line.substring(this.idx);
 		}
 
 		public String getIdentifier() {
@@ -346,11 +346,11 @@ public class RFC5424SyslogParser {
 		}
 
 		public int level() {
-			return level;
+			return this.level;
 		}
 
 		public String label() {
-			return label;
+			return this.label;
 		}
 
 		public static Severity parseInt(int syslogSeverity) {

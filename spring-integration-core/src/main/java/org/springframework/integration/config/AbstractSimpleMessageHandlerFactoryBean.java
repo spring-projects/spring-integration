@@ -179,12 +179,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
 					((AbstractReplyProducingMessageHandler) actualHandler).setAdviceChain(this.adviceChain);
 				}
-				else if (logger.isDebugEnabled()) {
+				else if (this.logger.isDebugEnabled()) {
 					String name = this.componentName;
 					if (name == null && actualHandler instanceof NamedComponent) {
 						name = ((NamedComponent) actualHandler).getComponentName();
 					}
-					logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
+					this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
 						+ (name == null ? "" : (", " + name)) + ".");
 				}
 			}
@@ -193,15 +193,15 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			}
 			this.initialized = true;
 		}
-		if (handler instanceof InitializingBean) {
+		if (this.handler instanceof InitializingBean) {
 			try {
-				((InitializingBean) handler).afterPropertiesSet();
+				((InitializingBean) this.handler).afterPropertiesSet();
 			}
 			catch (Exception e) {
 				throw new BeanInitializationException("failed to initialize MessageHandler", e);
 			}
 		}
-		return handler;
+		return this.handler;
 	}
 
 	protected abstract H createHandler();
@@ -240,7 +240,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			return extractTarget(advised.getTargetSource().getTarget());
 		}
 		catch (Exception e) {
-			logger.error("Could not extract target", e);
+			this.logger.error("Could not extract target", e);
 			return null;
 		}
 	}

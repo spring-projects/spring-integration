@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 	}
 
 	private Set<File> filesFromEvents() {
-		WatchKey key = watcher.poll();
+		WatchKey key = this.watcher.poll();
 		Set<File> files = new LinkedHashSet<File>();
 		while (key != null) {
 			for (WatchEvent<?> event : key.pollEvents()) {
@@ -209,7 +209,7 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 				}
 			}
 			key.reset();
-			key = watcher.poll();
+			key = this.watcher.poll();
 		}
 		return files;
 	}

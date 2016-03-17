@@ -261,7 +261,7 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 	@SuppressWarnings("serial")
 	private class FooEvent extends TcpConnectionOpenEvent {
 
-		public FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+		FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
 			super(connection, connectionFactoryName);
 		}
 

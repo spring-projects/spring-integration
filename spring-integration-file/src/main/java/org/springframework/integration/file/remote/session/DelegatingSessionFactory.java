@@ -59,7 +59,7 @@ public class DelegatingSessionFactory<F> implements SessionFactory<F> {
 	 * @return the locator.
 	 */
 	public SessionFactoryLocator<F> getFactoryLocator() {
-		return factoryLocator;
+		return this.factoryLocator;
 	}
 
 	/**

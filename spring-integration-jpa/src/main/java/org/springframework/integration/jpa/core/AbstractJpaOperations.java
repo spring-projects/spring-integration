@@ -59,10 +59,10 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 	protected void onInit() {
 
 		if (this.entityManager == null && this.entityManagerFactory != null) {
-			this.entityManager = SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
+			this.entityManager = SharedEntityManagerCreator.createSharedEntityManager(this.entityManagerFactory);
 		}
 
-		Assert.notNull(entityManager, "The entitymanager is null. Please set " +
+		Assert.notNull(this.entityManager, "The entitymanager is null. Please set " +
 					   "either the entityManager or the entityManagerFactory.");
 
 	}

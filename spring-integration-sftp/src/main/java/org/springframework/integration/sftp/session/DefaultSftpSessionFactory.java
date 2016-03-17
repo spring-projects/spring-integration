@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -415,29 +415,29 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		jschSession.setUserInfo(this.userInfoWrapper);
 
 		try {
-			if (proxy != null) {
-				jschSession.setProxy(proxy);
+			if (this.proxy != null) {
+				jschSession.setProxy(this.proxy);
 			}
-			if (socketFactory != null) {
-				jschSession.setSocketFactory(socketFactory);
+			if (this.socketFactory != null) {
+				jschSession.setSocketFactory(this.socketFactory);
 			}
-			if (timeout != null) {
-				jschSession.setTimeout(timeout);
+			if (this.timeout != null) {
+				jschSession.setTimeout(this.timeout);
 			}
-			if (StringUtils.hasText(clientVersion)) {
-				jschSession.setClientVersion(clientVersion);
+			if (StringUtils.hasText(this.clientVersion)) {
+				jschSession.setClientVersion(this.clientVersion);
 			}
-			if (StringUtils.hasText(hostKeyAlias)) {
-				jschSession.setHostKeyAlias(hostKeyAlias);
+			if (StringUtils.hasText(this.hostKeyAlias)) {
+				jschSession.setHostKeyAlias(this.hostKeyAlias);
 			}
-			if (serverAliveInterval != null) {
-				jschSession.setServerAliveInterval(serverAliveInterval);
+			if (this.serverAliveInterval != null) {
+				jschSession.setServerAliveInterval(this.serverAliveInterval);
 			}
-			if (serverAliveCountMax != null) {
-				jschSession.setServerAliveCountMax(serverAliveCountMax);
+			if (this.serverAliveCountMax != null) {
+				jschSession.setServerAliveCountMax(this.serverAliveCountMax);
 			}
-			if (enableDaemonThread != null) {
-				jschSession.setDaemonThread(enableDaemonThread);
+			if (this.enableDaemonThread != null) {
+				jschSession.setDaemonThread(this.enableDaemonThread);
 			}
 		}
 		catch (Exception e) {

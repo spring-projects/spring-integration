@@ -81,7 +81,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	protected MessagingTemplate getMessagingTemplate() {
-		return messagingTemplate;
+		return this.messagingTemplate;
 	}
 
 	@Override

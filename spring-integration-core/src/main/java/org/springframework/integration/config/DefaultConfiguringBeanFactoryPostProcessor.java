@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,8 +69,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			}
 			this.registerIdGeneratorConfigurer(registry);
 		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
+		else if (this.logger.isWarnEnabled()) {
+			this.logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
 					+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME + "' and '"
 					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured."
 					+ " Also, any custom IdGenerator implementation configured in this BeanFactory"
@@ -83,8 +83,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = registry.getBeanDefinition(definitionName);
 			if (className.equals(definition.getBeanClassName())) {
-				if (logger.isInfoEnabled()) {
-					logger.info(className + " is already registered and will be used");
+				if (this.logger.isInfoEnabled()) {
+					this.logger.info(className + " is already registered and will be used");
 				}
 				return;
 			}
@@ -126,8 +126,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 * Register an error channel in the given BeanDefinitionRegistry.
 	 */
 	private void registerErrorChannel(BeanDefinitionRegistry registry) {
-		if (logger.isInfoEnabled()) {
-			logger.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
 					"' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
 		}
 		registry.registerBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME,
@@ -154,8 +154,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 * Register a TaskScheduler in the given BeanDefinitionRegistry.
 	 */
 	private void registerTaskScheduler(BeanDefinitionRegistry registry) {
-		if (logger.isInfoEnabled()) {
-			logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
 					"' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
 		}
 		BeanDefinition scheduler = BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskScheduler.class)

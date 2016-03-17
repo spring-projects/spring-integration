@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,8 +133,8 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 						new AggregatedXmlMessageValidationException(
 								Arrays.<Throwable>asList(validationExceptions)));
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("Message was rejected due to XML Validation errors");
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Message was rejected due to XML Validation errors");
 			}
 		}
 		return validationSuccess;

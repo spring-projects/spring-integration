@@ -119,8 +119,8 @@ public class TcpMessageMapper implements
 			message = messageBuilder.build();
 		}
 		else {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Null payload from connection " + connection.getConnectionId());
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("Null payload from connection " + connection.getConnectionId());
 			}
 		}
 		return message;
