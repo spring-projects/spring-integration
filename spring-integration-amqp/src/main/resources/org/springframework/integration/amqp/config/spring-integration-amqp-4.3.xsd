@@ -121,9 +121,9 @@
 	<xsd:element name="outbound-async-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a gateway that will publish an AMQP Message to the provided Exchange
-	and expect a reply Message. The sending thread returns immediately; the reply
-	is sent asynchronously; uses 'AsyncRabbitTemplate.sendAndReceive()'.
+	Configures a Consumer Endpoint for the 'org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway'
+	that will publish an AMQP Message to the provided Exchange and expect a reply Message.
+	The sending thread returns immediately; the reply is sent asynchronously; uses 'AsyncRabbitTemplate.sendAndReceive()'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
