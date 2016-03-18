@@ -20,8 +20,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes your friends' timeline updates
-				from Twitter and sends Messages whose payloads are Tweet objects.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.twitter.inbound.TimelineReceivingMessageSource' that consumes your
+				friends' timeline updates from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType >
@@ -34,8 +35,9 @@
 	<xsd:element name="mentions-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes mentions of your handle
-				from Twitter and sends Messages whose payloads are Tweet objects.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.twitter.inbound.MentionsReceivingMessageSource' that consumes mentions
+				of your handle from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -49,8 +51,9 @@
 	<xsd:element name="search-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes search results for a given query
-				from Twitter and sends Messages whose payloads are Tweet objects.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.twitter.inbound.SearchReceivingMessageSource' that consumes search
+				results for a given query from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -72,8 +75,9 @@
 	<xsd:element name="dm-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes direct messages from Twitter
-				and sends Messages whose payloads are DirectMessage objects.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.twitter.inbound.DirectMessageReceivingMessageSource' that consumes
+				direct messages from Twitter and sends Messages whose payloads are DirectMessage objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -90,7 +94,9 @@
 	<xsd:element name="dm-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an outbound channel adapter that sends Direct Messages to a Twitter user as
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler'
+				that sends Direct Messages to a Twitter user as
 				specified in the header whose name is defined by the TwitterHeaders.DM_TARGET_USER_ID constant.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -107,7 +113,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an outbound channel adapter that posts a status update to the authorized user's timeline.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.twitter.outbound.StatusUpdatingMessageHandler'
+				that posts a status update to the authorized user's timeline.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -132,7 +140,9 @@
 	<xsd:element name="search-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Builds an outbound gateway used to issue Twitter searches.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.twitter.outbound.TwitterSearchOutboundGateway'
+				that issues Twitter searches and produces their results.
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -282,7 +292,8 @@
 
 	<xsd:complexType name="outbound-twitter-type">
 		<xsd:choice minOccurs="0" maxOccurs="2">
-			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+						 minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:choice>
 		<xsd:attribute name="twitter-template" use="required" type="xsd:string">
@@ -306,4 +317,5 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
 </xsd:schema>

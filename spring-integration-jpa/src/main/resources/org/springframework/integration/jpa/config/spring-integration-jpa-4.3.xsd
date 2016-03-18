@@ -20,7 +20,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				The definition for the Spring Integration JPA Inbound Channel Adapter.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter'
+				that poll data from the database via JPA specification.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -75,8 +77,9 @@
 	<xsd:element name="outbound-channel-adapter">
 			<xsd:annotation>
 					<xsd:documentation>
-							Defines an outbound Channel Adapter for updating a
-							database using the Java Persistence API (JPA).
+						Configures a Consumer Endpoint for the
+						'org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean' (one-way)
+						updating a database using the Java Persistence API (JPA).
 					</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexType>
@@ -168,7 +171,9 @@
 	<xsd:element name="updating-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines the Spring Integration JPA Outbound Gateway
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean'
+				to update a database using JPA and produce the updating results.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -200,7 +205,9 @@
 	<xsd:element name="retrieving-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Spring Integration JPA Outbound Gateway
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean'
+				to read database via JPA.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

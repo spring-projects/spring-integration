@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/jmx" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
-	xmlns:integration="http://www.springframework.org/schema/integration" targetNamespace="http://www.springframework.org/schema/integration/jmx"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/jmx"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
@@ -18,7 +19,9 @@
 	<xsd:element name="attribute-polling-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound Channel Adapter that polls for JMX attribute values.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jmx.AttributePollingMessageSource'
+				that polls for JMX attribute values.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -36,7 +39,8 @@
 	<xsd:element name="tree-polling-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound Channel Adapter that polls for JMX MBeans.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jmx.MBeanTreePollingMessageSource' that polls for JMX MBeans.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -49,7 +53,8 @@
 								<xsd:annotation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
-											<tool:expected-type type="org.springframework.integration.jmx.MBeanObjectConverter" />
+											<tool:expected-type
+													type="org.springframework.integration.jmx.MBeanObjectConverter" />
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -64,8 +69,10 @@
 	<xsd:element name="operation-invoking-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Gateway which allows for Message-driven invocation of managed operations that
-				return values
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jmx.OperationInvokingMessageHandler'
+				which allows for Message-driven invocation of managed operations that
+				return values.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -73,7 +80,8 @@
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="request-channel" type="xsd:string" />
 					<xsd:attribute name="reply-channel" type="xsd:string" use="optional" />
@@ -94,7 +102,9 @@
 	<xsd:element name="operation-invoking-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Channel Adapter for invoking JMX operations.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jmx.OperationInvokingMessageHandler' for invoking JMX operations
+				without waiting for results.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -102,7 +112,8 @@
 				<xsd:extension base="operationInvokingType">
 					<xsd:all>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="channel" type="xsd:string" use="optional" />
 				</xsd:extension>
@@ -113,7 +124,9 @@
 	<xsd:element name="notification-listening-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Defines an inbound Channel Adapter that listens for JMX notifications. The 'object-name'
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.jmx.NotificationListeningMessageProducer'
+				that listens for JMX notifications. The 'object-name'
 				attribute on this endpoint can contain an ObjectName pattern and the MBeanServer will
 				be queried for MBeans with ObjectNames matching the pattern. In addition, it can contain
 				a SpEL expression that references a <util:list/> of ObjectNames or ObjectName patterns.
@@ -133,7 +146,9 @@
 	<xsd:element name="notification-publishing-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Channel Adapter that publishes JMX notifications.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jmx.NotificationPublishingMessageHandler' that publishes JMX
+				notifications.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -141,7 +156,8 @@
 				<xsd:extension base="adapterType">
 					<xsd:all>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="default-notification-type" type="xsd:string" use="optional" />
 				</xsd:extension>
@@ -152,7 +168,8 @@
 	<xsd:element name="mbean-export">
 		<xsd:annotation>
 			<xsd:documentation>
-				Exports Message Channels and Endpoints as MBeans.
+				Defines a 'org.springframework.integration.monitor.IntegrationMBeanExporter' that exports Message
+				Channels and Endpoints as MBeans.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

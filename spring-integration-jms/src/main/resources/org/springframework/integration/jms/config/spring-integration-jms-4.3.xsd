@@ -22,7 +22,8 @@
 	<xsd:element name="channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Message Channel that is backed by a JMS Queue.
+				Defines a Message Channel ('org.springframework.integration.jms.config.JmsChannelFactoryBean')
+				that is backed by a JMS Queue.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -59,7 +60,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Message Channel that is backed by a JMS Topic.
+				Defines a Message Channel ('org.springframework.integration.jms.config.JmsChannelFactoryBean')
+				that is backed by a JMS Topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -272,7 +274,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:union memberTypes="cacheLevelEnumeration xsd:string"/>					
+				<xsd:union memberTypes="cacheLevelEnumeration xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="acknowledge" default="transacted">
@@ -363,7 +365,9 @@
 	<xsd:element name="message-driven-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a JMS Message-Driven inbound Channel Adapter.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.jms.JmsMessageDrivenEndpoint' (one-way) to listen form message
+				on the JMS destination.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -519,7 +523,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Channel Adapter for polling a JMS Destination.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jms.JmsDestinationPollingSource'
+				for polling a JMS Destination.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -596,7 +602,9 @@
 	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound JMS-based Messaging Gateway.
+				Defines a Messaging Gateway Endpoint for the
+				'org.springframework.integration.jms.JmsMessageDrivenEndpoint' to listen for messages in the JMS
+				destination and produce replies.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -780,13 +788,16 @@
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound JMS-based Messaging Gateway.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jms.JmsSendingMessageHandler'
+				to send messages to the JMS destination and wait for replies.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="3">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0" maxOccurs="1" />
 				<xsd:element name="reply-listener" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -1124,7 +1135,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound JMS Message-sending Channel Adapter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jms.JmsSendingMessageHandler'
+				to send messages to the JMS destination without waiting for replies.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1132,7 +1145,8 @@
 				<xsd:extension base="jmsAdapterType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
@@ -1342,7 +1356,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Transformer for adding statically configured JMS Headers.
+	Defines a 'org.springframework.integration.transformer.HeaderEnricher' for adding statically configured JMS Headers.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -1552,7 +1566,7 @@
 		</xsd:attribute>
 
 	</xsd:attributeGroup>
-	
+
 	<xsd:simpleType name="cacheLevelEnumeration">
 		<xsd:restriction base="xsd:NMTOKEN">
 			<xsd:enumeration value="none"/>
@@ -1562,14 +1576,14 @@
 			<xsd:enumeration value="auto"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
-	<xsd:simpleType name="listenerContainerEnumeration"> 
+
+	<xsd:simpleType name="listenerContainerEnumeration">
 		<xsd:restriction base="xsd:NMTOKEN">
 			 <xsd:enumeration value="default"/>
 			 <xsd:enumeration value="simple"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType  name="jsmAcknowledgeModeEnumeration">
  		<xsd:restriction base="xsd:NMTOKEN">
 			<xsd:enumeration value="auto"/>
@@ -1578,5 +1592,5 @@
 			<xsd:enumeration value="transacted"/>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 </xsd:schema>

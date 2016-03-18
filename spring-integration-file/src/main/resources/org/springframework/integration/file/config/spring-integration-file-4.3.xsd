@@ -21,9 +21,11 @@
     <xsd:element name="inbound-channel-adapter">
         <xsd:annotation>
             <xsd:documentation>
-                Configures an inbound Channel Adapter that polls a directory and sends Messages whose payloads are
-                instances of java.io.File.
-            </xsd:documentation>
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.file.FileReadingMessageSource' that
+				polls a directory and sends Messages whose payloads are
+				instances of java.io.File.
+			</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -151,8 +153,11 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:element name="outbound-channel-adapter">
         <xsd:annotation>
             <xsd:documentation>
-                Configures an outbound Channel Adapter that writes Message payloads to a File.
-            </xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.file.FileWritingMessageHandler'
+				with 'expectReply = false'
+				that writes Message payloads to a File.
+			</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -175,8 +180,10 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:element name="tail-inbound-channel-adapter">
         <xsd:annotation>
             <xsd:documentation>
-                Configures an inbound channel adapter that 'tails' a file on the filesystem.
-            </xsd:documentation>
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.file.tail.FileTailingMessageProducerSupport that 'tails' a file on the
+				filesystem.
+			</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
@@ -292,7 +299,9 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:element name="outbound-gateway">
         <xsd:annotation>
             <xsd:documentation>
-                Configures an outbound Gateway that writes request Message payloads to a File and then generates a
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.file.FileWritingMessageHandler'
+				that writes request Message payloads to a File and then generates a
                 reply Message containing the newly written File as its payload.
             </xsd:documentation>
         </xsd:annotation>
@@ -506,8 +515,9 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:element name="file-to-string-transformer">
         <xsd:annotation>
             <xsd:documentation>
-                Creates a Transformer that converts a File payload to a String.
-            </xsd:documentation>
+				Creates a 'org.springframework.integration.file.transformer.FileToStringTransformer'
+				that converts a File payload to a String.
+			</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -529,8 +539,9 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:element name="file-to-bytes-transformer">
         <xsd:annotation>
             <xsd:documentation>
-                Creates a Transformer that converts a File payload to an array of bytes.
-            </xsd:documentation>
+				Creates a 'org.springframework.integration.file.transformer.FileToByteArrayTransformer'
+				that converts a File payload to an array of bytes.
+			</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -584,7 +595,8 @@ Only files matching this regular expression will be picked up by this adapter.
 	<xsd:element name="splitter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Splitter that splits text-based files into lines.
+				Creates a 'org.springframework.integration.file.splitter.FileSplitter'
+				that splits text-based files into lines.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

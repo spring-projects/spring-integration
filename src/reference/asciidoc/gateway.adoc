@@ -283,6 +283,10 @@ The standard `@ComponentScan` infrastructure doesn't deal with interfaces, there
 to determine `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` s for them.
 See also <<annotations>>
 
+NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration`
+class.
+See <<configuration-enable-integration>> for more information.
+
 [[gateway-calling-no-argument-methods]]
 ==== Invoking No-Argument Methods
 

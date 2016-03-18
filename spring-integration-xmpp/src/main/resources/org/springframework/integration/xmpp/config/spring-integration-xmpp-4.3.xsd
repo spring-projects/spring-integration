@@ -16,7 +16,8 @@
 	<xsd:element name="xmpp-connection">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an XMPP connection that can in turn be referenced by other components
+				Configures an XMPP connection ('org.springframework.integration.xmpp.config.XmppConnectionFactoryBean')
+				that can in turn be referenced by other components
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -96,7 +97,10 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will receive chat messages sent to a given account and then forward those messages to a MessageChannel.
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint' that
+				that will receive chat messages sent to a given account and then forward those messages
+				to a MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -118,7 +122,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Outbound Channel Adapter that sends chat messages.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHandler' that sends chat
+				messages.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -131,7 +137,9 @@
 	<xsd:element name="presence-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will forward Presence state changes to a MessageChannel.
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.xmpp.inbound.PresenceListeningEndpoint'
+				that will forward Presence state changes to a MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -144,7 +152,9 @@
 	<xsd:element name="presence-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will publish an updated {@link org.jivesoftware.smack.packet.Presence} state on your {@link XMPPConnection } object.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler'
+				that will publish an updated 'Presence' state on the 'XMPPConnection' object.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -243,7 +253,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a Transformer for adding XMPP headers.
+					Defines a 'org.springframework.integration.transformer.HeaderEnricher' for adding XMPP headers.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>

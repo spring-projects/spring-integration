@@ -20,7 +20,8 @@
 	<xsd:element name="udp-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a udp inbound Channel Adapter for receiving incoming udp packets.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter' for receiving incoming udp packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -61,7 +62,8 @@
 	<xsd:element name="udp-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound UDP packet-sending Channel Adapter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.ip.udp.UnicastSendingMessageHandler' to send UDP packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -135,6 +137,12 @@
 	</xsd:element>
 
 	<xsd:element name="tcp-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter' for receiving incoming tcp packets.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="connection-factory" type="xsd:string">
@@ -202,6 +210,12 @@
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.ip.tcp.TcpSendingMessageHandler' for sending TCP packets.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
@@ -264,6 +278,13 @@
 	</xsd:element>
 
 	<xsd:element name="tcp-inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Messaging Gateway Endpoint for the
+				'org.springframework.integration.ip.tcp.TcpInboundGateway' for receiving incoming TCP packets
+				and producing replies for them.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="connection-factory" type="xsd:string">
@@ -343,6 +364,13 @@
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.ip.tcp.TcpOutboundGateway' for sending TCP packets
+				and waiting for replies.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
@@ -454,6 +482,11 @@
 	</xsd:element>
 
 	<xsd:element name="tcp-connection-factory">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a 'org.springframework.integration.ip.tcp.connection.ConnectionFactory' implementation bean.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="type">

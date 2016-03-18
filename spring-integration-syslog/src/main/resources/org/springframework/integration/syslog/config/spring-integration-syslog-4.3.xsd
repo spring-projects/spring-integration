@@ -21,6 +21,13 @@
 	</xsd:annotation>
 
 	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.syslog.inbound.SyslogReceivingChannelAdapterSupport' that
+				listens syslogs from the provided port and convert them to the messages.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence minOccurs="0" maxOccurs="1">
 				<xsd:element name="udp-attributes" type="int-ip:udpInboundAdapterType" />

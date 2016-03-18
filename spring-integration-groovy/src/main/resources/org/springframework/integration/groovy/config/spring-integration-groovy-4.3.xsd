@@ -16,8 +16,9 @@
 	<xsd:element name="script" type="GroovyScript">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inner bean that will generate a
-				Groovy Script.
+				Configures an inner bean
+				('org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor')
+				that will generate a Groovy Script.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -67,17 +68,19 @@
 
 	<xsd:element name="control-bus">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-				Control bus that accepts messages in the form of Groovy scripts. The scripts should be provided as
+			<xsd:documentation>
+				Control bus ('org.springframework.integration.groovy.config.GroovyControlBusFactoryBean') that accepts
+				messages in the form of Groovy scripts. The scripts should be provided as
 				String payload in incoming messages. The variable bindings will include any @ManagedResource, Lifecycle,
 				or CustomizableThreadCreator instances from within the ApplicationContext.
-			]]></xsd:documentation>
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0"
 					maxOccurs="1" />
-				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 			<xsd:attribute name="customizer" type="xsd:string">

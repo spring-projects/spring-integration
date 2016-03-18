@@ -21,8 +21,9 @@
 	<xsd:element name="message-driven-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				The definition for the Spring Integration MqttAdapter
-				Inbound Channel Adapter.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter' that
+				subscribes to the MQTT topic(s) and produces messages to the channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -94,7 +95,9 @@
 	<xsd:element name="outbound-channel-adapter">
 			<xsd:annotation>
 					<xsd:documentation>
-							Defines an outbound Channel Adapter.
+						Configures a Consumer Endpoint for the
+						'org.springframework.integration.mqtt.outbound.MqttPahoMessageDrivenChannelAdapter'
+						that sends messages to the MQTT topic.
 					</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexType>

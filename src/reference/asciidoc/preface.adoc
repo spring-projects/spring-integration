@@ -23,12 +23,12 @@ see https://github.com/spring-projects/spring-integration#checking-out-and-build
 [[supported-spring-versions]]
 === Compatible Versions of the Spring Framework
 
-_Spring Integration_ *4.3.x* requires _Spring Framework_ *4.2.3* or later.
+_Spring Integration_ *4.3.x* requires _Spring Framework_ *4.3* or later.
 
 [[code-conventions]]
 === Code Conventions
 
-The Spring Framework 2.0 introduced support for namespaces, which simplifies the Xml configuration of the application context, and consequently Spring Integration provides broad namespace support.
+The Spring Framework 2.0 introduced support for namespaces, which simplifies the XML configuration of the application context, and consequently Spring Integration provides broad namespace support.
 This reference guide applies the following conventions for all code examples that use namespace support:
 
 The *int* namespace prefix will be used for Spring Integration's core namespace support.

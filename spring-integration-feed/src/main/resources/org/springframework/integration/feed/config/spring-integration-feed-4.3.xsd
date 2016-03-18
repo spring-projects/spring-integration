@@ -14,7 +14,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				This adapter takes a feed URL (either RSS or ATOM) and responds to updates.
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.feed.inbound.FeedEntryMessageSource' that
+				takes a feed URL (either RSS or ATOM) and responds to updates.
 				Each Message will be sent to the provided channel with a feed entry as its payload.
 			]]></xsd:documentation>
 		</xsd:annotation>

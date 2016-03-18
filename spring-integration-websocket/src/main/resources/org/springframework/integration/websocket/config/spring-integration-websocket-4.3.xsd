@@ -317,7 +317,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will send a WebSocket Message to the provided
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler' that
+				that will send WebSocket Messages to the provided
 				'IntegrationWebSocketContainer'.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -337,7 +339,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will receive WebSocket Messages from the provided
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter'
+				that will receive WebSocket Messages from the provided
 				'IntegrationWebSocketContainer' forward converted messages to a Message Channel.
 			</xsd:documentation>
 		</xsd:annotation>
