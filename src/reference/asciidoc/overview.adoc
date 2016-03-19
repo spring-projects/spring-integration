@@ -212,21 +212,23 @@ For example, many endpoints consist of a `MessageHandler` bean and a `ConsumerEn
 
 The first time a Spring Integration namespace element is encountered, the framework automatically declares a number of beans that are used to support the runtime environment (task scheduler, implicit channel creator, etc).
 
-IMPORTANT: Starting with _version 4.0_, the `@EnableIntegration` annotation has been introduced, to allow register
-Spring Integration infrastructure (see its http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[JavaDocs]).
-This annotation is required when only Java & Annotations configuration is used, e.g. with Spring Boot and/or
-Spring Integration Messaging Annotations support and Spring Integration Java DSL.
+IMPORTANT: Starting with _version 4.0_, the `@EnableIntegration` annotation has been introduced, to allow the
+registration of Spring Integration infrastructure beans (see
+http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[JavaDocs]).
+This annotation is required when only Java & Annotation configuration is used, e.g. with Spring Boot and/or
+Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
 
-The `@EnableIntegration` is also useful when you have a parent context with no Spring Integration components and 2 or more child contexts that do use Spring Integration.
-It would enable these common components to be declared once only, in the parent context.
+The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components
+and 2 or more child contexts that use Spring Integration.
+It enables these common components to be declared once only, in the parent context.
 
-The `@EnableIntegration` registers many infrastructure components with the application context:
+The `@EnableIntegration` annotation registers many infrastructure components with the application context:
 
-- Register some built-in beans, e.g. `errorChannel` and its `LoggingHandler`, `taskScheduler` for pollers,
+- Registers some built-in beans, e.g. `errorChannel` and its `LoggingHandler`, `taskScheduler` for pollers,
 `jsonPath` SpEL-function etc.;
-- Add several `BeanFactoryPostProcessor` s to enhance `BeanFactory` for global and default integration environment;
-- Add several `BeanPostProcessor` s toi enhance and/or convert and wrap particular beans for integration purposes;
-- Add annotations processors to parse Messaging Annotations and register components for then with the application
+- Adds several `BeanFactoryPostProcessor` s to enhance the `BeanFactory` for global and default integration environment;
+- Adds several `BeanPostProcessor` s to enhance and/or convert and wrap particular beans for integration purposes;
+- Adds annotations processors to parse Messaging Annotations and registers components for them with the application
 context.
 
 The `@IntegrationComponentScan` annotation has also been introduced to permit classpath scanning.
@@ -246,7 +248,7 @@ The `@IntegrationConverter` annotation has been introduced to mark `Converter`, 
 This annotation is an analogue of the `<int:converter>` xml element (see <<payload-type-conversion>>).
 `@IntegrationConverter` annotations can be placed at the class level (with a `@Component` stereotype annotation), or on `@Bean` methods within `@Configuration` classes.
 
-Also see the <<annotations>> for more information about Messaging Annotations.
+Also see <<annotations>> for more information about Messaging Annotations.
 
 [[programming-considerations]]
 === Programming Considerations
@@ -265,43 +267,44 @@ Alternatively, implement `SmartLifecycle`, put your bean in a late phase, and se
 [[programming-tips]]
 === Programming Tips and Tricks
 
-With the XML configuration and Spring Integration Namespace support it is hidden by the Parsers infrastructure how
+With XML configuration and Spring Integration Namespace support, the XML Parsers hide how
 target beans are built and wired together.
-For Java & Annotations Configuration it is important to understand the Framework API for the target end-user
+For Java & Annotation Configuration, it is important to understand the Framework API for the target end-user
 applications.
 
-The first class citizens for EIP implementation are `Message`, `Channel` and `Endpoint` (see <<overview-components>> above).
-And their implementations (contracts) are:
+The first class citizens for EIP implementation are `Message`, `Channel` and `Endpoint` (see <<overview-components>>
+ above).
+Their implementations (contracts) are:
 
 - `org.springframework.messaging.Message` - see <<message>>;
 - `org.springframework.messaging.MessageChannel` - see <<channel>>;
 - `org.springframework.integration.endpoint.AbstractEndpoint` - see <<polling-consumer>>.
 
-When two first are enough simple to understand and they are things per se from the implementation, configuration and
-usage perspective, the last one deserves more review.
+The first two are simple enough to understand, configuration and
+usage perspective; the last one deserves more review.
 
-The `AbstractEndpoint` is widely used throughout the Framework for different components implementations, in most cases
-for inbound gateways, but its main implementations are:
+The `AbstractEndpoint` is widely used throughout the Framework for different component implementations;
+its main implementations are:
 
-- `EventDrivenConsumer`, when we subscribe to the `SubscribableChannel` to _listen_ for messages;
-- `PollingConsumer`, when we _poll_ for messages from the `PollableChannel`.
+- `EventDrivenConsumer`, when we subscribe to a `SubscribableChannel` to _listen_ for messages;
+- `PollingConsumer`, when we _poll_ for messages from a `PollableChannel`.
 
-Using Messaging Annotations and/or Java DSL you shouldn't worry about these components, because Framework produces them
-automatically via appropriate annotations and `BeanPostProcessor` s.
-With manual components building the `ConsumerEndpointFactoryBean` should be used to help to determine the target
-`AbstractEndpoint` implementation basing by the provided `inputChannel` property.
+Using Messaging Annotations and/or Java DSL, you shouldn't worry about these components, because the Framework produces
+them automatically via appropriate annotations and `BeanPostProcessor` s.
+When building components manually, the `ConsumerEndpointFactoryBean` should be used to help to determine the target
+`AbstractEndpoint` implementation based on the provided `inputChannel` property.
 
-From other hand the `ConsumerEndpointFactoryBean` exhibit an another first class citizens in the Framework -
+On the other hand, the `ConsumerEndpointFactoryBean` exhibits an another first class citizens in the Framework -
 `org.springframework.messaging.MessageHandler`.
 The goal of the implementation of this class is to _handle the message consumed by the endpoint from the channel_.
 All EIP components in Spring Integration are `MessageHandler` implementations,
 e.g. `AggregatingMessageHandler`, `MessageTransformingHandler`, `AbstractMessageSplitter` etc.; as well as the target
-protocol outbound adapters are its implementations, too, e.g. `FileWritingMessageHandler`,
+protocol outbound adapters are implementations, too, e.g. `FileWritingMessageHandler`,
 `HttpRequestExecutingMessageHandler`, `AbstractMqttMessageHandler` etc.
-When you develop Spring Integration application with Java & Annotations Configuration, you should take a look into the
+When you develop Spring Integration applications with Java & Annotation Configuration, you should take a look into the
 Spring Integration module to find an appropriate `MessageHandler` implementation to be used for the `@ServiceActivator`
 configuration.
-For example to send an XMPP message (<<xmpp>>) we should configure something like this:
+For example to send an XMPP message (see <<xmpp>>) we should configure something like this:
 
 [source,java]
 ----
@@ -320,27 +323,28 @@ public MessageHandler sendChatMessageHandler(XMPPConnection xmppConnection) {
 
 The `MessageHandler` implementations represent the _outbound_ and _processing_ part of the message flow.
 
-The _inbound_ message flow side has its own components, which divided to the _polling_ and _listening_ behavior.
+The _inbound_ message flow side has its own components, which are divided to the _polling_ and _listening_ behavior.
 The listening components are pretty simple and typically requires only one target class implementation to be ready to
 produce messages.
-The listening components can be one-way, the `MessageProducerSupport` implementations,
+Listening components can be one-way `MessageProducerSupport` implementations,
 e.g. `AbstractMqttMessageDrivenChannelAdapter` and `ImapIdleChannelAdapter`; and request-reply -
 `MessagingGatewaySupport` implementations, e.g. `AmqpInboundGateway` and `AbstractWebServiceInboundGateway`.
 
-The _polling_ inbound endpoints are for those protocols which don't provide the listener API or aren't intended for
+_Polling_ inbound endpoints are for those protocols which don't provide a listener API or aren't intended for
 such a behavior.
 For example any File based protocol, as an FTP, any data bases (RDBMS or NoSQL) etc.
 
-These inbound endpoints consist with two components: the poller environments, to initiate the polling task periodically,
-and message source class to read data from the target protocol and produce message for the downstream integration flow.
+These inbound endpoints consist with two components: the poller configuration, to initiate the polling task periodically,
+and message source class to read data from the target protocol and produce a message for the downstream integration flow.
 The first class, for poller configuration, is `SourcePollingChannelAdapter`.
-It is one more `AbstractEndpoint` implementation, but especially for the polling purpose on the integration flow beginning.
-Typically with the Messaging Annotations or Java DSL you shouldn't worry about this class, the Framework produces
+It is one more `AbstractEndpoint` implementation, but especially for the polling purpose for initiating an integration
+flow.
+Typically, with the Messaging Annotations or Java DSL, you shouldn't worry about this class, the Framework produces
 a bean for it, based on the `@InboundChannelAdapter` configuration or Java DSL particular Builder.
 
 The _message source_ components are more important for the target application development and they all implement
-exactly `MessageSource` interface, e.g. `MongoDbMessageSource` and `AbstractTwitterMessageSource`.
-With that in hands our config for the reading data from the RDBMS table wit JDBC may look like:
+the `MessageSource` interface, e.g. `MongoDbMessageSource` and `AbstractTwitterMessageSource`.
+With that in mind, our config for reading data from an RDBMS table wit JDBC may look like:
 
 [source,java]
 ----
@@ -355,12 +359,12 @@ All the required _inbound_ and _outbound_ classes for the target protocols you c
 Integration module, in most cases in the respective package.
 For example `spring-integration-websocket` adapters are:
 
-- `o.s.i.websocket.inbound.WebSocketInboundChannelAdapter` - the `MessageProducerSupport`
+- `o.s.i.websocket.inbound.WebSocketInboundChannelAdapter` - implements `MessageProducerSupport`
 implementation to listen frames on the socket and produce message to the channel;
 - `o.s.i.websocket.outbound.WebSocketOutboundMessageHandler` - the one-way
 `AbstractMessageHandler` implementation to convert incoming messages to the appropriate frame and send over websocket.
 
-If you are familiar with Spring Integration XML configuration already, starting with the _version 4.3_ we provide in the
+If you are familiar with Spring Integration XML configuration already, starting with _version 4.3_, we provide in the
 XSD elements definitions the description with the pointer which target classes are used to produce beans for the adapter
 or gateway, for example:
 
