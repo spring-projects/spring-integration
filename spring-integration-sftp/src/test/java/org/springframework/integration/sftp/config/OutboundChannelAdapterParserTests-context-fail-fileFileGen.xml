@@ -16,9 +16,9 @@
 		<property name="port" value="2222"/>
 		<property name="user" value="oleg"/>
 	</bean>
-	
+
 	<int:channel id="inputChannel"/>
-	
+
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
@@ -26,8 +26,8 @@
 				remote-filename-generator="fileNameGenerator"
 				remote-directory-expression="'foo' + '/' + 'bar'"
 				remote-filename-generator-expression="payload.getName() + '-foo'"/>
-				
-	
+
+
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>

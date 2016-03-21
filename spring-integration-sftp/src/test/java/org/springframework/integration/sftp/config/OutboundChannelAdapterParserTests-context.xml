@@ -32,6 +32,7 @@
 				temporary-file-suffix=".bar"
 				remote-directory="foo/bar"
 				temporary-remote-directory="foo/baz"
+				chmod="600"
 				order="23"/>
 
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"

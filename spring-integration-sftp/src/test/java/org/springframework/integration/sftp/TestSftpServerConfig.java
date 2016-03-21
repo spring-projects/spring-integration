@@ -18,7 +18,9 @@ package org.springframework.integration.sftp;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
+
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
@@ -34,7 +36,7 @@ public class TestSftpServerConfig {
 	}
 
 	@Bean
-	public DefaultSftpSessionFactory sftpSessionFactory(TestSftpServer server) {
+	public CachingSessionFactory<LsEntry> sftpSessionFactory(TestSftpServer server) {
 		return sftpServer().getSessionFactory();
 	}
 

@@ -230,6 +230,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile FileExistsMode fileExistsMode;
 
+	private volatile Integer chmod;
+
 	/**
 	 * Construct an instance using the provided session factory and callback for
 	 * performing operations on the session.
@@ -430,6 +432,32 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
+	/**
+	 * String setter for Spring XML convenience.
+	 * @param chmod permissions as an octal string e.g "600";
+	 * @see #setChmod(int)
+	 * @since 4.3
+	 */
+	public void setChmodOctal(String chmod) {
+		Assert.notNull(chmod, "'chmod' cannot be null");
+		setChmod(Integer.parseInt(chmod, 8));
+	}
+
+	/**
+	 * Set the file permissions after uploading, e.g. 0600 for
+	 * owner read/write.
+	 * @param chmod the permissions.
+	 * @since 4.3
+	 */
+	public void setChmod(int chmod) {
+		Assert.isTrue(isChmodCapable(), "chmod operations not supported");
+		this.chmod = chmod;
+	}
+
+	public boolean isChmodCapable() {
+		return false;
+	}
+
 	@Override
 	protected void doInit() {
 		Assert.state(this.command != null || this.messageSessionCallback != null,
@@ -616,7 +644,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (path == null) {
 			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
 		}
+		if (this.chmod != null && isChmodCapable()) {
+			doChmod(this.remoteFileTemplate, path, this.chmod);
+		}
 		return path;
+	}
+
+	/**
+	 * Set the mode on the remote file after transfer; the default implementation does
+	 * nothing.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param path the path.
+	 * @param chmod the chmod to set.
+	 * @since 4.3
+	 */
+	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
+		// no-op
 	}
 
 	private Object doMput(Message<?> requestMessage) {
