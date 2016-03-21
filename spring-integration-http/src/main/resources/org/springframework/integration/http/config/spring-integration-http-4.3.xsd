@@ -19,7 +19,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound HTTP-based Channel Adapter.
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport' that
+				receives HTTP requests and doesn't produce responses.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -83,7 +85,9 @@
 	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound HTTP-based Messaging Gateway.
+				Configures a Messaging Gateway Endpoint for the
+				'org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport' that
+				receives HTTP requests and produces responses.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -363,7 +367,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound HTTP-based Channel Adapter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler'
+				with 'expectReply = false' that sends HTTP requests based on incoming messages.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -397,7 +403,9 @@
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound HTTP-based Messaging Gateway.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler'
+				that sends HTTP requests based on incoming messages and expects HTTP responses.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

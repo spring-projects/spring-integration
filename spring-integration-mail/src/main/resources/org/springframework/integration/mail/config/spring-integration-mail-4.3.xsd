@@ -23,7 +23,9 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an outbound mail-sending Channel Adapter.
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.mail.MailSendingMessageHandler' that
+					sends mails according te provided options.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="2">
@@ -67,7 +69,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Channel Adapter that polls a mailbox for mail messages.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.mail.MailReceivingMessageSource'
+				that polls a mailbox for mail messages.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -109,7 +113,9 @@
 	<xsd:element name="imap-idle-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an IMAP IDLE channel adapter.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.mail.ImapIdleChannelAdapter' that listens to the changes in the mail
+				box via IMAP protocol.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -269,7 +275,8 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Transformer that converts a javax.mail.Message payload to a String.
+					Defines a Transformer ('org.springframework.integration.mail.transformer.MailToStringTransformer')
+					that converts a javax.mail.Message payload to a String.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -284,7 +291,8 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Transformer for adding statically configured Mail Headers.
+					Defines a 'org.springframework.integration.transformer.HeaderEnricher' for adding statically
+					configured Mail Headers.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>

@@ -22,7 +22,9 @@
 	<xsd:element name="stdin-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a source that reads from stdin (System.in).
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.stream.CharacterStreamReadingMessageSource'
+				that reads from stdin (System.in).
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -41,8 +43,9 @@
 	<xsd:complexType name="consoleOutboundChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures an outbound Channel Adapter that writes to stdout (System.out)
-	or to stderr (System.err) depending on the element name.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.stream.CharacterStreamWritingMessageHandler' that writes to stdout
+				(System.out) or to stderr (System.err) depending on the element name.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:all>

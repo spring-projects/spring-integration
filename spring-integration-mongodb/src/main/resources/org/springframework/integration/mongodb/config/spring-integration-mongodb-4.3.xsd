@@ -19,8 +19,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines mongodb inbound channel adapter that
-				creates
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.mongodb.inbound.MongoDbMessageSource'
+				that queries data from the MongoDB collection and produces messages to the channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -84,10 +85,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines mongodb outbound channel adapter that
-				writes the contents of the
-				Message into
-				org.springframework.data.mongodb.support.collections.mongodbStore
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHandler' that
+				stores a data from incoming messages to the MongoDB collection.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -95,7 +95,8 @@
 				<xsd:extension base="mongodbAdapterType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -112,13 +113,12 @@
 		<xsd:attribute name="mongodb-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
+					<xsd:documentation>
+						Reference to an instance of
+						org.springframework.data.mongodb.MongoDbFactory
+					</xsd:documentation>
 					<tool:annotation kind="ref">
-						<xsd:documentation>
-							Reference to an instance of
-							org.springframework.data.mongodb.MongoDbFactory
-						</xsd:documentation>
-						<tool:expected-type
-							type="org.springframework.data.mongodb.MongoDbFactory" />
+						<tool:expected-type type="org.springframework.data.mongodb.MongoDbFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -126,13 +126,12 @@
 		<xsd:attribute name="mongo-template" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
+					<xsd:documentation>
+						Reference to an instance of
+						org.springframework.data.mongodb.core.MongoTemplate
+					</xsd:documentation>
 					<tool:annotation kind="ref">
-						<xsd:documentation>
-							Reference to an instance of
-							org.springframework.data.mongodb.core.MongoTemplate
-						</xsd:documentation>
-						<tool:expected-type
-							type="org.springframework.data.mongodb.core.MongoTemplate" />
+						<tool:expected-type type="org.springframework.data.mongodb.core.MongoTemplate" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -174,4 +173,5 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
 </xsd:schema>

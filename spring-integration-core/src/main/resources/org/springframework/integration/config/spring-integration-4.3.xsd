@@ -134,6 +134,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Point-to-Point MessageChannel.
+				See 'PointToPointChannelParser' source code for 'MessageChannel' implementaitons.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -410,8 +411,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Publish-Subscribe channel that broadcasts messages to its
-				subscribers.
+				Defines a 'org.springframework.integration.channel.PublishSubscribeChannel' that broadcasts messages to
+				its subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -555,7 +556,7 @@
 	<xsd:element name="gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Messaging Gateway.
+				Defines a Messaging Gateway - 'org.springframework.integration.gateway.GatewayProxyFactoryBean'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -901,7 +902,11 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives from a MessageSource and sends to a
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.endpoint.MethodInvokingMessageSource',
+				or 'org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource'
+				or 'org.springframework.integration.scripting.ScriptExecutingMessageSource'
+				that receives from a MessageSource and sends to a
 				MessageChannel.
 				Note, when using the 'expression' attribute, or 'expression' or 'script' sub-element,
 				there is not yet a root Message object and therefore
@@ -947,8 +952,9 @@
 	<xsd:element name="resource-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives Resource(s) and sends them to a
-				MessageChannel identified via 'channel' attribute.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.resource.ResourceRetrievingMessageSource' that receives Resource(s)
+				and sends them to a MessageChannel identified via 'channel' attribute.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1013,14 +1019,20 @@
 	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives from a MessageChannel and passes to
-				a method-invoking
-				MessageHandler.
+				Defines an endpoint for the
+				'org.springframework.integration.handler.ExpressionEvaluatingMessageHandler'
+				or 'org.springframework.integration.handler.MethodInvokingMessageHandler'.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="logging-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.handler.LoggingHandler'.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="outboundChannelAdapterType">
@@ -1182,7 +1194,8 @@
 	<xsd:element name="service-activator">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint for exposing any bean reference as a service that
+				Defines an endpoint for the 'org.springframework.integration.handler.ServiceActivatingHandler'
+				for exposing any bean reference as a service that
 				receives request Messages
 				from an 'input-channel' and may send reply
 				Messages to an 'output-channel'. The 'ref' may point to an instance
@@ -1300,7 +1313,8 @@
 	<xsd:element name="enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that passes a Message to its request-channel
+				Defines a Consumer Endpoint for the 'org.springframework.integration.transformer.ContentEnricher'
+				that passes a Message to its request-channel
 				and then expects a reply Message. The reply Message then becomes
 				the root object for evaluation of expressions to enrich the
 				target payload.
@@ -1544,9 +1558,9 @@
 	<xsd:element name="delayer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that passes a Message to the output-channel after a
-				delay. The delay may
-				be dynamically determined by evaluating an expression
+				Defines a Consumer Endpoint for the 'org.springframework.integration.handler.DelayHandler'
+				that passes a Message to the output-channel after a delay.
+				The delay may be dynamically determined by evaluating an expression
 				(such as a Message header) or fallback to the
 				'default-delay' of this endpoint.
 			</xsd:documentation>
@@ -1649,7 +1663,8 @@
 	<xsd:element name="barrier">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that suspends a thread until a corresponding release message is received.
+				Defines a Consumer Endpoint for the 'org.springframework.integration.aggregator.BarrierMessageHandler'
+				that suspends a thread until a corresponding release message is received.
 				The endpoint's message handler is a 'BarrierMessageHandler'.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1734,9 +1749,8 @@
 	<xsd:element name="bridge">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that passes a Message to the
-				output-channel without
-				modifying it.
+				Defines a Consumer Endpoint for the 'org.springframework.integration.handler.BridgeHandler'
+				that passes a Message to the output-channel without modifying it.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1752,8 +1766,8 @@
 	<xsd:element name="chain">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint composed of a chain of Message
-				Handlers.
+				Defines a Consumer Endpoint for the 'org.springframework.integration.handler.MessageHandlerChain'
+				composed of a chain of Message Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1826,7 +1840,7 @@
 	<xsd:element name="poller">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a top-level poller.
+				Defines a top-level poller - 'org.springframework.integration.scheduling.PollerMetadata'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2038,7 +2052,8 @@
 	<xsd:element name="header-enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a HeaderEnricher endpoint for values defined in the MessageHeader.
+				Defines a Consumer Endpoint for the 'org.springframework.integration.transformer.HeaderEnricher'
+				for values defined in the MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2314,7 +2329,8 @@
 	<xsd:element name="header-filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a HeaderFilter endpoint to remove values defined in the MessageHeaders.
+				Defines a Consumer Endpoint for the 'org.springframework.integration.transformer.HeaderFilter'
+				to remove values defined in the MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2357,7 +2373,9 @@
 	<xsd:element name="transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.MessageTransformingHandler'
+				based on the 'org.springframework.integration.transformer.Transformer' strategy.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2372,7 +2390,9 @@
 	<xsd:element name="object-to-string-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts any Object payload to a String by
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.ObjectToStringTransformer'
+				that converts any Object payload to a String by
 				invoking its toString()
 				method.
 			</xsd:documentation>
@@ -2385,10 +2405,13 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
 	<xsd:element name="object-to-map-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts any Object payload to a SpEL Map.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.ObjectToMapTransformer' that converts any Object payload to
+				a SpEL Map.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2408,10 +2431,13 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
 	<xsd:element name="map-to-object-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts SpEL-based Map to an object.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.MapToObjectTransformer' that converts SpEL-based Map to an
+				object.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2454,7 +2480,9 @@
 	<xsd:element name="object-to-json-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts any Object payload to a JSON String.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.json.ObjectToJsonTransformer'
+				that converts any Object payload to a JSON String.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2521,11 +2549,11 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
-
 	<xsd:element name="json-to-object-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts a JSON String to an object.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.json.JsonToObjectTransformer' that converts a JSON String to an object.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2567,7 +2595,9 @@
 	<xsd:element name="payload-serializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts an object payload to a byte array.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.PayloadSerializingTransformer' that converts an object
+				payload to a byte array.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2603,7 +2633,9 @@
 	<xsd:element name="payload-deserializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts a byte array to an object.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.PayloadDeserializingTransformer' that converts a byte array
+				to an object.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2639,7 +2671,9 @@
 	<xsd:element name="syslog-to-map-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts an RFC5424 packet to a Map.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.SyslogToMapTransformer' that converts an RFC5424 packet to a
+				Map.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2653,8 +2687,9 @@
 	<xsd:element name="claim-check-in" type="claimCheckInType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that stores a Message and returns a new
-				Message, whose payload is the id of the stored Message.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.ClaimCheckInTransformer' that stores a Message and returns
+				a new Message, whose payload is the id of the stored Message.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -2680,8 +2715,9 @@
 	<xsd:element name="claim-check-out" type="claimCheckOutType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that accepts a Message whose payload is a
-				UUID and retrieves the Message associated with that id from a
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.ClaimCheckOutTransformer' that accepts a Message whose
+				payload is a UUID and retrieves the Message associated with that id from a
 				MessageStore if available (else null).
 			</xsd:documentation>
 		</xsd:annotation>
@@ -2769,7 +2805,9 @@
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Message Filters that is used to decide whether a Message should be passed
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.filter.MessageFilter'
+				that is used to decide whether a Message should be passed
 				along or dropped based on some criteria
 			</xsd:documentation>
 		</xsd:annotation>
@@ -2833,19 +2871,23 @@
 
     <xsd:element name="header-value-router" type="headerValueRouterType">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[
-            Defines a Header Value Router. The 'header-name' attribute specifies which
-            header value to lookup. That header value can then provide the name of a
-            channel to be resolved. Alternatively, 1 or more 'mapping' sub-elements
-            may be provided with expected header values mapped to channels.
-            ]]></xsd:documentation>
+            <xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.router.HeaderValueRouter'.
+				The 'header-name' attribute specifies which
+				header value to lookup. That header value can then provide the name of a
+				channel to be resolved. Alternatively, 1 or more 'mapping' sub-elements
+				may be provided with expected header values mapped to channels.
+			</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="recipient-list-router" type="recipientListRouterType">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[
-                Defines a Recipient List Router. A RecipientListRouter will send
+            <xsd:documentation>
+                Defines a Consumer Endpoint for the
+				'org.springframework.integration.router.RecipientListRouter'.
+                A RecipientListRouter will send
                 each received Message to a statically defined list of Message Channels.
 
                 Another convenient option when configuring a RecipientListRouter
@@ -2856,35 +2898,41 @@
                 This is similar to using a Filter at the beginning of 'chain' to
                 act as a "Selective Consumer". However, in this case, it's all
                 combined rather concisely into the router's configuration.
-            ]]></xsd:documentation>
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="payload-type-router" type="payloadTypeRouterType">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[
-            Defines a Payload Type Router. The 'mapping' sub-elements specify the
-            associations between Java types and target channels.
-            ]]></xsd:documentation>
+            <xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.router.PayloadTypeRouter'.
+				The 'mapping' sub-elements specify the
+				associations between Java types and target channels.
+			</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="exception-type-router" type="exceptionTypeRouterType">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[
-            Defines a Exception Type Router which resolves the target MessageChannel for
-            messages whose payload is an Exception. The channel resolution is based upon
-            the most specific cause of the error for which a channel mapping exists.
-            ]]></xsd:documentation>
+            <xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.router.ErrorMessageExceptionTypeRouter'
+				which resolves the target MessageChannel for
+				messages whose payload is an Exception. The channel resolution is based upon
+				the most specific cause of the error for which a channel mapping exists.
+			</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="router" type="routerType">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[
-            Defines a Router that serves as an adapter for invoking a method on any
-            Spring-managed object as specified by the "ref" and "method" attributes.
-            ]]></xsd:documentation>
+            <xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.router.AbstractMessageProcessingRouter' implementation
+				that serves as an adapter for invoking a method on any
+				Spring-managed object as specified by the "ref" and "method" attributes.
+			</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
@@ -3468,7 +3516,9 @@
 	<xsd:element name="splitter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Splitter.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.splitter.AbstractMessageProcessingSplitter'
+				implementation or 'org.springframework.integration.splitter.DefaultMessageSplitter'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -3520,7 +3570,8 @@
 	<xsd:element name="aggregator">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an aggregating message endpoint.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.config.AggregatorFactoryBean'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -3769,7 +3820,8 @@
 	<xsd:element name="resequencer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a resequencing message endpoint.
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.aggregator.ResequencingMessageHandler'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -4154,6 +4206,11 @@
 	</xsd:element>
 
     <xsd:element name="wire-tap">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a 'org.springframework.integration.channel.interceptor.WireTap' bean.
+			</xsd:documentation>
+		</xsd:annotation>
       <xsd:complexType>
         <xsd:complexContent>
            <xsd:extension base="wireTapType">
@@ -4187,7 +4244,9 @@
 	<xsd:element name="channel-interceptor">
 		<xsd:annotation>
 			<xsd:documentation>
-				Allows you to define channel interceptors to be applied globally.
+				Allows you to define channel interceptors
+				('org.springframework.messaging.support.ChannelInterceptor' implementation)
+				to be applied globally.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -4262,10 +4321,9 @@ unless bean with this name is already registered.
 	<xsd:element name="message-history">
 		<xsd:annotation>
 			<xsd:documentation>
-				<![CDATA[
-Will register a Message History writer which will track the message history. There can
-only be one Message History writer per ApplicationContext hierarchy.
-					]]>
+				Will register a Message History writer which will track the message history. There can
+				only be one Message History writer per ApplicationContext hierarchy.
+				See also @EnableMessageHistory annotation.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -4282,6 +4340,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:element>
 
 	<xsd:element name="control-bus">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a bean for the 'org.springframework.integration.config.ExpressionControlBusFactoryBean'.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="control-bus-type">
@@ -4295,6 +4358,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:element>
 
 	<xsd:element name="spel-function">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a bean for the 'org.springframework.integration.config.SpelFunctionFactoryBean'.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 				<xsd:attribute name="id" type="xsd:string" use="required">
                     <xsd:annotation>
@@ -4355,9 +4423,9 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 
 	<xsd:element name="scatter-gather">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Defines a Scatter-Gather.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+				Defines a Consumer Endpoint for the 'org.springframework.integration.scattergather.ScatterGatherHandler'.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -4437,9 +4505,9 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 
 	<xsd:element name="idempotent-receiver">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Defines an IdempotentReceiverInterceptor.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+                Defines an 'org.springframework.integration.handler.advice.IdempotentReceiverInterceptor' bean.
+            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>

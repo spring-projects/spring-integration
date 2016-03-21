@@ -16,9 +16,11 @@
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Builds an outbound-channel-adapter that writes files to a remote SFTP endpoint.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+                Configures a Consumer Endpoint for the
+				'org.springframework.integration.file.remote.handler.FileTransferringMessageHandler'
+				for the 'SftpRemoteFileTemplate' that writes files to a remote SFTP endpoint.
+            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -71,9 +73,11 @@
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Builds an inbound-channel-adapter that synchronizes with a remote SFTP endpoint.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.sftp.inbound.FtpInboundFileSynchronizingMessageSource'
+				that synchronizes with a remote SFTP endpoint.
+            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -238,9 +242,10 @@
 
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-				Builds an outbound gateway used to issue sftp commands.
-			]]></xsd:documentation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.sftp.gateway.SftpOutboundGateway used to issue SFTP commands.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>

@@ -20,7 +20,8 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound Channel Adapter backed by a
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.gemfire.inbound.CacheListeningMessageProducer' that backed by a
 				GemFire CacheListener
 			</xsd:documentation>
 		</xsd:annotation>
@@ -46,7 +47,7 @@
 						Enabled cache entry event types
 				]]></xsd:documentation>
 							<xsd:appinfo>
-								<tool:annotation kind="value">
+								<tool:annotation kind="ref">
 									<tool:expected-type
 											type="org.springframework.integration.gemfire.inbound.EventType"/>
 								</tool:annotation>
@@ -62,7 +63,9 @@
 	<xsd:element name="cq-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound Channel Adapter backed by a
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer'
+				that backed by a
 				Spring Gemfire QueryListener
 			</xsd:documentation>
 		</xsd:annotation>
@@ -75,7 +78,7 @@
 						Reference to a ContinuousQueryListenerContainer
 				]]></xsd:documentation>
 							<xsd:appinfo>
-								<tool:annotation kind="value">
+								<tool:annotation  kind="ref">
 									<tool:expected-type
 											type="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer"/>
 								</tool:annotation>
@@ -89,7 +92,7 @@
 						Enabled continuous query event types
 				]]></xsd:documentation>
 							<xsd:appinfo>
-								<tool:annotation kind="value">
+								<tool:annotation kind="ref">
 									<tool:expected-type
 											type="org.springframework.integration.gemfire.inbound.CqEventType"/>
 								</tool:annotation>
@@ -130,7 +133,8 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Configures an outbound Channel Adapter that
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.gemfire.outbound.CacheWritingMessageHandler' that
 					writes Message to a Gemfire cache
 				</xsd:documentation>
 			</xsd:annotation>
@@ -175,20 +179,17 @@
 
 	<xsd:complexType name="InboundChannelAdapterType">
 		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
-
-		<xsd:attribute name="error-channel" type="xsd:string"
-					   use="optional">
+		<xsd:attribute name="error-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<xsd:documentation><![CDATA[
+					<xsd:documentation>
 							Identifies the channel to which error messages will be sent if a failure occurs in this
 							component's invocation. If no "error-channel" reference is provided, this component will
 							propagate Exceptions to the caller. To completely suppress Exceptions, provide a
 							reference to the "nullChannel" here.
-						]]></xsd:documentation>
-						<tool:expected-type
-								type="org.springframework.messaging.MessageChannel"/>
+						</xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

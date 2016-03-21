@@ -21,7 +21,8 @@
 	<xsd:element name="marshalling-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an XML marshalling transformer.
+				Defines an XML ('org.springframework.integration.xml.transformer.MarshallingTransformer')
+				marshalling transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType >
@@ -75,7 +76,8 @@
 	<xsd:element name="unmarshalling-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an XML unmarshalling transformer.
+				Defines an XML ('org.springframework.integration.xml.transformer.UnmarshallingTransformer')
+				unmarshalling transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -98,7 +100,7 @@
 	<xsd:element name="xslt-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an XSLT transformer.
+				Defines an XSLT ('org.springframework.integration.xml.transformer.XsltPayloadTransformer') transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -254,7 +256,7 @@
 	<xsd:element name="xpath-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an XPath transformer.
+				Defines an XPath ('org.springframework.integration.xml.transformer.XPathTransformer') transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -330,8 +332,8 @@
 	<xsd:element name="xpath-header-enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Header Enricher Message Transformer that evaluates XPath expressions against the
-	message payload and inserts the result of the evaluation into a message header.
+				Defines an 'org.springframework.integration.xml.transformer.XPathHeaderEnricher' that evaluates XPath
+				expressions against the message payload and inserts the result of the evaluation into a message header.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -542,7 +544,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="commonXPathRouterType">
 				<xsd:sequence>
-					<xsd:element ref="xpath-expression"                                    minOccurs="0" maxOccurs="1">
+					<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								Internally XPath expressions will be evaluated as
@@ -585,25 +587,30 @@
 
 	<xsd:element name="xpath-router" type="XPathRouterType">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-				Defines an XPath Router which allows for the routing of messages
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.xml.router.XPathRouter' which allows for the routing of messages
 				using XPath expressions. This Message Endpoint has no output
 				channel. Instead, one or more output channels are determined
 				dynamically using the provided XPath Expression.
-			]]></xsd:documentation>
+			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="xpath-filter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an XPath-based Message Filter. If the XPath expression will evaluate to a boolean,
-	no configuration attributes are required. If the XPath expression will evaluate to a String,
-	a "match-value" should be provided against which the evaluation result will be matched.
-	There are three options for the "match-type": exact, case-insensitive, and regex. These
-	correspond to the equals, equals-ignore-case, and matches operations on java.lang.String,
-	respectively. When providing a 'match-type' value of 'regex', the value provided in
-	'match-value' must be a valid Regular Expression.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.filter.MessageFilter'
+				with an 'org.springframework.integration.xml.selector.AbstractXPathMessageSelector'
+				implementation based on the configuration options.
+				If the XPath expression will evaluate to a boolean,
+				no configuration attributes are required. If the XPath expression will evaluate to a String,
+				a "match-value" should be provided against which the evaluation result will be matched.
+				There are three options for the "match-type": exact, case-insensitive, and regex. These
+				correspond to the equals, equals-ignore-case, and matches operations on java.lang.String,
+				respectively. When providing a 'match-type' value of 'regex', the value provided in
+				'match-value' must be a valid Regular Expression.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -665,7 +672,8 @@
 	<xsd:element name="xpath-expression">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Defines an XPath expression.
+				Defines an XPath expression - 'org.springframework.xml.xpath.XPathExpressionFactory'
+				with the 'createXPathExpression()' factory-method.
 
 				Internally XPath expressions will be evaluated as
 				NODESET type and converted to a List<String>
@@ -697,7 +705,8 @@
 	<xsd:element name="xpath-splitter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an XPath splitter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.xml.splitter.XPathMessageSplitter'
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -783,7 +792,9 @@
 	<xsd:element name="validating-filter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an XML validating filter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.filter.MessageFilter'
+				with an 'org.springframework.integration.xml.selector.XmlValidatingMessageSelector'
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

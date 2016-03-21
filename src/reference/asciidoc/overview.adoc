@@ -216,7 +216,7 @@ IMPORTANT: Starting with _version 4.0_, the `@EnableIntegration` annotation has 
 registration of Spring Integration infrastructure beans (see
 http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/config/EnableIntegration.html[JavaDocs]).
 This annotation is required when only Java & Annotation configuration is used, e.g. with Spring Boot and/or
-Spring Integration Messaging Annotation support and Spring Integration Java DSL with no XML integration configuration.
+Spring Integration Messaging Annotations support and Spring Integration Java DSL with no XML integration configuration.
 
 The `@EnableIntegration` annotation is also useful when you have a parent context with no Spring Integration components
 and 2 or more child contexts that use Spring Integration.
@@ -280,8 +280,8 @@ Their implementations (contracts) are:
 - `org.springframework.messaging.MessageChannel` - see <<channel>>;
 - `org.springframework.integration.endpoint.AbstractEndpoint` - see <<polling-consumer>>.
 
-The first two are simple enough to understand, configuration and
-usage perspective; the last one deserves more review.
+The first two are simple enough to understand how to implement, configure and use, respectively;
+the last one deserves more review.
 
 The `AbstractEndpoint` is widely used throughout the Framework for different component implementations;
 its main implementations are:
@@ -344,7 +344,7 @@ a bean for it, based on the `@InboundChannelAdapter` configuration or Java DSL p
 
 The _message source_ components are more important for the target application development and they all implement
 the `MessageSource` interface, e.g. `MongoDbMessageSource` and `AbstractTwitterMessageSource`.
-With that in mind, our config for reading data from an RDBMS table wit JDBC may look like:
+With that in mind, our config for reading data from an RDBMS table with JDBC may look like:
 
 [source,java]
 ----

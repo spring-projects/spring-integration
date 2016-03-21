@@ -16,9 +16,11 @@
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Builds an outbound-channel-adapter that writes files to a remote FTP endpoint.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.file.remote.handler.FileTransferringMessageHandler'
+				for the 'FtpRemoteFileTemplate' that writes files to a remote FTP endpoint.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -68,9 +70,11 @@
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                    Builds an inbound-channel-adapter that synchronizes a local directory with the contents of a remote FTP endpoint.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+				Configures a 'SourcePollingChannelAdapter' Endpoint for the
+				'org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource' that
+				synchronizes a local directory with the contents of a remote FTP endpoint.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -235,9 +239,11 @@
 
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
-			<xsd:documentation><![CDATA[
-                Builds an outbound gateway used to issue FTP commands.
-            ]]></xsd:documentation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.ftp.gateway.FtpOutboundGateway'
+				used to issue FTP commands.
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>

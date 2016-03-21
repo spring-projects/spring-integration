@@ -21,8 +21,9 @@
 	<xsd:element name="leader-listener">
 		<xsd:annotation>
 			<xsd:documentation>
-				The definition for the Spring Integration Zookeeper leader listener to automatically start/stop
-				endpoints based on the Role.
+				The definition for the Spring Integration Zookeeper leader listener
+				'org.springframework.integration.zookeeper.leader.LeaderInitiator'
+				to automatically start/stop endpoints based on the Role.
 				The 'role' attribute here is matched to 'role' attributes on associated 'SmartLifecycle'
 				beans.
 				Endpoint roles can be defined in XML configuration or via '@Role' annotations.

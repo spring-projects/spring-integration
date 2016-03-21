@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/rmi"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
 		xmlns:integration="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/rmi"
@@ -23,7 +22,9 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an RMI-based inbound MessagingGateway.
+					Configures a Messaging Gateway Endpoint for the
+					'org.springframework.integration.rmi.RmiInboundGateway' to receive RMI
+					requests and produce RMI responses.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -72,14 +73,17 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an RMI-based outbound Messaging Gateway.
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.rmi.RmiOutboundGateway' to send RMI requests and wait for
+					RMI replies.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>

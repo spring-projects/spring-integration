@@ -19,10 +19,11 @@
 	</xsd:annotation>
 
 	<xsd:element name="inbound-channel-adapter">
-
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will receive STOMP Messages using the provided
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.stomp.inbound.StompInboundChannelAdapter' that
+				subscribes to the STOMP destination(s) and produces messages throughout the provided
 				'StompSessionManager'.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -77,8 +78,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will send a STOMP Message to the provided
-				'StompSessionManager'.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.stomp.outbound.StompMessageHandler' that sends STOMP Messages to
+				the provided 'StompSessionManager'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
