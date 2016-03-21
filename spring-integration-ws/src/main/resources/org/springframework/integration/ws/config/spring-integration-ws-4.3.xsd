@@ -23,7 +23,9 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Web Service based outbound Messaging Gateway.
+					Configures a Consumer Endpoint for the
+					'org.springframework.integration.ws.AbstractWebServiceOutboundGateway' implementation that
+					sends SOAP requests and expects responses.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -316,7 +318,9 @@ this list can also be simple patterns to be matched against the header names (e.
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Web Service based inbound Messaging Gateway.
+					Configures a Messaging Gateway Endpoint for the
+					'org.springframework.integration.ws.AbstractWebServiceInboundGateway' implementation that
+					receives SOAP requests and produce responses.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
@@ -418,7 +422,7 @@ this list can also be simple patterns to be matched against the header names (e.
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Transformer for adding a SOAP Action value.
+	Defines a 'org.springframework.integration.transformer.HeaderEnricher'  for adding a SOAP Action value.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>

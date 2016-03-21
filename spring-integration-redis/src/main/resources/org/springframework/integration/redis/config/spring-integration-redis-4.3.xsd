@@ -19,7 +19,7 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a publish-subscribe Message Channel that is backed by a Redis topic.
+	Defines a 'org.springframework.integration.redis.channel.SubscribableRedisChannel' that is backed by a Redis topic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -122,7 +122,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Channel Adapter for subscribing to a Redis topic.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.redis.inbound.RedisInboundChannelAdapter' for subscribing to a Redis
+				channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -197,7 +199,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound Redis Message-sending Channel Adapter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.redis.outbound.RedisPublishingMessageHandler' that
+				a data to the Redis channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -265,9 +269,10 @@
 	<xsd:element name="store-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines Redis inbound channel adapter that creates a Message which contains
-	a view into a redis store. THe view could be one of the subclasses of
-	org.springframework.data.redis.support.collections.RedisStore
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.redis.inbound.RedisStoreMessageSource' that creates a Message which
+				contains a view into a redis store. THe view could be one of the subclasses of
+				org.springframework.data.redis.support.collections.RedisStore
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -291,8 +296,10 @@
 	<xsd:element name="store-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines Redis outbound channel adapter that writes the contents of the Message into
-	org.springframework.data.redis.support.collections.RedisStore
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.redis.outbound.RedisStoreWritingMessageHandler'
+				that writes the contents of the Message into
+				'org.springframework.data.redis.support.collections.RedisStore'
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -324,7 +331,9 @@
 	<xsd:element name="queue-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Message Driven Endpoint for listening a Redis queue.
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint' for listening a Redis
+				queue.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -419,8 +428,9 @@
 	<xsd:element name="queue-inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures a gateway that adapts incoming Redis values to Spring Integration Messages
-				and returns a reply.
+				Defines a Messaging Gateway Endpoint for the
+				'org.springframework.integration.redis.inbound.RedisQueueInboundGateway' that adapts incoming Redis
+				values to Spring Integration Messages and returns a reply.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -562,7 +572,9 @@
 	<xsd:element name="queue-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Redis Queue Message-sending Channel Adapter.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter'
+				to store data into the Redis List in a queue manner.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -636,7 +648,9 @@
 	<xsd:element name="queue-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-				Configures a gateway that pushes a conversation UUID to the the 'queue', then pushes the value to the
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.redis.outbound.RedisQueueOutboundGateway' that
+				 pushes a conversation UUID to the the 'queue', then pushes the value to the
 				Redis List with that UUID as a key and receives a reply from the Redis List with
 				'<UUID>.reply' as its key. A new UUID is used for each interaction.
 			]]></xsd:documentation>
@@ -753,7 +767,9 @@
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Redis Command Sending Gateway.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.redis.outbound.RedisOutboundGateway' that
+				perform a Redis command based on the 'command-expression' evaluation result.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

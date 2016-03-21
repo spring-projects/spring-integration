@@ -10,8 +10,9 @@
 	<xsd:element name="script">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inner bean that will generate a
-				JSR 223 compliant script.
+				Configures an inner bean
+				('org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor')
+				that will generate a JSR 223 compliant script.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -22,8 +23,8 @@
 				<xsd:attribute name="lang" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							The script language or JSR 223 scripting engine name. Required only for inline scripts. If a script location is
-							referenced, the language may be derived from the file extension
+							The script language or JSR 223 scripting engine name. Required only for inline scripts.
+							If a script location is referenced, the language may be derived from the file extension
 							(.rb: ruby, .groovy, js: javascript (ECMAScript), .py: python).
 					</xsd:documentation>
 					</xsd:annotation>

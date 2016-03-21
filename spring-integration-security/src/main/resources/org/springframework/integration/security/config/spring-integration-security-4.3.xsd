@@ -13,7 +13,8 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines security requirements for one or more Message Channels.
+					Defines a 'org.springframework.integration.security.channel.ChannelSecurityInterceptor' security
+					requirements for one or more Message Channels.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>

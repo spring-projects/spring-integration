@@ -18,7 +18,7 @@
 	<xsd:element name="message-store">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a MessageStore (and MessageGroupStore)
+				Defines a MessageStore ('org.springframework.integration.jdbc.JdbcMessageStore')
 				backed by a database.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -124,7 +124,9 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound Channel Adapter for polling a database.
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jdbc.JdbcPollingChannelAdapter'
+				for polling a database.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -222,7 +224,8 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Channel Adapter for updating a
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jdbc.JdbcMessageHandler' for updating a
 				database.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -289,7 +292,8 @@
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Channel Gateway for updating a
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jdbc.JdbcOutboundGateway' for updating a
 				database in response to a message on the request channel, and/or
 				for retrieving data from the database using the input message as
 				a source of parameters for the specified SQL select query.
@@ -589,7 +593,8 @@
 	<xsd:element name="stored-proc-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an outbound Channel Adapter for updating a
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jdbc.StoredProcMessageHandler' for updating a
 				database using stored procedures.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -713,7 +718,8 @@
 	<xsd:element name="stored-proc-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an Outbound Channel Gateway for updating a database using
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.jdbc.StoredProcOutboundGateway' for updating a database using
 				a stored procedure. The response of the stored procedure is used
 				to populate the Message for the reply channel.
 			</xsd:documentation>
@@ -972,7 +978,8 @@
 	<xsd:element name="stored-proc-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound Channel Adapter for polling a
+				Defines a Polling Channel Adapter for the
+				'org.springframework.integration.jdbc.StoredProcPollingChannelAdapter' for polling a
 				database using a stored procedure or function.
 			</xsd:documentation>
 		</xsd:annotation>

@@ -14,7 +14,9 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures an endpoint that will publish an AMQP Message to the provided Exchange.
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint'
+				with the 'expectReply = false' that will publish an AMQP Message to the provided Exchange.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -64,7 +66,10 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures an endpoint that will receive AMQP Messages sent to a given queue and then forward those messages to a Message Channel.
+				Configures a Message Producing Endpoint for the
+				'org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter'
+				that will receive AMQP Messages sent to a given queue and then forward those messages to a Message
+				Channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -92,9 +97,9 @@
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a gateway that will publish an AMQP Message to the provided Exchange
-	and expect a reply Message. The thread blocks waiting for a reply or timeout; uses
-	'RabbitTemplate.sendAndReceive()'.
+	Configures a Consumer Endpoint for the 'org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint'
+	that will publish an AMQP Message to the provided Exchange and expect a reply Message.
+	The thread blocks waiting for a reply or timeout; uses 'RabbitTemplate.sendAndReceive()'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -121,9 +126,9 @@
 	<xsd:element name="outbound-async-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a gateway that will publish an AMQP Message to the provided Exchange
-	and expect a reply Message. The sending thread returns immediately; the reply
-	is sent asynchronously; uses 'AsyncRabbitTemplate.sendAndReceive()'.
+	Configures a Consumer Endpoint for the 'org.springframework.integration.amqp.outbound.AsyncAmqpOutboundGateway'
+	that will publish an AMQP Message to the provided Exchange and expect a reply Message.
+	The sending thread returns immediately; the reply is sent asynchronously; uses 'AsyncRabbitTemplate.sendAndReceive()'.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -150,8 +155,11 @@
 	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a gateway that will receive AMQP Messages sent to a given queue and then forward those messages to a Message Channel.
-	If a reply Message is returned, it will also send that to the 'replyTo' provide by the AMQP request Message.
+				Configures a Messaging Gateway Endpoint for the
+				'org.springframework.integration.amqp.inbound.AmqpInboundGateway' that will receive AMQP Messages
+				sent to a given queue and then forward those messages to a Message Channel.
+				If a reply Message is returned, it will also send that to the 'replyTo' provide by the AMQP request
+				Message.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
