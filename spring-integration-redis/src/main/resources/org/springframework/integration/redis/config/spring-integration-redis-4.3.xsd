@@ -647,13 +647,13 @@
 
 	<xsd:element name="queue-outbound-gateway">
 		<xsd:annotation>
-			<xsd:documentation>
+			<xsd:documentation><![CDATA[
 				Configures a Consumer Endpoint for the
 				'org.springframework.integration.redis.outbound.RedisQueueOutboundGateway' that
 				 pushes a conversation UUID to the the 'queue', then pushes the value to the
 				Redis List with that UUID as a key and receives a reply from the Redis List with
 				'<UUID>.reply' as its key. A new UUID is used for each interaction.
-			</xsd:documentation>
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="3">
