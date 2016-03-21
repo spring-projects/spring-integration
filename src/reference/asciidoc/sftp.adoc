@@ -456,6 +456,7 @@ Similar to the FTP outbound adapter, the _SFTP Outbound Channel Adapter_ support
     remote-filename-generator-expression="payload.getName() + '-foo'"
     filename-generator="fileNameGenerator"
     use-temporary-filename="true"
+    chmod="600"
     mode="REPLACE"/>
 ----
 
@@ -483,6 +484,10 @@ By default, every file that is in the process of being transferred will appear i
 However, there may be situations where you don't want to use this technique (for example, if the server does not permit renaming files).
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (default is `true`).
 When this attribute is `false`, the file is written with its final name and the consuming application will need some other mechanism to detect that the file is completely uploaded before accessing it.
+
+__Version 4.3__ introduced the `chmod` attribute which changes the remote file permissions after upload.
+Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
 [[sftp-outbound-gateway]]
 === SFTP Outbound Gateway
@@ -605,6 +610,10 @@ Refer to the schema documentation for more information.
 
 The message payload resulting from a _put_ operation is a `String` representing the full path of the file on the server after transfer.
 
+__Version 4.3__ introduced the `chmod` attribute which changes the remote file permissions after upload.
+Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
+
 *mput*
 
 _mput_ sends multiple files to the server and supports the following option:
@@ -621,6 +630,10 @@ Subdirectories that do not pass the filter are not recursed.
 The message payload resulting from an _mget_ operation is a `List<String>` object - a List of remote file paths resulting from the transfer.
 
 See also <<sftp-partial>>
+
+__Version 4.3__ introduced the `chmod` attribute which changes the remote file permissions after upload.
+Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
+When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
 *rm*
 

@@ -66,6 +66,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
+					<xsd:attributeGroup ref="chmod" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -523,6 +524,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="chmod" />
 					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -601,5 +603,16 @@
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
+
+	<xsd:attributeGroup name="chmod">
+		<xsd:attribute name="chmod" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Change the mode of the remote file after transferring. Integer value
+					expressed in Octal, e.g. '644'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>

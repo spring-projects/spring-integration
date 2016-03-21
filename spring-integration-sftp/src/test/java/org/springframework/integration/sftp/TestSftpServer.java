@@ -33,7 +33,10 @@ import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
@@ -170,14 +173,14 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 		}
 	}
 
-	public DefaultSftpSessionFactory getSessionFactory() {
+	public CachingSessionFactory<LsEntry> getSessionFactory() {
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
 		factory.setHost("localhost");
 		factory.setPort(this.server.getPort());
 		factory.setUser("foo");
 		factory.setPassword("foo");
 		factory.setAllowUnknownKeys(true);
-		return factory;
+		return new CachingSessionFactory<LsEntry>(factory);
 	}
 
 }

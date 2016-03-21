@@ -230,6 +230,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile FileExistsMode fileExistsMode;
 
+	private volatile Integer chmod;
+
 	/**
 	 * Construct an instance using the provided session factory and callback for
 	 * performing operations on the session.
@@ -430,6 +432,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
+	public void setChmodOctal(String chmod) {
+		Assert.notNull(chmod, "'chmod' cannot be null");
+		this.chmod = Integer.parseInt(chmod, 8);
+	}
+
+	public void setChmodDecimal(int chmod) {
+		Assert.isTrue(isChmodCapable(), "chmod operations not supported");
+		this.chmod = chmod;
+	}
+
+	public boolean isChmodCapable() {
+		return false;
+	}
+
 	@Override
 	protected void doInit() {
 		Assert.state(this.command != null || this.messageSessionCallback != null,
@@ -615,7 +631,21 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (path == null) {
 			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
 		}
+		if (this.chmod != null && isChmodCapable()) {
+			doChmod(this.remoteFileTemplate, path, chmod);
+		}
 		return path;
+	}
+
+	/**
+	 * Set the mode on the remote file after transfer; the default implementation does
+	 * nothing.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param path the path.
+	 * @param chmod the chmod to set.
+	 */
+	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
+		// no-op
 	}
 
 	private Object doMput(Message<?> requestMessage) {

@@ -42,6 +42,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	private final FileExistsMode mode;
 
+	private Integer chmod;
+
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
@@ -131,6 +133,20 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
 	}
 
+	public void setChmodOctal(String chmod) {
+		Assert.notNull(chmod, "'chmod' cannot be null");
+		this.chmod = Integer.parseInt(chmod, 8);
+	}
+
+	public void setChmodDecimal(int chmod) {
+		Assert.isTrue(isChmodCapable(), "chmod operations not supported");
+		this.chmod = chmod;
+	}
+
+	public boolean isChmodCapable() {
+		return false;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		this.remoteFileTemplate.setBeanFactory(this.getBeanFactory());
@@ -139,7 +155,21 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		this.remoteFileTemplate.send(message, this.mode);
+		String path = this.remoteFileTemplate.send(message, this.mode);
+		if (this.chmod != null && isChmodCapable()) {
+			doChmod(this.remoteFileTemplate, path, this.chmod);
+		}
+	}
+
+	/**
+	 * Set the mode on the remote file after transfer; the default implementation does
+	 * nothing.
+	 * @param remoteFileTemplate the remote file template.
+	 * @param path the path.
+	 * @param chmod the chmod to set.
+	 */
+	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
+		// no-op
 	}
 
 }

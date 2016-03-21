@@ -22,13 +22,17 @@ import java.util.List;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
+import org.springframework.integration.sftp.support.GeneralSftpException;
 
+import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpException;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
@@ -127,6 +131,28 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	@Override
 	public String getComponentType() {
 		return "sftp:outbound-gateway";
+	}
+
+	@Override
+	public boolean isChmodCapable() {
+		return true;
+	}
+
+	@Override
+	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, String path, int chmod) {
+		remoteFileTemplate.executeWithClient(new ClientCallbackWithoutResult<ChannelSftp>() {
+
+			@Override
+			protected void doWithClientWithoutResult(ChannelSftp client) {
+				try {
+					client.chmod(chmod, path);
+				}
+				catch (SftpException e) {
+					throw new GeneralSftpException("Failed to execute chmod", e);
+				}
+			}
+
+		});
 	}
 
 }
