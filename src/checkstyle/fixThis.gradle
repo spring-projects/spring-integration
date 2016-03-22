@@ -30,16 +30,30 @@ task fixThis << {
 						}
 					}
 
-					while (error && ln == (error.@line as int)) {
+					if (error && ln == (error.@line as int)) {
 						def message = error.@message
 						def property = message.substring(message.indexOf('\'') + 1, message.lastIndexOf('\''))
 						def thisPrefix = message.substring(message.indexOf('"') + 1, message.lastIndexOf('"'))
 
-						line = line.replaceFirst(/(.+)(?<!\.)${property}(\W.+)/, "\$1$thisPrefix$property\$2")
+
+						def index = (error.@column as int) - 1
+						def chars = line.toCharArray()
+						for (int i = 0; i < index; i++) {
+							if (chars[i] == '\t') { // tabs before code == 8
+								index -= 7;
+							}
+							else if (chars[i] != ' ') { // tabs after code start are only counted as 1
+								break;
+							}
+						}
+
+						line = line.substring(0, index) + thisPrefix + property + line.substring(index + property.length())
 
 						println "Fixed line $line"
 
-						error = thisErrors[errorInx++]
+						while (error && ln == (error.@line as int)) {
+							error = thisErrors[errorInx++]
+						}
 					}
 
 					outSource += line + System.lineSeparator()
