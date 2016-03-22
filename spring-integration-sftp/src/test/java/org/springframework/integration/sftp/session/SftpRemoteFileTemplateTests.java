@@ -33,6 +33,7 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.sftp.TestSftpServer;
 import org.springframework.integration.sftp.TestSftpServerConfig;
@@ -60,7 +61,7 @@ public class SftpRemoteFileTemplateTests {
 	private TestSftpServer sftpServer;
 
 	@Autowired
-	private DefaultSftpSessionFactory sessionFactory;
+	private CachingSessionFactory<LsEntry> sessionFactory;
 
 	@Before
 	@After

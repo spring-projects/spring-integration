@@ -612,7 +612,7 @@ The message payload resulting from a _put_ operation is a `String` representing 
 
 __Version 4.3__ introduced the `chmod` attribute which changes the remote file permissions after upload.
 Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
-When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
+When configuring the adapter using java, you can use `setChmod(0600)`.
 
 *mput*
 

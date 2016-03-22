@@ -86,6 +86,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	}
 
 	protected void postProcessBuilder(BeanDefinitionBuilder builder, Element element) {
+		// no-op
 	}
 
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext,

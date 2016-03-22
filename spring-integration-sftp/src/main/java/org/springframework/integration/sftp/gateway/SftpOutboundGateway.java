@@ -139,7 +139,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
-	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, String path, int chmod) {
+	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, final String path, final int chmod) {
 		remoteFileTemplate.executeWithClient(new ClientCallbackWithoutResult<ChannelSftp>() {
 
 			@Override

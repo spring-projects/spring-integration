@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,12 +133,24 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
 	}
 
+	/**
+	 * String setter for Spring XML convenience.
+	 * @param chmod permissions as an octal string e.g "600";
+	 * @see #setChmod(int)
+	 * @since 4.3
+	 */
 	public void setChmodOctal(String chmod) {
 		Assert.notNull(chmod, "'chmod' cannot be null");
-		this.chmod = Integer.parseInt(chmod, 8);
+		setChmod(Integer.parseInt(chmod, 8));
 	}
 
-	public void setChmodDecimal(int chmod) {
+	/**
+	 * Set the file permissions after uploading, e.g. 0600 for
+	 * owner read/write.
+	 * @param chmod the permissions.
+	 * @since 4.3
+	 */
+	public void setChmod(int chmod) {
 		Assert.isTrue(isChmodCapable(), "chmod operations not supported");
 		this.chmod = chmod;
 	}
@@ -167,6 +179,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	 * @param remoteFileTemplate the remote file template.
 	 * @param path the path.
 	 * @param chmod the chmod to set.
+	 * @since 4.3
 	 */
 	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
 		// no-op
