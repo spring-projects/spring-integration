@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.integration.jms.config;
 
 import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
-import org.springframework.integration.jms.JmsHeaders;
+import org.springframework.jms.support.JmsHeaders;
 
 /**
  * Header enricher for JMS specific values.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
