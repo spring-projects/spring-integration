@@ -54,7 +54,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 		this.language = language;
 
 		this.scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
-		Assert.notNull(this.scriptEngine, "There is no 'scriptEngine' for the 'language': " + this.language);
+		Assert.notNull(this.scriptEngine, invalidLanguageMessage(this.language));
 		if (logger.isDebugEnabled()) {
 			logger.debug("Using script engine : " + scriptEngine.getFactory().getEngineName());
 		}
@@ -67,7 +67,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	@Override
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
-		Object result = null;
+		Object result;
 
 		try {
 			String script = scriptSource.getScriptAsString();
@@ -109,10 +109,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	 */
 	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings);
 
-	private static String invlalidLanguageMessage(String language) {
-		return new StringBuilder().append(ScriptEngineManager.class.getName())
-				.append(" is unable to create a script engine for language '").append(language).append("'.\n")
-				.append("This may be due to a missing language implementation or an invalid language name.").toString();
+	private static String invalidLanguageMessage(String language) {
+		return ScriptEngineManager.class.getName() +
+				" is unable to create a script engine for language '" + language + "'.\n" +
+				"This may be due to a missing language implementation or an invalid language name.";
 	}
 
 }
