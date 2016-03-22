@@ -34,7 +34,7 @@ import org.springframework.integration.scripting.ScriptExecutor;
 	 * Create a DefaultScriptExecutor for the specified language name (JSR233
 	 * alias).
 	 */
-	DefaultScriptExecutor(String language) {
+	public DefaultScriptExecutor(String language) {
 		super(language);
 	}
 
