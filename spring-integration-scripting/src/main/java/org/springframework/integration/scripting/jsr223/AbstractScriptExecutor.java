@@ -53,16 +53,10 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 		Assert.hasText(language, "language must not be empty");
 		this.language = language;
 
-		scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
-
+		this.scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
+		Assert.notNull(this.scriptEngine, "There is no 'scriptEngine' for the 'language': " + this.language);
 		if (logger.isDebugEnabled()) {
-
-			if (scriptEngine == null) {
-				logger.error(invlalidLanguageMessage(this.language));
-			}
-			else {
-				logger.debug("using script engine : " + scriptEngine.getFactory().getEngineName());
-			}
+			logger.debug("Using script engine : " + scriptEngine.getFactory().getEngineName());
 		}
 	}
 

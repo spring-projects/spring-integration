@@ -24,14 +24,14 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.scripting.ScriptExecutor;
-import org.springframework.integration.scripting.ScriptingException;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  * @author David Turanski
- *
+ * @author Artem Bilan
  */
 public class Jsr223ScriptExecutorTests {
 
@@ -41,9 +41,9 @@ public class Jsr223ScriptExecutorTests {
 		executor.executeScript(new StaticScriptSource("'hello, world'"));
 		executor.executeScript(new StaticScriptSource("'hello, again'"));
 
-		Map<String,Object> variables = new HashMap<String,Object>();
+		Map<String, Object> variables = new HashMap<String, Object>();
 
-		Map<String,Object> headers = new HashMap<String,Object>();
+		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("one", 1);
 		headers.put("two", "two");
 		headers.put("three", 3);
@@ -51,33 +51,32 @@ public class Jsr223ScriptExecutorTests {
 		variables.put("payload", "payload");
 		variables.put("headers", headers);
 
-		String result = (String)executor.executeScript(
-				new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb")),
-				variables
-		);
+		Resource resource = new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb");
+		String result = (String) executor.executeScript(new ResourceScriptSource(resource), variables);
 
 		assertEquals("payload modified", result.substring(0, "payload modified".length()));
 	}
+
 	@Test
-	public void testJs(){
+	public void testJs() {
 		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("js");
 		Object obj = executor.executeScript(new StaticScriptSource("function js(){ return 'js';} js();"));
-		assertEquals("js",obj.toString());
+		assertEquals("js", obj.toString());
 	}
 
 	@Test
 	public void testPython() {
 		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("python");
-		Object obj = executor.executeScript(new StaticScriptSource("x=2") );
-		assertEquals(2,obj);
+		Object obj = executor.executeScript(new StaticScriptSource("x=2"));
+		assertEquals(2, obj);
 
-		obj =  executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)") );
-		assertEquals(2,obj);
+		obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
+		assertEquals(2, obj);
 	}
 
-	@Test(expected = ScriptingException.class)
-	public void testInvalidLanguageThrowsScriptingException() {
-		ScriptExecutor executor = ScriptExecutorFactory.getScriptExecutor("foo");
-		executor.executeScript(new StaticScriptSource("x=2"));
+	@Test(expected = IllegalArgumentException.class)
+	public void testInvalidLanguageThrowsIllegalArgumentException() {
+		ScriptExecutorFactory.getScriptExecutor("foo");
 	}
+
 }
