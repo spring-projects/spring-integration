@@ -29,10 +29,11 @@ import org.springframework.integration.scripting.ScriptExecutor;
  * @author Gary Russell
  * @since 2.1
  */
- public class DefaultScriptExecutor extends AbstractScriptExecutor {
+public class DefaultScriptExecutor extends AbstractScriptExecutor {
+
 	/**
-	 * Create a DefaultScriptExecutor for the specified language name (JSR233
-	 * alias).
+	 * Create a DefaultScriptExecutor for the specified language name (JSR233 alias).
+	 * @param language the scripting language identificator.
 	 */
 	public DefaultScriptExecutor(String language) {
 		super(language);

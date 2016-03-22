@@ -26,12 +26,12 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
-import org.springframework.integration.jms.JmsHeaders;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.Message;
 /**
  * @author Oleg Zhurakousky
