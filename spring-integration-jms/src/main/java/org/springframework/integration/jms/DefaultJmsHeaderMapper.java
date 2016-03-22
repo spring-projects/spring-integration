@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.jms.support.JmsHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -111,7 +112,7 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 		try {
 			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
 			if (jmsCorrelationId instanceof Number) {
-				jmsCorrelationId = ((Number) jmsCorrelationId).toString();
+				jmsCorrelationId = jmsCorrelationId.toString();
 			}
 			if (jmsCorrelationId instanceof String) {
 				try {
@@ -190,6 +191,15 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			}
 			catch (Exception e) {
 				logger.info("failed to read JMSMessageID property, skipping", e);
+			}
+			try {
+				Destination destination = jmsMessage.getJMSDestination();
+				if (destination != null) {
+					headers.put(JmsHeaders.DESTINATION, destination);
+				}
+			}
+			catch (Exception ex) {
+				logger.info("failed to read JMSDestination property, skipping", ex);
 			}
 			try {
 				String correlationId = jmsMessage.getJMSCorrelationID();
