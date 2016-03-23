@@ -76,6 +76,11 @@ When writing files, you can now specify the buffer size to use.
 You can now avoid flushing files when appending and use a number of strategies to flush the data during idle periods.
 See <<file-flushing>> for more information.
 
+===== Preserving Timestamps
+
+The outbound channel adapter can now be configured to set the destination file's lastmodified timestamp.
+See <<file-timestamps>> for more information.
+
 ==== AMQP Changes
 
 ===== Content Type Message Converter
