@@ -120,13 +120,18 @@ public class FileWritingMessageHandlerTests {
 
 	@Test
 	public void stringPayloadCopiedToNewFile() throws Exception {
-		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		long lastModified = 1234000L;
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT)
+				.setHeader(FileHeaders.SET_MODIFIED, lastModified)
+				.build();
 		QueueChannel output = new QueueChannel();
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
+		handler.setPreserveTimestamp(true);
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+		assertLastModifiedIs(result, lastModified);
 	}
 
 	@Test
@@ -184,11 +189,15 @@ public class FileWritingMessageHandlerTests {
 	@Test
 	public void filePayloadCopiedToNewFile() throws Exception {
 		Message<?> message = MessageBuilder.withPayload(sourceFile).build();
+		long lastModified = 12345000L;
+		sourceFile.setLastModified(lastModified);
 		QueueChannel output = new QueueChannel();
 		handler.setOutputChannel(output);
+		handler.setPreserveTimestamp(true);
 		handler.handleMessage(message);
 		Message<?> result = output.receive(0);
 		assertFileContentIsMatching(result);
+		assertLastModifiedIs(result, lastModified);
 	}
 
 	@Test
@@ -512,10 +521,11 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	void assertFileContentIs(Message<?> result, String expected) throws IOException {
-		assertThat(result, is(notNullValue()));
-		assertThat(result.getPayload(), is(instanceOf(File.class)));
-		File destFile = (File) result.getPayload();
-		assertFileContentIs(destFile, expected);
+		assertFileContentIs(messageToFile(result), expected);
+	}
+
+	void assertLastModifiedIs(Message<?> result, long expected) {
+		assertThat(messageToFile(result).lastModified(), is(expected));
 	}
 
 	void assertFileContentIs(File destFile, String expected) throws IOException {
@@ -523,6 +533,13 @@ public class FileWritingMessageHandlerTests {
 		assertThat(destFile.exists(), is(true));
 		byte[] destFileContent = FileCopyUtils.copyToByteArray(destFile);
 		assertThat(new String(destFileContent, DEFAULT_ENCODING), is(expected));
+	}
+
+	protected File messageToFile(Message<?> result) {
+		assertThat(result, is(notNullValue()));
+		assertThat(result.getPayload(), is(instanceOf(File.class)));
+		File destFile = (File) result.getPayload();
+		return destFile;
 	}
 
 }

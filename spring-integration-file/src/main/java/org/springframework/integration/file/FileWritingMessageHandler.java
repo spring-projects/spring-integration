@@ -152,6 +152,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile MessageFlushPredicate flushPredicate = new DefaultFlushPredicate();
 
+	private volatile boolean preserveTimestamp;
+
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
 	 * a {@link LiteralExpression}.
@@ -327,6 +329,19 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.flushPredicate = flushPredicate;
 	}
 
+	/**
+	 * Set to true to preserve the destination file timestamp. If true and
+	 * the payload is a {@link File}, the payload's lastModified time will be
+	 * transferred to the output file. For other payloads, the
+	 * {@link FileHeaders#SET_MODIFIED} header {@value FileHeaders#SET_MODIFIED}
+	 * will be used if present and it's a {@link Number}.
+	 * @param preserveTimestamp the preserveTimestamp to set.
+	 * @since 4.3
+	 */
+	public void setPreserveTimestamp(boolean preserveTimestamp) {
+		this.preserveTimestamp = preserveTimestamp;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
@@ -408,6 +423,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (!ignore) {
 			try {
+				Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
 				if (!resultFile.exists() &&
 						generatedFileName.replaceAll("/", Matcher.quoteReplacement(File.separator))
 								.contains(File.separator)) {
@@ -415,6 +431,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
+					timestamp = ((File) payload).lastModified();
 				}
 				else if (payload instanceof InputStream) {
 					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
@@ -431,6 +448,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				else {
 					throw new IllegalArgumentException(
 							"unsupported Message payload type [" + payload.getClass().getName() + "]");
+				}
+				if (this.preserveTimestamp) {
+					if (timestamp instanceof Number) {
+						resultFile.setLastModified(((Number) timestamp).longValue());
+					}
+					else {
+						logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+								+ " must be a Number, not " + timestamp.getClass());
+					}
 				}
 			}
 			catch (Exception e) {

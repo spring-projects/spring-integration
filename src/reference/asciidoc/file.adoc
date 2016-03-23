@@ -105,7 +105,7 @@ to, say, network glitches.
 </bean>
 ----
 
-*The directory scanning and polling*
+*Directory scanning and polling*
 
 The `FileReadingMessageSource` doesn't produce messages for files from the directory immediately.
 It uses an internal queue for 'eligible files' returned by the `scanner`.
@@ -583,6 +583,18 @@ or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
 
 The predicates are called for each open file.
 See the java docs for these interfaces for more information.
+
+[[file-timestamps]]
+==== File Timestamps
+
+By default, the destination file `lastModified` timestamp will be the time the file was created (except a rename
+in-place will retain the current timestamp).
+Starting with _version 4.3_, you can now configure `preserve-timestamp` (or `setPreserveTimestamp(true)` when using
+Java configuration).
+For `File` payloads, this will transfer the timestamp from the inbound file to the outbound (regardless of whether a
+copy was required).
+For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it will be used to set
+the destination file's `lastModified` timestamp, as long as the header is a `Number`.
 
 [[file-outbound-channel-adapter]]
 ==== File Outbound Channel Adapter
