@@ -82,6 +82,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private DestinationResolver<MessageChannel> channelResolver;
 
+	private Boolean asyncReplySupported;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
@@ -120,6 +122,14 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
+	}
+
+	/*
+	 * Supported at the super class level but only exposed on the service activator
+	 * namespace. It's not clear that other endpoints would benefit from async support.
+	 */
+	public void setAsyncReplySupported(Boolean asyncReplySupported) {
+		this.asyncReplySupported = asyncReplySupported;
 	}
 
 	/**
@@ -186,6 +196,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 					}
 					this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
 						+ (name == null ? "" : (", " + name)) + ".");
+				}
+			}
+			if (this.asyncReplySupported != null) {
+				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
+					((AbstractReplyProducingMessageHandler) actualHandler)
+							.setAsyncReplySupported(this.asyncReplySupported);
 				}
 			}
 			if (this.handler instanceof Orderable && this.order != null) {

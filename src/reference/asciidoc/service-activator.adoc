@@ -106,3 +106,20 @@ For simple scenarios your _Service Activators_ do not even have to reference a b
 ----
 
 In the above configuration our service logic is to simply multiply the payload value by 2, and SpEL lets us handle it relatively easy.
+
+[[async-service-activator]]
+==== Asynchronous Service Activator
+
+The service activator is invoked by the calling thread; this would be some upstream thread if the input channel is a
+`SubscribableChannel`, or a poller thread for a `PollableChannel`.
+If the service returns a `ListenableFuture<?>` the default action is to send that as the payload of the message sent
+to the output (or reply) channel.
+Starting with _version 4.3_, you can now set the `async` attribute to true (`setAsyncReplySupported(true)` when using
+Java configuration).
+If the service returns a `ListenableFuture<?>` when this is true, the calling thread is released immediately, and the
+reply message is sent on the thread (from within your service) that completes the future.
+This is particularly advantageous for long-running services using a `PollableChannel` because the poller thread is
+freed up to perform other services within the framework.
+
+If the service completes the future with an `Exception`, normal error processing will occur (an `ErrorMessage` is
+sent to the `errorChannel` message header, if present.

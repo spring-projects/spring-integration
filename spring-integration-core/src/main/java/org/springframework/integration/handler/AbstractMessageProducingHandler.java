@@ -83,7 +83,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 *
 	 * @since 4.3
 	 */
-	protected final void setAsyncReplySupported(boolean asyncReplySupported) {
+	public final void setAsyncReplySupported(boolean asyncReplySupported) {
 		this.asyncReplySupported = asyncReplySupported;
 	}
 
