@@ -1227,6 +1227,16 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="async" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							If the service method returns a ListenableFuture<?> and this flag is 'true', the calling
+							thread is released immediately. The remaining flow will run on the thread that completes
+							the future. If 'false' (default), the future will be sent as the payload of the result
+							message. This has no effect with any other type of return.
+						]]></xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

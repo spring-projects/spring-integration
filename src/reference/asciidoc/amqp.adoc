@@ -977,7 +977,8 @@ _Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])_.
 This only applies if the `reply-channel` can block - such as a `QueueChannel` with a capacity limit that is currently full.
 Default: infinity.
 
-<9> When `true`, the gateway will send an error message to the inbound message's `errorChannel` header if no reply
+<9> When `true`, the gateway will send an error message to the inbound message's `errorChannel` header,
+if present or otherwise to the default `errorChannel` (if available), when no reply
 message is received within the `AsyncRabbitTemplate`'s `receiveTimeout` property. Default: `true`.
 
 <10> The routing-key to use when sending Messages.
@@ -986,8 +987,8 @@ Mutually exclusive with 'routing-key-expression'.
 _Optional_.
 
 
-<11> A SpEL expression that is evaluated to determine the routing-key to use when sending Messages, with the message as the root object (e.g.
-'payload.key').
+<11> A SpEL expression that is evaluated to determine the routing-key to use when sending Messages,
+with the message as the root object (e.g. 'payload.key').
 By default, this will be an empty String.
 Mutually exclusive with 'routing-key'.
 _Optional_.
@@ -1036,6 +1037,7 @@ This allows "fail fast" detection of bad configuration, by logging an error mess
 When true (default), the connection is established (if it doesn't already exist because some other component established
 it) when the first message is sent.
 
+Also see <<async-service-activator>> for more information.
 
 [IMPORTANT]
 .RabbitTemplate

@@ -83,7 +83,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 *
 	 * @since 4.3
 	 */
-	protected final void setAsyncReplySupported(boolean asyncReplySupported) {
+	public final void setAsyncReplySupported(boolean asyncReplySupported) {
 		this.asyncReplySupported = asyncReplySupported;
 	}
 
@@ -204,27 +204,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 				@Override
 				public void onFailure(Throwable ex) {
-					Object errorChannel = requestHeaders.getErrorChannel();
-					Throwable result = ex;
-					if (!(ex instanceof MessagingException)) {
-						result = new MessageHandlingException(requestMessage, ex);
-					}
-					if (errorChannel == null) {
-						logger.error("Async exception received and no 'errorChannel' header exists; cannot route "
-								+ "exception to caller", result);
-					}
-					else {
-						try {
-							sendOutput(new ErrorMessage(result), errorChannel, true);
-						}
-						catch (Exception e) {
-							Exception exceptionToLog = e;
-							if (!(e instanceof MessagingException)) {
-								exceptionToLog = new MessageHandlingException(requestMessage, e);
-							}
-							logger.error("Failed to send async reply", exceptionToLog);
-						}
-					}
+					sendErrorMessage(requestMessage, ex);
 				}
 			});
 		}
@@ -334,6 +314,43 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	protected boolean shouldCopyRequestHeaders() {
 		return true;
+	}
+
+	protected void sendErrorMessage(final Message<?> requestMessage, Throwable ex) {
+		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
+		Throwable result = ex;
+		if (!(ex instanceof MessagingException)) {
+			result = new MessageHandlingException(requestMessage, ex);
+		}
+		if (errorChannel == null) {
+			logger.error("Async exception received and no 'errorChannel' header exists and no default "
+					+ "'errorChannel' found", result);
+		}
+		else {
+			try {
+				sendOutput(new ErrorMessage(result), errorChannel, true);
+			}
+			catch (Exception e) {
+				Exception exceptionToLog = e;
+				if (!(e instanceof MessagingException)) {
+					exceptionToLog = new MessageHandlingException(requestMessage, e);
+				}
+				logger.error("Failed to send async reply", exceptionToLog);
+			}
+		}
+	}
+
+	protected Object resolveErrorChannel(final MessageHeaders requestHeaders) {
+		Object errorChannel = requestHeaders.getErrorChannel();
+		if (errorChannel == null) {
+			try {
+				errorChannel = getChannelResolver().resolveDestination("errorChannel");
+			}
+			catch (DestinationResolutionException e) {
+				// ignore
+			}
+		}
+		return errorChannel;
 	}
 
 }

@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for FactoryBeans that create MessageHandler instances.
+ * Base class for FactoryBeans that create standard MessageHandler instances.
  *
  * @author Mark Fisher
  * @author Alexander Peters
@@ -55,18 +55,34 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 
 	private volatile Expression expression;
 
+	/**
+	 * Set the target POJO for the message handler.
+	 * @param targetObject the target object.
+	 */
 	public void setTargetObject(Object targetObject) {
 		this.targetObject = targetObject;
 	}
 
+	/**
+	 * Set the method name for the message handler.
+	 * @param targetMethodName the target method name.
+	 */
 	public void setTargetMethodName(String targetMethodName) {
 		this.targetMethodName = targetMethodName;
 	}
 
+	/**
+	 * Set a SpEL expression to use.
+	 * @param expressionString the expression as a String.
+	 */
 	public void setExpressionString(String expressionString) {
 		this.expression = expressionParser.parseExpression(expressionString);
 	}
 
+	/**
+	 * Set a SpEL expression to use.
+	 * @param expression the expression.
+	 */
 	public void setExpression(Expression expression) {
 		this.expression = expression;
 	}

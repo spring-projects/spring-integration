@@ -26,7 +26,6 @@ import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
@@ -94,7 +93,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 					}
 				}
 				logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
-				sendErrorMessage(exceptionToLogAndSend, this.requestMessage.getHeaders().getErrorChannel());
+				sendErrorMessage(this.requestMessage, exceptionToLogAndSend);
 			}
 		}
 
@@ -127,30 +126,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 				}
 			}
 			else {
-				sendErrorMessage(exceptionToSend, this.requestMessage.getHeaders().getErrorChannel());
-			}
-		}
-
-		private void sendErrorMessage(Throwable ex, Object errorChannel) {
-			Throwable result = ex;
-			if (!(ex instanceof MessagingException)) {
-				result = new MessageHandlingException(this.requestMessage, ex);
-			}
-			if (errorChannel == null) {
-				logger.error("Async exception received and no 'errorChannel' header exists; cannot route "
-						+ "exception to caller", result);
-			}
-			else {
-				try {
-					sendOutput(new ErrorMessage(result), errorChannel, true);
-				}
-				catch (Exception e) {
-					Exception exceptionToLog = e;
-					if (!(e instanceof MessagingException)) {
-						exceptionToLog = new MessageHandlingException(this.requestMessage, e);
-					}
-					logger.error("Failed to send async reply", exceptionToLog);
-				}
+				sendErrorMessage(this.requestMessage, exceptionToSend);
 			}
 		}
 

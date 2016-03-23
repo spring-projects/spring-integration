@@ -53,8 +53,24 @@
 	<beans:bean id="testReplyingMessageHandler"
 		class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
 
-	<beans:bean id="testMessageProcessor" class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageProcessor">
+	<beans:bean id="testMessageProcessor"
+			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageProcessor">
 		<beans:property name="prefix" value="foo"/>
 	</beans:bean>
+
+	<channel id="asyncIn" />
+
+	<channel id="asyncOut">
+		<queue />
+	</channel>
+
+	<service-activator input-channel="asyncIn" ref="async" async="true" />
+
+	<beans:bean id="async"
+		class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$AsyncService" />
+
+	<channel id="errorChannel">
+		<queue />
+	</channel>
 
 </beans:beans>
