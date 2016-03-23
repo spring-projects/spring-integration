@@ -513,8 +513,8 @@ Only files matching this regular expression will be picked up by this adapter.
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify whether to preserve the modified timestamp from the source
-					file on the local file after copying. Applies to 'java.io.File' payloads.
-					For other payload types, the optional 'file_timestamp' header will be used,
+					file on the destination file after copying. Applies to 'java.io.File' payloads.
+					For other payload types, the optional 'file_setModified' header will be used,
 					if present (and a 'Number'), to set the lastModified time.
 					By default, the timestamp will NOT be preserved.
 				</xsd:documentation>

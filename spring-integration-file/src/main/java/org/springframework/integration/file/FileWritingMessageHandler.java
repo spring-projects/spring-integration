@@ -334,8 +334,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * the payload is a {@link File}, the payload's lastModified time will be
 	 * transferred to the output file. For other payloads, the
 	 * {@link FileHeaders#SET_MODIFIED} header {@value FileHeaders#SET_MODIFIED}
-	 * will be used if present and it's a {@link Number} or {@link String} that
-	 * can be parsed to {@link Long}.
+	 * will be used if present and it's a {@link Number}.
 	 * @param preserveTimestamp the preserveTimestamp to set.
 	 * @since 4.3
 	 */
@@ -450,8 +449,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					throw new IllegalArgumentException(
 							"unsupported Message payload type [" + payload.getClass().getName() + "]");
 				}
-				if (this.preserveTimestamp && timestamp instanceof Number) {
-					resultFile.setLastModified(((Number) timestamp).longValue());
+				if (this.preserveTimestamp) {
+					if (timestamp instanceof Number) {
+						resultFile.setLastModified(((Number) timestamp).longValue());
+					}
+					else {
+						logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+								+ " must be a Number, not " + timestamp.getClass());
+					}
 				}
 			}
 			catch (Exception e) {
