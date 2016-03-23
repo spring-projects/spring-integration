@@ -21,12 +21,13 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,14 +45,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.TestSftpServer;
-import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -114,7 +116,7 @@ public class SftpServerOutboundTests {
 	private DirectChannel inboundMPutRecursiveFiltered;
 
 	@Autowired
-	private DefaultSftpSessionFactory sessionFactory;
+	private SessionFactory<LsEntry> sessionFactory;
 
 	@Autowired
 	private DirectChannel appending;
@@ -160,8 +162,8 @@ public class SftpServerOutboundTests {
 		assertThat(localFile.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 				Matchers.containsString(dir.toUpperCase()));
 		Session<?> session2 = this.sessionFactory.getSession();
-		assertSame(TestUtils.getPropertyValue(session, "jschSession"),
-				TestUtils.getPropertyValue(session2, "jschSession"));
+		assertSame(TestUtils.getPropertyValue(session, "targetSession.jschSession"),
+				TestUtils.getPropertyValue(session2, "targetSession.jschSession"));
 	}
 
 	@Test
@@ -327,7 +329,13 @@ public class SftpServerOutboundTests {
 	}
 
 	@Test
-	public void testInt3088MPutNotRecursive() {
+	public void testInt3088MPutNotRecursive() throws Exception {
+		Session<?> session = sessionFactory.getSession();
+		session.close();
+		session = TestUtils.getPropertyValue(session, "targetSession", Session.class);
+		ChannelSftp channel = spy(TestUtils.getPropertyValue(session, "channel", ChannelSftp.class));
+		new DirectFieldAccessor(session).setPropertyValue("channel", channel);
+
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		while (output.receive(0) != null) { }
@@ -344,6 +352,8 @@ public class SftpServerOutboundTests {
 		assertThat(
 				out.getPayload().get(1),
 				anyOf(equalTo("sftpTarget/localSource1.txt"), equalTo("sftpTarget/localSource2.txt")));
+		verify(channel).chmod(384, "sftpTarget/localSource1.txt"); // 384 = 600 octal
+		verify(channel).chmod(384, "sftpTarget/localSource2.txt");
 	}
 
 	@Test
@@ -419,6 +429,9 @@ public class SftpServerOutboundTests {
 
 	@Test
 	public void testStream() {
+		Session<?> session = spy(this.sessionFactory.getSession());
+		session.close();
+
 		String dir = "sftpSource/";
 		this.inboundGetStream.send(new GenericMessage<Object>(dir + "sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
@@ -426,7 +439,7 @@ public class SftpServerOutboundTests {
 		assertEquals("source1", result.getPayload());
 		assertEquals("sftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
-		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
+		verify(session).close();
 	}
 
 	@Test
@@ -449,6 +462,7 @@ public class SftpServerOutboundTests {
 		assertEquals(6, files[0].getAttrs().getSize());
 	}
 
+	@SuppressWarnings("unused")
 	private static final class TestMessageSessionCallback
 			implements MessageSessionCallback<LsEntry, Object> {
 

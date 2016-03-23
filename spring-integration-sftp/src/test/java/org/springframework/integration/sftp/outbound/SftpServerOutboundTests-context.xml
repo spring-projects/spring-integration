@@ -73,6 +73,7 @@
 							  auto-create-directory="true"
 							  filename-pattern="*.txt"
 							  expression="payload"
+							  chmod="600"
 							  remote-directory="sftpTarget"
 							  reply-channel="output"/>
 
