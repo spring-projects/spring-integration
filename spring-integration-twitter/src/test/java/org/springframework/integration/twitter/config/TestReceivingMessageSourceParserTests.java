@@ -53,7 +53,6 @@ public class TestReceivingMessageSourceParserTests {
 
 		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
 
-		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
 		TimelineReceivingMessageSource tms = TestUtils.getPropertyValue(spca, "source", TimelineReceivingMessageSource.class);
 		assertEquals(Integer.valueOf(67), TestUtils.getPropertyValue(tms, "pageSize", Integer.class));
 		assertNotNull(tms);
