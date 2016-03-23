@@ -69,6 +69,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-reply-listener-timeout",
 				"idleReplyContainerTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async");
 
 		String deliveryPersistent = element.getAttribute("delivery-persistent");
 		if (StringUtils.hasText(deliveryPersistent)) {

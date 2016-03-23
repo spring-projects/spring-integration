@@ -397,6 +397,21 @@ __NOT ALLOWED__
 User-supplied correlation ids are not permitted with a reply listener; the gateway will not initialize with this
 configuration.
 
+[[jms-async-gateway]]
+==== Async Gateway
+
+Starting with _version 4.3_, you can now specify `async="true"` (or `setAsync(true)`) when configuring the outbound
+gateway.
+
+By default, when a request is sent to the gateway, the requesting thread is suspended until the reply is received and
+the flow then continues on that thread.
+If `async` is true, the requesting thread is released immediately and the reply is returned (and the flow continues)
+on the listener container thread.
+
+`async` requires a `<reply-listener/>` (or `setUseReplyContainer(true)` when using Java configuration); it also
+requires a `correlationKey` (usually `JMSCorrelationID`) to be specified.
+If either of these conditions are not met, `async` is ignored.
+
 [[jms-og-attributes]]
 ==== Attribute Reference
 
@@ -426,9 +441,10 @@ configuration.
     request-destination-name="" <21>
     request-pub-sub-domain="" <22>
     time-to-live="" <23>
-    requires-reply=""> <24>
-    idle-reply-listener-timeout <25>
-  <int-jms:reply-listener /> <26>
+    requires-reply="" <24>
+    idle-reply-listener-timeout="" <25>
+    async=""> <26>
+  <int-jms:reply-listener /> <27>
 </int-jms:outbound-gateway>
 ----
 
@@ -541,7 +557,9 @@ are outstanding).
 The container will be started again on the next request.
 The stop time is a minimum and may actually be up to 1.5x this value.
 
-<26> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than
+<26> See <<jms-async-gateway>>.
+
+<27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than
 creating a consumer for each reply.
 This can be more efficient in many cases.
 
