@@ -405,8 +405,10 @@ gateway.
 
 By default, when a request is sent to the gateway, the requesting thread is suspended until the reply is received and
 the flow then continues on that thread.
-If `async` is true, the requesting thread is released immediately and the reply is returned (and the flow continues)
-on the listener container thread.
+If `async` is true, the requesting thread is released immediately after the send completes, and the reply is returned
+(and the flow continues) on the listener container thread.
+This can be useful when the gateway is invoked on a poller thread; the thread is released and is available for other
+tasks within the framework.
 
 `async` requires a `<reply-listener/>` (or `setUseReplyContainer(true)` when using Java configuration); it also
 requires a `correlationKey` (usually `JMSCorrelationID`) to be specified.

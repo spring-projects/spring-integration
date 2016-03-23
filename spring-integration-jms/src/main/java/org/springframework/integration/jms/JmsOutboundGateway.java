@@ -578,7 +578,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				setContainerProperties(container);
 				container.afterPropertiesSet();
 				this.replyContainer = container;
-				if (this.correlationKey == null) {
+				if (this.async && this.correlationKey == null) {
 					logger.warn("'async=true' requires a correlationKey; ignored");
 					this.async = false;
 				}

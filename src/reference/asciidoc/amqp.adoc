@@ -915,8 +915,10 @@ public class AmqpJavaApplication {
 The gateway discussed in the previous section is synchronous, in that the sending thread is suspended until a
 reply is received (or a timeout occurs).
 Spring Integration _version 4.3_ added this asynchronous gateway, which uses the `AsyncRabbitTemplate` from Spring AMQP.
-When a message is sent, the thread returns immediately and the reply is sent on the template's listener container
-thread when it is received.
+When a message is sent, the thread returns immediately after the send completes, and the reply is sent on the template's
+listener container thread when it is received.
+This can be useful when the gateway is invoked on a poller thread; the thread is released and is available for other
+tasks in the framework.
 
 Configuration for an AMQP Async Outbound Gateway is shown below.
 
