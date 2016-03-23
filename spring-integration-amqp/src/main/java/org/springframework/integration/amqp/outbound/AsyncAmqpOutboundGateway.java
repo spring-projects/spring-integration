@@ -49,7 +49,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 		this.messageConverter = template.getMessageConverter();
 		Assert.notNull(this.messageConverter, "the template's message converter cannot be null");
 		setConnectionFactory(this.template.getConnectionFactory());
-		setAsyncReplySupported(true);
+		setAsync(true);
 	}
 
 	@Override

@@ -84,7 +84,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private DestinationResolver<MessageChannel> channelResolver;
 
-	private Boolean asyncReplySupported;
+	private Boolean async;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -150,11 +150,11 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	 * namespace. It's not clear that other endpoints would benefit from async support,
 	 * but any subclass of {@link AbstractReplyProducingMessageHandler} can potentially
 	 * return a {@code ListenableFuture<?>}.
-	 * @param asyncReplySupported the asyncReplySupported to set.
+	 * @param async the async to set.
 	 * @since 4.3
 	 */
-	public void setAsyncReplySupported(Boolean asyncReplySupported) {
-		this.asyncReplySupported = asyncReplySupported;
+	public void setAsync(Boolean async) {
+		this.async = async;
 	}
 
 	/**
@@ -223,10 +223,10 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 						+ (name == null ? "" : (", " + name)) + ".");
 				}
 			}
-			if (this.asyncReplySupported != null) {
+			if (this.async != null) {
 				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
 					((AbstractReplyProducingMessageHandler) actualHandler)
-							.setAsyncReplySupported(this.asyncReplySupported);
+							.setAsync(this.async);
 				}
 			}
 			if (this.handler instanceof Orderable && this.order != null) {

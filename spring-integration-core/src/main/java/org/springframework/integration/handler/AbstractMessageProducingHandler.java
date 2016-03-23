@@ -55,7 +55,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private volatile String outputChannelName;
 
-	private volatile boolean asyncReplySupported;
+	private volatile boolean async;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -79,21 +79,20 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * Allow async replies. If the handler reply is a {@link ListenableFuture} send
 	 * the output when it is satisfied rather than sending the future as the result.
 	 * Only subclasses that support this feature should set it.
-	 * @param asyncReplySupported true to allow.
-	 *
+	 * @param async true to allow.
 	 * @since 4.3
 	 */
-	public final void setAsyncReplySupported(boolean asyncReplySupported) {
-		this.asyncReplySupported = asyncReplySupported;
+	public final void setAsync(boolean async) {
+		this.async = async;
 	}
 
 	/**
-	 * @see #setAsyncReplySupported(boolean)
+	 * @see #setAsync(boolean)
 	 * @return true if this handler supports async replies.
 	 * @since 4.3
 	 */
-	protected boolean getAsyncReplySupported() {
-		return this.asyncReplySupported;
+	protected boolean isAsync() {
+		return this.async;
 	}
 
 	@Override
@@ -177,7 +176,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 
-		if (this.asyncReplySupported && reply instanceof ListenableFuture<?>) {
+		if (this.async && reply instanceof ListenableFuture<?>) {
 			ListenableFuture<?> future = (ListenableFuture<?>) reply;
 			final Object theReplyChannel = replyChannel;
 			future.addCallback(new ListenableFutureCallback<Object>() {
@@ -230,7 +229,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			throw new IllegalArgumentException("The RoutingSlip 'path' can be of " +
-					"String or RoutingSlipRouteStrategy type, but gotten: " + path);
+					"String or RoutingSlipRouteStrategy type, but got: " + path.getClass());
 		}
 
 		if (routingSlipPathValue instanceof MessageChannel) {

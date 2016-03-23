@@ -111,7 +111,7 @@ public class AsyncHandlerTests {
 			}
 
 		};
-		this.handler.setAsyncReplySupported(true);
+		this.handler.setAsync(true);
 		this.handler.setOutputChannel(this.output);
 		this.handler.setBeanFactory(mock(BeanFactory.class));
 		this.latch = new CountDownLatch(1);

@@ -45,7 +45,7 @@ public class LastModifiedFileListFilterTests {
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
 		assertEquals(0, filter.filterFiles(new File[] { foo }).size());
-		Thread.sleep(2000);
+		foo.setLastModified(System.currentTimeMillis() - 10000);
 		assertEquals(1, filter.filterFiles(new File[] { foo }).size());
 	}
 

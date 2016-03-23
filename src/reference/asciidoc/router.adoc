@@ -28,16 +28,6 @@ In order to provide a quick overview, all available attributes are listed in the
 [cols="2,1,1,1,1,1,1", options="header"]
 |===
 
-
-
-
-
-
-
-
-
-
-
 | Attribute
 
 
@@ -59,12 +49,6 @@ In order to provide a quick overview, all available attributes are listed in the
 | exception type router
 
 
-
-
-
-
-
-
 | apply-sequence
 
 
@@ -74,12 +58,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | default-output-channel
@@ -93,12 +71,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | resolution-required
 
 
@@ -108,12 +80,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | ignore-send-failures
@@ -127,12 +93,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | timeout
 
 
@@ -142,12 +102,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | id
@@ -161,12 +115,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | auto-startup
 
 
@@ -176,12 +124,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | input-channel
@@ -195,12 +137,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | order
 
 
@@ -210,12 +146,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | method
@@ -229,12 +159,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | ref
 
 
@@ -244,12 +168,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | expression
@@ -263,12 +181,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | header-name
 
 
@@ -278,12 +190,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | evaluate-as-string
@@ -297,12 +203,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | xpath-expression-ref
 
 
@@ -314,12 +214,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | converter
 
 
@@ -329,10 +223,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
 
 
 |===
@@ -342,15 +232,6 @@ a| image::images/tickmark.png[]
 |===
 
 
-
-
-
-
-
-
-
-
-
 | Attribute
 
 
@@ -372,12 +253,6 @@ a| image::images/tickmark.png[]
 | exception type router
 
 
-
-
-
-
-
-
 | apply-sequence
 
 
@@ -387,12 +262,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | default-output-channel
@@ -406,12 +275,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | resolution-required
 
 
@@ -421,12 +284,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | ignore-send-failures
@@ -440,12 +297,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 
 
-
-
-
-
-
-
 | timeout
 
 
@@ -455,12 +306,6 @@ a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
 a| image::images/tickmark.png[]
-
-
-
-
-
-
 
 
 | id
@@ -474,12 +319,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | auto-startup
 
 
@@ -489,12 +328,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | input-channel
@@ -508,12 +341,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | order
 
 
@@ -523,12 +350,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | method
@@ -542,12 +363,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | ref
 
 
@@ -557,12 +372,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | expression
@@ -576,12 +385,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | header-name
 
 
@@ -591,12 +394,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
-
-
 
 
 | evaluate-as-string
@@ -610,12 +407,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | xpath-expression-ref
 
 
@@ -627,12 +418,6 @@ a| image::images/tickmark.png[]
 |
 
 
-
-
-
-
-
-
 | converter
 
 
@@ -642,10 +427,6 @@ a| image::images/tickmark.png[]
 |
 |
 |
-
-
-
-
 
 
 |===
@@ -1309,6 +1090,15 @@ It accepts a SpEL expression, and an internal `ExpressionEvaluatingRoutingSlipRo
 This is to avoid the overhead of `EvaluationContext` creation for each `ExpressionEvaluatingRoutingSlipRouteStrategy.getNextPath()` invocation.
 It is a simple Java Bean with two properties - `Message<?> request` and `Object reply`.
 With this expression implementation, we can specify Routing Slip `path` entries using SpEL (`@routingSlipRoutingPojo.get(request, reply)`, `request.headers[myRoutingSlipChannel]`) avoiding a bean definition for the `RoutingSlipRouteStrategy`.
+
+NOTE: The `requestMessage` argument is always a `Message<?>`; depending on context, the reply object may be a
+`Message<?>`, an `AbstractIntegrationMessageBuilder` or an arbitrary application domain object (if, for example,
+it is returned by a POJO method invoked by a service activator).
+In the first two cases, the usual "message" properties are available (`payload` and `headers`) when using SpEL (or
+a Java implementation).
+When an arbitrary domain object, these properties are, obviously, not available.
+Care should be taken when using routing slips in conjunction with POJO methods if the result is used to determine the
+next path.
 
 IMPORTANT: If a _Routing Slip_ is involved in a distributed environment - cross-JVM application, `request-reply` through a Message Broker (e.g.
 <<amqp>>, <<jms>>), or persistence `MessageStore` (<<message-store>>) is used in the integration flow, etc., - it is recommended to *not* use _inline_ expressions for the Routing Slip `path`.

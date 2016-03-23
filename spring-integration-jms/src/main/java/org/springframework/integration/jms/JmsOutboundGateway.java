@@ -51,6 +51,7 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
@@ -66,6 +67,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
@@ -78,6 +80,23 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements Lifecycle, MessageListener {
+
+	private final Object initializationMonitor = new Object();
+
+	private final AtomicLong correlationId = new AtomicLong();
+
+	private final String gatewayCorrelation = UUID.randomUUID().toString();
+
+	private final Map<String, LinkedBlockingQueue<javax.jms.Message>> replies =
+			new ConcurrentHashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
+
+	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies =
+			new ConcurrentHashMap<String, JmsOutboundGateway.TimedReply>();
+
+	private final Map<String, SettableListenableFuture<AbstractIntegrationMessageBuilder<?>>> futures =
+			new ConcurrentHashMap<String, SettableListenableFuture<AbstractIntegrationMessageBuilder<?>>>();
+
+	private final Object lifeCycleMonitor = new Object();
 
 	private volatile Destination requestDestination;
 
@@ -127,23 +146,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile boolean useReplyContainer;
 
-	private final Object initializationMonitor = new Object();
-
 	private volatile boolean active;
 
-	private final AtomicLong correlationId = new AtomicLong();
-
-	private final String gatewayCorrelation = UUID.randomUUID().toString();
-
-	private final Map<String, LinkedBlockingQueue<javax.jms.Message>> replies =
-			new ConcurrentHashMap<String, LinkedBlockingQueue<javax.jms.Message>>();
-
-	private final ConcurrentHashMap<String, TimedReply> earlyOrLateReplies =
-			new ConcurrentHashMap<String, JmsOutboundGateway.TimedReply>();
-
 	private volatile ScheduledFuture<?> reaper;
-
-	private final Object lifeCycleMonitor = new Object();
 
 	private volatile boolean requiresReply;
 
@@ -210,7 +215,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	public void setRequestDestinationExpression(Expression requestDestinationExpression) {
 		Assert.notNull(requestDestinationExpression, "'requestDestinationExpression' must not be null");
-		this.requestDestinationExpressionProcessor = new ExpressionEvaluatingMessageProcessor<Object>(requestDestinationExpression);
+		this.requestDestinationExpressionProcessor =
+				new ExpressionEvaluatingMessageProcessor<Object>(requestDestinationExpression);
 	}
 
 	/**
@@ -409,7 +415,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * @param replyContainerProperties the replyContainerproperties to set
+	 * @param replyContainerProperties the replyContainerProperties to set
 	 */
 	public void setReplyContainerProperties(ReplyContainerProperties replyContainerProperties) {
 		this.replyContainerProperties = replyContainerProperties;
@@ -473,7 +479,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				return this.resolveRequestDestination((String) result, session);
 			}
 			throw new MessageDeliveryException(message,
-					"Evaluation of requestDestinationExpression failed to produce a Destination or destination name. Result was: " + result);
+					"Evaluation of requestDestinationExpression failed " +
+							"to produce a Destination or destination name. Result was: " + result);
 		}
 		throw new MessageDeliveryException(message,
 				"No requestDestination, requestDestinationName, or requestDestinationExpression has been configured.");
@@ -502,7 +509,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				return this.resolveReplyDestination((String) result, session);
 			}
 			throw new MessageDeliveryException(message,
-					"Evaluation of replyDestinationExpression failed to produce a Destination or destination name. Result was: " + result);
+					"Evaluation of replyDestinationExpression failed to produce a Destination or destination name. " +
+							"Result was: " + result);
 		}
 		return session.createTemporaryQueue();
 	}
@@ -524,7 +532,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			Assert.isTrue(this.requestDestination != null
 					^ this.requestDestinationName != null
 					^ this.requestDestinationExpressionProcessor != null,
-					"Exactly one of 'requestDestination', 'requestDestinationName', or 'requestDestinationExpression' is required.");
+					"Exactly one of 'requestDestination', 'requestDestinationName', " +
+							"or 'requestDestinationExpression' is required.");
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
@@ -541,7 +550,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					(this.replyDestination != null || this.replyDestinationName != null) ||
 					 this.replyDestinationExpressionProcessor != null)) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("The gateway cannot use a reply listener container with a specified destination(Name/Expression) " +
+					logger.warn("The gateway cannot use a reply listener container with a specified " +
+							"destination(Name/Expression) " +
 							"without a 'correlation-key'; " +
 							"a container will NOT be used; " +
 							"to avoid this problem, set the 'correlation-key' attribute; " +
@@ -560,6 +570,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				setContainerProperties(container);
 				container.afterPropertiesSet();
 				this.replyContainer = container;
+				if (isAsync() && this.correlationKey == null) {
+					logger.warn("'async=true' requires a correlationKey; ignored");
+					setAsync(false);
+				}
+			}
+			else {
+				if (isAsync()) {
+					logger.warn("'async=true' is ignored when a reply container is not being used");
+					setAsync(false);
+				}
 			}
 			this.initialized = true;
 		}
@@ -611,7 +631,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
 			}
 			if (StringUtils.hasText(this.replyContainerProperties.getSessionAcknowledgeModeName())) {
-				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeModeName());
+				Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(
+						this.replyContainerProperties.getSessionAcknowledgeModeName());
 				if (acknowledgeMode != null) {
 					if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 						container.setSessionTransacted(true);
@@ -659,7 +680,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					else {
 						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
 					}
-					if (this.receiveTimeout >= 0) {
+					if (!isAsync() && this.receiveTimeout >= 0) {
 						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
 						this.reaper = taskScheduler.schedule(new LateReplyReaper(), new Date());
 					}
@@ -675,7 +696,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.replyContainer != null) {
 				this.replyContainer.stop();
 				this.deleteDestinationIfTemporary(this.replyContainer.getDestination());
-				this.reaper.cancel(false);
+				if (this.reaper != null) {
+					this.reaper.cancel(false);
+				}
 			}
 			if (this.idleTask != null) {
 				this.idleTask.cancel(true);
@@ -691,15 +714,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
-	protected Object handleRequestMessage(final Message<?> message) {
+	protected Object handleRequestMessage(final Message<?> requestMessage) {
 		if (!this.initialized) {
-			this.afterPropertiesSet();
+			afterPropertiesSet();
 		}
-		final Message<?> requestMessage = this.getMessageBuilderFactory().fromMessage(message).build();
 		try {
-			javax.jms.Message jmsReply;
+			Object reply;
 			if (this.replyContainer == null) {
-				jmsReply = this.sendAndReceiveWithoutContainer(requestMessage);
+				reply = sendAndReceiveWithoutContainer(requestMessage);
 			}
 			else {
 				if (this.idleReplyContainerTimeout > 0) {
@@ -715,45 +737,53 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 						}
 					}
 				}
-				jmsReply = this.sendAndReceiveWithContainer(requestMessage);
+				reply = this.sendAndReceiveWithContainer(requestMessage);
 			}
-			if (jmsReply == null) {
+			if (reply == null) {
 				if (this.requiresReply) {
-					throw new MessageTimeoutException(message,
+					throw new MessageTimeoutException(requestMessage,
 							"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
 				}
 				else {
 					return null;
 				}
 			}
-			Object result = jmsReply;
-			if (this.extractReplyPayload) {
-				result = this.messageConverter.fromMessage(jmsReply);
-				if (logger.isDebugEnabled()) {
-					logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
-				}
-			}
-			Map<String, Object> jmsReplyHeaders = this.headerMapper.toHeaders(jmsReply);
 
-			if (this.replyContainer != null && this.correlationKey != null) {
-				// do not propagate back the gateway's internal correlation id
-				jmsReplyHeaders.remove(this.correlationKey);
-			}
-			Message<?> replyMessage = null;
-			if (result instanceof Message){
-				replyMessage = this.getMessageBuilderFactory().fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders).build();
+			if (reply instanceof javax.jms.Message) {
+				return buildReply((javax.jms.Message) reply);
 			}
 			else {
-				replyMessage = this.getMessageBuilderFactory().withPayload(result).copyHeaders(jmsReplyHeaders).build();
+				return reply;
 			}
-			return replyMessage;
 		}
 		catch (JMSException e) {
 			throw new MessageHandlingException(requestMessage, e);
 		}
 	}
 
-	private javax.jms.Message sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
+	private AbstractIntegrationMessageBuilder<?> buildReply(javax.jms.Message jmsReply) throws JMSException {
+		Object result = jmsReply;
+		if (this.extractReplyPayload) {
+			result = this.messageConverter.fromMessage(jmsReply);
+			if (logger.isDebugEnabled()) {
+				logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+			}
+		}
+		Map<String, Object> jmsReplyHeaders = this.headerMapper.toHeaders(jmsReply);
+
+		if (this.replyContainer != null && this.correlationKey != null) {
+			// do not propagate back the gateway's internal correlation id
+			jmsReplyHeaders.remove(this.correlationKey);
+		}
+		if (result instanceof Message){
+			return getMessageBuilderFactory().fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders);
+		}
+		else {
+			return getMessageBuilderFactory().withPayload(result).copyHeaders(jmsReplyHeaders);
+		}
+	}
+
+	private Object sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
 		Connection connection = this.createConnection();
 		Session session = null;
 		Destination replyTo = this.replyContainer.getReplyDestination();
@@ -782,7 +812,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
 
-			javax.jms.Message reply = null;
+			Object reply = null;
 			if (this.correlationKey == null) {
 				/*
 				 * Remove any existing correlation id that was mapped from the inbound message
@@ -798,8 +828,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			 * Remove the gateway's internal correlation Id to avoid conflicts with an upstream
 			 * gateway.
 			 */
-			if (reply != null) {
-				reply.setJMSCorrelationID(null);
+			if (reply instanceof javax.jms.Message) {
+				((javax.jms.Message) reply).setJMSCorrelationID(null);
 			}
 			return reply;
 		}
@@ -840,13 +870,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			javax.jms.Message replyMessage = null;
 			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
 			if (this.correlationKey != null) {
-				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(requestDestination, jmsRequest, replyTo, session, priority);
+				replyMessage = doSendAndReceiveWithGeneratedCorrelationId(requestDestination, jmsRequest, replyTo,
+						session, priority);
 			}
 			else if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
-				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, replyTo, session, priority);
+				replyMessage = doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, replyTo,
+						session, priority);
 			}
 			else {
-				replyMessage = this.doSendAndReceiveWithMessageIdCorrelation(requestDestination, jmsRequest, replyTo, session, priority);
+				replyMessage = doSendAndReceiveWithMessageIdCorrelation(requestDestination, jmsRequest, replyTo,
+						session, priority);
 			}
 			return replyMessage;
 		}
@@ -858,7 +891,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * Creates the MessageConsumer before sending the request Message since we are generating our own correlationId value for the MessageSelector.
+	 * Creates the MessageConsumer before sending the request Message since we are generating
+	 * our own correlationId value for the MessageSelector.
 	 */
 	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(Destination requestDestination,
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
@@ -911,7 +945,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
+	 * Creates the MessageConsumer after sending the request Message since we need
+	 * the MessageID for correlation with a MessageSelector.
 	 */
 	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(Destination requestDestination,
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
@@ -1009,7 +1044,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	private javax.jms.Message doSendAndReceiveAsync(Destination requestDestination, javax.jms.Message jmsRequest, Session session, int priority) throws JMSException {
+	private Object doSendAndReceiveAsync(Destination requestDestination, javax.jms.Message jmsRequest, Session session,
+			int priority) throws JMSException {
 		String correlationId = null;
 		MessageProducer messageProducer = null;
 		try {
@@ -1026,19 +1062,32 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				 */
 				jmsRequest.setJMSCorrelationID(null);
 			}
-			LinkedBlockingQueue<javax.jms.Message> replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
+			LinkedBlockingQueue<javax.jms.Message> replyQueue = null;
 			if (logger.isDebugEnabled()) {
 				logger.debug(this.getComponentName() + " Sending message with correlationId " + correlationId);
 			}
-			this.replies.put(correlationId, replyQueue);
+			SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = null;
+			boolean async = isAsync();
+			if (!async) {
+				replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
+				this.replies.put(correlationId, replyQueue);
+			}
+			else {
+				future = createFuture(correlationId);
+			}
 
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-			return obtainReplyFromContainer(correlationId, replyQueue);
+			if (async) {
+				return future;
+			}
+			else {
+				return obtainReplyFromContainer(correlationId, replyQueue);
+			}
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			if (correlationId != null) {
+			if (correlationId != null && !isAsync()) {
 				this.replies.remove(correlationId);
 			}
 		}
@@ -1103,16 +1152,58 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		if (logger.isDebugEnabled()) {
 			if (reply == null) {
-				logger.debug(this.getComponentName() + " Timed out waiting for reply with CorrelationId " + correlationId);
+				if (logger.isDebugEnabled()) {
+					logger.debug(this.getComponentName() + " Timed out waiting for reply with CorrelationId "
+							+ correlationId);
+				}
 			}
 			else {
-				logger.debug(this.getComponentName() + " Obtained reply with CorrelationId " + correlationId);
+				if (logger.isDebugEnabled()) {
+					logger.debug(this.getComponentName() + " Obtained reply with CorrelationId " + correlationId);
+				}
 			}
 		}
 		return reply;
 	}
 
-	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
+	private SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> createFuture(final String correlationId) {
+		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future =
+				new SettableListenableFuture<AbstractIntegrationMessageBuilder<?>>();
+		this.futures.put(correlationId, future);
+		if (this.receiveTimeout > 0) {
+			getTaskScheduler().schedule(new Runnable() {
+
+				@Override
+				public void run() {
+					expire(correlationId);
+				}
+
+			}, new Date(System.currentTimeMillis() + this.receiveTimeout));
+		}
+		return future;
+	}
+
+	private void expire(String correlationId) {
+		final SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
+		if (future != null) {
+			try {
+				if (getRequiresReply()) {
+					future.setException(new JmsTimeoutException("No reply in " + this.receiveTimeout + " ms"));
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Reply expired and reply not required for " + correlationId);
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.error("Exception while expiring future");
+			}
+		}
+	}
+
+	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority)
+			throws JMSException {
 		if (this.explicitQosEnabled) {
 			messageProducer.send(jmsRequest, this.deliveryMode, priority, this.timeToLive);
 		}
@@ -1181,6 +1272,33 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				correlationId = message.getStringProperty(this.correlationKey);
 			}
 			Assert.state(correlationId != null, "Message with no correlationId received");
+			if (isAsync()) {
+				onMessageAsync(message, correlationId);
+			}
+			else {
+				onMessageSync(message, correlationId);
+			}
+		}
+		catch (Exception e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Failed to consume reply with correlationId " + correlationId, e);
+			}
+		}
+	}
+
+	private void onMessageAsync(javax.jms.Message message, String correlationId) throws Exception {
+		SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = this.futures.remove(correlationId);
+		if (future != null) {
+			message.setJMSCorrelationID(null);
+			future.set(buildReply(message));
+		}
+		else {
+			logger.warn("Late reply for " + correlationId);
+		}
+	}
+
+	private void onMessageSync(javax.jms.Message message, String correlationId) {
+		try {
 			LinkedBlockingQueue<javax.jms.Message> queue = this.replies.get(correlationId);
 			if (queue == null) {
 				if (this.correlationKey != null) {
@@ -1330,7 +1448,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (logger.isTraceEnabled()) {
 				logger.trace("Running late reply reaper");
 			}
-			Iterator<Entry<String, TimedReply>> lateReplyIterator = JmsOutboundGateway.this.earlyOrLateReplies.entrySet().iterator();
+			Iterator<Entry<String, TimedReply>> lateReplyIterator =
+					JmsOutboundGateway.this.earlyOrLateReplies.entrySet().iterator();
 			long now = System.currentTimeMillis();
 			long expired = now - (JmsOutboundGateway.this.receiveTimeout * 2);
 			while (lateReplyIterator.hasNext()) {
@@ -1355,7 +1474,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		@Override
 		public void run() {
 			synchronized(JmsOutboundGateway.this.lifeCycleMonitor) {
-				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend > JmsOutboundGateway.this.idleReplyContainerTimeout
+				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
+						JmsOutboundGateway.this.idleReplyContainerTimeout
 						&& JmsOutboundGateway.this.replies.size() == 0) {
 					if (JmsOutboundGateway.this.replyContainer.isRunning()) {
 						if (logger.isDebugEnabled()) {

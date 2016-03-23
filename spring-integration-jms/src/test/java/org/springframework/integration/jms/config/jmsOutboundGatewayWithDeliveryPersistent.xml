@@ -16,14 +16,14 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
-			
+
 	<context:property-placeholder properties-ref="props"/>
-	
+
 	<util:properties id="props">
 		<prop key="jmsAcknowledgeModeTransacted">transacted</prop>
 		<prop key="jmsAcknowledgeModeDupsOk">dups-ok</prop>
  	</util:properties>
-	
+
 	<si:channel id="requestChannel"/>
 
 	<jms:outbound-gateway id="jmsGateway"
@@ -31,6 +31,8 @@
 						  request-channel="requestChannel"
 						  delivery-persistent="true"
 						  idle-reply-listener-timeout="1234"
+						  async="true"
+						  correlation-key="JMSCorrelationID"
 						  auto-startup="false">
 		<jms:reply-listener
 			acknowledge="${jmsAcknowledgeModeTransacted}"

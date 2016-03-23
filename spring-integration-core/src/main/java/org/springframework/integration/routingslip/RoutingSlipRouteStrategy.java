@@ -29,6 +29,13 @@ import org.springframework.messaging.Message;
  */
 public interface RoutingSlipRouteStrategy {
 
+	/**
+	 * Get the next path for this routing slip.
+	 * @param requestMessage the request message.
+	 * @param reply the reply - depending on context, this may be a user-level domain
+	 * object, a {@link Message} or a {@code AbstractIntegrationMessageBuilder}.
+	 * @return a channel name or another {@link RoutingSlipRouteStrategy}.
+	 */
 	Object getNextPath(Message<?> requestMessage, Object reply);
 
 }

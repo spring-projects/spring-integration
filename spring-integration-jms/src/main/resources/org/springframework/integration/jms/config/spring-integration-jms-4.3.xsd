@@ -1128,6 +1128,16 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="async" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						When false (default), the requesting thread is suspended until a reply is received
+						or a timeout occurs; when true, the requesting thread is released and the reply
+						is returned on the listener container thread. Requires a reply-listener child
+						element and a 'correlation-key'; otherwise this property is ignored.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>

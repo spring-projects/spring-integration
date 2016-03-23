@@ -48,9 +48,16 @@ See <<imap-seen>> for more information.
 
 ==== JMS Changes
 
+===== Header Mapper
+
 The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its
 `toString()` method.
 See <<jms-header-mapping>> for more information.
+
+===== Async Gateway
+
+The JMS Outbound gateway now has an `async` property.
+See <<jms-async-gateway>> for more information.
 
 ==== Aggregator Changes
 
