@@ -28,10 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.management.Descriptor;
 import javax.management.DynamicMBean;
 import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.modelmbean.ModelMBean;
 
@@ -41,13 +39,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.annotation.AnnotationBeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
@@ -57,7 +52,6 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.integration.support.management.LifecycleMessageHandlerMetrics;
 import org.springframework.integration.support.management.LifecycleMessageSourceMetrics;
@@ -74,14 +68,10 @@ import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.TrackableRouterMetrics;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
-import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
-import org.springframework.jmx.export.metadata.InvalidMetadataException;
-import org.springframework.jmx.export.metadata.JmxAttributeSource;
-import org.springframework.jmx.export.metadata.ManagedResource;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
@@ -1084,66 +1074,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		}
 		ReflectionUtils.makeAccessible(field);
 		return ReflectionUtils.getField(field, target);
-	}
-
-	private static Object extractManagedBean(Object managedBean) {
-		if (managedBean instanceof LifecycleMessageHandlerMetrics
-				|| managedBean instanceof LifecycleMessageSourceMetrics) {
-			DirectFieldAccessor accessor = new DirectFieldAccessor(managedBean);
-			return accessor.getPropertyValue("delegate");
-		}
-		return managedBean;
-	}
-
-	private static class IntegrationJmxAttributeSource extends AnnotationJmxAttributeSource {
-
-		private StringValueResolver valueResolver;
-
-		void setValueResolver(StringValueResolver valueResolver) {
-			this.valueResolver = valueResolver;
-		}
-
-		@Override
-		public ManagedResource getManagedResource(Class<?> beanClass) throws InvalidMetadataException {
-			IntegrationManagedResource ann = AnnotationUtils.getAnnotation(beanClass, IntegrationManagedResource.class);
-			if (ann == null) {
-				return null;
-			}
-			ManagedResource managedResource = new ManagedResource();
-			AnnotationBeanUtils.copyPropertiesToBean(ann, managedResource, this.valueResolver);
-			return managedResource;
-		}
-	}
-
-	private static class IntegrationMetadataMBeanInfoAssembler extends MetadataMBeanInfoAssembler {
-
-		private IntegrationMetadataMBeanInfoAssembler(JmxAttributeSource attributeSource) {
-			super(attributeSource);
-		}
-
-		@Override
-		protected String getDescription(Object managedBean, String beanKey) {
-			return super.getDescription(extractManagedBean(managedBean), beanKey);
-		}
-
-		@Override
-		protected void populateMBeanDescriptor(Descriptor desc, Object managedBean, String beanKey) {
-			super.populateMBeanDescriptor(desc, extractManagedBean(managedBean), beanKey);
-		}
-
-	}
-
-	private static class IntegrationMetadataNamingStrategy extends MetadataNamingStrategy {
-
-		private IntegrationMetadataNamingStrategy(JmxAttributeSource attributeSource) {
-			super(attributeSource);
-		}
-
-		@Override
-		public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
-			return super.getObjectName(extractManagedBean(managedBean), beanKey);
-		}
-
 	}
 
 }
