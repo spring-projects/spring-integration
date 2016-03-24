@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -44,6 +46,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -93,6 +97,9 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Autowired
 	private AsyncService asyncService;
+
+	@Autowired
+	private PollableChannel errorChannel;
 
 	@Test
 	public void testGateway() {
@@ -226,6 +233,35 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.asyncService.future.set(this.asyncService.payload.toUpperCase());
 		assertNotNull(reply.get());
 		assertEquals("TESTING", reply.get().getPayload());
+	}
+
+	@Test
+	public void testAsyncError() {
+		QueueChannel errorChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test").setErrorChannel(errorChannel).build();
+		this.asyncIn.send(message);
+		this.asyncService.future.setException(new RuntimeException("intended"));
+		Message<?> error = errorChannel.receive(0);
+		assertNotNull(error);
+		assertThat(error, instanceOf(ErrorMessage.class));
+		assertThat(error.getPayload(), instanceOf(MessagingException.class));
+		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(RuntimeException.class));
+		assertThat(((MessagingException) error.getPayload()).getCause().getMessage(), equalTo("intended"));
+		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+	}
+
+	@Test
+	public void testAsyncErrorNoHeader() {
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.asyncIn.send(message);
+		this.asyncService.future.setException(new RuntimeException("intended"));
+		Message<?> error = this.errorChannel.receive(0);
+		assertNotNull(error);
+		assertThat(error, instanceOf(ErrorMessage.class));
+		assertThat(error.getPayload(), instanceOf(MessagingException.class));
+		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(RuntimeException.class));
+		assertThat(((MessagingException) error.getPayload()).getCause().getMessage(), equalTo("intended"));
+		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
 	}
 
 	@SuppressWarnings("unused")

@@ -121,5 +121,5 @@ reply message is sent on the thread (from within your service) that completes th
 This is particularly advantageous for long-running services using a `PollableChannel` because the poller thread is
 freed up to perform other services within the framework.
 
-If the service completes the future with an `Exception`, normal error processing will occur (an `ErrorMessage` is
-sent to the `errorChannel` message header, if present.
+If the service completes the future with an `Exception`, normal error processing will occur - an `ErrorMessage` is
+sent to the `errorChannel` message header, if present or otherwise to the default `errorChannel` (if available).

@@ -69,4 +69,8 @@
 	<beans:bean id="async"
 		class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$AsyncService" />
 
+	<channel id="errorChannel">
+		<queue />
+	</channel>
+
 </beans:beans>

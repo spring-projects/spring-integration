@@ -127,6 +127,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	/*
 	 * Supported at the super class level but only exposed on the service activator
 	 * namespace. It's not clear that other endpoints would benefit from async support.
+	 * @since 4.3
 	 */
 	public void setAsyncReplySupported(Boolean asyncReplySupported) {
 		this.asyncReplySupported = asyncReplySupported;
