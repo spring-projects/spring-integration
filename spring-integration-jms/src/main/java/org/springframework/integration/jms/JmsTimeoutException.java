@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import org.springframework.jms.JmsException;
+
 /**
  * A timeout occurred within an async gateway.
  *
@@ -24,7 +26,7 @@ package org.springframework.integration.jms;
  *
  */
 @SuppressWarnings("serial")
-public class JmsTimeoutException extends RuntimeException {
+public class JmsTimeoutException extends JmsException {
 
 	public JmsTimeoutException(String description) {
 		super(description);

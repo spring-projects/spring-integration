@@ -92,7 +92,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @return true if this handler supports async replies.
 	 * @since 4.3
 	 */
-	protected boolean getAsyncReplySupported() {
+	protected boolean isAsyncReplySupported() {
 		return this.asyncReplySupported;
 	}
 

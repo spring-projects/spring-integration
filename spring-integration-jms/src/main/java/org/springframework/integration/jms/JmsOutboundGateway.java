@@ -155,8 +155,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile long idleReplyContainerTimeout;
 
-	private volatile boolean async;
-
 	private ScheduledFuture<?> idleTask;
 
 	/**
@@ -463,18 +461,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.idleReplyContainerTimeout = unit.toMillis(idleReplyContainerTimeout);
 	}
 
-	/**
-	 * Set to true to receive replies asynchronously on the reply container thread.
-	 * Requires {@link #setUseReplyContainer(boolean) userReplyContainer} to be true
-	 * and a {@link #setCorrelationKey(String) correlationKey} (usually 'JMSCorrelationID').
-	 * This is ignored otherwise.
-	 * @param async the async to set.
-	 * @since 4.3
-	 */
-	public void setAsync(boolean async) {
-		this.async = async;
-	}
-
 	private Destination determineRequestDestination(Message<?> message, Session session) throws JMSException {
 		if (this.requestDestination != null) {
 			return this.requestDestination;
@@ -578,16 +564,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				setContainerProperties(container);
 				container.afterPropertiesSet();
 				this.replyContainer = container;
-				if (this.async && this.correlationKey == null) {
+				if (isAsyncReplySupported() && this.correlationKey == null) {
 					logger.warn("'async=true' requires a correlationKey; ignored");
-					this.async = false;
+					setAsyncReplySupported(false);
 				}
-				setAsyncReplySupported(this.async);
 			}
 			else {
-				if (this.async) {
+				if (isAsyncReplySupported()) {
 					logger.warn("'async=true' is ignored when a reply container is not being used");
-					this.async = false;
+					setAsyncReplySupported(false);
 				}
 			}
 			this.initialized = true;
@@ -688,7 +673,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					else {
 						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
 					}
-					if (!this.async && this.receiveTimeout >= 0) {
+					if (!isAsyncReplySupported() && this.receiveTimeout >= 0) {
 						Assert.state(taskScheduler != null, "'taskScheduler' is required.");
 						this.reaper = taskScheduler.schedule(new LateReplyReaper(), new Date());
 					}
@@ -1073,7 +1058,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				logger.debug(this.getComponentName() + " Sending message with correlationId " + correlationId);
 			}
 			SettableListenableFuture<Message<?>> future = null;
-			if (!this.async) {
+			boolean async = isAsyncReplySupported();
+			if (!async) {
 				replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
 				this.replies.put(correlationId, replyQueue);
 			}
@@ -1083,7 +1069,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-			if (this.async) {
+			if (async) {
 				return future;
 			}
 			else {
@@ -1092,7 +1078,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			if (correlationId != null && !this.async) {
+			if (correlationId != null && !isAsyncReplySupported()) {
 				this.replies.remove(correlationId);
 			}
 		}
@@ -1271,7 +1257,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				correlationId = message.getStringProperty(this.correlationKey);
 			}
 			Assert.state(correlationId != null, "Message with no correlationId received");
-			if (this.async) {
+			if (isAsyncReplySupported()) {
 				onMessageAsync(message, correlationId);
 			}
 			else {

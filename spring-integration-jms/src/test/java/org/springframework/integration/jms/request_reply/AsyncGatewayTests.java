@@ -150,7 +150,7 @@ public class AsyncGatewayTests {
 			gateway.setReplyDestinationName("asyncTest2");
 			gateway.setRequiresReply(true);
 			gateway.setReceiveTimeout(10000);
-			gateway.setAsync(true);
+			gateway.setAsyncReplySupported(true);
 			gateway.setCorrelationKey("JMSCorrelationID");
 			return gateway;
 		}
@@ -164,7 +164,7 @@ public class AsyncGatewayTests {
 			gateway.setReplyDestinationName("asyncTest4");
 			gateway.setRequiresReply(true);
 			gateway.setReceiveTimeout(10);
-			gateway.setAsync(true);
+			gateway.setAsyncReplySupported(true);
 			gateway.setCorrelationKey("JMSCorrelationID");
 			return gateway;
 		}
