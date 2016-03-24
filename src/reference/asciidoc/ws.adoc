@@ -173,11 +173,15 @@ The Spring Integration WebService Gateways will map the SOAP Action header autom
 It will be copied by default to and from Spring Integration `MessageHeaders` using the
 http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[DefaultSoapHeaderMapper].
 
-Of course, you can pass in your own implementation of SOAP specific header mappers, as the gateways have respective properties to support that.
+Of course, you can pass in your own implementation of SOAP specific header mappers, as the gateways have respective
+properties to support that.
 
-Any user-defined headers will NOT
-be copied to or from an SOAP Message, unless explicitly specified by the _requestHeaderNames_ and/or
+Any user-defined SOAP headers will NOT
+be copied to or from a SOAP Message, unless explicitly specified by the _requestHeaderNames_ and/or
 _replyHeaderNames_ properties of the `DefaultSoapHeaderMapper`.
+
+When using the XML namespace for configuration, these properties can be set using the `mapped-request-headers` and
+`mapped-reply-headers`, or a custom mapper can be provided using the `header-mapper` attribute.
 
 TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 For example, if you need to copy all user-defined headers simply use the wildcard character `*`.
@@ -196,3 +200,38 @@ Negated patterns get priority, so a list such as
 
 IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
 `\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
+
+Inbound SOAP headers (request headers for the inbound gateway, reply-headers for the outbound gateway) are mapped as
+`SoapHeaderElement` objects.
+The contents can be explored by accessing the `Source`:
+
+[source, xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Header>
+        <auth>
+            <username>user</username>
+            <password>pass</password>
+        </auth>
+        <bar>BAR</bar>
+        <baz>BAZ</baz>
+        <qux>qux</qux>
+    </soapenv:Header>
+    <soapenv:Body>
+        ...
+    </soapenv:Body>
+</soapenv:Envelope>
+----
+
+If `mapped-request-headers` is `"auth, ba*"`, the `auth`, `bar` and `baz` headers are mapped but `qux` is not.
+
+[source, java]
+----
+...
+SoapHeaderElement header = (SoapHeaderElement) headers.get(authHeader);
+DOMSource source = (DOMSource) header.getSource();
+NodeList nodeList = source.getNode().getChildNodes();
+assertEquals("username", nodeList.item(0).getNodeName());
+assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
+...
+----
