@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,33 @@
 
 package org.springframework.integration.ws;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.transform.dom.DOMSource;
 
 import org.junit.Test;
+import org.w3c.dom.NodeList;
+
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.ws.soap.SoapMessage;
+import org.springframework.ws.soap.saaj.SaajSoapMessage;
 
 /**
  * @author Gary Russell
@@ -76,6 +88,52 @@ public class DefaultSoapHeaderMapperTests {
 		assertEquals(2, headers.size());
 		assertEquals("attrValue", headers.get("x:attr"));
 		assertSame(soapHeaderElement, headers.get("x:elem"));
+	}
+
+	@Test
+	public void testRealSoapHeader() throws Exception {
+		String soap =
+			"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+				+ "<soapenv:Header>"
+					+ "<auth>"
+						+ "<username>user</username>"
+						+ "<password>pass</password>"
+					+ "</auth>"
+					+ "<bar>BAR</bar>"
+					+ "<baz>BAZ</baz>"
+					+ "<qux>qux</qux>"
+				+ "</soapenv:Header>"
+				+ "<soapenv:Body>"
+					+ "<foo>foo</foo>"
+				+ "</soapenv:Body>"
+			+ "</soapenv:Envelope>";
+		SOAPMessage message = MessageFactory.newInstance()
+				.createMessage(new MimeHeaders(), new ByteArrayInputStream(soap.getBytes("UTF-8")));
+		SoapMessage soapMessage = new SaajSoapMessage(message);
+		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+		String authHeader = "auth";
+		mapper.setRequestHeaderNames(authHeader, "ba*");
+		Map<String, Object> headers = mapper.toHeadersFromRequest(soapMessage);
+		assertNotNull(headers.get(authHeader));
+		assertThat(headers.get(authHeader), instanceOf(SoapHeaderElement.class));
+		SoapHeaderElement header = (SoapHeaderElement) headers.get(authHeader);
+		DOMSource source = (DOMSource) header.getSource();
+		NodeList nodeList = source.getNode().getChildNodes();
+		assertEquals("username", nodeList.item(0).getNodeName());
+		assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
+		assertEquals("password", nodeList.item(1).getNodeName());
+		assertEquals("pass", nodeList.item(1).getFirstChild().getNodeValue());
+		header = (SoapHeaderElement) headers.get("bar");
+		assertNotNull(header);
+		source = (DOMSource) header.getSource();
+		nodeList = source.getNode().getChildNodes();
+		assertEquals("BAR", nodeList.item(0).getNodeValue());
+		header = (SoapHeaderElement) headers.get("baz");
+		assertNotNull(header);
+		source = (DOMSource) header.getSource();
+		nodeList = source.getNode().getChildNodes();
+		assertEquals("BAZ", nodeList.item(0).getNodeValue());
+		assertNull(headers.get("qux"));
 	}
 
 	@Test
