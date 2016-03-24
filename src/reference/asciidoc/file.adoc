@@ -309,7 +309,7 @@ public class FileReadingJavaApplication {
     }
 
     @Bean
-    @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixed-delay = "1000"))
+    @InboundChannelAdapter(value = "fileInputChannel", poller = @Poller(fixedDelay = "1000"))
     public MessageSource<File> fileReadingMessageSource() {
          FileReadingMessageSource source = new FileReadingMessageSource();
          source.setDirectory(new File(INBOUND_PATH));
