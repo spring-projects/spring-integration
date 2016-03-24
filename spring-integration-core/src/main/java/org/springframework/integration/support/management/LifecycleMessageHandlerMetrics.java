@@ -42,6 +42,10 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		this.delegate = delegate;
 	}
 
+	public MessageHandlerMetrics getDelegate() {
+		return this.delegate;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
