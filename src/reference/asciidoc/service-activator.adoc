@@ -114,7 +114,7 @@ The service activator is invoked by the calling thread; this would be some upstr
 `SubscribableChannel`, or a poller thread for a `PollableChannel`.
 If the service returns a `ListenableFuture<?>` the default action is to send that as the payload of the message sent
 to the output (or reply) channel.
-Starting with _version 4.3_, you can now set the `async` attribute to true (`setAsyncReplySupported(true)` when using
+Starting with _version 4.3_, you can now set the `async` attribute to true (`setAsync(true)` when using
 Java configuration).
 If the service returns a `ListenableFuture<?>` when this is true, the calling thread is released immediately, and the
 reply message is sent on the thread (from within your service) that completes the future.

@@ -36,6 +36,10 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractIntegrationMessageBuilder<T> {
 
+	public abstract T getPayload();
+
+	public abstract Map<String, Object> getHeaders();
+
 	/**
 	 * Set the value for the given header name. If the provided value is <code>null</code>, the header will be removed.
 	 *

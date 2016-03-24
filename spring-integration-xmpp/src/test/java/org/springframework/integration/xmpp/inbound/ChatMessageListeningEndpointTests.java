@@ -20,14 +20,18 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
@@ -198,6 +202,17 @@ public class ChatMessageListeningEndpointTests {
 
 		Log logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", Log.class));
 		given(logger.isInfoEnabled()).willReturn(true);
+		final CountDownLatch logLatch = new CountDownLatch(1);
+		willAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object result = invocation.callRealMethod();
+				logLatch.countDown();
+				return result;
+			}
+
+		}).given(logger).info(anyString());
 
 		new DirectFieldAccessor(endpoint).setPropertyValue("logger", logger);
 
@@ -210,8 +225,9 @@ public class ChatMessageListeningEndpointTests {
 
 		ArgumentCaptor<String> argumentCaptor = new ArgumentCaptor<String>();
 
-		verify(logger).info(argumentCaptor.capture());
+		assertTrue(logLatch.await(10, TimeUnit.SECONDS));
 
+		verify(logger).info(argumentCaptor.capture());
 
 		assertEquals("The XMPP Message [" + smackMessage + "] with empty body is ignored.",
 				argumentCaptor.getValue());

@@ -43,7 +43,7 @@ public class ServiceActivatorParser extends AbstractDelegatingConsumerEndpointPa
 
 	@Override
 	void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async", "asyncReplySupported");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async");
 	}
 
 }

@@ -86,7 +86,7 @@ public class JmsOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(gateway);
 		int deliveryMode = (Integer)accessor.getPropertyValue("deliveryMode");
 		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
-		assertTrue(TestUtils.getPropertyValue(gateway, "asyncReplySupported", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(gateway, "async", Boolean.class));
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
 		assertEquals(4, TestUtils.getPropertyValue(container, "concurrentConsumers"));
@@ -117,7 +117,7 @@ public class JmsOutboundGatewayParserTests {
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
 		JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
-		assertFalse(TestUtils.getPropertyValue(gateway, "asyncReplySupported", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(gateway, "async", Boolean.class));
 		gateway.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 		assertEquals(3, TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode"));
@@ -289,13 +289,17 @@ public class JmsOutboundGatewayParserTests {
 
 
 	public interface SampleGateway{
+
 		String echo(String value);
+
 	}
 
 	public static class SampleService{
+
 		public String echo(String value){
 			return value.toUpperCase();
 		}
+
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
@@ -307,4 +311,5 @@ public class JmsOutboundGatewayParserTests {
 		}
 
 	}
+
 }
