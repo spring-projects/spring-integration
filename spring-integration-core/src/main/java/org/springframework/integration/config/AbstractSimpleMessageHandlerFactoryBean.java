@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * Factory bean to create and configure a {@link MessageHandler}.
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -99,14 +101,27 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	/**
+	 * Set the handler's channel resolver.
+	 * @param channelResolver the channel resolver to set.
+	 */
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 
+	/**
+	 * Set the handler's output channel.
+	 * @param outputChannel the output channel to set.
+	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
 
+	/**
+	 * Set the order in which the handler will be subscribed to its channel
+	 * (when subscribable).
+	 * @param order the order to set.
+	 */
 	public void setOrder(Integer order) {
 		this.order = order;
 	}
@@ -120,13 +135,22 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return this.beanFactory;
 	}
 
+	/**
+	 * Set the advice chain to be configured within an
+	 * {@link AbstractReplyProducingMessageHandler} to advise just this local endpoint.
+	 * For other handlers, the advice chain is applied around the handler itself.
+	 * @param adviceChain the adviceChain to set.
+	 */
 	public void setAdviceChain(List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
 	}
 
-	/*
-	 * Supported at the super class level but only exposed on the service activator
-	 * namespace. It's not clear that other endpoints would benefit from async support.
+	/**
+	 * Currently only exposed on the service activator
+	 * namespace. It's not clear that other endpoints would benefit from async support,
+	 * but any subclass of {@link AbstractReplyProducingMessageHandler} can potentially
+	 * return a {@code ListenableFuture<?>}.
+	 * @param asyncReplySupported the asyncReplySupported to set.
 	 * @since 4.3
 	 */
 	public void setAsyncReplySupported(Boolean asyncReplySupported) {

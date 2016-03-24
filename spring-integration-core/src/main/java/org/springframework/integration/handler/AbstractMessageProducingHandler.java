@@ -316,19 +316,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return true;
 	}
 
-	protected Object resolveErrorChannel(final MessageHeaders requestHeaders) {
-		Object errorChannel = requestHeaders.getErrorChannel();
-		if (errorChannel == null) {
-			try {
-				errorChannel = getChannelResolver().resolveDestination("errorChannel");
-			}
-			catch (DestinationResolutionException e) {
-				// ignore
-			}
-		}
-		return errorChannel;
-	}
-
 	protected void sendErrorMessage(final Message<?> requestMessage, Throwable ex) {
 		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
 		Throwable result = ex;
@@ -351,6 +338,19 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				logger.error("Failed to send async reply", exceptionToLog);
 			}
 		}
+	}
+
+	protected Object resolveErrorChannel(final MessageHeaders requestHeaders) {
+		Object errorChannel = requestHeaders.getErrorChannel();
+		if (errorChannel == null) {
+			try {
+				errorChannel = getChannelResolver().resolveDestination("errorChannel");
+			}
+			catch (DestinationResolutionException e) {
+				// ignore
+			}
+		}
+		return errorChannel;
 	}
 
 }

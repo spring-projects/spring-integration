@@ -113,6 +113,7 @@ public class AsyncHandlerTests {
 		};
 		this.handler.setAsyncReplySupported(true);
 		this.handler.setOutputChannel(this.output);
+		this.handler.setBeanFactory(mock(BeanFactory.class));
 		this.latch = new CountDownLatch(1);
 		Log logger = spy(TestUtils.getPropertyValue(this.handler, "logger", Log.class));
 		new DirectFieldAccessor(this.handler).setPropertyValue("logger", logger);
