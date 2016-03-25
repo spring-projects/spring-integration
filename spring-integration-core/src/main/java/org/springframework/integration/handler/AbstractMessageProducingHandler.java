@@ -229,7 +229,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			throw new IllegalArgumentException("The RoutingSlip 'path' can be of " +
-					"String or RoutingSlipRouteStrategy type, but gotten: " + path);
+					"String or RoutingSlipRouteStrategy type, but got: " + path.getClass());
 		}
 
 		if (routingSlipPathValue instanceof MessageChannel) {
