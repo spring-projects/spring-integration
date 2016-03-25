@@ -67,10 +67,12 @@
 			</xsd:attribute>
 			<xsd:attribute name="subscription-mode" default="accept_all">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-    The subscription mode for the XMPP connection. Dictates the policy for handling inbound messages from entries not already on the roster.
-    Values can be "accept_all," "manual," or "reject_all."
-				]]></xsd:documentation>
+					<xsd:documentation>
+    					The subscription mode for the XMPP connection.
+						Dictates the policy for handling inbound messages from entries not already on the roster.
+						Values can be "accept_all", "manual", "reject_all" or empty assuming 'null'
+						to disable the Roster subscription altogether.
+				</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:union memberTypes="subscriptionModeEnumeration xsd:string"/>

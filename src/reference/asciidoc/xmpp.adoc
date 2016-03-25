@@ -52,6 +52,12 @@ The default name _xmppConnection_ will be used for this connection bean.
 If the XMPP Connection goes stale, reconnection attempts will be made with an automatic login as long as the previous connection state was logged (authenticated).
 We also register a `ConnectionListener` which will log connection events if the DEBUG logging level is enabled.
 
+The `subscription-mode` initiates the Roster listener to deal with incoming subscriptions from other users.
+This functionality isn't always available for the target XMPP servers.
+For example GCM fully disables it.
+To switch off the Roster listener for subscriptions you should configure it like `subscription-mode=""`
+or as `XmppConnectionFactoryBean.setSubscriptionMode(null)` from Java Configuration.
+
 [[xmpp-messages]]
 === XMPP Messages
 
