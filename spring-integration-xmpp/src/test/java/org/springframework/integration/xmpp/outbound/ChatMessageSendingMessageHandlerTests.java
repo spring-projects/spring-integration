@@ -16,14 +16,21 @@
 
 package org.springframework.integration.xmpp.outbound;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
+import org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
@@ -46,7 +53,7 @@ public class ChatMessageSendingMessageHandlerTests {
 
 
 	@Test
-	public void validateMessagePostAsString() throws Exception {
+	public void testSendMessages() throws Exception {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -92,6 +99,28 @@ public class ChatMessageSendingMessageHandlerTests {
 
 		// in threaded conversation we need to look for existing chat
 		verify(connection, times(1)).sendStanza(Mockito.argThat(new EqualSmackMessageWithThreadId()));
+
+		reset(connection);
+		final String json = "{\"foo\": \"bar\"}";
+		message = MessageBuilder.withPayload(new GcmPacketExtension(json))
+				.setHeader(XmppHeaders.TO, "kermit@frog.com")
+				.build();
+		handler.handleMessage(message);
+
+		class EqualExtension extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
+
+			@Override
+			public boolean matches(Object msg) {
+				org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
+				boolean bodyMatches = smackMessage.getBody() == null;
+				boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+				GcmPacketExtension gcmPacketExtension = GcmPacketExtension.from(smackMessage);
+				boolean jsonMatches = gcmPacketExtension != null && gcmPacketExtension.getJson().equals(json);
+				return bodyMatches & toMatches & jsonMatches;
+			}
+		}
+
+		verify(connection, times(1)).sendStanza(Mockito.argThat(new EqualExtension()));
 	}
 
 	@Test
@@ -123,6 +152,39 @@ public class ChatMessageSendingMessageHandlerTests {
 		// in threaded conversation we need to look for existing chat
 		verify(connection, times(1)).sendStanza(smackMessage);
 	}
+
+	@Test
+	public void testExtensionProvider() throws Exception {
+		XMPPConnection connection = mock(XMPPConnection.class);
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
+		GcmExtensionProvider extensionElementProvider = spy(new GcmExtensionProvider());
+		handler.setExtensionProvider(extensionElementProvider);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		final String json = "{\"foo\": \"bar\"}";
+		Message<?> message = MessageBuilder.withPayload("<f>" + json + "</f>")
+				.setHeader(XmppHeaders.TO, "kermit@frog.com")
+				.build();
+
+		handler.handleMessage(message);
+
+		ArgumentCaptor<org.jivesoftware.smack.packet.Message> argumentCaptor =
+				ArgumentCaptor.forClass(org.jivesoftware.smack.packet.Message.class);
+
+		verify(connection).sendStanza(argumentCaptor.capture());
+
+		org.jivesoftware.smack.packet.Message smackMessage = argumentCaptor.getValue();
+
+		assertNull(smackMessage.getBody());
+		assertEquals("kermit@frog.com", smackMessage.getTo());
+		GcmPacketExtension gcmPacketExtension = GcmPacketExtension.from(smackMessage);
+		assertNotNull(gcmPacketExtension);
+		assertEquals(json, gcmPacketExtension.getJson());
+
+		verify(extensionElementProvider).from(eq(json));
+	}
+
 
 	@Test(expected = MessageHandlingException.class)
 	public void validateFailureNoChatToUser() throws Exception {

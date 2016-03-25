@@ -16,8 +16,15 @@
 
 package org.springframework.integration.xmpp.outbound;
 
+import java.io.StringReader;
+import java.util.regex.Pattern;
+
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.util.PacketParserUtils;
+import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
@@ -40,8 +47,11 @@ import org.springframework.util.StringUtils;
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
+	private static final Pattern xmlPattern = Pattern.compile("<(\\S.*?)>(.*?)</\\1>");
+
 	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
+	private ExtensionElementProvider<? extends ExtensionElement> extensionProvider;
 
 	public ChatMessageSendingMessageHandler() {
 		super();
@@ -56,6 +66,17 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * Specify an {@link ExtensionElementProvider} to build an {@link ExtensionElement}
+	 * for the {@link org.jivesoftware.smack.packet.Message#addExtension(ExtensionElement)}
+	 * instead of {@code body}.
+	 * @param extensionProvider the {@link ExtensionElementProvider} to use.
+	 * @since 4.3
+	 */
+	public void setExtensionProvider(ExtensionElementProvider<? extends ExtensionElement> extensionProvider) {
+		this.extensionProvider = extensionProvider;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "xmpp:outbound-channel-adapter";
@@ -64,26 +85,47 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isTrue(this.initialized, getComponentName() + "#" + this.getComponentType() + " must be initialized");
-		Object messageBody = message.getPayload();
+		Object payload = message.getPayload();
 		org.jivesoftware.smack.packet.Message xmppMessage = null;
-		if (messageBody instanceof org.jivesoftware.smack.packet.Message) {
-			xmppMessage = (org.jivesoftware.smack.packet.Message) messageBody;
+		if (payload instanceof org.jivesoftware.smack.packet.Message) {
+			xmppMessage = (org.jivesoftware.smack.packet.Message) payload;
 		}
-		else if (messageBody instanceof String) {
+		else {
 			String to = message.getHeaders().get(XmppHeaders.TO, String.class);
 			Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
 			xmppMessage = new org.jivesoftware.smack.packet.Message(to);
-			if (this.headerMapper != null) {
-				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
+
+			if (payload instanceof ExtensionElement) {
+				xmppMessage.addExtension((ExtensionElement) payload);
 			}
-			xmppMessage.setBody((String) messageBody);
+			else if (payload instanceof String) {
+				if (this.extensionProvider != null) {
+					String data = (String) payload;
+					if (!xmlPattern.matcher(data).matches()) {
+						data = "<root>" + data + "</root>";
+					}
+					XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(data));
+					xmlPullParser.next();
+					ExtensionElement extension = this.extensionProvider.parse(xmlPullParser);
+					xmppMessage.addExtension(extension);
+				}
+				else {
+					xmppMessage.setBody((String) payload);
+				}
+			}
+			else {
+				throw new MessageHandlingException(message,
+						"Only payloads of type java.lang.String, org.jivesoftware.smack.packet.Message " +
+								"or org.jivesoftware.smack.packet.ExtensionElement " +
+								"are supported. Received [" + payload.getClass().getName() +
+								"]. Consider adding a Transformer prior to this adapter.");
+			}
 		}
-		else {
-			throw new MessageHandlingException(message,
-					"Only payloads of type java.lang.String or org.jivesoftware.smack.packet.Message " +
-					"are supported. Received [" + messageBody.getClass().getName() +
-					"]. Consider adding a Transformer prior to this adapter.");
+
+		if (this.headerMapper != null) {
+			this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
 		}
+
 		if (!this.xmppConnection.isConnected() && this.xmppConnection instanceof AbstractXMPPConnection) {
 			((AbstractXMPPConnection) this.xmppConnection).connect();
 		}
