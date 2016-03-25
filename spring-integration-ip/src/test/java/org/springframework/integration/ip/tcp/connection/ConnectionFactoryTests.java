@@ -55,6 +55,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
@@ -70,6 +71,16 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  *
  */
 public class ConnectionFactoryTests extends LogAdjustingTestSupport {
+
+	@Test
+	public void factoryBeanTests() {
+		TcpConnectionFactoryFactoryBean fb = new TcpConnectionFactoryFactoryBean("client");
+		assertEquals(AbstractClientConnectionFactory.class, fb.getObjectType());
+		fb = new TcpConnectionFactoryFactoryBean("server");
+		assertEquals(AbstractServerConnectionFactory.class, fb.getObjectType());
+		fb = new TcpConnectionFactoryFactoryBean();
+		assertEquals(AbstractConnectionFactory.class, fb.getObjectType());
+	}
 
 	@Test
 	public void testObtainConnectionIdsNet() throws Exception {

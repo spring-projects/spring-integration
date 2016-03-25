@@ -45,7 +45,7 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 					" must be 'client' or 'server' for a TCP Connection Factory", element);
 		}
 		builder = BeanDefinitionBuilder.genericBeanDefinition(TcpConnectionFactoryFactoryBean.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "type");
+		IpAdapterParserUtils.addConstructorValueIfAttributeDefined(builder, element, "type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.HOST);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
