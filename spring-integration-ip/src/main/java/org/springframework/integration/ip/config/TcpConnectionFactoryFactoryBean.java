@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
@@ -121,6 +122,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile BeanFactory beanFactory;
 
+
+	public TcpConnectionFactoryFactoryBean() {
+	}
+
+	public TcpConnectionFactoryFactoryBean(String type) {
+		setType(type);
+	}
+
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
@@ -128,8 +137,11 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.connectionFactory != null ? this.connectionFactory.getClass()
-											  : AbstractConnectionFactory.class;
+		return this.connectionFactory != null ? this.connectionFactory.getClass() :
+			this.type == null ? AbstractConnectionFactory.class :
+				isServer() ? AbstractServerConnectionFactory.class :
+					isClient() ? AbstractClientConnectionFactory.class :
+						AbstractConnectionFactory.class;
 	}
 
 	@Override
@@ -138,14 +150,15 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			this.mapper.setBeanFactory(this.beanFactory);
 		}
 		if (this.usingNio) {
-			if ("server".equals(this.type)) {
+			if (isServer()) {
 				TcpNioServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
 				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
-			} else {
+			}
+			else {
 				TcpNioClientConnectionFactory connectionFactory = new TcpNioClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
@@ -155,13 +168,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			}
 		}
 		else {
-			if ("server".equals(this.type)) {
+			if (isServer()) {
 				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
-			} else {
+			}
+			else {
 				TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
@@ -258,8 +272,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	/**
 	 * @param type the type to set
 	 */
-	public void setType(String type) {
+	public final void setType(String type) {
 		this.type = type;
+		Assert.isTrue(isServer() || isClient(), "type must be 'server' or 'client'");
 	}
 
 	/**
@@ -507,6 +522,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	private boolean isClient() {
+		return "client".equals(this.type);
+	}
+
+	private boolean isServer() {
+		return "server".equals(this.type);
 	}
 
 }
