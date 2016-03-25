@@ -124,6 +124,16 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		this.port = port;
 	}
 
+	/**
+	 * Sets the subscription processing mode, which dictates what action
+	 * Smack will take when subscription requests from other users are made.
+	 * The default subscription mode is {@link Roster.SubscriptionMode#accept_all}.
+	 * <p> To disable Roster subscription (e.g. for sub-protocol without its support such a GCM)
+	 * specify this option as {@code null}.
+	 * @param subscriptionMode the {@link Roster.SubscriptionMode} to use.
+	 * Can be {@code null}.
+	 * @see Roster#setSubscriptionMode(Roster.SubscriptionMode)
+	 */
 	public void setSubscriptionMode(Roster.SubscriptionMode subscriptionMode) {
 		this.subscriptionMode = subscriptionMode;
 	}
@@ -167,7 +177,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 				this.connection.addConnectionListener(new LoggingConnectionListener());
 				this.connection.login();
 				if (this.subscriptionMode != null) {
-					Roster.getInstanceFor(this.connection).setSubscriptionMode(this.subscriptionMode);
+					Roster.getInstanceFor(this.connection)
+							.setSubscriptionMode(this.subscriptionMode);
 				}
 				this.running = true;
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for 'xmpp:xmpp-connection' element
+ *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
@@ -51,12 +53,13 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 			parserContext.getReaderContext().error("One of 'service-name' or 'user' attributes is required", element);
 		}
 
-		String[] attributes = {"user", "password", "resource", "subscription-mode", "host", "port", "service-name",
+		String[] attributes = {"user", "password", "resource", "host", "port", "service-name",
 				IntegrationNamespaceUtils.AUTO_STARTUP, IntegrationNamespaceUtils.PHASE};
 
 		for (String attribute : attributes) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-mode", true);
 	}
 
 }
