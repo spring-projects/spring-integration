@@ -160,7 +160,7 @@ public class FtpServerOutboundTests {
 	@Test
 	public void testInt2866LocalDirectoryExpressionGET() {
 		String dir = "ftpSource/";
-		this.inboundGet.send(new GenericMessage<Object>(dir + "ftpSource1.txt"));
+		this.inboundGet.send(new GenericMessage<Object>(dir + " ftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		File localFile = (File) result.getPayload();
@@ -179,7 +179,7 @@ public class FtpServerOutboundTests {
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
 		try {
-			this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ftpSource1.txt"));
+			this.invalidDirExpression.send(new GenericMessage<Object>("/ftpSource/ ftpSource1.txt"));
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
@@ -236,7 +236,7 @@ public class FtpServerOutboundTests {
 		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
-			assertThat(file.getName(), isOneOf("localTarget1.txt", "localTarget2.txt"));
+			assertThat(file.getName(), isOneOf(" localTarget1.txt", "localTarget2.txt"));
 			assertThat(file.getName(), not(containsString("null")));
 		}
 	}
@@ -284,7 +284,7 @@ public class FtpServerOutboundTests {
 	public void testInt3100RawGET() throws Exception {
 		Session<?> session = this.ftpSessionFactory.getSession();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource1.txt"), baos);
+		FileCopyUtils.copy(session.readRaw("ftpSource/ ftpSource1.txt"), baos);
 		assertTrue(session.finalizeRaw());
 		assertEquals("source1", new String(baos.toByteArray()));
 
@@ -303,7 +303,7 @@ public class FtpServerOutboundTests {
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource1.txt"), new InputStreamCallback() {
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ ftpSource1.txt"), new InputStreamCallback() {
 
 			@Override
 			public void doWithInputStream(InputStream stream) throws IOException {
@@ -408,12 +408,12 @@ public class FtpServerOutboundTests {
 	@Test
 	public void testStream() {
 		String dir = "ftpSource/";
-		this.inboundGetStream.send(new GenericMessage<Object>(dir + "ftpSource1.txt"));
+		this.inboundGetStream.send(new GenericMessage<Object>(dir + " ftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		assertEquals("source1", result.getPayload());
 		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals("ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals(" ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 
 		Session<?> session = (Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION);
 		// Returned to cache
@@ -598,7 +598,7 @@ public class FtpServerOutboundTests {
 		assertThat(receive.getPayload(), instanceOf(List.class));
 		List<String> files = (List<String>) receive.getPayload();
 		assertEquals(2, files.size());
-		assertThat(files, containsInAnyOrder("ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(files, containsInAnyOrder(" ftpSource1.txt", "ftpSource2.txt"));
 
 		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
 		for (FTPFile ftpFile : ftpFiles) {
@@ -618,7 +618,7 @@ public class FtpServerOutboundTests {
 		Message<?> message = this.output.receive(10000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(File.class));
-		assertEquals("ftpSource1.txt", ((File) message.getPayload()).getName());
+		assertEquals(" ftpSource1.txt", ((File) message.getPayload()).getName());
 
 		message = this.output.receive(10000);
 		assertNotNull(message);

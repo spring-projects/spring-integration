@@ -99,7 +99,7 @@ subprojects { subproject ->
 		chronicleVersion = '3.5.3'
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
-		commonsNetVersion = '3.3'
+		commonsNetVersion = '3.4'
 		curatorVersion = '2.8.0'
 		derbyVersion = '10.11.1.1'
 		eclipseLinkVersion = '2.4.2'

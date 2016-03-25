@@ -84,7 +84,7 @@ public class TestFtpServer {
 				ftpRootFolder = this.newFolder(root);
 				sourceFtpDirectory = new File(ftpRootFolder, "ftpSource");
 				sourceFtpDirectory.mkdir();
-				File file = new File(sourceFtpDirectory, "ftpSource1.txt");
+				File file = new File(sourceFtpDirectory, " ftpSource1.txt");
 				file.createNewFile();
 				FileOutputStream fos = new FileOutputStream(file);
 				fos.write("source1".getBytes());
