@@ -160,7 +160,21 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="xmppOutboundAdapterType"/>
+				<xsd:extension base="xmppOutboundAdapterType">
+					<xsd:attribute name="extension-provider" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.jivesoftware.smack.provider.ExtensionElementProvider"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to org.jivesoftware.smack.provider.ExtensionElementProvider bean.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>

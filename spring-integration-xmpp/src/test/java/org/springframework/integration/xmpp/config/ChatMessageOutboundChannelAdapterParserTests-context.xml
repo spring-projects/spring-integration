@@ -13,10 +13,13 @@
 
 	<int:channel id="outboundEventChannel"/>
 
+	<bean id="testExtensionProvider" class="org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider"/>
+
 	<int-xmpp:outbound-channel-adapter id="outboundEventAdapter"
 					channel="outboundEventChannel"
 					xmpp-connection="testConnection"
-					mapped-request-headers="foo*, bar*"/>
+					mapped-request-headers="foo*, bar*"
+					extension-provider="testExtensionProvider"/>
 
 	<int:channel id="outboundPollingChannel">
 		<int:queue/>

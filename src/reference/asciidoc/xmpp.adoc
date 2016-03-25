@@ -136,7 +136,8 @@ Configuration support for the XMPP _Outbound Message Channel Adapter_ is provide
 						xmpp-connection="testConnection"/>
 ----
 
-The adapter expects as its input - at a minimum - a payload of type `java.lang.String`, and a header value for `XmppHeaders.CHAT_TO` that specifies to which user the Message should be sent.
+The adapter expects as its input - at a minimum - a payload of type `java.lang.String`, and a header value for
+`XmppHeaders.CHAT_TO` that specifies to which user the Message should be sent.
 To create a message you might use the following Java code:
 [source,java]
 ----
@@ -154,6 +155,16 @@ Here is an example.
 	<int-xmpp:chat-to value="test1@example.org"/>
 </int-xmpp:header-enricher>
 ----
+
+Starting with _version 4.3_ the packet extension support has been added to the `ChatMessageSendingMessageHandler`
+(`<int-xmpp:outbound-channel-adapter>`).
+Alongside with the regular `String` and `org.jivesoftware.smack.packet.Message` `payload`, now you can send a message
+with a `payload` as a `org.jivesoftware.smack.packet.ExtensionElement` which is populated to the
+`org.jivesoftware.smack.packet.Message.addExtension()` instead of `setBody()`.
+For the convenience an `extension-provider` option has been added for the `ChatMessageSendingMessageHandler`
+to allow to inject `org.jivesoftware.smack.provider.ExtensionElementProvider`, which builds an `ExtensionElement`
+against the `payload` at runtime.
+For this case the payload must be `String` in JSON or XML format depending of the XEP protocol.
 
 [[xmpp-presence]]
 === XMPP Presence
