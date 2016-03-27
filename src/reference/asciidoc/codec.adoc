@@ -58,17 +58,18 @@ serializer that is aware of the object's structure and can directly serialize se
 [source,java]
 ----
 public class AddressSerializer extends Serializer<Address> {
-	@Override
-	public void write(Kryo kryo, Output output, Address address) {
-		output.writeString(address.getStreet());
-		output.writeString(address.getCity());
-		output.writeString(address.getCountry());
-	}
 
-	@Override
-	public Address read(Kryo kryo, Input input, Class<Address> type) {
-		return new Address(input.readString(),input.readString(),input.readString());
-	}
+    @Override
+    public void write(Kryo kryo, Output output, Address address) {
+        output.writeString(address.getStreet());
+        output.writeString(address.getCity());
+        output.writeString(address.getCountry());
+    }
+
+    @Override
+    public Address read(Kryo kryo, Input input, Class<Address> type) {
+        return new Address(input.readString(), input.readString(), input.readString());
+    }
 }
 ----
 
@@ -103,21 +104,21 @@ registering a custom serializer explicitly:
 [source,java]
 ----
 public class Address implements KryoSerializable {
-	...
+    ...
 
-	@Override
-	public void write(Kryo kryo, Output output) {
-		output.writeString(this.street);
-		output.writeString(this.city);
-		output.writeString(this.country);
-	}
+    @Override
+    public void write(Kryo kryo, Output output) {
+        output.writeString(this.street);
+        output.writeString(this.city);
+        output.writeString(this.country);
+    }
 
-	@Override
-	public void read(Kryo kryo, Input input) {
-		this.street = input.readString();
-		this.city = input.readString();
-		this.country = input.readString();
-	}
+    @Override
+    public void read(Kryo kryo, Input input) {
+        this.street = input.readString();
+        this.city = input.readString();
+        this.country = input.readString();
+    }
 }
 ----
 

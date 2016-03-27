@@ -68,7 +68,7 @@ Each is briefly described in the sections below.
 The `PublishSubscribeChannel` implementation broadcasts any Message sent to it to all of its subscribed handlers.
 This is most often used for sending _Event Messages_ whose primary role is notification as opposed to _Document Messages_ which are generally intended to be processed by a single handler.
 Note that the `PublishSubscribeChannel` is intended for sending only.
-Since it broadcasts to its subscribers directly when its` send(Message)` method is invoked, consumers cannot poll for Messages (it does not implement `PollableChannel` and therefore has no `receive()` method).
+Since it broadcasts to its subscribers directly when its `send(Message)` method is invoked, consumers cannot poll for Messages (it does not implement `PollableChannel` and therefore has no `receive()` method).
 Instead, any subscriber must be a `MessageHandler` itself, and the subscriber's `handleMessage(Message)` method will be invoked in turn.
 
 Prior to version 3.0, invoking the send method on a `PublishSubscribeChannel` that had no subscribers returned `false`.
@@ -144,7 +144,7 @@ Below you will see how each of these can be configured.
 
 The `DirectChannel` internally delegates to a Message Dispatcher to invoke its subscribed Message Handlers, and that dispatcher can have a load-balancing strategy exposed via _load-balancer_ or _load-balancer-ref_ attributes (mutually exclusive).
 The load balancing strategy is used by the Message Dispatcher to help determine how Messages are distributed amongst Message Handlers in the case that there are multiple Message Handlers subscribed to the same channel.
-As a convinience the _load-balancer_ attribute exposes enumeration of values pointing to pre-existing implementations of `LoadBalancingStrategy`.
+As a convenience the _load-balancer_ attribute exposes enumeration of values pointing to pre-existing implementations of `LoadBalancingStrategy`.
 The "round-robin" (load-balances across the handlers in rotation) and "none" (for the cases where one wants to explicitely disable load balancing) are the only available values.
 Other strategy implementations may be added in future versions.
 However, since version 3.0 you can provide your own implementation of the `LoadBalancingStrategy` and inject it using _load-balancer-ref_ attribute which should point to a bean that implements `LoadBalancingStrategy`.
@@ -254,7 +254,7 @@ NOTE: Keep in mind that `receive()` calls are only relevant for `PollableChannel
 In fact the `SubscribableChannel` interface does not even define a `receive()` method.
 The reason for this is that when a Message is sent to a `SubscribableChannel` it will be sent directly to one or more subscribers depending on the type of channel (e.g.
 a PublishSubscribeChannel sends to all of its subscribers).
-Therefore, the `preReceive(..)` and `postReceive(..)` interceptor methods are only invoked when the interceptor is applied to a `PollableChannel`.
+Therefore, the `preReceive(..)`, `postReceive(..)` and `afterReceiveCompletion(..)` interceptor methods are only invoked when the interceptor is applied to a `PollableChannel`.
 
 Spring Integration also provides an implementation of the http://eaipatterns.com/WireTap.html[Wire Tap] pattern.
 It is a simple interceptor that sends the Message to another channel without otherwise altering the existing flow.
@@ -336,15 +336,15 @@ To create a Message Channel instance, you can use the <channel/> element:
 ----
 
 The default channel type is _Point to Point_.
-To create a _Publish Subscribe_ channel, use the <publish-subscribe-channel/> element:
+To create a _Publish Subscribe_ channel, use the `<publish-subscribe-channel/>` element:
 [source,xml]
 ----
 <int:publish-subscribe-channel id="exampleChannel"/>
 ----
 
-When using the <channel/> element without any sub-elements, it will create a `DirectChannel` instance (a `SubscribableChannel`).
+When using the `<channel/>` element without any sub-elements, it will create a `DirectChannel` instance (a `SubscribableChannel`).
 
-However, you can alternatively provide a variety of <queue/> sub-elements to create any of the pollable channel types (as described in<<channel-implementations>>).
+However, you can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in <<channel-implementations>>).
 Examples of each are shown below.
 
 [[channel-configuration-directchannel]]
@@ -358,7 +358,7 @@ As mentioned above, `DirectChannel` is the default type.
 ----
 
 A default channel will have a _round-robin_ load-balancer and will also have failover enabled (See the discussion in <<channel-implementations-directchannel>> for more detail).
-To disable one or both of these, add a <dispatcher/> sub-element and configure the attributes:
+To disable one or both of these, add a `<dispatcher/>` sub-element and configure the attributes:
 [source,xml]
 ----
 <int:channel id="failFastChannel">
@@ -396,7 +396,7 @@ Multiple types can be provided as a comma-delimited list:
 ----
 
 So the 'numberChannel' above will only accept Messages with a data-type of `java.lang.Number`.
-But what happens if the payload of the Message is not of the required type? It depends on whether you have defined a bean named "integrationConversionService" that is an instance of Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
+But what happens if the payload of the Message is not of the required type? It depends on whether you have defined a bean named `integrationConversionService` that is an instance of Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
 If not, then an Exception would be thrown immediately, but if you do have an "integrationConversionService" bean defined, it will be used in an attempt to convert the Message's payload to the acceptable type.
 
 You can even register custom converters.
@@ -425,9 +425,9 @@ All we need to do is implement a Converter.
 [source,java]
 ----
 public static class StringToIntegerConverter implements Converter<String, Integer> {
-	public Integer convert(String source) {
-		return Integer.parseInt(source);
-	}
+    public Integer convert(String source) {
+        return Integer.parseInt(source);
+    }
 }
 ----
 
@@ -518,7 +518,7 @@ public BasicMessageGroupStore mongoDbChannelMessageStore(MongoDbFactory mongoDbF
 
 @Bean
 public PollableChannel priorityQueue(BasicMessageGroupStore mongoDbChannelMessageStore) {
-   return new QueueChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
+    return new QueueChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
 }
 ----
 
@@ -724,7 +724,7 @@ The default value for `order` will be 0 and for `pattern`, the default is '*' (t
 ===== Wire Tap
 
 As mentioned above, Spring Integration provides a simple _Wire Tap_ interceptor out of the box.
-You can configure a _Wire Tap_ on any channel within an <interceptors/> element.
+You can configure a _Wire Tap_ on any channel within an `<interceptors/>` element.
 This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging Channel Adapter as follows:
 [source,xml]
 ----
