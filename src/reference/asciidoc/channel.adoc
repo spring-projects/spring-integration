@@ -254,7 +254,7 @@ NOTE: Keep in mind that `receive()` calls are only relevant for `PollableChannel
 In fact the `SubscribableChannel` interface does not even define a `receive()` method.
 The reason for this is that when a Message is sent to a `SubscribableChannel` it will be sent directly to one or more subscribers depending on the type of channel (e.g.
 a PublishSubscribeChannel sends to all of its subscribers).
-Therefore, the `preReceive(..)` and `postReceive(..)` interceptor methods are only invoked when the interceptor is applied to a `PollableChannel`.
+Therefore, the `preReceive(..)`, `postReceive(..)` and `afterReceiveCompletion(..)` interceptor methods are only invoked when the interceptor is applied to a `PollableChannel`.
 
 Spring Integration also provides an implementation of the http://eaipatterns.com/WireTap.html[Wire Tap] pattern.
 It is a simple interceptor that sends the Message to another channel without otherwise altering the existing flow.
