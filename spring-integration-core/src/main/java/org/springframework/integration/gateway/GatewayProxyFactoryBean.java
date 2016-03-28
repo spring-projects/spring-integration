@@ -118,8 +118,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private volatile Class<?> asyncSubmitListenableType;
 
-	private volatile Object reactorEnvironment;
-
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -256,12 +254,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * service interface).
 	 * @param reactorEnvironment the Reactor Environment.
 	 * @since 4.1
+	 * @deprecated with no-op in favor of global JVM-wide Reactor configuration.
 	 */
+	@Deprecated
 	public void setReactorEnvironment(Object reactorEnvironment) {
-		if (!Environment.class.getName().equals(reactorEnvironment.getClass().getName())) {
-			throw new IllegalArgumentException("The 'reactorEnvironment' must be instance of 'reactor.Environment'");
-		}
-		this.reactorEnvironment = reactorEnvironment;
+
 	}
 
 	@Override
@@ -364,10 +361,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		if (reactorPresent && Promise.class.isAssignableFrom(returnType)) {
-			if (this.reactorEnvironment == null) {
-				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
-			}
-			return Promises.<Object>task((Environment) this.reactorEnvironment,
+			return Promises.<Object>task(Environment.initializeIfEmpty(),
 					reactor.fn.Functions.supplier(new AsyncInvocationTask(invocation)));
 		}
 		return this.doInvoke(invocation, true);

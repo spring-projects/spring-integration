@@ -66,9 +66,11 @@ public abstract class TestUtils {
 			value = accessor.getPropertyValue(tokens[i]);
 			if (value != null) {
 				accessor = new DirectFieldAccessor(value);
-			} else if (i == tokens.length - 1) {
+			}
+			else if (i == tokens.length - 1) {
 				return null;
-			} else {
+			}
+			else {
 				throw new IllegalArgumentException(
 						"intermediate property '" + tokens[i] + "' is null");
 			}
@@ -196,14 +198,15 @@ public abstract class TestUtils {
 	 * @param startingIndex the index to start scanning
 	 * @return the properties provided by the named component or null if none available
 	 */
-	public static Properties locateComponentInHistory(List<Properties> history, String componentName, int startingIndex) {
+	public static Properties locateComponentInHistory(List<Properties> history, String componentName,
+			int startingIndex) {
 		Assert.notNull(history, "'history' must not be null");
 		Assert.isTrue(StringUtils.hasText(componentName), "'componentName' must be provided");
 		Assert.isTrue(startingIndex < history.size(), "'startingIndex' can not be greater then size of history");
 		Properties component = null;
 		for (int i = startingIndex; i < history.size(); i++) {
 			Properties properties = history.get(i);
-			if (componentName.equals(properties.get("name"))){
+			if (componentName.equals(properties.get("name"))) {
 				component = properties;
 				break;
 			}
@@ -262,17 +265,22 @@ public abstract class TestUtils {
 		}
 
 		private MessageChannel resolveErrorChannel(Throwable t) {
-			Message<?> failedMessage = (t instanceof MessagingException) ?
-					((MessagingException) t).getFailedMessage() : null;
-			Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
-			if (errorChannelHeader instanceof MessageChannel) {
-				return (MessageChannel) errorChannelHeader;
+			if (t instanceof MessagingException) {
+				Message<?> failedMessage = ((MessagingException) t).getFailedMessage();
+				Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
+				if (errorChannelHeader instanceof MessageChannel) {
+					return (MessageChannel) errorChannelHeader;
+				}
+				Assert.isInstanceOf(String.class, errorChannelHeader, "Unsupported error channel header type. " +
+						"Expected MessageChannel or String, but actual type is [" +
+						errorChannelHeader.getClass() + "]");
+				return this.context.getBean((String) errorChannelHeader, MessageChannel.class);
 			}
-			Assert.isInstanceOf(String.class, errorChannelHeader,
-					"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
-					errorChannelHeader.getClass() + "]");
-			return this.context.getBean((String) errorChannelHeader, MessageChannel.class);
+			else {
+				return null;
+			}
 		}
 
 	}
+
 }

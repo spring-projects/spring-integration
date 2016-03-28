@@ -99,7 +99,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 		String defaultReplyChannel = (String) gatewayAttributes.get("defaultReplyChannel");
 		String errorChannel = (String) gatewayAttributes.get("errorChannel");
 		String asyncExecutor = (String) gatewayAttributes.get("asyncExecutor");
-		String reactorEnvironment = (String) gatewayAttributes.get("reactorEnvironment");
 		String mapper = (String) gatewayAttributes.get("mapper");
 
 		boolean hasMapper = StringUtils.hasText(mapper);
@@ -125,7 +124,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 				String headerExpression = (String) header.get("expression");
 				boolean hasValue = StringUtils.hasText(headerValue);
 
-				if (!(hasValue ^ StringUtils.hasText(headerExpression))) {
+				if (hasValue == StringUtils.hasText(headerExpression)) {
 					throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
 							"is required on a gateway's header.");
 				}
@@ -156,9 +155,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 		}
 		else if (StringUtils.hasText(asyncExecutor)) {
 			gatewayProxyBuilder.addPropertyReference("asyncExecutor", asyncExecutor);
-		}
-		if (StringUtils.hasText(reactorEnvironment)) {
-			gatewayProxyBuilder.addPropertyReference("reactorEnvironment", reactorEnvironment);
 		}
 		if (StringUtils.hasText(mapper)) {
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);

@@ -135,7 +135,9 @@ public @interface MessagingGateway {
 	 * <p> This attribute is required in case of {@link reactor.rx.Promise} usage.
 	 * @return the suggested reactor Environment bean name.
 	 * @since 4.1
+	 * @deprecated with no-op in favor of global JVM-wide Reactor configuration.
 	 */
+	@Deprecated
 	String reactorEnvironment() default "";
 
 }

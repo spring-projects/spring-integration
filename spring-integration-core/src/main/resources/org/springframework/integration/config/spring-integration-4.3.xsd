@@ -789,14 +789,13 @@
 			<xsd:attribute name="reactor-environment" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						<![CDATA[
+					DEPRECATED with no-op in favor of global JVM-wide Reactor configuration.
 					Provide a reference to 'reactor.core.Environment'
 					to use for any of the interface methods that have a 'reactor.core.composable.Promise' return type.
 					The Reactor's Environment will only be used for those async methods; the sync methods
 					will be invoked in the caller's thread.
 					This attribute is required if any 'service-interface' methods
 					have a 'reactor.core.composable.Promise' return type.
-							]]>
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

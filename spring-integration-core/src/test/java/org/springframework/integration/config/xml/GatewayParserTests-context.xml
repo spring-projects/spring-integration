@@ -49,8 +49,7 @@
 	<gateway id="promise"
 			 service-interface="org.springframework.integration.gateway.TestService"
 			 default-request-channel="requestChannel"
-			 default-reply-channel="replyChannel"
-			 reactor-environment="reactorEnvironment"/>
+			 default-reply-channel="replyChannel"/>
 
 	<gateway id="asyncCompletable"
 			 service-interface="org.springframework.integration.gateway.TestService"
@@ -83,7 +82,7 @@
 			 async-executor="testExecutor">
 		<default-header name="baz" value="qux"/>
 		<method name="oneWay" request-channel="otherRequestChannel"
-							  request-timeout="456" 
+							  request-timeout="456"
 							  reply-timeout="123"
 							  payload-expression="'fiz'"
 							  reply-channel="foo">
@@ -95,7 +94,5 @@
 	<gateway id="defaultConfig" default-request-channel="nullChannel"/>
 
 	<beans:bean id="testExecutor" class="org.springframework.integration.config.xml.GatewayParserTests$TestExecutor"/>
-
-	<beans:bean id="reactorEnvironment" class="reactor.Environment" destroy-method="shutdown"/>
 
 </beans:beans>

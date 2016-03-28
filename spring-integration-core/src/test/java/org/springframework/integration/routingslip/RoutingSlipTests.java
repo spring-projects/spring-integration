@@ -61,7 +61,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
 import reactor.rx.Streams;
-import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Artem Bilan
@@ -174,7 +173,6 @@ public class RoutingSlipTests {
 	}
 
 	@Configuration
-	@EnableReactor
 	@EnableIntegration
 	public static class RoutingSlipConfiguration {
 

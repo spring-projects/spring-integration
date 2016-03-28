@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.gateway;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -31,11 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
-import reactor.Environment;
-import reactor.fn.Consumer;
-import reactor.rx.Promise;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Gateway;
@@ -50,6 +45,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
+import reactor.fn.Consumer;
+import reactor.rx.Promise;
+
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -59,14 +57,8 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  */
 public class AsyncGatewayTests {
 
-	private final Environment reactorEnvironment = new Environment();
-
 	// TODO: changed from 0 because of recurrent failure: is this right?
 	private final long safety = 100;
-
-	public void tearDown() {
-		this.reactorEnvironment.shutdown();
-	}
 
 	@Test
 	public void futureWithMessageReturned() throws Exception {
@@ -255,7 +247,6 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<Message<?>> promise = service.returnMessagePromise("foo");
@@ -271,7 +262,6 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
-		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
@@ -289,7 +279,6 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<?> promise = service.returnSomethingPromise("foo");
@@ -307,7 +296,6 @@ public class AsyncGatewayTests {
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
-		proxyFactory.setReactorEnvironment(this.reactorEnvironment);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Promise<String> promise = service.returnStringPromise("foo");
@@ -325,24 +313,6 @@ public class AsyncGatewayTests {
 
 		latch.await(10, TimeUnit.SECONDS);
 		assertEquals("foobar", result.get());
-	}
-
-	@Test
-	public void promiseMethodWithoutEnvironment() throws Exception {
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestEchoService.class);
-		proxyFactory.setBeanFactory(mock(BeanFactory.class));
-		proxyFactory.setBeanName("testGateway");
-		proxyFactory.afterPropertiesSet();
-		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		try {
-			service.returnStringPromise("foo");
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e, Matchers.instanceOf(IllegalStateException.class));
-			assertEquals(e.getMessage(), "'reactorEnvironment' is required in case of 'Promise' return type.");
-		}
 	}
 
 	private static void startResponder(final PollableChannel requestChannel) {

@@ -128,10 +128,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.MultiValueMap;
 
-import reactor.Environment;
 import reactor.rx.Promise;
 import reactor.rx.Streams;
-import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Artem Bilan
@@ -139,7 +137,8 @@ import reactor.spring.context.config.EnableReactor;
  * @since 4.0
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class,
-		classes = {EnableIntegrationTests.ContextConfiguration.class, EnableIntegrationTests.ContextConfiguration2.class})
+		classes = {EnableIntegrationTests.ContextConfiguration.class,
+				EnableIntegrationTests.ContextConfiguration2.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class EnableIntegrationTests {
@@ -606,9 +605,6 @@ public class EnableIntegrationTests {
 		assertNull(replyChannel.receive(10));
 	}
 
-	@Autowired
-	private Environment environment;
-
 	@Test
 	public void testPromiseGateway() throws Exception {
 
@@ -616,7 +612,6 @@ public class EnableIntegrationTests {
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
 
 		Streams.just("1", "2", "3", "4", "5")
-				.dispatchOn(this.environment)
 				.map(Integer::parseInt)
 				.flatMap(this.testGateway::multiply)
 				.toList()
@@ -911,7 +906,6 @@ public class EnableIntegrationTests {
 	@EnableMessageHistory("${message.history.tracked.components}")
 	@EnablePublisher("publishedChannel")
 	@EnableAsync
-	@EnableReactor
 	public static class ContextConfiguration2 {
 
 		/*
@@ -1332,7 +1326,7 @@ public class EnableIntegrationTests {
 
 	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
-	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
+	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
 			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {

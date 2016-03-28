@@ -584,9 +584,8 @@ String out = result.get(10, TimeUnit.SECONDS);
 ===== Reactor Promise
 
 Starting with _version 4.1_, the `GatewayProxyFactoryBean` allows the use of a `Reactor` with gateway interface methods, utilizing a https://github.com/reactor/reactor/wiki/Promises[`Promise<?>`] return type.
-The internal `AsyncInvocationTask` is wrapped in a `reactor.function.Supplier` with the provided `reactorEnvironment`, using a default `RingBufferDispatcher` for the `Promise` consumption.
-Note, a `reactorEnvironment` reference is required whenever a service interface has at least one method with a `Promise<?>` return type.
-(Only those methods run on the reactor's dispatcher).
+The internal `AsyncInvocationTask` is wrapped in a `reactor.function.Supplier`, using a default `RingBufferDispatcher` for the `Promise` consumption.
+Only methods with the `Promise<?>` return type are run on the reactor's dispatcher.
 
 A `Promise` can be used to retrieve the result later (similar to a `Future<?>`) or you can consume from it with the dispatcher invoking your `Consumer` when the result is returned to the gateway.
 
@@ -599,7 +598,7 @@ For example:
 
 [source,java]
 ----
-@MessagingGateway(reactorEnvironment = "reactorEnv")
+@MessagingGateway
 public static interface TestGateway {
 
 	@Gateway(requestChannel = "promiseChannel")
@@ -617,7 +616,6 @@ public static interface TestGateway {
 		...
 
 	Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
-			.env(this.environment)
 			.get()
 			.map(Integer::parseInt)
 			.mapMany(integer -> testGateway.multiply(integer))
