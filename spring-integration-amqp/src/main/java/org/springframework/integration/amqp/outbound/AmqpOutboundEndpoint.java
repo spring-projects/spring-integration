@@ -25,6 +25,7 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
+import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -127,7 +128,8 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 			final Message<?> requestMessage, CorrelationData correlationData) {
 		if (this.amqpTemplate instanceof RabbitTemplate) {
 			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
-			org.springframework.amqp.core.Message amqpMessage = mapMessage(requestMessage, converter);
+			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
+					getHeaderMapper(), getDefaultDeliveryMode());
 			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
 		else {
@@ -149,7 +151,8 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		Assert.isInstanceOf(RabbitTemplate.class, this.amqpTemplate,
 				"RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
-		org.springframework.amqp.core.Message amqpMessage = mapMessage(requestMessage, converter);
+		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
+				getHeaderMapper(), getDefaultDeliveryMode());
 		org.springframework.amqp.core.Message amqpReplyMessage =
 				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey, amqpMessage,
 						correlationData);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -34,9 +35,34 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	private volatile String queueName;
 
 
+	/**
+	 * Construct an instance with the supplied name, container and template; default header
+	 * mappers will be used if the message is mapped.
+	 * @param channelName the channel name.
+	 * @param container the container.
+	 * @param amqpTemplate the template.
+	 * @see #setExtractPayload(boolean)
+	 */
 	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate);
+	}
+
+
+	/**
+	 * Construct an instance with the supplied name, container and template; default header
+	 * mappers will be used if the message is mapped.
+	 * @param channelName the channel name.
+	 * @param container the container.
+	 * @param amqpTemplate the template.
+	 * @param outboundMapper the outbound mapper.
+	 * @param inboundMapper the inbound mapper.
+	 * @see #setExtractPayload(boolean)
+	 * @since 4.3
+	 */
+	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
+		super(channelName, container, amqpTemplate, outboundMapper, inboundMapper);
 	}
 
 

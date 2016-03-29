@@ -264,24 +264,28 @@ public class DefaultAmqpHeaderMapperTests {
 		assertNull(headers.get(AmqpHeaders.DELIVERY_MODE));
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, headers.get(AmqpHeaders.RECEIVED_DELIVERY_MODE));
 		assertEquals("bar", headers.get("foo"));
-		assertNull(headers.get("x-foo"));
+		assertEquals("bar", headers.get("x-foo"));
 
+		amqpProperties = new MessageProperties();
 		headers.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
 		mapper.fromHeadersToReply(new MessageHeaders(headers), amqpProperties);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
 		assertEquals("bar", amqpProperties.getHeaders().get("foo"));
-
+		assertNull(amqpProperties.getHeaders().get("x-foo"));
 
 		mapper = DefaultAmqpHeaderMapper.outboundMapper();
 		mapper.fromHeadersToRequest(new MessageHeaders(headers), amqpProperties);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
 		assertEquals("bar", amqpProperties.getHeaders().get("foo"));
+		assertNull(amqpProperties.getHeaders().get("x-foo"));
 
 		amqpProperties.setReceivedDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
+		amqpProperties.setHeader("x-death", "foo");
 		headers = mapper.toHeadersFromReply(amqpProperties);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, headers.get(AmqpHeaders.RECEIVED_DELIVERY_MODE));
 		assertNull(headers.get(AmqpHeaders.DELIVERY_MODE));
 		assertEquals("bar", headers.get("foo"));
+		assertEquals("foo", headers.get("x-death"));
 	}
 
 }

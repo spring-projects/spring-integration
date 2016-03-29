@@ -344,6 +344,45 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="default-delivery-mode">
+			<xsd:annotation>
+				<xsd:documentation>
+	The default delivery mode for messages; 'PERSISTENT' or 'NON_PERSISTENT'. Overridden if the 'header-mapper'
+	sets the delivery mode. The 'DefaultHeaderMapper' sets the value if the
+	Spring Integration message header 'amqp_deliveryMode' is present. If this attribute is not supplied and
+	the header mapper doesn't set it, the default depends on the underlying spring-amqp 'MessagePropertiesConverter'
+	used by the 'RabbitTemplate'. If that is not customized at all, the default is 'PERSISTENT'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="deliveryModeEnumeration xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="extract-payload">
+			<xsd:annotation>
+				<xsd:documentation>
+	Set to 'true' to extract the message payload and map the o.s.messaging.Message to an o.s.amqp.core.Message in
+	a similar manner to a pair of channel adapters. When 'false' the entire message is converted requiring either
+	Java serializable contents or a custom message converter. Also see inbound and outbound mapped headers.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="outbound-header-mapper">
+			<xsd:annotation>
+				<xsd:documentation>
+	The header mapper to use when sending and 'extract-payload' is true. The default mapper is
+	DefaultAmqpHeaderMapper.outboundMapper() which maps all headers except 'x-*'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="inbound-header-mapper">
+			<xsd:annotation>
+				<xsd:documentation>
+	The header mapper to use when receiving and 'extract-payload' is true. The default mapper is
+	DefaultAmqpHeaderMapper.inboundMapper() which maps all headers.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>

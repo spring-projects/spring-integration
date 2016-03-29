@@ -109,6 +109,11 @@ Spring AMQP 1.6 adds support for
 https://www.rabbitmq.com/blog/2015/04/16/scheduling-messages-with-rabbitmq/[Delayed Message Exchanges].
 Header mapping now supports the headers (`amqp_delay` and `amqp_receivedDelay`) used by this feature.
 
+===== AMQP-Backed Channels
+
+AMQP-backed channels now support message mapping.
+See <<amqp-channels>> for more information.
+
 ==== Redis Changes
 
 ===== List Push/Pop Direction

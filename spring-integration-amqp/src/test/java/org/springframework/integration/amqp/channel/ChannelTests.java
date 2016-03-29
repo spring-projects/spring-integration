@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.channel;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -43,11 +44,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -66,10 +69,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class ChannelTests extends LogAdjustingTestSupport {
 
 	@ClassRule
-	public static final BrokerRunning brokerIsRunning = BrokerRunning.isRunning();
+	public static final BrokerRunning brokerIsRunning =
+		BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP");
 
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
+
+	@Autowired
+	private PollableAmqpChannel pollableWithEP;
+
+	@Autowired
+	private PointToPointSubscribableAmqpChannel withEP;
+
+	@Autowired
+	private PublishSubscribeAmqpChannel pubSubWithEP;
+
+	@Autowired
+	private PollableChannel out;
 
 	@Autowired
 	private CachingConnectionFactory factory;
@@ -81,9 +97,11 @@ public class ChannelTests extends LogAdjustingTestSupport {
 	@After
 	public void tearDown() {
 		new RabbitAdmin(this.factory).deleteExchange("si.fanout.foo");
+		brokerIsRunning.removeTestQueues();
 	}
 
 	@Test
+	@DirtiesContext
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
 		channel.subscribe(new MessageHandler() {
@@ -107,6 +125,7 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		this.channel.send(new GenericMessage<String>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
 		this.channel.destroy();
+		this.pubSubWithEP.destroy();
 		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
 	}
 
@@ -177,6 +196,86 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.factory);
 		rabbitAdmin.deleteQueue("testChannel");
 		rabbitAdmin.deleteExchange("si.fanout.testChannel");
+	}
+
+	@Test
+	public void extractPayloadTests() throws Exception {
+		Foo foo = new Foo("bar");
+		Message<?> message = MessageBuilder.withPayload(foo).setHeader("baz", "qux").build();
+		this.pollableWithEP.send(message);
+		Message<?> received = this.pollableWithEP.receive();
+		int n = 0;
+		while (received == null && n++ < 100) {
+			Thread.sleep(100);
+			received = this.pollableWithEP.receive();
+		}
+		assertNotNull(received);
+		assertThat((Foo) received.getPayload(), equalTo(foo));
+		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+
+		this.withEP.send(message);
+		received = this.out.receive(10000);
+		assertNotNull(received);
+		assertThat((Foo) received.getPayload(), equalTo(foo));
+		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+
+		this.pubSubWithEP.send(message);
+		received = this.out.receive(10000);
+		assertNotNull(received);
+		assertThat((Foo) received.getPayload(), equalTo(foo));
+		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+	}
+
+	public static class Foo {
+
+		private String bar;
+
+		public Foo() {
+		}
+
+		public Foo(String bar) {
+			this.bar = bar;
+		}
+
+		public String getBar() {
+			return this.bar;
+		}
+
+		public void setBar(String bar) {
+			this.bar = bar;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((this.bar == null) ? 0 : this.bar.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Foo other = (Foo) obj;
+			if (this.bar == null) {
+				if (other.bar != null) {
+					return false;
+				}
+			}
+			else if (!this.bar.equals(other.bar)) {
+				return false;
+			}
+			return true;
+		}
+
 	}
 
 }
