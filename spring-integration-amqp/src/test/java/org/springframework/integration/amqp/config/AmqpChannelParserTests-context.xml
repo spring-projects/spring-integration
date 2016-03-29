@@ -22,4 +22,21 @@
 
 	<amqp:publish-subscribe-channel id="pubSub" />
 
+	<amqp:channel id="withEP" extract-payload="true" default-delivery-mode="NON_PERSISTENT"
+		inbound-header-mapper="inMapper" outbound-header-mapper="outMapper" />
+
+	<amqp:channel id="pollableWithEP" extract-payload="true" message-driven="false"
+		inbound-header-mapper="inMapper" outbound-header-mapper="outMapper" />
+
+	<amqp:publish-subscribe-channel id="pubSubWithEP" extract-payload="true"
+		inbound-header-mapper="inMapper" outbound-header-mapper="outMapper" />
+
+	<bean id="inMapper" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
+	</bean>
+
+	<bean id="outMapper" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
+	</bean>
+
 </beans>

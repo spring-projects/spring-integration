@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -41,6 +42,8 @@ import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
 import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -124,6 +127,13 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private volatile Boolean missingQueuesFatal;
 
+	private volatile MessageDeliveryMode defaultDeliveryMode;
+
+	private volatile Boolean extractPayload;
+
+	private volatile AmqpHeaderMapper outboundHeaderMapper = DefaultAmqpHeaderMapper.outboundMapper();
+
+	private volatile AmqpHeaderMapper inboundHeaderMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	public AmqpChannelFactoryBean() {
 		this(true);
@@ -307,6 +317,22 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.missingQueuesFatal = missingQueuesFatal;
 	}
 
+	public void setDefaultDeliveryMode(MessageDeliveryMode defaultDeliveryMode) {
+		this.defaultDeliveryMode = defaultDeliveryMode;
+	}
+
+	public void setExtractPayload(Boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
+	public void setOutboundHeaderMapper(AmqpHeaderMapper outboundMapper) {
+		this.outboundHeaderMapper = outboundMapper;
+	}
+
+	public void setInboundHeaderMapper(AmqpHeaderMapper inboundMapper) {
+		this.inboundHeaderMapper = inboundMapper;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return (this.channel != null) ? this.channel.getClass() : AbstractAmqpChannel.class;
@@ -321,7 +347,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			}
 			if (this.isPubSub) {
 				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
-						this.beanName, container, this.amqpTemplate);
+						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
 				if (this.exchange != null) {
 					pubsub.setExchange(this.exchange);
 				}
@@ -332,7 +358,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 			}
 			else {
 				PointToPointSubscribableAmqpChannel p2p = new PointToPointSubscribableAmqpChannel(
-						this.beanName, container, this.amqpTemplate);
+						this.beanName, container, this.amqpTemplate, this.outboundHeaderMapper, this.inboundHeaderMapper);
 				if (StringUtils.hasText(this.queueName)) {
 					p2p.setQueueName(this.queueName);
 				}
@@ -344,7 +370,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 		else {
 			Assert.isTrue(!this.isPubSub, "An AMQP 'publish-subscribe-channel' must be message-driven.");
-			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate);
+			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate,
+					this.outboundHeaderMapper, this.inboundHeaderMapper);
 			if (this.amqpAdmin != null) {
 				pollable.setAmqpAdmin(this.amqpAdmin);
 			}
@@ -359,6 +386,12 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.channel.setBeanName(this.beanName);
 		if (this.getBeanFactory() != null) {
 			this.channel.setBeanFactory(this.getBeanFactory());
+		}
+		if (this.defaultDeliveryMode != null) {
+			this.channel.setDefaultDeliveryMode(this.defaultDeliveryMode);
+		}
+		if (this.extractPayload != null) {
+			this.channel.setExtractPayload(this.extractPayload);
 		}
 		this.channel.afterPropertiesSet();
 		return this.channel;

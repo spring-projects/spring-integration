@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -26,8 +29,13 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
+import org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel;
+import org.springframework.integration.amqp.channel.PollableAmqpChannel;
+import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
@@ -48,6 +56,15 @@ public class AmqpChannelParserTests {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	private PollableAmqpChannel pollableWithEP;
+
+	@Autowired
+	private PointToPointSubscribableAmqpChannel withEP;
+
+	@Autowired
+	private PublishSubscribeAmqpChannel pubSubWithEP;
 
 	@Test
 	public void interceptor() {
@@ -73,8 +90,26 @@ public class AmqpChannelParserTests {
 		assertFalse(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(channel, "extractPayload", Boolean.class));
 	}
 
+	@Test
+	public void testMapping() {
+		checkExtract(this.pollableWithEP);
+		checkExtract(this.withEP);
+		checkExtract(this.pubSubWithEP);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT,
+				TestUtils.getPropertyValue(this.withEP, "defaultDeliveryMode"));
+		assertNull(TestUtils.getPropertyValue(this.pollableWithEP, "defaultDeliveryMode"));
+	}
+
+	private void checkExtract(AbstractAmqpChannel channel) {
+		assertThat(TestUtils.getPropertyValue(channel, "outboundHeaderMapper").toString(),
+				containsString("Mock for AmqpHeaderMapper"));
+		assertThat(TestUtils.getPropertyValue(channel, "inboundHeaderMapper").toString(),
+				containsString("Mock for AmqpHeaderMapper"));
+		assertTrue(TestUtils.getPropertyValue(channel, "extractPayload", Boolean.class));
+	}
 
 	private static class TestInterceptor extends ChannelInterceptorAdapter {
 	}

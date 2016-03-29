@@ -429,31 +429,31 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * @return the default request headers for an inbound mapper.
 	 */
 	public static String[] inboundRequestHeaders() {
-		return safeInboundHeaders();
+		return new String[] { "*" };
 	}
 
 	/**
 	 * @return the default reply headers for an inbound mapper.
 	 */
 	public static String[] inboundReplyHeaders() {
-		return new String[] { "*" };
+		return safeOutboundHeaders();
 	}
 
 	/**
 	 * @return the default request headers for an outbound mapper.
 	 */
 	public static String[] outboundRequestHeaders() {
-		return new String[] { "*" };
+		return safeOutboundHeaders();
 	}
 
 	/**
 	 * @return the default reply headers for an outbound mapper.
 	 */
 	public static String[] outboundReplyHeaders() {
-		return safeInboundHeaders();
+		return new String[] { "*" };
 	}
 
-	private static String[] safeInboundHeaders() {
+	private static String[] safeOutboundHeaders() {
 		return new String[] { "!x-*", "*" };
 	}
 

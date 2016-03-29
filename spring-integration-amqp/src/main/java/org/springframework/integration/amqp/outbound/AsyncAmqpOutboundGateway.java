@@ -22,6 +22,7 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -60,7 +61,8 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		RabbitMessageFuture future = this.template.sendAndReceive(generateExchangeName(requestMessage),
-				generateRoutingKey(requestMessage), mapMessage(requestMessage, this.messageConverter));
+				generateRoutingKey(requestMessage),
+				MappingUtils.mapMessage(requestMessage, this.messageConverter, getHeaderMapper(), getDefaultDeliveryMode()));
 		future.addCallback(new FutureCallback(requestMessage));
 		CorrelationData correlationData = generateCorrelationData(requestMessage);
 		if (correlationData != null && future.getConfirm() != null) {
