@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ package org.springframework.integration.amqp.channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
@@ -54,8 +56,31 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	private volatile int executorInterceptorsSize;
 
+	/**
+	 * Construct an instance with the supplied name, template and default header mappers
+	 * used if the template is a {@link RabbitTemplate} and the message is mapped.
+	 * @param channelName the channel name.
+	 * @param amqpTemplate the template.
+	 * @see #setExtractPayload(boolean)
+	 */
 	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate) {
 		super(amqpTemplate);
+		Assert.hasText(channelName, "channel name must not be empty");
+		this.channelName = channelName;
+	}
+
+	/**
+	 * Construct an instance with the supplied name, template and header mappers.
+	 * @param channelName the channel name.
+	 * @param amqpTemplate the template.
+	 * @param outboundMapper the outbound mapper.
+	 * @param inboundMapper the inbound mapper.
+	 * @see #setExtractPayload(boolean)
+	 * @since 4.3
+	 */
+	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper,
+			AmqpHeaderMapper inboundMapper) {
+		super(amqpTemplate, inboundMapper, outboundMapper);
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 	}
@@ -141,7 +166,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 					 return null;
 				}
 			}
-			Object object = getAmqpTemplate().receiveAndConvert(this.queueName);
+			Object object = doReceive();
 			if (object == null) {
 				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
@@ -176,6 +201,26 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}
 			throw e;
+		}
+	}
+
+
+	protected Object doReceive() {
+		if (!isExtractPayload()) {
+			return getAmqpTemplate().receiveAndConvert(this.queueName);
+		}
+		else {
+			RabbitTemplate rabbitTemplate = getRabbitTemplate();
+			org.springframework.amqp.core.Message message = rabbitTemplate.receive(this.queueName);
+			if (message != null) {
+				Object payload = rabbitTemplate.getMessageConverter().fromMessage(message);
+				Map<String, Object> headers =
+						getInboundHeaderMapper().toHeadersFromRequest(message.getMessageProperties());
+				return getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
+			}
+			else {
+				return null;
+			}
 		}
 	}
 

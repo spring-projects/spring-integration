@@ -20,12 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
@@ -365,28 +363,6 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			routingKey = this.routingKeyGenerator.processMessage(requestMessage);
 		}
 		return routingKey;
-	}
-
-	protected org.springframework.amqp.core.Message mapMessage(Message<?> requestMessage, MessageConverter converter) {
-		MessageProperties amqpMessageProperties = new MessageProperties();
-		org.springframework.amqp.core.Message amqpMessage;
-		if (converter instanceof ContentTypeDelegatingMessageConverter) {
-			getHeaderMapper().fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
-			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
-		}
-		else { // See INT-3002 - map headers last if we're not using a CTDMC
-			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
-			getHeaderMapper().fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
-		}
-		checkDeliveryMode(requestMessage, amqpMessageProperties);
-		return amqpMessage;
-	}
-
-	private void checkDeliveryMode(Message<?> requestMessage, MessageProperties messageProperties) {
-		if (this.defaultDeliveryMode != null &&
-				requestMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE) == null) {
-			messageProperties.setDeliveryMode(this.defaultDeliveryMode);
-		}
 	}
 
 	protected Message<?> buildReplyMessage(MessageConverter converter,

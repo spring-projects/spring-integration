@@ -1142,7 +1142,8 @@ This applies to both the outbound channel adapter and gateway.
 
 There are two Message Channel implementations available.
 One is point-to-point, and the other is publish/subscribe.
-Both of these channels provide a wide range of configuration attributes for the underlying AmqpTemplate and SimpleMessageListenerContainer as you have seen on the Channel Adapters and Gateways.
+Both of these channels provide a wide range of configuration attributes for the underlying AmqpTemplate and
+SimpleMessageListenerContainer as you have seen on the Channel Adapters and Gateways.
 However, the examples we'll show here are going to have minimal configuration.
 Explore the XML schema to view the available attributes.
 
@@ -1154,7 +1155,9 @@ A point-to-point channel would look like this:
 
 Under the covers a Queue named "si.p2pChannel" would be declared, and this channel will send to that Queue (technically by sending to the no-name Direct Exchange with a routing key that matches this Queue's name).
 This channel will also register a consumer on that Queue.
-If for some reason, you want the Queue to be "pollable" instead of message-driven, then simply provide the "message-driven" flag with a value of false:
+If you want the channel to be "pollable" instead of message-driven, then simply provide the "message-driven" flag with
+a value of `false`:
+
 [source,xml]
 ----
 <int-amqp:channel id="p2pPollableChannel"  message-driven="false"/>
@@ -1166,12 +1169,35 @@ A publish/subscribe channel would look like this:
 <int-amqp:publish-subscribe-channel id="pubSubChannel"/>
 ----
 
-Under the covers a Fanout Exchange named "si.fanout.pubSubChannel" would be declared, and this channel will send to that Fanout Exchange.
-This channel will also declare a server-named exclusive, auto-delete, non-durable Queue and bind that to the Fanout Exchange while registering a consumer on that Queue to receive Messages.
+Under the covers a Fanout Exchange named "si.fanout.pubSubChannel" would be declared, and this channel will send to that
+Fanout Exchange.
+This channel will also declare a server-named exclusive, auto-delete, non-durable Queue and bind that to the Fanout
+Exchange while registering a consumer on that Queue to receive Messages.
 There is no "pollable" option for a publish-subscribe-channel; it must be message-driven.
 
-Starting with _version 4.1_ AMQP Backed Message Channels, alongside with `channel-transacted`, support `template-channel-transacted` to separate `transactional` configuration for the `AbstractMessageListenerContainer` and for the `RabbitTemplate`.
-Note, previously, the `channel-transacted` was `true` by default, now it changed to `false` as standard default value for the `AbstractMessageListenerContainer`.
+Starting with _version 4.1_ AMQP Backed Message Channels, alongside with `channel-transacted`, support
+`template-channel-transacted` to separate `transactional` configuration for the `AbstractMessageListenerContainer` and
+for the `RabbitTemplate`.
+Note, previously, the `channel-transacted` was `true` by default, now it changed to `false` as standard default value
+for the `AbstractMessageListenerContainer`.
+
+Prior to _version 4.3_, AMQP-backed channels only supported messages with `Serializable` payloads and headers.
+The entire message was converted (serialized) and sent to RabbitMQ.
+Now, you can set the `extract-payload` attribute (or `setExtractPayload()` when using Java configuration) to true.
+When this flag is `true`, the message payload is converted and the headers mapped, in a similar manner to when using
+channel adapters.
+This allows AMQP-backed channels to be used with non-serializable payloads (perhaps with another message converter
+such as the `Jackson2JsonMessageConverter`).
+The default mapped headers are discussed in <<amqp-message-headers>>.
+You can modify the mapping by providing custom mappers using the `outbound-header-mapper` and `inbound-header-mapper`
+attributes.
+You can now also specify a `default-delivery-mode`, used to set the delivery mode when there is no
+`amqp_deliveryMode` header.
+By default, Spring AMQP `MessageProperties` uses `PERSISTENT` delivery mode.
+
+IMPORTANT: Just as with other persistence-backed channels, AMQP-backed channels are intended to provide message
+persistence to avoid message loss.
+They are not intended to distribute work to other peer applications; for that purpose, use channel adapters instead.
 
 ==== Configuring with Java Configuration
 
@@ -1258,7 +1284,7 @@ properties to support that.
 Any user-defined headers within the AMQP http://docs.spring.io/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html[MessageProperties] WILL
 be copied to or from an AMQP Message, unless explicitly negated by the _requestHeaderNames_ and/or
 _replyHeaderNames_ properties of the `DefaultAmqpHeaderMapper`.
-For an inbound mapper, all `x-*` headers are not mapped by default.
+For an outbound mapper, no `x-*` headers are mapped by default; see the caution below for the reason why.
 
 To override the default, and revert to the pre-4.3 behavior, use `STANDARD_REQUEST_HEADERS` and
 `STANDARD_REPLY_HEADERS` in the properties.
