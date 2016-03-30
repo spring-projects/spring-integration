@@ -19,7 +19,7 @@ package org.springframework.integration.kafka.config.xml;
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
- * The namespace handler for the Kafka namespace
+ * The namespace handler for the Kafka namespace.
  *
  * @author Soby Chacko
  * @author Gary Russell

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.kafka.inbound;
 
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
@@ -66,9 +66,9 @@ public class MessageDrivenAdapterTests {
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic("testTopic1");
-		template.convertAndSend("foo");
+		template.send("foo");
 		Message<?> received = out.receive(10000);
-		assertNotNull(received);
+		assertThat(received).isNotNull();
 		adapter.stop();
 	}
 

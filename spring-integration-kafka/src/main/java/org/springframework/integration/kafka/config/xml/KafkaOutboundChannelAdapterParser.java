@@ -27,6 +27,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 
 /**
+ * Parser for the outbound channel adapter.
  *
  * @author Soby Chacko
  * @author Artem Bilan

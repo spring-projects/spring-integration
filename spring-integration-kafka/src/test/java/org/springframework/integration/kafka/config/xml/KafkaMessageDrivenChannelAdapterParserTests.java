@@ -1,11 +1,11 @@
 /*
- * Copyright 2015-2016 the original author or authors
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,7 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,15 +49,15 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 
 	@Test
 	public void testKafkaMessageDrivenChannelAdapterParser() throws Exception {
-		assertFalse(this.kafkaListener.isAutoStartup());
-		assertFalse(this.kafkaListener.isRunning());
-		assertEquals(100, this.kafkaListener.getPhase());
-		assertSame(this.nullChannel, TestUtils.getPropertyValue(this.kafkaListener, "outputChannel"));
-		assertSame(this.errorChannel, TestUtils.getPropertyValue(this.kafkaListener, "errorChannel"));
+		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
+		assertThat(this.kafkaListener.isRunning()).isFalse();
+		assertThat(this.kafkaListener.getPhase()).isEqualTo(100);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "outputChannel")).isSameAs(this.nullChannel);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorChannel")).isSameAs(this.errorChannel);
 		KafkaMessageListenerContainer<?, ?> container =
 				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
-		assertNotNull(container);
+		assertThat(container).isNotNull();
 	}
 
 }
