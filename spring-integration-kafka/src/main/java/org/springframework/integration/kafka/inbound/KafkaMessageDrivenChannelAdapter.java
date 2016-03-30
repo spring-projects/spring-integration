@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,10 +37,16 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
+ * Message-driven channel adapter.
+ *
+ * @param <K> the key type.
+ * @param <V> the value type.
+ *
  * @author Marius Bogoevici
  * @author Gary Russell
  *
  * TODO: Use the MessagingMessageConverter from spring-kafka
+ *
  */
 public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable {
 
@@ -137,27 +143,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		return getPhase();
 	}
 
-	private class AutoAcknowledgingChannelForwardingMessageListener implements MessageListener<K, V> {
-
-		@Override
-		public void onMessage(ConsumerRecord<K, V> record) {
-			sendMessage(toMessage(record, null));
-		}
-
-	}
-
-	private class AcknowledgingChannelForwardingMessageListener implements AcknowledgingMessageListener<K, V> {
-
-		@Override
-		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
-			sendMessage(toMessage(record, acknowledgment));
-		}
-
-	}
-
 	private Message<V> toMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
 
-		KafkaMessageHeaders kafkaMessageHeaders = new KafkaMessageHeaders(generateMessageId, generateTimestamp);
+		KafkaMessageHeaders kafkaMessageHeaders = new KafkaMessageHeaders(this.generateMessageId,
+				this.generateTimestamp);
 
 		Map<String, Object> rawHeaders = kafkaMessageHeaders.getRawHeaders();
 		rawHeaders.put(KafkaHeaders.MESSAGE_KEY, record.key());
@@ -180,10 +169,28 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 	}
 
-	@SuppressWarnings("serial")
-	private static class KafkaMessageHeaders extends MessageHeaders {
+	private class AutoAcknowledgingChannelForwardingMessageListener implements MessageListener<K, V> {
 
-		public KafkaMessageHeaders(boolean generateId, boolean generateTimestamp) {
+		@Override
+		public void onMessage(ConsumerRecord<K, V> record) {
+			sendMessage(toMessage(record, null));
+		}
+
+	}
+
+	private class AcknowledgingChannelForwardingMessageListener implements AcknowledgingMessageListener<K, V> {
+
+		@Override
+		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
+			sendMessage(toMessage(record, acknowledgment));
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	private static final class KafkaMessageHeaders extends MessageHeaders {
+
+		private KafkaMessageHeaders(boolean generateId, boolean generateTimestamp) {
 			super(null, generateId ? null : ID_VALUE_NONE, generateTimestamp ? null : -1L);
 		}
 

@@ -16,8 +16,7 @@
 
 package org.springframework.integration.kafka.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,12 +47,12 @@ public class KafkaOutboundAdapterParserTests {
 	public void testOutboundAdapterConfiguration() {
 		KafkaProducerMessageHandler<?, ?> messageHandler
 			= this.appContext.getBean("kafkaOutboundChannelAdapter.handler", KafkaProducerMessageHandler.class);
-		assertNotNull(messageHandler);
-		assertEquals(messageHandler.getOrder(), 3);
-		assertEquals("foo", TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue"));
-		assertEquals("'bar'", TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression"));
-		assertEquals("2", TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression"));
-		assertEquals(true, TestUtils.getPropertyValue(messageHandler, "enableHeaderRouting"));
+		assertThat(messageHandler).isNotNull();
+		assertThat(messageHandler.getOrder()).isEqualTo(3);
+		assertThat(TestUtils.getPropertyValue(messageHandler, "topicExpression.literalValue")).isEqualTo("foo");
+		assertThat(TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression")).isEqualTo("'bar'");
+		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression")).isEqualTo("2");
+		assertThat(TestUtils.getPropertyValue(messageHandler, "enableHeaderRouting")).isEqualTo(Boolean.TRUE);
 	}
 
 }

@@ -26,6 +26,11 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * Kafka Message Handler.
+ *
+ * @param <K> the key type.
+ * @param <V> the value type.
+ *
  * @author Soby Chacko
  * @author Artem Bilan
  * @author Gary Russell
@@ -73,6 +78,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Set the partition expression.
 	 * @param partitionExpression an expression that returns a partition id
 	 * @deprecated as of 1.3, {@link #setPartitionIdExpression(Expression)} should be used instead
 	 */
@@ -111,12 +117,21 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
-		// TODO: Add KafkaTemplate method with topic, partition, data only (no key)
 		if (partitionId == null) {
-			this.kafkaTemplate.convertAndSend(topic, (K) messageKey, ((V) message.getPayload()));
+			if (messageKey == null) {
+				this.kafkaTemplate.send(topic, (V) message.getPayload());
+			}
+			else {
+				this.kafkaTemplate.send(topic, (K) messageKey, (V) message.getPayload());
+			}
 		}
 		else {
-			this.kafkaTemplate.convertAndSend(topic, partitionId, (K) messageKey, ((V) message.getPayload()));
+			if (messageKey == null) {
+				this.kafkaTemplate.send(topic, partitionId, (V) message.getPayload());
+			}
+			else {
+				this.kafkaTemplate.send(topic, partitionId, (K) messageKey, (V) message.getPayload());
+			}
 		}
 	}
 
