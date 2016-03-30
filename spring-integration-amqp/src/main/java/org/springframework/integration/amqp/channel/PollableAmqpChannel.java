@@ -57,7 +57,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	private volatile int executorInterceptorsSize;
 
 	/**
-	 * Construct an instance with the suppleid name, template and defaule header mappers
+	 * Construct an instance with the supplied name, template and default header mappers
 	 * used if the template is a {@link RabbitTemplate} and the message is mapped.
 	 * @param channelName the channel name.
 	 * @param amqpTemplate the template.

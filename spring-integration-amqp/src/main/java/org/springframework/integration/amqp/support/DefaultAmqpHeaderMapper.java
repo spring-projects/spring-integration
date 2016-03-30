@@ -119,7 +119,17 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 */
 	@Deprecated
 	public DefaultAmqpHeaderMapper() {
+		this(null, null);
+	}
+
+	private DefaultAmqpHeaderMapper(String[] requestHeaderNames, String[] replyHeaderNames) {
 		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
+		if (requestHeaderNames != null) {
+			setRequestHeaderNames(requestHeaderNames);
+		}
+		if (replyHeaderNames != null) {
+			setReplyHeaderNames(replyHeaderNames);
+		}
 	}
 
 	/**
@@ -411,22 +421,33 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		}
 	}
 
+	/**
+	 * Construct a default inbound header mapper.
+	 * @return the mapper.
+	 * @see #inboundRequestHeaders()
+	 * @see #inboundReplyHeaders()
+	 * @since 4.3
+	 */
 	public static DefaultAmqpHeaderMapper inboundMapper() {
-		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
-		mapper.setRequestHeaderNames(inboundRequestHeaders());
-		mapper.setReplyHeaderNames(inboundReplyHeaders());
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper(inboundRequestHeaders(), inboundReplyHeaders());
 		return mapper;
 	}
 
+	/**
+	 * Construct a default outbound header mapper.
+	 * @return the mapper.
+	 * @see #outboundRequestHeaders()
+	 * @see #outboundReplyHeaders()
+	 * @since 4.3
+	 */
 	public static DefaultAmqpHeaderMapper outboundMapper() {
-		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
-		mapper.setRequestHeaderNames(outboundRequestHeaders());
-		mapper.setReplyHeaderNames(outboundReplyHeaders());
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper(outboundRequestHeaders(), outboundReplyHeaders());
 		return mapper;
 	}
 
 	/**
 	 * @return the default request headers for an inbound mapper.
+	 * @since 4.3
 	 */
 	public static String[] inboundRequestHeaders() {
 		return new String[] { "*" };
@@ -434,6 +455,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	/**
 	 * @return the default reply headers for an inbound mapper.
+	 * @since 4.3
 	 */
 	public static String[] inboundReplyHeaders() {
 		return safeOutboundHeaders();
@@ -441,6 +463,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	/**
 	 * @return the default request headers for an outbound mapper.
+	 * @since 4.3
 	 */
 	public static String[] outboundRequestHeaders() {
 		return safeOutboundHeaders();
@@ -448,6 +471,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	/**
 	 * @return the default reply headers for an outbound mapper.
+	 * @since 4.3
 	 */
 	public static String[] outboundReplyHeaders() {
 		return new String[] { "*" };

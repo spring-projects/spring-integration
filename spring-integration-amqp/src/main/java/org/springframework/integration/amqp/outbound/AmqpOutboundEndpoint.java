@@ -129,7 +129,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		if (this.amqpTemplate instanceof RabbitTemplate) {
 			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
-					getHeaderMapper(), this.getDefaultDeliveryMode());
+					getHeaderMapper(), getDefaultDeliveryMode());
 			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
 		else {
