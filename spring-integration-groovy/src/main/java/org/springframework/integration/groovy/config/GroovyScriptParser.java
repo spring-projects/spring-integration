@@ -24,8 +24,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.config.AbstractScriptParser;
 
-import groovy.lang.Script;
-
 /**
  * Parser for the &lt;groovy:script/&gt; element.
  *
@@ -39,16 +37,8 @@ public class GroovyScriptParser extends AbstractScriptParser {
 
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return GroovyScriptExecutingMessageProcessor.class.getName();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.config.xml.AbstractScriptParser#getScriptSourceClassName()
-	 */
-	@Override
-	protected String getScriptSourceClassName() {
-		return Script.class.getName();
+	protected Class<?> getBeanClass(Element element) {
+		return GroovyScriptExecutingMessageProcessor.class;
 	}
 
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
@@ -56,8 +46,5 @@ public class GroovyScriptParser extends AbstractScriptParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "compiler-configuration");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "compile-static");
 	}
-
-
-
 
 }

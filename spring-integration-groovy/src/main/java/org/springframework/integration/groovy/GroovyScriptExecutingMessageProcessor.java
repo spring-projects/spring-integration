@@ -34,6 +34,7 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import groovy.lang.Binding;
 import groovy.lang.GString;
@@ -164,8 +165,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			try {
 				// synchronized double check
 				if (this.scriptClass == null || scriptSource.isModified()) {
-					this.scriptClass = this.groovyClassLoader.parseClass(
-							scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+					String className = scriptSource.suggestedClassName();
+					if (StringUtils.hasText(className)) {
+						this.scriptClass =
+								this.groovyClassLoader.parseClass(scriptSource.getScriptAsString(), className);
+					}
+					else {
+						this.scriptClass = this.groovyClassLoader.parseClass(scriptSource.getScriptAsString());
+					}
 				}
 			}
 			finally {

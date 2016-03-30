@@ -24,11 +24,13 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.scripting.config.AbstractScriptParser;
+import org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.jsr223.ScriptExecutorFactory;
 import org.springframework.util.StringUtils;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
 public class ScriptParser extends AbstractScriptParser {
@@ -36,16 +38,8 @@ public class ScriptParser extends AbstractScriptParser {
 	private static final String LANGUAGE_ATTRIBUTE = "lang";
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.config.xml.AbstractScriptParser#getScriptSourceClassName()
-	 */
-	@Override
-	protected String getScriptSourceClassName() {
-		return null;
+	protected Class<?> getBeanClass(Element element) {
+		return ScriptExecutingMessageProcessor.class;
 	}
 
 	@Override
@@ -71,12 +65,6 @@ public class ScriptParser extends AbstractScriptParser {
 		builder.addConstructorArgValue(ScriptExecutorFactory.getScriptExecutor(language));
 	}
 
-	/**
-	 * @param scriptLocation
-	 * @param parserContext
-	 * @param element
-	 * @return the language
-	 */
 	private String getLanguageFromFileExtension(String scriptLocation, ParserContext parserContext, Element element) {
 		ScriptEngineManager engineManager = new ScriptEngineManager();
 		ScriptEngine engine = null;

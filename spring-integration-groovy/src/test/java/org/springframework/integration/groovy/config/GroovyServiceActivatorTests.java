@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ public class GroovyServiceActivatorTests {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
 			assertThat(cause.getMessage(),
-					Matchers.containsString("No such property: ReplyRequiredException for class: groovy_lang"));
+					Matchers.containsString("No such property: ReplyRequiredException for class: script"));
 			throw e;
 		}
 
@@ -200,7 +200,7 @@ public class GroovyServiceActivatorTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void variablesAndScriptVariableGenerator() throws Exception {
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", 
+		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml",
 				this.getClass()).close();
 	}
 
@@ -212,7 +212,7 @@ public class GroovyServiceActivatorTests {
 
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
-		
+
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
@@ -222,7 +222,7 @@ public class GroovyServiceActivatorTests {
 			variables.put("headers", message.getHeaders());
 			return variables;
 		}
-		
+
 	}
 
 
@@ -233,7 +233,7 @@ public class GroovyServiceActivatorTests {
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}
-		
+
 	}
 
 }
