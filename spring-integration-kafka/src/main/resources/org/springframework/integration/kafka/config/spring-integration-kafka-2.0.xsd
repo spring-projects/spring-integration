@@ -96,14 +96,6 @@
 							]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="enable-header-routing" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-								Enables the use of message headers for routing messages to specific topics and
-								partitions.
-							]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="order">
 				<xsd:annotation>
 					<xsd:documentation>
