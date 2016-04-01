@@ -49,6 +49,10 @@ public class IntegrationUtils {
 	 */
 	public static final boolean fatalWhenNoBeanFactory = Boolean.valueOf(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
 
+	private IntegrationUtils() {
+		super();
+	}
+
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link ConversionService} bean whose name is "integrationConversionService" if available.

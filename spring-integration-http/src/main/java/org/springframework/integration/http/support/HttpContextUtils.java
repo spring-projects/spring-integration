@@ -20,9 +20,14 @@ package org.springframework.integration.http.support;
  * Utility class for accessing HTTP integration components from the {@link org.springframework.beans.factory.BeanFactory}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public final class HttpContextUtils {
+
+	private HttpContextUtils() {
+		super();
+	}
 
 	/**
 	 * @see org.springframework.integration.http.config.HttpInboundEndpointParser

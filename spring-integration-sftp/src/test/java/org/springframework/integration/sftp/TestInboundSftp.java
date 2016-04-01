@@ -20,8 +20,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Josh Long
+ * @author Gary Russell
  */
 public class TestInboundSftp {
+
+	private TestInboundSftp() {
+		super();
+	}
 
 	static public void main(String[] args) throws Throwable {
 		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext("TestInboundSftp.xml");

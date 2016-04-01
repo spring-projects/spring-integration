@@ -25,6 +25,10 @@ package org.springframework.integration.mongodb.support;
  */
 public class MongoHeaders {
 
+	private MongoHeaders() {
+		super();
+	}
+
 	public static final String PREFIX = "mongo_";
 
 	public static final String COLLECTION_NAME = PREFIX + "collectionName";

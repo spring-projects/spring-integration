@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,16 @@ import com.gemstone.gemfire.cache.server.CacheServer;
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Soby Chacko
+ * @author Gary Russell
  *
  * Runs as a standalone Java app.
  * Modified from SGF implementation for testing client/server CQ features
  */
 public class CacheServerProcess {
+
+	private CacheServerProcess() {
+		super();
+	}
 
 	public static void main(String[] args) throws Exception {
 

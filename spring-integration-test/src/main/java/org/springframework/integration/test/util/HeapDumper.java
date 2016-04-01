@@ -48,6 +48,10 @@ public class HeapDumper {
 	// field to store the hotspot diagnostic MBean
 	private static volatile HotSpotDiagnosticMXBean hotspotMBean;
 
+	private HeapDumper() {
+		super();
+	}
+
 	public static void dumpHeap(String fileName) {
 		dumpHeap(fileName, true);
 	}

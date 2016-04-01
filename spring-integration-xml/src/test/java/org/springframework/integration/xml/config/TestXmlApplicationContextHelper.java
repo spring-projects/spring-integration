@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package org.springframework.integration.xml.config;
 
 public class TestXmlApplicationContextHelper {
-	
+
+	private TestXmlApplicationContextHelper() {
+		super();
+	}
+
 	public static TestXmlApplicationContext getTestAppContext(String xmlFragment) {
 		String xml = header + xmlFragment + footer;
 		TestXmlApplicationContext ctx = new TestXmlApplicationContext(xml);
@@ -30,7 +34,7 @@ public class TestXmlApplicationContextHelper {
 			+ "xmlns:si='http://www.springframework.org/schema/integration' "
 			+ "xmlns:util='http://www.springframework.org/schema/util' "
 			+ "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "
-			+ "xmlns:context='http://www.springframework.org/schema/context' " 
+			+ "xmlns:context='http://www.springframework.org/schema/context' "
 			+ "xsi:schemaLocation="
 			+ "'http://www.springframework.org/schema/beans "
 			+ "http://www.springframework.org/schema/beans/spring-beans.xsd "

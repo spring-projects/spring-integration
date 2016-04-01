@@ -30,6 +30,10 @@ import org.springframework.integration.ip.tcp.connection.AbstractServerConnectio
  */
 public class TestingUtilities {
 
+	private TestingUtilities() {
+		super();
+	}
+
 	/**
 	 * Wait for a server connection factory to actually start listening before
 	 * starting a test. Waits for up to 10 seconds by default.

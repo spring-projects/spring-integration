@@ -68,6 +68,10 @@ import org.springframework.messaging.Message;
  */
 public class MockitoMessageMatchers {
 
+	private MockitoMessageMatchers() {
+		super();
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(Matcher<T> payloadMatcher) {
 		return argThat(hasPayload(payloadMatcher));

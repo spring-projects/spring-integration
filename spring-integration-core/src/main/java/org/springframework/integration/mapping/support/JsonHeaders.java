@@ -25,9 +25,14 @@ import java.util.Collections;
  * entries from/to Message Headers and other adapter, e.g. AMQP.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class JsonHeaders {
+
+	private JsonHeaders() {
+		super();
+	}
 
 	public static final String PREFIX = "json";
 

@@ -26,6 +26,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class SyslogdTests {
 
+	private SyslogdTests() {
+		super();
+	}
+
 	public static void main(String[] args) throws Exception {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("SyslogdTests-context.xml", SyslogdTests.class);
 		System.out.println("Hit enter to terminate");

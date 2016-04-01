@@ -24,6 +24,10 @@ package org.springframework.integration.sftp.session;
  */
 public class SftpTestSessionFactory {
 
+	private SftpTestSessionFactory() {
+		super();
+	}
+
 	public static SftpSession createSftpSession(com.jcraft.jsch.Session jschSession) {
 		SftpSession sftpSession = new SftpSession(jschSession);
 		sftpSession.connect();

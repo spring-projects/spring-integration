@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,21 +25,26 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.xml.transform.StringResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import org.springframework.xml.transform.StringResult;
+
 /**
  * Utility class for XML related testing
- * 
+ *
  * @author Jonas Partner
  */
 public class XmlTestUtil {
 
+	private XmlTestUtil() {
+		super();
+	}
+
 	public static Document getDocumentForString(String strDoc) throws Exception {
 		DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
 		builder.setNamespaceAware(true);
-		
+
 		return builder.newDocumentBuilder().parse(
 				new InputSource(new StringReader(strDoc)));
 	}
@@ -68,8 +73,8 @@ public class XmlTestUtil {
 		transform(source, stringResult);
 		return stringResult.toString();
 	}
-	
-	
+
+
 	public static void transform(Source source, Result res) throws Exception {
 		TransformerFactory.newInstance().newTransformer().transform(source, res);
 	}
