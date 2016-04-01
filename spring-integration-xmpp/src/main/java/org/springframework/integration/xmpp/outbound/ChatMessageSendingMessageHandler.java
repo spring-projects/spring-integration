@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
-	private static final Pattern xmlPattern = Pattern.compile("<(\\S.*?)>(.*?)</\\1>");
+	private static final Pattern xmlPattern = Pattern.compile("<(\\S[^>\\s]*)[^>]*>[^<]*</\\1>");
 
 	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
@@ -101,7 +101,10 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			else if (payload instanceof String) {
 				if (this.extensionProvider != null) {
 					String data = (String) payload;
-					if (!xmlPattern.matcher(data).matches()) {
+					if (!xmlPattern.matcher(data.trim()).matches()) {
+						// Since XMPP Extension parsers deal only with XML content,
+						// add an arbitrary tag that is removed by the extension parser,
+						// if the target content isn't XML.
 						data = "<root>" + data + "</root>";
 					}
 					XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(data));

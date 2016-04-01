@@ -163,7 +163,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		final String json = "{\"foo\": \"bar\"}";
-		Message<?> message = MessageBuilder.withPayload("<f>" + json + "</f>")
+		Message<?> message = MessageBuilder.withPayload("  <f foo='foo'>" + json + "</f>  ")
 				.setHeader(XmppHeaders.TO, "kermit@frog.com")
 				.build();
 
