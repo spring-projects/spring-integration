@@ -21,11 +21,16 @@ import java.util.Locale;
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public final class DerbyFunctions {
 
-	  public static String convertStringToUpperCase( String invalue ) {
+	private DerbyFunctions() {
+		super();
+	}
+
+	public static String convertStringToUpperCase( String invalue ) {
 				return invalue.toUpperCase(Locale.ENGLISH);
 	  }
 

@@ -16,12 +16,13 @@
 
 package org.springframework.integration.mongodb.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 /**
  * Utility class used by mongo parsers
  *
@@ -30,6 +31,10 @@ import org.w3c.dom.Element;
  * @since 2.2
  */
 class MongoParserUtils {
+
+	private MongoParserUtils() {
+		super();
+	}
 
 	/**
 	 * Will parse and validate

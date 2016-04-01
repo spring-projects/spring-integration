@@ -29,52 +29,56 @@ import java.util.logging.Logger;
 class TimeBasedUUIDGenerator {
 
 	private static final Logger logger = Logger.getLogger(TimeBasedUUIDGenerator.class.getName());
-	
+
 	public static final Object lock = new Object();
-	
+
 	private static boolean canNotDetermineMac = true;
 	private static long lastTime;
 	private static long clockSequence = 0;
 	private static final long macAddress = getMac();
 
+	private TimeBasedUUIDGenerator() {
+		super();
+	}
+
 	/**
-	 * Will generate unique time based UUID where the next UUID is 
+	 * Will generate unique time based UUID where the next UUID is
 	 * always greater then the previous.
 	 */
 	public final static UUID generateId() {
 		return generateIdFromTimestamp(System.currentTimeMillis());
 	}
-	
+
 	public final static UUID generateIdFromTimestamp(long currentTimeMillis){
 		long time;
-		
+
 		synchronized (lock) {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;
 				clockSequence = 0;
-			} else  { 
-				++clockSequence; 
+			} else  {
+				++clockSequence;
 			}
 		}
-		
-	
+
+
 		time = currentTimeMillis;
-		
+
 		// low Time
 		time = currentTimeMillis << 32;
-		
+
 		// mid Time
 		time |= ((currentTimeMillis & 0xFFFF00000000L) >> 16);
 
 		// hi Time
 		time |= 0x1000 | ((currentTimeMillis >> 48) & 0x0FFF); // version 1
-		
-		long clock_seq_hi_and_reserved = clockSequence;  
-    	
-    	clock_seq_hi_and_reserved <<=48;	
-  
-    	long cls = 0 | clock_seq_hi_and_reserved;
-    	
+
+		long clock_seq_hi_and_reserved = clockSequence;
+
+		clock_seq_hi_and_reserved <<=48;
+
+		long cls = 0 | clock_seq_hi_and_reserved;
+
 		long lsb = cls | macAddress;
 		if (canNotDetermineMac){
 			logger.warning("UUID generation process was not able to determine your MAC address. Returning random UUID (non version 1 UUID)");
@@ -93,12 +97,12 @@ class TimeBasedUUIDGenerator {
 				byte[] mac = "01:23:45:67:89:ab".getBytes();
 				//Converts array of unsigned bytes to an long
 				if (mac != null) {
-					for (int i = 0; i < mac.length; i++) {					
+					for (int i = 0; i < mac.length; i++) {
 						macAddressAsLong <<= 8;
 						macAddressAsLong ^= (long)mac[i] & 0xFF;
 					}
 				}
-			} 
+			}
 			canNotDetermineMac = false;
 		} catch (Exception e) {
 			e.printStackTrace();

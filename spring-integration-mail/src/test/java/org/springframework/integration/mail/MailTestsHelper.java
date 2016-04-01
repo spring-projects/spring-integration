@@ -20,11 +20,11 @@ import static org.mockito.Mockito.mock;
 
 import javax.mail.Folder;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.messaging.Message;
 
 /**
  * @author Marius Bogoevici
@@ -49,6 +49,10 @@ public class MailTestsHelper {
 
 	public static final String REPLY_TO = "replyTo@springframework.org";
 
+
+	private MailTestsHelper() {
+		super();
+	}
 
 	public static SimpleMailMessage createSimpleMailMessage() {
 		SimpleMailMessage message = new SimpleMailMessage();

@@ -37,6 +37,10 @@ final class FileChannelCache {
 	private static ConcurrentMap<File, FileChannel> channelCache = new ConcurrentHashMap<File, FileChannel>();
 
 
+	private FileChannelCache() {
+		super();
+	}
+
 	/**
 	 * Try to get a lock for this file while guaranteeing that the same channel will be used for all file locks in this
 	 * VM. If the lock could not be acquired this method will return <code>null</code>.

@@ -29,9 +29,14 @@ import org.springframework.jdbc.support.JdbcUtils;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 public final class DerbyStoredProcedures {
+
+	private DerbyStoredProcedures() {
+		super();
+	}
 
 	public static void createUser(String username, String password, String email)
 			throws SQLException {

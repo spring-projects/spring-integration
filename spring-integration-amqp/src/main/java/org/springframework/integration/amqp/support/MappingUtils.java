@@ -32,6 +32,10 @@ import org.springframework.messaging.Message;
  */
 public class MappingUtils {
 
+	private MappingUtils() {
+		super();
+	}
+
 	/**
 	 * Map an o.s.Message to an o.s.a.core.Message.
 	 * @param requestMessage the request message.

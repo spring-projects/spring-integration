@@ -47,6 +47,10 @@ public class SocketTestUtils {
 
 	private static final Log logger = LogFactory.getLog(SocketTestUtils.class);
 
+	private SocketTestUtils() {
+		super();
+	}
+
 	/**
 	 * Sends a message in two chunks with a preceding length. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.

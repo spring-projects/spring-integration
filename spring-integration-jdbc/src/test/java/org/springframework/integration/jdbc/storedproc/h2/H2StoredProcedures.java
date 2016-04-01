@@ -26,27 +26,32 @@ import org.h2.tools.SimpleResultSet;
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public final class H2StoredProcedures {
 
-     public static ResultSet getPrimes(int beginRange, int endRange) throws SQLException {
+	private H2StoredProcedures() {
+		super();
+	}
 
-            SimpleResultSet rs = new SimpleResultSet();
-            rs.addColumn("PRIME", Types.INTEGER, 10, 0);
+	public static ResultSet getPrimes(int beginRange, int endRange) throws SQLException {
 
-            for (int i = beginRange; i <= endRange; i++) {
+		SimpleResultSet rs = new SimpleResultSet();
+		rs.addColumn("PRIME", Types.INTEGER, 10, 0);
 
-                if (new BigInteger(String.valueOf(i)).isProbablePrime(100)) {
-                    rs.addRow(i);
-                }
-            }
+		for (int i = beginRange; i <= endRange; i++) {
 
-            return rs;
-     }
+			if (new BigInteger(String.valueOf(i)).isProbablePrime(100)) {
+				rs.addRow(i);
+			}
+		}
 
-     public static Integer random() {
-         return 1 + (int)(Math.random() * 100);
-     }
+		return rs;
+	}
+
+	public static Integer random() {
+		return 1 + (int) (Math.random() * 100);
+	}
 
 }

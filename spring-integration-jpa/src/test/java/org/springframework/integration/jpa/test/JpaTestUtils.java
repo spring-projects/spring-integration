@@ -20,21 +20,26 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jpa.test.entity.Gender;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.messaging.MessageChannel;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public final class JpaTestUtils {
+
+	private JpaTestUtils() {
+		super();
+	}
 
 	public static StudentDomain getTestStudent() {
 

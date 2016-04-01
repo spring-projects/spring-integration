@@ -37,6 +37,10 @@ public class ForkUtil {
 
 	private static String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
+	private ForkUtil() {
+		super();
+	}
+
 	public static OutputStream cloneJVM(String argument) {
 		String cp = System.getProperty("java.class.path");
 		String home = System.getProperty("java.home");

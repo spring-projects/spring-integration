@@ -27,6 +27,10 @@ import org.springframework.integration.transformer.SyslogToMapTransformer;
  */
 public class SyslogHeaders {
 
+	private SyslogHeaders() {
+		super();
+	}
+
 	public static String PREFIX = "syslog_";
 
 	public static final String FACILITY = PREFIX + SyslogToMapTransformer.FACILITY;
