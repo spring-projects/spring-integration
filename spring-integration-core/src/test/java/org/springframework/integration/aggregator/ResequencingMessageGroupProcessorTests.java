@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,26 @@
 
 package org.springframework.integration.aggregator;
 
-import org.junit.Test;
-import org.springframework.messaging.Message;
-import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.MessageBuilder;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+
+import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class ResequencingMessageGroupProcessorTests {
 
-	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
+	private final ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
@@ -49,7 +52,7 @@ public class ResequencingMessageGroupProcessorTests {
 		List<Message> processedMessages = (List<Message>) processor.processMessageGroup(group);
 		assertThat(processedMessages, hasItems(message1, message2, message3));
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void shouldPartiallProcessIncompleteSequence() {
@@ -66,4 +69,5 @@ public class ResequencingMessageGroupProcessorTests {
 		assertThat(processedMessages, hasItems(message1));
 		assertThat(processedMessages.size(), is(1));
 	}
+
 }

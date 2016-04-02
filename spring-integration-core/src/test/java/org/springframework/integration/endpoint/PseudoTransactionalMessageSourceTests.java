@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,7 +32,7 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -86,6 +89,7 @@ public class PseudoTransactionalMessageSourceTests {
 		adapter.setOutputChannel(outputChannel);
 		adapter.setSource(new MessageSource<String>() {
 
+			@Override
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
 				IntegrationResourceHolder holder =
@@ -127,7 +131,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 	@Test
 	public void testTransactionSynchronizationFactoryBean() {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(TestTxSyncConfiguration.class);
+		ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(TestTxSyncConfiguration.class);
 
 		TransactionSynchronizationFactory syncFactory = ctx.getBean(TransactionSynchronizationFactory.class);
 
@@ -141,6 +145,7 @@ public class PseudoTransactionalMessageSourceTests {
 		adapter.setOutputChannel(outputChannel);
 		adapter.setSource(new MessageSource<String>() {
 
+			@Override
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
 				IntegrationResourceHolder holder =
@@ -165,6 +170,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
+		ctx.close();
 	}
 
 
@@ -187,6 +193,7 @@ public class PseudoTransactionalMessageSourceTests {
 		adapter.setOutputChannel(outputChannel);
 		adapter.setSource(new MessageSource<String>() {
 
+			@Override
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
 				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
@@ -212,6 +219,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
+			@Override
 			public Object doInTransaction(TransactionStatus status) {
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
@@ -231,6 +239,7 @@ public class PseudoTransactionalMessageSourceTests {
 				adapter.setOutputChannel(outputChannel);
 				adapter.setSource(new MessageSource<String>() {
 
+					@Override
 					public Message<String> receive() {
 						GenericMessage<String> message = new GenericMessage<String>("foo");
 						IntegrationResourceHolder holder =
@@ -260,6 +269,7 @@ public class PseudoTransactionalMessageSourceTests {
 		try {
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 
+				@Override
 				public Object doInTransaction(TransactionStatus status) {
 
 					SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
@@ -278,6 +288,7 @@ public class PseudoTransactionalMessageSourceTests {
 					adapter.setOutputChannel(outputChannel);
 					adapter.setSource(new MessageSource<String>() {
 
+						@Override
 						public Message<String> receive() {
 							GenericMessage<String> message = new GenericMessage<String>("foo");
 							((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
@@ -305,6 +316,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
+			@Override
 			public Object doInTransaction(TransactionStatus status) {
 
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
@@ -323,6 +335,7 @@ public class PseudoTransactionalMessageSourceTests {
 				adapter.setOutputChannel(outputChannel);
 				adapter.setSource(new MessageSource<String>() {
 
+					@Override
 					public Message<String> receive() {
 						GenericMessage<String> message = new GenericMessage<String>("foo");
 						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
@@ -347,6 +360,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		adapter.setSource(new MessageSource<String>() {
 
+			@Override
 			public Message<String> receive() {
 				return null;
 			}
@@ -370,6 +384,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		TransactionSynchronizationFactory syncFactory = new TransactionSynchronizationFactory() {
 
+			@Override
 			public TransactionSynchronization create(Object key) {
 				return new TransactionSynchronizationAdapter() {
 					@Override
@@ -383,6 +398,7 @@ public class PseudoTransactionalMessageSourceTests {
 		adapter.setTransactionSynchronizationFactory(syncFactory);
 		adapter.setSource(new MessageSource<String>() {
 
+			@Override
 			public Message<String> receive() {
 				return null;
 			}

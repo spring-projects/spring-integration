@@ -16,7 +16,9 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.Map;
@@ -32,7 +34,7 @@ import org.junit.Test;
  */
 public class SysLogTransformerTests {
 
-	private SyslogToMapTransformer sut = new SyslogToMapTransformer();
+	private final SyslogToMapTransformer sut = new SyslogToMapTransformer();
 
 	@Test
 	public void testMap() throws Exception {

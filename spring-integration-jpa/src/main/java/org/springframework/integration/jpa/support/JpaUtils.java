@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jpa.support;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static java.util.regex.Pattern.compile;
-
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Oliver Gierke
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  * @since 2.2
  *
@@ -60,7 +58,7 @@ public final class JpaUtils {
 		builder.append("(?: )+"); // at least one space separating
 		builder.append("(\\w*)"); // the actual alias
 
-		ALIAS_MATCH = compile(builder.toString(), CASE_INSENSITIVE);
+		ALIAS_MATCH = Pattern.compile(builder.toString(), Pattern.CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
 		builder.append("(select\\s+((distinct )?.+?)\\s+)?(from\\s+");

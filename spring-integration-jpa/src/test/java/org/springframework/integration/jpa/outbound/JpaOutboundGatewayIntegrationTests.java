@@ -16,7 +16,10 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -49,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Amol Nayak
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  *
  */

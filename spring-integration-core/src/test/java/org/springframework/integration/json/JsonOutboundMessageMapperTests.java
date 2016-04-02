@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import org.springframework.integration.history.MessageHistory;
@@ -32,8 +29,14 @@ import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.messaging.Message;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Jeremy Grelle
+ * @author Gary Russell
  * @since 2.0
  */
 public class JsonOutboundMessageMapperTests {
@@ -128,10 +131,12 @@ public class JsonOutboundMessageMapperTests {
 			this.id = id;
 		}
 
+		@Override
 		public String getComponentName() {
 			return "testName-" + this.id;
 		}
 
+		@Override
 		public String getComponentType() {
 			return "testType-" + this.id;
 		}

@@ -23,8 +23,6 @@ import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.test.TestingServer;
 import org.junit.Test;
 
-import org.springframework.integration.zookeeper.config.CuratorFrameworkFactoryBean;
-
 /**
  * @author Gary Russell
  *

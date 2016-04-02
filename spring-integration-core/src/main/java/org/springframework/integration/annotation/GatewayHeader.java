@@ -16,9 +16,8 @@
 
 package org.springframework.integration.annotation;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
@@ -28,7 +27,7 @@ import java.lang.annotation.Target;
  * @since 4.0
  */
 @Target({ })
-@Retention(RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface GatewayHeader {
 
 	/**

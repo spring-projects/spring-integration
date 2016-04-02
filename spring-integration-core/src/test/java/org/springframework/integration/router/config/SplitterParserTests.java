@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,29 @@
 
 package org.springframework.integration.router.config;
 
-import org.junit.Test;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.handler.ReplyRequiredException;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class SplitterParserTests {
 
@@ -56,6 +59,7 @@ public class SplitterParserTests {
 		Message<?> result4 = output.receive(1000);
 		assertEquals("test", result4.getPayload());
 		assertNull(output.receive(0));
+		context.close();
 	}
 
 	@Test
@@ -75,6 +79,7 @@ public class SplitterParserTests {
 		Message<?> result4 = output.receive(1000);
 		assertEquals("test", result4.getPayload());
 		assertNull(output.receive(0));
+		context.close();
 	}
 
 	@Test
@@ -94,6 +99,7 @@ public class SplitterParserTests {
 		Message<?> result4 = output.receive(1000);
 		assertEquals("test", result4.getPayload());
 		assertNull(output.receive(0));
+		context.close();
 	}
 
 	@Test(expected = ReplyRequiredException.class)
@@ -103,6 +109,7 @@ public class SplitterParserTests {
 		context.start();
 		DirectChannel inputChannel = context.getBean("requiresReplyInput", DirectChannel.class);
 		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
+		context.close();
 	}
 
 	@Test
@@ -116,7 +123,7 @@ public class SplitterParserTests {
 		Message<?> message = output.receive(1000);
 		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceNumber(), is(0));
 		assertThat(new IntegrationMessageHeaderAccessor(message).getSequenceSize(), is(0));
+		context.close();
 	}
-
 
 }

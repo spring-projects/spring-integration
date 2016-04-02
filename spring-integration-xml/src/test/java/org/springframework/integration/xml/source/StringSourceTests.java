@@ -16,27 +16,27 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.custommonkey.xmlunit.XMLAssert.*;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
 import java.io.BufferedReader;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.springframework.messaging.MessagingException;
-import org.springframework.integration.xml.util.XmlTestUtil;
-import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 
+import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.MessagingException;
+import org.springframework.xml.transform.StringSource;
+
 public class StringSourceTests {
-	
+
 	StringSourceFactory sourceFactory;
-	
+
 	@Before
 	public void setUp() throws Exception{
 		sourceFactory = new StringSourceFactory();
 	}
-	
+
 	@Test
 	public void testWithDocument() throws Exception{
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
@@ -46,8 +46,8 @@ public class StringSourceTests {
 		String docAsString =reader.readLine();
 		assertXMLEqual("Wrong content in StringSource","<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
 	}
-	
-	
+
+
 	@Test
 	public void testWithString() throws Exception{
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
@@ -56,8 +56,8 @@ public class StringSourceTests {
 		String docAsString =reader.readLine();
 		assertXMLEqual("Wrong content in StringSource","<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
 	}
-	
-	
+
+
 	@Test(expected=MessagingException.class)
 	public void testWithUnsupportedPayload() throws Exception{
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
