@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
+public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
 	private static List<Class<?>> SUPPORTED_PROPERTY_TYPES = Arrays.asList(new Class<?>[] {
 			Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class, String.class });
