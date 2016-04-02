@@ -182,6 +182,54 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
+	private Runnable createMessageSendingTask(final Message mailMessage){
+		Runnable sendingTask = new Runnable() {
+			@Override
+			public void run() {
+				org.springframework.messaging.Message<?> message =
+						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
+
+				if (TransactionSynchronizationManager.isActualTransactionActive()) {
+					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null){
+						TransactionSynchronization synchronization =
+								ImapIdleChannelAdapter.this.transactionSynchronizationFactory
+										.create(ImapIdleChannelAdapter.this);
+						TransactionSynchronizationManager.registerSynchronization(synchronization);
+						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+							IntegrationResourceHolder holder =
+									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
+							holder.setMessage(message);
+						}
+					}
+				}
+				sendMessage(message);
+			}
+		};
+
+		// wrap in the TX proxy if necessary
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
+			if (!CollectionUtils.isEmpty(this.adviceChain)) {
+				for (Advice advice : this.adviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+			}
+			sendingTask = (Runnable) proxyFactory.getProxy(this.classLoader);
+		}
+		return sendingTask;
+	}
+
+	private void publishException(Exception e) {
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(e));
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No application event publisher for exception: " + e.getMessage());
+			}
+		}
+	}
+
 
 	private class ReceivingTask implements Runnable {
 		@Override
@@ -243,54 +291,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					throw new org.springframework.messaging.MessagingException(
 							"Failure in 'idle' task. Will NOT resubmit.", e);
 				}
-			}
-		}
-	}
-
-	private Runnable createMessageSendingTask(final Message mailMessage){
-		Runnable sendingTask = new Runnable() {
-			@Override
-			public void run() {
-				org.springframework.messaging.Message<?> message =
-						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
-
-				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null){
-						TransactionSynchronization synchronization =
-								ImapIdleChannelAdapter.this.transactionSynchronizationFactory
-										.create(ImapIdleChannelAdapter.this);
-						TransactionSynchronizationManager.registerSynchronization(synchronization);
-						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-							IntegrationResourceHolder holder =
-									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-							holder.setMessage(message);
-						}
-					}
-				}
-				sendMessage(message);
-			}
-		};
-
-		// wrap in the TX proxy if necessary
-		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
-			if (!CollectionUtils.isEmpty(this.adviceChain)) {
-				for (Advice advice : this.adviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-			}
-			sendingTask = (Runnable) proxyFactory.getProxy(this.classLoader);
-		}
-		return sendingTask;
-	}
-
-	private void publishException(Exception e) {
-		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(e));
-		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("No application event publisher for exception: " + e.getMessage());
 			}
 		}
 	}

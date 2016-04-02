@@ -28,7 +28,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractServerConnectio
  * @since 2.2
  *
  */
-public class TestingUtilities {
+public final class TestingUtilities {
 
 	private TestingUtilities() {
 		super();

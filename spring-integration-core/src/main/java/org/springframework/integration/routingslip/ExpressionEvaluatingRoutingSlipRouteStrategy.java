@@ -58,6 +58,7 @@ import org.springframework.messaging.Message;
  * </pre>
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class ExpressionEvaluatingRoutingSlipRouteStrategy
@@ -101,6 +102,11 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 				String.class);
 	}
 
+	@Override
+	public String toString() {
+		return "ExpressionEvaluatingRoutingSlipRouteStrategy for: [" + this.expression.getExpressionString() + "]";
+	}
+
 	public static class RequestAndReply {
 
 		private final Message<?> request;
@@ -122,10 +128,4 @@ public class ExpressionEvaluatingRoutingSlipRouteStrategy
 		}
 
 	}
-
-	@Override
-	public String toString() {
-		return "ExpressionEvaluatingRoutingSlipRouteStrategy for: [" + this.expression.getExpressionString() + "]";
-	}
-
 }

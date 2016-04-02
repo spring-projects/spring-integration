@@ -278,7 +278,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 * send to encrypted data to the SocketChannel.
 	 *
 	 */
-	class SSLChannelOutputStream extends ChannelOutputStream  {
+	final class SSLChannelOutputStream extends ChannelOutputStream  {
 
 		private final ChannelOutputStream channelOutputStream;
 

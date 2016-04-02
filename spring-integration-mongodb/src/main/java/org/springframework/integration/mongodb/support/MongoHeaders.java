@@ -23,7 +23,7 @@ package org.springframework.integration.mongodb.support;
  * @author Gary Russell
  * @since 2.2
  */
-public class MongoHeaders {
+public final class MongoHeaders {
 
 	private MongoHeaders() {
 		super();

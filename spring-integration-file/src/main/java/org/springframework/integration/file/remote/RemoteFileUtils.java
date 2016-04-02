@@ -30,7 +30,7 @@ import org.springframework.integration.file.remote.session.Session;
  * @since 3.0
  *
  */
-public class RemoteFileUtils {
+public final class RemoteFileUtils {
 
 	private RemoteFileUtils() {}
 

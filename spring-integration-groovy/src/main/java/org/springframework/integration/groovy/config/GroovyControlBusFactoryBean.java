@@ -111,7 +111,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	 * In additionally beans should be 'managed' with specific properties which
 	 * are allowed in the Control Bus operations.
 	 */
-	private static class ManagedBeansBinding extends Binding {
+	private static final class ManagedBeansBinding extends Binding {
 
 		private final ConfigurableListableBeanFactory beanFactory;
 

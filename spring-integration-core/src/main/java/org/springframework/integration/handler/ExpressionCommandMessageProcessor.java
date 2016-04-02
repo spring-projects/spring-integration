@@ -79,7 +79,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	}
 
 
-	private static class ExpressionCommandMethodResolver extends ReflectiveMethodResolver {
+	private static final class ExpressionCommandMethodResolver extends ReflectiveMethodResolver {
 
 		private final MethodFilter methodFilter;
 

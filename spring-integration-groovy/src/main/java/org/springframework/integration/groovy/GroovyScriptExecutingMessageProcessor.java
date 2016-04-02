@@ -210,7 +210,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		}
 	}
 
-	private class BeanFactoryFallbackBinding extends Binding {
+	private final class BeanFactoryFallbackBinding extends Binding {
 
 		private BeanFactoryFallbackBinding(Map<?, ?> variables) {
 			super(variables);

@@ -320,7 +320,12 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		return this.phase;
 	}
 
-	private static class LocalChildData {
+	private String getKey(String path) {
+		return path.replace(this.root + "/", "");
+	}
+
+
+	private static final class LocalChildData {
 
 		private final String value;
 
@@ -386,7 +391,4 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		}
 	}
 
-	private String getKey(String path) {
-		return path.replace(this.root + "/", "");
-	}
 }

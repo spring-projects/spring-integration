@@ -274,7 +274,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @author Gary Russell
 	 * @since 2.0
 	 */
-	private class AsyncReply {
+	private final class AsyncReply {
 
 		private final CountDownLatch latch;
 

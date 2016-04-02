@@ -663,7 +663,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 *
 	 * @since 4.2
 	 */
-	private static class GuavaCacheWrapper {
+	private static final class GuavaCacheWrapper {
 
 		private final LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache;
 

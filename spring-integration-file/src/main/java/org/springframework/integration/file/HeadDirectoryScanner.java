@@ -57,7 +57,7 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 	}
 
 
-	private static class HeadFilter implements FileListFilter<File> {
+	private static final class HeadFilter implements FileListFilter<File> {
 
 		private final int maxNumberOfFiles;
 

@@ -100,7 +100,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 				new SimpleResponseMessageExtractor(responseResultInstance));
 	}
 
-	private class SimpleRequestMessageCallback extends RequestMessageCallback {
+	private final class SimpleRequestMessageCallback extends RequestMessageCallback {
 
 		private SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
@@ -141,7 +141,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	}
 
-	private class SimpleResponseMessageExtractor extends ResponseMessageExtractor {
+	private final class SimpleResponseMessageExtractor extends ResponseMessageExtractor {
 
 		private final Result result;
 

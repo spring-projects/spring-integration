@@ -613,7 +613,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 
-	private static class MethodInvocationGateway extends MessagingGatewaySupport {
+	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
 		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			this.setRequestMapper(messageMapper);
@@ -622,7 +622,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 
-	private class AsyncInvocationTask implements Callable<Object> {
+	private final class AsyncInvocationTask implements Callable<Object> {
 
 		private final MethodInvocation invocation;
 

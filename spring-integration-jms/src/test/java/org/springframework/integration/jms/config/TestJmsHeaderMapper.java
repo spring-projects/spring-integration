@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,20 @@ import java.util.Map;
 
 import javax.jms.Message;
 
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class TestJmsHeaderMapper implements JmsHeaderMapper {
+public class TestJmsHeaderMapper extends JmsHeaderMapper {
 
+	@Override
 	public void fromHeaders(MessageHeaders headers, Message target) {
 	}
 
+	@Override
 	public Map<String, Object> toHeaders(Message source) {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("testProperty", "foo");

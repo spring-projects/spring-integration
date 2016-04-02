@@ -454,7 +454,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * @since 2.2
 	 *
 	 */
-	private class IntegrationMimeMessage extends MimeMessage {
+	private final class IntegrationMimeMessage extends MimeMessage {
 
 		private final MimeMessage source;
 

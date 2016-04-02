@@ -312,7 +312,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	/**
 	 * Default Poller implementation
 	 */
-	private class Poller implements Runnable {
+	private final class Poller implements Runnable {
 
 		private final Callable<Boolean> pollingTask;
 

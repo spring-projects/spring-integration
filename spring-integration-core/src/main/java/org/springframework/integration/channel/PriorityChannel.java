@@ -103,7 +103,7 @@ public class PriorityChannel extends QueueChannel {
 		return message;
 	}
 
-	private static class SequenceFallbackComparator implements Comparator<Message<?>> {
+	private static final class SequenceFallbackComparator implements Comparator<Message<?>> {
 
 		private final Comparator<Message<?>> targetComparator;
 
@@ -136,7 +136,7 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	//we need this because of INT-2508
-	private class MessageWrapper implements Message<Object> {
+	private final class MessageWrapper implements Message<Object> {
 		private final Message<?> rootMessage;
 		private final long sequence;
 

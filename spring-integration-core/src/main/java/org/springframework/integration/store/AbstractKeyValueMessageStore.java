@@ -356,7 +356,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return (Message<?>) message;
 	}
 
-	private class MessageGroupIterator implements Iterator<MessageGroup> {
+	private final class MessageGroupIterator implements Iterator<MessageGroup> {
 
 		private final Iterator<?> idIterator;
 

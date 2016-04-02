@@ -16,7 +16,9 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -81,7 +83,7 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals("hello world", reply.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -100,7 +102,7 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(messageToSend);
 		message = outputChannel.receive(1000);
 		assertEquals("hello world advised", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -113,7 +115,7 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -126,7 +128,7 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(new GenericMessage<String>("123"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals(246, message.getPayload());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -353,6 +355,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
 
+		@Override
 		@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String test(String input) {
 			return "test-"  + input;

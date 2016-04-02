@@ -454,10 +454,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				this.collectionName).get(SEQUENCE);
 	}
 
+	@SuppressWarnings("unchecked")
+	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
+		Map<String, Object> innerMap =
+				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
+		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+	}
+
+
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */
-	private class MessageReadingMongoConverter extends MappingMongoConverter {
+	private final class MessageReadingMongoConverter extends MappingMongoConverter {
 
 		private MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
@@ -586,16 +596,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	@SuppressWarnings("unchecked")
-	private static void enhanceHeaders(MessageHeaders messageHeaders, Map<String, Object> headers) {
-		Map<String, Object> innerMap =
-				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
-		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-	}
-
-
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
 		@Override
 		public DBObject convert(UUID source) {
@@ -650,7 +650,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private class DBObjectToMutableMessageConverter implements GenericConverter {
+	private final class DBObjectToMutableMessageConverter implements GenericConverter {
 
 		private final Class<?> mutableMessageClass;
 

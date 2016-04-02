@@ -95,7 +95,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	/**
 	 * An exception thrown when the circuit breaker is in an open state.
 	 */
-	public static class CircuitBreakerOpenException extends RuntimeException {
+	public static final class CircuitBreakerOpenException extends RuntimeException {
 
 		private static final long serialVersionUID = 1L;
 

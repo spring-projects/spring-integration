@@ -16,8 +16,10 @@
 
 package org.springframework.integration.splitter;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,6 +49,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Alex Peters
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class StreamingSplitterTests {
@@ -72,6 +75,7 @@ public class StreamingSplitterTests {
 		List<Message<?>> receivedMessages = replyChannel.clear();
 		Collections.sort(receivedMessages, new Comparator<Message<?>>() {
 
+			@Override
 			public int compare(Message<?> o1, Message<?> o2) {
 				return o1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)
 						.compareTo(o2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class));
@@ -146,6 +150,7 @@ public class StreamingSplitterTests {
 
 		new EventDrivenConsumer(replyChannel, new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertThat("Failure with msg: " + message,
 						message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
@@ -167,6 +172,7 @@ public class StreamingSplitterTests {
 		final AtomicInteger receivedMessageCounter = new AtomicInteger(0);
 		new EventDrivenConsumer(replyChannel, new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message)
 					throws MessageRejectedException, MessageHandlingException,
 					MessageDeliveryException {
@@ -196,10 +202,12 @@ public class StreamingSplitterTests {
 		public Iterator<String> annotatedMethod(String input) {
 			return new Iterator<String>() {
 
+				@Override
 				public boolean hasNext() {
 					return counter.get() < max;
 				}
 
+				@Override
 				public String next() {
 					if (!hasNext()) {
 						throw new IllegalStateException("Last element reached!");
@@ -207,6 +215,7 @@ public class StreamingSplitterTests {
 					return String.valueOf(counter.incrementAndGet());
 				}
 
+				@Override
 				public void remove() {
 					throw new AssertionError("not implemented!");
 
@@ -230,14 +239,17 @@ public class StreamingSplitterTests {
 		public Iterable<String> annotatedMethod(String input) {
 			return new Iterable<String>() {
 
+				@Override
 				public Iterator<String> iterator() {
 
 					return new Iterator<String>() {
 
+						@Override
 						public boolean hasNext() {
 							return counter.get() < max;
 						}
 
+						@Override
 						public String next() {
 							if (!hasNext()) {
 								throw new IllegalStateException(
@@ -246,6 +258,7 @@ public class StreamingSplitterTests {
 							return String.valueOf(counter.incrementAndGet());
 						}
 
+						@Override
 						public void remove() {
 							throw new AssertionError("not implemented!");
 

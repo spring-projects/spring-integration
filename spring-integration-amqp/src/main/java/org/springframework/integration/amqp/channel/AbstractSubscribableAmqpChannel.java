@@ -201,12 +201,59 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		}
 	}
 
+	/*
+	 * SmartLifecycle implementation (delegates to the MessageListener container)
+	 */
+
+	@Override
+	public boolean isAutoStartup() {
+		return (this.container != null) && this.container.isAutoStartup();
+	}
+
+	@Override
+	public int getPhase() {
+		return (this.container != null) ? this.container.getPhase() : 0;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return (this.container != null) && this.container.isRunning();
+	}
+
+	@Override
+	public void start() {
+		if (this.container != null) {
+			this.container.start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.container != null) {
+			this.container.stop();
+		}
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		if (this.container != null) {
+			this.container.stop(callback);
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.container != null) {
+			this.container.destroy();
+		}
+	}
+
 	protected abstract AbstractDispatcher createDispatcher();
 
 	protected abstract String obtainQueueName(AmqpAdmin admin, String channelName);
 
 
-	private static class DispatchingMessageListener implements MessageListener {
+	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -281,54 +328,6 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			return messageBuilder.build();
 		}
 
-	}
-
-
-	/*
-	 * SmartLifecycle implementation (delegates to the MessageListener container)
-	 */
-
-	@Override
-	public boolean isAutoStartup() {
-		return (this.container != null) && this.container.isAutoStartup();
-	}
-
-	@Override
-	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return (this.container != null) && this.container.isRunning();
-	}
-
-	@Override
-	public void start() {
-		if (this.container != null) {
-			this.container.start();
-		}
-	}
-
-	@Override
-	public void stop() {
-		if (this.container != null) {
-			this.container.stop();
-		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		if (this.container != null) {
-			this.container.stop(callback);
-		}
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		if (this.container != null) {
-			this.container.destroy();
-		}
 	}
 
 }

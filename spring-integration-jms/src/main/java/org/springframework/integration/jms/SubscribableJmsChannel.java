@@ -120,8 +120,55 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 	}
 
+	/*
+	 * SmartLifecycle implementation (delegates to the MessageListener container)
+	 */
 
-	private static class DispatchingMessageListener implements MessageListener {
+	@Override
+	public boolean isAutoStartup() {
+		return (this.container != null) ? this.container.isAutoStartup() : false;
+	}
+
+	@Override
+	public int getPhase() {
+		return (this.container != null) ? this.container.getPhase() : 0;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return (this.container != null) ? this.container.isRunning() : false;
+	}
+
+	@Override
+	public void start() {
+		if (this.container != null) {
+			this.container.start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.container != null) {
+			this.container.stop();
+		}
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		if (this.container != null) {
+			this.container.stop(callback);
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.container != null) {
+			this.container.destroy();
+		}
+	}
+
+
+	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -178,54 +225,6 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 			catch (Exception e) {
 				throw new MessagingException("failed to handle incoming JMS Message", e);
 			}
-		}
-	}
-
-
-	/*
-	 * SmartLifecycle implementation (delegates to the MessageListener container)
-	 */
-
-	@Override
-	public boolean isAutoStartup() {
-		return (this.container != null) ? this.container.isAutoStartup() : false;
-	}
-
-	@Override
-	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
-	}
-
-	@Override
-	public boolean isRunning() {
-		return (this.container != null) ? this.container.isRunning() : false;
-	}
-
-	@Override
-	public void start() {
-		if (this.container != null) {
-			this.container.start();
-		}
-	}
-
-	@Override
-	public void stop() {
-		if (this.container != null) {
-			this.container.stop();
-		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		if (this.container != null) {
-			this.container.stop(callback);
-		}
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		if (this.container != null) {
-			this.container.destroy();
 		}
 	}
 

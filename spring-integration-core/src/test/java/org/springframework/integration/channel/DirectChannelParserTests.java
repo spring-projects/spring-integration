@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class DirectChannelParserTests {
 
@@ -40,6 +40,7 @@ public class DirectChannelParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor dcAccessor = new DirectFieldAccessor(((DirectChannel)channel).getDispatcher());
 		assertTrue(dcAccessor.getPropertyValue("loadBalancingStrategy") instanceof RoundRobinLoadBalancingStrategy);
+		context.close();
 	}
 
 }

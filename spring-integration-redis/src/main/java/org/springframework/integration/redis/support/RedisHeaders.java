@@ -25,7 +25,7 @@ package org.springframework.integration.redis.support;
  * @author Artem Bilan
  * @since 2.2
  */
-public class RedisHeaders {
+public final class RedisHeaders {
 
 	private RedisHeaders() {
 		super();
