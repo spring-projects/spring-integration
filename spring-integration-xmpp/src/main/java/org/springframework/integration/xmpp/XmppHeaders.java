@@ -29,7 +29,6 @@ public class XmppHeaders {
 
 	private XmppHeaders() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String PREFIX = "xmpp_";

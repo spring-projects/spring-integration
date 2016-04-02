@@ -3,7 +3,7 @@ ext {
 			.text
 			.replaceAll(/\^\\Q|\\E\$|\^\$|\^\.\*\$/, '')
 			.replaceFirst(/\\E20\\d\\d\(\\-20\\d\\d\)\?\\Q/, '{year}')
-			.trim() + System.lineSeparator()  + System.lineSeparator()
+			.trim() + '\n'  + '\n'
 
 
 	now = Calendar.instance.get(Calendar.YEAR) as String

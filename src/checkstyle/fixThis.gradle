@@ -56,7 +56,7 @@ task fixThis << {
 						}
 					}
 
-					outSource += line + System.lineSeparator()
+					outSource += line + '\n'
 				}
 				file.write(outSource)
 				println()

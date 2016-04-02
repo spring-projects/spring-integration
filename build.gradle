@@ -64,6 +64,7 @@ subprojects { subproject ->
 	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 
+	apply from:   "${rootDir}/src/checkstyle/fixFinal.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixHeaders.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixModifiers.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixThis.gradle"

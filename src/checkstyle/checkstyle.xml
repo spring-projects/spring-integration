@@ -42,7 +42,7 @@
 <!-- 		<module name="AvoidNestedBlocks" /> -->
 
 		<!-- Class Design -->
-<!-- 		<module name="FinalClass" /> -->
+		<module name="FinalClass" />
 <!-- 		<module name="InterfaceIsType" /> -->
 		<module name="HideUtilityClassConstructor" />
 <!-- 		<module name="MutableException" /> -->
