@@ -237,11 +237,11 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			this.expireAt = expireAt;
 		}
 
-		public final long getExpireAt() {
+		public long getExpireAt() {
 			return this.expireAt;
 		}
 
-		public final MessageChannel getChannel() {
+		public MessageChannel getChannel() {
 			return this.channel;
 		}
 
