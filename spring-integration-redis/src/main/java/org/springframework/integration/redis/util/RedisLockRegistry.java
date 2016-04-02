@@ -296,7 +296,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		});
 	}
 
-	private class RedisLock implements Lock {
+	private final class RedisLock implements Lock {
 
 		private final String lockKey;
 

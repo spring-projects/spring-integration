@@ -151,7 +151,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 	}
 
-	private static class DefaultKeyToPathStrategy implements KeyToPathStrategy {
+	private static final class DefaultKeyToPathStrategy implements KeyToPathStrategy {
 
 		private final String root;
 
@@ -177,7 +177,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 	}
 
-	private static class ZkLock implements Lock {
+	private static final class ZkLock implements Lock {
 
 		private final InterProcessMutex mutex;
 

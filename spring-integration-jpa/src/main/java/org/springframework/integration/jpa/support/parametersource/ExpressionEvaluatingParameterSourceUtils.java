@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-class ExpressionEvaluatingParameterSourceUtils {
+final class ExpressionEvaluatingParameterSourceUtils {
 
 	private ExpressionEvaluatingParameterSourceUtils() {
 		throw new AssertionError();

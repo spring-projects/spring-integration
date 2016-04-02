@@ -28,7 +28,7 @@ import java.util.Collections;
  * @author Gary Russell
  * @since 3.0
  */
-public class JsonHeaders {
+public final class JsonHeaders {
 
 	private JsonHeaders() {
 		super();

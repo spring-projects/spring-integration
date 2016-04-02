@@ -65,7 +65,7 @@ public class GatewayCompletableFutureProxyFactoryBean extends GatewayProxyFactor
 		return super.invoke(invocation);
 	}
 
-	private class Invoker implements Supplier<Object> {
+	private final class Invoker implements Supplier<Object> {
 
 		private final MethodInvocation invocation;
 

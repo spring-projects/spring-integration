@@ -25,7 +25,7 @@ package org.springframework.integration.xmpp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppHeaders {
+public final class XmppHeaders {
 
 	private XmppHeaders() {
 		super();

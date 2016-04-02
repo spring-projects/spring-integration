@@ -269,7 +269,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		}
 	}
 
-	private class NodeListIterator implements Iterator<Node> {
+	private final class NodeListIterator implements Iterator<Node> {
 
 		private final DocumentBuilder documentBuilder;
 

@@ -431,7 +431,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 	}
 
-	protected static class CorrelationDataWrapper extends CorrelationData {
+	protected static final class CorrelationDataWrapper extends CorrelationData {
 
 		private final Object userData;
 

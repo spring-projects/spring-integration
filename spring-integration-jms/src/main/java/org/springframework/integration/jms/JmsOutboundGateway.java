@@ -1422,7 +1422,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	private class TimedReply {
+	private final class TimedReply {
 
 		private final long timeStamp = System.currentTimeMillis();
 

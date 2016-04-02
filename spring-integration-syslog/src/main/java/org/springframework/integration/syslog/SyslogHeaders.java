@@ -25,7 +25,7 @@ import org.springframework.integration.transformer.SyslogToMapTransformer;
  * @since 3.0
  *
  */
-public class SyslogHeaders {
+public final class SyslogHeaders {
 
 	private SyslogHeaders() {
 		super();

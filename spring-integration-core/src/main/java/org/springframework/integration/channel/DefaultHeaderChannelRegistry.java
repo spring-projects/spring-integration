@@ -226,7 +226,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 
-	private class MessageChannelWrapper {
+	private final class MessageChannelWrapper {
 
 		private final MessageChannel channel;
 

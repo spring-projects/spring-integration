@@ -320,7 +320,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		return this.phase;
 	}
 
-	private static class LocalChildData {
+	private static final class LocalChildData {
 
 		private final String value;
 

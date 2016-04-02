@@ -537,7 +537,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * change detection, and the timestamp of the last refresh attempt
 	 * (updated every time the cache entry gets re-validated).
 	 */
-	private class PropertiesHolder {
+	private final class PropertiesHolder {
 
 		private Properties properties;
 

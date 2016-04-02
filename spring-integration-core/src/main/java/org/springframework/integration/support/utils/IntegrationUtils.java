@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class IntegrationUtils {
+public final class IntegrationUtils {
 
 	private static final Log logger = LogFactory.getLog(IntegrationUtils.class);
 

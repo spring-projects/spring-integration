@@ -30,7 +30,7 @@ import org.springframework.messaging.Message;
  * @since 4.3
  *
  */
-public class MappingUtils {
+public final class MappingUtils {
 
 	private MappingUtils() {
 		super();

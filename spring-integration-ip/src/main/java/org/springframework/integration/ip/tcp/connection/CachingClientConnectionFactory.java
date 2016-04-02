@@ -136,7 +136,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return new CachedConnection(this.pool.getItem(), getListener());
 	}
 
-	private class CachedConnection extends TcpConnectionInterceptorSupport {
+	private final class CachedConnection extends TcpConnectionInterceptorSupport {
 
 		private final AtomicBoolean released = new AtomicBoolean();
 

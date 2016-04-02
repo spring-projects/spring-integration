@@ -548,7 +548,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		return directoryPath;
 	}
 
-	private class StreamHolder {
+	private final class StreamHolder {
 
 		private final InputStream stream;
 

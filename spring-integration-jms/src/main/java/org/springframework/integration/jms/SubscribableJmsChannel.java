@@ -121,7 +121,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 	}
 
 
-	private static class DispatchingMessageListener implements MessageListener {
+	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 

@@ -457,7 +457,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */
-	private class MessageReadingMongoConverter extends MappingMongoConverter {
+	private final class MessageReadingMongoConverter extends MappingMongoConverter {
 
 		private MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
@@ -650,7 +650,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private class DBObjectToMutableMessageConverter implements GenericConverter {
+	private final class DBObjectToMutableMessageConverter implements GenericConverter {
 
 		private final Class<?> mutableMessageClass;
 

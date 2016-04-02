@@ -206,7 +206,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	protected abstract String obtainQueueName(AmqpAdmin admin, String channelName);
 
 
-	private static class DispatchingMessageListener implements MessageListener {
+	private static final class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 

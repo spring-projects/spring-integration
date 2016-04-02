@@ -252,7 +252,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	/**
 	 * @since 4.1
 	 */
-	private static class Topic {
+	private static final class Topic {
 
 		private final String topic;
 
