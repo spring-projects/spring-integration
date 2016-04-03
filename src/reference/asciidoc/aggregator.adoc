@@ -161,17 +161,11 @@ public interface ReleaseStrategy {
 In general, any POJO can implement the completion decision logic if it provides a method that accepts a single `java.util.List` as an argument (parameterized lists are supported as well), and returns a boolean value.
 This method will be invoked after the arrival of each new message, to decide whether the group is complete or not, as follows:
 
-if the argument is a `java.util.List<T>`, and the parameter type T is assignable to `Message`, then the whole list of messages accumulated in the group will be sent to the method
+* if the argument is a `java.util.List<T>`, and the parameter type T is assignable to `Message`, then the whole list of messages accumulated in the group will be sent to the method
 
+* if the argument is a non-parametrized `java.util.List` or the parameter type is not assignable to `Message`, then the method will receive the payloads of the accumulated messages
 
-
-if the argument is a non-parametrized `java.util.List` or the parameter type is not assignable to `Message`, then the method will receive the payloads of the accumulated messages
-
-
-
-the method must return true if the message group is ready for aggregation, and false otherwise.
-
-
+* the method must return true if the message group is ready for aggregation, and false otherwise.
 
 For example:
 
@@ -222,7 +216,7 @@ To avoid such situations, you should consider configuring a `MessageGroupStoreRe
 For information about configuring a reaper, see <<reaper>>.
 
 Spring Integration provides an out-of-the box implementation for `ReleaseStrategy`, the `SequenceSizeReleaseStrategy`.
-This implementation consults the SEQUENCE_NUMBER and SEQUENCE_SIZE headers of each arriving message to decide when a message group is complete and ready to be aggregated.
+This implementation consults the `SEQUENCE_NUMBER` and `SEQUENCE_SIZE` headers of each arriving message to decide when a message group is complete and ready to be aggregated.
 As shown above, it is also the default strategy.
 
 ===== CorrelationStrategy
@@ -239,14 +233,14 @@ public interface CorrelationStrategy {
 ----
 
 The method returns an Object which represents the correlation key used for associating the message with a message group.
-The key must satisfy the criteria used for a key in a Map with respect to the implementation of equals() and hashCode().
+The key must satisfy the criteria used for a key in a Map with respect to the implementation of `equals()` and `hashCode()`.
 
 In general, any POJO can implement the correlation logic, and the rules for mapping a message to a method's argument (or arguments) are the same as for a `ServiceActivator` (including support for @Header annotations).
 The method must return a value, and the value must not be `null`.
 
 Spring Integration provides an out-of-the box implementation for `CorrelationStrategy`, the `HeaderAttributeCorrelationStrategy`.
 This implementation returns the value of one of the message headers (whose name is specified by a constructor argument) as the correlation key.
-By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` returning the value of the CORRELATION_ID header attribute.
+By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` returning the value of the `CORRELATION_ID` header attribute.
 If you have a custom header name you would like to use for correlation, then simply configure that on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the Aggregator's correlation-strategy.
 
 ===== LockRegistry
@@ -517,7 +511,7 @@ If the group is not released by the release strategy during timeout, then the ex
 Timed-out groups are either discarded, or a partial release occurs (based on `send-partial-result-on-expiry`).
 =====
 
-Using a `ref` attribute is generally recommended if a custom aggregator handler implementation may be referenced in other`<aggregator>` definitions.
+Using a `ref` attribute is generally recommended if a custom aggregator handler implementation may be referenced in other `<aggregator>` definitions.
 However if a custom aggregator implementation is only being used by a single definition of the `<aggregator>`, you can use an inner bean definition (starting with version 1.0.3) to configure the aggregation POJO within the `<aggregator>` element:
 [source,xml]
 ----
@@ -542,7 +536,6 @@ public class PojoAggregator {
     }
     return total;
   }
-
 }
 ----
 
@@ -685,7 +678,6 @@ public class Waiter {
   public String correlateBy(OrderItem item) {
     ...
   }
-
 }
 ----
 
