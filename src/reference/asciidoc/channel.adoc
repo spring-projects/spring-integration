@@ -68,7 +68,7 @@ Each is briefly described in the sections below.
 The `PublishSubscribeChannel` implementation broadcasts any Message sent to it to all of its subscribed handlers.
 This is most often used for sending _Event Messages_ whose primary role is notification as opposed to _Document Messages_ which are generally intended to be processed by a single handler.
 Note that the `PublishSubscribeChannel` is intended for sending only.
-Since it broadcasts to its subscribers directly when its` send(Message)` method is invoked, consumers cannot poll for Messages (it does not implement `PollableChannel` and therefore has no `receive()` method).
+Since it broadcasts to its subscribers directly when its `send(Message)` method is invoked, consumers cannot poll for Messages (it does not implement `PollableChannel` and therefore has no `receive()` method).
 Instead, any subscriber must be a `MessageHandler` itself, and the subscriber's `handleMessage(Message)` method will be invoked in turn.
 
 Prior to version 3.0, invoking the send method on a `PublishSubscribeChannel` that had no subscribers returned `false`.
@@ -396,7 +396,7 @@ Multiple types can be provided as a comma-delimited list:
 ----
 
 So the 'numberChannel' above will only accept Messages with a data-type of `java.lang.Number`.
-But what happens if the payload of the Message is not of the required type? It depends on whether you have defined a bean named "integrationConversionService" that is an instance of Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
+But what happens if the payload of the Message is not of the required type? It depends on whether you have defined a bean named `integrationConversionService` that is an instance of Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API[Conversion Service].
 If not, then an Exception would be thrown immediately, but if you do have an "integrationConversionService" bean defined, it will be used in an attempt to convert the Message's payload to the acceptable type.
 
 You can even register custom converters.
