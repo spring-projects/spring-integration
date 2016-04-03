@@ -1,7 +1,7 @@
 [[logging-channel-adapter]]
 === Logging Channel Adapter
 
-The `<logging-channel-adapter/>` is often used in conjunction with a Wire Tap, as discussed in<<channel-wiretap>>.
+The `<logging-channel-adapter/>` is often used in conjunction with a Wire Tap, as discussed in <<channel-wiretap>>.
 However, it can also be used as the ultimate consumer of any flow.
 For example, consider a flow that ends with a `<service-activator/>` that returns a result, but you wish to discard that result.
 To do that, you could send the result to `NullChannel`.
@@ -12,11 +12,11 @@ With a `NullChannel`, you would only see the discarded message when logging at `
 ----
 
 <int:logging-channel-adapter
-	channel="" <1>
-	level="INFO" <2>
-	expression="" <3>
-	log-full-message="false" <4>
-	logger-name="" /> <5>
+    channel="" <1>
+    level="INFO" <2>
+    expression="" <3>
+    log-full-message="false" <4>
+    logger-name="" /> <5>
 
 ----
 
