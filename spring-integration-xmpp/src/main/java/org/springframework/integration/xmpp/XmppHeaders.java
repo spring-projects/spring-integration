@@ -25,11 +25,10 @@ package org.springframework.integration.xmpp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppHeaders {
+public final class XmppHeaders {
 
 	private XmppHeaders() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String PREFIX = "xmpp_";

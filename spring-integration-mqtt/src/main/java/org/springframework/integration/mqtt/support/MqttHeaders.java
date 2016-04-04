@@ -23,7 +23,7 @@ package org.springframework.integration.mqtt.support;
  * @since 4.0
  *
  */
-public class MqttHeaders {
+public final class MqttHeaders {
 
 	private static final String prefix = "mqtt_";
 

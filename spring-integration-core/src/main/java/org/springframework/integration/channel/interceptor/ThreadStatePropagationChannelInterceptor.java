@@ -91,7 +91,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	private static class MessageWithThreadState<S> implements Message<Object> {
+	private static final class MessageWithThreadState<S> implements Message<Object> {
 
 		private final Message<?> message;
 

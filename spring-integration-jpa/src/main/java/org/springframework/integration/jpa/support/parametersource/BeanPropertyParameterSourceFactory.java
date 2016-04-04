@@ -51,7 +51,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 		return toReturn;
 	}
 
-	private static class StaticBeanPropertyParameterSource implements
+	private static final class StaticBeanPropertyParameterSource implements
 			ParameterSource {
 
 		private final BeanPropertyParameterSource input;

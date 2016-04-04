@@ -117,7 +117,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this.unmarshaller = unmarshaller;
 	}
 
-	private class MarshallingRequestMessageCallback extends RequestMessageCallback {
+	private final class MarshallingRequestMessageCallback extends RequestMessageCallback {
 
 		private MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback,
 				Message<?> requestMessage) {

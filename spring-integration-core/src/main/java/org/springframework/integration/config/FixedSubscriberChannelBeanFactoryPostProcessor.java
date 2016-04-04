@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public class FixedSubscriberChannelBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+public final class FixedSubscriberChannelBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	private final Map<String, String> candidateFixedChannelHandlerMap;
 

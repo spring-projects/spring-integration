@@ -1,20 +1,21 @@
-task fixModifiers << {
+task fixFinal << {
 	fileTree("${buildDir}/reports/checkstyle").include('*.xml').each { report ->
 		def xml = new XmlParser(false, false).parse(report)
 		xml.file.each { f ->
 			def errors = f.error
-			def modifierErrors = []
+			def finalErrors = []
 			errors.each { error ->
-				if (error.@source == 'com.puppycrawl.tools.checkstyle.checks.modifier.RedundantModifierCheck') {
-					modifierErrors.add(error)
+				if (error.@source == 'com.puppycrawl.tools.checkstyle.checks.design.FinalClassCheck') {
+					finalErrors.add(error)
 				}
 			}
-			if (modifierErrors) {
+			if (finalErrors) {
 				def errorInx = 0
-				def error = modifierErrors[errorInx++]
+				def error = finalErrors[errorInx++]
 				def file = new File(f.@name)
 				println "Fixing file $file ..."
 				boolean headerFixed
+				boolean onNextLine
 				def outSource = ''
 				file.eachLine { line, ln ->
 					if (!headerFixed) {
@@ -30,15 +31,18 @@ task fixModifiers << {
 						}
 					}
 
-					while (error && ln == (error.@line as int)) {
-						def message = error.@message
-						def modifier = message.substring(message.indexOf('\'') + 1, message.lastIndexOf('\''))
+					if (onNextLine || error && ln == (error.@line as int)) {
+						onNextLine = false
+						if (line.contains('@SuppressWarning')) {
+							onNextLine = true;
+						}
+						else {
+							line = line.replaceFirst('class', 'final class')
 
-						line = line.replaceFirst(modifier + ' ', '')
+							println "Fixed line $line"
 
-						println "Fixed line $line"
-
-						error = modifierErrors[errorInx++]
+							error = finalErrors[errorInx++]
+						}
 					}
 
 					outSource += line + '\n'

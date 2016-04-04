@@ -26,10 +26,10 @@
 			  ref="splitterImpl"
 	          input-channel="splitterImplementationInput"
 	          output-channel="output"/>
-	          
+
 	<splitter id="splitterImplementationRequiresReply"
 	          input-channel="requiresReplyInput"
-	          output-channel="output" 
+	          output-channel="output"
 	          requires-reply="true"/>
 
 	<splitter id="splitterBeanNoSequence"

@@ -136,94 +136,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return new CachedConnection(this.pool.getItem(), getListener());
 	}
 
-	private class CachedConnection extends TcpConnectionInterceptorSupport {
-
-		private final AtomicBoolean released = new AtomicBoolean();
-
-		private CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
-			super.setTheConnection(connection);
-			registerListener(tcpListener);
-		}
-
-		@Override
-		public void close() {
-			if (!this.released.compareAndSet(false, true)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Connection " + getConnectionId() + " has already been released");
-				}
-			}
-			else {
-				/**
-				 * If the delegate is stopped, actually close the connection, but still release
-				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
-				 */
-				if (!isRunning()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Factory not running - closing " + getConnectionId());
-					}
-					super.close();
-				}
-				CachingClientConnectionFactory.this.pool.releaseItem(getTheConnection());
-			}
-		}
-
-		@Override
-		public String getConnectionId() {
-			return "Cached:" + super.getConnectionId();
-		}
-
-		@Override
-		public String toString() {
-			return getConnectionId();
-		}
-
-		/**
-		 * We have to intercept the message to replace the connectionId header with
-		 * ours so the listener can correlate a response with a request. We supply
-		 * the actual connectionId in another header for convenience and tracing
-		 * purposes.
-		 */
-		@Override
-		public boolean onMessage(Message<?> message) {
-			Message<?> modifiedMessage;
-			if (message instanceof ErrorMessage) {
-				Map<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
-				headers.put(IpHeaders.CONNECTION_ID, getConnectionId());
-				if (headers.get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-					headers.put(IpHeaders.ACTUAL_CONNECTION_ID,
-							message.getHeaders().get(IpHeaders.CONNECTION_ID));
-				}
-				modifiedMessage = new ErrorMessage((Throwable) message.getPayload(), headers);
-			}
-			else {
-				AbstractIntegrationMessageBuilder<?> messageBuilder =
-						CachingClientConnectionFactory.this.getMessageBuilderFactory()
-								.fromMessage(message)
-								.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
-				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
-							message.getHeaders().get(IpHeaders.CONNECTION_ID));
-				}
-				modifiedMessage = messageBuilder.build();
-			}
-			TcpListener listener = getListener();
-			if (listener != null) {
-				listener.onMessage(modifiedMessage);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Message discarded; no listener: " + message);
-				}
-			}
-			return true;
-		}
-
-		private void physicallyClose() {
-			getTheConnection().close();
-		}
-
-	}
-
 ///////////////// DELEGATE METHODS ///////////////////////
 
 	@Override
@@ -489,6 +401,94 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public void stop(Runnable callback) {
 		this.targetConnectionFactory.stop(callback);
+	}
+
+	private final class CachedConnection extends TcpConnectionInterceptorSupport {
+
+		private final AtomicBoolean released = new AtomicBoolean();
+
+		private CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
+			super.setTheConnection(connection);
+			registerListener(tcpListener);
+		}
+
+		@Override
+		public void close() {
+			if (!this.released.compareAndSet(false, true)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Connection " + getConnectionId() + " has already been released");
+				}
+			}
+			else {
+				/**
+				 * If the delegate is stopped, actually close the connection, but still release
+				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
+				 */
+				if (!isRunning()) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Factory not running - closing " + getConnectionId());
+					}
+					super.close();
+				}
+				CachingClientConnectionFactory.this.pool.releaseItem(getTheConnection());
+			}
+		}
+
+		@Override
+		public String getConnectionId() {
+			return "Cached:" + super.getConnectionId();
+		}
+
+		@Override
+		public String toString() {
+			return getConnectionId();
+		}
+
+		/**
+		 * We have to intercept the message to replace the connectionId header with
+		 * ours so the listener can correlate a response with a request. We supply
+		 * the actual connectionId in another header for convenience and tracing
+		 * purposes.
+		 */
+		@Override
+		public boolean onMessage(Message<?> message) {
+			Message<?> modifiedMessage;
+			if (message instanceof ErrorMessage) {
+				Map<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
+				headers.put(IpHeaders.CONNECTION_ID, getConnectionId());
+				if (headers.get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+					headers.put(IpHeaders.ACTUAL_CONNECTION_ID,
+							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				}
+				modifiedMessage = new ErrorMessage((Throwable) message.getPayload(), headers);
+			}
+			else {
+				AbstractIntegrationMessageBuilder<?> messageBuilder =
+						CachingClientConnectionFactory.this.getMessageBuilderFactory()
+								.fromMessage(message)
+								.setHeader(IpHeaders.CONNECTION_ID, getConnectionId());
+				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
+							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				}
+				modifiedMessage = messageBuilder.build();
+			}
+			TcpListener listener = getListener();
+			if (listener != null) {
+				listener.onMessage(modifiedMessage);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Message discarded; no listener: " + message);
+				}
+			}
+			return true;
+		}
+
+		private void physicallyClose() {
+			getTheConnection().close();
+		}
+
 	}
 
 }

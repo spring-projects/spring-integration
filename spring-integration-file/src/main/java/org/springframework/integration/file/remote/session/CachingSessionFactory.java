@@ -157,7 +157,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		this.pool.removeAllIdleItems();
 	}
 
-	public class CachedSession implements Session<F> {
+	public class CachedSession implements Session<F> { //NOSONAR (final)
 
 		private final Session<F> targetSession;
 

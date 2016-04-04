@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser.ID_ATTRIBUTE;
-
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +37,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
@@ -407,7 +406,7 @@ public abstract class IntegrationNamespaceUtils {
 
 	public static String[] generateAlias(Element element) {
 		String[] handlerAlias = null;
-		String id = element.getAttribute(ID_ATTRIBUTE);
+		String id = element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE);
 		if (StringUtils.hasText(id)) {
 			handlerAlias = new String[] {id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX};
 		}
@@ -517,7 +516,7 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	public static String createDirectChannel(Element element, ParserContext parserContext) {
-		String channelId = element.getAttribute(ID_ATTRIBUTE);
+		String channelId = element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE);
 		if (!StringUtils.hasText(channelId)) {
 			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);

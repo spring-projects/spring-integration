@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  * @since 4.0
  *
  */
-public class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
+public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
 
 	private final MutableMessage<T> mutableMessage;
 

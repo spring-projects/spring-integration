@@ -144,7 +144,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 * @since 2.2
 	 *
 	 */
-	private class FailoverTcpConnection extends TcpConnectionSupport implements TcpListener {
+	private final class FailoverTcpConnection extends TcpConnectionSupport implements TcpListener {
 
 		private final List<AbstractClientConnectionFactory> factories;
 

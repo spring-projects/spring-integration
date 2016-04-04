@@ -226,7 +226,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 
-	private class MessageChannelWrapper {
+	private final class MessageChannelWrapper {
 
 		private final MessageChannel channel;
 
@@ -237,11 +237,11 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			this.expireAt = expireAt;
 		}
 
-		public final long getExpireAt() {
+		public long getExpireAt() {
 			return this.expireAt;
 		}
 
-		public final MessageChannel getChannel() {
+		public MessageChannel getChannel() {
 			return this.channel;
 		}
 

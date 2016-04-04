@@ -479,7 +479,7 @@ public class ChannelPublishingJmsMessageListener
 	 * Internal class combining a destination name
 	 * and its target destination type (queue or topic).
 	 */
-	private static class DestinationNameHolder {
+	private static final class DestinationNameHolder {
 
 		private final String name;
 

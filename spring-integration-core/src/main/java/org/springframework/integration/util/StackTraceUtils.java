@@ -23,7 +23,7 @@ package org.springframework.integration.util;
  * @since 3.0
  *
  */
-public class StackTraceUtils {
+public final class StackTraceUtils {
 
 	private StackTraceUtils() {}
 

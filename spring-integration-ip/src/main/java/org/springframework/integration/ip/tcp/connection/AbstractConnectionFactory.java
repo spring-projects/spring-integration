@@ -897,7 +897,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				+ ", port=" + getPort();
 	}
 
-	private class PendingIO {
+	private final class PendingIO {
 
 		private final long failedAt;
 

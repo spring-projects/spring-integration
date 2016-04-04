@@ -18,10 +18,16 @@ package org.springframework.integration.xmpp.core;
 
 /**
  * @author Oleg ZHurakousky
+ * @author Gary Russell
  * @since 2.0
  */
-public interface XmppContextUtils {
+public final class XmppContextUtils {
 
-	String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
+
+	private XmppContextUtils() {
+		super();
+	}
+
+	public static String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
 
 }

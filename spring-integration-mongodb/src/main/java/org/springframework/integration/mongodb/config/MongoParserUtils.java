@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 2.2
  */
-class MongoParserUtils {
+final class MongoParserUtils {
 
 	private MongoParserUtils() {
 		super();
