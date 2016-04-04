@@ -7,10 +7,10 @@
 	</module>
 
 	<!-- Root Checks -->
- 	<module name="RegexpHeader">
- 		<property name="headerFile" value="src/checkstyle/checkstyle-header.txt" />
- 		<property name="fileExtensions" value="java" />
- 	</module>
+	<module name="RegexpHeader">
+		<property name="headerFile" value="src/checkstyle/checkstyle-header.txt" />
+		<property name="fileExtensions" value="java" />
+	</module>
 
 	<module name="NewlineAtEndOfFile">
 		<property name="lineSeparator" value="lf"/>
@@ -47,10 +47,10 @@
 		<module name="HideUtilityClassConstructor" />
 <!-- 		<module name="MutableException" /> -->
 		<module name="InnerTypeLast" />
-<!-- 		<module name="OneTopLevelClass" /> -->
+		<module name="OneTopLevelClass" />
 
 		<!-- Coding -->
-<!-- 		<module name="CovariantEquals" /> -->
+		<module name="CovariantEquals" />
 <!-- 		<module name="EmptyStatement" /> -->
 <!-- 		<module name="EqualsHashCode" /> -->
 <!-- 		<module name="InnerAssignment" /> -->
@@ -67,10 +67,10 @@
 <!-- 			<property name="max" value="3" /> -->
 <!-- 		</module> -->
 <!-- 		<module name="MultipleVariableDeclarations" /> -->
- 		<module name="RequireThis">
- 			<property name="checkMethods" value="false" />
- 		</module>
- 		<!--<module name="OneStatementPerLine" /> -->
+		<module name="RequireThis">
+			<property name="checkMethods" value="false" />
+		</module>
+		<module name="OneStatementPerLine" />
 
 		<!-- Imports -->
 		<module name="AvoidStarImport" />
@@ -125,7 +125,7 @@
 <!-- 		<module name="OuterTypeFilename" /> -->
 
 		<!-- Modifiers -->
- 		<module name="RedundantModifier" />
+		<module name="RedundantModifier" />
 
 		<!-- Regexp -->
 <!--  		<module name="RegexpSinglelineJava"> -->
@@ -166,5 +166,5 @@
 <!-- 		<module name="WhitespaceAfter" /> -->
 <!-- 		<module name="WhitespaceAround" /> -->
 
- 	</module>
+	</module>
 </module>
