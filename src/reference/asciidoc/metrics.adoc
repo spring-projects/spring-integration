@@ -40,12 +40,12 @@ A number of options are available:
 @Configuration
 @EnableIntegration
 @EnableIntegrationManagement(
-		defaultLoggingEnabled = "false", <1>
-		defaultCountsEnabled = "false", <2>
-		defaultStatsEnabled = "false", <3>
-		countsEnabled = { "foo", "${count.patterns}" }, <4>
-		statsEnabled = { "qux", "!*" }, <5>
-		MetricsFactory = "myMetricsFactory") <6>
+    defaultLoggingEnabled = "false", <1>
+    defaultCountsEnabled = "false", <2>
+    defaultStatsEnabled = "false", <3>
+    countsEnabled = { "foo", "${count.patterns}" }, <4>
+    statsEnabled = { "qux", "!*" }, <5>
+    MetricsFactory = "myMetricsFactory") <6>
 public static class ContextConfiguration {
 ...
 }

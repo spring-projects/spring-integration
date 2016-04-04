@@ -8,10 +8,10 @@ Related to the Aggregator, albeit different from a functional standpoint, is the
 [[resequencer-functionality]]
 ==== Functionality
 
-The Resequencer works in a similar way to the Aggregator, in the sense that it uses the CORRELATION_ID to store messages in groups, the difference being that the Resequencer does not process the messages in any way.
-It simply releases them in the order of their SEQUENCE_NUMBER header values.
+The Resequencer works in a similar way to the Aggregator, in the sense that it uses the `CORRELATION_ID` to store messages in groups, the difference being that the Resequencer does not process the messages in any way.
+It simply releases them in the order of their `SEQUENCE_NUMBER` header values.
 
-With respect to that, the user might opt to release all messages at once (after the whole sequence, according to the SEQUENCE_SIZE, has been released), or as soon as a valid sequence is available.
+With respect to that, the user might opt to release all messages at once (after the whole sequence, according to the `SEQUENCE_SIZE`, has been released), or as soon as a valid sequence is available.
 
 ==== Configuring a Resequencer
 
