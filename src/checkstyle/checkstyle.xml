@@ -52,21 +52,21 @@
 		<!-- Coding -->
 		<module name="CovariantEquals" />
 		<module name="EmptyStatement" />
-<!-- 		<module name="EqualsHashCode" /> -->
+		<module name="EqualsHashCode" />
 <!-- 		<module name="InnerAssignment" /> -->
-<!-- 		<module name="SimplifyBooleanExpression" /> -->
-<!-- 		<module name="SimplifyBooleanReturn" /> -->
-<!-- 		<module name="StringLiteralEquality" /> -->
-<!-- 		<module name="NestedForDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="NestedIfDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="NestedTryDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="MultipleVariableDeclarations" /> -->
+		<module name="SimplifyBooleanExpression" />
+		<module name="SimplifyBooleanReturn" />
+		<module name="StringLiteralEquality" />
+		<module name="NestedForDepth">
+			<property name="max" value="3" />
+		</module>
+		<module name="NestedIfDepth">
+			<property name="max" value="4" />
+		</module>
+		<module name="NestedTryDepth">
+			<property name="max" value="3" />
+		</module>
+		<module name="MultipleVariableDeclarations" />
 		<module name="RequireThis">
 			<property name="checkMethods" value="false" />
 		</module>
