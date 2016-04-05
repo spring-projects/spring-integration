@@ -140,7 +140,8 @@ public class JdbcMessageStoreChannelIntegrationTests {
 					try {
 						Service.await(3000);
 						fail("Expected timeout");
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						// expected
 					}
 
@@ -160,7 +161,8 @@ public class JdbcMessageStoreChannelIntegrationTests {
 			stopWatch.start();
 			// It might be null or not, but we don't want it to block
 			input.receive(100L);
-		} finally {
+		}
+		finally {
 			stopWatch.stop();
 		}
 
@@ -204,14 +206,16 @@ public class JdbcMessageStoreChannelIntegrationTests {
 							try {
 								Service.await(1000);
 								fail("Expected timeout");
-							} catch (Exception e) {
+							}
+							catch (Exception e) {
 								// expected
 							}
 
 							try {
 								stopWatch.start();
 								assertNotNull(input.receive(100L));
-							} finally {
+							}
+							finally {
 								stopWatch.stop();
 							}
 

@@ -205,7 +205,8 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 	public void withBothFirstResultAndFirstResultExpressionPresent() {
 		try {
 			this.context = new ClassPathXmlApplicationContext("JpaInvalidOutboundGatewayParserTests.xml", getClass());
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of 'first-result' or 'first-result-expression' is allowed"));
 			return;
 		}

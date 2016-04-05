@@ -70,7 +70,8 @@ public class InnerPollerParserTests {
 			Resource resource = new ByteArrayResource(badContext.getBytes());
 			new GenericXmlApplicationContext(resource);
 			fail("Expected Failure to load ApplicationContext");
-		} catch (BeanDefinitionParsingException bdpe) {
+		}
+		catch (BeanDefinitionParsingException bdpe) {
 			assertTrue(bdpe.getMessage().startsWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes."));
 		}
 	}
@@ -106,7 +107,8 @@ public class InnerPollerParserTests {
 			Resource resource = new ByteArrayResource(badContext.getBytes());
 			new GenericXmlApplicationContext(resource);
 			fail("Expected Failure to load ApplicationContext");
-		} catch (BeanDefinitionParsingException bdpe) {
+		}
+		catch (BeanDefinitionParsingException bdpe) {
 			assertTrue(bdpe.getMessage().startsWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes."));
 		}
 	}
@@ -142,7 +144,8 @@ public class InnerPollerParserTests {
 			Resource resource = new ByteArrayResource(badContext.getBytes());
 			new GenericXmlApplicationContext(resource);
 			fail("Expected Failure to load ApplicationContext");
-		} catch (BeanDefinitionParsingException bdpe) {
+		}
+		catch (BeanDefinitionParsingException bdpe) {
 			assertTrue(bdpe.getMessage().startsWith("Configuration problem: A 'poller' element that provides a 'ref' must have no other attributes."));
 		}
 	}

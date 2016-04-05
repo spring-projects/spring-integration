@@ -86,7 +86,8 @@ public class JpaOutboundGatewayTests {
 
 		try {
 			studentService.deleteStudent(student);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			return;
 		}
 
@@ -97,7 +98,8 @@ public class JpaOutboundGatewayTests {
 	public void getStudentWithException() {
 		try {
 			studentService.getStudentWithException(1001L);
-		} catch (MessagingException e) {
+		}
+		catch (MessagingException e) {
 			Assert.assertEquals("The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.",
 					e.getMessage());
 

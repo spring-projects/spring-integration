@@ -116,7 +116,8 @@ public class SessionFactoryTests {
 						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)){
 						fail();
 					}
-				} catch (IllegalArgumentException e) {
+				}
+				catch (IllegalArgumentException e) {
 					// success
 				} catch (Throwable e) {
 					fail();
@@ -197,7 +198,8 @@ public class SessionFactoryTests {
 						Session session = factory.getSession();
 						Thread.sleep(random.nextInt(5000));
 						session.close();
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						e.printStackTrace();
 						failures.incrementAndGet();
 					}

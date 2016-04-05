@@ -46,7 +46,7 @@ task fixRightCurly << {
 							}
 						}
 
-						line = line.substring(0, index) + nextLine + line.substring(index + 1)
+						line = line.substring(0, index-1) + nextLine + line.substring(index)
 
 						println "Fixed line $line"
 

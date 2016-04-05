@@ -186,7 +186,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 		for (MessageGroupCallback callback : this.expiryCallbacks) {
 			try {
 				callback.execute(this, group);
-			} catch (RuntimeException e) {
+			}
+			catch (RuntimeException e) {
 				if (exception == null) {
 					exception = e;
 				}

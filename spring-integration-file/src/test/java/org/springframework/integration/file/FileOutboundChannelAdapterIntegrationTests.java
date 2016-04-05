@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		try {
 			this.inputChannelSaveToSubDirWrongExpression.send(message);
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals(
 					TestUtils.applySystemFileSeparator("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory."),
 					e.getCause().getMessage());
@@ -135,7 +136,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		try {
 			this.inputChannelSaveToSubDirEmptyStringExpression.send(message);
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals("Unable to resolve destination directory name for the provided Expression ''   ''.", e.getCause().getMessage());
 			return;
 		}
@@ -159,7 +161,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		try {
 			this.inputChannelSaveToSubDirAutoCreateOff.send(message);
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals(
 					TestUtils.applySystemFileSeparator("Destination directory [target/base-directory2/sub-directory2] does not exist."),
 					e.getCause().getMessage());
@@ -190,7 +193,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		try {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals("The provided destinationDirectoryExpression " +
 					"(headers['subDirectory']) must not resolve to null.",
 					e.getCause().getMessage());
@@ -211,7 +215,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		try {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals("The provided destinationDirectoryExpression" +
 					" (headers['subDirectory']) must be of type " +
 					"java.io.File or be a String.",

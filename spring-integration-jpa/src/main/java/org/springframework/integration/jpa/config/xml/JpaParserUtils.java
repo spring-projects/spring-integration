@@ -197,7 +197,8 @@ public final class JpaParserUtils {
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, String.class));
 
-				} else {
+				}
+				else {
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, type));
 				}

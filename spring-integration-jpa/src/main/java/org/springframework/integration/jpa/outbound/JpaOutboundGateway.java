@@ -76,9 +76,11 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 		final Object result;
 		if (OutboundGatewayType.RETRIEVING.equals(this.gatewayType)) {
 			result = this.jpaExecutor.poll(requestMessage);
-		} else if (OutboundGatewayType.UPDATING.equals(this.gatewayType)) {
+		}
+		else if (OutboundGatewayType.UPDATING.equals(this.gatewayType)) {
 			result = this.jpaExecutor.executeOutboundJpaOperation(requestMessage);
-		} else {
+		}
+		else {
 			throw new IllegalArgumentException(String.format("GatewayType  '%s' is not supported.", this.gatewayType));
 		}
 

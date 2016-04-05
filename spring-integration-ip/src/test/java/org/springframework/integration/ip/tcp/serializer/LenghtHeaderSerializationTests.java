@@ -67,7 +67,8 @@ public class LenghtHeaderSerializationTests {
 		try {
 			bytes = serializer.deserialize(bis);
 			fail("Expected negative length");
-		} catch (IllegalArgumentException e) { }
+		}
+		catch (IllegalArgumentException e) { }
 	}
 
 	@Test
@@ -85,7 +86,8 @@ public class LenghtHeaderSerializationTests {
 		try {
 			serializer.serialize(test255.getBytes(), bos);
 			fail("Expected overflow");
-		} catch (IllegalArgumentException e) { }
+		}
+		catch (IllegalArgumentException e) { }
 	}
 
 	@Test
@@ -119,7 +121,8 @@ public class LenghtHeaderSerializationTests {
 		try {
 			serializer.serialize(testFFFF.getBytes(), bos);
 			fail("Expected overflow");
-		} catch (IllegalArgumentException e) { }
+		}
+		catch (IllegalArgumentException e) { }
 	}
 
 	@Test
@@ -127,7 +130,8 @@ public class LenghtHeaderSerializationTests {
 		try {
 			new ByteArrayLengthHeaderSerializer(23);
 			fail("Expected illegal argument exception");
-		} catch (IllegalArgumentException e) { }
+		}
+		catch (IllegalArgumentException e) { }
 
 	}
 }

@@ -93,7 +93,8 @@ public class TestBean {
 		if (child == null) {
 			if (other.child != null)
 				return false;
-		} else if (!child.equals(other.child))
+		}
+		else if (!child.equals(other.child))
 			return false;
 		if (number != other.number)
 			return false;
@@ -102,7 +103,8 @@ public class TestBean {
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		} else if (!value.equals(other.value))
+		}
+		else if (!value.equals(other.value))
 			return false;
 		return true;
 	}

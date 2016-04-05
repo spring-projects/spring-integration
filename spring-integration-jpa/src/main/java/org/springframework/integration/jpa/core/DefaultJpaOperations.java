@@ -69,7 +69,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		for (Object object : entities) {
 			if (entityClass == null) {
 				entityClass = object.getClass();
-			} else {
+			}
+			else {
 				if (entityClass != object.getClass()) {
 					throw new IllegalArgumentException("entities must be of the same type.");
 				}
@@ -159,7 +160,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		if (entityClass == null) {
 			query = entityManager.createNativeQuery(selectQuery);
-		} else {
+		}
+		else {
 			query = entityManager.createNativeQuery(selectQuery, entityClass);
 		}
 
@@ -328,7 +330,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 					}
 
 				}
-			} else {
+			}
+			else {
 				throw new IllegalArgumentException("Query has parameters but no parameter source provided");
 			}
 

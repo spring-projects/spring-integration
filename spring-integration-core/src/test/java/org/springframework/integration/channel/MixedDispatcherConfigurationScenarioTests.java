@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,11 +108,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		verify(handlerA, times(2)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
@@ -131,13 +133,15 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				boolean sent = false;
 				try {
 					sent = channel.send(message);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					exceptionRegistry.add(e);
 				}
 				if (!sent) {
@@ -193,7 +197,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);
@@ -226,17 +231,20 @@ public class MixedDispatcherConfigurationScenarioTests {
 		InOrder inOrder = inOrder(handlerA, handlerB, handlerC);
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		inOrder.verify(handlerB).handleMessage(message);
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		inOrder.verify(handlerC).handleMessage(message);
 
@@ -263,13 +271,15 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				boolean sent = false;
 				try {
 					sent = channel.send(message);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					exceptionRegistry.add(e);
 				}
 				if (!sent) {
@@ -336,7 +346,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);
@@ -371,14 +382,16 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		inOrder.verify(handlerB).handleMessage(message);
 
 		try {
 			channel.send(message);
-		} catch (Exception e) {/* ignore */
+		}
+		catch (Exception e) {/* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		inOrder.verify(handlerB).handleMessage(message);
@@ -407,13 +420,15 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				boolean sent = false;
 				try {
 					sent = channel.send(message);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					exceptionRegistry.add(e);
 				}
 				if (!sent) {
@@ -473,7 +488,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);

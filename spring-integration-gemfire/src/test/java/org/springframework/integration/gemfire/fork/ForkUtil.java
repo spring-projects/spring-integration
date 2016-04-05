@@ -145,7 +145,8 @@ public class ForkUtil {
 		}
 		if (controlFileExists(className)){
 			System.out.println("Started cache server");
-		} else {
+		}
+		else {
 			throw new RuntimeException("could not fork cache server");
 		}
 		return os;

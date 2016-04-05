@@ -62,14 +62,16 @@ public class TestService {
 		if (seen.containsKey(message)) {
 			log.error("Already seen: " + message);
 			duplicateMessagesCount.addAndGet(1);
-		} else {
+		}
+		else {
 			seen.put(message, message);
 			log.info("Pre: " + message);
 
 			if (this.threadSleep >0) {
 				try {
 					Thread.sleep(2000);
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 			}

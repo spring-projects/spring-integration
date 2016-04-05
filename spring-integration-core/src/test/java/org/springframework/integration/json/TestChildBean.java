@@ -70,17 +70,20 @@ public class TestChildBean {
 		if (baz == null) {
 			if (other.baz != null)
 				return false;
-		} else if (!baz.equals(other.baz))
+		}
+		else if (!baz.equals(other.baz))
 			return false;
 		if (parent == null) {
 			if (other.parent != null)
 				return false;
-		} else if (!parent.equals(other.parent))
+		}
+		else if (!parent.equals(other.parent))
 			return false;
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		} else if (!value.equals(other.value))
+		}
+		else if (!value.equals(other.value))
 			return false;
 		return true;
 	}

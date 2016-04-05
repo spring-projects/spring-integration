@@ -93,7 +93,8 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 					try {
 						Service.await(1000);
 						fail("Expected timeout");
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						// expected
 					}
 
@@ -101,7 +102,8 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 						stopWatch.start();
 						// It hasn't arrive yet because we are still in the sending transaction
 						assertNull(durable.receive(100L));
-					} finally {
+					}
+					finally {
 						stopWatch.stop();
 					}
 
@@ -138,7 +140,8 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 						stopWatch.start();
 						durable.receive(100L);
 						return null;
-					} finally {
+					}
+					finally {
 						stopWatch.stop();
 					}
 

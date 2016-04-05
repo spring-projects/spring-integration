@@ -81,7 +81,8 @@ public class OnlyOnceTrigger implements Trigger {
 			if (other.executionTime != null) {
 				return false;
 			}
-		} else if (!executionTime.equals(other.executionTime)) {
+		}
+		else if (!executionTime.equals(other.executionTime)) {
 			return false;
 		}
 		return true;

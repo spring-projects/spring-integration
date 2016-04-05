@@ -48,7 +48,8 @@ public class JdbcTypesEnumTests {
 
 		try {
 		    JdbcTypesEnum.convertToJdbcTypesEnum(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());
 			return;
 		}
@@ -62,7 +63,8 @@ public class JdbcTypesEnumTests {
 
 		try {
 		    JdbcTypesEnum.convertToJdbcTypesEnum("   ");
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());
 			return;
 		}

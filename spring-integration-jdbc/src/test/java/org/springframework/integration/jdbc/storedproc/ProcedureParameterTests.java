@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ public class ProcedureParameterTests {
 
 		try {
 			new ProcedureParameter(null, "value", "expression");
-		} catch(IllegalArgumentException e) {
+		}
+		catch(IllegalArgumentException e) {
 			assertEquals("'name' must not be empty.", e.getMessage());
 			return;
 		}
@@ -68,7 +69,8 @@ public class ProcedureParameterTests {
 
 		try {
 			ProcedureParameter.convertStaticParameters(procedureParameters);
-		} catch(IllegalArgumentException e) {
+		}
+		catch(IllegalArgumentException e) {
 			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
 			return;
 		}
@@ -85,7 +87,8 @@ public class ProcedureParameterTests {
 
 		try {
 			ProcedureParameter.convertExpressions(procedureParameters);
-		} catch(IllegalArgumentException e) {
+		}
+		catch(IllegalArgumentException e) {
 			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
 			return;
 		}

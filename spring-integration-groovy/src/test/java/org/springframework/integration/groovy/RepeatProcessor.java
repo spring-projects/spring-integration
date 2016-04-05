@@ -61,7 +61,8 @@ public class RepeatProcessor implements MethodRule {
 					for (int i = 0; i < repeats; i++) {
 						try {
 							base.evaluate();
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							throw new IllegalStateException("Failed on iteration: " + i, t);
 						}
 					}
@@ -80,7 +81,8 @@ public class RepeatProcessor implements MethodRule {
 							public Boolean call() {
 								try {
 									base.evaluate();
-								} catch (Throwable t) {
+								}
+								catch (Throwable t) {
 									throw new IllegalStateException("Failed on iteration: " + count, t);
 								}
 								return true;
@@ -90,7 +92,8 @@ public class RepeatProcessor implements MethodRule {
 					for (Future<Boolean> future : results) {
 						assertTrue("Null result from completer", future.get(10, TimeUnit.SECONDS));
 					}
-				} finally {
+				}
+				finally {
 					executor.shutdownNow();
 				}
 			}

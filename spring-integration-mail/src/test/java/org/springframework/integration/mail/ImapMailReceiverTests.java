@@ -808,7 +808,8 @@ public class ImapMailReceiverTests {
 				public void run(){
 					try {
 						receiver.receive();
-					} catch (javax.mail.MessagingException e) {
+					}
+					catch (javax.mail.MessagingException e) {
 						if (e.getCause() instanceof NullPointerException){
 							e.printStackTrace();
 							failed.getAndIncrement();
@@ -823,7 +824,8 @@ public class ImapMailReceiverTests {
 				public void run(){
 					try {
 						receiver.destroy();
-					} catch (Exception ignore) {
+					}
+					catch (Exception ignore) {
 						// ignore
 						ignore.printStackTrace();
 					}

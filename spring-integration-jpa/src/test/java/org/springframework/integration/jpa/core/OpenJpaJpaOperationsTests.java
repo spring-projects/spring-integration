@@ -60,7 +60,8 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 
 		try {
 			super.testExecuteUpdateWithNativeQuery();
-		} catch (PersistenceException e) {
+		}
+		catch (PersistenceException e) {
 			return;
 		}
 
@@ -73,7 +74,8 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 
 		try {
 			super.testExecuteUpdateWithNativeNamedQuery();
-		} catch (InvalidStateException e) {
+		}
+		catch (InvalidStateException e) {
 			return;
 		}
 
@@ -108,7 +110,8 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 
 						try {
 							return MappingTool.run(conf, args, opts);
-						} finally {
+						}
+						finally {
 							conf.close();
 						}
 					}
