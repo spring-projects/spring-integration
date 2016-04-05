@@ -100,7 +100,7 @@ public class MapContentMatchers<T, V> extends
 	/**
 	 * {@inheritDoc}
 	 */
-//	@Override
+	@Override
 	public void describeTo(Description description) {
 		description.appendText("an entry with key ").appendValue(key)
 				.appendText(" and value matching ").appendDescriptionOf(

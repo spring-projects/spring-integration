@@ -85,10 +85,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
@@ -138,10 +138,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(20000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
@@ -191,10 +191,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));

@@ -831,7 +831,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				headerName = methodParameter.getParameterName();
 			}
 			else if (valueAttribute.indexOf('.') != -1) {
-				String tokens[] = valueAttribute.split("\\.", 2);
+				String[] tokens = valueAttribute.split("\\.", 2);
 				headerName = tokens[0];
 				if (StringUtils.hasText(tokens[1])) {
 					relativeExpression = "." + tokens[1];

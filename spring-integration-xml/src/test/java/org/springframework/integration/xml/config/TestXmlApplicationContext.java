@@ -30,7 +30,7 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 
 	public TestXmlApplicationContext(String ... xmlStrings) {
 		resources = new Resource[xmlStrings.length];
-		for (int i = 0 ; i < xmlStrings.length; i++) {
+		for (int i = 0; i < xmlStrings.length; i++) {
 			resources[i] = new TestResource(xmlStrings[i]);
 		}
 		refresh();
@@ -50,10 +50,12 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 		}
 
 
+		@Override
 		public String getDescription() {
 			return "test";
 		}
 
+		@Override
 		public InputStream getInputStream() throws IOException {
 		return new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
 		}

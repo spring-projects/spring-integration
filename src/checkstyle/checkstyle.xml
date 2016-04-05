@@ -52,21 +52,21 @@
 		<!-- Coding -->
 		<module name="CovariantEquals" />
 		<module name="EmptyStatement" />
-<!-- 		<module name="EqualsHashCode" /> -->
+		<module name="EqualsHashCode" />
 <!-- 		<module name="InnerAssignment" /> -->
-<!-- 		<module name="SimplifyBooleanExpression" /> -->
-<!-- 		<module name="SimplifyBooleanReturn" /> -->
-<!-- 		<module name="StringLiteralEquality" /> -->
-<!-- 		<module name="NestedForDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="NestedIfDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="NestedTryDepth"> -->
-<!-- 			<property name="max" value="3" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="MultipleVariableDeclarations" /> -->
+		<module name="SimplifyBooleanExpression" />
+		<module name="SimplifyBooleanReturn" />
+		<module name="StringLiteralEquality" />
+		<module name="NestedForDepth">
+			<property name="max" value="3" />
+		</module>
+		<module name="NestedIfDepth">
+			<property name="max" value="4" />
+		</module>
+		<module name="NestedTryDepth">
+			<property name="max" value="3" />
+		</module>
+		<module name="MultipleVariableDeclarations" />
 		<module name="RequireThis">
 			<property name="checkMethods" value="false" />
 		</module>
@@ -119,10 +119,12 @@
 <!-- 		</module> -->
 
 		<!-- Miscellaneous -->
-<!-- 		<module name="CommentsIndentation" /> -->
-<!-- 		<module name="UpperEll" /> -->
-<!-- 		<module name="ArrayTypeStyle" /> -->
-<!-- 		<module name="OuterTypeFilename" /> -->
+		<module name="CommentsIndentation">
+			<property name="tokens" value="BLOCK_COMMENT_BEGIN" />
+		</module>
+		<module name="UpperEll" />
+		<module name="ArrayTypeStyle" />
+		<module name="OuterTypeFilename" />
 
 		<!-- Modifiers -->
 		<module name="RedundantModifier" />
@@ -155,12 +157,12 @@
 		</module>
 
 		<!-- Whitespace -->
-<!-- 		<module name="GenericWhitespace" /> -->
-<!-- 		<module name="MethodParamPad" /> -->
-<!-- 		<module name="NoWhitespaceAfter" > -->
-<!-- 			<property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS, ARRAY_DECLARATOR"/> -->
-<!-- 		</module> -->
-<!-- 		<module name="NoWhitespaceBefore" /> -->
+		<module name="GenericWhitespace" />
+		<module name="MethodParamPad" />
+		<module name="NoWhitespaceAfter" >
+			<property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS, ARRAY_DECLARATOR"/>
+		</module>
+		<module name="NoWhitespaceBefore" />
 <!-- 		<module name="ParenPad" /> -->
 <!-- 		<module name="TypecastParenPad" /> -->
 		<module name="WhitespaceAfter" />

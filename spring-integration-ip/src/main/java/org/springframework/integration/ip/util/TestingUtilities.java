@@ -60,7 +60,7 @@ public final class TestingUtilities {
 			}
 
 			if (n++ > delay) {
-				throw new IllegalStateException ("Server didn't start listening.");
+				throw new IllegalStateException("Server didn't start listening.");
 			}
 		}
 	}
@@ -90,7 +90,7 @@ public final class TestingUtilities {
 				throw new IllegalStateException(e);
 			}
 			if (n++ > 200) {
-				throw new IllegalStateException ("Server didn't stop listening.");
+				throw new IllegalStateException("Server didn't stop listening.");
 			}
 		}
 	}

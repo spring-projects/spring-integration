@@ -68,7 +68,7 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		assertEquals("outputChannel", getPropertyValue(aggregator, "outputChannelName"));
 		assertEquals("discardChannel", getPropertyValue(aggregator, "discardChannelName"));
-		assertEquals(98765432l, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
+		assertEquals(98765432L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 

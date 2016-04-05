@@ -186,7 +186,7 @@ public class DelegatingSessionFactoryTests {
 
 		@Override
 		public Session<String> getSession() {
-			return this.mockSession ;
+			return this.mockSession;
 		}
 
 	}

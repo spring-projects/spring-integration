@@ -95,16 +95,14 @@ public class RemoteFileOutboundGatewayTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testBad() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "bad", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "bad", "payload");
 		gw.afterPropertiesSet();
 	}
 
 	@Test
 	public void testBadFilterGet() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setFilter(new TestPatternFilter(""));
 		try {
 			gw.afterPropertiesSet();
@@ -118,8 +116,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testBadFilterRm() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "rm", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "rm", "payload");
 		gw.setFilter(new TestPatternFilter(""));
 		try {
 			gw.afterPropertiesSet();
@@ -134,8 +131,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
@@ -167,8 +163,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	private void testMGetWildGuts(final String path1, final String path2) {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mget", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
@@ -209,8 +204,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testMGetSingle() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mget", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
@@ -240,8 +234,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test(expected = MessagingException.class)
 	public void testMGetEmpty() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mget", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mget", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.setOptions("   -x   ");
 		gw.afterPropertiesSet();
@@ -262,8 +255,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testMove() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mv", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mv", "payload");
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
@@ -288,8 +280,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testMoveWithExpression() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mv", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mv", "payload");
 		gw.setRenameExpression(PARSER.parseExpression("payload.substring(1)"));
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
@@ -313,8 +304,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testMoveWithMkDirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mv", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "mv", "payload");
 		gw.setRenameExpression(PARSER.parseExpression("'foo/bar/baz'"));
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
@@ -363,8 +353,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_f() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-f");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -405,8 +394,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_f_R() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-f -R");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -432,8 +420,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_f_R_dirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-f -R -dirs");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -461,8 +448,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_None() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = new TestLsEntry[0];
@@ -477,8 +463,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -496,8 +481,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1_f() throws Exception { //no sort
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -f");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -515,8 +499,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1_dirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -535,8 +518,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1_dirs_links() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs -links");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -556,8 +538,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1_a_f_dirs_links() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -579,8 +560,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testLs_1_a_f_dirs_links_filtered() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "ls", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
 		gw.setFilter(new TestPatternFilter("*4"));
 		gw.afterPropertiesSet();
@@ -597,8 +577,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testGet() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
@@ -632,8 +611,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testGetExists() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		File outFile = new File(this.tmpDir + "/f1");
@@ -703,8 +681,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testGetTempFileDelete() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
@@ -741,8 +718,7 @@ public class RemoteFileOutboundGatewayTests {
 	@Test
 	public void testGet_P() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.setOptions("-P");
 		gw.afterPropertiesSet();
@@ -784,8 +760,7 @@ public class RemoteFileOutboundGatewayTests {
 		new File(this.tmpDir + "/x/f1").delete();
 		new File(this.tmpDir + "/x").delete();
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "get", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir + "/x"));
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(new TestSession() {
@@ -814,8 +789,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testRm() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "rm", "payload");
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(sessionFactory, "rm", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		when(session.remove("testremote/x/f1")).thenReturn(Boolean.TRUE);

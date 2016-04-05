@@ -190,7 +190,7 @@ public class AggregatorParserTests {
 				outputChannel, accessor.getPropertyValue("outputChannel"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
-		assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000l,
+		assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000L,
 				TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
 		assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
@@ -212,15 +212,15 @@ public class AggregatorParserTests {
 	public void testSimpleJavaBeanAggregator() {
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceAndMethodInput");
-		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
-		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
-		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
+		outboundMessages.add(createMessage(1L, "id1", 3, 1, null));
+		outboundMessages.add(createMessage(2L, "id1", 3, 3, null));
+		outboundMessages.add(createMessage(3L, "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
 			input.send(message);
 		}
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive(10);
-		Assert.assertEquals(6l, response.getPayload());
+		Assert.assertEquals(6L, response.getPayload());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReferenceAndMethod.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
@@ -261,16 +261,16 @@ public class AggregatorParserTests {
 		assertNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1l, "correllationId", 4, 0, null));
-		input.send(createMessage(2l, "correllationId", 4, 1, null));
-		input.send(createMessage(3l, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correllationId", 4, 0, null));
+		input.send(createMessage(2L, "correllationId", 4, 1, null));
+		input.send(createMessage(3L, "correllationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5l, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correllationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
-		assertEquals(11l, reply.getPayload());
+		assertEquals(11L, reply.getPayload());
 	}
 
 	@Test // see INT-2011
@@ -286,16 +286,16 @@ public class AggregatorParserTests {
 		assertNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1l, "correllationId", 4, 0, null));
-		input.send(createMessage(2l, "correllationId", 4, 1, null));
-		input.send(createMessage(3l, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correllationId", 4, 0, null));
+		input.send(createMessage(2L, "correllationId", 4, 1, null));
+		input.send(createMessage(3L, "correllationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5l, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correllationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
-		assertEquals(11l, reply.getPayload());
+		assertEquals(11L, reply.getPayload());
 	}
 
 	@Test

@@ -55,21 +55,20 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * Provides the region to be used for the message store. This is useful when
 	 * using a configured region. This is also required if using a client region
 	 * on a remote cache server.
-	 *
 	 * @param messageStoreRegion The region.
 	 */
 	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
 		this.cache = null;
 		this.messageStoreRegion = messageStoreRegion;
 	}
-    /**
-     * Provides a cache reference used to create a message store region named
-     * 'messageStoreRegion'
-     *
-     * @param cache The cache.
-     *
-     * @deprecated - use the other constructor and provide a region directly.
-     */
+
+	/**
+	 * Provides a cache reference used to create a message store region named
+	 * 'messageStoreRegion'
+	 * @param cache The cache.
+	 *
+	 * @deprecated - use the other constructor and provide a region directly.
+	 */
 	@Deprecated
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");

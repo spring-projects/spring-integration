@@ -39,62 +39,61 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
 public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
-    @Autowired
-    private AbstractApplicationContext context;
+	@Autowired
+	private AbstractApplicationContext context;
 
-    @Autowired
-    private Consumer consumer;
-
+	@Autowired
+	private Consumer consumer;
 
 	@Test
-    public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
-        List<Message<List<Integer>>> received = new ArrayList<Message<List<Integer>>>();
+	public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
+		List<Message<List<Integer>>> received = new ArrayList<Message<List<Integer>>>();
 
-        received.add(consumer.poll(60000));
+		received.add(consumer.poll(60000));
 
-        Message<List<Integer>> message = received.get(0);
-        context.stop();
-        assertNotNull(message);
-        assertNotNull(message.getPayload());
-        assertTrue(message.getPayload() instanceof List<?>);
+		Message<List<Integer>> message = received.get(0);
+		context.stop();
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
+		assertTrue(message.getPayload() instanceof List<?>);
 
-        List<Integer> resultList = message.getPayload();
+		List<Integer> resultList = message.getPayload();
 
-        assertTrue(resultList.size() == 1);
+		assertTrue(resultList.size() == 1);
 
-    }
+	}
 
-    static class Counter {
+	static class Counter {
 
-        private final AtomicInteger count = new AtomicInteger();
+		private final AtomicInteger count = new AtomicInteger();
 
-        public Integer next() throws InterruptedException {
-            if (count.get() > 2) {
-                //prevent message overload
-                return null;
-            }
-            return Integer.valueOf(count.incrementAndGet());
-        }
-    }
+		public Integer next() throws InterruptedException {
+			if (count.get() > 2) {
+				// prevent message overload
+				return null;
+			}
+			return Integer.valueOf(count.incrementAndGet());
+		}
+	}
 
+	static class Consumer {
 
-    static class Consumer {
+		private final BlockingQueue<Message<List<Integer>>> messages = new LinkedBlockingQueue<Message<List<Integer>>>();
 
-        private final BlockingQueue<Message<List<Integer>>> messages = new LinkedBlockingQueue<Message<List<Integer>>>();
+		@ServiceActivator
+		public void receive(Message<List<Integer>> message) {
+			messages.add(message);
+		}
 
-        @ServiceActivator
-        public void receive(Message<List<Integer>>message) {
-            messages.add(message);
-        }
-
-        Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {
-            return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
-        }
-    }
+		Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {
+			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+		}
+	}
 }

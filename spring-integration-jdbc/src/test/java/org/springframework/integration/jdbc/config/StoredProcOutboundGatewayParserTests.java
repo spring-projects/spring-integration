@@ -29,15 +29,16 @@ import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
@@ -45,7 +46,7 @@ import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gunnar Hillert
@@ -182,7 +183,7 @@ public class StoredProcOutboundGatewayParserTests {
 		assertNotNull(procedureParameters);
 		assertTrue(procedureParameters instanceof List);
 
-		List<ProcedureParameter>procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
+		List<ProcedureParameter> procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
 
 		assertTrue(procedureParametersAsList.size() == 4);
 
@@ -248,7 +249,7 @@ public class StoredProcOutboundGatewayParserTests {
 		assertNotNull(sqlParameters);
 		assertTrue(sqlParameters instanceof List);
 
-		List<SqlParameter>sqlParametersAsList = (List<SqlParameter>) sqlParameters;
+		List<SqlParameter> sqlParametersAsList = (List<SqlParameter>) sqlParameters;
 
 		assertTrue(sqlParametersAsList.size() == 4);
 

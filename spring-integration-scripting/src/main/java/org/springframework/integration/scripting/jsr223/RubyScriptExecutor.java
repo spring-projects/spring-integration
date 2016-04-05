@@ -24,7 +24,7 @@ import org.springframework.util.ClassUtils;
  * @since 2.1
  *
  */
- public class RubyScriptExecutor extends DefaultScriptExecutor {
+public class RubyScriptExecutor extends DefaultScriptExecutor {
 
 	static {
 		if (ClassUtils.isPresent("org.jruby.embed.jsr223.JRubyEngine", System.class.getClassLoader())) {

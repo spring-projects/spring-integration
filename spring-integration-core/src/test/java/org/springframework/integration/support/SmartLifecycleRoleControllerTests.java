@@ -40,7 +40,7 @@ public class SmartLifecycleRoleControllerTests {
 		when(lc1.getPhase()).thenReturn(2);
 		SmartLifecycle lc2 = mock(SmartLifecycle.class);
 		when(lc1.getPhase()).thenReturn(1);
-		MultiValueMap<String , SmartLifecycle> map = new LinkedMultiValueMap<String, SmartLifecycle>();
+		MultiValueMap<String, SmartLifecycle> map = new LinkedMultiValueMap<String, SmartLifecycle>();
 		map.add("foo", lc1);
 		map.add("foo", lc2);
 		SmartLifecycleRoleController controller = new SmartLifecycleRoleController(map);

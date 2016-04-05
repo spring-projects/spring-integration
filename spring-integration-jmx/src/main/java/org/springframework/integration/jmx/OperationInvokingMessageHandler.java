@@ -133,8 +133,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 					}
 					if (paramInfoArray.length == paramsFromMessage.size()) {
 						int index = 0;
-						Object values[] = new Object[paramInfoArray.length];
-						String signature[] = new String[paramInfoArray.length];
+						Object[] values = new Object[paramInfoArray.length];
+						String[] signature = new String[paramInfoArray.length];
 						for (MBeanParameterInfo paramInfo : paramInfoArray) {
 							Object value = paramsFromMessage.get(paramInfo.getName());
 							if (value == null) {

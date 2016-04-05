@@ -115,7 +115,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		int counter = 0;
 		for (Object element : list) {
 			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);
-			counter ++;
+			counter++;
 		}
 	}
 

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -37,7 +38,7 @@ public final class Consumer {
 
 	private static final BlockingQueue<Message<Collection<?>>> MESSAGES = new LinkedBlockingQueue<Message<Collection<?>>>();
 
-	public synchronized void receive(Message<Collection<?>>message) {
+	public synchronized void receive(Message<Collection<?>> message) {
 		logger.info("Service Activator received Message: " + message);
 		MESSAGES.add(message);
 	}

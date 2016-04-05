@@ -22,18 +22,21 @@ import javax.script.ScriptEngine;
 import org.springframework.integration.scripting.ScriptExecutor;
 
 /**
- * A {@link ScriptExecutor} that implements special handling required for Python to emulate behavior similar to other JSR223 scripting languages.
+ * A {@link ScriptExecutor} that implements special handling required for Python to
+ * emulate behavior similar to other JSR223 scripting languages.
  * <p>
- * Script evaluation using the Jython implementation results in a <code>null</code> return value for normal variable expressions such as
- * <code>x=2</code>. As a work around, it is necessary to get the value of 'x' explicitly following the script evaluation. This class performs
- * simple parsing on the last line of the script to obtain the variable name, if any, and return its value.
+ * Script evaluation using the Jython implementation results in a <code>null</code> return
+ * value for normal variable expressions such as <code>x=2</code>. As a work around, it is
+ * necessary to get the value of 'x' explicitly following the script evaluation. This
+ * class performs simple parsing on the last line of the script to obtain the variable
+ * name, if any, and return its value.
  *
  * @author David Turanski
  * @author Gary Russell
  * @since 2.1
  *
  */
- public class PythonScriptExecutor extends AbstractScriptExecutor {
+public class PythonScriptExecutor extends AbstractScriptExecutor {
 
 	public PythonScriptExecutor() {
 		super("python");

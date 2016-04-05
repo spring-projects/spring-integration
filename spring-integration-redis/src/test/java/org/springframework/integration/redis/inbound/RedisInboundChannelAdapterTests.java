@@ -47,7 +47,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
-		for (int iteration = 0; iteration < 10; iteration ++) {
+		for (int iteration = 0; iteration < 10; iteration++) {
 			testRedisInboundChannelAdapterGuts(iteration);
 		}
 	}

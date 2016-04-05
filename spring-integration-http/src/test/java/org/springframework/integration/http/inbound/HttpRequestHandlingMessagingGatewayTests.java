@@ -363,7 +363,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new GenericMessage<String>("foo",
-						Collections.<String, Object> singletonMap(HttpHeaders.STATUS_CODE, HttpStatus.GATEWAY_TIMEOUT));
+						Collections.<String, Object>singletonMap(HttpHeaders.STATUS_CODE, HttpStatus.GATEWAY_TIMEOUT));
 			}
 
 		});

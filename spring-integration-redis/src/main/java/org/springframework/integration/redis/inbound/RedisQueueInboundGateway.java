@@ -234,17 +234,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 				Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
 				if (replyMessage != null) {
 					if (this.extractPayload) {
-						if (!(replyMessage.getPayload() instanceof byte[])) {
-							if (replyMessage.getPayload() instanceof String && !this.serializerExplicitlySet) {
-								value = stringSerializer.serialize((String) replyMessage.getPayload());
-							}
-							else {
-								value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage.getPayload());
-							}
-						}
-						else {
-							value = (byte[]) replyMessage.getPayload();
-						}
+						value = extractReplyPayload(replyMessage);
 					}
 					else {
 						if (this.serializer != null) {
@@ -255,6 +245,23 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 				}
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private byte[] extractReplyPayload(Message<?> replyMessage) {
+		byte[] value;
+		if (!(replyMessage.getPayload() instanceof byte[])) {
+			if (replyMessage.getPayload() instanceof String && !this.serializerExplicitlySet) {
+				value = stringSerializer.serialize((String) replyMessage.getPayload());
+			}
+			else {
+				value = ((RedisSerializer<Object>) this.serializer).serialize(replyMessage.getPayload());
+			}
+		}
+		else {
+			value = (byte[]) replyMessage.getPayload();
+		}
+		return value;
 	}
 
 	@Override

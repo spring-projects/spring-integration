@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -50,7 +51,7 @@ public class IntervalTriggerParserTests {
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
         Long period = (Long) accessor.getPropertyValue("period");
         assertEquals(fixedRate, true);
-		assertEquals(36l, period.longValue());
+		assertEquals(36L, period.longValue());
     }
 
     @Test
@@ -64,6 +65,6 @@ public class IntervalTriggerParserTests {
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
         Long period = (Long) accessor.getPropertyValue("period");
         assertEquals(fixedRate, false);
-		assertEquals(37l, period.longValue());
+		assertEquals(37L, period.longValue());
     }
 }
