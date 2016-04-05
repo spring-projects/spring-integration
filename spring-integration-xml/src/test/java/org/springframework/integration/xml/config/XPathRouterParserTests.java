@@ -77,7 +77,7 @@ public class XPathRouterParserTests {
 	ConfigurableApplicationContext appContext;
 
 	public EventDrivenConsumer buildContext(String routerDef) {
-		appContext = TestXmlApplicationContextHelper.getTestAppContext( channelConfig + routerDef);
+		appContext = TestXmlApplicationContextHelper.getTestAppContext(channelConfig + routerDef);
 		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("router");
 		consumer.start();

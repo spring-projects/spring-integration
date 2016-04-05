@@ -99,7 +99,7 @@ public class SubscribableJmsChannelTests {
 	@Test
 	public void queueReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {
@@ -107,7 +107,7 @@ public class SubscribableJmsChannelTests {
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {
@@ -140,7 +140,7 @@ public class SubscribableJmsChannelTests {
 	@Test
 	public void topicReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {
@@ -148,7 +148,7 @@ public class SubscribableJmsChannelTests {
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {
@@ -184,7 +184,7 @@ public class SubscribableJmsChannelTests {
 	@Test
 	public void queueName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 
 			@Override
@@ -193,7 +193,7 @@ public class SubscribableJmsChannelTests {
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 
 			@Override
@@ -232,7 +232,7 @@ public class SubscribableJmsChannelTests {
 	@Test
 	public void topicName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {
@@ -240,7 +240,7 @@ public class SubscribableJmsChannelTests {
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
+		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) {

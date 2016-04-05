@@ -106,7 +106,7 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue( 1 == updatedRecords);
+		Assert.assertTrue(1 == updatedRecords);
 		Assert.assertNull(student.getRollNumber());
 
 	}
@@ -127,7 +127,7 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue( 1 == updatedRecords);
+		Assert.assertTrue(1 == updatedRecords);
 		Assert.assertNull(student.getRollNumber());
 	}
 
@@ -148,7 +148,7 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue( 1 == updatedRecords);
+		Assert.assertTrue(1 == updatedRecords);
 		Assert.assertNull(student.getRollNumber());
 	}
 
@@ -218,7 +218,7 @@ public class AbstractJpaOperationsTests {
 
 		entityManager.flush();
 
-		Assert.assertTrue( 1 == updatedRecords);
+		Assert.assertTrue(1 == updatedRecords);
 		Assert.assertNull(student.getRollNumber());
 	}
 

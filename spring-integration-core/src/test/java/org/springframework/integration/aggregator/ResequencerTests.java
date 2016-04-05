@@ -81,11 +81,11 @@ public class ResequencerTests {
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
 		assertNotNull(reply1);
-		assertThat( new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber(), is(1));
+		assertThat(new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber(), is(1));
 		assertNotNull(reply2);
 		assertThat(new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber(), is(2));
 		assertNotNull(reply3);
-		assertThat( new IntegrationMessageHeaderAccessor(reply3).getSequenceNumber(), is(3));
+		assertThat(new IntegrationMessageHeaderAccessor(reply3).getSequenceNumber(), is(3));
 	}
 
 	@Test

@@ -66,7 +66,7 @@ public class MultiClientTests {
 		final AtomicBoolean done = new AtomicBoolean();
 
 		for (int i = 0; i < drivers; i++) {
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
@@ -116,7 +116,7 @@ public class MultiClientTests {
 
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
@@ -169,7 +169,7 @@ public class MultiClientTests {
 
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(

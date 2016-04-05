@@ -30,7 +30,7 @@ public final class DerbyFunctions {
 		super();
 	}
 
-	public static String convertStringToUpperCase( String invalue ) {
+	public static String convertStringToUpperCase(String invalue) {
 				return invalue.toUpperCase(Locale.ENGLISH);
 	  }
 

@@ -181,7 +181,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 				+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 		}
 
-		if (this.procedureParameters != null ) {
+		if (this.procedureParameters != null) {
 
 			if (this.sqlParameterSourceFactory == null) {
 				ExpressionEvaluatingSqlParameterSourceFactory expressionSourceFactory =

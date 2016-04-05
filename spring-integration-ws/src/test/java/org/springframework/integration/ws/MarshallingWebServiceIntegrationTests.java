@@ -89,7 +89,7 @@ public class MarshallingWebServiceIntegrationTests {
 	public void sendString() throws Exception {
 		when(context.getResponse()).thenReturn(response);
 		when(context.getRequest()).thenReturn(request);
-		when(request.getPayloadSource()).thenReturn(stringSource );
+		when(request.getPayloadSource()).thenReturn(stringSource);
 		when(response.getPayloadResult()).thenReturn(stringResult);
 		gateway.invoke(context);
 		assertTrue(output.toString().endsWith(input));
