@@ -37,7 +37,7 @@ public class PayloadTypeConvertingTransformerTests {
 	@Test
 	public void testTransformPayloadObject() throws Exception {
 		PayloadTypeConvertingTransformer<String, String> tx = new PayloadTypeConvertingTransformer<String, String>();
-		tx.setConverter(new Converter<String, String> () {
+		tx.setConverter(new Converter<String, String>() {
 
 			@Override
 			public String convert(String source) {

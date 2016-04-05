@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class RegexUtilsTests {
 	 * Verify that we properly escape all special characters for matching regex
 	 */
 	@Test
-	public void testRegex () {
+	public void testRegex() {
 		String s = "xxx$^[]{()}+*\\?|.xxx";
 		assertEquals("xxx\\$\\^\\[\\]\\{\\(\\)\\}\\+\\*\\\\\\?\\|\\.xxx", RegexUtils.escapeRegexSpecials(s));
 	}

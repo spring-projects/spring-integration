@@ -852,7 +852,7 @@ public class ImapMailReceiverTests {
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
-		doAnswer(new Answer<Object> () {
+		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
