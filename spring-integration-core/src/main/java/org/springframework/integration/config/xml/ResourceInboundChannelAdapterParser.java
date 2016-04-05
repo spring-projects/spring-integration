@@ -26,14 +26,14 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
- * Parser for 'resource-inbound-channel-adapter' 
- * 
+ * Parser for 'resource-inbound-channel-adapter'
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	
+
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceRetrievingMessageSource.class);

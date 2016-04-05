@@ -26,8 +26,8 @@ import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;outbound-gateway/&gt; element of the 'rmi' namespace. 
- * 
+ * Parser for the &lt;outbound-gateway/&gt; element of the 'rmi' namespace.
+ *
  * @author Mark Fisher
  */
 public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {

@@ -29,7 +29,7 @@ import org.springframework.xml.xpath.XPathExpression;
 /**
  * XPath {@link MessageSelector} that tests if a provided String value
  * matches a given Regular Expression.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */
@@ -40,7 +40,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 
 	/**
 	 * Creates a selector which attempts to match the given regex and supports multiple namespaces.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param namespaces Map of namespaces where the keys are namespace prefixes
 	 * @param regex regular expression to match
@@ -53,7 +53,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 
 	/**
 	 * Creates a selector which attempts to match the given regex and supports a single namespace.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param prefix namespace prefix
 	 * @param namespace namespace URI
@@ -66,8 +66,8 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	}
 
 	/**
-	 * Creates a non-namespaced selector which attempts to match the given regex. 
-	 * 
+	 * Creates a non-namespaced selector which attempts to match the given regex.
+	 *
 	 * @param expression XPath expression as a String
 	 * @param regex regular expression to match
 	 */
@@ -80,7 +80,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	/**
 	 * Creates a selector which attempts to match the given regex against the evaluation result
 	 * of the provided {@link XPathExpression}.
-	 * 
+	 *
 	 * @param expression XPath expression
 	 * @param regex regular expression to match
 	 */

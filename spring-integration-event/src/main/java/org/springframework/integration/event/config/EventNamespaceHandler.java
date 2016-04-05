@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's 'event' namespace.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */

@@ -21,11 +21,11 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-                                      
+
 /**
  * Indicates that a given method is capable of determining the correlation key
  * of a message sent as parameter.
- * 
+ *
  * @author Marius Bogoevici
  */
 @Retention (RetentionPolicy.RUNTIME)

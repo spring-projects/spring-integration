@@ -18,7 +18,7 @@ package org.springframework.integration.file.remote.session;
 
 /**
  * Factory for acquiring {@link Session} instances.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

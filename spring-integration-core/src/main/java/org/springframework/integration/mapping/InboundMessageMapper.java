@@ -20,7 +20,7 @@ import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for mapping from an Object to a{@link Message}.
- * 
+ *
  * @author Mark Fisher
  */
 public interface InboundMessageMapper<T> {

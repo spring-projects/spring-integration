@@ -20,7 +20,7 @@ import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for generating a file name from a message.
- * 
+ *
  * @author Mark Fisher
  */
 public interface FileNameGenerator {

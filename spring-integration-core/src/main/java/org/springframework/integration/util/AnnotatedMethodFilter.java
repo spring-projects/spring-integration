@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  *   <li>limiting to annotated methods if at least one is present</li>
  * </ol>
  * <p>
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

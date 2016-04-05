@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'xpath-transformer' element.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

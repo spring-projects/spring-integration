@@ -25,7 +25,7 @@ import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 
 /**
- * 
+ *
  * @author Jonas Partner
  *
  */

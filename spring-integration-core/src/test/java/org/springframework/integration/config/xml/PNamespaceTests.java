@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Validates the "p:namespace" is working for inner "bean" definition within SI components.
- * 
+ *
  * @author Oleg Zhurakousky
  */
 @ContextConfiguration
@@ -45,7 +45,7 @@ public class PNamespaceTests {
 
 	@Autowired
 	@Qualifier("sp")
-	EventDrivenConsumer splitter;	
+	EventDrivenConsumer splitter;
 
 	@Autowired
 	@Qualifier("rt")
@@ -54,21 +54,21 @@ public class PNamespaceTests {
 	@Autowired
 	@Qualifier("tr")
 	EventDrivenConsumer transformer;
-	
+
 	@Autowired
 	@Qualifier("sampleChain")
 	EventDrivenConsumer sampleChain;
 
 
 	@Test
-	public void testPNamespaceServiceActivator() {	
+	public void testPNamespaceServiceActivator() {
 		TestBean bean =  prepare(serviceActivator);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
-	public void testPNamespaceSplitter() {		
+	public void testPNamespaceSplitter() {
 		TestBean bean =  prepare(splitter);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
@@ -82,17 +82,17 @@ public class PNamespaceTests {
 	}
 
 	@Test
-	public void testPNamespaceTransformer() {		
+	public void testPNamespaceTransformer() {
 		TestBean bean =  prepare(transformer);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
-	
+
 	@Test
-	public void testPNamespaceChain() {		
+	public void testPNamespaceChain() {
 		List<?> handlers = (List<?>) TestUtils.getPropertyValue(sampleChain, "handler.handlers");
 		AggregatingMessageHandler handler = (AggregatingMessageHandler) handlers.get(0);
-		SampleAggregator aggregator = 
+		SampleAggregator aggregator =
 			(SampleAggregator) TestUtils.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
 		assertEquals("Bill", aggregator.getName());
 	}
@@ -130,7 +130,7 @@ public class PNamespaceTests {
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
-		
+
 		public String printWithPrefix(String prefix) {
 			return prefix + fname + " " + lname;
 		}

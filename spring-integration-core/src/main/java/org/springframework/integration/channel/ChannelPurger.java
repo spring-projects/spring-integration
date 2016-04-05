@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * operation and thus will <em>not</em> be removed. Likewise, messages to be
  * purged may have been removed from the channel while the operation is taking
  * place. Such messages will not be included in the returned list.
- * 
+ *
  * @author Mark Fisher
  */
 public class ChannelPurger {

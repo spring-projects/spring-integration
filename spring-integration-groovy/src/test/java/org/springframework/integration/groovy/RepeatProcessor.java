@@ -35,10 +35,10 @@ import org.springframework.test.annotation.Repeat;
 /**
  * A method rule that looks at Spring repeat annotations on methods and executes the test multiple times (without
  * re-initializing the test case).
- * 
+ *
  * @author Dave Syer
  * @since 2.0
- * 
+ *
  */
 public class RepeatProcessor implements MethodRule {
 

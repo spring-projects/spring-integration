@@ -27,7 +27,7 @@ import org.springframework.core.io.Resource;
 public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 
 	private final Resource[] resources;
-	
+
 	public TestXmlApplicationContext(String ... xmlStrings){
 		resources = new Resource[xmlStrings.length];
 		for (int i = 0 ; i < xmlStrings.length; i++) {
@@ -35,7 +35,7 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 		}
 		refresh();
 	}
-	
+
 	@Override
 	protected Resource[] getConfigResources() {
 		return resources;
@@ -44,20 +44,20 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 	private static class TestResource extends AbstractResource{
 
 		String xmlString;
-		
+
 		TestResource(String xmlString){
 			this.xmlString = xmlString;
 		}
-		
+
 
 		public String getDescription() {
 			return "test";
 		}
 
 		public InputStream getInputStream() throws IOException {
-		return new ByteArrayInputStream(xmlString.getBytes("UTF-8")); 
+		return new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
 		}
-		
-	} 
-	
+
+	}
+
 }

@@ -148,11 +148,11 @@
 <!-- 				value="Please use AssertJ imports." /> -->
 <!-- 			<property name="ignoreComments" value="true" /> -->
 <!-- 		</module> -->
-<!-- 		<module name="Regexp"> -->
-<!-- 			<property name="format" value="[ \t]+$" /> -->
-<!-- 			<property name="illegalPattern" value="true" /> -->
-<!-- 			<property name="message" value="Trailing whitespace" /> -->
-<!-- 		</module> -->
+		<module name="Regexp">
+			<property name="format" value="[ \t]+$" />
+			<property name="illegalPattern" value="true" />
+			<property name="message" value="Trailing whitespace" />
+		</module>
 
 		<!-- Whitespace -->
 <!-- 		<module name="GenericWhitespace" /> -->

@@ -30,8 +30,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'mail' namespace. 
- * 
+ * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'mail' namespace.
+ *
  * @author Mark Fisher
  */
 public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -66,7 +66,7 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			}
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
 					mailSenderBuilder, element, "java-mail-properties", "javaMailProperties");
-			
+
 			String mailSenderBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					mailSenderBuilder.getBeanDefinition(), parserContext.getRegistry());
 			builder.addConstructorArgReference(mailSenderBeanName);

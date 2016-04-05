@@ -19,13 +19,13 @@ package org.springframework.integration.json;
 import java.util.Date;
 
 public class TestBean {
-	
+
 	private String value = "foo";
 
 	private boolean test = false;
 
 	private long number = 42;
-	
+
 	private Date now = new Date();
 
 	private TestChildBean child = new TestChildBean();

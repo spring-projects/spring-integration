@@ -51,7 +51,7 @@ public class StubMessageFactory implements WebServiceMessageFactory {
 	public WebServiceMessage createWebServiceMessage(InputStream inputStream) throws IOException {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			  
+
 	        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	        InputSource is = new InputSource( new InputStreamReader(inputStream));
 	        Document document = builder.parse(is);

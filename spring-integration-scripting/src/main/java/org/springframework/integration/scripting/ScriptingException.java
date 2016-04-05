@@ -25,12 +25,12 @@ import org.springframework.messaging.MessagingException;
 @SuppressWarnings("serial")
 
 public class ScriptingException extends MessagingException {
-	
+
 	public ScriptingException(String description) {
 		super(description);
 	}
-	
-	
+
+
 	public ScriptingException(String description, Throwable cause) {
 		super(description, cause);
 	}

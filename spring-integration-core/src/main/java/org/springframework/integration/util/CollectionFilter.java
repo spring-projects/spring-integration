@@ -20,7 +20,7 @@ import java.util.Collection;
 
 /**
  * Base strategy for filtering out a subset of a Collection of elements.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.1

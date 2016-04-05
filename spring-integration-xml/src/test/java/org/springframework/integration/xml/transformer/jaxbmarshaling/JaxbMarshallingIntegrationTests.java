@@ -41,20 +41,20 @@ import org.springframework.xml.transform.StringSource;
  */
 @ContextConfiguration
 public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContextTests {
-	
+
 	@Autowired @Qualifier("marshallIn")
 	MessageChannel marshallIn;
-	
+
 	@Autowired @Qualifier("marshallOut")
 	PollableChannel marshalledOut;
-	
+
 	@Autowired @Qualifier("unmarshallIn")
 	MessageChannel unmarshallIn;
-	
+
 	@Autowired @Qualifier("unmarshallOut")
 	PollableChannel unmarshallOut;
-	
-	
+
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMarshalling() throws Exception{
@@ -68,7 +68,7 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 		assertEquals("Wrong name for root element ", "person",doc.getDocumentElement().getLocalName());
 	}
 
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnmarshalling() throws Exception{
@@ -79,8 +79,8 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 		assertTrue("Not a Person ", res.getPayload() instanceof JaxbAnnotatedPerson);
 		JaxbAnnotatedPerson person = (JaxbAnnotatedPerson)res.getPayload();
 		assertEquals("Worng firstname", "bob", person.getFirstName());
-		
+
 	}
-	
-	
+
+
 }

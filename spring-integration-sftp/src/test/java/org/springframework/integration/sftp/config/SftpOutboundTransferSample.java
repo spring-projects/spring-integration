@@ -35,7 +35,7 @@ public class SftpOutboundTransferSample {
 	@Test
 	@Ignore
 	public void testOutbound() throws Exception{
-		ClassPathXmlApplicationContext ac = 
+		ClassPathXmlApplicationContext ac =
 			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", SftpOutboundTransferSample.class);
 		ac.start();
 		File file = new File("/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/local-test-dir/foo.txt");
@@ -47,7 +47,7 @@ public class SftpOutboundTransferSample {
 		}
 		System.out.println("Done");
 		ac.stop();
-		
+
 	}
 
 }

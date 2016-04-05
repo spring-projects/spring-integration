@@ -29,7 +29,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
- * 
+ *
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -41,9 +41,9 @@ public class EnricherParserTests2 {
 
 	@Test
 	public void configurationCheckRequiresReply() {
-		
+
 		Object endpoint = context.getBean("enricher");
-		
+
 		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
 
 		assertFalse("Was expecting requiresReply to be 'false'", requiresReply);

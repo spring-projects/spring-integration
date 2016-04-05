@@ -23,14 +23,14 @@ package org.springframework.integration.leader;
  *
  * @author Patrick Peralta
  * @author Janne Valkealahti
- * 
+ *
  */
 public interface Context {
 
 	/**
 	 * Checks if the {@link Candidate} this context was
 	 * passed to is the leader.
-	 * 
+	 *
 	 * @return true if the {@link Candidate} this context was
 	 *         passed to is the leader
 	 */

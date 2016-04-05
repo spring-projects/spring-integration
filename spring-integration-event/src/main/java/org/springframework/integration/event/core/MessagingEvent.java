@@ -21,7 +21,7 @@ import org.springframework.messaging.Message;
 
 /**
  * A subclass of {@link ApplicationEvent} that wraps a {@link Message}.
- * 
+ *
  * @author Mark Fisher
  */
 public class MessagingEvent extends ApplicationEvent {

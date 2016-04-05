@@ -24,7 +24,7 @@ import org.w3c.dom.Node;
 /**
  * Converter for creating XML {@link Document}, {@link Node} or {@link Source}
  * instances from other types (e.g. String).
- * 
+ *
  * @author Jonas Partner
  */
 public interface XmlPayloadConverter {

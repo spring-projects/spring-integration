@@ -25,7 +25,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class ScriptNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		this.registerBeanDefinitionParser("script", new ScriptParser()); 
+		this.registerBeanDefinitionParser("script", new ScriptParser());
 	}
 
 }

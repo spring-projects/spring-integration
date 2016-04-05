@@ -33,7 +33,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 /**
  * A helper class for parsing the sub-elements of a channel's
  * <em>interceptors</em> element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */

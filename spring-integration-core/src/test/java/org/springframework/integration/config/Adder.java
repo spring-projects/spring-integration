@@ -22,7 +22,7 @@ import java.util.List;
  * @author Marius Bogoevici
  */
 public class Adder {
-	
+
 	public Long add(List<Long> results) {
 		long total = 0l;
 		for (long partialResult: results) {
@@ -30,5 +30,5 @@ public class Adder {
 		}
 		return total;
 	}
-	
+
 }

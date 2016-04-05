@@ -57,11 +57,11 @@ public class NotificationPublishingMessageHandlerTests {
 		// should not fail INT-1816
 		context.registerSingleton("exporter", IntegrationMBeanExporter.class);
 		context.registerSingleton("anotherExporter", MBeanExporter.class);
-		
+
 		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingMessageHandler.class);
 		publisherDefinition.getConstructorArgumentValues().addGenericArgumentValue(this.publisherObjectName);
 		publisherDefinition.getPropertyValues().add("defaultNotificationType", "test.type");
-		context.registerBeanDefinition("testPublisher", publisherDefinition);	
+		context.registerBeanDefinition("testPublisher", publisherDefinition);
 		context.refresh();
 		MBeanExporter exporter = context.getBean(IntegrationMBeanExporter.class);
 		exporter.getServer().addNotificationListener(publisherObjectName, this.listener, null, null);

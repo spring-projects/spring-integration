@@ -25,7 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  * for parsing an element, creating a bean definition, and then
  * registering the bean. The {@link #parse(Element, ParserContext)}
  * method should return the name of the registered bean.
- * 
+ *
  * @author Mark Fisher
  */
 public interface BeanDefinitionRegisteringParser {

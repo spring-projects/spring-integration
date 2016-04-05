@@ -25,7 +25,7 @@ import org.springframework.integration.xml.source.SourceFactory;
 /**
  * Transforms the payload to a {@link Source} using a {@link SourceFactory}.
  * Defaults to using a {@link DomSourceFactory} if an alternative is not provided.
- * 
+ *
  * @author Jonas Partner
  */
 public class SourceCreatingTransformer extends AbstractPayloadTransformer<Object, Source> {

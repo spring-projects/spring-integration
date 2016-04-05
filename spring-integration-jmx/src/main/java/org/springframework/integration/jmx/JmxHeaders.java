@@ -18,7 +18,7 @@ package org.springframework.integration.jmx;
 
 /**
  * Constants for JMX related Message Header keys.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

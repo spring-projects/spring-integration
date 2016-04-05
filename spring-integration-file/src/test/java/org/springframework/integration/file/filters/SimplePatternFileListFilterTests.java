@@ -39,7 +39,7 @@ public class SimplePatternFileListFilterTests {
 	public void shouldMatchQuestionMark() {
 		assertThat(new SimplePatternFileListFilter("*bar").accept(new File("bar")), is(true));
 	}
-	
+
 	@Test
 	public void shouldMatchWildcard() {
 		assertThat(new SimplePatternFileListFilter("ba?").accept(new File("bar")), is(true));

@@ -57,7 +57,7 @@ public class InnerPollerParserTests {
 				"" +
 				"	<int:channel id=\"someChannel\"/>" +
 				"" +
-				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" + 
+				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
 				"			query=\"select 1\">" +
 				"		<int:poller ref=\"outer\" fixed-rate=\"1000\"/>" + // <<<<< fixed-rate not allowed here
 				"	</int-jdbc:inbound-channel-adapter>" +
@@ -94,7 +94,7 @@ public class InnerPollerParserTests {
 				"" +
 				"	<int:channel id=\"someChannel\"/>" +
 				"" +
-				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" + 
+				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
 				"			query=\"select 1\">" +
 				"		<int:poller ref=\"outer\" default=\"true\"/>" + // <<<<< default true not allowed here
 				"	</int-jdbc:inbound-channel-adapter>" +
@@ -131,7 +131,7 @@ public class InnerPollerParserTests {
 				"" +
 				"	<int:channel id=\"someChannel\"/>" +
 				"" +
-				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" + 
+				"	<int-jdbc:inbound-channel-adapter channel=\"someChannel\" jdbc-operations=\"ops\"" +
 				"			query=\"select 1\">" +
 				"		<int:poller ref=\"outer\" default=\"false\" fixed-rate=\"1000\"/>" + // <<<<< fixed-rate not allowed here
 				"	</int-jdbc:inbound-channel-adapter>" +

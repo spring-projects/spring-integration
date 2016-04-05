@@ -21,7 +21,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>jms</em> namespace.
- * 
+ *
  * @author Mark Fisher
  */
 public class JmsNamespaceHandler extends AbstractIntegrationNamespaceHandler {

@@ -64,7 +64,7 @@ public class DynamicExpressionTests {
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to write expression string to file", e);
-		}		
+		}
 	}
 
 }

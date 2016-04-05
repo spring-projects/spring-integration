@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * (this is the CacheLogger class that ships in the Spring-Gemfire samples)
- * 
+ *
  * @author Costin Leau
  */
 public class TestCacheListenerLogger extends CacheListenerAdapter<Object, Object> {

@@ -25,7 +25,7 @@ import org.springframework.integration.router.ErrorMessageExceptionTypeRouter;
 
 /**
  * Parser for the &lt;exception-type-router/&gt; element.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0.4
  */

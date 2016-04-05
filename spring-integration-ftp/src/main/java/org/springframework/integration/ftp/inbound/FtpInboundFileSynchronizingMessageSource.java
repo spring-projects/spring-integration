@@ -38,7 +38,7 @@ public class FtpInboundFileSynchronizingMessageSource extends AbstractInboundFil
 	public FtpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<FTPFile> synchronizer) {
 		super(synchronizer);
 	}
-	
+
 	public FtpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<FTPFile> synchronizer, Comparator<File> comparator) {
 		super(synchronizer, comparator);
 	}

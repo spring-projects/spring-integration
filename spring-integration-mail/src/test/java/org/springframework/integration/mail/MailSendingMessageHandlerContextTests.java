@@ -145,7 +145,7 @@ public class MailSendingMessageHandlerContextTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageHandlingException.class));
 			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), 
+			assertThat(e.getMessage(),
 					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
 		}
 
@@ -159,7 +159,7 @@ public class MailSendingMessageHandlerContextTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageHandlingException.class));
 			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), 
+			assertThat(e.getMessage(),
 					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
 		}
 
@@ -170,7 +170,7 @@ public class MailSendingMessageHandlerContextTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(MessageHandlingException.class));
 			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), 
+			assertThat(e.getMessage(),
 					containsString("this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'"));
 		}
 	}

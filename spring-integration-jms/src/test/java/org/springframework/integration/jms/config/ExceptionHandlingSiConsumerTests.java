@@ -38,7 +38,7 @@ import org.springframework.jms.core.MessageCreator;
  * @author Oleg Zhurakousky
  */
 public class ExceptionHandlingSiConsumerTests {
-	
+
 	@Test
 	public void nonSiProducer_siConsumer_sync_withReturn() throws Exception {
 		ActiveMqTestUtils.prepare();
@@ -47,7 +47,7 @@ public class ExceptionHandlingSiConsumerTests {
 		Destination request = applicationContext.getBean("requestQueueA", Destination.class);
 		final Destination reply = applicationContext.getBean("replyQueueA", Destination.class);
 		jmsTemplate.send(request, new MessageCreator() {
-			
+
 			public Message createMessage(Session session) throws JMSException {
 				TextMessage message = session.createTextMessage();
 				message.setText("echoChannel");
@@ -57,10 +57,10 @@ public class ExceptionHandlingSiConsumerTests {
 		});
 		Message message = jmsTemplate.receive(reply);
 		assertNotNull(message);
-		applicationContext.close();  
+		applicationContext.close();
 	}
 
-	@Test 
+	@Test
 	public void nonSiProducer_siConsumer_sync_withReturnNoException() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
@@ -68,7 +68,7 @@ public class ExceptionHandlingSiConsumerTests {
 		Destination request = applicationContext.getBean("requestQueueB", Destination.class);
 		final Destination reply = applicationContext.getBean("replyQueueB", Destination.class);
 		jmsTemplate.send(request, new MessageCreator() {
-			
+
 			public Message createMessage(Session session) throws JMSException {
 				TextMessage message = session.createTextMessage();
 				message.setText("echoWithExceptionChannel");
@@ -79,10 +79,10 @@ public class ExceptionHandlingSiConsumerTests {
 		Message message = jmsTemplate.receive(reply);
 		assertNotNull(message);
 		assertEquals("echoWithException", ((TextMessage) message).getText());
-		applicationContext.close();  
+		applicationContext.close();
 	}
 
-	@Test 
+	@Test
 	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception{
 		ActiveMqTestUtils.prepare();
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);

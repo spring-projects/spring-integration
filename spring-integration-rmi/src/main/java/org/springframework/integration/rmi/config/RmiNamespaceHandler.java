@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>rmi</em> namespace.
- * 
+ *
  * @author Mark Fisher
  */
 public class RmiNamespaceHandler extends AbstractIntegrationNamespaceHandler {

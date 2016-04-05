@@ -23,11 +23,11 @@ import org.springframework.integration.xml.transformer.ResultTransformer;
 public class StubResultTransformer implements ResultTransformer {
 
 	Object toReturn;
-	
+
 	public StubResultTransformer(Object toReturn){
 		this.toReturn = toReturn;
 	}
-	
+
 	public Object transformResult(Result res) {
 		return toReturn;
 	}

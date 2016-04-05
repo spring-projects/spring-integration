@@ -62,7 +62,7 @@ public class ControlBusChainTests {
 			return "cat";
 		}
 	}
-	
+
 	public static class AdapterService {
 		public Message<String> receive() {
 			return new GenericMessage<String>(new Date().toString());

@@ -38,7 +38,7 @@ import org.springframework.mail.SimpleMailMessage;
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  */
-public class MailSendingMessageHandlerTests { 
+public class MailSendingMessageHandlerTests {
 
 	private MailSendingMessageHandler handler;
 
@@ -50,7 +50,7 @@ public class MailSendingMessageHandlerTests {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
 		this.handler = new MailSendingMessageHandler(this.mailSender);
 	}
-  
+
 	@After
 	public void reset() {
 		this.mailSender.reset();

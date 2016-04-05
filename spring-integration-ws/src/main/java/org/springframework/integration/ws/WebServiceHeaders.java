@@ -19,7 +19,7 @@ package org.springframework.integration.ws;
 /**
  * Pre-defined header names to be used when storing or retrieving
  * Web Service properties to/from integration Message Headers.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class WebServiceHeaders {

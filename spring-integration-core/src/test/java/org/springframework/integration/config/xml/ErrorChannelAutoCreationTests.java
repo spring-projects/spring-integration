@@ -34,14 +34,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ErrorChannelAutoCreationTests {
-	
+
 	@Autowired
 	private MessageChannel errorChannel;
-	
+
 	// see INT-1899
 	@Test
 	public void testErrorChannelIsPubSub(){
 		assertEquals(PublishSubscribeChannel.class, errorChannel.getClass());
 	}
-	
+
 }
