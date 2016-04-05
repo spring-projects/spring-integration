@@ -918,7 +918,7 @@ public class ImapMailReceiverTests {
 			}
 
 
-		};
+		}
 		ImapMailReceiver receiver = new TestReceiver();
 		Message[] received = receiver.receive();
 		assertEquals(1, received.length);

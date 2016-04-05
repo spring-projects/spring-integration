@@ -84,7 +84,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 				if (this.store.replace(key, oldValue, newValue)) {
 					flushIfNeeded();
 					return true;
-				};
+				}
 			}
 			return false;
 		}

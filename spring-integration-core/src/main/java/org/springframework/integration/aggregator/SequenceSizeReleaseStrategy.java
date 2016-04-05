@@ -81,8 +81,8 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(minMessage).getSequenceNumber();
 			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 
-			if (nextSequenceNumber - lastReleasedMessageSequence == 1){
-				canRelease = true;;
+			if (nextSequenceNumber - lastReleasedMessageSequence == 1) {
+				canRelease = true;
 			}
 		}
 		else {

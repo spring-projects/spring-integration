@@ -339,7 +339,7 @@ public class SftpServerOutboundTests {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		while (output.receive(0) != null) {
-			;
+			// drain
 		}
 		this.inboundMPut.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
@@ -363,7 +363,7 @@ public class SftpServerOutboundTests {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		while (output.receive(0) != null) {
-			;
+			// drain
 		}
 		this.inboundMPutRecursive.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
@@ -391,7 +391,7 @@ public class SftpServerOutboundTests {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
 		while (output.receive(0) != null) {
-			;
+			// drain
 		}
 		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")

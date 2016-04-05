@@ -106,7 +106,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
-					serverSocket.set(server);;
+					serverSocket.set(server);
 					latch1.countDown();
 					Socket socket = server.accept();
 					socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());

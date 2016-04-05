@@ -233,7 +233,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.afterPropertiesSet();
 
 		while (redisTemplate.boundListOps(queueName).rightPop() != null) {
-			;
+			// drain
 		}
 
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,

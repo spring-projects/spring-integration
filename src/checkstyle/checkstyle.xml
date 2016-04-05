@@ -51,7 +51,7 @@
 
 		<!-- Coding -->
 		<module name="CovariantEquals" />
-<!-- 		<module name="EmptyStatement" /> -->
+		<module name="EmptyStatement" />
 <!-- 		<module name="EqualsHashCode" /> -->
 <!-- 		<module name="InnerAssignment" /> -->
 <!-- 		<module name="SimplifyBooleanExpression" /> -->
