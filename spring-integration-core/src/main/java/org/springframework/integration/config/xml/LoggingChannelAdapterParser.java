@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
  * Parser for the 'logging-channel-adapter' element.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 1.0.1
  */
 public class LoggingChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -47,7 +49,7 @@ public class LoggingChannelAdapterParser extends AbstractOutboundChannelAdapterP
 			builder.addPropertyValue("shouldLogFullMessage", logFullMessage);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "logger-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expression", "logExpressionString");
 		return builder.getBeanDefinition();
 	}
 

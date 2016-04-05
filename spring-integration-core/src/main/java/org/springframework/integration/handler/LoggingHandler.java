@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 1.0.1
  */
 public class LoggingHandler extends AbstractMessageHandler {
@@ -68,9 +69,10 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * The valid levels are: FATAL, ERROR, WARN, INFO, DEBUG, or TRACE
 	 * </p>
 	 * @param level The level.
+	 * @see LoggingHandler(Level)
 	 */
 	public LoggingHandler(String level) {
-		Assert.notNull(level, "'level' cannot be null");
+		Assert.hasText(level, "'level' cannot be empty");
 		try {
 			this.level = Level.valueOf(level.toUpperCase());
 		}
@@ -79,14 +81,50 @@ public class LoggingHandler extends AbstractMessageHandler {
 					+ "'. The (case-insensitive) supported values are: "
 					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
 		}
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
 
+	/**
+	 * Create a {@link LoggingHandler} with the given log {@link Level}.
+	 * @param level the {@link Level} to use.
+	 * @since 4.3
+	 */
+	public LoggingHandler(Level level) {
+		Assert.notNull(level, "'level' cannot be null");
+		this.level = level;
+	}
+
+	/**
+	 * Set a SpEL expression string to use.
+	 * @param expressionString the SpEL expression string to use.
+	 * @deprecated in favor of {@link #setLogExpressionString(String)}
+	 */
+	@Deprecated
 	public void setExpression(String expressionString) {
-		Assert.isTrue(!(this.shouldLogFullMessageSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
+		setLogExpressionString(expressionString);
+	}
+
+	/**
+	 * Set a SpEL expression string to use.
+	 * @param expressionString the SpEL expression string to use.
+	 * @since 4.3
+	 * @see #setLogExpression(Expression)
+	 */
+	public void setLogExpressionString(String expressionString) {
+		Assert.hasText(expressionString, "'expressionString' must not be empty");
+		setLogExpression(EXPRESSION_PARSER.parseExpression(expressionString));
+	}
+
+	/**
+	 * Set an {@link Expression} to evaluate a log entry at runtime against the request {@link Message}.
+	 * @param expression the {@link Expression} to use.
+	 * @since 4.3
+	 * @see #setLogExpressionString(String)
+	 */
+	public void setLogExpression(Expression expression) {
+		Assert.isTrue(!(this.shouldLogFullMessageSet),
+				"Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		this.expressionSet = true;
-		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
+		this.expression = expression;
 	}
 
 	/**
@@ -97,8 +135,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set the logging {@link Level}.
-	 *
+	 * Set the logging {@link Level} to change the behavior at runtime.
 	 * @param level the level.
 	 */
 	public void setLevel(Level level) {
@@ -114,14 +151,14 @@ public class LoggingHandler extends AbstractMessageHandler {
 	/**
 	 * Specify whether to log the full Message. Otherwise, only the payload will be logged. This value is
 	 * <code>false</code> by default.
-	 *
 	 * @param shouldLogFullMessage true if the complete message should be logged.
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
 		Assert.isTrue(!(this.expressionSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		this.shouldLogFullMessageSet = true;
-		this.expression = (shouldLogFullMessage) ? EXPRESSION_PARSER.parseExpression("#root") : EXPRESSION_PARSER
-				.parseExpression("payload");
+		this.expression = (shouldLogFullMessage)
+				? EXPRESSION_PARSER.parseExpression("#root")
+				: EXPRESSION_PARSER.parseExpression("payload");
 	}
 
 	@Override
@@ -132,7 +169,10 @@ public class LoggingHandler extends AbstractMessageHandler {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		if (this.expression == null) {
+			this.expression = EXPRESSION_PARSER.parseExpression("payload");
+		}
 	}
 
 	@Override

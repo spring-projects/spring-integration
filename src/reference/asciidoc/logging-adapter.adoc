@@ -40,3 +40,44 @@ This attribute cannot be specified if `expression` is specified.
 <5> Specifies the _name_ of the logger (known as `category` in `log4j`) used for log messages created by this adapter.
 This enables setting the log name (in the logging subsystem) for individual adapters.
 By default, all adapters will log under the name `org.springframework.integration.handler.LoggingHandler`.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the `LoggingHandler` using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class LoggingJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+             new SpringApplicationBuilder(LoggingJavaApplication.class)
+                    .web(false)
+                    .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         gateway.sendToLogger("foo");
+    }
+
+    @Bean
+    public MessageChannel logInputChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "logChannel")
+    public LoggingHandler logging() {
+        LoggingHandler adapter = new LoggingHandler(LoggingHandler.Level.DEBUG);
+        adapter.setLoggerName("TEST_LOGGER");
+        adapter.setLogExpressionString("headers.id + ': ' + payload");
+        return adapter;
+    }
+
+    @MessagingGateway(defaultRequestChannel = "logChannel")
+    public interface MyGateway {
+
+        void sendToLogger(String data);
+
+    }
+
+}
+----

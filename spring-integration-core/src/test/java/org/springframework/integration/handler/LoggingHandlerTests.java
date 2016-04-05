@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -29,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -61,7 +63,7 @@ public class LoggingHandlerTests {
 	@Test
 	public void assertMutuallyExclusive() {
 		LoggingHandler loggingHandler = new LoggingHandler("INFO");
-		loggingHandler.setExpression("'foo'");
+		loggingHandler.setLogExpressionString("'foo'");
 		try {
 			loggingHandler.setShouldLogFullMessage(true);
 			fail("Expected IllegalArgumentException");
@@ -73,7 +75,7 @@ public class LoggingHandlerTests {
 		loggingHandler = new LoggingHandler("INFO");
 		loggingHandler.setShouldLogFullMessage(true);
 		try {
-			loggingHandler.setExpression("'foo'");
+			loggingHandler.setLogExpressionString("'foo'");
 			fail("Expected IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
@@ -84,6 +86,9 @@ public class LoggingHandlerTests {
 	@Test
 	public void testDontEvaluateIfNotEnabled() {
 		LoggingHandler loggingHandler = new LoggingHandler("INFO");
+		loggingHandler.setBeanFactory(mock(BeanFactory.class));
+		loggingHandler.afterPropertiesSet();
+
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
 		Log log = (Log) accessor.getPropertyValue("messageLogger");
 		log = spy(log);
@@ -102,7 +107,10 @@ public class LoggingHandlerTests {
 
 	@Test
 	public void testChangeLevel() {
-		LoggingHandler loggingHandler = new LoggingHandler("INFO");
+		LoggingHandler loggingHandler = new LoggingHandler(Level.INFO);
+		loggingHandler.setBeanFactory(mock(BeanFactory.class));
+		loggingHandler.afterPropertiesSet();
+
 		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
 		Log log = (Log) accessor.getPropertyValue("messageLogger");
 		log = spy(log);
