@@ -232,7 +232,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 		redisTemplate.afterPropertiesSet();
 
-		while (redisTemplate.boundListOps(queueName).rightPop() != null) {}
+		while (redisTemplate.boundListOps(queueName).rightPop() != null) {
+			;
+		}
 
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName,
 				this.connectionFactory);
