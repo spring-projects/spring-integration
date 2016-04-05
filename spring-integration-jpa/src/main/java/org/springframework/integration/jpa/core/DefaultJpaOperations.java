@@ -307,22 +307,23 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 						if (source instanceof PositionSupportingParameterSource) {
 							paramValue = ((PositionSupportingParameterSource) source).getValueByPosition(position - 1);
 							query.setParameter(position, paramValue);
-						} else {
+						}
+						else {
 							throw new JpaOperationFailedException("Positional Parameters are only support "
-									+ "for PositionSupportingParameterSources.")
-							.withOffendingJPAQl(queryString);
+									+ "for PositionSupportingParameterSources.", queryString);
 						}
 
-					} else {
+					}
+					else {
 
 						if(StringUtils.hasText(paramName)) {
 							paramValue = source.getValue(paramName);
 							query.setParameter(paramName, paramValue);
-						} else {
+						}
+						else {
 							throw new JpaOperationFailedException(
 									"This parameter does not contain a parameter name. " +
-									"Additionally it is not a postitional parameter, neither.")
-							.withOffendingJPAQl(queryString);
+									"Additionally it is not a postitional parameter, neither.", queryString);
 						}
 					}
 
