@@ -585,8 +585,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						 */
 						if (!connection.isServer() &&
 							now - connection.getLastSend() < this.soTimeout &&
-							now - connection.getLastRead() < this.soTimeout * 2)
-						{
+							now - connection.getLastRead() < this.soTimeout * 2) {
 							if (logger.isDebugEnabled()) {
 								logger.debug("Skipping a connection timeout because we have a recent send "
 										+ connection.getConnectionId());

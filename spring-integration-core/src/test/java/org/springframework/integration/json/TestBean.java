@@ -83,29 +83,38 @@ public class TestBean {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		TestBean other = (TestBean) obj;
 		if (child == null) {
-			if (other.child != null)
+			if (other.child != null) {
 				return false;
+			}
 		}
-		else if (!child.equals(other.child))
+		else if (!child.equals(other.child)) {
 			return false;
-		if (number != other.number)
+		}
+		if (number != other.number) {
 			return false;
-		if (test != other.test)
+		}
+		if (test != other.test) {
 			return false;
+		}
 		if (value == null) {
-			if (other.value != null)
+			if (other.value != null) {
 				return false;
+			}
 		}
-		else if (!value.equals(other.value))
+		else if (!value.equals(other.value)) {
 			return false;
+		}
 		return true;
 	}
 }

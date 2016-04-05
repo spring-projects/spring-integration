@@ -34,12 +34,12 @@
 		<module name="EmptyBlock">
 			<property name="option" value="text" />
 		</module>
-<!-- 		<module name="LeftCurly" /> -->
+		<module name="LeftCurly" />
 		<module name="RightCurly">
 			<property name="option" value="alone" />
 		</module>
-<!-- 		<module name="NeedBraces" /> -->
-<!-- 		<module name="AvoidNestedBlocks" /> -->
+		<module name="NeedBraces" />
+		<module name="AvoidNestedBlocks" />
 
 		<!-- Class Design -->
 		<module name="FinalClass" />
