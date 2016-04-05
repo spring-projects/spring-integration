@@ -22,16 +22,8 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.key;
 import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
 import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.common.TopicPartition;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -69,21 +61,7 @@ public class KafkaProducerMessageHandlerTests {
 		ConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(
 				KafkaTestUtils.consumerProps("testOut", "true", embeddedKafka));
 		consumer = cf.createConsumer();
-		final CountDownLatch consumerLatch = new CountDownLatch(1);
-		consumer.subscribe(Arrays.asList(topic1, topic2), new ConsumerRebalanceListener() {
-
-			@Override
-			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-			}
-
-			@Override
-			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-				consumerLatch.countDown();
-			}
-
-		});
-		consumer.poll(0); // force assignment
-		assertThat(consumerLatch.await(30, TimeUnit.SECONDS)).isTrue();
+		embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
 	}
 
 	@Test
@@ -102,7 +80,7 @@ public class KafkaProducerMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		ConsumerRecord<Integer, String> record = getSingleRecord();
+		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic1);
 		assertThat(record).has(key(2));
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("foo"));
@@ -112,7 +90,7 @@ public class KafkaProducerMessageHandlerTests {
 				.setHeader(KafkaHeaders.PARTITION_ID, 0)
 				.build();
 		handler.handleMessage(message);
-		record = getSingleRecord();
+		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
 		assertThat(record).has(key((Integer) null));
 		assertThat(record).has(partition(0));
 		assertThat(record).has(value("bar"));
@@ -121,21 +99,9 @@ public class KafkaProducerMessageHandlerTests {
 				.setHeader(KafkaHeaders.TOPIC, topic1)
 				.build();
 		handler.handleMessage(message);
-		record = getSingleRecord();
+		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
 		assertThat(record).has(key((Integer) null));
 		assertThat(record).has(value("baz"));
-	}
-
-	private ConsumerRecord<Integer, String> getSingleRecord() {
-		ConsumerRecords<Integer, String> received = getRecords();
-		assertThat(received.count()).isEqualTo(1);
-		return received.records(topic1).iterator().next();
-	}
-
-	private ConsumerRecords<Integer, String> getRecords() {
-		ConsumerRecords<Integer, String> received = consumer.poll(10000);
-		assertThat(received).isNotNull();
-		return received;
 	}
 
 }
