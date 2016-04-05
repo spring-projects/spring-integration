@@ -155,7 +155,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
 		final TaskScheduler scheduler =  this.getTaskScheduler();
-		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+		Assert.notNull(scheduler, "'taskScheduler' must not be null");
 		if (this.sendingTaskExecutor == null) {
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
 		}
@@ -254,7 +254,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		@Override
 		public void run() {
 			final TaskScheduler scheduler =  getTaskScheduler();
-			Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+			Assert.notNull(scheduler, "'taskScheduler' must not be null");
 			/*
 			 * The following shouldn't be necessary because doStart() will have ensured we have
 			 * one. But, just in case...

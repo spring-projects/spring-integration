@@ -66,7 +66,7 @@ public class MultiClientTests {
 		final AtomicBoolean done = new AtomicBoolean();
 
 		for (int i = 0; i < drivers; i++) {
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
@@ -85,10 +85,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
@@ -116,7 +116,7 @@ public class MultiClientTests {
 
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
@@ -138,10 +138,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(20000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));
@@ -169,7 +169,7 @@ public class MultiClientTests {
 
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
-			Thread t = new Thread( new Runnable() {
+			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
@@ -191,10 +191,10 @@ public class MultiClientTests {
 			t.setDaemon(true);
 			t.start();
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			queueIn.send(MessageBuilder.withPayload(payload).build());
 		}
-		for (int i = 0; i < drivers * 3 ; i++) {
+		for (int i = 0; i < drivers * 3; i++) {
 			Message<byte[]> messageOut = (Message<byte[]>) queue.receive(10000);
 			assertNotNull(messageOut);
 			Assert.assertEquals(payload, new String(messageOut.getPayload()));

@@ -48,56 +48,55 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext // close at the end after class
 public class StoredProcPollingChannelAdapterWithNamespaceIntegrationTests {
 
-    @Autowired
-    private AbstractApplicationContext context;
+	@Autowired
+	private AbstractApplicationContext context;
 
-    @Autowired
-    private Consumer consumer;
+	@Autowired
+	private Consumer consumer;
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@Test
-    public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
-        List<Message<?>> received = new ArrayList<Message<?>>();
+	public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
+		List<Message<?>> received = new ArrayList<Message<?>>();
 
-        received.add(consumer.poll(60000));
+		received.add(consumer.poll(60000));
 
-        Message<?> message = received.get(0);
-        context.stop();
-        assertNotNull(message);
-        assertNotNull(message.getPayload());
-        assertNotNull(message.getPayload() instanceof Collection<?>);
+		Message<?> message = received.get(0);
+		context.stop();
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
+		assertNotNull(message.getPayload() instanceof Collection<?>);
 
-        List<Integer> primeNumbers = (List<Integer>) message.getPayload();
+		List<Integer> primeNumbers = (List<Integer>) message.getPayload();
 
 		assertThat(primeNumbers, contains(2, 3, 5, 7));
 
-    }
+	}
 
-    static class Counter {
+	static class Counter {
 
-        private final AtomicInteger count = new AtomicInteger();
+		private final AtomicInteger count = new AtomicInteger();
 
-        public Integer next() throws InterruptedException {
-            if (count.get() > 2) {
-                //prevent message overload
-                return null;
-            }
-            return Integer.valueOf(count.incrementAndGet());
-        }
-    }
+		public Integer next() throws InterruptedException {
+			if (count.get() > 2) {
+				// prevent message overload
+				return null;
+			}
+			return Integer.valueOf(count.incrementAndGet());
+		}
+	}
 
+	static class Consumer {
 
-    static class Consumer {
+		private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
 
-        private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
+		@ServiceActivator
+		public void receive(Message<?> message) {
+			messages.add(message);
+		}
 
-        @ServiceActivator
-        public void receive(Message<?>message) {
-            messages.add(message);
-        }
-
-        Message<?> poll(long timeoutInMillis) throws InterruptedException {
-            return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
-        }
-    }
+		Message<?> poll(long timeoutInMillis) throws InterruptedException {
+			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+		}
+	}
 }

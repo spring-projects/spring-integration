@@ -63,7 +63,7 @@ public class BridgeHandlerTests {
 	@Test(timeout = 1000)
 	public void missingOutputChannelAllowedForReplyChannelMessages() throws Exception {
 		PollableChannel replyChannel = new QueueChannel();
-		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();
+		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel).build();
 		handler.handleMessage(request);
 		assertThat(replyChannel.receive(), sameExceptImmutableHeaders(request));
 	}

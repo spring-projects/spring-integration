@@ -32,7 +32,6 @@ import org.junit.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -41,6 +40,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 
 /**
@@ -80,7 +80,7 @@ public class ConcurrentAggregatorTests {
 
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 
-		assertThat(latch.getCount(), is(0l));
+		assertThat(latch.getCount(), is(0L));
 		Message<?> reply = replyChannel.receive(2000);
 		assertNotNull(reply);
 		assertEquals(reply.getPayload(), 105);
@@ -319,6 +319,7 @@ public class ConcurrentAggregatorTests {
 			return this.exception;
 		}
 
+		@Override
 		public void run() {
 			try {
 				this.aggregator.handleMessage(message);
@@ -335,6 +336,7 @@ public class ConcurrentAggregatorTests {
 
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
+		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
 			for (Message<?> message : group.getMessages()) {
@@ -346,6 +348,7 @@ public class ConcurrentAggregatorTests {
 
 
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
+		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			return null;
 		}

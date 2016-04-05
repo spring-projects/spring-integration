@@ -41,7 +41,7 @@ public class XPathMessageSplitterTests {
 
 	private XPathMessageSplitter splitter;
 
-	private QueueChannel replyChannel = new QueueChannel();
+	private final QueueChannel replyChannel = new QueueChannel();
 
 
 	@Before
@@ -81,7 +81,7 @@ public class XPathMessageSplitterTests {
 		for (Message<?> message : docMessages) {
 			assertTrue("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Document);
 			Document docPayload = (Document) message.getPayload();
-			assertEquals("Wrong root element name" , "order", docPayload.getDocumentElement().getLocalName());
+			assertEquals("Wrong root element name", "order", docPayload.getDocumentElement().getLocalName());
 		}
 	}
 

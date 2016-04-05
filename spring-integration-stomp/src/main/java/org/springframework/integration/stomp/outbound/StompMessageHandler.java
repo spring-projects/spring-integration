@@ -131,7 +131,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 			connectIfNecessary();
 		}
 		catch (Exception e) {
-			throw new MessageDeliveryException(message, "The [" + this + "] could not deliver message." , e);
+			throw new MessageDeliveryException(message, "The [" + this + "] could not deliver message.", e);
 		}
 		StompSession stompSession = this.stompSession;
 

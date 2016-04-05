@@ -73,12 +73,13 @@ public class StoredProcJmxManagedBeanTests {
 		// MessageHandler
 
 		final Set<ObjectName> messageHandlerObjectNames = server.queryNames(
-				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=outboundChannelAdapter.adapter.storedProcExecutor,*"),
+			ObjectName.getInstance(
+				"org.springframework.integration.jdbc.test:name=outboundChannelAdapter.adapter.storedProcExecutor,*"),
 				null);
 		assertEquals(1, messageHandlerObjectNames.size());
 		ObjectName messageHandlerObjectName = messageHandlerObjectNames.iterator().next();
-		Map<String, Object> messageHandlerCacheStatistics =
-				(Map<String, Object>) server.getAttribute(messageHandlerObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> messageHandlerCacheStatistics = (Map<String, Object>) server
+				.getAttribute(messageHandlerObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
@@ -89,13 +90,12 @@ public class StoredProcJmxManagedBeanTests {
 		assertEquals(0L, messageHandlerCacheStatistics.get("missCount"));
 
 		// StoredProcOutboundGateway
-		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(
-				ObjectName.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"),
-				null);
+		final Set<ObjectName> storedProcOutboundGatewayObjectNames = server.queryNames(ObjectName
+				.getInstance("org.springframework.integration.jdbc.test:name=my gateway.storedProcExecutor,*"), null);
 		assertEquals(1, storedProcOutboundGatewayObjectNames.size());
 		ObjectName storedProcOutboundGatewayObjectName = storedProcOutboundGatewayObjectNames.iterator().next();
-		Map<String, Object> storedProcOutboundGatewayCacheStatistics =
-				(Map<String, Object>) server.getAttribute(storedProcOutboundGatewayObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
+		Map<String, Object> storedProcOutboundGatewayCacheStatistics = (Map<String, Object>) server
+				.getAttribute(storedProcOutboundGatewayObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, messageHandlerCacheStatistics.size());
 
@@ -107,10 +107,15 @@ public class StoredProcJmxManagedBeanTests {
 
 		// StoredProcPollingChannelAdapter
 
-		final Set<ObjectName> storedProcPollingChannelAdapterObjectNames = server.queryNames(ObjectName.getInstance("org.springframework.integration.jdbc.test:name=inbound-channel-adapter.storedProcExecutor,*"), null);
+		final Set<ObjectName> storedProcPollingChannelAdapterObjectNames = server.queryNames(
+				ObjectName.getInstance(
+						"org.springframework.integration.jdbc.test:name=inbound-channel-adapter.storedProcExecutor,*"),
+				null);
 		assertEquals(1, storedProcPollingChannelAdapterObjectNames.size());
-		ObjectName storedProcPollingChannelAdapterObjectName = storedProcPollingChannelAdapterObjectNames.iterator().next();
-		Map<String, Object>storedProcPollingChannelAdapterCacheStatistics = (Map<String, Object>) server.getAttribute(storedProcPollingChannelAdapterObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
+		ObjectName storedProcPollingChannelAdapterObjectName = storedProcPollingChannelAdapterObjectNames.iterator()
+				.next();
+		Map<String, Object> storedProcPollingChannelAdapterCacheStatistics = (Map<String, Object>) server
+				.getAttribute(storedProcPollingChannelAdapterObjectName, "JdbcCallOperationsCacheStatisticsAsMap");
 
 		assertEquals(11, storedProcPollingChannelAdapterCacheStatistics.size());
 
@@ -188,7 +193,8 @@ public class StoredProcJmxManagedBeanTests {
 
 	static class Consumer {
 
-		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
+		private final BlockingQueue<Message<Collection<User>>> messages =
+				new LinkedBlockingQueue<Message<Collection<User>>>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {

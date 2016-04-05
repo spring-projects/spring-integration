@@ -43,8 +43,8 @@ public class DeriveLanguageFromExtensionTests {
 
 	@Test
 	public void testParseLanguage() {
-		String langs[] = { "ruby", "Groovy", "ECMAScript", "python" };
-		Class<?> executors[] = {
+		String[] langs = { "ruby", "Groovy", "ECMAScript", "python" };
+		Class<?>[] executors = {
 				RubyScriptExecutor.class,
 				DefaultScriptExecutor.class,
 				DefaultScriptExecutor.class,
@@ -71,7 +71,8 @@ public class DeriveLanguageFromExtensionTests {
 	@Test
 	public void testBadExtension() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass())
+					.close();
 		}
 		catch (Exception e) {
 			assertTrue(e.getMessage().contains("No suitable scripting engine found for extension 'xx'"));
@@ -81,7 +82,8 @@ public class DeriveLanguageFromExtensionTests {
 	@Test
 	public void testNoExtension() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass())
+					.close();
 		}
 		catch (Exception e) {
 			assertTrue(e.getMessage().contains("Unable to determine language for script 'foo'"));

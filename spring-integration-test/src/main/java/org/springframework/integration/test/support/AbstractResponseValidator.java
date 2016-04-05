@@ -35,7 +35,7 @@ public abstract class AbstractResponseValidator<T> implements MessageHandler {
 	@SuppressWarnings("unchecked")
     public void handleMessage(Message<?> message) throws MessagingException {
     	this.lastMessage = message;
-        validateResponse((T) (extractPayload() ? message.getPayload() : message ));
+        validateResponse((T) (extractPayload() ? message.getPayload() : message));
     }
 
     /**

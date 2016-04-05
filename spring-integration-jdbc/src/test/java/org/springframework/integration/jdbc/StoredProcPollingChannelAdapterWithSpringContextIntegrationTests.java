@@ -46,55 +46,54 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext // close at the end after class
 public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
 
-    @Autowired
-    private AbstractApplicationContext context;
+	@Autowired
+	private AbstractApplicationContext context;
 
-    @Autowired
-    private Consumer consumer;
+	@Autowired
+	private Consumer consumer;
 
 	@Test
-    public void test() throws Exception {
-        List<Message<Collection<Integer>>> received = new ArrayList<Message<Collection<Integer>>>();
+	public void test() throws Exception {
+		List<Message<Collection<Integer>>> received = new ArrayList<Message<Collection<Integer>>>();
 
-        received.add(consumer.poll(2000));
+		received.add(consumer.poll(2000));
 
-        Message<Collection<Integer>> message = received.get(0);
-        context.stop();
-        assertNotNull(message);
-        assertNotNull(message.getPayload());
-        assertNotNull(message.getPayload() instanceof Collection<?>);
+		Message<Collection<Integer>> message = received.get(0);
+		context.stop();
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
+		assertNotNull(message.getPayload() instanceof Collection<?>);
 
-        Collection<Integer> primeNumbers = message.getPayload();
+		Collection<Integer> primeNumbers = message.getPayload();
 
-        assertTrue(primeNumbers.size() == 4);
+		assertTrue(primeNumbers.size() == 4);
 
-    }
+	}
 
-    static class Counter {
+	static class Counter {
 
-        private final AtomicInteger count = new AtomicInteger();
+		private final AtomicInteger count = new AtomicInteger();
 
-        public Integer next() throws InterruptedException {
-            if (count.get() > 2) {
-                //prevent message overload
-                return null;
-            }
-            return Integer.valueOf(count.incrementAndGet());
-        }
-    }
+		public Integer next() throws InterruptedException {
+			if (count.get() > 2) {
+				// prevent message overload
+				return null;
+			}
+			return Integer.valueOf(count.incrementAndGet());
+		}
+	}
 
+	static class Consumer {
 
-    static class Consumer {
+		private final BlockingQueue<Message<Collection<Integer>>> messages = new LinkedBlockingQueue<Message<Collection<Integer>>>();
 
-        private final BlockingQueue<Message<Collection<Integer>>> messages = new LinkedBlockingQueue<Message<Collection<Integer>>>();
+		@ServiceActivator
+		public void receive(Message<Collection<Integer>> message) {
+			messages.add(message);
+		}
 
-        @ServiceActivator
-        public void receive(Message<Collection<Integer>>message) {
-            messages.add(message);
-        }
-
-        Message<Collection<Integer>> poll(long timeoutInMillis) throws InterruptedException {
-            return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
-        }
-    }
+		Message<Collection<Integer>> poll(long timeoutInMillis) throws InterruptedException {
+			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
+		}
+	}
 }

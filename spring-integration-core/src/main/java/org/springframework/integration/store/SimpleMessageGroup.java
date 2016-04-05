@@ -53,7 +53,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
-		this(Collections.<Message<?>> emptyList(), groupId);
+		this(Collections.<Message<?>>emptyList(), groupId);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
@@ -90,6 +90,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return this.timestamp;
 	}
 
+	@Override
 	public void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
 	}
@@ -104,10 +105,12 @@ public class SimpleMessageGroup implements MessageGroup {
 		return true;
 	}
 
+	@Override
 	public void add(Message<?> messageToAdd) {
 		addMessage(messageToAdd);
 	}
 
+	@Override
 	public boolean remove(Message<?> message) {
 		return this.messages.remove(message);
 	}
@@ -126,6 +129,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return Collections.unmodifiableCollection(this.messages);
 	}
 
+	@Override
 	public void setLastReleasedMessageSequenceNumber(int sequenceNumber) {
 		this.lastReleasedMessageSequence = sequenceNumber;
 	}
@@ -166,6 +170,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 	}
 
+	@Override
 	public void clear() {
 		this.messages.clear();
 	}

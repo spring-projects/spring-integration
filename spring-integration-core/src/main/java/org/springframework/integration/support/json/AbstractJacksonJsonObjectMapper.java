@@ -42,7 +42,7 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjec
 		implements BeanClassLoaderAware {
 
 	protected static final Collection<Class<?>> supportedJsonTypes =
-			Arrays.<Class<?>> asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
+			Arrays.<Class<?>>asList(String.class, byte[].class, File.class, URL.class, InputStream.class, Reader.class);
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 

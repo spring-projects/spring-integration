@@ -81,9 +81,9 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 
 			TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
 			if (typeLocator instanceof StandardTypeLocator) {
-			/*
-			 * Register the twitter api package so they don't need a FQCN for TweetData.
-			 */
+				/*
+				 * Register the twitter api package so they don't need a FQCN for TweetData.
+				 */
 				((StandardTypeLocator) typeLocator).registerImport("org.springframework.social.twitter.api");
 			}
 		}

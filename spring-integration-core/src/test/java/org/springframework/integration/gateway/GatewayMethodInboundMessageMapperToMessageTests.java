@@ -30,12 +30,12 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.mapping.MessageMappingException;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.integration.mapping.MessageMappingException;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -57,7 +57,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.setBeanFactory(mock(BeanFactory.class));
-		mapper.toMessage(new Object[] { "test" , "oops" });
+		mapper.toMessage(new Object[] { "test", "oops" });
 	}
 
 	@Test(expected = IllegalArgumentException.class)

@@ -148,7 +148,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 			super();
 		}
 
-		public void first(Message<?> message ) {
+		public void first(Message<?> message) {
 
 			int sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
 
@@ -161,7 +161,7 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 			countDownLatch1.countDown();
 		}
 
-		public void second(Message<?> message ) {
+		public void second(Message<?> message) {
 
 			int sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
 			LOG.info("Second handling sequence number: " + sequenceNumber + "; Message ID: " + message.getHeaders().getId());

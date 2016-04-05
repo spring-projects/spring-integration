@@ -37,12 +37,12 @@ public class IdGenerators {
 	 */
 	public static class JdkIdGenerator implements IdGenerator {
 
-        @Override
-        public UUID generateId() {
-            return UUID.randomUUID();
-        }
+		@Override
+		public UUID generateId() {
+			return UUID.randomUUID();
+		}
 
-    }
+	}
 
 	/**
 	 * Based on the two {@link AtomicLong}s, for {@code topBits} and {@code bottomBits},
@@ -59,23 +59,23 @@ public class IdGenerators {
 	 * is initialized. Therefore, it is not suitable when persisting messages based on their ID; it should
 	 * only be used when the absolute best performance is required and messages are not persisted.
 	 */
-    public static class SimpleIncrementingIdGenerator implements IdGenerator {
+	public static class SimpleIncrementingIdGenerator implements IdGenerator {
 
-        private final AtomicLong topBits = new AtomicLong();
+		private final AtomicLong topBits = new AtomicLong();
 
-        private final AtomicLong bottomBits = new AtomicLong();
+		private final AtomicLong bottomBits = new AtomicLong();
 
-        @Override
-        public UUID generateId() {
-            long bottomBits = this.bottomBits.incrementAndGet();
-            if (bottomBits == 0) {
-	            return new UUID(this.topBits.incrementAndGet(), bottomBits);
-            }
-	        else {
-	            return new UUID(this.topBits.get(), bottomBits);
-            }
-        }
+		@Override
+		public UUID generateId() {
+			long bottomBits = this.bottomBits.incrementAndGet();
+			if (bottomBits == 0) {
+				return new UUID(this.topBits.incrementAndGet(), bottomBits);
+			}
+			else {
+				return new UUID(this.topBits.get(), bottomBits);
+			}
+		}
 
-    }
+	}
 
 }

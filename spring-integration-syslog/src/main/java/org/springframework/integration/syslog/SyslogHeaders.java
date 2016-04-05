@@ -47,28 +47,28 @@ public final class SyslogHeaders {
 
 	public static final String MESSAGE = PREFIX + "MESSAGE";
 
-	public static final String APP_NAME = PREFIX + "APP_NAME" ;
+	public static final String APP_NAME = PREFIX + "APP_NAME";
 
-	public static final String PROCID = PREFIX + "PROCID" ;
+	public static final String PROCID = PREFIX + "PROCID";
 
-	public static final String MSGID = PREFIX + "MSGID" ;
+	public static final String MSGID = PREFIX + "MSGID";
 
-	public static final String VERSION = PREFIX + "VERSION" ;
+	public static final String VERSION = PREFIX + "VERSION";
 
-	public static final String STRUCTURED_DATA = PREFIX + "STRUCTURED_DATA" ;
+	public static final String STRUCTURED_DATA = PREFIX + "STRUCTURED_DATA";
 
 	// Text versions of syslog numeric values
-	public static final String SEVERITY_TEXT = PREFIX + "SEVERITY_TEXT" ;
+	public static final String SEVERITY_TEXT = PREFIX + "SEVERITY_TEXT";
 
 	// Additional fields
-	public static final String SOURCE_TYPE = PREFIX + "SOURCE_TYPE" ;
+	public static final String SOURCE_TYPE = PREFIX + "SOURCE_TYPE";
 
-	public static final String SOURCE = PREFIX + "SOURCE" ;
+	public static final String SOURCE = PREFIX + "SOURCE";
 
 	// full line when parse errors or retained original
-	public static final String UNDECODED = PREFIX + "UNDECODED" ;
+	public static final String UNDECODED = PREFIX + "UNDECODED";
 
-	public static final String DECODE_ERRORS = PREFIX + "DECODE_ERRORS" ;
+	public static final String DECODE_ERRORS = PREFIX + "DECODE_ERRORS";
 
 	public static final String ERRORS = PREFIX + "ERRORS";
 

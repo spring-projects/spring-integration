@@ -53,7 +53,7 @@ public class StubMessageFactory implements WebServiceMessageFactory {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
 	        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	        InputSource is = new InputSource( new InputStreamReader(inputStream));
+	        InputSource is = new InputSource(new InputStreamReader(inputStream));
 	        Document document = builder.parse(is);
 	        return new DomPoxMessage(document, transformer, "text/xml");
 		}
