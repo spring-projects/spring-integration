@@ -338,7 +338,9 @@ public class SftpServerOutboundTests {
 
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-		while (output.receive(0) != null) { }
+		while (output.receive(0) != null) {
+			// drain
+		}
 		this.inboundMPut.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
@@ -360,7 +362,9 @@ public class SftpServerOutboundTests {
 	public void testInt3088MPutRecursive() {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-		while (output.receive(0) != null) { }
+		while (output.receive(0) != null) {
+			// drain
+		}
 		this.inboundMPutRecursive.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
@@ -386,7 +390,9 @@ public class SftpServerOutboundTests {
 	public void testInt3088MPutRecursiveFiltered() {
 		String dir = "sftpSource/";
 		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-		while (output.receive(0) != null) { }
+		while (output.receive(0) != null) {
+			// drain
+		}
 		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,7 +242,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						b = ("Reply" + (++i) + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -302,7 +303,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
 						socket.getOutputStream().write(b);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -359,7 +361,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
 						socket.getOutputStream().write(b);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -422,7 +425,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						b = ("\u0000\u0000\u0000\u0006Reply" + (++i)).getBytes();
 						socket.getOutputStream().write(b);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -543,7 +547,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject("Reply" + (++i));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -599,7 +604,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject("Reply" + (++i));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -660,7 +666,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						socket.close();
 					}
 					server.close();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -711,7 +718,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						socket.close();
 					}
 					server.close();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -763,7 +771,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						socket.close();
 					}
 					server.close();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -827,7 +836,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 						socket.close();
 					}
 					server.close();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -942,7 +952,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 			for (i = 100; i < 200; i++) {
 				handler.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception at " + i);
 		}

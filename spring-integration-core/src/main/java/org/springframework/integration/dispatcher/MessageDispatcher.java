@@ -21,7 +21,7 @@ import org.springframework.messaging.MessageHandler;
 
 /**
  * Strategy interface for dispatching messages to handlers.
- * 
+ *
  * @author Mark Fisher
  */
 public interface MessageDispatcher {

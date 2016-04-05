@@ -20,50 +20,23 @@ package org.springframework.integration.jpa.core;
  * An Exception that would be thrown if any of the Operations from {@link JpaOperations} fails
  *
  * @author Amol Nayak
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public class JpaOperationFailedException extends RuntimeException {
 
-	/**
-	 *
-	 */
 	private static final long serialVersionUID = 1L;
 
-	private String offendingJPAQl;
+	private final String offendingJPAQl;
 
-	public JpaOperationFailedException() {
-		super();
-	}
-
-	public JpaOperationFailedException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public JpaOperationFailedException(String message) {
+	public JpaOperationFailedException(String message, String offendingJPAQ1) {
 		super(message);
-	}
-
-	public JpaOperationFailedException(Throwable cause) {
-		super(cause);
-	}
-
-	/**
-	 * If execution of a JPA QL fails, we can set that query using this convenience method.
-	 *
-	 * @param offendingJPAQl The offending query.
-	 * @return this.
-	 */
-	public JpaOperationFailedException withOffendingJPAQl(String offendingJPAQl) {
-		setOffendingJPAQl(offendingJPAQl);
-		return this;
+		this.offendingJPAQl = offendingJPAQ1;
 	}
 
 	public String getOffendingJPAQl() {
 		return this.offendingJPAQl;
 	}
 
-	public void setOffendingJPAQl(String offendingJPAQl) {
-		this.offendingJPAQl = offendingJPAQl;
-	}
 }

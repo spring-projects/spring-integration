@@ -277,7 +277,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			try {
 				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}

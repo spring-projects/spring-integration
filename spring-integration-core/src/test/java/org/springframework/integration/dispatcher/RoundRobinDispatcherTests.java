@@ -115,7 +115,8 @@ public class RoundRobinDispatcherTests {
 		try {
 			dispatcher.dispatch(message);
 			fail("Expected Exception");
-		} catch (MessagingException e) {
+		}
+		catch (MessagingException e) {
 			assertEquals(message, e.getFailedMessage());
 		}
 	}
@@ -133,7 +134,8 @@ public class RoundRobinDispatcherTests {
 		try {
 			dispatcher.dispatch(message);
 			fail("Expected Exception");
-		} catch (MessagingException e) {
+		}
+		catch (MessagingException e) {
 			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
 		}
 	}

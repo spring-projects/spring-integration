@@ -51,7 +51,7 @@ public class SplitterAggregatorTests {
 		assertNotNull(result1);
 		assertEquals(Integer.class, result1.getPayload().getClass());
 		assertEquals(55, result1.getPayload());
-		inputChannel.send(new GenericMessage<Numbers>(this.nextTen()));		
+		inputChannel.send(new GenericMessage<Numbers>(this.nextTen()));
 		Message<?> result2 = outputChannel.receive(1000);
 		assertNotNull(result2);
 		assertEquals(Integer.class, result2.getPayload().getClass());

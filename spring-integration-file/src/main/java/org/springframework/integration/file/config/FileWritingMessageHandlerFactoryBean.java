@@ -144,7 +144,8 @@ public class FileWritingMessageHandlerFactoryBean
 		}
 		else if (this.directoryExpression != null) {
 			handler = new FileWritingMessageHandler(this.directoryExpression);
-		} else {
+		}
+		else {
 			throw new IllegalStateException("Either directory or directoryExpression must not be null");
 		}
 

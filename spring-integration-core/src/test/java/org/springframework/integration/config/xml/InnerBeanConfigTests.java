@@ -48,7 +48,7 @@ public class InnerBeanConfigTests {
 	public void checkInnerBean() {
 		Object innerBean = TestUtils.getPropertyValue(testEndpoint, "handler.processor.delegate.targetObject");
 		assertNotNull(innerBean);
-		context.getBean(TestBean.class);		
+		context.getBean(TestBean.class);
 	}
 
 
@@ -57,5 +57,5 @@ public class InnerBeanConfigTests {
 			return value;
 		}
 	}
-	
+
 }

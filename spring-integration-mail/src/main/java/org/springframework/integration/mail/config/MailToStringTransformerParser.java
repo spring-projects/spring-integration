@@ -25,7 +25,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
  * Parser for the &lt;mail-to-string-transformer&gt; element.
- * 
+ *
  * @author Mark Fisher
  */
 public class MailToStringTransformerParser extends AbstractTransformerParser {

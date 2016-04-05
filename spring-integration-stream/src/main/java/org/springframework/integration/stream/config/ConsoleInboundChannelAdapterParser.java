@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;stdin-channel-adapter&gt; element.
- * 
+ *
  * @author Mark Fisher
  */
 public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {

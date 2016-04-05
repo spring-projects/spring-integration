@@ -25,7 +25,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Implementation of {@link AbstractRegexPatternFileListFilter} for SFTP.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

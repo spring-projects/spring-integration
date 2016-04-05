@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 		if (!StringUtils.hasText(type)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE +
 					" is required for a tcp connection", element);
-		} else if (!"server".equals(type) && !"client".equals(type)) {
+		}
+		else if (!"server".equals(type) && !"client".equals(type)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE +
 					" must be 'client' or 'server' for a TCP Connection Factory", element);
 		}

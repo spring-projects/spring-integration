@@ -112,7 +112,7 @@ public class MessageMetricsAdviceTests {
 		public void handleMessage(Message<?> message) throws MessagingException {
 			invoked = true;
 		}
-		
+
 	}
 
 	private static class DummyInterceptor implements MethodInterceptor {
@@ -129,7 +129,7 @@ public class MessageMetricsAdviceTests {
 		public String toString() {
 			return super.toString() + "{" + "invoked=" + invoked + '}';
 		}
-		
+
 	}
-	
+
 }

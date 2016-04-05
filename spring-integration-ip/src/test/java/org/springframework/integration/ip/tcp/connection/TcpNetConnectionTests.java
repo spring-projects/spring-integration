@@ -63,9 +63,9 @@ public class TcpNetConnectionTests {
 
 		@Override
 		public void publishEvent(Object event) {
-			
+
 		}
-		
+
 	};
 
 	@Test
@@ -102,7 +102,7 @@ public class TcpNetConnectionTests {
 		Socket socket = mock(Socket.class);
 		when(socketChannel.socket()).thenReturn(socket);
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, nullPublisher, null);
-		ChannelInputStream inputStream = 
+		ChannelInputStream inputStream =
 				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
 		inputStream.write(new byte[] {(byte) 0x80}, 1);
 		assertEquals(0x80, inputStream.read());
@@ -155,5 +155,5 @@ public class TcpNetConnectionTests {
 		assertEquals("foo", inboundMessage.get().getPayload());
 		assertEquals("baz", inboundMessage.get().getHeaders().get("bar"));
 	}
-	
+
 }

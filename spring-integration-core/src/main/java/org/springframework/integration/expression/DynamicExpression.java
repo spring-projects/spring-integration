@@ -27,8 +27,8 @@ import org.springframework.util.Assert;
 
 /**
  * An implementation of {@link Expression} that delegates to an {@link ExpressionSource}
- * for resolving the actual Expression instance per-invocation at runtime. 
- * 
+ * for resolving the actual Expression instance per-invocation at runtime.
+ *
  * @author Mark Fisher
  * @since 2.0
  */

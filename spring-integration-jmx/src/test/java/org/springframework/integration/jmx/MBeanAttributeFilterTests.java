@@ -68,7 +68,7 @@ public class MBeanAttributeFilterTests {
 	@Test
 	public void testAttributeFilter() {
 		while (channel.receive(0) != null) {
-			;
+			// drain
 		}
 		adapter.start();
 
@@ -94,7 +94,7 @@ public class MBeanAttributeFilterTests {
 	@Test
 	public void testAttributeFilterNot() {
 		while (channel.receive(0) != null) {
-			;
+			// drain
 		}
 		adapterNot.start();
 

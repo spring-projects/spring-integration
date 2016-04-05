@@ -361,7 +361,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	public boolean isClientModeConnected() {
 		if (this.isClientMode && this.clientModeConnectionManager != null) {
 			return this.clientModeConnectionManager.isConnected();
-		} else {
+		}
+		else {
 			return false;
 		}
 	}

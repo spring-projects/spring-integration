@@ -84,7 +84,8 @@ public class SimplePoolTests {
 		try {
 			pool.getItem();
 			fail("Expected exception");
-		} catch (MessagingException e) {}
+		}
+		catch (MessagingException e) {}
 
 		// resize up
 		pool.setPoolSize(4);

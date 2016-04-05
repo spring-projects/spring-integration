@@ -141,7 +141,7 @@ public class PollerAdviceTests {
 				return null;
 			}
 
-		};
+		}
 		CountDownLatch latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
 		class OneAndDone10msTrigger implements Trigger {
@@ -154,7 +154,7 @@ public class PollerAdviceTests {
 				done = true;
 				return date;
 			}
-		};
+		}
 		adapter.setTrigger(new OneAndDone10msTrigger());
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<Advice>();

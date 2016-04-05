@@ -18,7 +18,7 @@ package org.springframework.integration.gemfire.inbound;
 
 /**
  * Enumeration of GemFire event types.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */

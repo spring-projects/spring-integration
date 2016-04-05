@@ -81,10 +81,10 @@ public class HeaderEnricherParserTests {
 		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
 		assertEquals(Boolean.TRUE, shouldSkipNulls);
 	}
-	
-	@Test(expected=MessageTransformationException.class) 
+
+	@Test(expected=MessageTransformationException.class)
 	public void testStringPriorityHeader() {
-		MessageHandler messageHandler = 
+		MessageHandler messageHandler =
 				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsString"), "handler", MessageHandler.class);
 		Message<?> message = new GenericMessage<String>("hello");
 		messageHandler.handleMessage(message);

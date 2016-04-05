@@ -19,7 +19,7 @@ package org.springframework.integration.mail;
 /**
  * Pre-defined header names to be used for setting and/or retrieving Mail
  * Message attributes from/to integration Message Headers.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class MailHeaders {
@@ -41,7 +41,7 @@ public abstract class MailHeaders {
 	public static final String MULTIPART_MODE = PREFIX + "multipartMode";
 
 	public static final String ATTACHMENT_FILENAME = PREFIX + "attachmentFilename";
-	
+
 	public static final String CONTENT_TYPE = PREFIX + "contentType";
 
 }

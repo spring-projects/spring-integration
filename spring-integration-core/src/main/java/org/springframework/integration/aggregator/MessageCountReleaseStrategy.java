@@ -20,10 +20,10 @@ import org.springframework.integration.store.MessageGroup;
 
 /**
  * A {@link ReleaseStrategy} that releases only the first <code>n</code> messages, where <code>n</code> is a threshold.
- * 
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
- * 
+ *
  */
 public class MessageCountReleaseStrategy implements ReleaseStrategy {
 
@@ -45,10 +45,11 @@ public class MessageCountReleaseStrategy implements ReleaseStrategy {
 	}
 
 	/**
-	 * Release the group if it has more messages than the threshold and has not previously been released. 
-	 * It is possible that more messages than the threshold could be released, but only if multiple consumers 
+	 * Release the group if it has more messages than the threshold and has not previously been released.
+	 * It is possible that more messages than the threshold could be released, but only if multiple consumers
 	 * receive messages from the same group concurrently.
 	 */
+	@Override
 	public boolean canRelease(MessageGroup group) {
 		return group.size() >= this.threshold;
 	}

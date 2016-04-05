@@ -54,7 +54,7 @@ public class MBeanAutoDetectTests {
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
 		assertEquals(1, names.size());
 	}
-	
+
 	@Test
 	@Ignore // Fails because the MBeanExporter is created before the router
 	public void testRouterMBeanExistsWhenDefinedSecond() throws Exception {
@@ -65,5 +65,5 @@ public class MBeanAutoDetectTests {
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
 		assertEquals(1, names.size());
 	}
-	
+
 }

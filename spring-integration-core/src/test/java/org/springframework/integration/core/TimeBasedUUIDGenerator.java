@@ -56,7 +56,8 @@ class TimeBasedUUIDGenerator {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;
 				clockSequence = 0;
-			} else  {
+			}
+			else  {
 				++clockSequence;
 			}
 		}
@@ -83,7 +84,8 @@ class TimeBasedUUIDGenerator {
 		if (canNotDetermineMac){
 			logger.warning("UUID generation process was not able to determine your MAC address. Returning random UUID (non version 1 UUID)");
 			return UUID.randomUUID();
-		} else {
+		}
+		else {
 			return new UUID(time, lsb);
 		}
 	}
@@ -104,7 +106,8 @@ class TimeBasedUUIDGenerator {
 				}
 			}
 			canNotDetermineMac = false;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return macAddressAsLong;

@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 
 /**
  * FactoryBean for creating Expression instances.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

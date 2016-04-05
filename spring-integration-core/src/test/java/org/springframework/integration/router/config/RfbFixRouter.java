@@ -26,7 +26,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
  * @author Oleg Zhurakousky
  */
 public class RfbFixRouter extends AbstractMessageRouter {
-	
+
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		return null;

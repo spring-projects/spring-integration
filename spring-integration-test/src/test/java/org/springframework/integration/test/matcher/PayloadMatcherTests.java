@@ -69,7 +69,8 @@ public class PayloadMatcherTests {
 	public void readableException() throws Exception {
 		try {
 			assertThat(message, hasPayload("woot"));
-		} catch(AssertionError ae){
+		}
+		catch(AssertionError ae){
 			assertTrue(ae.getMessage().contains("Expected: a Message with payload: "));
 		}
 	}

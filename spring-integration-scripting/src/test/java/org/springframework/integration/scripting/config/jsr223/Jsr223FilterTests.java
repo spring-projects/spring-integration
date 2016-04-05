@@ -58,7 +58,7 @@ public class Jsr223FilterTests {
 		Message<?> message2 = MessageBuilder.withPayload("test-2")
 				.setReplyChannel(replyChannel)
 				.setHeader("type", "good")
-				.build();		
+				.build();
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
 		assertEquals("test-2", replyChannel.receive(0).getPayload());
@@ -70,7 +70,7 @@ public class Jsr223FilterTests {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		Message<?> message1 = MessageBuilder.withPayload("bad").setReplyChannel(replyChannel).build();
-		Message<?> message2 = MessageBuilder.withPayload("good").setReplyChannel(replyChannel).build();		
+		Message<?> message2 = MessageBuilder.withPayload("good").setReplyChannel(replyChannel).build();
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		Message<?> received = replyChannel.receive(0);

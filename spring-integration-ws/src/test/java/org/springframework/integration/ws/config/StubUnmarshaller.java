@@ -28,7 +28,7 @@ import org.springframework.oxm.XmlMappingException;
  */
 public class StubUnmarshaller implements Unmarshaller {
 
-	
+
 	@SuppressWarnings("rawtypes")
 	public boolean supports(Class clazz) {
 		return false;

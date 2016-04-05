@@ -62,19 +62,19 @@ public class PollingTransactionTests {
 		input.send(new GenericMessage<String>("test"));
 		txManager.waitForCompletion(1000);
 		Message<?> message = output.receive(0);
-		assertNotNull(message);		
+		assertNotNull(message);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		context.stop();
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void transactionWithCommitAndAdvices() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
-	
+
 		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain",List.class);
 		assertEquals(3, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
@@ -204,6 +204,6 @@ public class PollingTransactionTests {
 	public static class SampleAdvice implements MethodInterceptor {
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			return invocation.proceed();
-		}	
+		}
 	}
 }

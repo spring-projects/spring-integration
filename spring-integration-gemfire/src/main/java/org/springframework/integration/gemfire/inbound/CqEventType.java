@@ -27,8 +27,8 @@ public enum CqEventType {
 	UPDATED,
 
 	DESTROYED,
-	
+
 	REGION_CLEARED,
-	
+
 	REGION_INVALIDATED
 }

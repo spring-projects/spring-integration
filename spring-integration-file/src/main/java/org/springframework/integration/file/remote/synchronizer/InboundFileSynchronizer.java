@@ -20,7 +20,7 @@ import java.io.File;
 
 /**
  * Strategy for synchronizing from a remote File system to a local directory.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

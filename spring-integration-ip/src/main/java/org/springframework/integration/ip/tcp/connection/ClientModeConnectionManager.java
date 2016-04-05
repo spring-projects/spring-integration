@@ -58,12 +58,14 @@ public class ClientModeConnectionManager implements Runnable {
 						this.logger.debug("Connection " + connection.getConnectionId() + " established");
 					}
 					this.lastConnection = connection;
-				} else {
+				}
+				else {
 					if (this.logger.isTraceEnabled()) {
 						this.logger.trace("Connection " + connection.getConnectionId() + " still OK");
 					}
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				this.logger.error("Could not establish connection using " + this.clientConnectionFactory, e);
 			}
 		}

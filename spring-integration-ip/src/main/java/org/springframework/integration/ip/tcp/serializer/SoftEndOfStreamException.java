@@ -21,7 +21,7 @@ import java.io.IOException;
 /**
  * Used to communicate that a stream has closed, but between logical
  * messages.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *

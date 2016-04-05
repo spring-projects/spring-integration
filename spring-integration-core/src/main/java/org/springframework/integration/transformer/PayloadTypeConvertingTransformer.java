@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 /**
  * Transformer that converts the inbound payload to an object by delegating to a
  * Converter&lt;Object, Object&gt;. A reference to the delegate must be provided.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -32,7 +32,7 @@ public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTrans
 
 	/**
 	 * Specify the converter to use.
-	 * 
+	 *
 	 * @param converter The Converter.
 	 */
 	public void setConverter(Converter<T, U> converter) {

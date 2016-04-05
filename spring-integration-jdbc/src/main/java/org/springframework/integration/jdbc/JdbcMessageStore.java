@@ -375,7 +375,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		if (groupNotExist){
 			try {
 				this.doCreateMessageGroup(groupKey, createdDate);
-			} catch (DuplicateKeyException e) {
+			}
+			catch (DuplicateKeyException e) {
 				logger.warn("Lost race to create group; attempting update instead", e);
 				this.doUpdateMessageGroup(groupKey, updatedDate);
 			}

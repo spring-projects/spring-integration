@@ -21,7 +21,7 @@ import java.util.Date;
 /**
  * Abstract implementation of {@link FileInfo}; provides a setter
  * for the remote directory and a generic toString implementation.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */

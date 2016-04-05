@@ -23,7 +23,7 @@ import org.springframework.integration.store.MessageGroup;
 /**
  * Strategy for determining when a group of messages reaches a state of
  * completion (i.e. can trip a barrier).
- * 
+ *
  * @author Mark Fisher
  * @author Dave Syer
  */

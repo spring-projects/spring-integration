@@ -213,7 +213,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		String hostName;
 		if (this.lookupHost) {
 			hostName = packet.getAddress().getHostName();
-		} else {
+		}
+		else {
 			hostName = hostAddress;
 		}
 		int port = packet.getPort();

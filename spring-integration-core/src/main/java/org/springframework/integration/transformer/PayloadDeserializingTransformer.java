@@ -23,9 +23,9 @@ import org.springframework.core.serializer.support.DeserializingConverter;
  * Transformer that deserializes the inbound byte array payload to an object by delegating to a
  * Converter&lt;byte[], Object&gt;. Default delegate is a {@link DeserializingConverter} using
  * Java serialization.
- * 
+ *
  * <p>The byte array payload must be a result of equivalent serialization.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @since 1.0.1

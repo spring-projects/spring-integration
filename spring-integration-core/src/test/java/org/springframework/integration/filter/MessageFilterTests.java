@@ -181,7 +181,7 @@ public class MessageFilterTests {
 			assertEquals(message, reply);
 			assertNull(outputChannel.receive(0));
 		}
-		
+
 	}
 
 }

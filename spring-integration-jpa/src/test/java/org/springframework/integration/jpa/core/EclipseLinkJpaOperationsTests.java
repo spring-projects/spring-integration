@@ -51,7 +51,8 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 
 		try {
 			super.testExecuteUpdateWithNativeQuery();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			return;
 		}
 
@@ -64,7 +65,8 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 
 		try {
 			super.testExecuteUpdateWithNativeNamedQuery();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			return;
 		}
 

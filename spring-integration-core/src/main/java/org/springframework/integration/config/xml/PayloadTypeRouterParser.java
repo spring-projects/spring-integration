@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;payload-type-router/&gt; element.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 1.0.3

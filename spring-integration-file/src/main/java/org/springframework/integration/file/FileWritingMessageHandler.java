@@ -905,7 +905,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 			}
 			catch (IOException e) {
-				;
+				// ignore
 			}
 		}
 	}

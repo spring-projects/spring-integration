@@ -27,7 +27,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Utility to help generate UUID instances from generic objects.
- * 
+ *
  * @author Dave Syer
  */
 public class UUIDConverter implements Converter<Object, UUID> {
@@ -38,7 +38,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	/**
 	 * Convert the input to a UUID using the convenience method
 	 * {@link #getUUID(Object)}.
-	 * 
+	 *
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	public UUID convert(Object source) {
@@ -60,7 +60,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * the serialized bytes of the input</li>
 	 * </ul>
 	 * If none of the above applies there will be an exception trying to serialize.
-	 * 
+	 *
 	 * @param input an Object
 	 * @return a UUID constructed from the input
 	 */

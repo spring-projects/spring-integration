@@ -69,7 +69,7 @@ public class PayloadSerializingTransformerTests {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
 		transformer.transform(new GenericMessage<Object>(new Object()));
 	}
-	
+
 	@Test
 	public void customSerializer() {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
@@ -87,7 +87,7 @@ public class PayloadSerializingTransformerTests {
 	private static class TestBean implements Serializable {
 
 		private String name;
-		
+
 		TestBean(String name) {
 			this.name = name;
 		}

@@ -198,7 +198,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 				throw new RuntimeException("Failed to create mock sftp session", e);
 			}
 		}
-		
+
 	}
 
 }

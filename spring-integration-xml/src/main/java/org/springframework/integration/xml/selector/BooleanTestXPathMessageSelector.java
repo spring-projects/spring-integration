@@ -29,7 +29,7 @@ import org.springframework.xml.xpath.XPathExpression;
  * Boolean XPath testing {@link MessageSelector}. Requires an XPathExpression
  * which can be evaluated using {@link XPathExpression#evaluateAsBoolean(Node)}.
  * Supports payloads of type {@link Document} or {@link String}.
- * 
+ *
  * @author Jonas Partner
  */
 public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelector {
@@ -37,7 +37,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} supporting
 	 * multiple namespaces.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param namespaces Map of namespaces where the keys are namespace prefixes
 	 */
@@ -47,7 +47,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} supporting a single namespace.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 * @param prefix namespace prefix
 	 * @param namespace namespace URI
@@ -58,7 +58,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} with no namespace support.
-	 * 
+	 *
 	 * @param expression XPath expression as a String
 	 */
 	public BooleanTestXPathMessageSelector(String expression) {
@@ -68,7 +68,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} using the
 	 * provided {@link XPathExpression}.
-	 * 
+	 *
 	 * @param expression XPath expression
 	 */
 	public BooleanTestXPathMessageSelector(XPathExpression expression) {

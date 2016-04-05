@@ -22,9 +22,9 @@ package org.springframework.integration.jdbc.storedproc;
  *
  */
 public class User {
-	private String username;
-	private String password;
-	private String email;
+	private final String username;
+	private final String password;
+	private final String email;
 
 	public User(String username, String password, String email) {
 		super();
@@ -65,31 +65,40 @@ public class User {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		User other = (User) obj;
 		if (email == null) {
-			if (other.email != null)
+			if (other.email != null) {
 				return false;
+			}
 		}
-		else if (!email.equals(other.email))
+		else if (!email.equals(other.email)) {
 			return false;
+		}
 		if (password == null) {
-			if (other.password != null)
+			if (other.password != null) {
 				return false;
+			}
 		}
-		else if (!password.equals(other.password))
+		else if (!password.equals(other.password)) {
 			return false;
+		}
 		if (username == null) {
-			if (other.username != null)
+			if (other.username != null) {
 				return false;
+			}
 		}
-		else if (!username.equals(other.username))
+		else if (!username.equals(other.username)) {
 			return false;
+		}
 		return true;
 	}
 

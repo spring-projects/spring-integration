@@ -48,7 +48,7 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
  	@Ignore
 	public void testSendigRealDirectMessage() throws Throwable {
 		String dmUsr = "z_oleg";
-		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " 
+		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter "
 				+ System.currentTimeMillis());
 
 		if (StringUtils.hasText(dmUsr)) {

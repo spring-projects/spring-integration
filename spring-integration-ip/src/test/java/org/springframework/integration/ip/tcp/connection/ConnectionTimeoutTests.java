@@ -269,7 +269,7 @@ public class ConnectionTimeoutTests {
 		final CountDownLatch clientClosedLatch;
 		clientClosedLatch = new CountDownLatch(1);
 		client.setApplicationEventPublisher(new ApplicationEventPublisher() {
-			
+
 			@Override
 			public void publishEvent(ApplicationEvent event) {
 				if (event instanceof TcpConnectionCloseEvent) {
@@ -279,9 +279,9 @@ public class ConnectionTimeoutTests {
 
 			@Override
 			public void publishEvent(Object event) {
-				
+
 			}
-			
+
 		});
 		return clientClosedLatch;
 	}

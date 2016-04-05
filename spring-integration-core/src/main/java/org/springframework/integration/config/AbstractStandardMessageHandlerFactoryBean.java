@@ -181,7 +181,8 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 			}
 			try {
 				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}

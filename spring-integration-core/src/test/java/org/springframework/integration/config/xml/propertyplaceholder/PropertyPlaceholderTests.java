@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * 
+ *
  * @author Iwein Fuld
  *
  */
@@ -34,7 +34,7 @@ public class PropertyPlaceholderTests {
 	public void context() throws Exception {
 		//parsing and instantiating is enough
 	}
-	
+
 	public static class SanityCheck{
 		public SanityCheck(Integer i) {
 			//this will throw an exception if the placeholder isn't replaced

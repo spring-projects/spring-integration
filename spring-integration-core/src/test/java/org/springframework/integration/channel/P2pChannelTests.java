@@ -44,7 +44,7 @@ import org.springframework.util.ReflectionUtils.FieldCallback;
  *
  */
 public class P2pChannelTests {
-	
+
 	@Test
 	public void testDirectChannelLoggingWithMoreThenOneSubscriber() {
 		final DirectChannel channel = new DirectChannel();
@@ -110,7 +110,7 @@ public class P2pChannelTests {
 		assertEquals(String.format(log, 0), logs.remove(0));
 		verify(logger, times(4)).info(Mockito.anyString());
 	}
-	
+
 	@Test
 	public void testExecutorChannelLoggingWithMoreThenOneSubscriber() {
 		final ExecutorChannel channel = new ExecutorChannel(mock(Executor.class));
@@ -132,7 +132,7 @@ public class P2pChannelTests {
 		channel.subscribe(mock(MessageHandler.class));
 		verify(logger, times(2)).info(Mockito.anyString());
 	}
-	
+
 	@Test
 	public void testPubSubChannelLoggingWithMoreThenOneSubscriber() {
 		final PublishSubscribeChannel channel = new PublishSubscribeChannel();
@@ -141,7 +141,7 @@ public class P2pChannelTests {
 		final Log logger = mock(Log.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
-			
+
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
 				if ("logger".equals(field.getName())){

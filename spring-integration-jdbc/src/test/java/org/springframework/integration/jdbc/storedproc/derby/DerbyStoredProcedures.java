@@ -51,7 +51,8 @@ public final class DerbyStoredProcedures {
 			stmt.setString(2, password);
 			stmt.setString(3, email);
 			stmt.executeUpdate();
-		} finally {
+		}
+		finally {
 			JdbcUtils.closeStatement(stmt);
 			JdbcUtils.closeConnection(conn);
 		}
@@ -76,7 +77,8 @@ public final class DerbyStoredProcedures {
 			stmt2 = conn.prepareStatement("select * from USERS");
 			returnedData[0] = stmt2.executeQuery();
 
-		} finally {
+		}
+		finally {
 			JdbcUtils.closeConnection(conn);
 		}
 

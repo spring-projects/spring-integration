@@ -50,7 +50,8 @@ public class NioFileLocker extends AbstractFileLockerFilter {
             FileLock newLock = null;
             try {
                 newLock = FileChannelCache.tryLockFor(fileToLock);
-            } catch (IOException e) {
+            }
+catch (IOException e) {
                 throw new MessagingException("Failed to lock file: "
                         + fileToLock, e);
             }
@@ -73,7 +74,8 @@ public class NioFileLocker extends AbstractFileLockerFilter {
                 fileLock.release();
             }
             FileChannelCache.closeChannelFor(fileToUnlock);
-        } catch (IOException e) {
+        }
+catch (IOException e) {
             throw new MessagingException("Failed to unlock file: "
                     + fileToUnlock, e);
         }

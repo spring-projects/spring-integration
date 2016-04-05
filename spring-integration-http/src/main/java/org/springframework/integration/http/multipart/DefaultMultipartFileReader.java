@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
  * {@link MultipartFileReader} implementation that reads the {@link MultipartFile}
  * content directly into a new {@link MultipartFile} instance that is not restricted
  * to the HTTP request scope.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

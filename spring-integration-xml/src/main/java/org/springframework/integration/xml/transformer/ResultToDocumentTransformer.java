@@ -33,7 +33,7 @@ import org.springframework.xml.transform.StringResult;
 /**
  * Creates a {@link Document} from a {@link Result} payload. Supports
  * {@link DOMResult} and {@link StringResult} implementations.
- * 
+ *
  * @author Jonas Partner
  */
 public class ResultToDocumentTransformer implements ResultTransformer {

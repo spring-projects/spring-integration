@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the "stdout-" and "stderr-channel-adapter" elements.
- * 
+ *
  * @author Mark Fisher
  */
 public class ConsoleOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {

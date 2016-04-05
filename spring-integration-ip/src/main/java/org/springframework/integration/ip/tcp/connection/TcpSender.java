@@ -31,12 +31,12 @@ public interface TcpSender {
 	 * @param connection The connection.
 	 */
 	void addNewConnection(TcpConnection connection);
-	
+
 	/**
 	 * When we are using sockets owned by a {@link TcpListener}, this
 	 * method is called each time a connection is closed.
 	 * @param connection The connection.
 	 */
 	void removeDeadConnection(TcpConnection connection);
-	
+
 }

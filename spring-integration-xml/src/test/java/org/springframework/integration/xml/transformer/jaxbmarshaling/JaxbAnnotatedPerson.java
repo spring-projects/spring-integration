@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlType @XmlRootElement(name="person")
 public class JaxbAnnotatedPerson {
-	
+
 	@XmlElement(name="firstname")
 	public String getFirstName() {
 		return firstName;
@@ -32,9 +32,9 @@ public class JaxbAnnotatedPerson {
 		this.firstName = firstName;
 	}
 
-	
+
 	private String firstName;
-	
-	
+
+
 
 }

@@ -31,21 +31,21 @@ import org.springframework.messaging.MessageHeaders;
  * @since 2.1
  */
 public interface RequestReplyHeaderMapper<T> {
-	
+
 	/**
 	 * Map from the given {@link MessageHeaders} to the specified request target.
 	 * @param headers the abstracted MessageHeaders
 	 * @param target the native target request
 	 */
 	void fromHeadersToRequest(MessageHeaders headers, T target);
-	
+
 	/**
 	 * Map from the given {@link MessageHeaders} to the specified reply target.
 	 * @param headers the abstracted MessageHeaders
 	 * @param target the native target reply
 	 */
 	void fromHeadersToReply(MessageHeaders headers, T target);
-	
+
 	/**
 	 * Map from the given request object to abstracted {@link MessageHeaders}.
 	 * @param source the native target request
@@ -59,5 +59,5 @@ public interface RequestReplyHeaderMapper<T> {
 	 * @return the abstracted MessageHeaders
 	 */
 	Map<String, Object> toHeadersFromReply(T source);
-	
+
 }

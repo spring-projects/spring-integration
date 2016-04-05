@@ -90,7 +90,7 @@ public class AmqpOutboundEndpointTests {
 	@Test
 	public void testGatewayPublisherConfirms() throws Exception {
 		while (this.amqpTemplateConfirms.receive(this.queue.getName()) != null) {
-			;
+			// drain
 		}
 
 		Message<?> message = MessageBuilder.withPayload("hello")
@@ -119,7 +119,7 @@ public class AmqpOutboundEndpointTests {
 		assertEquals(Boolean.TRUE, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
 
 		while (this.amqpTemplateConfirms.receive(this.queue.getName()) != null) {
-			;
+			// drain
 		}
 	}
 
@@ -149,7 +149,7 @@ public class AmqpOutboundEndpointTests {
 		RabbitTemplate template = new RabbitTemplate(this.connectionFactory);
 		template.setQueue(this.queue.getName());
 		while (template.receive() != null) {
-			;
+			// drain
 		}
 		Message<?> message = MessageBuilder.withPayload("hello")
 				.setHeader(AmqpHeaders.CONTENT_TYPE, "application/json")
@@ -169,7 +169,7 @@ public class AmqpOutboundEndpointTests {
 		assertEquals("hello", new String(m.getBody(), "UTF-8"));
 		assertEquals("text/plain", m.getMessageProperties().getContentType());
 		while (template.receive() != null) {
-			;
+			// drain
 		}
 	}
 

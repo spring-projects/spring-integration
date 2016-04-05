@@ -68,6 +68,7 @@ subprojects { subproject ->
 	apply from:   "${rootDir}/src/checkstyle/fixHeaders.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixModifiers.gradle"
 	apply from:   "${rootDir}/src/checkstyle/fixThis.gradle"
+	apply from:   "${rootDir}/src/checkstyle/fixRightCurly.gradle"
 
 	if (project.hasProperty('platformVersion')) {
 		apply plugin: 'spring-io'

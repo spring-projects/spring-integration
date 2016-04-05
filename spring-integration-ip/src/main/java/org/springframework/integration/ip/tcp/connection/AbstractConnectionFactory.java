@@ -504,10 +504,12 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 							logger.debug("Executor failed to shutdown");
 						}
 					}
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					executorService.shutdownNow();
 					Thread.currentThread().interrupt();
-				} finally {
+				}
+				finally {
 					this.taskExecutor = null;
 					this.privateExecutor = false;
 				}
@@ -583,8 +585,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						 */
 						if (!connection.isServer() &&
 							now - connection.getLastSend() < this.soTimeout &&
-							now - connection.getLastRead() < this.soTimeout * 2)
-						{
+							now - connection.getLastRead() < this.soTimeout * 2) {
 							if (logger.isDebugEnabled()) {
 								logger.debug("Skipping a connection timeout because we have a recent send "
 										+ connection.getConnectionId());
@@ -608,7 +609,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (logger.isTraceEnabled()) {
 			if (this.host == null) {
 				logger.trace("Port " + this.port + " SelectionCount: " + selectionCount);
-			} else {
+			}
+			else {
 				logger.trace("Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
 			}
 		}
@@ -668,7 +670,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 					else if (key.isAcceptable()) {
 						try {
 							doAccept(selector, server, now);
-						} catch (Exception e) {
+						}
+						catch (Exception e) {
 							logger.error("Exception accepting new connection", e);
 						}
 					}

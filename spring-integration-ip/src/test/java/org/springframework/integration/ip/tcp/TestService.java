@@ -18,7 +18,7 @@ package org.springframework.integration.ip.tcp;
 
 /**
  * Simple echo service.
- * 
+ *
  * @author Gary Russell
  *
  */

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.test.support;
 /**
- * Validate a message payload. Create an anonymous instance or subclass this 
+ * Validate a message payload. Create an anonymous instance or subclass this
  * to validate a response payload.
  * @author David Turanski
  *

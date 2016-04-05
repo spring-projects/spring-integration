@@ -83,7 +83,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				Destination replyTo = null;
 				try {
 					replyTo = requestMessage.getJMSReplyTo();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					fail();
 				}
 				jmsTemplate.send(replyTo, new MessageCreator() {
@@ -94,7 +95,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 							message.setText("bar");
 							message.setJMSCorrelationID(requestMessage.getJMSMessageID());
 							return message;
-						} catch (Exception e) {
+						}
+						catch (Exception e) {
 							// ignore
 						}
 						return null;
@@ -125,14 +127,16 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 				Destination replyTo = null;
 				try {
 					replyTo = message.getJMSReplyTo();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					fail();
 				}
 				String requestPayload = (String) extractPayload(message);
 				if (requestPayload.equals("foo")){
 					try {
 						Thread.sleep(6000);
-					} catch (Exception e) {/*ignore*/}
+					}
+					catch (Exception e) {/*ignore*/}
 				}
 				try {
 					TextMessage replyMessage = session.createTextMessage();
@@ -140,7 +144,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 					replyMessage.setJMSCorrelationID(message.getJMSMessageID());
 					MessageProducer producer = session.createProducer(replyTo);
 					producer.send(replyMessage);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					// ignore. the test will fail
 				}
 			}
@@ -150,13 +155,15 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 
 		try {
 			gateway.exchange(new GenericMessage<String>("foo"));
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// ignore
 		}
 		Thread.sleep(1000);
 		try {
 			assertEquals("bar", gateway.exchange(new GenericMessage<String>("bar")).getPayload());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -188,7 +195,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			try {
 				assertEquals(i+"", gateway.exchange(new GenericMessage<String>(String.valueOf(i))).getPayload());
 				replyCounter++;
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				timeoutCounter++;
 			}
 			if (i == 0 || i == 20 || i == 40){
@@ -223,7 +231,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 						if (!String.valueOf(y).equals(reply)){
 							missmatches.incrementAndGet();
 						}
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						if (e instanceof MessageDeliveryException) {
 							timeouts.incrementAndGet();
 						}
@@ -274,7 +283,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	private Object extractPayload(Message jmsMessage) {
 		try {
 			return converter.fromMessage(jmsMessage);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail();
 		}
