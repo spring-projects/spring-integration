@@ -97,7 +97,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		for (int i = 0; i < 3; i++) {
 			Message<?> receive = receiveChannel.receive(2000);
 			assertNotNull(receive);
-			assertThat(receive.getPayload(), Matchers.<Object> isOneOf("Hello Redis from foo", "Hello Redis from bar"));
+			assertThat(receive.getPayload(), Matchers.<Object>isOneOf("Hello Redis from foo", "Hello Redis from bar"));
 		}
 
 	}

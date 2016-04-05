@@ -45,7 +45,7 @@ public class SimpleMessageGroupTests {
 
 	private final Object key = new Object();
 
-	private SimpleMessageGroup group = new SimpleMessageGroup(Collections.<Message<?>> emptyList(), key);
+	private SimpleMessageGroup group = new SimpleMessageGroup(Collections.<Message<?>>emptyList(), key);
 
 	@SuppressWarnings("unchecked")
 	public void prepareForSequenceAwareMessageGroup() throws Exception {

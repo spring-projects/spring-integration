@@ -16,30 +16,31 @@
 
 package org.springframework.integration.jdbc.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 import java.sql.Types;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gunnar Hillert
@@ -86,7 +87,7 @@ public class StoredProcMessageHandlerParserTests {
 		assertNotNull(procedureParameters);
 		assertTrue(procedureParameters instanceof List);
 
-		List<ProcedureParameter>procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
+		List<ProcedureParameter> procedureParametersAsList = (List<ProcedureParameter>) procedureParameters;
 
 		assertTrue(procedureParametersAsList.size() == 4);
 
@@ -129,7 +130,7 @@ public class StoredProcMessageHandlerParserTests {
 		assertNotNull(sqlParameters);
 		assertTrue(sqlParameters instanceof List);
 
-		List<SqlParameter>sqlParametersAsList = (List<SqlParameter>) sqlParameters;
+		List<SqlParameter> sqlParametersAsList = (List<SqlParameter>) sqlParameters;
 
 		assertTrue(sqlParametersAsList.size() == 4);
 

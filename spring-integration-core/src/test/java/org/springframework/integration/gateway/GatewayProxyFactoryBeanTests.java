@@ -339,7 +339,7 @@ public class GatewayProxyFactoryBeanTests {
 		gpfb.setDefaultRequestChannel(drc);
 		gpfb.setDefaultReplyTimeout(0L);
 		GatewayMethodMetadata meta = new GatewayMethodMetadata();
-		meta.setHeaderExpressions(Collections. <String, Expression> singletonMap("foo", new LiteralExpression("bar")));
+		meta.setHeaderExpressions(Collections.<String, Expression>singletonMap("foo", new LiteralExpression("bar")));
 		gpfb.setGlobalMethodMetadata(meta);
 		gpfb.afterPropertiesSet();
 		((TestEchoService) gpfb.getObject()).echo("foo");

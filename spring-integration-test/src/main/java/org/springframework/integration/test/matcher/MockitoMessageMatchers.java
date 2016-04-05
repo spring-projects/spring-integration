@@ -92,7 +92,7 @@ public class MockitoMessageMatchers {
 
 	public static <T> Message<?> messageWithHeaderEntry(String key,
 			Matcher<T> valueMatcher) {
-		return argThat(HeaderMatcher.<T> hasHeader(key, valueMatcher));
+		return argThat(HeaderMatcher.<T>hasHeader(key, valueMatcher));
 	}
 
 	public static Message<?> messageWithHeaderEntries(Map<String, ?> entries) {

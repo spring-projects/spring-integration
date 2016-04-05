@@ -142,7 +142,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
-	private volatile List<ProcedureParameter>procedureParameters;
+	private volatile List<ProcedureParameter> procedureParameters;
 
 	private volatile boolean isFunction = false;
 

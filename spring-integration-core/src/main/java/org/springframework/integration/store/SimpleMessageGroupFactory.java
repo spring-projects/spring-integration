@@ -45,7 +45,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	@Override
 	public MessageGroup create(Object groupId) {
-		return create(Collections.<Message<?>> emptyList(), groupId);
+		return create(Collections.<Message<?>>emptyList(), groupId);
 	}
 
 	@Override
