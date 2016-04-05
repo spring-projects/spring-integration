@@ -159,7 +159,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	public int getMessageGroupCount() {
 		int count = 0;
 		for (@SuppressWarnings("unused") MessageGroup group : this) {
-			count ++;
+			count++;
 		}
 		return count;
 	}

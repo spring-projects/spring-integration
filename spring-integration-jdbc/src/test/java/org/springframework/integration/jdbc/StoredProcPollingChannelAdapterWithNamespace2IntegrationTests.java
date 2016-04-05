@@ -89,6 +89,7 @@ public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
 		@ServiceActivator
 		public void receive(Message<List<Integer>> message) {
+			messages.add(message);
 		}
 
 		Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {

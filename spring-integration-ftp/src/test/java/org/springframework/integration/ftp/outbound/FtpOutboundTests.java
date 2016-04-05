@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -189,7 +190,8 @@ public class FtpOutboundTests {
 				return null;
 			}
 		}).when(logger).warn(Mockito.anyString());
-		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate", RemoteFileTemplate.class);
+		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate",
+				RemoteFileTemplate.class);
 		new DirectFieldAccessor(template).setPropertyValue("logger", logger);
 		handler.handleMessage(new GenericMessage<File>(srcFile));
 		assertNotNull(logged.get());
@@ -251,7 +253,7 @@ public class FtpOutboundTests {
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
 				when(ftpClient.printWorkingDirectory()).thenReturn("remote-target-dir");
-				when(ftpClient.storeFile(Mockito.anyString(), Mockito.any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
+				when(ftpClient.storeFile(Mockito.anyString(), any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
 					@Override
 					public Boolean answer(InvocationOnMock invocation) throws Throwable {
 						String fileName = (String) invocation.getArguments()[0];
@@ -278,7 +280,8 @@ public class FtpOutboundTests {
 					file.setType(FTPFile.FILE_TYPE);
 					file.setTimestamp(Calendar.getInstance());
 					ftpFiles.add(file);
-					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
+					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName),
+							any(OutputStream.class))).thenReturn(true);
 				}
 				when(ftpClient.listFiles("remote-test-dir/")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
 				return ftpClient;

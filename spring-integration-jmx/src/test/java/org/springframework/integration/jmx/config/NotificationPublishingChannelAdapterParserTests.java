@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Set;
+
 import javax.management.Attribute;
 import javax.management.MBeanException;
 import javax.management.MBeanServer;
@@ -123,8 +124,11 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 	@Test //INT-2275
 	public void publishStringMessageWithinChain() throws Exception {
-		assertNotNull(this.beanFactory.getBean("chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain.handler",
-				MessageHandler.class));
+		assertNotNull(
+				this.beanFactory.getBean(
+						"chainWithJmxNotificationPublishing$child."
+								+ "jmx-notification-publishing-channel-adapter-within-chain.handler",
+						MessageHandler.class));
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
 				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
@@ -134,10 +138,9 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("XYZ", notification.getMessage());
 		assertEquals("test.type", notification.getType());
 		assertNull(notification.getUserData());
-		Set<ObjectName> names = server.queryNames(
-				new ObjectName("*:type=MessageHandler," +
-						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain,*")
-				, null);
+		Set<ObjectName> names = server
+				.queryNames(new ObjectName("*:type=MessageHandler," + "name=chainWithJmxNotificationPublishing$child."
+						+ "jmx-notification-publishing-channel-adapter-within-chain,*"), null);
 		assertEquals(1, names.size());
 	}
 

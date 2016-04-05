@@ -33,10 +33,10 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 /**
- * Convenience class for testing Spring Integration request-response message scenarios. Users
- * create subclasses to execute on or more {@link RequestResponseScenario} tests. each scenario defines:
+ * Convenience class for testing Spring Integration request-response message scenarios.
+ * Users create subclasses to execute on or more {@link RequestResponseScenario} tests.
+ * each scenario defines:
  * <ul>
  * <li>An inputChannelName</li>
  * <li>An outputChannelName</li>
@@ -49,55 +49,57 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractRequestResponseScenarioTests {
 
-    private List<RequestResponseScenario> scenarios = null;
+	private List<RequestResponseScenario> scenarios = null;
 
-    @Autowired
-    private ApplicationContext applicationContext;
+	@Autowired
+	private ApplicationContext applicationContext;
 
-    @Before
-    public void setUp() {
-        scenarios = defineRequestResponseScenarios();
-    }
+	@Before
+	public void setUp() {
+		scenarios = defineRequestResponseScenarios();
+	}
 
-    /**
-     * Execute each scenario. Instantiate the message channels, send the request message on the
-     * input channel and invoke the validator on the response received on the output channel.
-     * This can handle subscribable or pollable output channels.
-     */
-    @Test
-    public void testRequestResponseScenarios() {
-        int i = 1;
-        for (RequestResponseScenario scenario: scenarios) {
-            String name = scenario.getName() == null ? "scenario-" + (i++) : scenario.getName();
-            scenario.init();
-            MessageChannel inputChannel = applicationContext.getBean(scenario.getInputChannelName(), MessageChannel.class);
-            MessageChannel outputChannel = applicationContext.getBean(scenario.getOutputChannelName(), MessageChannel.class);
-            if (outputChannel instanceof SubscribableChannel) {
-                ((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
-            }
+	/**
+	 * Execute each scenario. Instantiate the message channels, send the request message
+	 * on the input channel and invoke the validator on the response received on the
+	 * output channel. This can handle subscribable or pollable output channels.
+	 */
+	@Test
+	public void testRequestResponseScenarios() {
+		int i = 1;
+		for (RequestResponseScenario scenario : scenarios) {
+			String name = scenario.getName() == null ? "scenario-" + (i++) : scenario.getName();
+			scenario.init();
+			MessageChannel inputChannel = applicationContext.getBean(scenario.getInputChannelName(),
+					MessageChannel.class);
+			MessageChannel outputChannel = applicationContext.getBean(scenario.getOutputChannelName(),
+					MessageChannel.class);
+			if (outputChannel instanceof SubscribableChannel) {
+				((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
+			}
 
-            assertTrue(name + ": message not sent on " + scenario.getInputChannelName()
-                    , inputChannel.send(scenario.getMessage()));
+			assertTrue(name + ": message not sent on " + scenario.getInputChannelName(),
+					inputChannel.send(scenario.getMessage()));
 
-            if (outputChannel instanceof PollableChannel) {
-                Message<?> response = ((PollableChannel) outputChannel).receive(10000);
-                assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
-                scenario.getResponseValidator().handleMessage(response);
-            }
+			if (outputChannel instanceof PollableChannel) {
+				Message<?> response = ((PollableChannel) outputChannel).receive(10000);
+				assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
+				scenario.getResponseValidator().handleMessage(response);
+			}
 
-            assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
+			assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
 					scenario.getResponseValidator().getLastMessage());
 
-            if (outputChannel instanceof SubscribableChannel) {
-                ((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());
-            }
-        }
-    }
-    /**
-     * Implement this method to define RequestResponse scenarios
-     * @return - A List of {@link RequestResponseScenario}
-     */
-    protected abstract List<RequestResponseScenario> defineRequestResponseScenarios();
+			if (outputChannel instanceof SubscribableChannel) {
+				((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());
+			}
+		}
+	}
 
+	/**
+	 * Implement this method to define RequestResponse scenarios
+	 * @return - A List of {@link RequestResponseScenario}
+	 */
+	protected abstract List<RequestResponseScenario> defineRequestResponseScenarios();
 
 }

@@ -119,7 +119,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 		Assert.notNull(componentNamePatternsSet, "'componentNamePatternsSet' must not be null");
 		Assert.state(!this.running, "'componentNamePatternsSet' cannot be changed without invoking stop() first");
 		for (String s : componentNamePatternsSet) {
-			String[] componentNamePatterns = StringUtils.delimitedListToStringArray(s, "," , " ");
+			String[] componentNamePatterns = StringUtils.delimitedListToStringArray(s, ",", " ");
 			Arrays.sort(componentNamePatterns);
 			if (this.componentNamePatternsExplicitlySet
 					&& !Arrays.equals(this.componentNamePatterns, componentNamePatterns)) {

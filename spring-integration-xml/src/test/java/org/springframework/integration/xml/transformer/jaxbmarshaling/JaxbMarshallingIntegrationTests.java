@@ -62,8 +62,8 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 		person.setFirstName("john");
 		marshallIn.send(new GenericMessage<Object>(person));
 		GenericMessage<Result> res = (GenericMessage<Result>) marshalledOut.receive(2000);
-		assertNotNull("No response recevied" , res);
-		assertTrue("payload was not a DOMResult" , res.getPayload() instanceof DOMResult);
+		assertNotNull("No response recevied", res);
+		assertTrue("payload was not a DOMResult", res.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) res.getPayload()).getNode();
 		assertEquals("Wrong name for root element ", "person", doc.getDocumentElement().getLocalName());
 	}

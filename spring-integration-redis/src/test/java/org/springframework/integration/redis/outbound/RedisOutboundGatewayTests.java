@@ -161,7 +161,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 		byte[] value2 = "bar2".getBytes();
 		connection.set("foo1".getBytes(), value1);
 		connection.set("foo2".getBytes(), value2);
-		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String [] {"foo1", "foo2"}).build());
+		this.mgetCommandChannel.send(MessageBuilder.withPayload(new String[] {"foo1", "foo2"}).build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
 		assertThat((List<byte[]>) receive.getPayload(), Matchers.contains(value1, value2));
