@@ -17,6 +17,7 @@
 package org.springframework.integration.jpa.core;
 
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
@@ -616,13 +617,13 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	/**
-	  * Set the max number of results to retrieve from the database. Defaults to
-	  * 0, which means that all possible objects shall be retrieved.
-	  * @param maxNumberOfResults Must not be negative.
-	  * @see Query#setMaxResults(int)
-	  */
-	 public void setMaxNumberOfResults(int maxNumberOfResults) {
+	 * Set the max number of results to retrieve from the database. Defaults to
+	 * 0, which means that all possible objects shall be retrieved.
+	 * @param maxNumberOfResults Must not be negative.
+	 * @see Query#setMaxResults(int)
+	 */
+	public void setMaxNumberOfResults(int maxNumberOfResults) {
 		 this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
-	 }
+	}
 
 }

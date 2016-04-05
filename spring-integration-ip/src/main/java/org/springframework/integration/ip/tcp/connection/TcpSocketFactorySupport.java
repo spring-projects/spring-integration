@@ -31,17 +31,16 @@ import javax.net.SocketFactory;
 public interface TcpSocketFactorySupport {
 
 	/**
-	 * Supplies the {@link ServerSocketFactory} to be used to
-	 * create new {@link ServerSocket}s.
+	 * Supplies the {@link ServerSocketFactory} to be used to create new
+	 * {@link ServerSocket}s.
 	 * @return the ServerSocketFacory
 	 */
-    ServerSocketFactory getServerSocketFactory();
+	ServerSocketFactory getServerSocketFactory();
 
-    /**
-     * Supplies the {@link SocketFactory} to be used to
-     * create new {@link Socket}s.
-     * @return the SocketFactory
-     */
-    SocketFactory getSocketFactory();
+	/**
+	 * Supplies the {@link SocketFactory} to be used to create new {@link Socket}s.
+	 * @return the SocketFactory
+	 */
+	SocketFactory getSocketFactory();
 
 }

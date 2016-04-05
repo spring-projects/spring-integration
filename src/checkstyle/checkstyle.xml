@@ -119,10 +119,12 @@
 <!-- 		</module> -->
 
 		<!-- Miscellaneous -->
-<!-- 		<module name="CommentsIndentation" /> -->
-<!-- 		<module name="UpperEll" /> -->
-<!-- 		<module name="ArrayTypeStyle" /> -->
-<!-- 		<module name="OuterTypeFilename" /> -->
+		<module name="CommentsIndentation">
+			<property name="tokens" value="BLOCK_COMMENT_BEGIN" />
+		</module>
+		<module name="UpperEll" />
+		<module name="ArrayTypeStyle" />
+		<module name="OuterTypeFilename" />
 
 		<!-- Modifiers -->
 		<module name="RedundantModifier" />

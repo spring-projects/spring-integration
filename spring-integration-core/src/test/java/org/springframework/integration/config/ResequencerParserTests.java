@@ -88,7 +88,7 @@ public class ResequencerParserTests {
 				getPropertyValue(resequencer, "outputChannel"));
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel", discardChannel,
 				getPropertyValue(resequencer, "discardChannel"));
-		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 86420000l,
+		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 86420000L,
 				getPropertyValue(resequencer, "messagingTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",

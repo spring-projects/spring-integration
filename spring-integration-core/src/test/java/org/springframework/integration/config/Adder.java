@@ -24,7 +24,7 @@ import java.util.List;
 public class Adder {
 
 	public Long add(List<Long> results) {
-		long total = 0l;
+		long total = 0L;
 		for (long partialResult: results) {
 			total += partialResult;
 		}
