@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 
 	@Test
 	@RedisAvailable
-	public void testOutboundChannelAdapterMessaging() throws Exception{
+	public void testOutboundChannelAdapterMessaging() throws Exception {
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));
@@ -110,7 +110,7 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 
 	@Test //INT-2275
 	@RedisAvailable
-	public void testOutboundChannelAdapterWithinChain() throws Exception{
+	public void testOutboundChannelAdapterWithinChain() throws Exception {
 		MessageChannel sendChannel = context.getBean("redisOutboudChain", MessageChannel.class);
 		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));

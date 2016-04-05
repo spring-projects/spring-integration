@@ -49,7 +49,7 @@ class TimeBasedUUIDGenerator {
 		return generateIdFromTimestamp(System.currentTimeMillis());
 	}
 
-	public final static UUID generateIdFromTimestamp(long currentTimeMillis){
+	public final static UUID generateIdFromTimestamp(long currentTimeMillis) {
 		long time;
 
 		synchronized (lock) {
@@ -76,12 +76,12 @@ class TimeBasedUUIDGenerator {
 
 		long clock_seq_hi_and_reserved = clockSequence;
 
-		clock_seq_hi_and_reserved <<=48;
+		clock_seq_hi_and_reserved <<= 48;
 
 		long cls = 0 | clock_seq_hi_and_reserved;
 
 		long lsb = cls | macAddress;
-		if (canNotDetermineMac){
+		if (canNotDetermineMac) {
 			logger.warning("UUID generation process was not able to determine your MAC address. Returning random UUID (non version 1 UUID)");
 			return UUID.randomUUID();
 		}
@@ -89,7 +89,7 @@ class TimeBasedUUIDGenerator {
 			return new UUID(time, lsb);
 		}
 	}
-	private static long getMac(){
+	private static long getMac() {
 		long  macAddressAsLong = 0;
 		try {
 			InetAddress address = InetAddress.getLocalHost();
@@ -101,7 +101,7 @@ class TimeBasedUUIDGenerator {
 				if (mac != null) {
 					for (int i = 0; i < mac.length; i++) {
 						macAddressAsLong <<= 8;
-						macAddressAsLong ^= (long)mac[i] & 0xFF;
+						macAddressAsLong ^= (long) mac[i] & 0xFF;
 					}
 				}
 			}

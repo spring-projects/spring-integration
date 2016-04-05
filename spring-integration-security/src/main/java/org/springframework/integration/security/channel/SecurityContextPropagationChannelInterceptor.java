@@ -85,7 +85,7 @@ public class SecurityContextPropagationChannelInterceptor
 				SecurityContextHolder.setContext(originalContext);
 			}
 		}
-		catch (Throwable t) {//NOSONAR
+		catch (Throwable t) { //NOSONAR
 			SecurityContextHolder.clearContext();
 		}
 	}

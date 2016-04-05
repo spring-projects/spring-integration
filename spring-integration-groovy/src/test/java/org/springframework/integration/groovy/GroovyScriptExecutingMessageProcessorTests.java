@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,19 +66,19 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	public void testSimpleExecution() throws Exception {
 		int count = countHolder.getAndIncrement();
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar"+count).build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar" + count).build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar"+count, result.toString());
+		assertEquals("payload is foo, header is bar" + count, result.toString());
 	}
 
 	@Test
 	public void testSimpleExecutionWithScriptVariableGenerator() throws Exception {
 		int count = countHolder.getAndIncrement();
 		String script = "return \"payload is $payload, header is $headers.testHeader and date is $date\"";
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar"+count).build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar" + count).build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
@@ -107,7 +107,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		long lastModified = resource.lastModified();
 		Thread.sleep(20L);
 		resource.setScript("foo");
-		assertFalse("Expected last modified to change: "+lastModified+"=="+resource.lastModified(), lastModified==resource.lastModified());
+		assertFalse("Expected last modified to change: " + lastModified + "==" + resource.lastModified(), lastModified == resource.lastModified());
 	}
 
 	@Test

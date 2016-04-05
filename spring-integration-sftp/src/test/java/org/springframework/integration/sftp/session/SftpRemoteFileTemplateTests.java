@@ -52,7 +52,7 @@ import com.jcraft.jsch.SftpException;
  * @since 4.1
  *
  */
-@ContextConfiguration(classes=TestSftpServerConfig.class)
+@ContextConfiguration(classes = TestSftpServerConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class SftpRemoteFileTemplateTests {

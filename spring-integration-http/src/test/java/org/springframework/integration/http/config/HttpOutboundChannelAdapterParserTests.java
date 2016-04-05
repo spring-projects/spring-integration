@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,7 +170,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(customRestTemplate, restTemplate);
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class)
 	public void failWithRestTemplateAndRestAttributes() {
 		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass());
 	}
@@ -263,7 +263,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertThat(this.withPoller1, Matchers.instanceOf(PollingConsumer.class));
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class)
 	public void failWithUrlAndExpression() {
 		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml", this.getClass());
 	}

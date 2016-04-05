@@ -289,13 +289,13 @@ public class StoredProcOutboundGatewayParserTests {
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
+	public void setUp(String name, Class<?> cls) {
 		 this.context    = new ClassPathXmlApplicationContext(name, cls);
 		 this.outboundGateway   = this.context.getBean("storedProcedureOutboundGateway", EventDrivenConsumer.class);
 	}

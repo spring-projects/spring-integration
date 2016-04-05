@@ -104,7 +104,7 @@ public class PollerWithErrorChannelTests {
 
 	public static class SampleService {
 
-		public String withSuccess(){
+		public String withSuccess() {
 			return "hello";
 		}
 

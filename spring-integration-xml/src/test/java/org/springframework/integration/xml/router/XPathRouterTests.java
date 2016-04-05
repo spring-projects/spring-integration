@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ public class XPathRouterTests {
 		XPathRouter router = new XPathRouter("./three/text()");
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three><three>dave</three></two></one>");
 		Object[] channelNames =  router.getChannelKeys(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0))).toArray();
-		assertEquals("bob",channelNames[0]);
-		assertEquals("dave",channelNames[1]);
+		assertEquals("bob", channelNames[0]);
+		assertEquals("dave", channelNames[1]);
 	}
 
 	@Test

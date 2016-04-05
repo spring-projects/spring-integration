@@ -331,7 +331,8 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 				@Override
 				public String getQueue() {
 					return queue;
-				}};
+				}
+			};
 		}
 
 		@Override

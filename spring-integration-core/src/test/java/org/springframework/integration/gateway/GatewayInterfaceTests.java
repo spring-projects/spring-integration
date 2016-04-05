@@ -131,7 +131,7 @@ public class GatewayInterfaceTests {
 		Bar bar = ac.getBean(Bar.class);
 		bar.foo("hello");
 		assertTrue(called.get());
-		Map<?,?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
+		Map<?, ?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
 		ac.close();
 	}
 
@@ -305,8 +305,8 @@ public class GatewayInterfaceTests {
 		ac.close();
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testWithServiceAsNotAnInterface(){
+	@Test(expected = IllegalArgumentException.class)
+	public void testWithServiceAsNotAnInterface() {
 		new GatewayProxyFactoryBean(NotAnInterface.class);
 	}
 
@@ -396,7 +396,7 @@ public class GatewayInterfaceTests {
 
 	public interface Foo {
 
-		@Gateway(requestChannel="requestChannelFoo")
+		@Gateway(requestChannel = "requestChannelFoo")
 		void foo(String payload);
 
 		void baz(String payload);
@@ -406,14 +406,14 @@ public class GatewayInterfaceTests {
 	}
 
 	public interface Bar extends Foo {
-		@Gateway(requestChannel="requestChannelBar")
+		@Gateway(requestChannel = "requestChannelBar")
 		void bar(String payload);
 
 		void qux(String payload, @Header("name") String nameHeader);
 	}
 
 	public static class NotAnInterface {
-		public void fail(String payload){}
+		public void fail(String payload) { }
 	}
 
 	public interface Baz {

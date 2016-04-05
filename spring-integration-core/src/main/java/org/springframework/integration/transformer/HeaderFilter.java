@@ -53,7 +53,7 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 	@Override
 	public Message<?> transform(Message<?> message) {
 		AbstractIntegrationMessageBuilder<?> builder = this.getMessageBuilderFactory().fromMessage(message);
-		if (this.patternMatch){
+		if (this.patternMatch) {
 			builder.removeHeaders(this.headersToRemove);
 		}
 		else {

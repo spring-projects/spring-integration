@@ -109,7 +109,7 @@ public class SftpOutboundTests {
 	@Test
 	public void testHandleStringMessage() throws Exception {
 		File file = new File("remote-target-dir", "foo.txt");
-		if (file.exists()){
+		if (file.exists()) {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
@@ -132,7 +132,7 @@ public class SftpOutboundTests {
 	@Test
 	public void testHandleBytesMessage() throws Exception {
 		File file = new File("remote-target-dir", "foo.txt");
-		if (file.exists()){
+		if (file.exists()) {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
@@ -384,9 +384,9 @@ public class SftpOutboundTests {
 					@Override
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
-						File file = new File((String)invocation.getArguments()[1]);
+						File file = new File((String) invocation.getArguments()[1]);
 						assertTrue(file.getName().endsWith(".writing"));
-						FileCopyUtils.copy((InputStream)invocation.getArguments()[0], new FileOutputStream(file));
+						FileCopyUtils.copy((InputStream) invocation.getArguments()[0], new FileOutputStream(file));
 						return null;
 					}
 

@@ -84,7 +84,7 @@ public class GemfireInboundChannelAdapterTests {
 		region2.put("payload", "payload");
 
 		assertTrue(eventHandler2.event instanceof EntryEvent);
-		EntryEvent<?,?> event = (EntryEvent<?,?>)eventHandler2.event;
+		EntryEvent<?, ?> event = (EntryEvent<?, ?>) eventHandler2.event;
 		assertEquals("payload", event.getNewValue());
 	}
 

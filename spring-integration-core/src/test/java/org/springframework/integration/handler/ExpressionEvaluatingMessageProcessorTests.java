@@ -84,7 +84,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		@SuppressWarnings("unused")
 		class TestTarget {
 			public String stringify(int number) {
-				return number+"";
+				return number + "";
 			}
 		}
 		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
@@ -137,7 +137,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
 		String result = (String) processor.processMessage(new GenericMessage<String>("classpath*:*.properties"));
-		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
+		assertTrue("Wrong result: " + result, result.contains("log4j.properties"));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

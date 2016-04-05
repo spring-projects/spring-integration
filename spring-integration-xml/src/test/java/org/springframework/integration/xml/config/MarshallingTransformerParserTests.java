@@ -96,7 +96,7 @@ public class MarshallingTransformerParserTests  {
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof String);
-		String resultPayload = (String)result.getPayload();
+		String resultPayload = (String) result.getPayload();
 		assertEquals("Wrong payload", "testReturn", resultPayload);
 	}
 

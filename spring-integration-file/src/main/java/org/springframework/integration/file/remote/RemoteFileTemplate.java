@@ -66,7 +66,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 */
 	protected final SessionFactory<F> sessionFactory;
 
-	private volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix = ".writing";
 
 	private volatile boolean autoCreateDirectory = false;
 
@@ -242,10 +242,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				this.fileNameProcessor.setBeanFactory(beanFactory);
 			}
 		}
-		if (this.autoCreateDirectory){
+		if (this.autoCreateDirectory) {
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
-		if (this.hasExplicitlySetSuffix && !this.useTemporaryFileName){
+		if (this.hasExplicitlySetSuffix && !this.useTemporaryFileName) {
 			this.logger.warn("Since 'use-temporary-file-name' is set to 'false' the value of 'temporary-file-suffix' has no effect");
 		}
 	}
@@ -538,7 +538,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
-	private String normalizeDirectoryPath(String directoryPath){
+	private String normalizeDirectoryPath(String directoryPath) {
 		if (!StringUtils.hasText(directoryPath)) {
 			directoryPath = "";
 		}

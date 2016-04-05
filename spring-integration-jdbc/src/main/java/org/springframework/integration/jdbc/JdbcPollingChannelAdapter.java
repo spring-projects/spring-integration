@@ -130,7 +130,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	protected void onInit() throws Exception {
 		super.onInit();
 		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
-			((ExpressionEvaluatingSqlParameterSourceFactory)this.sqlParameterSourceFactory)
+			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
 				.setBeanFactory(this.getBeanFactory());
 		}
 	}
@@ -213,7 +213,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		return payload;
 	}
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "jdbc:inbound-channel-adapter";
 	}
 

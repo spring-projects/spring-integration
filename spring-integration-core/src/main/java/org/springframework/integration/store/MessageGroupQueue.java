@@ -156,7 +156,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		storeLock.lockInterruptibly();
 
 		try {
-			while (this.size() == 0 && timeoutInNanos > 0){
+			while (this.size() == 0 && timeoutInNanos > 0) {
 				timeoutInNanos = this.messageStoreNotEmpty.awaitNanos(timeoutInNanos);
 			}
 			message = this.doPoll();
@@ -248,11 +248,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		storeLock.lockInterruptibly();
 		try {
 			if (this.capacity != Integer.MAX_VALUE) {
-				while (this.size() == this.capacity && timeoutInNanos > 0){
+				while (this.size() == this.capacity && timeoutInNanos > 0) {
 					timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
 				}
 			}
-			if (timeoutInNanos > 0){
+			if (timeoutInNanos > 0) {
 				offered = this.doOffer(message);
 			}
 		}
@@ -268,7 +268,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		storeLock.lockInterruptibly();
 		try {
 			if (this.capacity != Integer.MAX_VALUE) {
-				while (this.size() == this.capacity){
+				while (this.size() == this.capacity) {
 					this.messageStoreNotFull.await();
 				}
 			}
@@ -294,7 +294,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		storeLock.lockInterruptibly();
 
 		try {
-			while (this.size() == 0){
+			while (this.size() == 0) {
 				this.messageStoreNotEmpty.await();
 			}
 			message = this.doPoll();
@@ -306,7 +306,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return message;
 	}
 
-	private Collection<Message<?>> getMessages(){
+	private Collection<Message<?>> getMessages() {
 		return this.messageGroupStore.getMessageGroup(this.groupId).getMessages();
 	}
 
@@ -324,9 +324,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown
 	 */
-	private boolean doOffer(Message<?> message){
+	private boolean doOffer(Message<?> message) {
 		boolean offered = false;
-		if (this.capacity == Integer.MAX_VALUE || this.size() < this.capacity){
+		if (this.capacity == Integer.MAX_VALUE || this.size() < this.capacity) {
 			this.messageGroupStore.addMessageToGroup(this.groupId, message);
 			offered = true;
 			this.messageStoreNotEmpty.signal();

@@ -62,7 +62,7 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	@Override
 	public boolean onMessage(Message<?> message) {
 		if (!this.negotiated) {
-			synchronized(this) {
+			synchronized (this) {
 				if (!this.negotiated) {
 					Object payload = message.getPayload();
 					logger.debug(this.toString() + " received " + payload);

@@ -50,7 +50,7 @@ public abstract class BigMGetTests {
 		for (int i = 0; i < FILES; i++) {
 			File f = new File("/tmp/bigmget/file" + i);
 			f.createNewFile();
-			FileOutputStream fos = new FileOutputStream(f);//NOSONAR
+			FileOutputStream fos = new FileOutputStream(f); //NOSONAR
 			fos.write(buff);
 			fos.close();
 		}

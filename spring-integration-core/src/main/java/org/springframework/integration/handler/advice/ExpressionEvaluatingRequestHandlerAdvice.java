@@ -83,12 +83,12 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	public void setSuccessChannel(MessageChannel successChannel) {
-		Assert.notNull(successChannel,"'successChannel' must not be null");
+		Assert.notNull(successChannel, "'successChannel' must not be null");
 		this.successChannel = successChannel;
 	}
 
 	public void setFailureChannel(MessageChannel failureChannel) {
-		Assert.notNull(failureChannel,"'failureChannel' must not be null");
+		Assert.notNull(failureChannel, "'failureChannel' must not be null");
 		this.failureChannel = failureChannel;
 	}
 
@@ -190,7 +190,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		return evalResult;
 	}
 
-	protected StandardEvaluationContext createEvaluationContext(){
+	protected StandardEvaluationContext createEvaluationContext() {
 		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 

@@ -97,7 +97,7 @@ public class PriorityChannel extends QueueChannel {
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
-			message = ((MessageWrapper)message).getRootMessage();
+			message = ((MessageWrapper) message).getRootMessage();
 			this.upperBound.release();
 		}
 		return message;
@@ -107,14 +107,14 @@ public class PriorityChannel extends QueueChannel {
 
 		private final Comparator<Message<?>> targetComparator;
 
-		private SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
+		private SequenceFallbackComparator(Comparator<Message<?>> targetComparator) {
 			this.targetComparator = targetComparator;
 		}
 
 		@Override
 		public int compare(Message<?> message1, Message<?> message2) {
 			int compareResult = 0;
-			if (this.targetComparator != null){
+			if (this.targetComparator != null) {
 				compareResult = this.targetComparator.compare(message1, message2);
 			}
 			else {
@@ -126,7 +126,7 @@ public class PriorityChannel extends QueueChannel {
 				compareResult = priority2.compareTo(priority1);
 			}
 
-			if (compareResult == 0){
+			if (compareResult == 0) {
 				Long sequence1 = ((MessageWrapper) message1).getSequence();
 				Long sequence2 = ((MessageWrapper) message2).getSequence();
 				compareResult = sequence1.compareTo(sequence2);
@@ -140,12 +140,12 @@ public class PriorityChannel extends QueueChannel {
 		private final Message<?> rootMessage;
 		private final long sequence;
 
-		private MessageWrapper(Message<?> rootMessage){
+		private MessageWrapper(Message<?> rootMessage) {
 			this.rootMessage = rootMessage;
 			this.sequence = PriorityChannel.this.sequenceCounter.incrementAndGet();
 		}
 
-		public Message<?> getRootMessage(){
+		public Message<?> getRootMessage() {
 			return this.rootMessage;
 		}
 
@@ -159,7 +159,7 @@ public class PriorityChannel extends QueueChannel {
 			return this.rootMessage.getPayload();
 		}
 
-		long getSequence(){
+		long getSequence() {
 			return this.sequence;
 		}
 	}

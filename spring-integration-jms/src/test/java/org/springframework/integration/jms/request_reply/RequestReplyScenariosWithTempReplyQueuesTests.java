@@ -66,7 +66,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
-	public void messageCorrelationBasedOnRequestMessageId() throws Exception{
+	public void messageCorrelationBasedOnRequestMessageId() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass());
@@ -109,7 +109,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReply() throws Exception{
+	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReply() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass());
@@ -132,11 +132,11 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 					fail();
 				}
 				String requestPayload = (String) extractPayload(message);
-				if (requestPayload.equals("foo")){
+				if (requestPayload.equals("foo")) {
 					try {
 						Thread.sleep(6000);
 					}
-					catch (Exception e) {/*ignore*/}
+					catch (Exception e) { /*ignore*/ }
 				}
 				try {
 					TextMessage replyMessage = session.createTextMessage();
@@ -175,7 +175,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	 * once a failure detected and that the messages will still be properly correlated
 	 */
 	@Test
-	public void brokenBrokerTest() throws Exception{
+	public void brokenBrokerTest() throws Exception {
 
 		BrokerService broker = new BrokerService();
 		broker.setPersistent(false);
@@ -193,15 +193,15 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		int timeoutCounter = 0;
 		for (int i = 0; i < 50; i++) {
 			try {
-				assertEquals(i+"", gateway.exchange(new GenericMessage<String>(String.valueOf(i))).getPayload());
+				assertEquals(i + "", gateway.exchange(new GenericMessage<String>(String.valueOf(i))).getPayload());
 				replyCounter++;
 			}
 			catch (Exception e) {
 				timeoutCounter++;
 			}
-			if (i == 0 || i == 20 || i == 40){
+			if (i == 0 || i == 20 || i == 40) {
 				Object replyDestination = TestUtils.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
-				if (replyDestination != null){
+				if (replyDestination != null) {
 					broker.removeDestination((ActiveMQDestination) replyDestination);
 				}
 			}
@@ -210,7 +210,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	}
 
 	@Test
-	public void testConcurrently() throws Exception{
+	public void testConcurrently() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("mult-producer-and-consumers-temp-reply.xml", this.getClass());
@@ -228,7 +228,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 					try {
 
 						String reply = (String) gateway.exchange(new GenericMessage<String>(String.valueOf(y))).getPayload();
-						if (!String.valueOf(y).equals(reply)){
+						if (!String.valueOf(y).equals(reply)) {
 							missmatches.incrementAndGet();
 						}
 					}
@@ -258,7 +258,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		assertEquals(0, timeouts.get());
 	}
 
-	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed){
+	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed) {
 		System.out.println("============================");
 		System.out.println(echangesProcessed + " exchanges processed");
 		System.out.println("Failures: " + failures.get());
@@ -267,10 +267,10 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		System.out.println("============================");
 	}
 
-	public static class MyRandomlySlowService{
+	public static class MyRandomlySlowService {
 		Random random = new Random();
 		List<Integer> list = new ArrayList<Integer>();
-		public String secho(String value) throws Exception{
+		public String secho(String value) throws Exception {
 			int i = random.nextInt(2000);
 //			if (i >= 2000){
 //				System.out.println("SLEEPIING: " + i);

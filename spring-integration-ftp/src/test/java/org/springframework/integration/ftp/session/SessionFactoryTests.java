@@ -47,7 +47,7 @@ import org.springframework.messaging.MessagingException;
  * @author Gary Russell
  *
  */
-@SuppressWarnings({"rawtypes","unchecked"})
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SessionFactoryTests {
 
 
@@ -90,13 +90,13 @@ public class SessionFactoryTests {
 				TestUtils.getPropertyValue(sessionFactory, "controlEncoding"));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testEmptyControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setControlEncoding("");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testNullControlEncoding() {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setControlEncoding(null);
@@ -104,16 +104,16 @@ public class SessionFactoryTests {
 
 
 	@Test
-	public void testClientModes() throws Exception{
+	public void testClientModes() throws Exception {
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		Field[] fields = FTPClient.class.getDeclaredFields();
 		for (Field field : fields) {
-			if (field.getName().endsWith("MODE")){
+			if (field.getName().endsWith("MODE")) {
 				try {
 					int clientMode = field.getInt(null);
 					sessionFactory.setClientMode(clientMode);
 					if (!(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE ||
-						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)){
+						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)) {
 						fail();
 					}
 				}
@@ -128,7 +128,7 @@ public class SessionFactoryTests {
 
 
 	@Test
-	public void testStaleConnection() throws Exception{
+	public void testStaleConnection() throws Exception {
 		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
 		Session sessionA = Mockito.mock(Session.class);
 		Session sessionB = Mockito.mock(Session.class);
@@ -148,7 +148,7 @@ public class SessionFactoryTests {
 	}
 
 	@Test
-	public void testSameSessionFromThePool() throws Exception{
+	public void testSameSessionFromThePool() throws Exception {
 		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
 		Session session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
@@ -163,8 +163,8 @@ public class SessionFactoryTests {
 		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
 	}
 
-	@Test (expected=MessagingException.class) // timeout expire
-	public void testSessionWaitExpire() throws Exception{
+	@Test (expected = MessagingException.class) // timeout expire
+	public void testSessionWaitExpire() throws Exception {
 		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
 		Session session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
@@ -180,7 +180,7 @@ public class SessionFactoryTests {
 
 	@Test
 	@Ignore
-	public void testConnectionLimit() throws Exception{
+	public void testConnectionLimit() throws Exception {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		sessionFactory.setHost("192.168.28.143");

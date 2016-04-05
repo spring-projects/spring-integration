@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.jms.Destination;
 import javax.jms.MessageListener;
 
@@ -353,7 +354,8 @@ public class SubscribableJmsChannelTests {
 					logList.add(message);
 				}
 				return null;
-			}}).when(logger).warn(anyString(), any(Exception.class));
+			}
+		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		Object listener = container.getMessageListener();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -500,7 +500,7 @@ public class PayloadTypeRouterTests {
 		assertNotNull(c2Channel.receive(100));
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void classLosesOverLessDistantAmbiguousInterfaces() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -533,7 +533,7 @@ public class PayloadTypeRouterTests {
 		router.handleMessage(message);
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void classLosesOverAmbiguousInterfacesAtSameLevel() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -567,24 +567,24 @@ public class PayloadTypeRouterTests {
 	}
 
 	@SuppressWarnings("serial")
-	public static class C1 extends C2 implements I1A, I1B {}
+	public static class C1 extends C2 implements I1A, I1B { }
 
-	public interface I1A extends Serializable {}
+	public interface I1A extends Serializable { }
 
-	public interface I1B extends I2 {}
+	public interface I1B extends I2 { }
 
-	public interface I2 extends I3 {}
+	public interface I2 extends I3 { }
 
-	public interface I3 extends I4 {}
+	public interface I3 extends I4 { }
 
-	public interface I4 extends I5A, I5B {}
+	public interface I4 extends I5A, I5B { }
 
-	public interface I5A {}
+	public interface I5A { }
 
-	public interface I5B {}
+	public interface I5B { }
 
-	public static class C2 extends C3 {}
+	public static class C2 extends C3 { }
 
-	public static class C3 implements I4 {}
+	public static class C3 implements I4 { }
 
 }

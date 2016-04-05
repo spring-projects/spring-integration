@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer(){
+	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer() {
 		Object pollingConsumer = context.getBean("pollingOutboundRosterAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
@@ -63,7 +63,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
+	public void testRosterEventOutboundChannelAdapterParserEventConsumer() {
 		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 		AbstractXmppConnectionAwareMessageHandler handler = (AbstractXmppConnectionAwareMessageHandler) TestUtils
@@ -72,7 +72,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void advised(){
+	public void advised() {
 		Object eventConsumer = context.getBean("advised");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 		MessageHandler handler = TestUtils.getPropertyValue(eventConsumer, "handler", MessageHandler.class);
@@ -81,7 +81,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testRosterEventOutboundChannel(){
+	public void testRosterEventOutboundChannel() {
 		Object channel = context.getBean("eventOutboundRosterChannel");
 		assertTrue(channel instanceof SubscribableChannel);
 		UnicastingDispatcher dispatcher = (UnicastingDispatcher) TestUtils

@@ -137,17 +137,17 @@ public class PublisherAnnotationAdvisorTests {
 
 	static class AnnotationAtMethodLevelTestBeanImpl implements TestBean, TestVoidBean {
 
-		@Publisher(channel="testChannel")
+		@Publisher(channel = "testChannel")
 		public String test() {
 			return "foo";
 		}
 
-		@Publisher(channel="testChannel")
-		public void testVoidMethod(@Payload String s) {}
+		@Publisher(channel = "testChannel")
+		public void testVoidMethod(@Payload String s) { }
 	}
 
 
-	@Publisher(channel="testChannel")
+	@Publisher(channel = "testChannel")
 	static class AnnotationAtClassLevelTestBeanImpl implements TestBean {
 
 		public String test() {
@@ -159,7 +159,7 @@ public class PublisherAnnotationAdvisorTests {
 
 	@Target({ElementType.METHOD, ElementType.TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
-	@Publisher(channel="testMetaChannel")
+	@Publisher(channel = "testMetaChannel")
 	public @interface TestMetaPublisher {
 	}
 

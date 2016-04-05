@@ -375,7 +375,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		try {
 			return this.invokeGatewayMethod(invocation, runningOnCallerThread);
 		}
-		catch (Throwable e) {//NOSONAR - ok to catch, rethrown below
+		catch (Throwable e) { //NOSONAR - ok to catch, rethrown below
 			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
 			return null; // preceding call should always throw something
 		}
@@ -504,11 +504,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				requestChannelName = methodMetadata.getRequestChannelName();
 				replyChannelName = methodMetadata.getReplyChannelName();
 				String reqTimeout = methodMetadata.getRequestTimeout();
-				if (StringUtils.hasText(reqTimeout)){
+				if (StringUtils.hasText(reqTimeout)) {
 					requestTimeout = this.convert(reqTimeout, Long.class);
 				}
 				String repTimeout = methodMetadata.getReplyTimeout();
-				if (StringUtils.hasText(repTimeout)){
+				if (StringUtils.hasText(repTimeout)) {
 					replyTimeout = this.convert(repTimeout, Long.class);
 				}
 			}
@@ -635,10 +635,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			try {
 				return doInvoke(this.invocation, false);
 			}
-			catch (Error e) {//NOSONAR
+			catch (Error e) { //NOSONAR
 				throw e;
 			}
-			catch (Throwable t) {//NOSONAR
+			catch (Throwable t) { //NOSONAR
 				if (t instanceof RuntimeException) {
 					throw (RuntimeException) t;
 				}

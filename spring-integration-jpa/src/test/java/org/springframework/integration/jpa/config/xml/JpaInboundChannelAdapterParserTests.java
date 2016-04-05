@@ -147,13 +147,13 @@ public class JpaInboundChannelAdapterParserTests {
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls, String consumerId){
+	public void setUp(String name, Class<?> cls, String consumerId) {
 		context    = new ClassPathXmlApplicationContext(name, cls);
 		consumer   = this.context.getBean(consumerId, SourcePollingChannelAdapter.class);
 	}

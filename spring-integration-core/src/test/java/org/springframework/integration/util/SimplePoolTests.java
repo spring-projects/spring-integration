@@ -85,7 +85,7 @@ public class SimplePoolTests {
 			pool.getItem();
 			fail("Expected exception");
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) { }
 
 		// resize up
 		pool.setPoolSize(4);
@@ -125,7 +125,7 @@ public class SimplePoolTests {
 		assertEquals(2, pool.getAllocatedCount());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testForeignObject() {
 		final Set<String> strings = new HashSet<String>();
 		final AtomicBoolean stale = new AtomicBoolean();

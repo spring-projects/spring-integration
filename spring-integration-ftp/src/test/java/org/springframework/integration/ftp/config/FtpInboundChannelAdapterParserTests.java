@@ -83,7 +83,7 @@ public class FtpInboundChannelAdapterParserTests {
 	private ApplicationContext context;
 
 	@Test
-	public void testFtpInboundChannelAdapterComplete() throws Exception{
+	public void testFtpInboundChannelAdapterComplete() throws Exception {
 		assertFalse(TestUtils.getPropertyValue(ftpInbound, "autoStartup", Boolean.class));
 		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(ftpInbound, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		Comparator<?> comparator = blockingQueue.comparator();
@@ -125,7 +125,7 @@ public class FtpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void cachingSessionFactory() throws Exception{
+	public void cachingSessionFactory() throws Exception {
 		Object sessionFactory = TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 		FtpInboundFileSynchronizer fisync =

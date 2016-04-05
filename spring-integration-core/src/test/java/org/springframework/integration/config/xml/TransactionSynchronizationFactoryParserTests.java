@@ -36,12 +36,12 @@ import org.springframework.integration.transaction.TransactionSynchronizationPro
 public class TransactionSynchronizationFactoryParserTests {
 
 	@Test // nothing to assert. Validates only XSD
-	public void validateXsdCombinationOfOrderOfSubelements(){
+	public void validateXsdCombinationOfOrderOfSubelements() {
 		new ClassPathXmlApplicationContext("TransactionSynchronizationFactoryParserTests-xsd.xml", this.getClass());
 	}
 
 	@Test
-	public void validateFullConfiguration(){
+	public void validateFullConfiguration() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("TransactionSynchronizationFactoryParserTests-config.xml", this.getClass());
 
@@ -63,14 +63,14 @@ public class TransactionSynchronizationFactoryParserTests {
 		assertEquals(afterCommitResultChannel, context.getBean("nullChannel"));
 		Expression afterCommitExpression = TestUtils.getPropertyValue(processor, "afterCommitExpression", Expression.class);
 		assertNotNull(afterCommitExpression);
-		assertEquals("'afterCommit'", ((SpelExpression)afterCommitExpression).getExpressionString());
+		assertEquals("'afterCommit'", ((SpelExpression) afterCommitExpression).getExpressionString());
 
 		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackChannel", MessageChannel.class);
 		assertNotNull(afterRollbackResultChannel);
 		assertEquals(afterRollbackResultChannel, context.getBean("afterRollbackChannel"));
 		Expression afterRollbackExpression = TestUtils.getPropertyValue(processor, "afterRollbackExpression", Expression.class);
 		assertNotNull(afterRollbackExpression);
-		assertEquals("'afterRollback'", ((SpelExpression)afterRollbackExpression).getExpressionString());
+		assertEquals("'afterRollback'", ((SpelExpression) afterRollbackExpression).getExpressionString());
 	}
 
 }

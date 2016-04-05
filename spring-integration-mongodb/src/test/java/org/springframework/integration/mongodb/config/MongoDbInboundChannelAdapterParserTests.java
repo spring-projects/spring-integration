@@ -35,7 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
 public class MongoDbInboundChannelAdapterParserTests {
 
 	@Test
-	public void minimalConfig(){
+	public void minimalConfig() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("minimalConfig.adapter", SourcePollingChannelAdapter.class);
@@ -50,7 +50,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithCollectionExpression(){
+	public void fullConfigWithCollectionExpression() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithCollectionExpression.adapter", SourcePollingChannelAdapter.class);
@@ -66,7 +66,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithCollectionName(){
+	public void fullConfigWithCollectionName() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithCollectionName.adapter", SourcePollingChannelAdapter.class);
@@ -82,7 +82,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithMongoTemplate(){
+	public void fullConfigWithMongoTemplate() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithMongoTemplate.adapter", SourcePollingChannelAdapter.class);
@@ -96,13 +96,13 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void templateAndFactoryFail(){
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void templateAndFactoryFail() {
 		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-factory-config.xml", this.getClass());
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void templateAndConverterFail(){
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void templateAndConverterFail() {
 		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml", this.getClass());
 	}
 }

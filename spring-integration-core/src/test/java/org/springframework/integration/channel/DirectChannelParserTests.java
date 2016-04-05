@@ -38,7 +38,7 @@ public class DirectChannelParserTests {
 				"directChannelParserTests.xml", DirectChannelParserTests.class);
 		Object channel = context.getBean("channel");
 		assertEquals(DirectChannel.class, channel.getClass());
-		DirectFieldAccessor dcAccessor = new DirectFieldAccessor(((DirectChannel)channel).getDispatcher());
+		DirectFieldAccessor dcAccessor = new DirectFieldAccessor(((DirectChannel) channel).getDispatcher());
 		assertTrue(dcAccessor.getPropertyValue("loadBalancingStrategy") instanceof RoundRobinLoadBalancingStrategy);
 		context.close();
 	}

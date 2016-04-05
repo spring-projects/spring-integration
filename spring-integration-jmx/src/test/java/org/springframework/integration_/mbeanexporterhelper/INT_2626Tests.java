@@ -28,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class INT_2626Tests {
 
 	@Test // This context failed to load before the INT-2626 fix was applied
-	public void testInt2626(){
+	public void testInt2626() {
 		new ClassPathXmlApplicationContext("INT-2626-config.xml", this.getClass()).close();
 	}
 }

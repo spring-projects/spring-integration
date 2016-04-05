@@ -45,7 +45,7 @@ import org.springframework.integration.test.util.TestUtils;
 public class AnotatedTests {
 
 	@Test
-	public void testHistoryWithAnnotatedComponents() throws Exception{
+	public void testHistoryWithAnnotatedComponents() throws Exception {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("annotated-config.xml", this.getClass());
 		ApplicationListener<ApplicationEvent> listener = new ApplicationListener<ApplicationEvent>() {
 

@@ -34,7 +34,7 @@ public class ProcedureParameterTests {
 		try {
 			new ProcedureParameter(null, "value", "expression");
 		}
-		catch(IllegalArgumentException e) {
+		catch (IllegalArgumentException e) {
 			assertEquals("'name' must not be empty.", e.getMessage());
 			return;
 		}
@@ -70,7 +70,7 @@ public class ProcedureParameterTests {
 		try {
 			ProcedureParameter.convertStaticParameters(procedureParameters);
 		}
-		catch(IllegalArgumentException e) {
+		catch (IllegalArgumentException e) {
 			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
 			return;
 		}
@@ -88,7 +88,7 @@ public class ProcedureParameterTests {
 		try {
 			ProcedureParameter.convertExpressions(procedureParameters);
 		}
-		catch(IllegalArgumentException e) {
+		catch (IllegalArgumentException e) {
 			assertEquals("'procedureParameters' must not contain null values.", e.getMessage());
 			return;
 		}

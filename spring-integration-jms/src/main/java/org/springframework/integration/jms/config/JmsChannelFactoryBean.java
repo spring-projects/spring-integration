@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -458,15 +458,15 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 				dmlc.setCacheLevel(this.cacheLevel);
 			}
 
-			if (StringUtils.hasText(this.concurrency)){
+			if (StringUtils.hasText(this.concurrency)) {
 				dmlc.setConcurrency(this.concurrency);
 			}
 
-			if (this.concurrentConsumers != null){
+			if (this.concurrentConsumers != null) {
 				dmlc.setConcurrentConsumers(this.concurrentConsumers);
 			}
 
-			if (this.maxConcurrentConsumers != null){
+			if (this.maxConcurrentConsumers != null) {
 				dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
 			}
 
@@ -495,11 +495,11 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		}
 		else if (container instanceof SimpleMessageListenerContainer) {
 			SimpleMessageListenerContainer smlc = (SimpleMessageListenerContainer) container;
-			if (StringUtils.hasText(this.concurrency)){
+			if (StringUtils.hasText(this.concurrency)) {
 				smlc.setConcurrency(this.concurrency);
 			}
 
-			if (this.concurrentConsumers != null){
+			if (this.concurrentConsumers != null) {
 				smlc.setConcurrentConsumers(this.concurrentConsumers);
 			}
 

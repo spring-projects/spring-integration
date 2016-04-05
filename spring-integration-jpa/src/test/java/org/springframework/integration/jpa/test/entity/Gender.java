@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public enum Gender {
 
-	MALE("M"),FEMALE("F");
+	MALE("M"), FEMALE("F");
 
 	private String identifier;
 	private static Map<String, Gender> identifierMap;
@@ -44,7 +44,7 @@ public enum Gender {
 	static {
 		EnumSet<Gender> all = EnumSet.allOf(Gender.class);
 		identifierMap = new HashMap<String, Gender>();
-		for(Gender gender:all) {
+		for (Gender gender:all) {
 			identifierMap.put(gender.getIdentifier(), gender);
 		}
 	}

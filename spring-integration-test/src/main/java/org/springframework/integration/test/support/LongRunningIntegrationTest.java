@@ -41,7 +41,7 @@ public class LongRunningIntegrationTest extends TestWatcher {
 	private boolean shouldRun = false;
 
 	public LongRunningIntegrationTest() {
-		for(String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
+		for (String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
 			if ("true".equalsIgnoreCase(value)) {
 				this.shouldRun = true;
 				break;

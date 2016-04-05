@@ -737,7 +737,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				}
 				if (endpointNames.contains(name)) {
 					int count = 0;
-					String unique = name+"#"+count;
+					String unique = name + "#" + count;
 					while (endpointNames.contains(unique)) {
 						unique = name + "#" + (++count);
 					}
@@ -787,7 +787,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				}
 			}
 		}
-		return null;//NOSONAR - intentional null return
+		return null; //NOSONAR - intentional null return
 	}
 
 	private Object extractTarget(Object bean) {

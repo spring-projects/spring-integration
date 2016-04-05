@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class DynamicJmsTemplate extends JmsTemplate {
 		if (priority == null) {
 			return super.getPriority();
 		}
-		Assert.isTrue(priority >=0 && priority <= 9, "JMS priority must be in the range of 0-9");
+		Assert.isTrue(priority >= 0 && priority <= 9, "JMS priority must be in the range of 0-9");
 		return priority.intValue();
 	}
 

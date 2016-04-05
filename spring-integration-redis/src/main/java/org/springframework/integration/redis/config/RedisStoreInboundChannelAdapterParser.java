@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ public class RedisStoreInboundChannelAdapterParser extends AbstractPollingInboun
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisStoreMessageSource.class);
 		String redisTemplate = element.getAttribute("redis-template");
 		String connectionFactory = element.getAttribute("connection-factory");
-		if (StringUtils.hasText(redisTemplate) && StringUtils.hasText(connectionFactory)){
+		if (StringUtils.hasText(redisTemplate) && StringUtils.hasText(connectionFactory)) {
 			parserContext.getReaderContext().error("Only one of '" + redisTemplate + "' or '"
 					+ connectionFactory + "' is allowed.", element);
 		}
-		if (StringUtils.hasText(redisTemplate)){
+		if (StringUtils.hasText(redisTemplate)) {
 			builder.addConstructorArgReference(redisTemplate);
 		}
 		else {

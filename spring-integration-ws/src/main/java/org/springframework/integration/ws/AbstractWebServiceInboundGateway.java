@@ -58,7 +58,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		if (!isRunning()) {
 			throw new ServiceUnavailableException("503 Service Unavailable");
 		}
-		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
+		Assert.notNull(messageContext, "'messageContext' is required; it must not be null.");
 
 		try {
 			this.activeCount.incrementAndGet();
@@ -76,7 +76,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 	}
 
-	protected void fromSoapHeaders(MessageContext messageContext, AbstractIntegrationMessageBuilder<?> builder){
+	protected void fromSoapHeaders(MessageContext messageContext, AbstractIntegrationMessageBuilder<?> builder) {
 		WebServiceMessage request = messageContext.getRequest();
 		String[] propertyNames = messageContext.getPropertyNames();
 		if (propertyNames != null) {
@@ -93,7 +93,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 	}
 
-	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage){
+	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage) {
 		if (response instanceof SoapMessage) {
 			this.headerMapper.fromHeadersToReply(
 					replyMessage.getHeaders(), (SoapMessage) response);

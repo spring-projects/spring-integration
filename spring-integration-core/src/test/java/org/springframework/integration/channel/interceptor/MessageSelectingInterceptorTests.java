@@ -43,7 +43,7 @@ public class MessageSelectingInterceptorTests {
 		assertTrue(channel.send(new GenericMessage<String>("test1")));
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void testSingleSelectorRejects() {
 		final AtomicInteger counter = new AtomicInteger();
 		MessageSelector selector = new TestMessageSelector(false, counter);

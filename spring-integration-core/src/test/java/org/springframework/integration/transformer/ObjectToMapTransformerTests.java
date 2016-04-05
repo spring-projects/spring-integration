@@ -142,8 +142,8 @@ public class ObjectToMapTransformerTests {
 		assertEquals(valueFromTheMap, valueFromExpression);
 	}
 
-	@Test(expected=MessageTransformationException.class)
-	public void testObjectToSpelMapTransformerWithCycle(){
+	@Test(expected = MessageTransformationException.class)
+	public void testObjectToSpelMapTransformerWithCycle() {
 		Employee employee = this.buildEmployee();
 		Child child = new Child();
 		Person parent = employee.getPerson();
@@ -155,15 +155,15 @@ public class ObjectToMapTransformerTests {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Employee buildEmployee(){
+	public Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");
 		companyAddress.setZip("12345");
 
 		Map<String, Long[]> coordinates = new HashMap<String, Long[]>();
-		coordinates.put("latitude", new Long[]{(long)1, (long)5, (long)13});
-		coordinates.put("longitude", new Long[]{(long)156});
+		coordinates.put("latitude", new Long[]{(long) 1, (long) 5, (long) 13});
+		coordinates.put("longitude", new Long[]{(long) 156});
 		companyAddress.setCoordinates(coordinates);
 
 		List<Date> datesA = new ArrayList<Date>();
@@ -209,7 +209,7 @@ public class ObjectToMapTransformerTests {
 		remarksA.put("foo", "foo");
 		remarksA.put("bar", "bar");
 		remarksB.put("baz", "baz");
-		List<Map<String, Object>> remarks = new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> remarks = new ArrayList<Map<String, Object>>();
 		remarks.add(remarksA);
 		remarks.add(remarksB);
 		person.setRemarks(remarks);
@@ -230,7 +230,7 @@ public class ObjectToMapTransformerTests {
 		return employee;
 	}
 
-	public static class Employee{
+	public static class Employee {
 		private List<String> departments;
 		private List<List<Date>> listOfDates;
 		private String companyName;
@@ -276,7 +276,7 @@ public class ObjectToMapTransformerTests {
 		}
 	}
 
-	public static class Person{
+	public static class Person {
 		private String fname;
 		private String lname;
 		private String[] akaNames;
@@ -339,7 +339,7 @@ public class ObjectToMapTransformerTests {
 		}
 	}
 
-	public static class Address{
+	public static class Address {
 		private String street;
 		private String city;
 		private String zip;

@@ -73,7 +73,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 
 	private Environment environment;
 
-	@Autowired(required=false)
+	@Autowired(required = false)
 	@Qualifier(IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME)
 	private IntegrationManagementConfigurer configurer;
 

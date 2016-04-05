@@ -67,7 +67,7 @@ public class XmlTestUtil {
 		return res;
 	}
 
-	public static String docToString(Document doc) throws Exception{
+	public static String docToString(Document doc) throws Exception {
 		DOMSource source = new DOMSource(doc);
 		StringResult stringResult = new StringResult();
 		transform(source, stringResult);

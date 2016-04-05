@@ -54,7 +54,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 		private boolean shouldRun;
 
 		{
-			for(String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
+			for (String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
 				if ("true".equalsIgnoreCase(value)) {
 					this.shouldRun = true;
 					break;
@@ -88,7 +88,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 	}
 
 	@Test
-	public void testAggregatorsUnderStressWithConcurrency() throws Exception{
+	public void testAggregatorsUnderStressWithConcurrency() throws Exception {
 		// this is to be sure  after INT-2502
 		for (int i = 0; i < 10; i++) {
 			this.validateSequenceSizeHasNoAffectCustomCorrelator();
@@ -98,7 +98,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 		}
 	}
 
-	public void validateSequenceSizeHasNoAffectCustomCorrelator() throws Exception{
+	public void validateSequenceSizeHasNoAffectCustomCorrelator() throws Exception {
 		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("aggregationChannelCustomCorrelation", MessageChannel.class);
@@ -112,7 +112,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("foo").
-							setHeader("correlation", "foo"+counter).build());
+							setHeader("correlation", "foo" + counter).build());
 					latch.countDown();
 				}
 			});
@@ -120,7 +120,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("bar").
-							setHeader("correlation", "foo"+counter).build());
+							setHeader("correlation", "foo" + counter).build());
 					latch.countDown();
 				}
 			});
@@ -128,7 +128,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 				@Override
 				public void run() {
 					inputChannel.send(MessageBuilder.withPayload("baz").
-							setHeader("correlation", "foo"+counter).build());
+							setHeader("correlation", "foo" + counter).build());
 					latch.countDown();
 				}
 			});
@@ -138,7 +138,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
-		while(message != null){
+		while (message != null) {
 			counter++;
 			message = resultChannel.receive(1000);
 		}
@@ -146,7 +146,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 		context.close();
 	}
 
-	public void validateSequenceSizeHasNoAffectWithSplitter() throws Exception{
+	public void validateSequenceSizeHasNoAffectWithSplitter() throws Exception {
 		AbstractApplicationContext context =
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("in", MessageChannel.class);
@@ -182,7 +182,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
-		while(message != null && ++counter < 7200){
+		while (message != null && ++counter < 7200) {
 			message = resultChannel.receive(1000);
 		}
 		assertEquals(7200, counter);

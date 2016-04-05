@@ -220,7 +220,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 			StringWriter stringWriter = new StringWriter();
 			if (logMessage instanceof AggregateMessageDeliveryException) {
 				stringWriter.append(((Throwable) logMessage).getMessage());
-				for (Exception exception : ((AggregateMessageDeliveryException)logMessage).getAggregatedExceptions()) {
+				for (Exception exception : ((AggregateMessageDeliveryException) logMessage).getAggregatedExceptions()) {
 					exception.printStackTrace(new PrintWriter(stringWriter, true));
 				}
 			}

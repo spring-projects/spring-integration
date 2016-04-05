@@ -95,8 +95,8 @@ public class RoundRobinDispatcherTests {
 		dispatcher.addHandler(differentHandler);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
-		((AtomicInteger) accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE-5);
-		for(int i = 0; i < 40; i++) {
+		((AtomicInteger) accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE - 5);
+		for (int i = 0; i < 40; i++) {
 			dispatcher.dispatch(message);
 		}
 		verify(handler, atLeast(18)).handleMessage(message);

@@ -124,11 +124,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		try {
 			this.channelInputStream.close();
 		}
-		catch (IOException e) {}
+		catch (IOException e) { }
 		try {
 			this.socketChannel.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) { }
 		super.close();
 	}
 
@@ -140,7 +140,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
-		synchronized(this.socketChannel) {
+		synchronized (this.socketChannel) {
 			if (this.bufferedOutputStream == null) {
 				int writeBufferSize = this.socketChannel.socket().getSendBufferSize();
 				this.bufferedOutputStream = new BufferedOutputStream(this.getChannelOutputStream(),
@@ -215,7 +215,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			logger.trace(this.getConnectionId() + " Nio message assembler running...");
 		}
 		boolean moreDataAvailable = true;
-		while(moreDataAvailable) {
+		while (moreDataAvailable) {
 			try {
 				try {
 					if (dataAvailable()) {
@@ -275,7 +275,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				// a new one wasn't run
 				try {
 					if (dataAvailable()) {
-						synchronized(this.executionControl) {
+						synchronized (this.executionControl) {
 							if (this.executionControl.incrementAndGet() <= 1) {
 								// only continue if we don't already have another assembler running
 								this.executionControl.set(1);
@@ -444,7 +444,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	private void checkForAssembler() {
-		synchronized(this.executionControl) {
+		synchronized (this.executionControl) {
 			if (this.executionControl.incrementAndGet() <= 1) {
 				// only execute run() if we don't already have one running
 				this.executionControl.set(1);

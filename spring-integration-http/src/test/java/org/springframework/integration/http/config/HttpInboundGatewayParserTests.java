@@ -129,11 +129,11 @@ public class HttpInboundGatewayParserTests {
 		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 
 		boolean registerDefaultConverters =
-				TestUtils.getPropertyValue(this.gateway,"mergeWithDefaultConverters", Boolean.class);
+				TestUtils.getPropertyValue(this.gateway, "mergeWithDefaultConverters", Boolean.class);
 		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(this.gateway,"messageConverters", List.class);
+				TestUtils.getPropertyValue(this.gateway, "messageConverters", List.class);
 
 		assertTrue("The default converters should have been registered, given there are no custom converters",
 				messageConverters.size() > 0);

@@ -197,7 +197,7 @@ public class SyslogReceivingChannelAdapterTests {
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
-		doAnswer(new Answer<Void>(){
+		doAnswer(new Answer<Void>() {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {

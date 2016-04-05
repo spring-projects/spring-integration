@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class ObjectToMapTransformerParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testObjectToSpelMapTransformer(){
+	public void testObjectToSpelMapTransformer() {
 		Employee employee = this.buildEmployee();
 		StandardEvaluationContext context = new StandardEvaluationContext(employee);
 		context.addPropertyAccessor(new MapAccessor());
@@ -90,8 +90,8 @@ public class ObjectToMapTransformerParserTests {
 			assertEquals(valueFromTheMap, valueFromExpression);
 		}
 	}
-	@Test(expected=MessageTransformationException.class)
-	public void testObjectToSpelMapTransformerWithCycle(){
+	@Test(expected = MessageTransformationException.class)
+	public void testObjectToSpelMapTransformerWithCycle() {
 		Employee employee = this.buildEmployee();
 		Child child = new Child();
 		Person parent = employee.getPerson();
@@ -102,7 +102,7 @@ public class ObjectToMapTransformerParserTests {
 	}
 
 	@Test
-	public void testObjectToNotFlattenedMapTransformer(){
+	public void testObjectToNotFlattenedMapTransformer() {
 		Employee employee = this.buildEmployee();
 
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
@@ -119,7 +119,7 @@ public class ObjectToMapTransformerParserTests {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Employee buildEmployee(){
+	public Employee buildEmployee() {
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");
@@ -158,7 +158,7 @@ public class ObjectToMapTransformerParserTests {
 		remarksA.put("foo", "foo");
 		remarksA.put("bar", "bar");
 		remarksB.put("baz", "baz");
-		List<Map<String, Object>> remarks = new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> remarks = new ArrayList<Map<String, Object>>();
 		remarks.add(remarksA);
 		remarks.add(remarksB);
 		person.setRemarks(remarks);
@@ -179,7 +179,7 @@ public class ObjectToMapTransformerParserTests {
 		return employee;
 	}
 
-	public static class Employee{
+	public static class Employee {
 		private List<String> departments;
 		private String companyName;
 		private Person person;
@@ -218,7 +218,7 @@ public class ObjectToMapTransformerParserTests {
 		}
 	}
 
-	public static class Person{
+	public static class Person {
 		private String fname;
 		private String lname;
 		private String[] akaNames;
@@ -263,7 +263,7 @@ public class ObjectToMapTransformerParserTests {
 		}
 	}
 
-	public static class Address{
+	public static class Address {
 		private String street;
 		private String city;
 		private String zip;

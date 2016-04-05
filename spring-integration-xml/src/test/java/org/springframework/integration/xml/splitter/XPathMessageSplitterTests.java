@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class XPathMessageSplitterTests {
 
 
 	@Before
-	public void setUp(){
+	public void setUp() {
 		String splittingXPath = "/orders/order";
 		splitter = new XPathMessageSplitter(splittingXPath);
 		splitter.setOutputChannel(replyChannel);
@@ -80,8 +80,8 @@ public class XPathMessageSplitterTests {
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
 			assertTrue("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Document);
-			Document docPayload = (Document)message.getPayload();
-			assertEquals("Wrong root element name" ,"order", docPayload.getDocumentElement().getLocalName());
+			Document docPayload = (Document) message.getPayload();
+			assertEquals("Wrong root element name" , "order", docPayload.getDocumentElement().getLocalName());
 		}
 	}
 

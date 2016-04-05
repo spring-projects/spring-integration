@@ -28,15 +28,15 @@ public class FailedMailConfigurationTests {
 	/**
 	 * validates that if 'should-delete-messages' is not set the context fails
 	 */
-	@Test(expected=XmlBeanDefinitionStoreException.class)
-	public void testImapIdleWithNoDeleteMessageAttribute(){
+	@Test(expected = XmlBeanDefinitionStoreException.class)
+	public void testImapIdleWithNoDeleteMessageAttribute() {
 		new ClassPathXmlApplicationContext("failed-imap-config.xml", this.getClass());
 	}
 	/**
 	 * validates that if 'should-delete-messages' is not set the context fails
 	 */
-	@Test(expected=XmlBeanDefinitionStoreException.class)
-	public void testAdapterWithNoDeleteMessageAttribute(){
+	@Test(expected = XmlBeanDefinitionStoreException.class)
+	public void testAdapterWithNoDeleteMessageAttribute() {
 		new ClassPathXmlApplicationContext("failed-adapter-config.xml", this.getClass());
 	}
 }

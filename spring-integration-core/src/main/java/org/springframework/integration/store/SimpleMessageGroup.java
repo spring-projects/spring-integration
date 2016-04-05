@@ -79,7 +79,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		this.timestamp = timestamp;
 		this.complete = complete;
 		for (Message<?> message : messages) {
-			if (message != null){ //see INT-2666
+			if (message != null) { //see INT-2666
 				addMessage(message);
 			}
 		}
@@ -90,7 +90,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return this.timestamp;
 	}
 
-	public void setLastModified(long lastModified){
+	public void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
 	}
 
@@ -126,7 +126,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return Collections.unmodifiableCollection(this.messages);
 	}
 
-	public void setLastReleasedMessageSequenceNumber(int sequenceNumber){
+	public void setLastReleasedMessageSequenceNumber(int sequenceNumber) {
 		this.lastReleasedMessageSequence = sequenceNumber;
 	}
 
@@ -166,7 +166,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 	}
 
-	public void clear(){
+	public void clear() {
 		this.messages.clear();
 	}
 

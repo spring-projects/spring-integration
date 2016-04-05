@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public class AmqpInboundGatewayParserTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void verifyUsageWithHeaderMapper() throws Exception{
+	public void verifyUsageWithHeaderMapper() throws Exception {
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
 		requestChannel.subscribe(new MessageHandler() {
 			@Override
@@ -129,8 +129,8 @@ public class AmqpInboundGatewayParserTests {
 				MessageProperties properties = amqpReplyMessage.getMessageProperties();
 				assertEquals("bar", properties.getHeaders().get("bar"));
 				return null;
-			}})
-				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
+			}
+		}).when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
 
@@ -166,6 +166,6 @@ public class AmqpInboundGatewayParserTests {
 		}
 	}
 
-	private static class TestConverter extends SimpleMessageConverter {}
+	private static class TestConverter extends SimpleMessageConverter { }
 
 }

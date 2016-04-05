@@ -32,7 +32,7 @@ import org.springframework.integration.file.remote.session.Session;
  */
 public final class RemoteFileUtils {
 
-	private RemoteFileUtils() {}
+	private RemoteFileUtils() { }
 
 	/**
 	 * Recursively create remote directories.
@@ -46,13 +46,13 @@ public final class RemoteFileUtils {
 	public static <F> void makeDirectories(String path, Session<F> session, String remoteFileSeparator, Log logger)
 			throws IOException {
 
-		if (!session.exists(path)){
+		if (!session.exists(path)) {
 
 			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
 
-			if (nextSeparatorIndex > -1){
+			if (nextSeparatorIndex > -1) {
 				List<String> pathsToCreate = new LinkedList<String>();
-				while (nextSeparatorIndex > -1){
+				while (nextSeparatorIndex > -1) {
 					String pathSegment = path.substring(0, nextSeparatorIndex);
 					if (pathSegment.length() == 0 || session.exists(pathSegment)) {
 						// no more paths to create
@@ -65,7 +65,7 @@ public final class RemoteFileUtils {
 				}
 
 				for (String pathToCreate : pathsToCreate) {
-					if (logger.isDebugEnabled()){
+					if (logger.isDebugEnabled()) {
 						logger.debug("Creating '" + pathToCreate + "'");
 					}
 					session.mkdir(pathToCreate);

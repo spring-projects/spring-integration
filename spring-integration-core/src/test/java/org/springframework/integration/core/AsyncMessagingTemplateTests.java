@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get(100000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get().getPayload());
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get().getPayload());
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 	}
 
 	@Test
@@ -183,7 +183,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("test", result.get().getPayload());
 	}
 
@@ -206,7 +206,7 @@ public class AsyncMessagingTemplateTests {
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get());
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 	}
 
 	@Test
@@ -220,7 +220,7 @@ public class AsyncMessagingTemplateTests {
 		long elapsed = System.currentTimeMillis() - start;
 		assertEquals("test", result.get());
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 	}
 
 	@Test
@@ -237,7 +237,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get(10000, TimeUnit.MILLISECONDS));
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("test", result.get());
 	}
 
@@ -259,7 +259,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 	}
 
 	@Test
@@ -272,7 +272,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST", result.get().getPayload());
 	}
 
@@ -290,7 +290,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST", result.get().getPayload());
 	}
 
@@ -305,7 +305,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST", result.get());
 	}
 
@@ -319,7 +319,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST", result.get());
 	}
 
@@ -337,7 +337,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST", result.get());
 	}
 
@@ -352,7 +352,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("123-bar", result.get());
 	}
 
@@ -366,7 +366,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST-bar", result.get());
 	}
 
@@ -384,7 +384,7 @@ public class AsyncMessagingTemplateTests {
 		assertNotNull(result.get());
 		long elapsed = System.currentTimeMillis() - start;
 
-		assertTrue(elapsed >= 200-safety);
+		assertTrue(elapsed >= 200 - safety);
 		assertEquals("TEST-bar", result.get());
 	}
 

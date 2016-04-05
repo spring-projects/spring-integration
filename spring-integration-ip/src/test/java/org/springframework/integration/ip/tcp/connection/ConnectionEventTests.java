@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class ConnectionEventTests {
 			conn.send(new GenericMessage<String>("bar"));
 			fail("Expected exception");
 		}
-		catch (Exception e) {}
+		catch (Exception e) { }
 		assertTrue(theEvent.size() > 0);
 		assertNotNull(theEvent.get(0));
 		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);

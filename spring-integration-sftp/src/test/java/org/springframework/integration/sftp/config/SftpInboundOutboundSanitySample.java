@@ -37,21 +37,21 @@ public class SftpInboundOutboundSanitySample {
 
 	@Test
 	@Ignore
-	public void testInbound() throws Exception{
+	public void testInbound() throws Exception {
 		File fileA = new File("local-test-dir/a.test");
-		if (fileA.exists()){
+		if (fileA.exists()) {
 			fileA.delete();
 		}
 		File fileB = new File("local-test-dir/b.test");
-		if (fileB.exists()){
+		if (fileB.exists()) {
 			fileB.delete();
 		}
 		fileA = new File("remote-target-dir/a.test-foo");
-		if (fileA.exists()){
+		if (fileA.exists()) {
 			fileA.delete();
 		}
 		fileB = new File("remote-target-dir/b.test-foo");
-		if (fileB.exists()){
+		if (fileB.exists()) {
 			fileB.delete();
 		}
 
@@ -65,7 +65,7 @@ public class SftpInboundOutboundSanitySample {
 
 	@Test
 	@Ignore
-	public void testOutbound() throws Exception{
+	public void testOutbound() throws Exception {
 		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");

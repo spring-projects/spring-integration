@@ -44,16 +44,16 @@ final class MongoParserUtils {
 	 * @param parserContext
 	 * @param builder
 	 */
-	public static void processCommonAttributes(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+	public static void processCommonAttributes(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String mongoDbTemplate = element.getAttribute("mongo-template");
 		String mongoDbFactory = element.getAttribute("mongodb-factory");
 
-		if (StringUtils.hasText(mongoDbTemplate) && StringUtils.hasText(mongoDbFactory)){
+		if (StringUtils.hasText(mongoDbTemplate) && StringUtils.hasText(mongoDbFactory)) {
 			parserContext.getReaderContext().error("Only one of '" + mongoDbTemplate + "' or '"
 					+ mongoDbFactory + "' is allowed", element);
 		}
 
-		if (StringUtils.hasText(mongoDbTemplate)){
+		if (StringUtils.hasText(mongoDbTemplate)) {
 			builder.addConstructorArgReference(mongoDbTemplate);
 			if (StringUtils.hasText(element.getAttribute("mongo-converter"))) {
 				parserContext.getReaderContext().error("'mongo-converter' is not allowed with 'mongo-template'",
@@ -73,7 +73,7 @@ final class MongoParserUtils {
 						parserContext, element, false);
 
 
-		if (collectionNameExpressionDef != null){
+		if (collectionNameExpressionDef != null) {
 			builder.addPropertyValue("collectionNameExpression", collectionNameExpressionDef);
 		}
 

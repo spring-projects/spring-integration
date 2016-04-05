@@ -64,7 +64,7 @@ public class StatusUpdatingMessageHandlerTests {
 	Twitter twitter;
 
 	@Test @Ignore
-	public void demoSendStatusMessage() throws Exception{
+	public void demoSendStatusMessage() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();

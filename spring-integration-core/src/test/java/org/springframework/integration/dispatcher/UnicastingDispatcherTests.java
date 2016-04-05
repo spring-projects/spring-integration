@@ -40,7 +40,7 @@ public class UnicastingDispatcherTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void withInboundGatewayAsyncRequestChannelAndExplicitErrorChannel() throws Exception{
+	public void withInboundGatewayAsyncRequestChannelAndExplicitErrorChannel() throws Exception {
 		ApplicationContext context = new ClassPathXmlApplicationContext("unicasting-with-async.xml", this.getClass());
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
 		MessageHandler errorHandler = new MessageHandler() {

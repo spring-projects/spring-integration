@@ -78,7 +78,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
 	private volatile String[] outboundHeaderNames = STOMP_OUTBOUND_HEADER_NAMES;
 
-	public void setInboundHeaderNames(String[] inboundHeaderNames) {//NOSONAR - false positive
+	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
 		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null.");
 		Assert.noNullElements(inboundHeaderNames, "'inboundHeaderNames' must not contains null elements.");
 		Arrays.sort(inboundHeaderNames);
@@ -87,7 +87,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 		}
 	}
 
-	public void setOutboundHeaderNames(String[] outboundHeaderNames) {//NOSONAR - false positive
+	public void setOutboundHeaderNames(String[] outboundHeaderNames) { //NOSONAR - false positive
 		Assert.notNull(outboundHeaderNames, "'outboundHeaderNames' must not be null.");
 		Assert.noNullElements(outboundHeaderNames, "'outboundHeaderNames' must not contains null elements.");
 		Arrays.sort(outboundHeaderNames);

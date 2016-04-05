@@ -29,12 +29,12 @@ public class SingleScenarioTests extends SingleRequestResponseScenarioTests {
 	@Override
 	protected RequestResponseScenario defineRequestResponseScenario() {
 		RequestResponseScenario scenario = new RequestResponseScenario(
-				"inputChannel","outputChannel")
+				"inputChannel", "outputChannel")
 			.setPayload("hello")
 			.setResponseValidator(new PayloadValidator<String>() {
 				@Override
 				protected void validateResponse(String response) {
-					assertEquals("HELLO",response);
+					assertEquals("HELLO", response);
 				}
 			});
 		return scenario;

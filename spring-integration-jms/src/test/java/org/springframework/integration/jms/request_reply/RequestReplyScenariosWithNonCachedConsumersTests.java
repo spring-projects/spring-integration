@@ -47,8 +47,8 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
-	@Test(expected=MessageTimeoutException.class)
-	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception{
+	@Test(expected = MessageTimeoutException.class)
+	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("producer-no-cached-consumers.xml", this.getClass());
 		try {
@@ -82,7 +82,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() throws Exception{
+	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("producer-no-cached-consumers.xml", this.getClass());
 		try {
@@ -115,7 +115,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() throws Exception{
+	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("producer-no-cached-consumers.xml", this.getClass());
 		try {
@@ -148,8 +148,8 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 		}
 	}
 
-	@Test(expected=MessageTimeoutException.class)
-	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() throws Exception{
+	@Test(expected = MessageTimeoutException.class)
+	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("producer-no-cached-consumers.xml", this.getClass());
 		try {

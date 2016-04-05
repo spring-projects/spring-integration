@@ -65,7 +65,7 @@ public class MailReceiverTests {
 		Folder folder = mock(Folder.class);
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(false);
-		doReturn(folder).when(store).getFolder((URLName)null);
+		doReturn(folder).when(store).getFolder((URLName) null);
 		doAnswer(new DoesNothing()).when(store).connect();
 		receiver.openFolder();
 		receiver.openFolder();

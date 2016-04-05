@@ -56,13 +56,13 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	private ApplicationContext context;
 
 	@Autowired
-	private RedisTemplate<?,?> redisTemplate;
+	private RedisTemplate<?, ?> redisTemplate;
 
 	@Test
 	public void validateWithStringTemplate() throws Exception {
 		RedisStoreWritingMessageHandler withStringTemplate = context.getBean("withStringTemplate.handler",
 						RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression)TestUtils.getPropertyValue(withStringTemplate,
+		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withStringTemplate,
 				"keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString());
 		assertTrue(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate);
@@ -78,11 +78,11 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void validateWithStringObjectTemplate(){
+	public void validateWithStringObjectTemplate() {
 		RedisStoreWritingMessageHandler withStringObjectTemplate =
 				TestUtils.getPropertyValue(context.getBean("withStringObjectTemplate.adapter"), "handler",
 						RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression)TestUtils.getPropertyValue(withStringObjectTemplate,
+		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withStringObjectTemplate,
 				"keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withStringObjectTemplate, "collectionType")).toString());
 		assertFalse(TestUtils.getPropertyValue(withStringObjectTemplate, "redisTemplate") instanceof StringRedisTemplate);
@@ -97,11 +97,11 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void validateWithExternalTemplate(){
+	public void validateWithExternalTemplate() {
 		RedisStoreWritingMessageHandler withExternalTemplate =
 				TestUtils.getPropertyValue(context.getBean("withExternalTemplate.adapter"), "handler",
 						RedisStoreWritingMessageHandler.class);
-		assertEquals("pepboys", ((LiteralExpression)TestUtils.getPropertyValue(withExternalTemplate,
+		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withExternalTemplate,
 				"keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString());
 		assertSame(redisTemplate, TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate"));

@@ -56,7 +56,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
+public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -121,7 +121,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	}
 
 	@RedisAvailable
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void testListWithListPayloadParsedAndNoKey() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.deleteKey(jcf, "foo");
@@ -266,7 +266,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
-	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() {// see INT-2775
+	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() { // see INT-2775
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.deleteKey(jcf, "foo");
 		String key = "foo";
@@ -468,7 +468,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		this.deletePresidents(jcf);
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	@RedisAvailable
 	public void testListWithMapKeyExpression() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
@@ -481,7 +481,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.afterPropertiesSet();
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	@RedisAvailable
 	public void testSetWithMapKeyExpression() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
@@ -495,7 +495,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		handler.afterPropertiesSet();
 	}
 
-	@Test(expected=IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	@RedisAvailable
 	public void testZsetWithMapKeyExpression() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
@@ -551,7 +551,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		this.deleteKey(jcf, "foo");
 	}
 
-	private <K,V> RedisTemplate<K,V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K,V> redisTemplate) {
+	private <K, V> RedisTemplate<K, V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K, V> redisTemplate) {
 		redisTemplate.setConnectionFactory(rcf);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.afterPropertiesSet();

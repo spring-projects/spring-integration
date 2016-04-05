@@ -202,7 +202,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 
 		@Override
 		public boolean canRelease(MessageGroup group) {
-			synchronized(this) {
+			synchronized (this) {
 				this.callers.incrementAndGet();
 				this.maxCallers.set(Math.max(this.maxCallers.get(), this.callers.get()));
 			}

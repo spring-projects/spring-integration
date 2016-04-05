@@ -37,7 +37,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testAddUnordered(){
+	public void testAddUnordered() {
 		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		setToTest.add("foo");
 		setToTest.add("bar");
@@ -58,7 +58,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testAddOrdered(){
+	public void testAddOrdered() {
 		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		Object o1 = new Foo(3);
 		Object o2 = new Foo(1);
@@ -96,7 +96,7 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testAddAllOrderedUnordered(){
+	public void testAddAllOrderedUnordered() {
 		List tempList = new ArrayList();
 		Object o1 = new Foo(3);
 		Object o2 = new Foo(1);
@@ -135,13 +135,13 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	}
 
 	@Test
-	public void testConcurrent(){
-		for(int i = 0; i < 1000; i++){
+	public void testConcurrent() {
+		for (int i = 0; i < 1000; i++) {
 			this.doConcurrent();
 		}
 	}
 	@SuppressWarnings("rawtypes")
-	private void doConcurrent(){
+	private void doConcurrent() {
 		final OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		final Object o1 = new Foo(3);
 		final Object o2 = new Foo(1);
@@ -200,13 +200,13 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	 * Will test addAll operation including the removal and adding an object in the concurrent environment
 	 */
 	@Test
-	public void testConcurrentAll(){
-		for(int i = 0; i < 1000; i++){
+	public void testConcurrentAll() {
+		for (int i = 0; i < 1000; i++) {
 			this.doConcurrentAll();
 		}
 	}
 	@SuppressWarnings("rawtypes")
-	public void doConcurrentAll(){
+	public void doConcurrentAll() {
 		final List tempList = new ArrayList();
 		Object o1 = new Foo(3);
 		Object o2 = new Foo(1);
@@ -279,14 +279,14 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 	}
 	private static class Foo implements Ordered {
 		private final int order;
-		Foo(int order){
+		Foo(int order) {
 			this.order = order;
 		}
 		public int getOrder() {
 			return order;
 		}
 		@Override
-		public String toString(){
+		public String toString() {
 			return "Foo-" + order;
 		}
 	}

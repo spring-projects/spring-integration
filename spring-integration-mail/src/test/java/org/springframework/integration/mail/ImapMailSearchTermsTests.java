@@ -79,7 +79,7 @@ public class ImapMailSearchTermsTests {
 		NotTerm notTerm = (NotTerm) searchTerms;
 		Flags siFlags = new Flags();
 		siFlags.add(userFlag);
-		assertEquals(siFlags, ((FlagTerm)notTerm.getTerm()).getFlags());
+		assertEquals(siFlags, ((FlagTerm) notTerm.getTerm()).getFlags());
 	}
 
 	@Test
@@ -105,11 +105,11 @@ public class ImapMailSearchTermsTests {
 		SearchTerm[] terms = andTerm.getTerms();
 		assertEquals(2, terms.length);
 		NotTerm notTerm = (NotTerm) terms[0];
-		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.ANSWERED));
+		assertTrue(((FlagTerm) notTerm.getTerm()).getFlags().contains(Flag.ANSWERED));
 		notTerm = (NotTerm) terms[1];
 		Flags siFlags = new Flags();
 		siFlags.add(AbstractMailReceiver.DEFAULT_SI_USER_FLAG);
-		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(siFlags));
+		assertTrue(((FlagTerm) notTerm.getTerm()).getFlags().contains(siFlags));
 	}
 
 	@Test

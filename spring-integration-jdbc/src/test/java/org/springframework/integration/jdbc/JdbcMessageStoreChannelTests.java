@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class JdbcMessageStoreChannelTests {
 
 	@Autowired

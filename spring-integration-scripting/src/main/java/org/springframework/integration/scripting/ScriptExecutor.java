@@ -37,6 +37,6 @@ public interface ScriptExecutor {
 	 * @param variables The variables.
 	 * @return The result of the execution.
 	 */
-	Object executeScript(ScriptSource scriptSource, Map<String,Object> variables);
+	Object executeScript(ScriptSource scriptSource, Map<String, Object> variables);
 
 }

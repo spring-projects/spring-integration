@@ -69,8 +69,8 @@ public class PayloadTypeRouterParserTests {
 		assertTrue(chanel4.receive(100).getPayload().getClass().isArray());
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testNoMappingElement(){
+	@Test(expected = BeanDefinitionStoreException.class)
+	public void testNoMappingElement() {
 		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigNoMaping.getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
@@ -106,7 +106,7 @@ public class PayloadTypeRouterParserTests {
 	    "</beans:beans>";
 
 
-	public interface TestService{
+	public interface TestService {
 		void foo(Message<?> message);
 	}
 

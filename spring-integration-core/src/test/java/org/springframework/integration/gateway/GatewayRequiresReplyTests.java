@@ -67,7 +67,7 @@ public class GatewayRequiresReplyTests {
 	}
 
 	public static class LongRunningService {
-		public String echo(String value) throws Exception{
+		public String echo(String value) throws Exception {
 			Thread.sleep(5000);
 			return value;
 		}

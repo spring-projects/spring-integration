@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class MethodInvokingMessageSource extends AbstractMessageSource<Object>
 						+ "' is available on " + this.object.getClass());
 			}
 			Assert.isTrue(!void.class.equals(this.method.getReturnType()),
-					"invalid MessageSource method '"+ this.method.getName() + "', a non-void return is required");
+					"invalid MessageSource method '" + this.method.getName() + "', a non-void return is required");
 			this.method.setAccessible(true);
 			this.initialized = true;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		final MessagingGatewaySupport innerGateway = new MessagingGatewaySupport() {};
+		final MessagingGatewaySupport innerGateway = new MessagingGatewaySupport() { };
 		innerGateway.setRequestChannel(innerChannel);
 		innerGateway.setBeanFactory(mock(BeanFactory.class));
 		innerGateway.afterPropertiesSet();
@@ -54,7 +54,7 @@ public class NestedGatewayTests {
 						"pre-" + requestMessage.getPayload()).getPayload() + "-post";
 			}
 		});
-		MessagingGatewaySupport outerGateway = new MessagingGatewaySupport() {};
+		MessagingGatewaySupport outerGateway = new MessagingGatewaySupport() { };
 		outerGateway.setRequestChannel(outerChannel);
 		outerGateway.setBeanFactory(mock(BeanFactory.class));
 		outerGateway.afterPropertiesSet();
@@ -72,7 +72,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {};
+		MessagingGatewaySupport gateway = new MessagingGatewaySupport() { };
 		gateway.setRequestChannel(requestChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
@@ -93,7 +93,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {};
+		MessagingGatewaySupport gateway = new MessagingGatewaySupport() { };
 		gateway.setRequestChannel(requestChannel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();

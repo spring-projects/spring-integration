@@ -39,7 +39,7 @@ public class ChatMessageInboundChannelAdapterParser extends AbstractXmppInboundC
 	}
 
 	@Override
-	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (element.hasAttribute("extract-payload")) {
 			parserContext.getReaderContext()
 					.warning("The 'extract-payload' is deprecated. Use 'payload-expression' instead.", element);

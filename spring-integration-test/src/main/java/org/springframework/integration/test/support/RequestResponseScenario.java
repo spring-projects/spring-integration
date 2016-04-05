@@ -34,8 +34,8 @@ public class RequestResponseScenario {
     private AbstractResponseValidator<?> responseValidator;
     private String name;
 
-    protected Message<? extends Object> getMessage(){
-        if (message == null){
+    protected Message<? extends Object> getMessage() {
+        if (message == null) {
             return new GenericMessage<Object>(this.payload);
         }
 else {
@@ -48,7 +48,7 @@ else {
      * @param inputChannelName the input channel name
      * @param outputChannelName the output channel name
      */
-    public RequestResponseScenario(String inputChannelName, String outputChannelName){
+    public RequestResponseScenario(String inputChannelName, String outputChannelName) {
         this.inputChannelName = inputChannelName;
         this.outputChannelName = outputChannelName;
     }
@@ -110,7 +110,7 @@ else {
      * @return the response validator
      * @see AbstractResponseValidator
      */
-    public AbstractResponseValidator<?> getResponseValidator(){
+    public AbstractResponseValidator<?> getResponseValidator() {
         return responseValidator;
     }
 
@@ -137,7 +137,7 @@ else {
     }
 
     protected void init() {
-        Assert.state(message == null || payload == null,"cannot set both message and payload");
+        Assert.state(message == null || payload == null, "cannot set both message and payload");
     }
 
 }

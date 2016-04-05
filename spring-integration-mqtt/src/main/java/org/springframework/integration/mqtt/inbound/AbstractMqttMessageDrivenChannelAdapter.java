@@ -137,7 +137,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "mqtt:inbound-channel-adapter";
 	}
 

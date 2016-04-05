@@ -124,7 +124,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		}
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = this.delegate.findCustomEditor(sourceType.getType(), null);
-			if (editor==null) {
+			if (editor == null) {
 				editor = this.getDefaultEditor(sourceType.getType());
 			}
 			if (editor != null) { // INT-1441
@@ -147,12 +147,12 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	private PropertyEditor getDefaultEditor(Class<?> sourceType) {
 		PropertyEditor defaultEditor;
 		if (this.haveCalledDelegateGetDefaultEditor) {
-			defaultEditor= this.delegate.getDefaultEditor(sourceType);
+			defaultEditor = this.delegate.getDefaultEditor(sourceType);
 		}
 		else {
-			synchronized(this) {
+			synchronized (this) {
 				// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
-				defaultEditor= this.delegate.getDefaultEditor(sourceType);
+				defaultEditor = this.delegate.getDefaultEditor(sourceType);
 			}
 			this.haveCalledDelegateGetDefaultEditor = true;
 		}

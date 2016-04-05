@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,31 +165,31 @@ public class SubscriberOrderTests {
 		}
 
 		@Order(3)
-		@ServiceActivator(inputChannel="input")
+		@ServiceActivator(inputChannel = "input")
 		public void third(Message<?> message) {
 			this.handle(3, message);
 		}
 
 		@Override
-		@ServiceActivator(inputChannel="input")
+		@ServiceActivator(inputChannel = "input")
 		public void second(Message<?> message) {
 			this.handle(2, message);
 		}
 
 		@Order(1)
-		@ServiceActivator(inputChannel="input")
+		@ServiceActivator(inputChannel = "input")
 		public void first(Message<?> message) {
 			this.handle(1, message);
 		}
 
 		@Order(5)
-		@ServiceActivator(inputChannel="input")
+		@ServiceActivator(inputChannel = "input")
 		public void fifth(Message<?> message) {
 			this.handle(5, message);
 		}
 
 		@Override
-		@ServiceActivator(inputChannel="input")
+		@ServiceActivator(inputChannel = "input")
 		public void fourth(Message<?> message) {
 			this.handle(4, message);
 		}

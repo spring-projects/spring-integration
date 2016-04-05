@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,25 +120,25 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	public void methodWithPayloadAnnotation(String arg1, int arg2) {
 	}
 
-	@Publisher(channel="foo")
+	@Publisher(channel = "foo")
 	@Payload("#return")
 	public String methodWithChannelAndExplicitReturnAsPayload() {
 		return "hello";
 	}
 
-	@Publisher(channel="foo")
+	@Publisher(channel = "foo")
 	@Payload
 	public String methodWithChannelAndEmptyPayloadAnnotation() {
 		return "hello";
 	}
 
 
-	@Publisher(channel="foo")
+	@Publisher(channel = "foo")
 	@Payload("#method")
 	public void methodWithVoidReturnAndMethodNameAsPayload() {
 	}
 
-	@Publisher(channel="foo")
+	@Publisher(channel = "foo")
 	@Payload("#return")
 	public void methodWithVoidReturnAndReturnValueAsPayload() {
 	}

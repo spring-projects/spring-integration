@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn2).send(message);
 	}
 
-	@Test(expected=IOException.class)
+	@Test(expected = IOException.class)
 	public void testFailoverAllDead() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
@@ -161,7 +161,7 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn1, times(2)).send(message);
 	}
 
-	@Test(expected=IOException.class)
+	@Test(expected = IOException.class)
 	public void testFailoverConnectNone() throws Exception {
 		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
 		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
@@ -234,7 +234,7 @@ public class FailoverClientConnectionFactoryTests {
 			failoverFactory.getConnection().send(message);
 			fail("ExpectedFailure");
 		}
-		catch (IOException e) {}
+		catch (IOException e) { }
 		failoverFactory.getConnection().send(message);
 		Mockito.verify(conn2).send(message);
 		Mockito.verify(conn1, times(3)).send(message);

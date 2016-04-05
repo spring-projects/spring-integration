@@ -183,7 +183,7 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 			}
 			Assert.isNull(this.udpAdapter, "Cannot specifiy 'udp-attributes' when the protocol is 'tcp'");
 		}
-		else if(this.protocol == Protocol.udp) {
+		else if (this.protocol == Protocol.udp) {
 			adapter = new UdpSyslogReceivingChannelAdapter();
 			if (this.udpAdapter != null) {
 				Assert.isNull(this.port, "Cannot specify both 'port' and 'udpAdapter'");

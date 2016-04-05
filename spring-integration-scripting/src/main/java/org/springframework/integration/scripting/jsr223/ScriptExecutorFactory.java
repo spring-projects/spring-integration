@@ -25,7 +25,7 @@ import org.springframework.integration.scripting.ScriptExecutor;
 public abstract class ScriptExecutorFactory {
 
 	public static ScriptExecutor getScriptExecutor(String language) {
-		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")){
+		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")) {
 			return new PythonScriptExecutor();
 		}
 		else if (language.equalsIgnoreCase("ruby") ||  language.equalsIgnoreCase("jruby")) {

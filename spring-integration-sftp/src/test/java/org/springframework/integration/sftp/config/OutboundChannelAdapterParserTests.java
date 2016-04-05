@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,14 +60,14 @@ public class OutboundChannelAdapterParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testOutboundChannelAdapterWithId(){
+	public void testOutboundChannelAdapterWithId() {
 		ConfigurableApplicationContext context =
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		PublishSubscribeChannel channel = context.getBean("inputChannel", PublishSubscribeChannel.class);
 		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer)consumer).getComponentName());
+		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer) consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler",
 				FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
@@ -106,13 +106,13 @@ public class OutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testOutboundChannelAdapterWithWithRemoteDirectoryAndFileExpression(){
+	public void testOutboundChannelAdapterWithWithRemoteDirectoryAndFileExpression() {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithExpression");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("sftpOutboundAdapterWithExpression", ((EventDrivenConsumer)consumer).getComponentName());
+		assertEquals("sftpOutboundAdapterWithExpression", ((EventDrivenConsumer) consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
 		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
@@ -127,17 +127,17 @@ public class OutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testOutboundChannelAdapterWithNoTemporaryFileName(){
+	public void testOutboundChannelAdapterWithNoTemporaryFileName() {
 		ConfigurableApplicationContext context =
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithNoTemporaryFileName");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
+		assertFalse((Boolean) TestUtils.getPropertyValue(handler, "remoteFileTemplate.useTemporaryFileName"));
 		context.close();
 	}
 
 	@Test
-	public void advised(){
+	public void advised() {
 		ConfigurableApplicationContext context =
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("advised");
@@ -148,7 +148,7 @@ public class OutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testFailWithRemoteDirAndExpression(){
+	public void testFailWithRemoteDirAndExpression() {
 		try {
 			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass())
 					.close();
@@ -160,8 +160,8 @@ public class OutboundChannelAdapterParserTests {
 
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testFailWithFileExpressionAndFileGenerator(){
+	@Test(expected = BeanDefinitionStoreException.class)
+	public void testFailWithFileExpressionAndFileGenerator() {
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail-fileFileGen.xml",
 				this.getClass()).close();
 	}

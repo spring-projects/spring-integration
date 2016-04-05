@@ -119,7 +119,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 			this.poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
 		}
 
-		if (this.handler!= null) {
+		if (this.handler != null) {
 			this.handler.setBeanFactory(this.getBeanFactory());
 			this.handler.afterPropertiesSet();
 		}

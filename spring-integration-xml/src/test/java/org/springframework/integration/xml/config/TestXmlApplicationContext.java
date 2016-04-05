@@ -28,7 +28,7 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 
 	private final Resource[] resources;
 
-	public TestXmlApplicationContext(String ... xmlStrings){
+	public TestXmlApplicationContext(String ... xmlStrings) {
 		resources = new Resource[xmlStrings.length];
 		for (int i = 0 ; i < xmlStrings.length; i++) {
 			resources[i] = new TestResource(xmlStrings[i]);
@@ -41,11 +41,11 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 		return resources;
 	}
 
-	private static class TestResource extends AbstractResource{
+	private static class TestResource extends AbstractResource {
 
 		String xmlString;
 
-		TestResource(String xmlString){
+		TestResource(String xmlString) {
 			this.xmlString = xmlString;
 		}
 

@@ -53,8 +53,8 @@ public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoPro
 
 	public ChannelSecurityInterceptorBeanPostProcessor(Map<String, Set<Pattern>> securityInterceptorMappings,
 			Map<String, Map<Pattern, ChannelAccessPolicy>> accessPolicyMapping) {
-		this.securityInterceptorMappings = securityInterceptorMappings;//NOSONAR (inconsistent sync)
-		this.accessPolicyMapping = accessPolicyMapping;//NOSONAR (inconsistent sync)
+		this.securityInterceptorMappings = securityInterceptorMappings; //NOSONAR (inconsistent sync)
+		this.accessPolicyMapping = accessPolicyMapping; //NOSONAR (inconsistent sync)
 	}
 
 	@Override

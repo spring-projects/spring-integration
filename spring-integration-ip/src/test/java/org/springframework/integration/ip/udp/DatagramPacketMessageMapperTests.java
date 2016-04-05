@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class DatagramPacketMessageMapperTests {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
 					     message.getHeaders().getId().toString());
 		}
-		assertTrue(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
+		assertTrue(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 		mapper.setLookupHost(false);
 		messageOut = mapper.toMessage(packet);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
@@ -81,7 +81,7 @@ public class DatagramPacketMessageMapperTests {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
 					     message.getHeaders().getId().toString());
 		}
-		assertFalse(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
+		assertFalse(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 	}
 
 	@Test

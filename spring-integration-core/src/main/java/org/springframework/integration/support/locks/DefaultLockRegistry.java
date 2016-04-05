@@ -43,7 +43,7 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * Constructs a DefaultLockRegistry with the default
 	 * mask 0xFF with 256 locks.
 	 */
-	public DefaultLockRegistry(){
+	public DefaultLockRegistry() {
 		this(0xFF);
 	}
 
@@ -58,11 +58,11 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * </ul>
 	 * @param mask The bit mask.
 	 */
-	public DefaultLockRegistry(int mask){
+	public DefaultLockRegistry(int mask) {
 		String bits = Integer.toBinaryString(mask);
 		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1') ), "Mask must be a power of 2 - 1");
 		this.mask = mask;
-		int arraySize = this.mask+1;
+		int arraySize = this.mask + 1;
 		this.lockTable = new ReentrantLock[arraySize];
 		for (int i = 0; i < arraySize; i++) {
 			this.lockTable[i] = new ReentrantLock();

@@ -25,7 +25,7 @@ package org.springframework.integration.util;
  */
 public final class StackTraceUtils {
 
-	private StackTraceUtils() {}
+	private StackTraceUtils() { }
 
 	/**
 	 * Traverses the stack trace element array looking for instances that contain the first or second

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class PriorityChannelTests {
 	}
 
 	@Test
-	public void testDefaultComparatorWithTimestampFallback() throws Exception{
+	public void testDefaultComparatorWithTimestampFallback() throws Exception {
 		PriorityChannel channel = new PriorityChannel();
 		for (int i = 0; i < 1000; i++) {
 			channel.send(new GenericMessage<Integer>(i));
@@ -86,7 +86,7 @@ public class PriorityChannelTests {
 	// although this test has no assertions it results in ConcurrentModificationException
 	// if executed before changes for INT-2508
 	@Test
-	public void testPriorityChannelWithConcurrentModification() throws Exception{
+	public void testPriorityChannelWithConcurrentModification() throws Exception {
 		final PriorityChannel channel = new PriorityChannel();
 		final Message<String> message = new GenericMessage<String>("hello");
 		for (int i = 0; i < 1000; i++) {

@@ -57,7 +57,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	 * An internal map storing local updates, ensuring that they have precedence if the cache contains stale data.
 	 * As changes are propagated back from Zookeeper to the cache, entries are removed.
 	 */
-	private final ConcurrentMap<String, LocalChildData> updateMap = new ConcurrentHashMap<String,LocalChildData>();
+	private final ConcurrentMap<String, LocalChildData> updateMap = new ConcurrentHashMap<String, LocalChildData>();
 
 	private volatile String root = "/SpringIntegration-MetadataStore";
 

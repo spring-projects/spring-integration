@@ -172,7 +172,7 @@ public class RoundRobinDispatcherConcurrentTests {
 		start.countDown();
 		allDone.await(5000, TimeUnit.MILLISECONDS);
 		assertFalse("not all messages were accepted", failed.get());
-		verify(handler1, times(TOTAL_EXECUTIONS/2)).handleMessage(message);
+		verify(handler1, times(TOTAL_EXECUTIONS / 2)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS)).handleMessage(message);
 	}
 }

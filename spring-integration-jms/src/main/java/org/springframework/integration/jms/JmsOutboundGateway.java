@@ -725,7 +725,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			else {
 				if (this.idleReplyContainerTimeout > 0) {
-					synchronized(this.lifeCycleMonitor) {
+					synchronized (this.lifeCycleMonitor) {
 						this.lastSend = System.currentTimeMillis();
 						if (!this.replyContainer.isRunning()) {
 							if (logger.isDebugEnabled()) {
@@ -775,7 +775,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			// do not propagate back the gateway's internal correlation id
 			jmsReplyHeaders.remove(this.correlationKey);
 		}
-		if (result instanceof Message){
+		if (result instanceof Message) {
 			return getMessageBuilderFactory().fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders);
 		}
 		else {
@@ -977,7 +977,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	private javax.jms.Message retryableReceiveReply(Session session, Destination replyTo, String messageSelector)
 			throws JMSException {
-		Connection consumerConnection = null;//NOSONAR
+		Connection consumerConnection = null; //NOSONAR
 		Session consumerSession = session;
 		MessageConsumer messageConsumer = null;
 		JMSException exception = null;
@@ -1396,7 +1396,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.replyDestination instanceof TemporaryQueue) {
 				return "Temporary queue:" + this.replyDestination.toString();
 			}
-			else if (super.getDestination() != null){
+			else if (super.getDestination() != null) {
 				try {
 					return super.getDestinationDescription();
 				}
@@ -1473,7 +1473,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		@Override
 		public void run() {
-			synchronized(JmsOutboundGateway.this.lifeCycleMonitor) {
+			synchronized (JmsOutboundGateway.this.lifeCycleMonitor) {
 				if (System.currentTimeMillis() - JmsOutboundGateway.this.lastSend >
 						JmsOutboundGateway.this.idleReplyContainerTimeout
 						&& JmsOutboundGateway.this.replies.size() == 0) {

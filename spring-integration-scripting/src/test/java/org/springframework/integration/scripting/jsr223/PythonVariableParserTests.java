@@ -34,10 +34,10 @@ public class PythonVariableParserTests {
 	@Test
 	public void testBasic() throws IOException {
 		String var = PythonScriptExecutor.PythonVariableParser.parseReturnVariable("x=2");
-		assertEquals("x",var);
+		assertEquals("x", var);
 
 		var = PythonScriptExecutor.PythonVariableParser.parseReturnVariable("\n\n\nx  =  2\n\n\n");
-		assertEquals("x",var);
+		assertEquals("x", var);
 
 		var = PythonScriptExecutor.PythonVariableParser.parseReturnVariable("\n\n\nx\n\n\n");
 	}
@@ -48,6 +48,6 @@ public class PythonVariableParserTests {
 		ScriptSource source =
 			new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/test2.py"));
 		String var = PythonScriptExecutor.PythonVariableParser.parseReturnVariable(source.getScriptAsString());
-		assertEquals("bar",var);
+		assertEquals("bar", var);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class ResourceInboundChannelAdapterParserTests {
 
 
 	@Test
-	public void testDefaultConfig(){
+	public void testDefaultConfig() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
 		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
@@ -83,13 +83,13 @@ public class ResourceInboundChannelAdapterParserTests {
 		assertEquals(context, TestUtils.getPropertyValue(source, "patternResolver"));
 	}
 
-	@Test(expected=BeanCreationException.class)
-	public void testDefaultConfigNoLocationPattern(){
+	@Test(expected = BeanCreationException.class)
+	public void testDefaultConfigNoLocationPattern() {
 		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", this.getClass());
 	}
 
 	@Test
-	public void testCustomPatternResolver(){
+	public void testCustomPatternResolver() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
 		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
@@ -99,10 +99,10 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUsage() throws Exception{
+	public void testUsage() throws Exception {
 
 		for (int i = 0; i < 10; i++) {
-			File f = new File(workDir, "testUsage"+i);
+			File f = new File(workDir, "testUsage" + i);
 			f.createNewFile();
 		}
 
@@ -118,10 +118,10 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUsageWithCustomResourceFilter() throws Exception{
+	public void testUsageWithCustomResourceFilter() throws Exception {
 
 		for (int i = 0; i < 10; i++) {
-			File f = new File(workDir, "testUsageWithRf"+i);
+			File f = new File(workDir, "testUsageWithRf" + i);
 			f.createNewFile();
 		}
 
@@ -141,10 +141,10 @@ public class ResourceInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testUsageWithEmptyFilter() throws Exception{
+	public void testUsageWithEmptyFilter() throws Exception {
 
 		for (int i = 0; i < 10; i++) {
-			File f = new File(workDir, "testUsageWithRf"+i);
+			File f = new File(workDir, "testUsageWithRf" + i);
 			f.createNewFile();
 		}
 

@@ -58,8 +58,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
-	@Test(expected=MessageTimeoutException.class)
-	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception{
+	@Test(expected = MessageTimeoutException.class)
+	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
@@ -95,7 +95,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() throws Exception{
+	public void messageCorrelationBasedOnRequestMessageIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
@@ -131,7 +131,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() throws Exception{
+	public void messageCorrelationBasedOnRequestCorrelationIdOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
 		try {
@@ -165,8 +165,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 		}
 	}
 
-	@Test(expected=MessageTimeoutException.class)
-	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() throws Exception{
+	@Test(expected = MessageTimeoutException.class)
+	public void messageCorrelationBasedOnRequestCorrelationIdNonOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
 		try {
@@ -201,7 +201,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	}
 
 	@Test
-	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReplyOptimized() throws Exception{
+	public void messageCorrelationBasedOnRequestCorrelationIdTimedOutFirstReplyOptimized() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("producer-cached-consumers.xml", this.getClass());
@@ -217,7 +217,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 				try {
 					gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));
 				}
-				catch (Exception e) {/*ignore*/}
+				catch (Exception e) { /*ignore*/ }
 
 			}
 

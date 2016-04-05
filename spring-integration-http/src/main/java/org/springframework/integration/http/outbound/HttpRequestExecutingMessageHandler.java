@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -358,8 +358,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		try {
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
 
-			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet){
-				if (logger.isWarnEnabled()){
+			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
+				if (logger.isWarnEnabled()) {
 					logger.warn("The 'extractPayload' attribute has no relevance for the current request since the HTTP Method is '" +
 							httpMethod + "', and no request body will be sent for that method.");
 				}
@@ -458,7 +458,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
 				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
 			if (!(payload instanceof MultiValueMap)) {
-				payload = this.convertToMultiValueMap((Map<?,?>) payload);
+				payload = this.convertToMultiValueMap((Map<?, ?>) payload);
 			}
 		}
 		return new HttpEntity<Object>(payload, httpHeaders);
@@ -492,7 +492,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			// We need to check separately for MULTIPART as well as URLENCODED simply because
 			// MultiValueMap<Object, Object> is actually valid content for serialization
 			if (this.isFormData((Map<Object, ?>) content)) {
-				if (this.isMultipart((Map<String, ?>)content)) {
+				if (this.isMultipart((Map<String, ?>) content)) {
 					contentType = MediaType.MULTIPART_FORM_DATA;
 				}
 				else {
@@ -589,9 +589,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
-	private Object determineExpectedResponseType(Message<?> requestMessage) throws Exception{
+	private Object determineExpectedResponseType(Message<?> requestMessage) throws Exception {
 		Object expectedResponseType = null;
-		if (this.expectedResponseTypeExpression != null){
+		if (this.expectedResponseTypeExpression != null) {
 			expectedResponseType = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage);
 		}
 		if (expectedResponseType != null) {
@@ -600,7 +600,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 							|| expectedResponseType instanceof ParameterizedTypeReference,
 					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'; "
 					+ "evaluation resulted in a" + expectedResponseType.getClass() + ".");
-			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)){
+			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)) {
 				expectedResponseType = ClassUtils.forName((String) expectedResponseType,
 						getApplicationContext().getClassLoader());
 			}

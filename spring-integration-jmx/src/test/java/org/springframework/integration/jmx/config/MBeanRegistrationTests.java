@@ -75,7 +75,7 @@ public class MBeanRegistrationTests {
 	public void testServiceActivatorMBeanHasTrackableComponent() throws Exception {
 		System.err.println(server.queryNames(new ObjectName("test.MBeanRegistration:*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=ServiceActivatingHandler,name=service,*"), null);
-		Map<String,MBeanOperationInfo> infos = new HashMap<String, MBeanOperationInfo>();
+		Map<String, MBeanOperationInfo> infos = new HashMap<String, MBeanOperationInfo>();
 		for (MBeanOperationInfo info : server.getMBeanInfo(names.iterator().next()).getOperations()) {
 			infos.put(info.getName(), info);
 		}

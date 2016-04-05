@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,11 +91,11 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
 				metadataBuilder.getRawBeanDefinition(), parserContext);
 
-		if (txElement != null){
+		if (txElement != null) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, txElement,
 					"synchronization-factory", "transactionSynchronizationFactory");
 		}
-		else if (adviceChainElement != null){
+		else if (adviceChainElement != null) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, adviceChainElement,
 					"synchronization-factory", "transactionSynchronizationFactory");
 		}

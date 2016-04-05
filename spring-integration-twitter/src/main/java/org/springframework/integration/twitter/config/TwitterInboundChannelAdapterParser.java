@@ -63,7 +63,7 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
 			clazz = MentionsReceivingMessageSource.class;
 		}
-		else if ("search-inbound-channel-adapter".equals(elementName)){
+		else if ("search-inbound-channel-adapter".equals(elementName)) {
 			clazz = SearchReceivingMessageSource.class;
 		}
 		else {

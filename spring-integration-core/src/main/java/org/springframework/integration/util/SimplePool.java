@@ -217,7 +217,7 @@ public class SimplePool<T> implements Pool<T> {
 				}
 			}
 			else {
-				if (this.logger.isDebugEnabled()){
+				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("Releasing " + item + " back to the pool");
 				}
 				if (item != null) {
@@ -228,7 +228,7 @@ public class SimplePool<T> implements Pool<T> {
 			}
 		}
 		else {
-			if (this.logger.isDebugEnabled()){
+			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Ignoring release of " + item + " back to the pool - not in use");
 			}
 		}
@@ -242,7 +242,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	private void doRemoveItem(T item) {
-		if (this.logger.isDebugEnabled()){
+		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Removing " + item + " from the pool");
 		}
 		this.allocated.remove(item);

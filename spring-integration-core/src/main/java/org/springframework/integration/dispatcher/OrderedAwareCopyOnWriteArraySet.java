@@ -85,11 +85,11 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	 */
 	@Override
 	public boolean add(E o) {
-		Assert.notNull(o,"Can not add NULL object");
+		Assert.notNull(o, "Can not add NULL object");
 		this.writeLock.lock();
 		try {
 			boolean present = false;
-			if (o instanceof Ordered){
+			if (o instanceof Ordered) {
 				present = this.addOrderedElement((Ordered) o);
 			}
 			else {
@@ -107,7 +107,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
-		Assert.notNull(c,"Can not merge with NULL set");
+		Assert.notNull(c, "Can not merge with NULL set");
 		this.writeLock.lock();
 		try {
 			for (E object : c) {
@@ -140,8 +140,8 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean removeAll(Collection<?> c){
-		if (CollectionUtils.isEmpty(c)){
+	public boolean removeAll(Collection<?> c) {
+		if (CollectionUtils.isEmpty(c)) {
 			return false;
 		}
 		this.writeLock.lock();
@@ -219,7 +219,7 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 	}
 
 	@Override
-	public int size(){
+	public int size() {
 		return this.elements.size();
 	}
 

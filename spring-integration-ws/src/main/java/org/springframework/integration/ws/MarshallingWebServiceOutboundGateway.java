@@ -104,7 +104,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	 */
 	private void configureMarshallers(Marshaller marshaller, Unmarshaller unmarshaller) {
 		Assert.notNull(marshaller, "marshaller must not be null");
-		if (unmarshaller == null){
+		if (unmarshaller == null) {
 			Assert.isInstanceOf(Unmarshaller.class, marshaller,
 					"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
 					"Please set an Unmarshaller explicitly by using one of the constructors that accepts " +

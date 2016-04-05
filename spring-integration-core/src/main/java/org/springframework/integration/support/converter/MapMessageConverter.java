@@ -111,7 +111,7 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> clazz) {
-		Map<String,Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("payload", message.getPayload());
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (String headerName : this.headerNames) {

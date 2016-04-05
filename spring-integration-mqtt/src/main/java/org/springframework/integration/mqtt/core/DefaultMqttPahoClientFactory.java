@@ -190,9 +190,9 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
 		private final boolean retained;
 
-		public Will(String topic, byte[] payload, int qos, boolean retained) {//NOSONAR
+		public Will(String topic, byte[] payload, int qos, boolean retained) { //NOSONAR
 			this.topic = topic;
-			this.payload = payload;//NOSONAR
+			this.payload = payload; //NOSONAR
 			this.qos = qos;
 			this.retained = retained;
 		}
@@ -202,7 +202,7 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		}
 
 		protected byte[] getPayload() {
-			return this.payload;//NOSONAR
+			return this.payload; //NOSONAR
 		}
 
 		protected int getQos() {

@@ -111,7 +111,7 @@ public class ExponentialMovingAverageRatioTests {
 	@Test
 	public void testGetMeanFailuresHighRate() throws Exception {
 		assertEquals(1, history.getMean(), 0.01);
-		history.success();// need an extra now that we can't determine the time between the first and previous
+		history.success(); // need an extra now that we can't determine the time between the first and previous
 		history.success();
 		assertEquals(average(1), history.getMean(), 0.01);
 		history.failure();
@@ -123,7 +123,7 @@ public class ExponentialMovingAverageRatioTests {
 	@Test
 	public void testGetMeanFailuresLowRate() throws Exception {
 		assertEquals(1, history.getMean(), 0.01);
-		history.failure();// need an extra now that we can't determine the time between the first and previous
+		history.failure(); // need an extra now that we can't determine the time between the first and previous
 		history.failure();
 		assertEquals(average(0), history.getMean(), 0.01);
 		history.failure();

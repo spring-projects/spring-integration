@@ -47,7 +47,7 @@ public class JmsChannelHistoryTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testMessageHistory() throws Exception{
+	public void testMessageHistory() throws Exception {
 		AbstractMessageListenerContainer mlContainer = mock(AbstractMessageListenerContainer.class);
 		JmsTemplate template = mock(JmsTemplate.class);
 		SubscribableJmsChannel channel = new SubscribableJmsChannel(mlContainer, template);
@@ -56,20 +56,21 @@ public class JmsChannelHistoryTests {
 		Message<String> message = new GenericMessage<String>("hello");
 
 		doAnswer(new Answer() {
-		      @SuppressWarnings("unchecked")
+			@Override
+			@SuppressWarnings("unchecked")
 			public Object answer(InvocationOnMock invocation) {
-		          Message<String> msg = (Message<String>) invocation.getArguments()[0];
-		          MessageHistory history = MessageHistory.read(msg);
-		  		  assertTrue(history.get(0).contains("jmsChannel"));
-		          return null;
-		      }})
-		  .when(template).convertAndSend(Mockito.any(Message.class));
+				Message<String> msg = (Message<String>) invocation.getArguments()[0];
+				MessageHistory history = MessageHistory.read(msg);
+				assertTrue(history.get(0).contains("jmsChannel"));
+				return null;
+			}
+		}).when(template).convertAndSend(Mockito.any(Message.class));
 		channel.send(message);
 		verify(template, times(1)).convertAndSend(Mockito.any(Message.class));
 	}
 
 	@Test
-	public void testFullConfig() throws Exception{
+	public void testFullConfig() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ApplicationContext ac = new ClassPathXmlApplicationContext("JmsChannelHistoryTests-context.xml", this.getClass());
 		SubscribableChannel channel = ac.getBean("jmsChannel", SubscribableChannel.class);

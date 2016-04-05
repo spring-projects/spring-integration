@@ -33,39 +33,39 @@ public class StringSourceTests {
 	StringSourceFactory sourceFactory;
 
 	@Before
-	public void setUp() throws Exception{
+	public void setUp() throws Exception {
 		sourceFactory = new StringSourceFactory();
 	}
 
 	@Test
-	public void testWithDocument() throws Exception{
+	public void testWithDocument() throws Exception {
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
 		Document doc = XmlTestUtil.getDocumentForString(docString);
-		StringSource source = (StringSource)sourceFactory.createSource(doc);
+		StringSource source = (StringSource) sourceFactory.createSource(doc);
 		BufferedReader reader = new BufferedReader(source.getReader());
-		String docAsString =reader.readLine();
-		assertXMLEqual("Wrong content in StringSource","<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+		String docAsString = reader.readLine();
+		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
 	}
 
 
 	@Test
-	public void testWithString() throws Exception{
+	public void testWithString() throws Exception {
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
-		StringSource source = (StringSource)sourceFactory.createSource(docString);
+		StringSource source = (StringSource) sourceFactory.createSource(docString);
 		BufferedReader reader = new BufferedReader(source.getReader());
-		String docAsString =reader.readLine();
-		assertXMLEqual("Wrong content in StringSource","<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+		String docAsString = reader.readLine();
+		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
 	}
 
 
-	@Test(expected=MessagingException.class)
-	public void testWithUnsupportedPayload() throws Exception{
+	@Test(expected = MessagingException.class)
+	public void testWithUnsupportedPayload() throws Exception {
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
 		StringBuffer buffer = new StringBuffer(docString);
-		StringSource source = (StringSource)sourceFactory.createSource(buffer);
+		StringSource source = (StringSource) sourceFactory.createSource(buffer);
 		BufferedReader reader = new BufferedReader(source.getReader());
-		String docAsString =reader.readLine();
-		assertXMLEqual("Wrong content in StringSource","<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+		String docAsString = reader.readLine();
+		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
 	}
 
 }

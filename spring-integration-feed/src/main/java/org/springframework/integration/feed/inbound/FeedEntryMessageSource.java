@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 			this.lastTime = lastModifiedDate.getTime();
 		}
 		else {
-			this.lastTime += 1;//NOSONAR - single poller thread
+			this.lastTime += 1; //NOSONAR - single poller thread
 		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;

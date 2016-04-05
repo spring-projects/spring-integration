@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 					throw new SoftEndOfStreamException("Stream closed between payloads");
 				}
 				checkClosure(bite);
-				if (n > 0 && bite == '\n' && buffer[n-1] == '\r') {
+				if (n > 0 && bite == '\n' && buffer[n - 1] == '\r') {
 					break;
 				}
 				buffer[n++] = (byte) bite;
@@ -67,7 +67,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 							+ this.maxMessageSize);
 				}
 			}
-			return n-1; // trim \r
+			return n - 1; // trim \r
 		}
 		catch (SoftEndOfStreamException e) {
 			throw e;

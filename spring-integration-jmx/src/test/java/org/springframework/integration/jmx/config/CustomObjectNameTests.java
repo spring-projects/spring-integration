@@ -103,7 +103,7 @@ public class CustomObjectNameTests {
 		assertTrue(AopUtils.isJdkDynamicProxy(this.customHandler));
 	}
 
-	@IntegrationManagedResource(objectName="${customChannelName}", description="custom channel")
+	@IntegrationManagedResource(objectName = "${customChannelName}", description = "custom channel")
 	public static class ChannelWithCustomObjectName extends AbstractMessageChannel {
 
 		@Override
@@ -113,9 +113,9 @@ public class CustomObjectNameTests {
 
 	}
 
-	@IntegrationManagedResource(objectName="${customHandlerName}", description="custom handler",
-			currencyTimeLimit=1000, log=true, logFile="foo", persistLocation="bar", persistName="baz", persistPeriod=10,
-			persistPolicy="Never")
+	@IntegrationManagedResource(objectName = "${customHandlerName}", description = "custom handler",
+			currencyTimeLimit = 1000, log = true, logFile = "foo", persistLocation = "bar", persistName = "baz", persistPeriod = 10,
+			persistPolicy = "Never")
 	@Transactional
 	public static class HandlerWithCustomObjectName extends AbstractMessageHandler {
 

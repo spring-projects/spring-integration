@@ -119,7 +119,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		if (this.requiresReply != null) {
-			if(handler instanceof AbstractReplyProducingMessageHandler) {
+			if (handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
 			}
 			else if (this.requiresReply && logger.isDebugEnabled()) {

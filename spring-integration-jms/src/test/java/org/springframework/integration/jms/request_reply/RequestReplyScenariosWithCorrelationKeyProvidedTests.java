@@ -44,7 +44,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
-	public void messageCorrelationBasedCustomCorrelationKey() throws Exception{
+	public void messageCorrelationBasedCustomCorrelationKey() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
@@ -55,7 +55,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 	}
 
 	@Test
-	public void messageCorrelationBasedCustomCorrelationKeyAsJMSCorrelationID() throws Exception{
+	public void messageCorrelationBasedCustomCorrelationKeyAsJMSCorrelationID() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
@@ -66,7 +66,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 	}
 
 	@Test
-	public void messageCorrelationBasedOnProvidedJMSCorrelationID() throws Exception{
+	public void messageCorrelationBasedOnProvidedJMSCorrelationID() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
@@ -81,7 +81,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 	}
 
 	@Test
-	public void messageCorrelationBasedCustomCorrelationKeyDelayedReplies() throws Exception{
+	public void messageCorrelationBasedCustomCorrelationKeyDelayedReplies() throws Exception {
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
@@ -105,7 +105,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests extends Active
 
 
 	public static class DelayedService {
-		public String echo(String s) throws Exception{
+		public String echo(String s) throws Exception {
 			Thread.sleep(200);
 			return s;
 		}

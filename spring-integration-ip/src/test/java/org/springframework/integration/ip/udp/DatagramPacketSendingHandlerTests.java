@@ -136,7 +136,7 @@ public class DatagramPacketSendingHandlerTests {
 		int length = receivedPacket.getLength();
 		int offset = receivedPacket.getOffset();
 		byte[] dest = new byte[6];
-		System.arraycopy(src, offset+length-6, dest, 0, 6);
+		System.arraycopy(src, offset + length - 6, dest, 0, 6);
 		assertEquals(payload, new String(dest));
 		handler.stop();
 	}

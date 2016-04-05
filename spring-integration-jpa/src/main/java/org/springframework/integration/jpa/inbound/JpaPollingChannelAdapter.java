@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class JpaPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object>{
+public class JpaPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
 	private final JpaExecutor jpaExecutor;
 
@@ -91,7 +91,7 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "jpa:inbound-channel-adapter";
 	}
 

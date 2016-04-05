@@ -125,7 +125,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	@Override
 	public void onInit() throws Exception {
-		if (this.initialized){
+		if (this.initialized) {
 			return;
 		}
 		super.onInit();
@@ -133,7 +133,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
 			this.setMaxSubscribers(maxSubscribers);
 		}
-		if (this.messageConverter == null){
+		if (this.messageConverter == null) {
 			this.messageConverter = new SimpleMessageConverter();
 		}
 		if (this.messageConverter instanceof BeanFactoryAware) {

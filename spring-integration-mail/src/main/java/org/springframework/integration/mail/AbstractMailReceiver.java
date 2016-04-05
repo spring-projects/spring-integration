@@ -328,13 +328,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		Flags flags = getFolder().getPermanentFlags();
 
-		if (flags != null){
+		if (flags != null) {
 			recentFlagSupported = flags.contains(Flags.Flag.RECENT);
 		}
 		for (Message message : filteredMessages) {
-			if (!recentFlagSupported){
-				if (flags != null && flags.contains(Flags.Flag.USER)){
-					if (this.logger.isDebugEnabled()){
+			if (!recentFlagSupported) {
+				if (flags != null && flags.contains(Flags.Flag.USER)) {
+					if (this.logger.isDebugEnabled()) {
 						this.logger.debug("USER flags are supported by this mail server. Flagging message with '"
 										+ this.userFlag + "' user flag");
 					}
@@ -343,7 +343,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					message.setFlags(siFlags, true);
 				}
 				else {
-					if (this.logger.isDebugEnabled()){
+					if (this.logger.isDebugEnabled()) {
 						this.logger.debug("USER flags are not supported by this mail server. "
 								+ "Flagging message with system flag");
 					}
@@ -367,7 +367,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					filteredMessages.add(message);
 				}
 				else {
-					if (this.logger.isDebugEnabled()){
+					if (this.logger.isDebugEnabled()) {
 						this.logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
 										" and will not be flagged as SEEN.");
 					}

@@ -24,7 +24,7 @@ public class StubResultTransformer implements ResultTransformer {
 
 	Object toReturn;
 
-	public StubResultTransformer(Object toReturn){
+	public StubResultTransformer(Object toReturn) {
 		this.toReturn = toReturn;
 	}
 

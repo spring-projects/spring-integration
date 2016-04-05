@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -347,7 +347,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 
-		public Map<?,?> mapOnly(Map<?,?> map) {
+		public Map<?, ?> mapOnly(Map<?, ?> map) {
 			return map;
 		}
 
@@ -363,11 +363,11 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			return fname + day;
 		}
 
-		public Integer optionalHeader(@Header(required=false) Integer num) {
+		public Integer optionalHeader(@Header(required = false) Integer num) {
 			return num;
 		}
 
-		public Integer requiredHeader(@Header(value="num", required=true) Integer num) {
+		public Integer requiredHeader(@Header(value = "num", required = true) Integer num) {
 			return num;
 		}
 
@@ -376,7 +376,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			return lastName + ", " + firstName;
 		}
 
-		public String optionalAndRequiredHeader(@Header(required=false) String prop, @Header(value="num", required=true) Integer num) {
+		public String optionalAndRequiredHeader(@Header(required = false) String prop, @Header(value = "num", required = true) Integer num) {
 			return prop + num;
 		}
 
@@ -419,7 +419,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 											   @Header("month") String argB,
 											   @Payload Employee payloadArg,
 											   @Payload("fname") String value,
-											   @Headers Map<?,?> headers) {
+											   @Headers Map<?, ?> headers) {
 			return new Object[] { argA, argB, payloadArg, value, headers };
 		}
 

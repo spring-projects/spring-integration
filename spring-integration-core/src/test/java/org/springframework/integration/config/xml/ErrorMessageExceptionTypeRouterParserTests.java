@@ -50,7 +50,7 @@ public class ErrorMessageExceptionTypeRouterParserTests {
 	private QueueChannel npeChannel;
 
 	@Test
-	public void validateExceptionTypeRouterConfig(){
+	public void validateExceptionTypeRouterConfig() {
 
 		inputChannel.send(new ErrorMessage(new NullPointerException()));
 		assertTrue(npeChannel.receive(1000).getPayload() instanceof NullPointerException);

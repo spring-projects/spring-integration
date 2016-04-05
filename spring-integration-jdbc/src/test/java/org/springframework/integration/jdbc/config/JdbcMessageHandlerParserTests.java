@@ -58,7 +58,7 @@ public class JdbcMessageHandlerParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testSimpleOutboundChannelAdapter(){
+	public void testSimpleOutboundChannelAdapter() {
 		setUp("handlingWithJdbcOperationsJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		channel.send(message);
@@ -71,7 +71,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testDollarHeaderOutboundChannelAdapter(){
+	public void testDollarHeaderOutboundChannelAdapter() {
 		setUp("handlingDollarHeaderJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "abc").build();
 		channel.send(message);
@@ -81,7 +81,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testMapPayloadOutboundChannelAdapter(){
+	public void testMapPayloadOutboundChannelAdapter() {
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
 		assertTrue(context.containsBean("jdbcAdapter"));
 		System.out.println(context.getBean("jdbcAdapter").getClass().getName());
@@ -93,7 +93,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testMapPayloadNestedQueryOutboundChannelAdapter(){
+	public void testMapPayloadNestedQueryOutboundChannelAdapter() {
 		setUp("handlingMapPayloadNestedQueryJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
@@ -103,7 +103,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testParameterSourceOutboundChannelAdapter(){
+	public void testParameterSourceOutboundChannelAdapter() {
 		setUp("handlingParameterSourceJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		channel.send(message);
@@ -113,7 +113,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testOutboundAdapterWithPoller() throws Exception{
+	public void testOutboundAdapterWithPoller() throws Exception {
 		setUp("JdbcOutboundAdapterWithPollerTest-context.xml", this.getClass());
 		MessageChannel target = context.getBean("target", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
@@ -125,7 +125,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testOutboundChannelAdapterWithinChain(){
+	public void testOutboundChannelAdapterWithinChain() {
 		setUp("handlingJdbcOutboundChannelAdapterWithinChainTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		channel.send(message);
@@ -135,15 +135,15 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
+	public void setUp(String name, Class<?> cls) {
 		context = new ClassPathXmlApplicationContext(name, cls);
-		jdbcTemplate = new JdbcTemplate(this.context.getBean("dataSource",DataSource.class));
+		jdbcTemplate = new JdbcTemplate(this.context.getBean("dataSource", DataSource.class));
 		channel = this.context.getBean("target", MessageChannel.class);
 	}
 

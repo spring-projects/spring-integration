@@ -72,7 +72,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
-		this.outputChannelName = outputChannelName;//NOSONAR (inconsistent sync)
+		this.outputChannelName = outputChannelName; //NOSONAR (inconsistent sync)
 	}
 
 	/**
@@ -98,7 +98,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		Assert.state(!(this.outputChannelName != null && this.outputChannel != null),//NOSONAR (inconsistent sync)
+		Assert.state(!(this.outputChannelName != null && this.outputChannel != null), //NOSONAR (inconsistent sync)
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");
 		if (getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());

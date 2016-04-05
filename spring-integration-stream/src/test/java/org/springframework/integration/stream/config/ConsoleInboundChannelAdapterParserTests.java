@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		assertTrue(source instanceof NamedComponent);
 		assertEquals("adapterWithDefaultCharset.adapter", adapter.getComponentName());
 		assertEquals("stream:stdin-channel-adapter(character)", adapter.getComponentType());
-		assertEquals("stream:stdin-channel-adapter(character)", ((NamedComponent)source).getComponentType());
+		assertEquals("stream:stdin-channel-adapter(character)", ((NamedComponent) source).getComponentType());
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());

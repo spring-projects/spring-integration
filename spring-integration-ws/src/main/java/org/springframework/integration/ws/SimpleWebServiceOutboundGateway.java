@@ -113,7 +113,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			this.transform(source, message.getPayloadResult());
 		}
 
-		private Source extractSource(Object requestPayload) throws IOException, TransformerException{
+		private Source extractSource(Object requestPayload) throws IOException, TransformerException {
 			Source source = null;
 
 			if (requestPayload instanceof Source) {
@@ -156,11 +156,11 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 			if (payloadSource != null && this.result != null) {
 				this.transform(payloadSource, this.result);
-				if (this.result instanceof StringResult){
+				if (this.result instanceof StringResult) {
 					return this.result.toString();
 				}
-				else if (this.result instanceof DOMResult){
-					return  ((DOMResult)this.result).getNode();
+				else if (this.result instanceof DOMResult) {
+					return  ((DOMResult) this.result).getNode();
 				}
 				else {
 					return this.result;
@@ -178,7 +178,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		@Override
 		public DOMSource extractData(Source source) throws IOException, TransformerException {
 			if (source instanceof DOMSource) {
-				return (DOMSource)source;
+				return (DOMSource) source;
 			}
 			DOMResult result = new DOMResult();
 			this.transform(source, result);

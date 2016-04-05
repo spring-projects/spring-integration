@@ -48,13 +48,13 @@ public class ConverterParserWithExistingConversionServiceTests {
 	private ConversionService conversionService;
 
 	@Test
-	public void testConversionServiceAvailability(){
+	public void testConversionServiceAvailability() {
 		Assert.isTrue(applicationContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean2.class));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean3.class));
 	}
 	@Test
-	public void testParentConversionServiceAvailability(){
+	public void testParentConversionServiceAvailability() {
 		ApplicationContext parentContext =
 			new ClassPathXmlApplicationContext("ConverterParserWithExistingConversionServiceTests-parent.xml", ConverterParserWithExistingConversionServiceTests.class);
 		GenericApplicationContext childContext = new GenericApplicationContext();
@@ -62,8 +62,8 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		childContext.refresh();
 
-		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
-		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
+		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, GenericConversionService.class);
+		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, GenericConversionService.class);
 		Assert.isTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
 		conversionServiceChild.addConverter(new TestConverter());
 		conversionServiceChild.addConverter(new TestConverter3());

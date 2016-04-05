@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,19 +33,19 @@ import org.springframework.integration.xml.selector.XmlValidatingMessageSelector
 public class XmlValidatingMessageSelectorTests {
 
 	@Test
-	public void validateCreationWithSchemaAndDefaultSchemaType() throws Exception{
+	public void validateCreationWithSchemaAndDefaultSchemaType() throws Exception {
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
 		new XmlValidatingMessageSelector(resource, (SchemaType) null);
 	}
 
 	@Test
-	public void validateCreationWithSchemaAndProvidedSchemaType() throws Exception{
+	public void validateCreationWithSchemaAndProvidedSchemaType() throws Exception {
 		Resource resource = new ByteArrayResource("<xsd:schema xmlns:xsd='http://www.w3.org/2001/XMLSchema'/>".getBytes());
 		new XmlValidatingMessageSelector(resource, SchemaType.XML_SCHEMA);
 	}
 
 	@Test
-	public void validateFailureInvalidSchemaLanguage() throws Exception{
+	public void validateFailureInvalidSchemaLanguage() throws Exception {
 		ConfigurableApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext("XmlValidatingMessageSelectorTests-context.xml", this.getClass());
@@ -54,14 +54,14 @@ public class XmlValidatingMessageSelectorTests {
 		     assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: No enum constant"));
 		}
 		finally {
-			if(context != null) {
+			if (context != null) {
 				context.close();
 			}
 		}
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void validateFailureWhenNoSchemaResourceProvided() throws Exception{
+	@Test(expected = IllegalArgumentException.class)
+	public void validateFailureWhenNoSchemaResourceProvided() throws Exception {
 		new XmlValidatingMessageSelector(null, (SchemaType) null);
 	}
 

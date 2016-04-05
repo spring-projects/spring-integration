@@ -45,7 +45,7 @@ import org.springframework.messaging.MessageHandler;
 public class MongoDbOutboundChannelAdapterParserTests {
 
 	@Test
-	public void minimalConfig(){
+	public void minimalConfig() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
@@ -60,7 +60,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithCollectionExpression(){
+	public void fullConfigWithCollectionExpression() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
@@ -75,7 +75,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithCollection(){
+	public void fullConfigWithCollection() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
@@ -90,7 +90,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void fullConfigWithMongoTemplate(){
+	public void fullConfigWithMongoTemplate() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		MongoDbStoringMessageHandler handler =
@@ -103,18 +103,18 @@ public class MongoDbOutboundChannelAdapterParserTests {
 		assertEquals("foo", TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue"));
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void templateAndFactoryFail(){
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void templateAndFactoryFail() {
 		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-factory-config.xml", this.getClass());
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void templateAndConverterFail(){
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void templateAndConverterFail() {
 		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-converter-config.xml", this.getClass());
 	}
 
 	@Test
-	public void testInt3024PollerAndRequestHandlerAdviceChain(){
+	public void testInt3024PollerAndRequestHandlerAdviceChain() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
 		AbstractEndpoint endpoint = context.getBean("pollableAdapter", AbstractEndpoint.class);
 		assertThat(endpoint, Matchers.instanceOf(PollingConsumer.class));

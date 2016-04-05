@@ -194,7 +194,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 			if (allExceptions != null && allExceptions.size() == 1) {
 				throw allExceptions.get(0);
 			}
-			throw new AggregateMessageDeliveryException(message,//NOSONAR - false positive
+			throw new AggregateMessageDeliveryException(message, //NOSONAR - false positive
 					"All attempts to deliver Message to MessageHandlers failed.", allExceptions);
 		}
 	}

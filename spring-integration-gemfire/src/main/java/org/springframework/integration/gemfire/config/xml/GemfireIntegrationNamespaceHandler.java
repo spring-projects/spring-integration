@@ -22,7 +22,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * @author David Turanski
  * @since 2.1
  */
-public class GemfireIntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler{
+public class GemfireIntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()

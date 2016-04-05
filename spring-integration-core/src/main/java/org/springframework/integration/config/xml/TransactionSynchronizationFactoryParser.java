@@ -47,7 +47,7 @@ public class TransactionSynchronizationFactoryParser extends
 		Element afterCommitElement =  DomUtils.getChildElementByTagName(element, "after-commit");
 		Element afterRollbackElement =  DomUtils.getChildElementByTagName(element, "after-rollback");
 
-		if (this.elementsNotDefined(beforeCommitElement, afterCommitElement, afterRollbackElement)){
+		if (this.elementsNotDefined(beforeCommitElement, afterCommitElement, afterRollbackElement)) {
 			parserContext.getReaderContext().error("At least one sub-element " +
 					"('before-commit', 'after-commit' and/or 'after-rollback') must be defined", element);
 		}
@@ -63,21 +63,21 @@ public class TransactionSynchronizationFactoryParser extends
 		return syncFactoryBuilder.getBeanDefinition();
 	}
 
-	private void processSubElement(Element element, ParserContext parserContext, BeanDefinitionBuilder expressionProcessor, String elementPrefix){
-		if (element != null){
+	private void processSubElement(Element element, ParserContext parserContext, BeanDefinitionBuilder expressionProcessor, String elementPrefix) {
+		if (element != null) {
 			String expression = element.getAttribute("expression");
 			String channel = element.getAttribute("channel");
-			if (this.attributesNotDefined(expression, channel)){
+			if (this.attributesNotDefined(expression, channel)) {
 				parserContext.getReaderContext().error("At least one attribute " +
 						"('expression' and/or 'channel') must be defined", element);
 			}
 
-			if (StringUtils.hasText(expression)){
+			if (StringUtils.hasText(expression)) {
 				RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
 				expressionProcessor.addPropertyValue(elementPrefix + "Expression", expressionDef);
 			}
-			if (StringUtils.hasText(channel)){
+			if (StringUtils.hasText(channel)) {
 				expressionProcessor.addPropertyReference(elementPrefix + "Channel", channel);
 			}
 			else {
@@ -86,17 +86,17 @@ public class TransactionSynchronizationFactoryParser extends
 		}
 	}
 
-	private boolean elementsNotDefined(Element... elements){
+	private boolean elementsNotDefined(Element... elements) {
 		for (Object element : elements) {
-			if (element != null){
+			if (element != null) {
 				return false;
 			}
 		}
 		return true;
 	}
-	private boolean attributesNotDefined(String... attributes){
+	private boolean attributesNotDefined(String... attributes) {
 		for (String attribute : attributes) {
-			if (StringUtils.hasText(attribute)){
+			if (StringUtils.hasText(attribute)) {
 				return false;
 			}
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class MarshallingWebServiceIntegrationTests {
 
 	private Result stringResult = new StreamResult(output);
 
-	@Before public void setupMocks(){
+	@Before public void setupMocks() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -125,7 +125,7 @@ public class MarshallingWebServiceIntegrationTests {
 	}
 
 	public static class StubEndpoint {
-		@ServiceActivator(inputChannel="requests")
+		@ServiceActivator(inputChannel = "requests")
 		public Object handle(Object o) {
 			return o;
 		}

@@ -58,7 +58,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 *
 	 * @param messageStoreRegion The region.
 	 */
-	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
+	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
 		this.cache = null;
 		this.messageStoreRegion = messageStoreRegion;
 	}
@@ -88,14 +88,14 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 		}
 
 		try {
-			if (logger.isDebugEnabled()){
+			if (logger.isDebugEnabled()) {
 				logger.debug("creating message store region as '" + MESSAGE_STORE_REGION_NAME + "'");
 			}
 
 			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
 			attributesFactoryBean.afterPropertiesSet();
-			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>() {};
+			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>() { };
 			messageRegionFactoryBean.setBeanName(MESSAGE_STORE_REGION_NAME);
 			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 			messageRegionFactoryBean.setCache(this.cache);

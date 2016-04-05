@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,13 +51,13 @@ public class Jsr223HeaderEnricherTests {
 	private QueueChannel outputB;
 
 	@Test
-	public void referencedScript() throws Exception{
+	public void referencedScript() throws Exception {
 		inputA.send(new GenericMessage<String>("Hello"));
 		assertEquals("jruby", outputA.receive(20000).getHeaders().get("TEST_HEADER"));
 	}
 
 	@Test
-	public void inlineScript() throws Exception{
+	public void inlineScript() throws Exception {
 		inputB.send(new GenericMessage<String>("Hello"));
 		assertEquals("js", outputB.receive(20000).getHeaders().get("TEST_HEADER"));
 	}

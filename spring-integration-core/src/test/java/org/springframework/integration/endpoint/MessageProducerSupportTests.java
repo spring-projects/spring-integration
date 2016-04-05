@@ -49,7 +49,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class MessageProducerSupportTests {
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void validateExceptionIfNoErrorChannel() {
 		DirectChannel outChannel = new DirectChannel();
 
@@ -59,7 +59,7 @@ public class MessageProducerSupportTests {
 				throw new RuntimeException("problems");
 			}
 		});
-		MessageProducerSupport mps = new MessageProducerSupport() {};
+		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannel(outChannel);
 		mps.setBeanFactory(TestUtils.createTestApplicationContext());
 		mps.afterPropertiesSet();
@@ -67,7 +67,7 @@ public class MessageProducerSupportTests {
 		mps.sendMessage(new GenericMessage<String>("hello"));
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void validateExceptionIfSendToErrorChannelFails() {
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(new MessageHandler() {
@@ -83,7 +83,7 @@ public class MessageProducerSupportTests {
 				throw new RuntimeException("ooops");
 			}
 		});
-		MessageProducerSupport mps = new MessageProducerSupport() {};
+		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannel(outChannel);
 		mps.setErrorChannel(errorChannel);
 		mps.setBeanFactory(TestUtils.createTestApplicationContext());
@@ -107,7 +107,7 @@ public class MessageProducerSupportTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
-		MessageProducerSupport mps = new MessageProducerSupport() {};
+		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannel(outChannel);
 		mps.setErrorChannel(errorChannel);
 		mps.setBeanFactory(TestUtils.createTestApplicationContext());
@@ -125,7 +125,7 @@ public class MessageProducerSupportTests {
 	@Test
 	public void testWithChannelName() {
 		DirectChannel outChannel = new DirectChannel();
-		MessageProducerSupport mps = new MessageProducerSupport() {};
+		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannelName("foo");
 		TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		testApplicationContext.registerBean("foo", outChannel);

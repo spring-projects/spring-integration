@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ public class AnnotationAggregatorTests {
 		@SuppressWarnings("unchecked")
 		Message<String> result = (Message<String>) output.receive();
 		String payload = result.getPayload();
-		assertTrue("Wrong payload: "+payload, payload.matches(".*payload.*?=a.*"));
-		assertTrue("Wrong payload: "+payload, payload.matches(".*payload.*?=b.*"));
+		assertTrue("Wrong payload: " + payload, payload.matches(".*payload.*?=a.*"));
+		assertTrue("Wrong payload: " + payload, payload.matches(".*payload.*?=b.*"));
 	}
 
 	@SuppressWarnings("unused")
@@ -69,7 +69,7 @@ public class AnnotationAggregatorTests {
 
 		@ReleaseStrategy
 		public boolean release(final List<Message<?>> messages) {
-			return messages.size()>1;
+			return messages.size() > 1;
 		}
 
 		@CorrelationStrategy

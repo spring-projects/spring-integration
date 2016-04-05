@@ -48,16 +48,16 @@ public class SimpleMessageGroupTests {
 	private SimpleMessageGroup group = new SimpleMessageGroup(Collections.<Message<?>> emptyList(), key);
 
 	@SuppressWarnings("unchecked")
-	public void prepareForSequenceAwareMessageGroup() throws Exception{
+	public void prepareForSequenceAwareMessageGroup() throws Exception {
 		Class<SimpleMessageGroup> clazz =
-				(Class<SimpleMessageGroup>)Class.forName("org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler$SequenceAwareMessageGroup");
+				(Class<SimpleMessageGroup>) Class.forName("org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler$SequenceAwareMessageGroup");
 		Constructor<SimpleMessageGroup> ctr = clazz.getDeclaredConstructor(MessageGroup.class);
 		ctr.setAccessible(true);
 		group = ctr.newInstance(group);
 	}
 
 	@Test
-	public void shouldFindSupersedingMessagesIfSequenceAware() throws Exception{
+	public void shouldFindSupersedingMessagesIfSequenceAware() throws Exception {
 		this.prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").setSequenceNumber(1).build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).setSequenceNumber(1).build();
@@ -68,7 +68,7 @@ public class SimpleMessageGroupTests {
 	}
 
 	@Test
-	public void shouldIgnoreMessagesWithZeroSequenceNumberIfSequenceAware() throws Exception{
+	public void shouldIgnoreMessagesWithZeroSequenceNumberIfSequenceAware() throws Exception {
 		this.prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).build();
@@ -79,7 +79,7 @@ public class SimpleMessageGroupTests {
 	}
 
 	@Test // should not fail with NPE (see INT-2666)
-	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() throws Exception{
+	public void shouldIgnoreNullValuesWhenInitializedWithCollectionContainingNulls() throws Exception {
 		Message<?> m1 = mock(Message.class);
 		Message<?> m2 = mock(Message.class);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();

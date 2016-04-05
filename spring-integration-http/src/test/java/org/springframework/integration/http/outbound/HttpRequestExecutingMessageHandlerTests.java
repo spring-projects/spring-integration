@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ import org.springframework.web.client.RestTemplate;
 public class HttpRequestExecutingMessageHandlerTests {
 
 	public static ParameterizedTypeReference<List<String>> testParameterizedTypeReference() {
-		return new ParameterizedTypeReference<List<String>>() {};
+		return new ParameterizedTypeReference<List<String>>() { };
 	}
 
 	@Test
@@ -239,7 +239,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
-		form.put("a", new int[]{1,2,3});
+		form.put("a", new int[]{1, 2, 3});
 		form.put("b", "4");
 		form.put("c", new String[] { "5" });
 		form.put("d", "6");
@@ -743,7 +743,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		try {
 			handler.handleRequestMessage(message);
 		}
-		catch (Exception e) {}
+		catch (Exception e) { }
 		assertEquals(theURL, restTemplate.actualUrl.get());
 	}
 
@@ -760,7 +760,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		try {
 			handler.handleRequestMessage(message);
 		}
-		catch (Exception e) {}
+		catch (Exception e) { }
 		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar", restTemplate.actualUrl.get());
 	}
 
@@ -866,12 +866,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		private final String name;
 
-		public City(String name){
+		public City(String name) {
 			this.name = name;
 		}
 
 		@Override
-		public String toString(){
+		public String toString() {
 			return name;
 		}
 

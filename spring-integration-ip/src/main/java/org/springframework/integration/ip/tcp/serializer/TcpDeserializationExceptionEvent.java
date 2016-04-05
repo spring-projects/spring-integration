@@ -35,15 +35,15 @@ public class TcpDeserializationExceptionEvent extends IpIntegrationEvent {
 
 	private final int offset;
 
-	public TcpDeserializationExceptionEvent(Object source, Throwable cause, byte[] buffer,//NOSONAR - direct storage
+	public TcpDeserializationExceptionEvent(Object source, Throwable cause, byte[] buffer, //NOSONAR - direct storage
 			int offset) {
 		super(source, cause);
-		this.buffer = buffer;//NOSONAR - direct storage
+		this.buffer = buffer; //NOSONAR - direct storage
 		this.offset = offset;
 	}
 
 	public byte[] getBuffer() {
-		return this.buffer;//NOSONAR - direct access
+		return this.buffer; //NOSONAR - direct access
 	}
 
 	public int getOffset() {

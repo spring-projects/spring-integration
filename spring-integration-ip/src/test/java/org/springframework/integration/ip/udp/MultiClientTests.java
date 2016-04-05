@@ -80,7 +80,8 @@ public class MultiClientTests {
 						}
 					}
 					sender.stop();
-				}});
+				}
+			});
 			t.setDaemon(true);
 			t.start();
 		}
@@ -132,7 +133,8 @@ public class MultiClientTests {
 						}
 					}
 					sender.stop();
-				}});
+				}
+			});
 			t.setDaemon(true);
 			t.start();
 		}
@@ -184,7 +186,8 @@ public class MultiClientTests {
 						}
 					}
 					sender.stop();
-				}});
+				}
+			});
 			t.setDaemon(true);
 			t.start();
 		}

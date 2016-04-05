@@ -77,7 +77,7 @@ public class CqInboundChannelAdapterTests {
 	@Test
 	public void testCqEvent()  throws InterruptedException {
 		assertTrue(TestUtils.getPropertyValue(withDurable, "durable", Boolean.class));
-		region.put("one",1);
+		region.put("one", 1);
 		Message<?> msg = outputChannel1.receive(10000);
 		assertNotNull(msg);
 		assertTrue(msg.getPayload() instanceof CqEvent);
@@ -85,10 +85,10 @@ public class CqInboundChannelAdapterTests {
 
 	@Test
 	public void testPayloadExpression()  throws InterruptedException {
-		region.put("one",1);
+		region.put("one", 1);
 		Message<?> msg = outputChannel2.receive(10000);
 		assertNotNull(msg);
-		assertEquals(1,msg.getPayload());
+		assertEquals(1, msg.getPayload());
 	}
 
 	@AfterClass

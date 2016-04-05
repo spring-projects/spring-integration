@@ -108,7 +108,7 @@ public class RFC6587SyslogDeserializer implements Deserializer<Map<String, ?>> {
 		int length = peek & 0xf;
 		int c;
 		while (isDigit((c = stream.read()))) {
-			length = length*10 + (c & 0xf);
+			length = length * 10 + (c & 0xf);
 		}
 		return length;
 	}

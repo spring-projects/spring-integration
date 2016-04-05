@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class TestSendingMessageHandlerParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testSendingMessageHandlerSuccessfulBootstrap(){
+	public void testSendingMessageHandlerSuccessfulBootstrap() {
 		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
 				"TestSendingMessageHandlerParser-context.xml", this.getClass());
 		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);

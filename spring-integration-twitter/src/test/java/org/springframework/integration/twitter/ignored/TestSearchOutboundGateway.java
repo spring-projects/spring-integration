@@ -38,7 +38,7 @@ public class TestSearchOutboundGateway {
 	/*
 	 * In order to run this test you need to provide oauth properties in sample.properties on the classpath.
 	 */
-	public void testSearch() throws Exception{
+	public void testSearch() throws Exception {
 		ConfigurableApplicationContext ctx =
 				new ClassPathXmlApplicationContext("TestSearchOutboundGateway-context.xml", this.getClass());
 		MessageChannel search = ctx.getBean("search", MessageChannel.class);

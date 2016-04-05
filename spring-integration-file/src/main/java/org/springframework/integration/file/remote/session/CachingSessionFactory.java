@@ -178,16 +178,16 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		@Override
 		public synchronized void close() {
 			if (this.released) {
-				if (logger.isDebugEnabled()){
+				if (logger.isDebugEnabled()) {
 					logger.debug("Session " + this.targetSession + " already released.");
 				}
 			}
 			else {
-				if (logger.isDebugEnabled()){
+				if (logger.isDebugEnabled()) {
 					logger.debug("Releasing Session " + this.targetSession + " back to the pool.");
 				}
 				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
-					if (logger.isDebugEnabled()){
+					if (logger.isDebugEnabled()) {
 						logger.debug("Closing session " + this.targetSession + " after reset.");
 					}
 					this.targetSession.close();
@@ -209,22 +209,22 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public boolean remove(String path) throws IOException{
+		public boolean remove(String path) throws IOException {
 			return this.targetSession.remove(path);
 		}
 
 		@Override
-		public F[] list(String path) throws IOException{
+		public F[] list(String path) throws IOException {
 			return this.targetSession.list(path);
 		}
 
 		@Override
-		public void read(String source, OutputStream os) throws IOException{
+		public void read(String source, OutputStream os) throws IOException {
 			this.targetSession.read(source, os);
 		}
 
 		@Override
-		public void write(InputStream inputStream, String destination) throws IOException{
+		public void write(InputStream inputStream, String destination) throws IOException {
 			this.targetSession.write(inputStream, destination);
 		}
 
@@ -254,7 +254,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		}
 
 		@Override
-		public boolean exists(String path) throws IOException{
+		public boolean exists(String path) throws IOException {
 			return this.targetSession.exists(path);
 		}
 

@@ -354,13 +354,13 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private int evaluateExpressionForNumericResult(final Message<?> requestMessage, Expression expression) {
 		int evaluatedResult = 0;
-		if(expression != null) {
+		if (expression != null) {
 			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage);
-			if(evaluationResult != null) {
-				if(evaluationResult instanceof Number) {
+			if (evaluationResult != null) {
+				if (evaluationResult instanceof Number) {
 					evaluatedResult = ((Number) evaluationResult).intValue();
 				}
-				else if(evaluationResult instanceof String){
+				else if (evaluationResult instanceof String) {
 					try {
 						evaluatedResult = Integer.parseInt((String) evaluationResult);
 					}

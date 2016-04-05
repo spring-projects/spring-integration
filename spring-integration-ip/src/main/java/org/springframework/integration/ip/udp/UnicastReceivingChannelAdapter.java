@@ -279,7 +279,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "ip:udp-inbound-channel-adapter";
 	}
 

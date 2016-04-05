@@ -58,7 +58,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testGetNonExistingMessage(){
+	public void testGetNonExistingMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<?> message = store.getMessage(UUID.randomUUID());
@@ -67,7 +67,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testGetMessageCountWhenEmpty(){
+	public void testGetMessageCountWhenEmpty() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		assertEquals(0, store.getMessageCount());
@@ -75,7 +75,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testAddStringMessage(){
+	public void testAddStringMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
@@ -86,7 +86,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testAddSerializableObjectMessage(){
+	public void testAddSerializableObjectMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Address address = new Address();
@@ -101,7 +101,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	@RedisAvailable
-	public void testAddNonSerializableObjectMessage(){
+	public void testAddNonSerializableObjectMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
@@ -112,7 +112,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testAddAndGetStringMessage(){
+	public void testAddAndGetStringMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
@@ -125,7 +125,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testAddAndRemoveStringMessage(){
+	public void testAddAndRemoveStringMessage() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
@@ -138,7 +138,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testWithMessageHistory() throws Exception{
+	public void testWithMessageHistory() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
@@ -185,7 +185,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 
 		private String name;
 
-		public Person(Address address, String name){
+		public Person(Address address, String name) {
 			this.address = address;
 			this.name = name;
 		}

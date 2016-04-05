@@ -64,7 +64,7 @@ public class MBeanExporterIntegrationTests {
 
 	@After
 	public void close() {
-		if (context!=null) {
+		if (context != null) {
 			context.close();
 		}
 	}
@@ -378,7 +378,7 @@ public class MBeanExporterIntegrationTests {
 		public String execute() throws Exception {
 			Thread.sleep(10L); // make the duration non-zero
 			counter++;
-			return "count="+counter;
+			return "count=" + counter;
 		}
 
 		@Override

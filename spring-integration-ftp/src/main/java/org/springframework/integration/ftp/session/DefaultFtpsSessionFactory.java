@@ -126,7 +126,7 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 			 to catch a NoSuchAlgorithmException.
 			 */
 
-			if (e instanceof RuntimeException) {//NOSONAR false positive
+			if (e instanceof RuntimeException) { //NOSONAR false positive
 		        throw (RuntimeException) e;
 		    }
 

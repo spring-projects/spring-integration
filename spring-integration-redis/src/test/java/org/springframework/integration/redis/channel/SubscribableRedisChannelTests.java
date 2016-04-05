@@ -83,7 +83,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void dispatcherHasNoSubscribersTest() throws Exception{
+	public void dispatcherHasNoSubscribersTest() throws Exception {
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");

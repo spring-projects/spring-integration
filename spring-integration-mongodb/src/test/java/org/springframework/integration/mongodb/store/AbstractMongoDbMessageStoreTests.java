@@ -107,7 +107,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testWithMessageHistory() throws Exception{
+	public void testWithMessageHistory() throws Exception {
 		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Foo foo = new Foo();
@@ -145,7 +145,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3153SequenceDetails() throws Exception{
+	public void testInt3153SequenceDetails() throws Exception {
 		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageStore store = getMessageStore();
 		Message<?> messageToStore = MessageBuilder.withPayload("test")
@@ -162,7 +162,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076MessageAsPayload() throws Exception{
+	public void testInt3076MessageAsPayload() throws Exception {
 		MessageStore store = this.getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -180,7 +180,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076AdviceMessage() throws Exception{
+	public void testInt3076AdviceMessage() throws Exception {
 		MessageStore store = this.getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -199,7 +199,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testAdviceMessageAsPayload() throws Exception{
+	public void testAdviceMessageAsPayload() throws Exception {
 		MessageStore store = this.getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -219,7 +219,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testMutableMessageAsPayload() throws Exception{
+	public void testMutableMessageAsPayload() throws Exception {
 		MessageStore store = this.getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -237,7 +237,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 	@Test
 	@MongoDbAvailable
-	public void testInt3076ErrorMessage() throws Exception{
+	public void testInt3076ErrorMessage() throws Exception {
 		MessageStore store = this.getMessageStore();
 		Person p = new Person();
 		p.setFname("John");
@@ -279,14 +279,14 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		}
 	}
 
-	public static class Bar implements Serializable{
+	public static class Bar implements Serializable {
 		/**
 		 *
 		 */
 		private static final long serialVersionUID = 1L;
 		private final String name;
 
-		public Bar(String name){
+		public Bar(String name) {
 			this.name = name;
 		}
 
@@ -315,7 +315,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 		private final String name = "abx";
 
-		private Abc(){}
+		private Abc() { }
 
 		public String getName() {
 			return name;
@@ -331,11 +331,11 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		@SuppressWarnings("unused")
 		private final String name = "xyz";
 
-		private Xyz(){}
+		private Xyz() { }
 	}
 
 
-	public static class Person implements Serializable{
+	public static class Person implements Serializable {
 
 		/**
 		 *

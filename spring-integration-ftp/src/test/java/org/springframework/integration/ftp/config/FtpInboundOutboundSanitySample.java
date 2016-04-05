@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,21 +37,21 @@ public class FtpInboundOutboundSanitySample {
 
 	@Test
 	@Ignore
-	public void testFtpInboundChannelAdapter() throws Exception{
+	public void testFtpInboundChannelAdapter() throws Exception {
 		File fileA = new File("local-test-dir/a.test");
-		if (fileA.exists()){
+		if (fileA.exists()) {
 			fileA.delete();
 		}
 		File fileB = new File("local-test-dir/b.test");
-		if (fileB.exists()){
+		if (fileB.exists()) {
 			fileB.delete();
 		}
 		fileA = new File("remote-target-dir/a.test");
-		if (fileA.exists()){
+		if (fileA.exists()) {
 			fileA.delete();
 		}
 		fileB = new File("remote-target-dir/b.test");
-		if (fileB.exists()){
+		if (fileB.exists()) {
 			fileB.delete();
 		}
 
@@ -65,7 +65,7 @@ public class FtpInboundOutboundSanitySample {
 
 	@Test
 	@Ignore
-	public void testFtpOutboundChannelAdapter() throws Exception{
+	public void testFtpOutboundChannelAdapter() throws Exception {
 		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");

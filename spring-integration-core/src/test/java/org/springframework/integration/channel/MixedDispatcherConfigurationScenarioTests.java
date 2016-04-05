@@ -109,12 +109,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		verify(handlerA, times(2)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
@@ -232,19 +232,19 @@ public class MixedDispatcherConfigurationScenarioTests {
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		inOrder.verify(handlerB).handleMessage(message);
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		inOrder.verify(handlerC).handleMessage(message);
 
@@ -383,7 +383,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		inOrder.verify(handlerB).handleMessage(message);
@@ -391,7 +391,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		try {
 			channel.send(message);
 		}
-		catch (Exception e) {/* ignore */
+		catch (Exception e) { /* ignore */
 		}
 		inOrder.verify(handlerA).handleMessage(message);
 		inOrder.verify(handlerB).handleMessage(message);

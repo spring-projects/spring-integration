@@ -54,7 +54,7 @@ public class ChannelCapacityPlaceholderTests {
 
 	public interface TestService {
 
-		@org.springframework.integration.annotation.Gateway(requestChannel="channel")
+		@org.springframework.integration.annotation.Gateway(requestChannel = "channel")
 		void test();
 
 	}

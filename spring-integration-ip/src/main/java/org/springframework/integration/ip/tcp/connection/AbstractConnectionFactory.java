@@ -661,7 +661,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 											connection.sendExceptionToListener(new EOFException("Connection is closed"));
 										}
 									}
-								}});
+								}
+							});
 						}
 						catch (RejectedExecutionException e) {
 							delayRead(selector, now, key);
@@ -874,7 +875,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public boolean closeConnection(String connectionId) {
 		Assert.notNull(connectionId, "'connectionId' to close must not be null");
 		// closed connections are removed from #connections in #harvestClosedConnections()
-		synchronized(this.connections) {
+		synchronized (this.connections) {
 			boolean closed = false;
 			TcpConnectionSupport connection = this.connections.get(connectionId);
 			if (connection != null) {

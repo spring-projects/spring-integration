@@ -56,7 +56,7 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (beanFactory != null){
+		if (beanFactory != null) {
 			this.processor.setBeanFactory(beanFactory);
 		}
 	}

@@ -62,7 +62,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 		metadataStore.put("RedisMetadataStoreTests-Spring", "Integration");
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(jcf);
-		BoundHashOperations<String,Object,Object> ops = redisTemplate.boundHashOps("testMetadata");
+		BoundHashOperations<String, Object, Object> ops = redisTemplate.boundHashOps("testMetadata");
 
 		assertEquals("Integration", ops.get("RedisMetadataStoreTests-Spring"));
 	}

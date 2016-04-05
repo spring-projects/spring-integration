@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,12 +133,12 @@ public class JdbcPollingChannelAdapterParserTests {
 		this.jdbcTemplate.update("insert into item values(1,'',42)");
 		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
-		assertEquals(42, ((Map<?,?>) ((List<?> )message.getPayload()).get(0)).get("STATUS"));
+		assertEquals(42, ((Map<?, ?>) ((List<?> ) message.getPayload()).get(0)).get("STATUS"));
 		this.jdbcTemplate.update("insert into item values(2,'',84)");
 		this.appCtx.getBean(Status.class).which = 84;
 		message = messagingTemplate.receive();
 		assertNotNull(message);
-		assertEquals(84, ((Map<?,?>) ((List<?> )message.getPayload()).get(0)).get("STATUS"));
+		assertEquals(84, ((Map<?, ?>) ((List<?> ) message.getPayload()).get(0)).get("STATUS"));
 	}
 
 	@Test

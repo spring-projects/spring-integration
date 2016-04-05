@@ -70,7 +70,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out -> jms:in
 	 */
 	@Test
-	public void testPipeline1() throws Exception{
+	public void testPipeline1() throws Exception {
 		this.test("pipeline-named-queue-01.xml");
 	}
 
@@ -80,7 +80,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline02-03") -> jms:in
 	 */
 	@Test
-	public void testPipeline2() throws Exception{
+	public void testPipeline2() throws Exception {
 		this.test("pipeline-named-queue-02.xml");
 	}
 
@@ -92,7 +92,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline02a-01") -> jms:in
 	 */
 	@Test
-	public void testPipeline2a() throws Exception{
+	public void testPipeline2a() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-02a.xml");
 		assertEquals(0, timeouts);
 	}
@@ -103,7 +103,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline03-03") -> jms:in
 	 */
 	@Test
-	public void testPipeline3() throws Exception{
+	public void testPipeline3() throws Exception {
 		this.test("pipeline-named-queue-03.xml");
 	}
 
@@ -116,7 +116,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * Ensures reply came from service after third gateway
 	 */
 	@Test
-	public void testPipeline3a() throws Exception{
+	public void testPipeline3a() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-03a.xml", 50000);
 		assertEquals(0, timeouts);
 	}
@@ -126,7 +126,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline04-02") -> jms:in
 	 */
 	@Test
-	public void testPipeline4() throws Exception{
+	public void testPipeline4() throws Exception {
 		int timeouts = this.test("pipeline-named-queue-04.xml", 30000);
 		assertEquals(0, timeouts);
 	}
@@ -136,7 +136,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline05-02", correlation-key="JMSCorrelationID") -> jms:in
 	 */
 	@Test
-	public void testPipeline5() throws Exception{
+	public void testPipeline5() throws Exception {
 		this.test("pipeline-named-queue-05.xml");
 	}
 
@@ -145,7 +145,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline06-02", correlation-key="foo") -> jms:in(correlation-key="foo")
 	 */
 	@Test
-	public void testPipeline6() throws Exception{
+	public void testPipeline6() throws Exception {
 		this.test("pipeline-named-queue-06.xml");
 	}
 
@@ -154,7 +154,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 	 * jms:out(reply-destination-name="pipeline07-02", correlation-key="foo") -> jms:in(correlation-key="foo")
 	 */
 	@Test
-	public void testPipeline7() throws Exception{
+	public void testPipeline7() throws Exception {
 		this.test("pipeline-named-queue-07.xml");
 	}
 

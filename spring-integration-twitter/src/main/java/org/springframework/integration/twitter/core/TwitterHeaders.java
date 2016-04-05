@@ -32,6 +32,6 @@ public final class TwitterHeaders {
 
 	public static final String SEARCH_METADATA = PREFIX + "searchMetadata";
 
-	private TwitterHeaders() {}
+	private TwitterHeaders() { }
 
 }

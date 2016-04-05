@@ -65,7 +65,7 @@ public class ControlBusRecipientListRouterTests {
 	private MessageChannel channel;
 
 	@Before
-	public  void aa(){
+	public  void aa() {
 		context.start();
 	}
 
@@ -142,8 +142,8 @@ public class ControlBusRecipientListRouterTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(1000);
 
-		Map<String,String> map = new HashMap<String,String>();
-		map.put("channel6","true");
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("channel6", "true");
 		Message<?> message = MessageBuilder.withPayload("@'simpleRouter.handler'.setRecipientMappings(headers.recipientMap)").setHeader("recipientMap", map).build();
 		this.input.send(message);
 		message = new GenericMessage<Integer>(1);

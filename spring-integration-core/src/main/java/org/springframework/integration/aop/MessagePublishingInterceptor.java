@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			context.setVariable(PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME, returnValue);
 			return returnValue;
 		}
-		catch (Throwable t) {//NOSONAR - rethrown below
+		catch (Throwable t) { //NOSONAR - rethrown below
 			context.setVariable(PublisherMetadataSource.EXCEPTION_VARIABLE_NAME, t);
 			throw t;
 		}
@@ -182,7 +182,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			}
 			else {
 				if (this.defaultChannelName != null) {
-					synchronized(this) {
+					synchronized (this) {
 						if (this.defaultChannelName != null && this.messagingTemplate.getDefaultDestination() == null) {
 							Assert.state(this.channelResolver != null,
 									"ChannelResolver is required to resolve channel names.");

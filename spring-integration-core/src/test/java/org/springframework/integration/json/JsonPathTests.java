@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public class JsonPathTests {
 	@Test
 	public void testInt3139JsonPathSplitter() {
 	  this.splitterInput.send(testMessage);
-		for(int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			Message<?> receive = this.splitterOutput.receive(10000);
 			assertNotNull(receive);
 			assertTrue(receive.getPayload() instanceof Map);

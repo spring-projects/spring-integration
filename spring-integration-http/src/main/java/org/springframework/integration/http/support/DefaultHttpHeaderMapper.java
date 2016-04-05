@@ -310,7 +310,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 * @param outboundHeaderNames The outbound header names.
 	 */
-	public void setOutboundHeaderNames(String[] outboundHeaderNames) {//NOSONAR - false positive
+	public void setOutboundHeaderNames(String[] outboundHeaderNames) { //NOSONAR - false positive
 		if (HTTP_REQUEST_HEADER_NAMES == outboundHeaderNames) {
 			this.isDefaultOutboundMapper = true;
 		}
@@ -344,7 +344,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 * @param inboundHeaderNames The inbound header names.
 	 */
-	public void setInboundHeaderNames(String[] inboundHeaderNames) {//NOSONAR - false positive
+	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
 		this.inboundHeaderNames = inboundHeaderNames != null ?
 				Arrays.copyOf(inboundHeaderNames, inboundHeaderNames.length) : new String[0];
 		this.inboundHeaderNamesLower = new String[this.inboundHeaderNames.length];

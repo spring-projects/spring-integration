@@ -40,7 +40,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testWithDefaultMongoFactory() throws Exception{
+	public void testWithDefaultMongoFactory() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapter", MessageChannel.class);
@@ -54,7 +54,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testWithNamedCollection() throws Exception{
+	public void testWithNamedCollection() throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
@@ -68,7 +68,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testWithTemplate() throws Exception{
+	public void testWithTemplate() throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
@@ -82,7 +82,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testSavingDbObject() throws Exception{
+	public void testSavingDbObject() throws Exception {
 
 		BasicDBObject dbObject = (BasicDBObject) JSON.parse("{'foo' : 'bar'}");
 
@@ -99,7 +99,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testSavingJSONString() throws Exception{
+	public void testSavingJSONString() throws Exception {
 
 		String object = "{'foo' : 'bar'}";
 
@@ -116,7 +116,7 @@ public class MongoDbOutboundChannelAdapterIntegrationTests extends MongoDbAvaila
 
 	@Test
 	@MongoDbAvailable
-	public void testWithMongoConverter() throws Exception{
+	public void testWithMongoConverter() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithConverter", MessageChannel.class);

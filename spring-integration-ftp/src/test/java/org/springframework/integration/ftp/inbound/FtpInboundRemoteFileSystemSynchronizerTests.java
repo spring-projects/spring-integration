@@ -72,9 +72,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 	@Before
 	@After
-	public void cleanup(){
+	public void cleanup() {
 		File file = new File("test");
-		if (file.exists()){
+		if (file.exists()) {
 			String[] files = file.list();
 			for (String fileName : files) {
 				new File(file, fileName).delete();

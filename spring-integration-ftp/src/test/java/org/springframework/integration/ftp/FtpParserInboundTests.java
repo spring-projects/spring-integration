@@ -42,19 +42,19 @@ import org.springframework.messaging.MessagingException;
  */
 public class FtpParserInboundTests {
 	@Before
-	public void prepare(){
+	public void prepare() {
 		new File("target/foo").delete();
 	}
 
 	@Test
-	public void testLocalFilesAutoCreationTrue() throws Exception{
+	public void testLocalFilesAutoCreationTrue() throws Exception {
 		assertTrue(!new File("target/foo").exists());
 		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass());
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
 	@Test
-	public void testLocalFilesAutoCreationFalse() throws Exception{
+	public void testLocalFilesAutoCreationFalse() throws Exception {
 		assertTrue(!new File("target/bar").exists());
 		try {
 			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass());
@@ -71,7 +71,7 @@ public class FtpParserInboundTests {
 	}
 
 	@After
-	public void cleanUp() throws Exception{
+	public void cleanUp() throws Exception {
 		new File("target/foo").delete();
 	}
 }

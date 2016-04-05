@@ -42,31 +42,31 @@ public class MultipleEndpointGatewayTests {
 	private SampleGateway gatewayB;
 
 	@Test
-	public void gatewayNoDefaultReplyChannel(){
+	public void gatewayNoDefaultReplyChannel() {
 		gatewayA.echo("echoAsMessageChannel");
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
 	@Test
-	public void gatewayWithDefaultReplyChannel(){
+	public void gatewayWithDefaultReplyChannel() {
 		gatewayB.echo("echoAsMessageChannelIgnoreDefOutChannel");
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
 
 	@Test
-	public void gatewayWithReplySentBackToDefaultReplyChannel(){
+	public void gatewayWithReplySentBackToDefaultReplyChannel() {
 		gatewayB.echo("echoAsMessageChannelDefaultOutputChannel");
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
 
-	public interface SampleGateway{
+	public interface SampleGateway {
 		Object echo(Object value);
 	}
 
 	public static class SampleEchoService {
-		public Object echo(Object value){
+		public Object echo(Object value) {
 			return "R:" + value;
 		}
-		public Message<?> echoAsMessage(Object value){
+		public Message<?> echoAsMessage(Object value) {
 			return MessageBuilder.withPayload("R:" + value).build();
 		}
 	}

@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.0
  *
  */
-@ContextConfiguration(classes=CFConfig.class)
+@ContextConfiguration(classes = CFConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class JmsInboundChannelAdapterTests extends ActiveMQMultiContextTests {

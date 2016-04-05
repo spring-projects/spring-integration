@@ -169,7 +169,7 @@ public class FtpSession implements Session<FTPFile> {
 	}
 
 	@Override
-	public void rename(String pathFrom, String pathTo) throws IOException{
+	public void rename(String pathFrom, String pathTo) throws IOException {
 		this.client.deleteFile(pathTo);
 		boolean completed = this.client.rename(pathFrom, pathTo);
 		if (!completed) {
@@ -193,7 +193,7 @@ public class FtpSession implements Session<FTPFile> {
 
 
 	@Override
-	public boolean exists(String path) throws IOException{
+	public boolean exists(String path) throws IOException {
 		Assert.hasText(path, "'path' must not be empty");
 
 		String currentWorkingPath = this.client.printWorkingDirectory();

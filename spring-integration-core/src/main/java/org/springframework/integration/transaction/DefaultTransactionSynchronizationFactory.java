@@ -38,7 +38,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 
 	private final TransactionSynchronizationProcessor processor;
 
-	public DefaultTransactionSynchronizationFactory(TransactionSynchronizationProcessor processor){
+	public DefaultTransactionSynchronizationFactory(TransactionSynchronizationProcessor processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
 	}

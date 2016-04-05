@@ -134,7 +134,7 @@ public class ExponentialMovingAverageRatio {
 		}
 		this.times.add(t);
 		this.values.add(value);
-		this.count++;//NOSONAR - false positive, we're synchronized
+		this.count++; //NOSONAR - false positive, we're synchronized
 	}
 
 	private Statistics calc() {

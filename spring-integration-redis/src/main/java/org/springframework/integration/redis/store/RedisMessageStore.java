@@ -56,7 +56,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	}
 
 	@Override
-	protected Object doRetrieve(Object id){
+	protected Object doRetrieve(Object id) {
 		Assert.notNull(id, "'id' must not be null");
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		return ops.get();
@@ -83,7 +83,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	protected Object doRemove(Object id) {
 		Assert.notNull(id, "'id' must not be null");
 		Object removedObject = this.doRetrieve(id);
-		if (removedObject != null){
+		if (removedObject != null) {
 			this.redisTemplate.delete(id);
 		}
 		return removedObject;

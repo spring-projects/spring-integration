@@ -159,7 +159,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
 				throw new MessageDeliveryException(message, description, ex);
 			}
-			catch (Error ex) {//NOSONAR - ok, we re-throw below
+			catch (Error ex) { //NOSONAR - ok, we re-throw below
 				if (!CollectionUtils.isEmpty(interceptorStack)) {
 					String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
 					triggerAfterMessageHandled(message, new MessageDeliveryException(message, description, ex),
@@ -199,7 +199,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					interceptor.afterMessageHandled(message, AbstractExecutorChannel.this,
 							this.delegate.getMessageHandler(), ex);
 				}
-				catch (Throwable ex2) {//NOSONAR
+				catch (Throwable ex2) { //NOSONAR
 					logger.error("Exception from afterMessageHandled in " + interceptor, ex2);
 				}
 			}

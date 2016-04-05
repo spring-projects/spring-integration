@@ -46,7 +46,7 @@ import org.springframework.messaging.PollableChannel;
 public class JmsMessageHistoryTests {
 
 	@Test
-	public void testInboundAdapter() throws Exception{
+	public void testInboundAdapter() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("MessageHistoryTests-context.xml", JmsMessageHistoryTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
@@ -118,13 +118,13 @@ public class JmsMessageHistoryTests {
 	}
 
 
-	public static class SampleComponent implements NamedComponent{
+	public static class SampleComponent implements NamedComponent {
 
 		private String name;
 
 		private String type;
 
-		public SampleComponent(String name, String type){
+		public SampleComponent(String name, String type) {
 			this.name = name;
 			this.type = type;
 		}

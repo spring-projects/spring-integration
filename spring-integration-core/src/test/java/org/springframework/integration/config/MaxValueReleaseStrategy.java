@@ -24,7 +24,7 @@ public class MaxValueReleaseStrategy {
 	private long maxValue;
 
 
-	public MaxValueReleaseStrategy(long maxValue){
+	public MaxValueReleaseStrategy(long maxValue) {
 		this.maxValue = maxValue;
 	}
 

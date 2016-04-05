@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,31 +92,31 @@ public class DefaultXmlPayloadConverterTests {
 
 
 	@Test
-	public void testGetSourcePassingDocument() throws Exception{
+	public void testGetSourcePassingDocument() throws Exception {
 		Source source = converter.convertToSource(testDocument);
 		assertEquals(DOMSource.class, source.getClass());
 	}
 
 	@Test
-	public void testGetSourcePassingString() throws Exception{
+	public void testGetSourcePassingString() throws Exception {
 		Source source = converter.convertToSource(testDocumentAsString);
 		assertEquals(StringSource.class, source.getClass());
 	}
 
 	@Test
-	public void testGetSourcePassingSource() throws Exception{
+	public void testGetSourcePassingSource() throws Exception {
 		SAXSource passedInSource = new SAXSource();
 		Source source = converter.convertToSource(passedInSource);
 		assertEquals(source, passedInSource);
 	}
 
-	@Test(expected=MessagingException.class)
-	public void testInvalidPayload(){
+	@Test(expected = MessagingException.class)
+	public void testInvalidPayload() {
 		converter.convertToSource(12);
 	}
 
     @Test
-    public void testGetNodePassingDOMSource(){
+    public void testGetNodePassingDOMSource() {
         Node element = testDocument.getElementsByTagName("test").item(0);
 		Node n = converter.convertToNode(new DOMSource(element));
 		assertTrue("Wrong node returned", element == n);
@@ -133,7 +133,7 @@ public class DefaultXmlPayloadConverterTests {
 	}
 
 	@Test
-	public void testConvertSourceToDocument() throws Exception{
+	public void testConvertSourceToDocument() throws Exception {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		DOMSource domSource = new DOMSource(element);
 		Document doc = converter.convertToDocument(element);

@@ -196,7 +196,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 						bufferedReader.close();
 						this.done = true;
 					}
-					catch (IOException e1) {}
+					catch (IOException e1) { }
 					throw new MessageHandlingException(message, "IOException while iterating", e);
 				}
 			}

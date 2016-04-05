@@ -59,12 +59,12 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 			}
 		}
 		else { // check if unmarshaller is defined which is a mistake without marshaller
-			if (StringUtils.hasText(unmarshallerRef)){
+			if (StringUtils.hasText(unmarshallerRef)) {
 				throw new IllegalArgumentException("An 'unmarshaller' is not allowed without 'marshaller'.");
 			}
 		}
 
-		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)){
+		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)) {
 			String extractPayload = element.getAttribute("extract-payload");
 			if (StringUtils.hasText(extractPayload)) {
 				this.logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");

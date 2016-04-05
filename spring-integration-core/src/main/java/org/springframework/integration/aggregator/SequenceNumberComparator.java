@@ -38,7 +38,7 @@ public class SequenceNumberComparator implements Comparator<Message<?>> {
 	public int compare(Message<?> o1, Message<?> o2) {
 		Integer sequenceNumber1 = new IntegrationMessageHeaderAccessor(o1).getSequenceNumber();
 		Integer sequenceNumber2 = new IntegrationMessageHeaderAccessor(o2).getSequenceNumber();
-		if (sequenceNumber1 == sequenceNumber2) {//NOSONAR - early exit optimization
+		if (sequenceNumber1 == sequenceNumber2) { //NOSONAR - early exit optimization
 			return 0;
 		}
 		if (sequenceNumber1 == null) {

@@ -92,7 +92,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 		try {
 			this.sendChannel.send(new GenericMessage<String>("test1"));
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {
@@ -108,7 +108,7 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 		try {
 			this.sendChannel.send(new GenericMessage<String>("test1"));
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {

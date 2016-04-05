@@ -31,6 +31,6 @@ public final class RegistrationIds {
 
 	public static final int DEFAULT_MUTABLE_MESSAGEHEADERS_ID = 42;
 
-	private RegistrationIds() {}
+	private RegistrationIds() { }
 
 }

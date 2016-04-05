@@ -122,7 +122,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		return mailMessage;
 	}
 
-	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType){
+	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType) {
 		Assert.state(this.mailSender instanceof JavaMailSender,
 				"this adapter requires a 'JavaMailSender' to send a 'MimeMailMessage'");
 
@@ -168,7 +168,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			mailMessage.setSubject(subject);
 		}
 		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
-		if (to != null){
+		if (to != null) {
 			mailMessage.setTo(to);
 		}
 		if (mailMessage instanceof SimpleMailMessage) {
@@ -204,7 +204,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 				returnedHeaders = StringUtils.commaDelimitedListToStringArray((String) value);
 			}
 		}
-		if (returnedHeaders == null || ObjectUtils.isEmpty(returnedHeaders)){
+		if (returnedHeaders == null || ObjectUtils.isEmpty(returnedHeaders)) {
 			returnedHeaders = null;
 		}
 		return returnedHeaders;

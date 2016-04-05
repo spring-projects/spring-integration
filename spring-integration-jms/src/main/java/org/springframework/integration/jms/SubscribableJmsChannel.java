@@ -84,7 +84,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	@Override
 	public void onInit() throws Exception {
-		if (this.initialized){
+		if (this.initialized) {
 			return;
 		}
 		super.onInit();
@@ -92,7 +92,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		this.configureDispatcher(isPubSub);
 		MessageListener listener = new DispatchingMessageListener(
 				this.getJmsTemplate(), this.dispatcher,
-				this, isPubSub,this.getMessageBuilderFactory());
+				this, isPubSub, this.getMessageBuilderFactory());
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,14 +103,14 @@ abstract class HttpAdapterParsingUtils {
 
 	}
 
-	static void setHttpMethodOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+	static void setHttpMethodOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String httpMethod = element.getAttribute("http-method");
 		String httpMethodExpression = element.getAttribute("http-method-expression");
 
 		boolean hasHttpMethod = StringUtils.hasText(httpMethod);
 		boolean hasHttpMethodExpression = StringUtils.hasText(httpMethodExpression);
 
-		if (hasHttpMethod && hasHttpMethodExpression){
+		if (hasHttpMethod && hasHttpMethodExpression) {
 			parserContext.getReaderContext().error("The 'http-method' and 'http-method-expression' are mutually exclusive. " +
 					"You can only have one or the other", element);
 		}
@@ -120,23 +120,23 @@ abstract class HttpAdapterParsingUtils {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethod);
 		}
-		else if (hasHttpMethodExpression){
+		else if (hasHttpMethodExpression) {
 			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethodExpression);
 		}
-		if (expressionDef != null){
+		if (expressionDef != null) {
 			builder.addPropertyValue("httpMethodExpression", expressionDef);
 		}
 	}
 
-	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String expectedResponseType = element.getAttribute("expected-response-type");
 		String expectedResponseTypeExpression = element.getAttribute("expected-response-type-expression");
 
 		boolean hasExpectedResponseType = StringUtils.hasText(expectedResponseType);
 		boolean hasExpectedResponseTypeExpression = StringUtils.hasText(expectedResponseTypeExpression);
 
-		if (hasExpectedResponseType && hasExpectedResponseTypeExpression){
+		if (hasExpectedResponseType && hasExpectedResponseTypeExpression) {
 			parserContext.getReaderContext().error("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive. " +
 					"You can only have one or the other", element);
 		}
@@ -146,11 +146,11 @@ abstract class HttpAdapterParsingUtils {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expectedResponseType);
 		}
-		else if (hasExpectedResponseTypeExpression){
+		else if (hasExpectedResponseTypeExpression) {
 			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expectedResponseTypeExpression);
 		}
-		if (expressionDef != null){
+		if (expressionDef != null) {
 			builder.addPropertyValue("expectedResponseTypeExpression", expressionDef);
 		}
 	}

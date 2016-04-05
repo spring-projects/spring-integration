@@ -82,7 +82,7 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 	}
 
 	public static class CustomCorrelator {
-		public Object correlate(Object o){
+		public Object correlate(Object o) {
 			return o;
 		}
 	}

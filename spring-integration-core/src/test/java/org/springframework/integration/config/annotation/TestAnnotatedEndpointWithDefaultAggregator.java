@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class TestAnnotatedEndpointWithDefaultAggregator {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	@Aggregator(inputChannel="inputChannel")
+	@Aggregator(inputChannel = "inputChannel")
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
@@ -46,7 +46,7 @@ public class TestAnnotatedEndpointWithDefaultAggregator {
 		for (Message<?> message : sortableList) {
 			buffer.append(message.getPayload().toString());
 			if (null == correlationId) {
-				correlationId =new IntegrationMessageHeaderAccessor(message).getCorrelationId();
+				correlationId = new IntegrationMessageHeaderAccessor(message).getCorrelationId();
 			}
 		}
 		Message<?> returnedMessage =  new GenericMessage<String>(buffer.toString());

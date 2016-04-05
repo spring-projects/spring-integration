@@ -182,7 +182,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
-	private Runnable createMessageSendingTask(final Message mailMessage){
+	private Runnable createMessageSendingTask(final Message mailMessage) {
 		Runnable sendingTask = new Runnable() {
 			@Override
 			public void run() {
@@ -190,7 +190,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null){
+					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
 						TransactionSynchronization synchronization =
 								ImapIdleChannelAdapter.this.transactionSynchronizationFactory
 										.create(ImapIdleChannelAdapter.this);
@@ -302,7 +302,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
-			if (this.delayNextExecution){
+			if (this.delayNextExecution) {
 				this.delayNextExecution = false;
 				return new Date(System.currentTimeMillis() + ImapIdleChannelAdapter.this.reconnectDelay);
 			}

@@ -51,7 +51,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Message<?> getMessage(UUID id) {
 		Message<?> message = getRawMessage(id);
-		if (message != null){
+		if (message != null) {
 			return normalizeMessage(message);
 		}
 		return null;
@@ -73,7 +73,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (message != null) {
 			Assert.isInstanceOf(Message.class, message);
 		}
-		if (message != null){
+		if (message != null) {
 			return normalizeMessage((Message<?>) message);
 		}
 		return null;
@@ -147,7 +147,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Message<?> actualMessageToRemove = null;
 
 		for (Message<?> message : rawGroup.getMessages()) {
-			if (message.getHeaders().getId().equals(messageToRemove.getHeaders().getId())){
+			if (message.getHeaders().getId().equals(messageToRemove.getHeaders().getId())) {
 				actualMessageToRemove = message;
 				break;
 			}
@@ -206,7 +206,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
 			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
-			while (messageIds.hasNext()){
+			while (messageIds.hasNext()) {
 				removeMessage(messageIds.next());
 			}
 		}
@@ -230,7 +230,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
 			UUID firstId = messageGroupMetadata.firstId();
-			if (firstId != null){
+			if (firstId != null) {
 				messageGroupMetadata.remove(firstId);
 				messageGroupMetadata.setLastModified(System.currentTimeMillis());
 				doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
@@ -249,14 +249,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return new MessageGroupIterator(idIterator);
 	}
 
-	private Collection<String> normalizeKeys(Collection<String> keys){
+	private Collection<String> normalizeKeys(Collection<String> keys) {
 		Set<String> normalizedKeys = new HashSet<String>();
 		for (Object key : keys) {
 			String strKey = (String) key;
-			if (strKey.startsWith(MESSAGE_GROUP_KEY_PREFIX)){
+			if (strKey.startsWith(MESSAGE_GROUP_KEY_PREFIX)) {
 				strKey = strKey.replace(MESSAGE_GROUP_KEY_PREFIX, "");
 			}
-			else if (strKey.startsWith(MESSAGE_KEY_PREFIX)){
+			else if (strKey.startsWith(MESSAGE_KEY_PREFIX)) {
 				strKey = strKey.replace(MESSAGE_KEY_PREFIX, "");
 			}
 			normalizedKeys.add(strKey);
@@ -284,7 +284,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected abstract Collection<?> doListKeys(String keyPattern);
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Message<?> normalizeMessage(Message<?> message){
+	private Message<?> normalizeMessage(Message<?> message) {
 		Message<?> normalizedMessage = getMessageBuilderFactory().fromMessage(message)
 				.removeHeader("CREATED_DATE")
 				.build();
@@ -298,7 +298,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 * Will enrich Message with additional meta headers
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Message<?> enrichMessage(Message<?> message){
+	private Message<?> enrichMessage(Message<?> message) {
 		Message<?> enrichedMessage = getMessageBuilderFactory().fromMessage(message)
 				.setHeader(CREATED_DATE, System.currentTimeMillis())
 				.build();
@@ -308,7 +308,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return enrichedMessage;
 	}
 
-	private MessageGroup buildMessageGroup(Object groupId, boolean raw){
+	private MessageGroup buildMessageGroup(Object groupId, boolean raw) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Object mgm = doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
@@ -317,10 +317,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			ArrayList<Message<?>> messages = new ArrayList<Message<?>>();
 
 			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
-			while (messageIds.hasNext()){
+			while (messageIds.hasNext()) {
 				UUID next = messageIds.next();
 				if (next != null) {
-					if (raw){
+					if (raw) {
 						messages.add(getRawMessage(next));
 					}
 					else {
@@ -341,7 +341,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		}
 	}
 
-	private MessageGroup normalizeSimpleMessageGroup(MessageGroup messageGroup){
+	private MessageGroup normalizeSimpleMessageGroup(MessageGroup messageGroup) {
 		MessageGroup normalizedGroup = getMessageGroupFactory().create(messageGroup.getGroupId());
 		for (Message<?> message : messageGroup.getMessages()) {
 			Message<?> normalizedMessage = normalizeMessage(message);

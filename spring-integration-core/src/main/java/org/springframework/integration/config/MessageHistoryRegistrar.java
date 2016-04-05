@@ -43,7 +43,7 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String,Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
+		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
 		Object componentNamePatterns = annotationAttributes.get("value");
 
 		if (componentNamePatterns instanceof String[]) {

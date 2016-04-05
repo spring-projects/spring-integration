@@ -526,8 +526,8 @@ public class MethodInvokingMessageProcessorTests {
 
 			private final Map<String, Object> arguments = new LinkedHashMap<String, Object>();
 
-			public void optionalHeaders(Optional<String> foo, @Header(value="foo", required=false) String foo1,
-					@Header(value="foo") Optional<String> foo2) {
+			public void optionalHeaders(Optional<String> foo, @Header(value = "foo", required = false) String foo1,
+					@Header(value = "foo") Optional<String> foo2) {
 				this.arguments.put("foo", (foo.isPresent() ? foo.get() : null));
 				this.arguments.put("foo1", foo1);
 				this.arguments.put("foo2", (foo2.isPresent() ? foo2.get() : null));

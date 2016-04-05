@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public abstract class AbstractRequestResponseScenarioTests {
     private ApplicationContext applicationContext;
 
     @Before
-    public void setUp(){
+    public void setUp() {
         scenarios = defineRequestResponseScenarios();
     }
 
@@ -65,30 +65,30 @@ public abstract class AbstractRequestResponseScenarioTests {
      * This can handle subscribable or pollable output channels.
      */
     @Test
-    public void testRequestResponseScenarios(){
+    public void testRequestResponseScenarios() {
         int i = 1;
-        for (RequestResponseScenario scenario: scenarios){
-            String name = scenario.getName() == null? "scenario-"+(i++) : scenario.getName();
+        for (RequestResponseScenario scenario: scenarios) {
+            String name = scenario.getName() == null ? "scenario-" + (i++) : scenario.getName();
             scenario.init();
-            MessageChannel inputChannel = applicationContext.getBean(scenario.getInputChannelName(),MessageChannel.class);
-            MessageChannel outputChannel = applicationContext.getBean(scenario.getOutputChannelName(),MessageChannel.class);
-            if (outputChannel instanceof SubscribableChannel){
+            MessageChannel inputChannel = applicationContext.getBean(scenario.getInputChannelName(), MessageChannel.class);
+            MessageChannel outputChannel = applicationContext.getBean(scenario.getOutputChannelName(), MessageChannel.class);
+            if (outputChannel instanceof SubscribableChannel) {
                 ((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
             }
 
             assertTrue(name + ": message not sent on " + scenario.getInputChannelName()
                     , inputChannel.send(scenario.getMessage()));
 
-            if (outputChannel instanceof PollableChannel){
+            if (outputChannel instanceof PollableChannel) {
                 Message<?> response = ((PollableChannel) outputChannel).receive(10000);
-                assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(),response);
+                assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
                 scenario.getResponseValidator().handleMessage(response);
             }
 
             assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
 					scenario.getResponseValidator().getLastMessage());
 
-            if (outputChannel instanceof SubscribableChannel){
+            if (outputChannel instanceof SubscribableChannel) {
                 ((SubscribableChannel) outputChannel).unsubscribe(scenario.getResponseValidator());
             }
         }

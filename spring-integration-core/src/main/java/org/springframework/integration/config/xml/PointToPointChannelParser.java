@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,10 +132,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			// configure the default RoundRobinLoadBalancingStrategy
 			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
 			String loadBalancerRef = dispatcherElement.getAttribute("load-balancer-ref");
-			if (StringUtils.hasText(loadBalancer) && StringUtils.hasText(loadBalancerRef)){
+			if (StringUtils.hasText(loadBalancer) && StringUtils.hasText(loadBalancerRef)) {
 				parserContext.getReaderContext().error("'load-balancer' and 'load-balancer-ref' are mutually exclusive", element);
 			}
-			if (StringUtils.hasText(loadBalancerRef)){
+			if (StringUtils.hasText(loadBalancerRef)) {
 				builder.addConstructorArgReference(loadBalancerRef);
 			}
 			else {

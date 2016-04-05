@@ -242,7 +242,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "ip:tcp-outbound-gateway";
 	}
 

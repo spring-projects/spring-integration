@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class ResultToStringTransformerTests {
 		String formattedDoc = "<order><orderItem>test</orderItem></order>";
 		DOMResult domResult = XmlTestUtil.getDomResultForString(doc);
 		Properties outputProperties = new Properties();
-		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
+		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 		transformer.setOutputProperties(outputProperties);
 		Object transformed = transformer.transformResult(domResult);
 		assertTrue("Wrong transformed type expected String", transformed instanceof String);

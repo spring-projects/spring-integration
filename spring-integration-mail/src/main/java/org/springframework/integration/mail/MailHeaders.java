@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public abstract class MailHeaders {
 
 	public static final String FROM = PREFIX + "from";
 
-	public static final String REPLY_TO = PREFIX+ "replyTo";
+	public static final String REPLY_TO = PREFIX + "replyTo";
 
 	public static final String MULTIPART_MODE = PREFIX + "multipartMode";
 

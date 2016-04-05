@@ -90,6 +90,6 @@ public final class IpHeaders {
 	 */
 	public static final String LOCAL_ADDRESS = IP + "localInetAddress";
 
-	private IpHeaders() {}
+	private IpHeaders() { }
 
 }

@@ -138,10 +138,10 @@ public class RedisChannelMessageStoreTests extends RedisAvailableTests {
 		for (int i = 0; i < 10; i++) {
 			Message<?> m = this.testChannel3.receive(0);
 			assertNotNull(m);
-			assertEquals(Integer.valueOf(9-i), new IntegrationMessageHeaderAccessor(m).getPriority());
+			assertEquals(Integer.valueOf(9 - i), new IntegrationMessageHeaderAccessor(m).getPriority());
 			m = this.testChannel3.receive(0);
 			assertNotNull(m);
-			assertEquals(Integer.valueOf(9-i), new IntegrationMessageHeaderAccessor(m).getPriority());
+			assertEquals(Integer.valueOf(9 - i), new IntegrationMessageHeaderAccessor(m).getPriority());
 		}
 		Message<?> m = this.testChannel3.receive(0);
 		assertNotNull(m);

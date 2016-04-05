@@ -146,7 +146,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	@Override
 	public void start() {
-		synchronized(this.lifecycleMonitor) {
+		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
 				if (this.client.getState() != CuratorFrameworkState.STARTED) {
 					// we want to do curator start here because it needs to

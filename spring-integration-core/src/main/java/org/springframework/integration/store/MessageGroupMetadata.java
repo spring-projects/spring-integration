@@ -73,7 +73,7 @@ public class MessageGroupMetadata implements Serializable {
 		this.first = first;
 	}
 
-	public void remove(UUID messageId){
+	public void remove(UUID messageId) {
 		if (!this.hasMessages) {
 			throw new IllegalStateException("Messages are not available, fetch the entire group");
 		}
@@ -88,25 +88,25 @@ public class MessageGroupMetadata implements Serializable {
 		return this.groupId;
 	}
 
-	public Iterator<UUID> messageIdIterator(){
+	public Iterator<UUID> messageIdIterator() {
 		if (!this.hasMessages) {
 			throw new IllegalStateException("Messages are not available, fetch the entire group");
 		}
 		return this.messageIds.iterator();
 	}
 
-	public int size(){
+	public int size() {
 		return this.messageIds.size();
 	}
 
-	public UUID firstId(){
+	public UUID firstId() {
 		if (this.first != null) {
 			return this.first;
 		}
 		if (!this.hasMessages) {
 			throw new IllegalStateException("Messages are not available, fetch the entire group");
 		}
-		if (this.messageIds.size() > 0){
+		if (this.messageIds.size() > 0) {
 			return this.messageIds.iterator().next();
 		}
 		return null;

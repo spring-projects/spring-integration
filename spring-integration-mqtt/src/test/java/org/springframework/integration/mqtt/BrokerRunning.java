@@ -42,7 +42,7 @@ public class BrokerRunning extends TestWatcher {
 	private static Log logger = LogFactory.getLog(BrokerRunning.class);
 
 	// Static so that we only test once on failure: speeds up test suite
-	private static Map<Integer,Boolean> brokerOnline = new HashMap<Integer, Boolean>();
+	private static Map<Integer, Boolean> brokerOnline = new HashMap<Integer, Boolean>();
 
 	private final int port;
 

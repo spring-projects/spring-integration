@@ -88,13 +88,13 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 		else {
 			int size = messages.size();
 
-			if (size == 0){
+			if (size == 0) {
 				canRelease = true;
 			}
 			else {
 				int sequenceSize = new IntegrationMessageHeaderAccessor(messageGroup.getOne()).getSequenceSize();
 				// If there is no sequence then it must be incomplete....
-				if (sequenceSize == size){
+				if (sequenceSize == size) {
 					canRelease = true;
 				}
 			}

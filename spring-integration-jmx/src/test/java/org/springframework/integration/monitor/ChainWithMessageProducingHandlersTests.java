@@ -42,17 +42,17 @@ public class ChainWithMessageProducingHandlersTests {
 	private ApplicationContext applicationContext;
 
 	@Test
-	public void testSuccessfulApplicationContext(){
+	public void testSuccessfulApplicationContext() {
 		// this is all we need to do. Until INT-1431 was solved initialization of this AC would fail.
 		assertNotNull(applicationContext);
 	}
 
-	public static class SampleProducer{
-		public String echo(String value){
+	public static class SampleProducer {
+		public String echo(String value) {
 			return value;
 		}
 	}
-	public static class SampleService{
-		public void echo(String value){}
+	public static class SampleService {
+		public void echo(String value) { }
 	}
 }

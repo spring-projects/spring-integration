@@ -22,7 +22,7 @@ package org.springframework.integration.test.support;
  *
  */
 public abstract class PayloadValidator<T> extends AbstractResponseValidator<T> {
-    protected final boolean extractPayload(){
+    protected final boolean extractPayload() {
         return true;
     }
 }

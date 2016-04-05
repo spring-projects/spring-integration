@@ -64,7 +64,7 @@ public class SOLingerTests {
 	private AbstractServerConnectionFactory inCFNioLinger;
 
 	@Test
-	public void configOk() {}
+	public void configOk() { }
 
 	@Test
 	public void finReceivedNet() {

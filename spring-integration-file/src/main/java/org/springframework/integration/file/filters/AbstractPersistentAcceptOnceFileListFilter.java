@@ -72,7 +72,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	@Override
 	protected boolean accept(F file) {
 		String key = buildKey(file);
-		synchronized(this.monitor) {
+		synchronized (this.monitor) {
 			String newValue = value(file);
 			String oldValue = this.store.putIfAbsent(key, newValue);
 			if (oldValue == null) { // not in store

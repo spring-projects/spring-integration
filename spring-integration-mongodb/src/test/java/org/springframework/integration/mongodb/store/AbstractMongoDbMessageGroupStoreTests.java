@@ -60,7 +60,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testNonExistingEmptyMessageGroup() throws Exception{
+	public void testNonExistingEmptyMessageGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = getMessageGroupStore();
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -71,7 +71,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupWithAddedMessagePrimitiveGroupId() throws Exception{
+	public void testMessageGroupWithAddedMessagePrimitiveGroupId() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		MessageStore messageStore = this.getMessageStore();
@@ -91,7 +91,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupWithAddedMessageUUIDGroupIdAndUUIDHeader() throws Exception{
+	public void testMessageGroupWithAddedMessageUUIDGroupIdAndUUIDHeader() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		MessageStore messageStore = this.getMessageStore();
@@ -117,7 +117,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testCountMessagesInGroup() throws Exception{
+	public void testCountMessagesInGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
@@ -129,7 +129,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testPollMessages() throws Exception{
+	public void testPollMessages() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
@@ -149,7 +149,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testSameMessageMultipleGroupsPoll() throws Exception{
+	public void testSameMessageMultipleGroupsPoll() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
@@ -185,7 +185,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testSameMessageMultipleGroupsRemove() throws Exception{
+	public void testSameMessageMultipleGroupsRemove() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -222,7 +222,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception{
+	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -251,7 +251,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupMarkingMessage() throws Exception{
+	public void testMessageGroupMarkingMessage() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -276,7 +276,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testRemoveMessageGroup() throws Exception{
+	public void testRemoveMessageGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		MessageStore messageStore = this.getMessageStore();
@@ -299,7 +299,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testCompleteMessageGroup() throws Exception{
+	public void testCompleteMessageGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -314,7 +314,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testLastReleasedSequenceNumber() throws Exception{
+	public void testLastReleasedSequenceNumber() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -329,7 +329,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testRemoveMessageFromTheGroup() throws Exception{
+	public void testRemoveMessageFromTheGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 
@@ -348,7 +348,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMultipleMessageStores() throws Exception{
+	public void testMultipleMessageStores() throws Exception {
 
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store1 = this.getMessageGroupStore();
@@ -374,7 +374,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupIterator() throws Exception{
+	public void testMessageGroupIterator() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store1 = this.getMessageGroupStore();
 		MessageGroupStore store2 = this.getMessageGroupStore();
@@ -468,7 +468,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 //	}
 
 
-	protected void testWithAggregatorWithShutdown(String config) throws Exception{
+	protected void testWithAggregatorWithShutdown(String config) throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, this.getClass());
@@ -497,7 +497,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 	@Test
 	@MongoDbAvailable
-	public void testWithMessageHistory() throws Exception{
+	public void testWithMessageHistory() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 

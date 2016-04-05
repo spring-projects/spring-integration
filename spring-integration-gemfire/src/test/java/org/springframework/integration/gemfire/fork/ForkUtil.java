@@ -143,7 +143,7 @@ public class ForkUtil {
 				// ignore and move on
 			}
 		}
-		if (controlFileExists(className)){
+		if (controlFileExists(className)) {
 			System.out.println("Started cache server");
 		}
 		else {

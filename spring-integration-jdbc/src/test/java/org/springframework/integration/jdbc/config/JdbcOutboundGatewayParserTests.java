@@ -134,7 +134,7 @@ public class JdbcOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testWithPoller() throws Exception{
+	public void testWithPoller() throws Exception {
 		setUp("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		MessageChannel target = context.getBean("target", MessageChannel.class);
@@ -152,7 +152,7 @@ public class JdbcOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testWithSelectQueryOnly() throws Exception{
+	public void testWithSelectQueryOnly() throws Exception {
 		this.context = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithSelectTest-context.xml", this.getClass());
 		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(100)).build();
 		MessageChannel requestChannel = context.getBean("request", MessageChannel.class);

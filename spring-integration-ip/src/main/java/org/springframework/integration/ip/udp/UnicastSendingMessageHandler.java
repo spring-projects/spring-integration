@@ -281,7 +281,7 @@ public class UnicastSendingMessageHandler extends
 			throw e;
 		}
 		catch (Exception e) {
-			try{
+			try {
 				this.socket.close();
 			}
 			catch (Exception e1) { }
@@ -297,7 +297,7 @@ public class UnicastSendingMessageHandler extends
 
 	public void startAckThread() {
 		if (!this.ackThreadRunning) {
-			synchronized(this) {
+			synchronized (this) {
 				if (!this.ackThreadRunning) {
 					try {
 						getSocket();
@@ -437,7 +437,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "ip:udp-outbound-channel-adapter";
 	}
 
@@ -496,7 +496,7 @@ public class UnicastSendingMessageHandler extends
 			this.ackThreadRunning = true;
 			this.ackLatch.countDown();
 			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
-			while(true) {
+			while (true) {
 				this.getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());
 				if (logger.isDebugEnabled()) {

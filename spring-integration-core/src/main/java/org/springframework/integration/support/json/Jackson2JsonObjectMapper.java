@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		if (json instanceof String) {
 			return this.objectMapper.readValue((String) json, type);
 		}
-		else if(json instanceof byte[]) {
+		else if (json instanceof byte[]) {
 			return this.objectMapper.readValue((byte[]) json, type);
 		}
 		else if (json instanceof File) {

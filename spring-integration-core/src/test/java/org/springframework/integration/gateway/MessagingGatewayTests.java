@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class MessagingGatewayTests {
 
 	@Before
 	public void initializeSample() {
-		this.messagingGateway = new MessagingGatewaySupport() {};
+		this.messagingGateway = new MessagingGatewaySupport() { };
 		this.messagingGateway.setRequestChannel(requestChannel);
 		this.messagingGateway.setReplyChannel(replyChannel);
 		TestApplicationContext applicationContext = TestUtils.createTestApplicationContext();
@@ -87,7 +87,7 @@ public class MessagingGatewayTests {
 		assertEquals(1, this.messagingGateway.getMessageCount());
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void sendMessage_failure() {
 		Mockito.when(messageMock.getHeaders()).thenReturn(new MessageHeaders(null));
 		Mockito.when(requestChannel.send(messageMock, 1000L)).thenReturn(false);
@@ -109,7 +109,7 @@ public class MessagingGatewayTests {
 		Mockito.verify(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void sendObject_failure() {
 		Mockito.doAnswer(new Answer<Boolean>() {
 
@@ -249,7 +249,7 @@ public class MessagingGatewayTests {
 	}
 
 	// should fail but it doesn't now
-	@Test(expected=MessagingException.class)
+	@Test(expected = MessagingException.class)
 	public void validateErroMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(new MessageHandler() {
@@ -264,7 +264,7 @@ public class MessagingGatewayTests {
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
-		this.messagingGateway = new MessagingGatewaySupport() {};
+		this.messagingGateway = new MessagingGatewaySupport() { };
 
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
@@ -292,7 +292,7 @@ public class MessagingGatewayTests {
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
-		this.messagingGateway = new MessagingGatewaySupport() {};
+		this.messagingGateway = new MessagingGatewaySupport() { };
 
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
@@ -304,13 +304,13 @@ public class MessagingGatewayTests {
 		this.messagingGateway.send("hello");
 	}
 	public static class MyErrorService {
-		public Message<?> handleErrorMessage(Message<?> errorMessage){
+		public Message<?> handleErrorMessage(Message<?> errorMessage) {
 			return errorMessage;
 		}
 	}
 
 	public static class MyOneWayErrorService {
-		public void handleErrorMessage(Message<?> errorMessage){
+		public void handleErrorMessage(Message<?> errorMessage) {
 		}
 	}
 

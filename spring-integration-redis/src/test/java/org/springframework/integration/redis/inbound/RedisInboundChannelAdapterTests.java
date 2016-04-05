@@ -79,7 +79,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		int counter = 0;
 		for (int i = 0; i < numToTest; i++) {
 			Message<?> message = channel.receive(5000);
-			if (message == null){
+			if (message == null) {
 				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
 			}
 			assertNotNull(message);
@@ -112,7 +112,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		counter = 0;
 		for (int i = 0; i < numToTest; i++) {
 			Message<?> message = channel.receive(5000);
-			if (message == null){
+			if (message == null) {
 				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
 			}
 			assertNotNull(message);

@@ -66,7 +66,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline1() throws Exception{
+	public void testPipeline1() throws Exception {
 		this.test("pipeline-01.xml");
 	}
 
@@ -76,7 +76,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline2() throws Exception{
+	public void testPipeline2() throws Exception {
 		this.test("pipeline-02.xml");
 	}
 
@@ -86,7 +86,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline3() throws Exception{
+	public void testPipeline3() throws Exception {
 		this.test("pipeline-03.xml");
 	}
 
@@ -96,7 +96,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline4() throws Exception{
+	public void testPipeline4() throws Exception {
 		this.test("pipeline-04.xml");
 	}
 
@@ -106,7 +106,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline5() throws Exception{
+	public void testPipeline5() throws Exception {
 		this.test("pipeline-05.xml");
 	}
 
@@ -116,7 +116,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline6() throws Exception{
+	public void testPipeline6() throws Exception {
 		this.test("pipeline-06.xml");
 	}
 
@@ -126,7 +126,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline7() throws Exception{
+	public void testPipeline7() throws Exception {
 		this.test("pipeline-07.xml");
 	}
 
@@ -136,7 +136,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline8() throws Exception{
+	public void testPipeline8() throws Exception {
 		this.test("pipeline-08.xml");
 	}
 
@@ -146,7 +146,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	 * All reply queues are TEMPORARY
 	 */
 	@Test
-	public void testPipeline9() throws Exception{
+	public void testPipeline9() throws Exception {
 		this.test("pipeline-09.xml");
 	}
 

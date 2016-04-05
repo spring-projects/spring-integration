@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,7 +217,7 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
-		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
+		assertEquals(messageSender, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0]);
 	}
 	@Test
 	public void simpleGatewayWithCustomMessageSenderList() {
@@ -230,9 +230,9 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
-		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
+		assertEquals(messageSender, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0]);
 		assertEquals("Wrong number of message senders ",
-				2 , ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders")).length);
+				2 , ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders")).length);
 	}
 
 	@Test
@@ -275,7 +275,7 @@ public class WebServiceOutboundGatewayParserTests {
 		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		assertEquals("PeriodicTrigger had wrong period",
-				5000, ((Long)accessor.getPropertyValue("period")).longValue());
+				5000, ((Long) accessor.getPropertyValue("period")).longValue());
 	}
 
 	@Test
@@ -378,7 +378,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertNull(accessor.getPropertyValue("uri"));
 		Object destinationProviderObject = new DirectFieldAccessor(
 				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
-		assertEquals("Wrong DestinationProvider", stubProvider,destinationProviderObject);
+		assertEquals("Wrong DestinationProvider", stubProvider, destinationProviderObject);
 	}
 
 	@Test

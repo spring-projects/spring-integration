@@ -770,13 +770,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					if (this.canProcessMessageList) {
 						Type type =  method.getGenericParameterTypes()[i];
 						Type parameterizedType = null;
-						if (type instanceof ParameterizedType){
-							parameterizedType = ((ParameterizedType)type).getActualTypeArguments()[0];
-							if (parameterizedType instanceof ParameterizedType){
+						if (type instanceof ParameterizedType) {
+							parameterizedType = ((ParameterizedType) type).getActualTypeArguments()[0];
+							if (parameterizedType instanceof ParameterizedType) {
 								parameterizedType = ((ParameterizedType) parameterizedType).getRawType();
 							}
 						}
-						if (parameterizedType != null && Message.class.isAssignableFrom((Class<?>) parameterizedType)){
+						if (parameterizedType != null && Message.class.isAssignableFrom((Class<?>) parameterizedType)) {
 							sb.append("messages.iterator()");
 						}
 						else {

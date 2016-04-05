@@ -261,7 +261,7 @@ public class ChainElementsFailureTests {
 	}
 
 	public static class SampleService {
-		public String echo(String value){
+		public String echo(String value) {
 			return value;
 		}
 	}

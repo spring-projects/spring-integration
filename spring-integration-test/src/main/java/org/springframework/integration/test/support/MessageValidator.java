@@ -27,12 +27,12 @@ import org.springframework.messaging.Message;
 public abstract class MessageValidator extends AbstractResponseValidator<Message<?>> {
 
     @Override
-	protected final boolean extractPayload(){
+	protected final boolean extractPayload() {
         return false;
     }
 
     @Override
-	protected final void validateResponse(Message<?> response){
+	protected final void validateResponse(Message<?> response) {
         validateMessage(response);
     }
 

@@ -75,7 +75,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	private volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix = ".writing";
 
 	private volatile Expression localFilenameGeneratorExpression;
 
@@ -298,7 +298,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
-				if (e instanceof RuntimeException){
+				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
 				}
 				else {
@@ -327,8 +327,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	private String generateLocalFileName(String remoteFileName){
-		if (this.localFilenameGeneratorExpression != null){
+	private String generateLocalFileName(String remoteFileName) {
+		if (this.localFilenameGeneratorExpression != null) {
 			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName, String.class);
 		}
 		return remoteFileName;

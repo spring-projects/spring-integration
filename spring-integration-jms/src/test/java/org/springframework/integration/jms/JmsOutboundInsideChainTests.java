@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class JmsOutboundInsideChainTests {
 	private PollableChannel repliesChannel;
 
 	@Test
-	public void testJmsOutboundChannelInsideChain(){
+	public void testJmsOutboundChannelInsideChain() {
 		String testString = "test";
 		Message<String> shippedMessage = MessageBuilder.withPayload(testString).build();
 		this.outboundChainChannel.send(shippedMessage);
@@ -62,7 +62,7 @@ public class JmsOutboundInsideChainTests {
 	}
 
 	@Test
-	public void testJmsOutboundGatewayRequiresReply(){
+	public void testJmsOutboundGatewayRequiresReply() {
 		this.outboundGatewayChainChannel.send(MessageBuilder.withPayload("test").build());
 		assertNotNull(this.repliesChannel.receive(2000));
 

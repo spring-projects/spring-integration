@@ -40,35 +40,35 @@ import javax.persistence.TemporalType;
  * @since 2.2
  *
  */
-@Entity(name="Student")
-@Table(name="Student")
+@Entity(name = "Student")
+@Table(name = "Student")
 @NamedQueries({
-	@NamedQuery(name="selectAllStudents", query="select s from Student s"),
-	@NamedQuery(name="selectStudent", query="select s from Student s where s.lastName = 'Last One'"),
-	@NamedQuery(name="updateStudent", query="update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
+	@NamedQuery(name = "selectAllStudents", query = "select s from Student s"),
+	@NamedQuery(name = "selectStudent", query = "select s from Student s where s.lastName = 'Last One'"),
+	@NamedQuery(name = "updateStudent", query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })
-@NamedNativeQuery(resultClass=StudentDomain.class, name="updateStudentNativeQuery", query="update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
+@NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery", query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 public class StudentDomain {
 
 	@Id
-	@Column(name="rollNumber")
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name = "rollNumber")
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long rollNumber;
 
-	@Column(name="firstName")
+	@Column(name = "firstName")
 	private String firstName;
 
-	@Column(name="lastName")
+	@Column(name = "lastName")
 	private String lastName;
 
-	@Column(name="gender")
+	@Column(name = "gender")
 	private String gender;
 
-	@Column(name="dateOfBirth")
+	@Column(name = "dateOfBirth")
 	@Temporal(TemporalType.DATE)
 	private Date dateOfBirth;
 
-	@Column(name="lastUpdated")
+	@Column(name = "lastUpdated")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date lastUpdated;
 

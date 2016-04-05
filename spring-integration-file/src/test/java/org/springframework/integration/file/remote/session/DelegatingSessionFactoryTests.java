@@ -132,7 +132,7 @@ public class DelegatingSessionFactoryTests {
 			return sff;
 		}
 
-		@ServiceActivator(inputChannel="c1")
+		@ServiceActivator(inputChannel = "c1")
 		@Bean
 		MessageHandler handler() {
 			AbstractRemoteFileOutboundGateway<String> gateway = new AbstractRemoteFileOutboundGateway<String>(dsf(), "ls", "payload") {

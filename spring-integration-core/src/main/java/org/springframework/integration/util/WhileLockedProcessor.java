@@ -37,11 +37,11 @@ public abstract class WhileLockedProcessor {
 	private final Object key;
 	private final LockRegistry lockRegistry;
 
-	public WhileLockedProcessor(LockRegistry lockRegistry,  Object key){
+	public WhileLockedProcessor(LockRegistry lockRegistry,  Object key) {
 		this.key = key;
 		this.lockRegistry = lockRegistry;
 	}
-	public final void doWhileLocked() throws IOException{
+	public final void doWhileLocked() throws IOException {
 		Lock lock = this.lockRegistry.obtain(this.key);
 		try {
 			lock.lockInterruptibly();

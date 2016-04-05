@@ -28,22 +28,22 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class ChannelAutoCreationTests {
 
 	@Test // no assertions since it validates that no exception is thrown
-	public void testEnablingAutoChannelCreationBeforeWithCustom(){
+	public void testEnablingAutoChannelCreationBeforeWithCustom() {
 		new ClassPathXmlApplicationContext("TestEnableChannelAutoCreation-before-context.xml", this.getClass());
 	}
 
 	@Test // no assertions since it validates that no exception is thrown
-	public void testEnablingAutoChannelCreationAfterWithCustom(){
+	public void testEnablingAutoChannelCreationAfterWithCustom() {
 		new ClassPathXmlApplicationContext("TestEnableChannelAutoCreation-after-context.xml", this.getClass());
 	}
 
-	@Test(expected=BeanCreationException.class)
-	public void testDisablingAutoChannelCreationAfter(){
+	@Test(expected = BeanCreationException.class)
+	public void testDisablingAutoChannelCreationAfter() {
 		new ClassPathXmlApplicationContext("TestDisableChannelAutoCreation-after-context.xml", this.getClass());
 	}
 
-	@Test(expected=BeanCreationException.class)
-	public void testDisablingAutoChannelCreationBefore(){
+	@Test(expected = BeanCreationException.class)
+	public void testDisablingAutoChannelCreationBefore() {
 		new ClassPathXmlApplicationContext("TestDisableChannelAutoCreation-before-context.xml", this.getClass());
 	}
 }

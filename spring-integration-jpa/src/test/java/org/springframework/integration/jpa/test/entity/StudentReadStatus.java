@@ -32,14 +32,14 @@ import javax.persistence.TemporalType;
  *
  */
 @Entity
-@Table(name="StudentReadStatus")
+@Table(name = "StudentReadStatus")
 public class StudentReadStatus {
 
 	@Id
-	@Column(name="rollNumber")
+	@Column(name = "rollNumber")
 	private int rollNumber;
 
-	@Column(name="readAt")
+	@Column(name = "readAt")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date readAt;
 

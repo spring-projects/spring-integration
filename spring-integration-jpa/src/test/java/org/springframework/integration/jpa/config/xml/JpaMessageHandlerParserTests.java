@@ -212,13 +212,13 @@ public class JpaMessageHandlerParserTests {
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
+	public void setUp(String name, Class<?> cls) {
 		context    = new ClassPathXmlApplicationContext(name, cls);
 		consumer   = this.context.getBean("jpaOutboundChannelAdapter", EventDrivenConsumer.class);
 	}

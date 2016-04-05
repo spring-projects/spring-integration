@@ -94,7 +94,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	}
 
 	@Override
-	protected void doInvoke(MessageContext messageContext) throws Exception{
+	protected void doInvoke(MessageContext messageContext) throws Exception {
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
 		Object requestObject = MarshallingUtils.unmarshal(this.unmarshaller, request);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ public class HttpProxyScenarioTests {
 
 				HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
 				assertThat(entity.getBody(), instanceOf(byte[].class));
-				assertEquals("foo", new String((byte[])entity.getBody()));
+				assertEquals("foo", new String((byte[]) entity.getBody()));
 
 				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
 				responseHeaders.set("Connection", "close");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class ByteStreamSourceTests {
 
 	@Test
 	public void testEndOfStream() {
-		byte[] bytes = new byte[] {1,2,3};
+		byte[] bytes = new byte[] {1, 2, 3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		Message<?> message1 = source.receive();
@@ -47,7 +47,7 @@ public class ByteStreamSourceTests {
 
 	@Test
 	public void testByteArrayIsTruncated() {
-		byte[] bytes = new byte[] {0,1,2,3,4,5};
+		byte[] bytes = new byte[] {0, 1, 2, 3, 4, 5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);
@@ -61,7 +61,7 @@ public class ByteStreamSourceTests {
 
 	@Test
 	public void testByteArrayIsNotTruncated() {
-		byte[] bytes = new byte[] {0,1,2,3,4,5};
+		byte[] bytes = new byte[] {0, 1, 2, 3, 4, 5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);

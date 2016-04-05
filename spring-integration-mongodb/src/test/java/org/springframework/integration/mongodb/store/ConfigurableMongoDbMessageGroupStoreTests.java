@@ -158,7 +158,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		@Override
 		@SuppressWarnings("unchecked")
 		public Message<?> convert(DBObject source) {
-			return MessageBuilder.withPayload(source.get("payload")).copyHeaders((Map<String,?>) source.get("headers")).build();
+			return MessageBuilder.withPayload(source.get("payload")).copyHeaders((Map<String, ?>) source.get("headers")).build();
 		}
 
 	}

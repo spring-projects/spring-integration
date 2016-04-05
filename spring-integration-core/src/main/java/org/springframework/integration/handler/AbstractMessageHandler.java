@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	@Override
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
-		Assert.notNull(message.getPayload(), "Message payload must not be null");//NOSONAR - false positive
+		Assert.notNull(message.getPayload(), "Message payload must not be null"); //NOSONAR - false positive
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug(this + " received message: " + message);
 		}

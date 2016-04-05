@@ -54,7 +54,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testJmsReplyToMappedFromHeader() throws JMSException {
-		Destination replyTo = new Destination() {};
+		Destination replyTo = new Destination() { };
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(JmsHeaders.REPLY_TO, replyTo).build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
@@ -172,7 +172,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testUserDefinedPropertyWithUnsupportedType() throws JMSException {
-		Destination destination = new Destination() {};
+		Destination destination = new Destination() { };
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("destination", destination)
 				.build();
@@ -185,7 +185,7 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testJmsReplyToMappedToHeader() throws JMSException {
-		Destination replyTo = new Destination() {};
+		Destination replyTo = new Destination() { };
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		jmsMessage.setJMSReplyTo(replyTo);
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();

@@ -78,10 +78,10 @@ public class GatewayXmlAndAnnotationTests {
 		@Gateway
 		String annotationShouldntOverrideDefault(String foo);
 
-		@Gateway(replyTimeout=234)
+		@Gateway(replyTimeout = 234)
 		String annotationShouldOverrideDefault(String foo);
 
-		@Gateway(replyTimeout=-1)
+		@Gateway(replyTimeout = -1)
 		String annotationShouldOverrideDefaultToInfinity(String foo);
 
 		String explicitTimeoutShouldOverrideDefault(String foo);

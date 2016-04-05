@@ -73,7 +73,7 @@ public class ExponentialMovingAverage {
 	 */
 	public ExponentialMovingAverage(int window, double factor) {
 		this.window = window;
-		this.retention = window * 5;// last retained value contributes just 0.5% to the sum
+		this.retention = window * 5; // last retained value contributes just 0.5% to the sum
 		this.factor = factor;
 	}
 
@@ -93,7 +93,7 @@ public class ExponentialMovingAverage {
 			this.samples.poll();
 		}
 		this.samples.add(value);
-		this.count++;//NOSONAR - false positive, we're synchronized
+		this.count++; //NOSONAR - false positive, we're synchronized
 	}
 
 	private Statistics calc() {
@@ -132,7 +132,7 @@ public class ExponentialMovingAverage {
 		double mean = weight > 0 ? sum / weight : 0.;
 		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
 		double standardDeviation =  var > 0 ? Math.sqrt(var) : 0;
-		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation);//NOSONAR
+		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation); //NOSONAR
 	}
 
 	/**

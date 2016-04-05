@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "select-sql-parameter-source");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
-		if (update!=null) {
+		if (update != null) {
 			builder.addPropertyValue("updateSql", update);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");

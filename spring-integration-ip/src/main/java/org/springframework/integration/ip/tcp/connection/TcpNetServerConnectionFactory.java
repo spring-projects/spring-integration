@@ -191,7 +191,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			this.serverSocket.close();
 		}
-		catch (IOException e) {}
+		catch (IOException e) { }
 		this.serverSocket = null;
 		super.stop();
 	}

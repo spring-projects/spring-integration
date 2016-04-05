@@ -97,7 +97,7 @@ public class GatewayParserTests {
 		assertEquals("bar", result.getHeaders().get("foo"));
 		assertEquals("qux", result.getHeaders().get("baz"));
 		GatewayProxyFactoryBean fb = context.getBean("&methodOverride", GatewayProxyFactoryBean.class);
-		Map<?,?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap", Map.class);
+		Map<?, ?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap", Map.class);
 		GatewayMethodMetadata meta = (GatewayMethodMetadata) methods.get("oneWay");
 		assertNotNull(meta);
 		assertEquals("456", meta.getRequestTimeout());
@@ -152,7 +152,7 @@ public class GatewayParserTests {
 
 	@Test
 	public void testFactoryBeanObjectTypeWithServiceInterface() throws Exception {
-		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&oneWay").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
 		assertEquals(TestService.class.getName(), attribute);
@@ -160,7 +160,7 @@ public class GatewayParserTests {
 
 	@Test
 	public void testFactoryBeanObjectTypeWithNoServiceInterface() throws Exception {
-		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext)context).getBeanFactory();
+		ConfigurableListableBeanFactory beanFactory = ((GenericApplicationContext) context).getBeanFactory();
 		Object attribute = beanFactory.getMergedBeanDefinition("&defaultConfig").getAttribute(
 				IntegrationConfigUtils.FACTORY_BEAN_OBJECT_TYPE);
 		assertEquals(RequestReplyExchanger.class.getName(), attribute);

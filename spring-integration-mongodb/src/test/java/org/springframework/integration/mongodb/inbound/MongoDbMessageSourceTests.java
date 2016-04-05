@@ -55,19 +55,19 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	 * Tests by providing a null MongoDB Factory
 	 *
 	 */
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withNullMongoDBFactory() {
 		Expression expression = mock(Expression.class);
-		new MongoDbMessageSource((MongoDbFactory)null, expression);
+		new MongoDbMessageSource((MongoDbFactory) null, expression);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withNullMongoTemplate() {
 		Expression expression = mock(Expression.class);
-		new MongoDbMessageSource((MongoOperations)null, expression);
+		new MongoDbMessageSource((MongoOperations) null, expression);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withNullQueryExpression() {
 		MongoDbFactory mongoDbFactory = mock(MongoDbFactory.class);
 		new MongoDbMessageSource(mongoDbFactory, null);
@@ -87,7 +87,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<DBObject> results = ((List<DBObject>)messageSource.receive().getPayload());
+		List<DBObject> results = ((List<DBObject>) messageSource.receive().getPayload());
 		assertEquals(1, results.size());
 		DBObject resultObject = results.get(0);
 
@@ -109,7 +109,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<Person> results = ((List<Person>)messageSource.receive().getPayload());
+		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
 		assertEquals(1, results.size());
 		Person person = results.get(0);
 		assertEquals("Oleg", person.getName());
@@ -131,7 +131,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		Person person = (Person)messageSource.receive().getPayload();
+		Person person = (Person) messageSource.receive().getPayload();
 
 		assertEquals("Oleg", person.getName());
 		assertEquals("PA", person.getAddress().getState());
@@ -153,7 +153,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<Person> results = ((List<Person>)messageSource.receive().getPayload());
+		List<Person> results = ((List<Person>) messageSource.receive().getPayload());
 		Person person = results.get(0);
 		assertEquals("Oleg", person.getName());
 		assertEquals("PA", person.getAddress().getState());
@@ -267,7 +267,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.afterPropertiesSet();
 		DBObject result = (DBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");
-		result.put("company","PepBoys");
+		result.put("company", "PepBoys");
 		template.save(result, "data");
 		result = (DBObject) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));

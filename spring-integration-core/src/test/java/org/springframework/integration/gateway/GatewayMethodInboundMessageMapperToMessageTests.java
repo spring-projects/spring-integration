@@ -292,7 +292,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 
 		void sendPayloadAndHeader(String payload, @Header("foo") String foo);
 
-		void sendPayloadAndOptionalHeader(String payload, @Header(value="foo", required=false) String foo);
+		void sendPayloadAndOptionalHeader(String payload, @Header(value = "foo", required = false) String foo);
 
 		void sendPayloadAndHeadersMap(String payload, @Headers Map<String, Object> headers);
 
@@ -300,7 +300,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 
 		void sendMessageAndHeader(Message<?> message, @Header("foo") String foo);
 
-		void sendMessageAndOptionalHeader(Message<?> message, @Header(value="foo", required=false) String foo);
+		void sendMessageAndOptionalHeader(Message<?> message, @Header(value = "foo", required = false) String foo);
 
 		// invalid methods
 

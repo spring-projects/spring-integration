@@ -76,7 +76,7 @@ public class FtpOutboundTests {
 	private TestFtpSessionFactory sessionFactory;
 
 	@Before
-	public void prepare(){
+	public void prepare() {
 		ftpClient = mock(FTPClient.class);
 		sessionFactory = new TestFtpSessionFactory();
 		sessionFactory.setUsername("kermit");
@@ -88,7 +88,7 @@ public class FtpOutboundTests {
 	@Test
 	public void testHandleFileContentMessage() throws Exception {
 		File file = new File("remote-target-dir/handlerContent.test");
-		if (file.exists()){
+		if (file.exists()) {
 			file.delete();
 		}
 		assertFalse(file.exists());
@@ -112,7 +112,7 @@ public class FtpOutboundTests {
 	@Test
 	public void testHandleFileAsByte() throws Exception {
 		File file = new File("remote-target-dir/handlerContent.test");
-		if (file.exists()){
+		if (file.exists()) {
 			file.delete();
 		}
 		assertFalse(file.exists());
@@ -143,7 +143,7 @@ public class FtpOutboundTests {
 		handler.setFileNameGenerator(new FileNameGenerator() {
 			@Override
 			public String generateFileName(Message<?> message) {
-				return ((File)message.getPayload()).getName() + ".test";
+				return ((File) message.getPayload()).getName() + ".test";
 			}
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -169,7 +169,7 @@ public class FtpOutboundTests {
 		handler.setFileNameGenerator(new FileNameGenerator() {
 			@Override
 			public String generateFileName(Message<?> message) {
-				return ((File)message.getPayload()).getName() + ".test";
+				return ((File) message.getPayload()).getName() + ".test";
 			}
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -180,7 +180,7 @@ public class FtpOutboundTests {
 		Log logger = spy(TestUtils.getPropertyValue(handler, "remoteFileTemplate.logger", Log.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		final AtomicReference<String> logged = new AtomicReference<String>();
-		doAnswer(new Answer<Object>(){
+		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {

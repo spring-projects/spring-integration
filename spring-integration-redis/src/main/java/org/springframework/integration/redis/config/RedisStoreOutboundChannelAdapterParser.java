@@ -44,11 +44,11 @@ public class RedisStoreOutboundChannelAdapterParser extends AbstractOutboundChan
 
 		String redisTemplateRef = element.getAttribute("redis-template");
 		String connectionFactory = element.getAttribute("connection-factory");
-		if (StringUtils.hasText(redisTemplateRef) && StringUtils.hasText(connectionFactory)){
+		if (StringUtils.hasText(redisTemplateRef) && StringUtils.hasText(connectionFactory)) {
 			parserContext.getReaderContext().error("Only one of 'redis-template' or 'connection-factory'" +
 					" is allowed.", element);
 		}
-		if (StringUtils.hasText(redisTemplateRef)){
+		if (StringUtils.hasText(redisTemplateRef)) {
 			builder.addConstructorArgReference(redisTemplateRef);
 		}
 		else {

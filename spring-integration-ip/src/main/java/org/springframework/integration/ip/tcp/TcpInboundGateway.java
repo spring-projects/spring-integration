@@ -193,7 +193,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		this.connections.remove(connection.getConnectionId());
 	}
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "ip:tcp-inbound-gateway";
 	}
 

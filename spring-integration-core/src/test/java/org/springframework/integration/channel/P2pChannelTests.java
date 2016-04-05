@@ -33,8 +33,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.messaging.MessageHandler;
+
 import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 
@@ -78,14 +79,17 @@ public class P2pChannelTests {
 		when(logger.isInfoEnabled()).thenReturn(true);
 		final List<String> logs = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				logs.add((String) invocation.getArguments()[0]);
 				return null;
-			}}).when(logger).info(Mockito.anyString());
+			}
+		}).when(logger).info(Mockito.anyString());
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
+			@Override
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
-				if ("logger".equals(field.getName())){
+				if ("logger".equals(field.getName())) {
 					field.setAccessible(true);
 					field.set(channel, logger);
 				}
@@ -120,9 +124,10 @@ public class P2pChannelTests {
 		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
 
+			@Override
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
-				if ("logger".equals(field.getName())){
+				if ("logger".equals(field.getName())) {
 					field.setAccessible(true);
 					field.set(channel, logger);
 				}
@@ -142,9 +147,10 @@ public class P2pChannelTests {
 		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
 
+			@Override
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
-				if ("logger".equals(field.getName())){
+				if ("logger".equals(field.getName())) {
 					field.setAccessible(true);
 					field.set(channel, logger);
 				}

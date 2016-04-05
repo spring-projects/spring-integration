@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,7 +283,7 @@ public class InboundChannelAdapterParserTests {
 				.close();
 			fail("expected a parser error");
 		}
-		catch(BeanDefinitionStoreException e) {
+		catch (BeanDefinitionStoreException e) {
 			assertEquals(SAXParseException.class, e.getCause().getClass());
 		}
 	}
@@ -310,7 +310,7 @@ public class InboundChannelAdapterParserTests {
 					.close();
 			fail("expected a parser error");
 		}
-		catch(BeanCreationException e) {
+		catch (BeanCreationException e) {
 			assertTrue(e.getMessage().contains("searchTermStrategy is only allowed with imap"));
 		}
 	}

@@ -335,7 +335,7 @@ public class MessagingAnnotationPostProcessorTests {
 			return this.messageText;
 		}
 
-		@ServiceActivator(inputChannel="testChannel")
+		@ServiceActivator(inputChannel = "testChannel")
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
@@ -356,7 +356,7 @@ public class MessagingAnnotationPostProcessorTests {
 	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
 
 		@Override
-		@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
+		@ServiceActivator(inputChannel = "inputChannel", outputChannel = "outputChannel")
 		public String test(String input) {
 			return "test-"  + input;
 		}
@@ -368,7 +368,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 		public final AtomicBoolean invoked = new AtomicBoolean();
 
-		@ServiceActivator(inputChannel="inputChannel")
+		@ServiceActivator(inputChannel = "inputChannel")
 		public String test(String s) {
 			return s + s;
 		}
@@ -387,7 +387,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TransformerAnnotationTestBean {
 
-		@Transformer(inputChannel="inputChannel", outputChannel="outputChannel")
+		@Transformer(inputChannel = "inputChannel", outputChannel = "outputChannel")
 		public String transformBefore(String input) {
 			return input.toUpperCase();
 		}

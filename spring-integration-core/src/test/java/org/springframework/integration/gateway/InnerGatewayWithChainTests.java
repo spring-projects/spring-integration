@@ -67,31 +67,31 @@ public class InnerGatewayWithChainTests {
 
 
 	@Test
-	public void testExceptionHandledByMainGateway(){
+	public void testExceptionHandledByMainGateway() {
 		String reply = testGatewayWithErrorChannelA.echo(5);
 		assertEquals("ERROR from errorChannelA", reply);
 	}
 
 	@Test
-	public void testExceptionHandledByMainGatewayNoErrorChannelInChain(){
+	public void testExceptionHandledByMainGatewayNoErrorChannelInChain() {
 		String reply = testGatewayWithErrorChannelAA.echo(0);
 		assertEquals("ERROR from errorChannelA", reply);
 	}
 
 	@Test
-	public void testExceptionHandledByInnerGateway(){
+	public void testExceptionHandledByInnerGateway() {
 		String reply = testGatewayWithErrorChannelA.echo(0);
 		assertEquals("ERROR from errorChannelB", reply);
 	}
 
 	// if no error channels explicitly defined exception is rethrown
-	@Test(expected=ArithmeticException.class)
-	public void testGatewaysNoErrorChannel(){
+	@Test(expected = ArithmeticException.class)
+	public void testGatewaysNoErrorChannel() {
 		testGatewayWithNoErrorChannelAAA.echo(0);
 	}
 
 	@Test
-	public void testWithSPCADefaultErrorChannel() throws Exception{
+	public void testWithSPCADefaultErrorChannel() throws Exception {
 		MessageHandler handler = mock(MessageHandler.class);
 		errorChannel.subscribe(handler);
 		inboundAdapterDefaultErrorChannel.start();
@@ -101,7 +101,7 @@ public class InnerGatewayWithChainTests {
 	}
 
 	@Test
-	public void testWithSPCAAssignedErrorChannel() throws Exception{
+	public void testWithSPCAAssignedErrorChannel() throws Exception {
 		MessageHandler handler = mock(MessageHandler.class);
 		assignedErrorChannel.subscribe(handler);
 		inboundAdapterAssignedErrorChannel.start();
@@ -110,7 +110,7 @@ public class InnerGatewayWithChainTests {
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
-	public interface TestGateway{
+	public interface TestGateway {
 		String echo(int value);
 	}
 }

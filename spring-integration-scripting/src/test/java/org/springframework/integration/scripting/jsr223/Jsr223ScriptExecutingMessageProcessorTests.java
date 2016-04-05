@@ -46,10 +46,10 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 		executor = ScriptExecutorFactory.getScriptExecutor("jruby");
 	}
 	@Test
-	public void testExecuteWithVariables(){
-		Map<String,Object> vars = new HashMap<String,Object>();
-		vars.put("one",1);
-		vars.put("two","two");
+	public void testExecuteWithVariables() {
+		Map<String, Object> vars = new HashMap<String, Object>();
+		vars.put("one", 1);
+		vars.put("two", "two");
 		vars.put("three", 3);
 
 		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
@@ -61,11 +61,11 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertEquals("hello modified",obj.toString().substring(0,"hello modified".length()));
+		assertEquals("hello modified", obj.toString().substring(0, "hello modified".length()));
 	}
 
 	@Test
-	public void testWithNoVars(){
+	public void testWithNoVars() {
 		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
 
 		ScriptExecutingMessageProcessor messageProcessor = new ScriptExecutingMessageProcessor(scriptSource, executor);
@@ -75,7 +75,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 
 		Object obj = messageProcessor.processMessage(message);
 
-		assertEquals("hello modified",obj.toString().substring(0,"hello modified".length()));
+		assertEquals("hello modified", obj.toString().substring(0, "hello modified".length()));
 	}
 
 }

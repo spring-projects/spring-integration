@@ -182,7 +182,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndMarkAsReadDontDelete() throws Exception{
+	public void receiveAndMarkAsReadDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -194,7 +194,7 @@ public class ImapMailReceiverTests {
 
 	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
 			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
-		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -211,7 +211,7 @@ public class ImapMailReceiverTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE){
+				if (folderOpenMode != Folder.READ_WRITE) {
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
 
@@ -237,7 +237,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test // INT-2991 Flag.SEEN was set twice when a filter is used
-	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception{
+	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -250,7 +250,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test // INT-2991 filtered messages were marked SEEN
-	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception{
+	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -266,9 +266,9 @@ public class ImapMailReceiverTests {
 
 
 	@Test
-	public void receiveMarkAsReadAndDelete() throws Exception{
+	public void receiveMarkAsReadAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(true);
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -288,7 +288,7 @@ public class ImapMailReceiverTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE){
+				if (folderOpenMode != Folder.READ_WRITE) {
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
 				return null;
@@ -315,9 +315,9 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void receiveAndDontMarkAsRead() throws Exception{
+	public void receiveAndDontMarkAsRead() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -358,10 +358,10 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
 	}
 	@Test
-	public void receiveAndDontMarkAsReadButDelete() throws Exception{
+	public void receiveAndDontMarkAsReadButDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver)receiver).setShouldDeleteMessages(true);
-		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
+		((ImapMailReceiver) receiver).setShouldDeleteMessages(true);
+		((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -380,7 +380,7 @@ public class ImapMailReceiverTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE){
+				if (folderOpenMode != Folder.READ_WRITE) {
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
 				return null;
@@ -408,7 +408,7 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception{
+	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -428,7 +428,7 @@ public class ImapMailReceiverTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE){
+				if (folderOpenMode != Folder.READ_WRITE) {
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
 				return null;
@@ -455,7 +455,7 @@ public class ImapMailReceiverTests {
 	}
 	@Test
 	@Ignore
-	public void testMessageHistory() throws Exception{
+	public void testMessageHistory() throws Exception {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
@@ -512,7 +512,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testIdleChannelAdapterException() throws Exception{
+	public void testIdleChannelAdapterException() throws Exception {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
@@ -588,7 +588,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception{
+	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
@@ -678,7 +678,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test
-	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception{
+	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
 		ConfigurableApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
@@ -785,7 +785,7 @@ public class ImapMailReceiverTests {
 	}
 
 	@Test // see INT-1801
-	public void testImapLifecycleForRaceCondition() throws Exception{
+	public void testImapLifecycleForRaceCondition() throws Exception {
 
 		for (int i = 0; i < 1000; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
@@ -805,12 +805,12 @@ public class ImapMailReceiverTests {
 
 			new Thread(new Runnable() {
 				@Override
-				public void run(){
+				public void run() {
 					try {
 						receiver.receive();
 					}
 					catch (javax.mail.MessagingException e) {
-						if (e.getCause() instanceof NullPointerException){
+						if (e.getCause() instanceof NullPointerException) {
 							e.printStackTrace();
 							failed.getAndIncrement();
 						}
@@ -821,7 +821,7 @@ public class ImapMailReceiverTests {
 
 			new Thread(new Runnable() {
 				@Override
-				public void run(){
+				public void run() {
 					try {
 						receiver.destroy();
 					}

@@ -321,7 +321,7 @@ public class PoorMansMailServer {
 						else if (line.contains("NOOP")) {
 							write(tag + "OK NOOP completed");
 						}
-						else if(line.endsWith("STORE 1 +FLAGS (testSIUserFlag)")) {
+						else if (line.endsWith("STORE 1 +FLAGS (testSIUserFlag)")) {
 							write(tag + "OK STORE completed");
 							assertions.add("storeUserFlag");
 						}

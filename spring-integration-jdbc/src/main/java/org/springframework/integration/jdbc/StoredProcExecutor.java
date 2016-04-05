@@ -432,7 +432,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the name of the Stored Procedure or Function if set. Null otherwise.
 	 * */
-	@ManagedAttribute(defaultValue="Null if not Set.")
+	@ManagedAttribute(defaultValue = "Null if not Set.")
 	public String getStoredProcedureName() {
 		return this.storedProcedureNameExpression instanceof LiteralExpression ?
 				this.storedProcedureNameExpression.getValue(String.class) : null;
@@ -441,7 +441,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * @return the Stored Procedure Name Expression as a String if set. Null otherwise.
 	 * */
-	@ManagedAttribute(defaultValue="Null if not Set.")
+	@ManagedAttribute(defaultValue = "Null if not Set.")
 	public String getStoredProcedureNameExpressionAsString() {
 		return this.storedProcedureNameExpression != null
 				? this.storedProcedureNameExpression.getExpressionString()

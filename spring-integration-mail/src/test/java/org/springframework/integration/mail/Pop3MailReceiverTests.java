@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ import org.springframework.beans.factory.BeanFactory;
  */
 public class Pop3MailReceiverTests {
 	@Test
-	public void receiveAndDelete() throws Exception{
+	public void receiveAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
-		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
+		((Pop3MailReceiver) receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -65,7 +65,7 @@ public class Pop3MailReceiverTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE){
+				if (folderOpenMode != Folder.READ_WRITE) {
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
 				return null;
@@ -89,9 +89,9 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receiveAndDontDelete() throws Exception{
+	public void receiveAndDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
-		((Pop3MailReceiver)receiver).setShouldDeleteMessages(false);
+		((Pop3MailReceiver) receiver).setShouldDeleteMessages(false);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -128,7 +128,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receiveAndDontSetDeleteWithUrl() throws Exception{
+	public void receiveAndDontSetDeleteWithUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -166,7 +166,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receiveAndDontSetDeleteWithoutUrl() throws Exception{
+	public void receiveAndDontSetDeleteWithoutUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));

@@ -35,9 +35,9 @@ public final class MethodArgsHolder {
 
 	private final Object[] args;
 
-	public MethodArgsHolder(Method method, Object[] args) {//NOSONAR - direct storage
+	public MethodArgsHolder(Method method, Object[] args) { //NOSONAR - direct storage
 		this.method = method;
-		this.args = args;//NOSONAR - direct storage
+		this.args = args; //NOSONAR - direct storage
 	}
 
 	public Method getMethod() {
@@ -45,7 +45,7 @@ public final class MethodArgsHolder {
 	}
 
 	public Object[] getArgs() {
-		return this.args;//NOSONAR - direct access
+		return this.args; //NOSONAR - direct access
 	}
 
 }

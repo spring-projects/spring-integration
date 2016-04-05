@@ -37,40 +37,40 @@ public class MessageScenariosTests extends AbstractRequestResponseScenarioTests 
 
 	@Override
 	protected List<RequestResponseScenario> defineRequestResponseScenarios() {
-		List<RequestResponseScenario> scenarios= new ArrayList<RequestResponseScenario>();
+		List<RequestResponseScenario> scenarios = new ArrayList<RequestResponseScenario>();
 		RequestResponseScenario scenario1 = new RequestResponseScenario(
-				"inputChannel","outputChannel")
+				"inputChannel", "outputChannel")
 			.setPayload("hello")
 			.setResponseValidator(new PayloadValidator<String>() {
 				@Override
 				protected void validateResponse(String response) {
-					assertEquals("HELLO",response);
+					assertEquals("HELLO", response);
 				}
 			});
 
 		scenarios.add(scenario1);
 
 		RequestResponseScenario scenario2 = new RequestResponseScenario(
-				"inputChannel","outputChannel")
+				"inputChannel", "outputChannel")
 		.setMessage(MessageBuilder.withPayload("hello").setHeader("foo", "bar").build())
 		.setResponseValidator(new MessageValidator() {
 			@Override
 			protected void validateMessage(Message<?> message) {
-			   assertThat(message,hasPayload("HELLO"));
-			   assertThat(message,hasHeader("foo","bar"));
+			   assertThat(message, hasPayload("HELLO"));
+			   assertThat(message, hasHeader("foo", "bar"));
 			}
 		});
 
 		scenarios.add(scenario2);
 
 		RequestResponseScenario scenario3 = new RequestResponseScenario(
-				"inputChannel2","outputChannel2")
+				"inputChannel2", "outputChannel2")
 		.setMessage(MessageBuilder.withPayload("hello").setHeader("foo", "bar").build())
 		.setResponseValidator(new MessageValidator() {
 			@Override
 			protected void validateMessage(Message<?> message) {
-				assertThat(message,hasPayload("HELLO"));
-				assertThat(message,hasHeader("foo","bar"));
+				assertThat(message, hasPayload("HELLO"));
+				assertThat(message, hasHeader("foo", "bar"));
 			}
 		});
 

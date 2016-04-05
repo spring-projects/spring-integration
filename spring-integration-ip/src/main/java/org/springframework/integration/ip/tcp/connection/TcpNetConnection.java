@@ -82,7 +82,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		try {
 			this.socket.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) { }
 		super.close();
 	}
 

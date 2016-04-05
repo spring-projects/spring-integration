@@ -83,7 +83,7 @@ public class ExceptionHandlingSiConsumerTests {
 	}
 
 	@Test
-	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception{
+	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception {
 		ActiveMqTestUtils.prepare();
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
@@ -99,7 +99,7 @@ public class ExceptionHandlingSiConsumerTests {
 			throw new SampleException("echoWithException");
 		}
 
-		public String echo(String value){
+		public String echo(String value) {
 			return value;
 		}
 	}
@@ -107,7 +107,7 @@ public class ExceptionHandlingSiConsumerTests {
 
 	@SuppressWarnings("serial")
 	public static class SampleException extends RuntimeException {
-		public SampleException(String message){
+		public SampleException(String message) {
 			super(message);
 		}
 	}

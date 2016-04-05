@@ -251,7 +251,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		long lastModified = 0;
 		int lastReleasedSequenceNumber = 0;
 		boolean completeGroup = false;
-		if (messageWrappers.size() > 0){
+		if (messageWrappers.size() > 0) {
 			MessageWrapper messageWrapper = messageWrappers.get(0);
 			timestamp = messageWrapper.get_Group_timestamp();
 			lastModified = messageWrapper.get_Group_update_timestamp();
@@ -265,7 +265,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		MessageGroup messageGroup = getMessageGroupFactory().create(messages, groupId, timestamp, completeGroup);
 		messageGroup.setLastModified(lastModified);
-		if (lastReleasedSequenceNumber > 0){
+		if (lastReleasedSequenceNumber > 0) {
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
 
@@ -517,27 +517,27 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					throw new IllegalStateException("failed to load class: " + messageType, e);
 				}
 
-				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
-				Long lastModified = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
-				Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE_NUMBER);
-				Boolean completeGroup = (Boolean)source.get(GROUP_COMPLETE_KEY);
+				Long groupTimestamp = (Long) source.get(GROUP_TIMESTAMP_KEY);
+				Long lastModified = (Long) source.get(GROUP_UPDATE_TIMESTAMP_KEY);
+				Integer lastReleasedSequenceNumber = (Integer) source.get(LAST_RELEASED_SEQUENCE_NUMBER);
+				Boolean completeGroup = (Boolean) source.get(GROUP_COMPLETE_KEY);
 
 				MessageWrapper wrapper = new MessageWrapper(message);
 
-				if (source.containsField(GROUP_ID_KEY)){
+				if (source.containsField(GROUP_ID_KEY)) {
 					wrapper.set_GroupId(source.get(GROUP_ID_KEY));
 				}
-				if (groupTimestamp != null){
+				if (groupTimestamp != null) {
 					wrapper.set_Group_timestamp(groupTimestamp);
 				}
-				if (lastModified != null){
+				if (lastModified != null) {
 					wrapper.set_Group_update_timestamp(lastModified);
 				}
-				if (lastReleasedSequenceNumber != null){
+				if (lastReleasedSequenceNumber != null) {
 					wrapper.set_LastReleasedSequenceNumber(lastReleasedSequenceNumber);
 				}
 
-				if (completeGroup != null){
+				if (completeGroup != null) {
 					wrapper.set_Group_complete(completeGroup);
 				}
 
@@ -614,7 +614,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 
-	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory,DBObject> {
+	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory, DBObject> {
 
 		@Override
 		public DBObject convert(MessageHistory source) {

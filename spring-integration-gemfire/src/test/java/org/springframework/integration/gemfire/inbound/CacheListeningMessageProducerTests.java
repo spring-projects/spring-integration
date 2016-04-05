@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -75,7 +75,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
 		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -105,7 +105,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
@@ -134,7 +134,7 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
 
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() {};
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);

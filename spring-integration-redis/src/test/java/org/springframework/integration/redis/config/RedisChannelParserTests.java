@@ -49,7 +49,7 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPubSubChannelConfig(){
+	public void testPubSubChannelConfig() {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);

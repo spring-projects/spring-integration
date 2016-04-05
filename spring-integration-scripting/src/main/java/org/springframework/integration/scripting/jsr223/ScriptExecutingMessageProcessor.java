@@ -89,7 +89,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		return this.scriptExecutor.executeScript(scriptSource,variables);
+		return this.scriptExecutor.executeScript(scriptSource, variables);
 	}
 
 }

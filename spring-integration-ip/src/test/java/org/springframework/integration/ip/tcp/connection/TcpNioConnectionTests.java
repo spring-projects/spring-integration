@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,7 +282,8 @@ public class TcpNioConnectionTests {
 			@Override
 			public boolean matches(Field field) {
 				return field.getName().equals("open");
-			}});
+			}
+		});
 		Field field = fields.get(0);
 		// Can't use Mockito because isOpen() is final
 		ReflectionUtils.setField(field, chan1, true);
@@ -385,7 +386,7 @@ public class TcpNioConnectionTests {
 				}).when(channel).read(Mockito.any(ByteBuffer.class));
 				final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
 				connection.setTaskExecutor(exec);
-				connection.registerListener(new TcpListener(){
+				connection.registerListener(new TcpListener() {
 					@Override
 					public boolean onMessage(Message<?> message) {
 						messageLatch.countDown();
@@ -476,12 +477,12 @@ public class TcpNioConnectionTests {
 			stream.read(out, 1, 5);
 			fail("Expected IndexOutOfBoundsException");
 		}
-		catch (IndexOutOfBoundsException e) {}
+		catch (IndexOutOfBoundsException e) { }
 		try {
 			stream.read(null, 1, 5);
 			fail("Expected IllegalArgumentException");
 		}
-		catch (IllegalArgumentException e) {}
+		catch (IllegalArgumentException e) { }
 		assertEquals(0, stream.read(out, 0, 0));
 		assertEquals(3, stream.read(out));
 	}
@@ -497,7 +498,7 @@ public class TcpNioConnectionTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final byte[] out = new byte[4];
 		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(new Runnable(){
+		exec.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -617,7 +618,7 @@ public class TcpNioConnectionTests {
 				socket = SocketFactory.getDefault().createSocket("localhost", port);
 				break;
 			}
-			catch (ConnectException e) {}
+			catch (ConnectException e) { }
 			Thread.sleep(100);
 		}
 		assertTrue("Could not open socket to localhost:" + port, n < 100);
@@ -664,7 +665,7 @@ public class TcpNioConnectionTests {
 					socket = SocketFactory.getDefault().createSocket("localhost", port);
 					break;
 				}
-				catch (ConnectException e) {}
+				catch (ConnectException e) { }
 				Thread.sleep(100);
 			}
 			assertTrue("Could not open socket to localhost:" + port, n < 100);

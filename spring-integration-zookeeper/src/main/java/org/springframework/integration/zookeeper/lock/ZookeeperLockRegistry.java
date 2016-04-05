@@ -115,10 +115,10 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 		if (!this.trackingTime) {
 			throw new IllegalStateException("Ths KeyToPathStrategy is bounded; expiry is not supported");
 		}
-		synchronized(this.locks) {
+		synchronized (this.locks) {
 			Iterator<Entry<String, ZkLock>> iterator = this.locks.entrySet().iterator();
 			long now = System.currentTimeMillis();
-			while(iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				Entry<String, ZkLock> entry = iterator.next();
 				ZkLock lock = entry.getValue();
 				if (now - lock.getLastUsed() > age

@@ -201,7 +201,7 @@ public class MessageHistoryIntegrationTests {
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
-	@Test(expected=BeanCreationException.class)
+	@Test(expected = BeanCreationException.class)
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
 	}

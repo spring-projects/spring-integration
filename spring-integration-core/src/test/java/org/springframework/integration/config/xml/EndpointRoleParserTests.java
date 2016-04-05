@@ -109,7 +109,7 @@ public class EndpointRoleParserTests {
 
 	public static class Sink {
 
-		public void foo(String s) {}
+		public void foo(String s) { }
 
 	}
 

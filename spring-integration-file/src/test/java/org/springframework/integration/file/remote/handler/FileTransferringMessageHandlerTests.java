@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class FileTransferringMessageHandlerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testRemoteDirWithEmptyString() throws Exception{
+	public <F> void testRemoteDirWithEmptyString() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 
@@ -83,7 +83,7 @@ public class FileTransferringMessageHandlerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testTemporaryRemoteDir() throws Exception{
+	public <F> void testTemporaryRemoteDir() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 
@@ -110,7 +110,7 @@ public class FileTransferringMessageHandlerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testRemoteDirWithNull() throws Exception{
+	public <F> void testRemoteDirWithNull() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 
@@ -133,7 +133,7 @@ public class FileTransferringMessageHandlerTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public <F> void testEmptyTemporaryFileSuffixCannotBeNull() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
@@ -148,7 +148,7 @@ public class FileTransferringMessageHandlerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testUseTemporaryFileNameFalse() throws Exception{
+	public <F> void testUseTemporaryFileNameFalse() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 
@@ -168,7 +168,7 @@ public class FileTransferringMessageHandlerTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testServerException() throws Exception{
+	public <F> void testServerException() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		CachingSessionFactory<F> csf = new CachingSessionFactory<F>(sf, 2);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(csf);

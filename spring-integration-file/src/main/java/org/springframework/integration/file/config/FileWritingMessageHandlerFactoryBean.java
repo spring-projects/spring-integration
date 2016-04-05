@@ -39,7 +39,7 @@ import org.springframework.integration.file.support.FileExistsMode;
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean
-		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
+		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler> {
 
 	private volatile File directory;
 

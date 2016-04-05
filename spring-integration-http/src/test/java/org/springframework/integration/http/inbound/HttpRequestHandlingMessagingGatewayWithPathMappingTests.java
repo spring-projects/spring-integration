@@ -130,7 +130,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		Object result =  gateway.doHandleRequest(request, response);
 		assertTrue(result instanceof Message);
-		assertEquals("bill", ((Message<?>)result).getPayload());
+		assertEquals("bill", ((Message<?>) result).getPayload());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -176,7 +176,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		Object result =  gateway.doHandleRequest(request, response);
 		assertTrue(result instanceof Message);
-		assertEquals("bill", ((Map<String, Object>) ((Message<?>)result).getPayload()).get("f"));
+		assertEquals("bill", ((Map<String, Object>) ((Message<?>) result).getPayload()).get("f"));
 	}
 
 }

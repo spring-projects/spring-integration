@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,7 @@ public class JdbcMessageStoreRegionTests {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
-		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'", new RowMapper<String>(){
+		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'", new RowMapper<String>() {
 
 			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return rs.getString("REGION");
@@ -141,7 +141,7 @@ public class JdbcMessageStoreRegionTests {
 
 		messageStore2.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
-		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'", new RowMapper<String>(){
+		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'", new RowMapper<String>() {
 
 			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
 				return rs.getString("REGION");

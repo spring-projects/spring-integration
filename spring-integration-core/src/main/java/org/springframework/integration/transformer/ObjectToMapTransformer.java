@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 2.0
  */
-public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
+public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?, ?>> {
 
 	private final JsonObjectMapper<?, ?> jsonObjectMapper = JsonObjectMapperProvider.newInstance();
 
@@ -67,7 +67,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> transformPayload(Object payload) throws Exception {
-		Map<String,Object> result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
+		Map<String, Object> result = this.jsonObjectMapper.fromJson(this.jsonObjectMapper.toJson(payload), Map.class);
 		if (this.shouldFlattenKeys) {
 			result = this.flattenMap(result);
 		}
@@ -96,13 +96,13 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		}
 	}
 
-	private Map<String, Object> flattenMap(Map<String,Object> result){
-		Map<String,Object> resultMap = new HashMap<String, Object>();
+	private Map<String, Object> flattenMap(Map<String, Object> result) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
 		this.doFlatten("", result, resultMap);
 		return resultMap;
 	}
 
-	private void doFlatten(String propertyPrefix, Map<String,Object> inputMap, Map<String,Object> resultMap){
+	private void doFlatten(String propertyPrefix, Map<String, Object> inputMap, Map<String, Object> resultMap) {
 		if (StringUtils.hasText(propertyPrefix)) {
 			propertyPrefix = propertyPrefix + ".";
 		}

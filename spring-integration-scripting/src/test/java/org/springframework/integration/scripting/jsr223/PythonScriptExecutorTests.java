@@ -47,23 +47,23 @@ public class PythonScriptExecutorTests {
 	@Test
 	public void testLiteral() {
 		Object obj = executor.executeScript(new StaticScriptSource("3+4") );
-		assertEquals(7,obj);
+		assertEquals(7, obj);
 
 		 obj = executor.executeScript(new StaticScriptSource("'hello,world'") );
-		 assertEquals("hello,world",obj);
+		 assertEquals("hello,world", obj);
 	}
 
 	@Test
 
 	public void test1() {
 		Object obj = executor.executeScript(new StaticScriptSource("x=2") );
-		assertEquals(2,obj);
+		assertEquals(2, obj);
 	}
 
 	@Test
 	public void test2() {
 		Object obj =  executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)") );
-		assertEquals(2,obj);
+		assertEquals(2, obj);
 	}
 
 	@Test
@@ -91,9 +91,9 @@ public class PythonScriptExecutorTests {
 
 	@Test
 	public void testEmbeddedVariable() {
-		Map<String,Object> variables = new HashMap<String,Object>();
+		Map<String, Object> variables = new HashMap<String, Object>();
 		variables.put("scope", "world");
-		Object obj = executor.executeScript(new StaticScriptSource("\"hello, %s\"% scope"),variables);
-		assertEquals("hello, world",obj);
+		Object obj = executor.executeScript(new StaticScriptSource("\"hello, %s\"% scope"), variables);
+		assertEquals("hello, world", obj);
 	}
 }

@@ -112,7 +112,7 @@ public class RedisAvailableTests {
 		}
 	}
 
-	protected void prepareList(RedisConnectionFactory connectionFactory){
+	protected void prepareList(RedisConnectionFactory connectionFactory) {
 
 		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 		redisTemplate.delete("presidents");
@@ -135,7 +135,7 @@ public class RedisAvailableTests {
 		ops.rightPush("George Washington");
 	}
 
-	protected void prepareZset(RedisConnectionFactory connectionFactory){
+	protected void prepareZset(RedisConnectionFactory connectionFactory) {
 
 		StringRedisTemplate redisTemplate = createStringRedisTemplate(connectionFactory);
 
@@ -159,7 +159,7 @@ public class RedisAvailableTests {
 		ops.add("George Washington", 18);
 	}
 
-	protected void deletePresidents(RedisConnectionFactory connectionFactory){
+	protected void deletePresidents(RedisConnectionFactory connectionFactory) {
 		this.deleteKey(connectionFactory, "presidents");
 	}
 

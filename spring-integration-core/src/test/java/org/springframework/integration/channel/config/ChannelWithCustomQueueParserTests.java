@@ -63,7 +63,7 @@ public class ChannelWithCustomQueueParserTests {
 		Object queue = accessor.getPropertyValue("queue");
 		assertNotNull(queue);
 		assertThat(queue, is(instanceOf(ArrayBlockingQueue.class)));
-		assertThat(((BlockingQueue<?>)queue).remainingCapacity(), is(2));
+		assertThat(((BlockingQueue<?>) queue).remainingCapacity(), is(2));
 	}
 
 }

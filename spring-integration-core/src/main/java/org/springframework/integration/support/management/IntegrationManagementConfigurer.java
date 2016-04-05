@@ -291,7 +291,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 				}
 			}
 		}
-		return null;//NOSONAR - intentional null return
+		return null; //NOSONAR - intentional null return
 	}
 
 	public MessageChannelMetrics getChannelMetrics(String name) {

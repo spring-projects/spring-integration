@@ -117,7 +117,7 @@ public class AggregatorTests {
 		Message<?> message = new GenericMessage<String>("foo");
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
-		for (int i=0; i < 120000; i++) {
+		for (int i = 0; i < 120000; i++) {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
@@ -183,7 +183,7 @@ public class AggregatorTests {
 		Message<?> message = new GenericMessage<String>("foo");
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
-		for (int i=0; i < 120000; i++) {
+		for (int i = 0; i < 120000; i++) {
 			if (i % 10000 == 0) {
 				stopwatch.stop();
 				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +

@@ -77,14 +77,14 @@ public class JmsOutboundGatewayParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testWithDeliveryPersistentAttribute(){
+	public void testWithDeliveryPersistentAttribute() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
-		int deliveryMode = (Integer)accessor.getPropertyValue("deliveryMode");
+		int deliveryMode = (Integer) accessor.getPropertyValue("deliveryMode");
 		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
 		assertTrue(TestUtils.getPropertyValue(gateway, "async", Boolean.class));
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
@@ -112,7 +112,7 @@ public class JmsOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testAdvised(){
+	public void testAdvised() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
@@ -125,14 +125,14 @@ public class JmsOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testDefault(){
+	public void testDefault() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithConverter.xml", this.getClass());
 		PollingConsumer endpoint = (PollingConsumer) context.getBean("jmsGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
-		MessageConverter converter = (MessageConverter)accessor.getPropertyValue("messageConverter");
+		MessageConverter converter = (MessageConverter) accessor.getPropertyValue("messageConverter");
 		assertTrue("Wrong message converter", converter instanceof StubMessageConverter);
 		context.close();
 	}
@@ -245,7 +245,7 @@ public class JmsOutboundGatewayParserTests {
 				assertNotNull(componentHistoryRecord);
 				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
 				MessagingTemplate messagingTemplate = new MessagingTemplate();
-				messagingTemplate.setDefaultDestination((MessageChannel)message.getHeaders().getReplyChannel());
+				messagingTemplate.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				messagingTemplate.send(message);
 			}
 		};
@@ -288,15 +288,15 @@ public class JmsOutboundGatewayParserTests {
 	}
 
 
-	public interface SampleGateway{
+	public interface SampleGateway {
 
 		String echo(String value);
 
 	}
 
-	public static class SampleService{
+	public static class SampleService {
 
-		public String echo(String value){
+		public String echo(String value) {
 			return value.toUpperCase();
 		}
 

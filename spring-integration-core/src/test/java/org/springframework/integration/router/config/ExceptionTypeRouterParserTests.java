@@ -37,7 +37,7 @@ public class ExceptionTypeRouterParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExceptionTypeRouterConfig(){
+	public void testExceptionTypeRouterConfig() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("ExceptionTypeRouterParserTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inChannel", MessageChannel.class);
 

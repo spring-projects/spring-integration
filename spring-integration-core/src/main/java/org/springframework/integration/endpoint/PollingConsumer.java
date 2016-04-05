@@ -115,7 +115,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 			String description = "Failed to handle " + theMessage + " to " + this + " in " + this.handler;
 			throw new MessageDeliveryException(theMessage, description, ex);
 		}
-		catch (Error ex) {//NOSONAR - ok, we re-throw below
+		catch (Error ex) { //NOSONAR - ok, we re-throw below
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				String description = "Failed to handle " + theMessage + " to " + this + " in " + this.handler;
 				triggerAfterMessageHandled(theMessage,
@@ -154,7 +154,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 			try {
 				interceptor.afterMessageHandled(message, this.inputChannel, this.handler, ex);
 			}
-			catch (Throwable ex2) {//NOSONAR
+			catch (Throwable ex2) { //NOSONAR
 				logger.error("Exception from afterMessageHandled in " + interceptor, ex2);
 			}
 		}

@@ -123,10 +123,10 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
 		final Query query = entityManager.createQuery("select x from " + entityName + " x", entityClass);
-		if(firstResult > 0) {
+		if (firstResult > 0) {
 			query.setFirstResult(firstResult);
 		}
-		if(maxNumberOfResults > 0) {
+		if (maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
 
@@ -141,10 +141,10 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		final Query query = entityManager.createNamedQuery(selectNamedQuery);
 		setParametersIfRequired(selectNamedQuery, parameterSource, query);
 
-		if(firstResult > 0) {
+		if (firstResult > 0) {
 			query.setFirstResult(firstResult);
 		}
-		if(maxNumberOfResults > 0) {
+		if (maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
 
@@ -167,10 +167,10 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		setParametersIfRequired(selectQuery, parameterSource, query);
 
-		if(firstResult > 0) {
+		if (firstResult > 0) {
 			query.setFirstResult(firstResult);
 		}
-		if(maxNumberOfResults > 0) {
+		if (maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
 
@@ -179,19 +179,19 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public List<?> getResultListForQuery(String query, ParameterSource source) {
-			return getResultListForQuery(query,source, 0, 0);
+			return getResultListForQuery(query, source, 0, 0);
 	}
 
 	@Override
 	public List<?> getResultListForQuery(String queryString, ParameterSource source,
 			int firstResult, int maxNumberOfResults) {
 
-		Query query = getQuery(queryString,source);
+		Query query = getQuery(queryString, source);
 
-		if(firstResult > 0) {
+		if (firstResult > 0) {
 			query.setFirstResult(firstResult);
 		}
-		if(maxNumberOfResults > 0) {
+		if (maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
 
@@ -200,7 +200,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public Object getSingleResultForQuery(String queryString, ParameterSource source) {
-		Query query = getQuery(queryString,source);
+		Query query = getQuery(queryString, source);
 		return query.getSingleResult();
 	}
 
@@ -296,9 +296,9 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	private void setParametersIfRequired(String queryString, ParameterSource source, Query query) {
 		Set<Parameter<?>> parameters = query.getParameters();
 
-		if(parameters != null && !parameters.isEmpty()) {
-			if(source != null) {
-				for(Parameter<?> param:parameters) {
+		if (parameters != null && !parameters.isEmpty()) {
+			if (source != null) {
+				for (Parameter<?> param:parameters) {
 					String  paramName = param.getName();
 					Integer position = param.getPosition();
 
@@ -318,7 +318,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 					}
 					else {
 
-						if(StringUtils.hasText(paramName)) {
+						if (StringUtils.hasText(paramName)) {
 							paramValue = source.getValue(paramName);
 							query.setParameter(paramName, paramValue);
 						}

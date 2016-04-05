@@ -32,15 +32,15 @@ public class XPathExpressionParserTests {
 	public void testSimpleStringExpression() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/name' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
 	}
 
 	@Test
 	public void testNamespacedStringExpression() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
+		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
 	}
 
 	@Test
@@ -48,8 +48,8 @@ public class XPathExpressionParserTests {
 		StringBuffer xmlDoc = new StringBuffer("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces' />");
 		xmlDoc.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
-		assertEquals("outputOne",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
+		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
 	}
 
 	@Test
@@ -60,8 +60,8 @@ public class XPathExpressionParserTests {
 		                                 .append("</si-xml:xpath-expression>");
 
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
-		assertEquals("outputOne",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
+		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
 	}
 
 	@Test
@@ -85,12 +85,12 @@ public class XPathExpressionParserTests {
 
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test(expected = BeanDefinitionStoreException.class)
 	public void testNamespacePrefixButNoUri() throws Exception {
 		String xmlDoc = "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' />";
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc);
-		assertEquals("outputOne",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
-		assertEquals("",xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
+		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
+		assertEquals("", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<name>outputOne</name>")));
 
 	}
 
@@ -148,7 +148,7 @@ public class XPathExpressionParserTests {
 
 	}
 
-	public XPathExpression getXPathExpression(String contextXml){
+	public XPathExpression getXPathExpression(String contextXml) {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(contextXml);
 		return (XPathExpression) ctx.getBean("xpathExpression");
 	}

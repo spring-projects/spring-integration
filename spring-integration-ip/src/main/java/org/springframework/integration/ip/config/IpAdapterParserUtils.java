@@ -124,7 +124,7 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String MAPPER = "mapper";
 
-	private IpAdapterParserUtils() {}
+	private IpAdapterParserUtils() { }
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder

@@ -34,12 +34,12 @@ public class SftpOutboundTransferSample {
 
 	@Test
 	@Ignore
-	public void testOutbound() throws Exception{
+	public void testOutbound() throws Exception {
 		ClassPathXmlApplicationContext ac =
 			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", SftpOutboundTransferSample.class);
 		ac.start();
 		File file = new File("/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/local-test-dir/foo.txt");
-		if (file.exists()){
+		if (file.exists()) {
 			Message<File> message = MessageBuilder.withPayload(file).build();
 			MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
 			inputChannel.send(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class DirectMessageReceivingMessageSourceTests {
 
 	@SuppressWarnings("unchecked")
 	@Test @Ignore
-	public void demoReceiveDm() throws Exception{
+	public void demoReceiveDm() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
@@ -48,7 +48,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		tSource.afterPropertiesSet();
 		for (int i = 0; i < 50; i++) {
 			Message<DirectMessage> message = (Message<DirectMessage>) tSource.receive();
-			if (message != null){
+			if (message != null) {
 				DirectMessage tweet = message.getPayload();
 				System.out.println(tweet.getSender().getScreenName() + " - " + tweet.getText() + " - " + tweet.getCreatedAt());
 			}

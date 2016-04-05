@@ -109,7 +109,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "stored-proc:inbound-channel-adapter";
 	}
 

@@ -188,7 +188,7 @@ public class PollerAdviceTests {
 	public void testMixedAdvice() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final List<String> callOrder = new ArrayList<String>();
-		final CountDownLatch latch = new CountDownLatch(4);// advice + advice + source + advice
+		final CountDownLatch latch = new CountDownLatch(4); // advice + advice + source + advice
 		adapter.setSource(new MessageSource<Object>() {
 
 			@Override

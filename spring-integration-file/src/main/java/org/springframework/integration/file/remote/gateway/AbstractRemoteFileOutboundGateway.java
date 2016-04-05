@@ -691,7 +691,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
 							.copyHeaders(requestMessage.getHeaders())
 							.build(), subDirectory);
-					if (path == null) {//NOSONAR - false positive
+					if (path == null) { //NOSONAR - false positive
 						if (logger.isDebugEnabled()) {
 							logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
 						}
@@ -700,7 +700,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						replies.add(path);
 					}
 				}
-				else if (this.options.contains(Option.RECURSIVE)){
+				else if (this.options.contains(Option.RECURSIVE)) {
 					String newSubDirectory = (StringUtils.hasText(subDirectory) ?
 							subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
 						+ filteredFile.getName();
@@ -878,7 +878,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				outputStream.close();
 				tempFile.delete();
 
-				if (e instanceof RuntimeException){
+				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
 				}
 				else {
@@ -1054,8 +1054,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return localDir;
 	}
 
-	private String generateLocalFileName(Message<?> message, String remoteFileName){
-		if (this.localFilenameGeneratorExpression != null){
+	private String generateLocalFileName(Message<?> message, String remoteFileName) {
+		if (this.localFilenameGeneratorExpression != null) {
 			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 			evaluationContext.setVariable("remoteFileName", remoteFileName);
 			return this.localFilenameGeneratorExpression.getValue(evaluationContext, message, String.class);

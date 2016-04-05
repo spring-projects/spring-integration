@@ -76,7 +76,7 @@ public class XPathRouterParserTests {
 
 	ConfigurableApplicationContext appContext;
 
-	public EventDrivenConsumer buildContext(String routerDef){
+	public EventDrivenConsumer buildContext(String routerDef) {
 		appContext = TestXmlApplicationContextHelper.getTestAppContext( channelConfig + routerDef);
 		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("router");
@@ -86,8 +86,8 @@ public class XPathRouterParserTests {
 
 
 	@After
-	public void tearDown(){
-		if(appContext != null){
+	public void tearDown() {
+		if (appContext != null) {
 			appContext.close();
 		}
 	}
@@ -191,7 +191,7 @@ public class XPathRouterParserTests {
 		Object defaultOutputChannelValue = accessor.getPropertyValue("defaultOutputChannel");
 		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
 		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
-		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getQueueSize());
+		assertEquals("Wrong count of messages on default output channel", 1, defaultOutput.getQueueSize());
 	}
 
 	@Test

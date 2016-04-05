@@ -90,7 +90,7 @@ public class MessageSourceMonitoringIntegrationTests {
 		public String execute() throws Exception {
 			Thread.sleep(10L); // make the duration non-zero
 			counter++;
-			return "count="+counter;
+			return "count=" + counter;
 		}
 
 		public int getCounter() {

@@ -75,7 +75,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public String getComponentName() {
-		return StringUtils.hasText(this.beanName) ? this.beanName: "nullChannel";
+		return StringUtils.hasText(this.beanName) ? this.beanName : "nullChannel";
 	}
 
 	@Override

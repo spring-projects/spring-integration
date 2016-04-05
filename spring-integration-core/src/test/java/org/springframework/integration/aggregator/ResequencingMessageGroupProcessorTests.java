@@ -41,14 +41,14 @@ public class ResequencingMessageGroupProcessorTests {
 	@Test
 	public void shouldProcessSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(3).build();
-		List<Message<?>> messages= new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<Message<?>>();
 		Message message1 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(1).build();
 		Message message2 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(2).build();
 		Message message3 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(3).build();
 		messages.add(message1);
 		messages.add(message2);
 		messages.add(message3);
-		SimpleMessageGroup group = new SimpleMessageGroup(messages,"x");
+		SimpleMessageGroup group = new SimpleMessageGroup(messages, "x");
 		List<Message> processedMessages = (List<Message>) processor.processMessageGroup(group);
 		assertThat(processedMessages, hasItems(message1, message2, message3));
 	}
@@ -57,14 +57,14 @@ public class ResequencingMessageGroupProcessorTests {
 	@Test
 	public void shouldPartiallProcessIncompleteSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(4).build();
-		List<Message<?>> messages= new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<Message<?>>();
 		Message message2 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(4).build();
 		Message message1 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(1).build();
 		Message message3 = MessageBuilder.fromMessage(prototypeMessage).setSequenceNumber(3).build();
 		messages.add(message1);
 		messages.add(message2);
 		messages.add(message3);
-		SimpleMessageGroup group = new SimpleMessageGroup(messages,"x");
+		SimpleMessageGroup group = new SimpleMessageGroup(messages, "x");
 		List<Message> processedMessages = (List<Message>) processor.processMessageGroup(group);
 		assertThat(processedMessages, hasItems(message1));
 		assertThat(processedMessages.size(), is(1));

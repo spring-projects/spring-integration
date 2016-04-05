@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ public class RouterParserTests {
 		}
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void testResolutionRequiredIsFalse() {
 		this.resolutionRequiredIsFalseInput.send(new GenericMessage<String>("channelThatDoesNotExist"));
 	}
@@ -224,7 +224,7 @@ public class RouterParserTests {
 	}
 
 	@Test
-	public void testErrorChannel(){
+	public void testErrorChannel() {
 		MessageHandler handler = mock(MessageHandler.class);
 		this.errorChannel.subscribe(handler);
 		this.routerAndErrorChannelInputChannel.send(new GenericMessage<String>("fail"));
@@ -232,13 +232,13 @@ public class RouterParserTests {
 	}
 
 	@Test // should not fail
-	public void routerFactoryBeanTest(){
+	public void routerFactoryBeanTest() {
 		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass());
 	}
 
 
-	public static class NonExistingChannelRouter{
-		public String route(String payload){
+	public static class NonExistingChannelRouter {
+		public String route(String payload) {
 			return "foo";
 		}
 	}
@@ -254,7 +254,7 @@ public class RouterParserTests {
 
 		@Override
 		protected List<Object> getChannelKeys(Message<?> message) {
-			return Collections.singletonList((Object)this.channel);
+			return Collections.singletonList((Object) this.channel);
 		}
 	}
 
@@ -277,7 +277,7 @@ public class RouterParserTests {
 
 		@Router
 		public String route(Message<?> message) {
-			return (String)message.getPayload();
+			return (String) message.getPayload();
 		}
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import org.springframework.integration.endpoint.annotation.TestService;
 @MessageEndpoint
 public class AnnotatedTestServiceWithAdvice implements TestService {
 
-	@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
+	@ServiceActivator(inputChannel = "inputChannel", outputChannel = "outputChannel")
 	public String sayHello(String name) {
 		return "hello " + name;
 	}
 
-	@ServiceActivator(inputChannel="advisedIn", outputChannel="advisedOut", adviceChain="advice")
+	@ServiceActivator(inputChannel = "advisedIn", outputChannel = "advisedOut", adviceChain = "advice")
 	public String sayHelloWithAdvice(String name) {
 		return "hello " + name;
 	}

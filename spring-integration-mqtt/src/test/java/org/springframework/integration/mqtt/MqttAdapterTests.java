@@ -163,7 +163,7 @@ public class MqttAdapterTests {
 
 		final MqttToken token = mock(MqttToken.class);
 		final AtomicBoolean connectCalled = new AtomicBoolean();
-		doAnswer(new Answer<MqttToken>(){
+		doAnswer(new Answer<MqttToken>() {
 
 			@Override
 			public MqttToken answer(InvocationOnMock invocation) throws Throwable {

@@ -86,7 +86,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		Assert.notNull(twitter, "twitter must not be null");
 		Assert.notNull(metadataKey, "metadataKey must not be null");
 		this.twitter = twitter;
-		if (this.twitter.isAuthorized()){
+		if (this.twitter.isAuthorized()) {
 			UserOperations userOperations = this.twitter.userOperations();
 			String profileId = String.valueOf(userOperations.getProfileId());
 			if (profileId != null) {
@@ -220,9 +220,9 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	/**
 	 * Remove the metadata key and the corresponding value from the Metadata Store.
 	 */
-	@ManagedOperation(description="Remove the metadata key and the corresponding value from the Metadata Store.")
+	@ManagedOperation(description = "Remove the metadata key and the corresponding value from the Metadata Store.")
 	void resetMetadataStore() {
-		synchronized(this) {
+		synchronized (this) {
 			this.metadataStore.remove(this.metadataKey);
 			this.lastProcessedId = -1L;
 			this.lastEnqueuedId = -1L;

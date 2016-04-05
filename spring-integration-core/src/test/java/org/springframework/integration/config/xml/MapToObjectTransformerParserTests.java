@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class MapToObjectTransformerParserTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testMapToObjectTransformationWithType(){
+	public void testMapToObjectTransformationWithType() {
 		Map map = new HashMap();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
@@ -85,7 +85,7 @@ public class MapToObjectTransformerParserTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testMapToObjectTransformationWithRef(){
+	public void testMapToObjectTransformationWithRef() {
 		Map map = new HashMap();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
@@ -108,7 +108,7 @@ public class MapToObjectTransformerParserTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testMapToObjectTransformationWithConversionService(){
+	public void testMapToObjectTransformationWithConversionService() {
 		Map map = new HashMap();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
@@ -125,12 +125,12 @@ public class MapToObjectTransformerParserTests {
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
-	@Test(expected=BeanCreationException.class)
-	public void testNonPrototypeFailure(){
+	@Test(expected = BeanCreationException.class)
+	public void testNonPrototypeFailure() {
 		new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml", MapToObjectTransformerParserTests.class);
 	}
 
-	public static class Person{
+	public static class Person {
 		private String fname;
 		private String lname;
 		private String ssn;
@@ -173,8 +173,8 @@ public class MapToObjectTransformerParserTests {
 		}
 	}
 
-	public static class StringToAddressConverter implements Converter<String, Address>{
-		public StringToAddressConverter(){}
+	public static class StringToAddressConverter implements Converter<String, Address> {
+		public StringToAddressConverter() { }
 		public Address convert(String source) {
 			Address address = new Address();
 			address.setStreet(source);

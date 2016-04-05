@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,12 +76,12 @@ public class JmsWithMarshallingMessageConverterTests {
 		public void marshal(Object graph, Result result) throws IOException, XmlMappingException {
 			String payload = null;
 			if (graph instanceof Message<?>) {
-				payload = (String) ((Message<?>)graph).getPayload();
+				payload = (String) ((Message<?>) graph).getPayload();
 			}
 			else {
 				payload = (String) graph;
 			}
-			((StreamResult)result).getOutputStream().write(payload.getBytes());
+			((StreamResult) result).getOutputStream().write(payload.getBytes());
 		}
 
 		public boolean supports(Class<?> clazz) {
@@ -97,7 +97,7 @@ public class JmsWithMarshallingMessageConverterTests {
 		}
 
 		public Object unmarshal(Source source) throws IOException, XmlMappingException {
-			InputStream io = ((StreamSource)source).getInputStream();
+			InputStream io = ((StreamSource) source).getInputStream();
 			byte[] bytes = new byte[io.available()];
 			io.read(bytes);
 			return new GenericMessage<String>(new String(bytes));

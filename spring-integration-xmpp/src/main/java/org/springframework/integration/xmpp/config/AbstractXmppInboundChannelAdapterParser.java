@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractCh
 
 		String connectionName = element.getAttribute("xmpp-connection");
 
-		if (StringUtils.hasText(connectionName)){
+		if (StringUtils.hasText(connectionName)) {
 			builder.addConstructorArgReference(connectionName);
 		}
 		else if (parserContext.getRegistry().containsBeanDefinition(XmppNamespaceHandler.XMPP_CONNECTION_BEAN_NAME)) {
@@ -73,7 +73,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractCh
 		return builder.getBeanDefinition();
 	}
 
-	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		// no op
 	}
 

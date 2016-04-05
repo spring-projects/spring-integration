@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,15 +75,15 @@ public class PollingTransactionTests {
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
 
-		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain",List.class);
+		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain", List.class);
 		assertEquals(3, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
 		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
 		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
-		Advisor[] advisors = ((Advised)pollingTask).getAdvisors();
+		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
 		assertEquals(3, advisors.length);
 
-		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor)advisors[0]).getAdvice() instanceof TransactionInterceptor);
+		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor) advisors[0]).getAdvice() instanceof TransactionInterceptor);
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
 		PollableChannel output = (PollableChannel) context.getBean("output");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
 		List<String> expectedList = Arrays.asList("myPayloadStuff1", "myPayloadStuff2", "myPayloadStuff3");
 		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<String>>(){}.getType(), getParser());
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<String>>() { }.getType(), getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -130,7 +130,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":[" + getBeanAsJson(bean1) + "," + getBeanAsJson(bean2) + "]}";
 		List<TestBean> expectedList = Arrays.asList(bean1, bean2);
 		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<TestBean>>(){}.getType(), getParser());
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<TestBean>>() { }.getType(), getParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -153,7 +153,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}
@@ -167,7 +167,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}
@@ -182,7 +182,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}
@@ -198,7 +198,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}
@@ -213,7 +213,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}
@@ -231,7 +231,7 @@ public abstract class AbstractJsonInboundMessageMapperTests {
 			mapper.toMessage(jsonMessage);
 			fail();
 		}
-		catch(IllegalArgumentException ex) {
+		catch (IllegalArgumentException ex) {
 			//Expected
 		}
 	}

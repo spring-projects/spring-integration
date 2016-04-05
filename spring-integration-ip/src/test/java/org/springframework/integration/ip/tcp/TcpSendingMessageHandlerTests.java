@@ -803,7 +803,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertNotNull(mOut);
-			replies.add(new String((byte[])mOut.getPayload()));
+			replies.add(new String((byte[]) mOut.getPayload()));
 		}
 		assertTrue(replies.remove("Reply1"));
 		assertTrue(replies.remove("Reply2"));
@@ -868,7 +868,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertNotNull(mOut);
-			replies.add(new String((byte[])mOut.getPayload()));
+			replies.add(new String((byte[]) mOut.getPayload()));
 		}
 		assertTrue(replies.remove("Reply1"));
 		assertTrue(replies.remove("Reply2"));
@@ -962,7 +962,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		for (i = 100; i < 200; i++) {
 			Message<?> mOut = channel.receive(20000);
 			assertNotNull(mOut);
-			replies.add(new String((byte[])mOut.getPayload()));
+			replies.add(new String((byte[]) mOut.getPayload()));
 		}
 		for (i = 0; i < 100; i++) {
 			assertTrue("Reply" + i + " missing", replies.remove("Reply" + i));

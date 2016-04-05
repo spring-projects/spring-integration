@@ -85,7 +85,7 @@ public class GroovyRefreshTests {
 		}
 
 		public InputStream getInputStream() throws IOException {
-			if (++count>scripts.length-1) {
+			if (++count > scripts.length - 1) {
 				count = 0;
 			}
 			return new ByteArrayInputStream(scripts[count].getBytes());

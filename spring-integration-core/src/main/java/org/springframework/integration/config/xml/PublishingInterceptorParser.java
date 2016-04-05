@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				MessagePublishingInterceptor.class);
 		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class);
-		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
+		Map<String, Map<?, ?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
 		if (mappings.get("headers") != null) {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
@@ -62,7 +62,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				BeanFactoryChannelResolver.class);
 
-		if (mappings.get("channels") != null){
+		if (mappings.get("channels") != null) {
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
 		}
 		String chResolverName =
@@ -75,9 +75,9 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		return rootBuilder.getBeanDefinition();
 	}
 
-	private Map<String,Map<?,?>> getMappings(Element element, String defaultChannel, ParserContext parserContext) {
+	private Map<String, Map<?, ?>> getMappings(Element element, String defaultChannel, ParserContext parserContext) {
 		List<Element> mappings = DomUtils.getChildElementsByTagName(element, "method");
-		Map<String, Map<?,?>> interceptorMappings = new HashMap<String, Map<?,?>>();
+		Map<String, Map<?, ?>> interceptorMappings = new HashMap<String, Map<?, ?>>();
 		Map<String, String> payloadExpressionMap = new HashMap<String, String>();
 		Map<String, Map<String, String>> headersExpressionMap = new HashMap<String, Map<String, String>>();
 		Map<String, String> channelMap = new HashMap<String, String>();

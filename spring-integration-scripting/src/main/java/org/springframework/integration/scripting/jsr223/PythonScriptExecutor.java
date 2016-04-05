@@ -41,7 +41,7 @@ import org.springframework.integration.scripting.ScriptExecutor;
 
 	@Override
 	protected Object postProcess(Object result, ScriptEngine scriptEngine, String script, Bindings bindings) {
-		Object newResult= result;
+		Object newResult = result;
 		if (newResult == null) {
 			String returnVariableName = PythonVariableParser.parseReturnVariable(script);
 			if (bindings != null) {
@@ -55,9 +55,9 @@ import org.springframework.integration.scripting.ScriptExecutor;
 	}
 
 	public static class PythonVariableParser {
-		public static String parseReturnVariable(String script){
+		public static String parseReturnVariable(String script) {
 			String[] lines = script.trim().split("\n");
-			String lastLine = lines[lines.length -1];
+			String lastLine = lines[lines.length - 1];
 			String[] tokens = lastLine.split("=");
 			return tokens[0].trim();
 		}

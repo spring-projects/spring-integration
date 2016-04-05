@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class Jsr223ServiceActivatorTests {
 		// different
 		assertFalse(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
 				.equals(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))));
-		assertFalse(value1.substring(value1.indexOf(":") +1, value1.lastIndexOf(":"))
+		assertFalse(value1.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))
 				.equals(value1.substring(value1.lastIndexOf(":"))));
 
 		assertFalse(value2.substring(value1.indexOf(":") + 1, value1.lastIndexOf(":"))

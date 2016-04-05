@@ -44,8 +44,8 @@ public final class UpperBound {
 		this.semaphore = (capacity > 0) ? new Semaphore(capacity, true) : null;
 	}
 
-	public int availablePermits(){
-		if (this.semaphore == null){
+	public int availablePermits() {
+		if (this.semaphore == null) {
 			return Integer.MAX_VALUE;
 		}
 		return this.semaphore.availablePermits();

@@ -56,7 +56,7 @@ public class IntegrationResourceHolder implements ResourceHolder {
 	 * @param key The key.
 	 * @param value The value.
 	 */
-	public void addAttribute(String key, Object value){
+	public void addAttribute(String key, Object value) {
 		this.attributes.put(key, value);
 	}
 

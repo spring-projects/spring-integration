@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,7 +226,7 @@ public class HeaderChannelRegistryTests {
 		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
 						HeaderChannelRegistry.class))
 			.thenReturn(mock(HeaderChannelRegistry.class));
-		doAnswer(new Answer<Object>(){
+		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -238,7 +238,7 @@ public class HeaderChannelRegistryTests {
 			resolver.resolveDestination("foo");
 			fail("Expected exception");
 		}
-		catch (DestinationResolutionException e){
+		catch (DestinationResolutionException e) {
 			assertThat(e.getMessage(),
 				Matchers.containsString("failed to look up MessageChannel with name 'foo' in the BeanFactory."));
 		}
@@ -248,7 +248,7 @@ public class HeaderChannelRegistryTests {
 	public void testBFCRNoRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
 		BeanFactory beanFactory = mock(BeanFactory.class);
-		doAnswer(new Answer<Object>(){
+		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -260,7 +260,7 @@ public class HeaderChannelRegistryTests {
 			resolver.resolveDestination("foo");
 			fail("Expected exception");
 		}
-		catch (DestinationResolutionException e){
+		catch (DestinationResolutionException e) {
 			assertThat(e.getMessage(),
 				Matchers.containsString("failed to look up MessageChannel with name 'foo' in the BeanFactory " +
 						"(and there is no HeaderChannelRegistry present)."));

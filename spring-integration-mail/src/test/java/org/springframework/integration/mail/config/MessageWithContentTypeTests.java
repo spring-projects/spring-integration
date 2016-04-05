@@ -55,7 +55,7 @@ public class MessageWithContentTypeTests {
 
 	@Test
 	@Ignore
-	public void testSendEmail() throws Exception{
+	public void testSendEmail() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("MessageWithContentTypeTests-context.xml", this.getClass());
 		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
 		StringWriter writer = new StringWriter();
@@ -65,7 +65,7 @@ public class MessageWithContentTypeTests {
 	}
 
 	@Test
-	public void testMessageConversionWithHtmlAndContentType() throws Exception{
+	public void testMessageConversionWithHtmlAndContentType() throws Exception {
 		JavaMailSender sender = mock(JavaMailSender.class);
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(sender);
 		StringWriter writer = new StringWriter();
@@ -93,7 +93,7 @@ public class MessageWithContentTypeTests {
 		verify(sender, times(1)).send(Mockito.any(MimeMessage.class));
 	}
 
-	private static class TestMimeMessage extends MimeMessage{
+	private static class TestMimeMessage extends MimeMessage {
 		TestMimeMessage() {
 			super(Session.getDefaultInstance(new Properties()));
 		}

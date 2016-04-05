@@ -229,7 +229,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 		// register listeners
 		final List<List<String>> notifiedChanges = new ArrayList<List<String>>();
-		final Map<String,CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
+		final Map<String, CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
@@ -299,7 +299,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 
 		// register listeners
 		final List<List<String>> notifiedChanges = new ArrayList<List<String>>();
-		final Map<String,CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
+		final Map<String, CyclicBarrier> barriers = new HashMap<String, CyclicBarrier>();
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));

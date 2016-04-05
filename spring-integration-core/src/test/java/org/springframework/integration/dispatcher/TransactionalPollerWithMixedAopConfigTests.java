@@ -34,7 +34,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TransactionalPollerWithMixedAopConfigTests {
 
 	@Test
-	public void validateTransactionalProxyIsolationToThePollerOnly(){
+	public void validateTransactionalProxyIsolationToThePollerOnly() {
 		ApplicationContext context =
 			new ClassPathXmlApplicationContext("TransactionalPollerWithMixedAopConfig-context.xml", this.getClass());
 
@@ -42,12 +42,12 @@ public class TransactionalPollerWithMixedAopConfigTests {
 		assertTrue(!(context.getBean("inputChannel") instanceof Advised));
 	}
 
-	public static class SampleService{
-		public void foo(String payload){}
+	public static class SampleService {
+		public void foo(String payload) { }
 	}
 
-	public static class Foo{
-		public Foo(String value){}
+	public static class Foo {
+		public Foo(String value) { }
 	}
 
 //	public static class SampleAdvice implements MethodInterceptor{

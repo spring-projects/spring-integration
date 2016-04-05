@@ -88,7 +88,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 					sent = errorChannel.send(new ErrorMessage(t));
 				}
 			}
-			catch (Throwable errorDeliveryError) {//NOSONAR
+			catch (Throwable errorDeliveryError) { //NOSONAR
 				// message will be logged only
 				if (this.logger.isWarnEnabled()) {
 					this.logger.warn("Error message was not delivered.", errorDeliveryError);

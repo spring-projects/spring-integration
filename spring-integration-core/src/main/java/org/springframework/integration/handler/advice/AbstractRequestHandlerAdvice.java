@@ -74,10 +74,10 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 						try {
 							return invocation.proceed();
 						}
-						catch (Exception e) {//NOSONAR - catch necessary so we can wrap Errors
+						catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
 							throw e;
 						}
-						catch (Throwable e) {//NOSONAR - ok to catch; unwrapped and rethrown below
+						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
 							throw new ThrowableHolderException(e);
 						}
 					}
@@ -98,10 +98,10 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 												" so please raise an issue if you see this exception");
 							}
 						}
-						catch (Exception e) {//NOSONAR - catch necessary so we can wrap Errors
+						catch (Exception e) { //NOSONAR - catch necessary so we can wrap Errors
 							throw e;
 						}
-						catch (Throwable e) {//NOSONAR - ok to catch; unwrapped and rethrown below
+						catch (Throwable e) { //NOSONAR - ok to catch; unwrapped and rethrown below
 							throw new ThrowableHolderException(e);
 						}
 					}

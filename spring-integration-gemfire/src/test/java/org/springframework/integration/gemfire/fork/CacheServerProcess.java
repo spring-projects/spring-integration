@@ -54,7 +54,7 @@ public class CacheServerProcess {
 		Cache cache = new CacheFactory(props).create();
 
 		// Create region.
-		Region<?,?> region = cache.createRegionFactory(RegionShortcut.REPLICATE)
+		Region<?, ?> region = cache.createRegionFactory(RegionShortcut.REPLICATE)
 				.setScope(Scope.DISTRIBUTED_ACK)
 				.create("test");
 

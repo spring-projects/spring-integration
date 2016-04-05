@@ -127,7 +127,7 @@ public abstract class TestUtils {
 				throw new FatalBeanException("failed to register bean with test context", e);
 			}
 		}
-		configurableListableBeanFactory.registerSingleton(beanName, bean);//NOSONAR false positive
+		configurableListableBeanFactory.registerSingleton(beanName, bean); //NOSONAR false positive
 	}
 
 
@@ -241,7 +241,7 @@ public abstract class TestUtils {
 				try {
 					sent = errorChannel.send(new ErrorMessage(t), 10000);
 				}
-				catch (Throwable errorDeliveryError) {//NOSONAR
+				catch (Throwable errorDeliveryError) { //NOSONAR
 					// message will be logged only
 					if (logger.isWarnEnabled()) {
 						logger.warn("Error message was not delivered.", errorDeliveryError);

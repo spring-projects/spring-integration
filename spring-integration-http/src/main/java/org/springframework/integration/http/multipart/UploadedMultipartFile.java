@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +64,13 @@ public class UploadedMultipartFile implements MultipartFile {
 		this.originalFilename = originalFilename;
 	}
 
-	public UploadedMultipartFile(byte[] bytes, String contentType, String formParameterName,//NOSONAR - direct storage
+	public UploadedMultipartFile(byte[] bytes, String contentType, String formParameterName, //NOSONAR - direct storage
 			String originalFilename) {
 		Assert.notNull(bytes, "bytes must not be null");
 		Assert.hasText(contentType, "contentType is required");
 		Assert.hasText(formParameterName, "formParameterName is required");
 		Assert.hasText(originalFilename, "originalFilename is required");
-		this.bytes = bytes;//NOSONAR - direct storage
+		this.bytes = bytes; //NOSONAR - direct storage
 		this.size = bytes.length;
 		this.file = null;
 		this.contentType = contentType;
@@ -87,7 +87,7 @@ public class UploadedMultipartFile implements MultipartFile {
 	@Override
 	public byte[] getBytes() throws IOException {
 		if (this.bytes != null) {
-			return this.bytes;//NOSONAR - direct access
+			return this.bytes; //NOSONAR - direct access
 		}
 		return FileCopyUtils.copyToByteArray(this.file);
 	}

@@ -142,7 +142,7 @@ public class PNamespaceTests {
 
 	public static class SampleAggregator {
 		private String name;
-		public SampleAggregator(){}
+		public SampleAggregator() { }
 		public String getName() {
 			return name;
 		}

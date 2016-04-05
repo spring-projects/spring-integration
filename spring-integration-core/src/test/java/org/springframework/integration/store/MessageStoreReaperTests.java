@@ -89,7 +89,7 @@ public class MessageStoreReaperTests {
 	}
 
 	@Test
-	public void testSmartLifecycle() throws Exception{
+	public void testSmartLifecycle() throws Exception {
 		GenericMessage<String> testMessage = new GenericMessage<String>("foo");
 
 		messageStore2.addMessageToGroup("FOO", testMessage);
@@ -99,7 +99,7 @@ public class MessageStoreReaperTests {
 		reaper2.setTimeout(0);
 
 
-		if (!reaper2.isAutoStartup()){
+		if (!reaper2.isAutoStartup()) {
 			reaper2.start();
 		}
 

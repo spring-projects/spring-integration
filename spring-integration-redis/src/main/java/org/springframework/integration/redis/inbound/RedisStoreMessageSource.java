@@ -123,7 +123,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 			((IntegrationResourceHolder) holder).addAttribute("store", store);
 		}
 
-		if (store instanceof Collection<?> && ((Collection<Object>)store).size() < 1){
+		if (store instanceof Collection<?> && ((Collection<Object>) store).size() < 1) {
 			return null;
 		}
 		else {
@@ -131,7 +131,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		}
 	}
 
-	private RedisStore createStoreView(String key){
+	private RedisStore createStoreView(String key) {
 		RedisCollectionFactoryBean fb = new RedisCollectionFactoryBean();
 		fb.setKey(key);
 		fb.setTemplate(this.redisTemplate);

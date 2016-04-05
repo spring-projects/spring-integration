@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class PollingEndpointErrorHandlingTests {
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		Message errorMessage = errorChannel.receive(5000);
 		assertNotNull("No error message received", errorMessage);
-		assertEquals("Message received was not an ErrorMessage", ErrorMessage.class,errorMessage.getClass());
+		assertEquals("Message received was not an ErrorMessage", ErrorMessage.class, errorMessage.getClass());
 	}
 
 }

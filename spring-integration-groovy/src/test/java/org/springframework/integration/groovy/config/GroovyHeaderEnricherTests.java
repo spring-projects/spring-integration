@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,14 +63,14 @@ public class GroovyHeaderEnricherTests {
 	private EventDrivenConsumer headerEnricherWithInlineGroovyScript;
 
 	@Test
-	public void referencedScript() throws Exception{
+	public void referencedScript() throws Exception {
 		inputA.send(new GenericMessage<String>("Hello"));
 		assertEquals("groovy", outputA.receive(1000).getHeaders().get("TEST_HEADER"));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void inlineScript() throws Exception{
+	public void inlineScript() throws Exception {
 		Map<String, HeaderValueMessageProcessor<?>> headers =
 				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd", Map.class);
 		assertEquals(1, headers.size());

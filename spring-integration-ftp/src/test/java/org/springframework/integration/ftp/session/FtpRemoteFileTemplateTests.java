@@ -134,7 +134,7 @@ public class FtpRemoteFileTemplateTests {
 			template.send(new GenericMessage<File>(file));
 			fail("exception expected");
 		}
-		catch(MessagingException e) {
+		catch (MessagingException e) {
 			assertEquals("bar", e.getCause().getMessage());
 		}
 		File newFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());

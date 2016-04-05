@@ -341,14 +341,14 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
 					ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder, String replyHeaderValue) {
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
-		if (!StringUtils.hasText(replyHeaderValue)){
+		if (!StringUtils.hasText(replyHeaderValue)) {
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
 		}
 		boolean hasHeaderMapper = element.hasAttribute("header-mapper");
 		boolean hasMappedRequestHeaders = element.hasAttribute("mapped-request-headers");
 		boolean hasMappedReplyHeaders = element.hasAttribute(replyHeaderValue);
 
-		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedReplyHeaders)){
+		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedReplyHeaders)) {
 			parserContext.getReaderContext().error("The 'header-mapper' attribute is mutually exclusive with" +
 					" 'mapped-request-headers' or 'mapped-reply-headers'. " +
 					"You can only use one or the others", element);
@@ -356,7 +356,7 @@ public abstract class IntegrationNamespaceUtils {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
 
-		if (hasMappedRequestHeaders || hasMappedReplyHeaders){
+		if (hasMappedRequestHeaders || hasMappedReplyHeaders) {
 
 			if (hasMappedRequestHeaders) {
 				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
@@ -481,12 +481,12 @@ public abstract class IntegrationNamespaceUtils {
 		boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
 		boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
 
-		if (hasAttributeValue && hasAttributeExpression){
+		if (hasAttributeValue && hasAttributeExpression) {
 			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
 						+ expressionElementName + "' is allowed", element);
 		}
 
-		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)){
+		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)) {
 			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
 					+ expressionElementName + "' is required", element);
 		}
@@ -507,7 +507,7 @@ public abstract class IntegrationNamespaceUtils {
 
 		String expressionElementValue = element.getAttribute(expressionElementName);
 
-		if (StringUtils.hasText(expressionElementValue)){
+		if (StringUtils.hasText(expressionElementValue)) {
 			BeanDefinitionBuilder expressionDefBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 			expressionDefBuilder.addConstructorArgValue(expressionElementValue);
 			return expressionDefBuilder.getRawBeanDefinition();

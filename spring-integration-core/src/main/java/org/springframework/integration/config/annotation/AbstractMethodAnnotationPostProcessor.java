@@ -275,7 +275,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,List<Annotation> annotations) {
+	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel, List<Annotation> annotations) {
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);

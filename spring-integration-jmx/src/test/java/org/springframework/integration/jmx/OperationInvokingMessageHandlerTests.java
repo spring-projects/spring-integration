@@ -104,7 +104,7 @@ public class OperationInvokingMessageHandlerTests {
 		handler.handleMessage(message);
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected = MessagingException.class)
 	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
@@ -164,7 +164,7 @@ public class OperationInvokingMessageHandlerTests {
 		}
 
 		@Override
-		public void y(String s){}
+		public void y(String s) { }
 	}
 
 }

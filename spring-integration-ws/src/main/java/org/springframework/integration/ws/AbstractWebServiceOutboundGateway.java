@@ -221,7 +221,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 		private final Message<?> requestMessage;
 
-		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			this.requestCallback = requestCallback;
 			this.requestMessage = requestMessage;
 		}
@@ -229,7 +229,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		@Override
 		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
 			Object payload = this.requestMessage.getPayload();
-			if (message instanceof SoapMessage){
+			if (message instanceof SoapMessage) {
 				this.doWithMessageInternal(message, payload);
 				AbstractWebServiceOutboundGateway.this.headerMapper
 						.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage) message);
@@ -254,7 +254,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 			Object resultObject = this.doExtractData(message);
 
-			if (resultObject != null && message instanceof SoapMessage){
+			if (resultObject != null && message instanceof SoapMessage) {
 				Map<String, Object> mappedMessageHeaders =
 						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
 				return AbstractWebServiceOutboundGateway.this.getMessageBuilderFactory()

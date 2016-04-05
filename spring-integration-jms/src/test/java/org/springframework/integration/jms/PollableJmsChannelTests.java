@@ -266,7 +266,7 @@ public class PollableJmsChannelTests {
 
 		private final boolean preReceiveFlag;
 
-		public SampleInterceptor(boolean preReceiveFlag){
+		public SampleInterceptor(boolean preReceiveFlag) {
 			this.preReceiveFlag = preReceiveFlag;
 		}
 

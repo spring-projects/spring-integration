@@ -67,7 +67,7 @@ public class TestService {
 			seen.put(message, message);
 			log.info("Pre: " + message);
 
-			if (this.threadSleep >0) {
+			if (this.threadSleep > 0) {
 				try {
 					Thread.sleep(2000);
 				}

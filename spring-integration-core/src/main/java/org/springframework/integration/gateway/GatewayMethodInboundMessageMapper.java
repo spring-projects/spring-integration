@@ -207,7 +207,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		for (Entry<?, ?> entry : argumentValue.entrySet()) {
 			Object key = entry.getKey();
 			if (!(key instanceof String)) {
-				if (this.logger.isWarnEnabled()){
+				if (this.logger.isWarnEnabled()) {
 					this.logger.warn("Invalid header name [" + key +
 							"], name type must be String. Skipping mapping of this header to MessageHeaders.");
 				}
@@ -325,7 +325,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				}
 				else if (Map.class.isAssignableFrom(methodParameter.getParameterType())) {
 					if (messageOrPayload instanceof Map && !foundPayloadAnnotation) {
-						if (GatewayMethodInboundMessageMapper.this.payloadExpression == null){
+						if (GatewayMethodInboundMessageMapper.this.payloadExpression == null) {
 							throw new MessagingException("Ambiguous method parameters; found more than one " +
 									"Map-typed parameter and neither one contains a @Payload annotation");
 						}

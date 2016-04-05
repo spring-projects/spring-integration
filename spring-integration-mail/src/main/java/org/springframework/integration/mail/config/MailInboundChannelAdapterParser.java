@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,14 +81,14 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
 		String markAsRead = element.getAttribute("should-mark-messages-as-read");
-		if (StringUtils.hasText(markAsRead)){
+		if (StringUtils.hasText(markAsRead)) {
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
 
 		String selectorExpression = element.getAttribute("mail-filter-expression");
 
 		RootBeanDefinition expressionDef = null;
-		if (StringUtils.hasText(selectorExpression)){
+		if (StringUtils.hasText(selectorExpression)) {
 			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);

@@ -280,7 +280,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void writeToZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
+	private void writeToZset(RedisZSet<Object> zset, final Message<?> message) throws Exception {
 		final Object payload = message.getPayload();
 		final BoundZSetOperations<String, Object> ops =
 				(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
@@ -305,7 +305,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 				this.processInPipeline(new PipelineCallback() {
 					@Override
 					public void process() {
-						for (Object object : ((Collection<?>)payload)) {
+						for (Object object : ((Collection<?>) payload)) {
 							incrementOrOverwrite(ops, object, determineScore(message), zsetIncrementHeader);
 						}
 					}
@@ -320,8 +320,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private boolean extractZsetIncrementHeader(Message<?> message){
-		if (message.getHeaders().containsKey(RedisHeaders.ZSET_INCREMENT_SCORE)){
+	private boolean extractZsetIncrementHeader(Message<?> message) {
+		if (message.getHeaders().containsKey(RedisHeaders.ZSET_INCREMENT_SCORE)) {
 			return this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
 		}
 		return true;
@@ -353,7 +353,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			this.processInPipeline(new PipelineCallback() {
 				@Override
 				public void process() {
-					for (Object object : ((Collection<?>)payload)) {
+					for (Object object : ((Collection<?>) payload)) {
 						ops.add(object);
 					}
 				}
@@ -445,7 +445,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private boolean verifyAllMapValuesOfTypeNumber(Map<?,?> map) {
+	private boolean verifyAllMapValuesOfTypeNumber(Map<?, ?> map) {
 		for (Object value : map.values()) {
 			if (!(value instanceof Number)) {
 				if (this.logger.isWarnEnabled()) {

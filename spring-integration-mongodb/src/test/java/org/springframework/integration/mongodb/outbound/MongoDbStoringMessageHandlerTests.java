@@ -50,14 +50,14 @@ import com.mongodb.DBObject;
  */
 public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withNullMongoDBFactory() {
-		new MongoDbStoringMessageHandler((MongoDbFactory)null);
+		new MongoDbStoringMessageHandler((MongoDbFactory) null);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void withNullMongoTemplate() {
-		new MongoDbStoringMessageHandler((MongoOperations)null);
+		new MongoDbStoringMessageHandler((MongoOperations) null);
 	}
 
 

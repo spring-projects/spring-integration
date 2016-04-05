@@ -65,7 +65,8 @@ public class TailRule extends TestWatcher {
 					@Override
 					public void evaluate() throws Throwable {
 						// skip
-					}};
+					}
+				};
 			}
 		}
 		return super.apply(base, description);

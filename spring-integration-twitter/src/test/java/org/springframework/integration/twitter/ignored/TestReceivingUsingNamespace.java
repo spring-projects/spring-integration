@@ -37,7 +37,7 @@ public class TestReceivingUsingNamespace {
 	/*
 	 * In order to run this test you need to provide oauth properties in sample.properties on the classpath.
 	 */
-	public void testUpdatesWithRealTwitter() throws Exception{
+	public void testUpdatesWithRealTwitter() throws Exception {
 		CountDownLatch latch = new CountDownLatch(1);
 		ConfigurableApplicationContext ctx =
 				new ClassPathXmlApplicationContext("TestReceivingUsingNamespace-context.xml", this.getClass());

@@ -56,7 +56,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 *
 	 * @param mongoDbFactory The mongodb factory.
 	 */
-	public MongoDbStoringMessageHandler(MongoDbFactory mongoDbFactory){
+	public MongoDbStoringMessageHandler(MongoDbFactory mongoDbFactory) {
 		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
 
 		this.mongoDbFactory = mongoDbFactory;
@@ -68,7 +68,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 *
 	 * @param mongoTemplate The MongoOperations implementation.
 	 */
-	public MongoDbStoringMessageHandler(MongoOperations mongoTemplate){
+	public MongoDbStoringMessageHandler(MongoOperations mongoTemplate) {
 		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
 
 		this.mongoTemplate = mongoTemplate;
@@ -107,7 +107,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		if (this.mongoTemplate == null){
+		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
 		this.initialized = true;

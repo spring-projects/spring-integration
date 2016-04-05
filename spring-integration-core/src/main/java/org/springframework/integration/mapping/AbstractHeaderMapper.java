@@ -547,7 +547,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * {@link HeaderMatcher}s matches to the {@code headerName}.
 	 * @since 4.1
 	 */
-	protected static class CompositeHeaderMatcher implements HeaderMatcher{
+	protected static class CompositeHeaderMatcher implements HeaderMatcher {
 
 		private static final Log logger = LogFactory.getLog(HeaderMatcher.class);
 

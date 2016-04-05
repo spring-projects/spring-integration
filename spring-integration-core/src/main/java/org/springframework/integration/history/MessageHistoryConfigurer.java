@@ -97,7 +97,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	 * components). Cannot be changed if {@link #isRunning()}; invoke {@link #stop()} first.
 	 * @param componentNamePatterns The patterns.
 	 */
-	@ManagedAttribute(description="comma-delimited list of patterns; must invoke stop() before changing.")
+	@ManagedAttribute(description = "comma-delimited list of patterns; must invoke stop() before changing.")
 	public void setComponentNamePatternsString(String componentNamePatterns) {
 		this.setComponentNamePatterns(StringUtils.delimitedListToStringArray(componentNamePatterns, ",", " "));
 	}

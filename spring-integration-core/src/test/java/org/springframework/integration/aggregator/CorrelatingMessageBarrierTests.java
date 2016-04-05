@@ -126,7 +126,7 @@ public class CorrelatingMessageBarrierTests {
 	}
 
 	private Message<Object> testMessage() {
-		return MessageBuilder.withPayload((Object)"payload").build();
+		return MessageBuilder.withPayload((Object) "payload").build();
 	}
 
 

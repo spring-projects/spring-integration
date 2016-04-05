@@ -56,7 +56,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 	private QueueChannel defaultChannel = new QueueChannel();
 
 	@Before
-	public void prepare(){
+	public void prepare() {
 		beanFactory.registerSingleton("illegalArgumentChannel", illegalArgumentChannel);
 		beanFactory.registerSingleton("runtimeExceptionChannel", runtimeExceptionChannel);
 		beanFactory.registerSingleton("messageHandlingExceptionChannel", messageHandlingExceptionChannel);

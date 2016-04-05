@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,9 +72,9 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	@Before
 	@After
-	public void cleanup(){
+	public void cleanup() {
 		File file = new File("test");
-		if (file.exists()){
+		if (file.exists()) {
 			String[] files = file.list();
 			for (String fileName : files) {
 				new File(file, fileName).delete();
@@ -186,7 +186,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 				String[] files = new File("remote-test-dir").list();
 				for (String fileName : files) {
-					when(channel.get("remote-test-dir/"+fileName))
+					when(channel.get("remote-test-dir/" + fileName))
 							.thenReturn(new FileInputStream("remote-test-dir/" + fileName));
 				}
 				when(channel.ls("remote-test-dir")).thenReturn(sftpEntries);

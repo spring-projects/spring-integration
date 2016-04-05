@@ -74,7 +74,7 @@ public class PayloadDeserializingTransformerTests {
 	@Test
 	public void customDeserializer() {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
-		transformer.setConverter(new Converter<byte[], Object>(){
+		transformer.setConverter(new Converter<byte[], Object>() {
 			public Object convert(byte[] source) {
 				return "Converted";
 			}

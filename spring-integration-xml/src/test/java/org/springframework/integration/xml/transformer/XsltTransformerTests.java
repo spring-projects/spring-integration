@@ -128,8 +128,8 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
-		String stringPayload = (String)resultMessage.getPayload();
-		assertEquals("Wrong content of payload", "hello world text",stringPayload.trim());
+		String stringPayload = (String) resultMessage.getPayload();
+		assertEquals("Wrong content of payload", "hello world text", stringPayload.trim());
 	}
 
 	@Test

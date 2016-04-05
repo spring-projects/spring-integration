@@ -110,7 +110,7 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testWithMessageHistory() throws Exception{
+	public void testWithMessageHistory() throws Exception {
 
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
@@ -533,7 +533,7 @@ public class JdbcMessageStoreTests {
 		//now clear the messages
 		for (Message<?> message : messageGroup.getMessages()) {
 			messageStore.removeMessagesFromGroup(groupId, message);
-		}//end for
+		} //end for
 		//'add' the other message --> emulated by getting the messageGroup
 		messageGroup = messageStore.getMessageGroup(groupId);
 		//should be marked 'complete' --> old behavior it would not

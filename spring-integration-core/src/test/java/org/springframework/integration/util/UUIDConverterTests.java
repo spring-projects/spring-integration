@@ -60,7 +60,7 @@ public class UUIDConverterTests {
 		}
 		catch (IllegalArgumentException e) {
 			String message = e.getMessage();
-			assertTrue("Wrong message: "+message, message.contains("Invalid UUID string"));
+			assertTrue("Wrong message: " + message, message.contains("Invalid UUID string"));
 		}
 		assertNotNull(UUIDConverter.getUUID(name));
 	}
@@ -84,7 +84,7 @@ public class UUIDConverterTests {
 		assertNotNull(UUIDConverter.getUUID(new Date()));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testConvertNonSerializable() throws Exception {
 		assertNotNull(UUIDConverter.getUUID(new Object()));
 	}

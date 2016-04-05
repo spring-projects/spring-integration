@@ -222,7 +222,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	@Override
-	public String getComponentType(){
+	public String getComponentType() {
 		return "ip:tcp-outbound-channel-adapter";
 	}
 

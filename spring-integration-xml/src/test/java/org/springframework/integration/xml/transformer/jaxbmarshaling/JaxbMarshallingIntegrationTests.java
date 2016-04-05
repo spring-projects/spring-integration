@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,27 +57,27 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testMarshalling() throws Exception{
+	public void testMarshalling() throws Exception {
 		JaxbAnnotatedPerson person = new JaxbAnnotatedPerson();
 		person.setFirstName("john");
 		marshallIn.send(new GenericMessage<Object>(person));
 		GenericMessage<Result> res = (GenericMessage<Result>) marshalledOut.receive(2000);
-		assertNotNull("No response recevied" ,res);
+		assertNotNull("No response recevied" , res);
 		assertTrue("payload was not a DOMResult" , res.getPayload() instanceof DOMResult);
-		Document doc = (Document)((DOMResult)res.getPayload()).getNode();
-		assertEquals("Wrong name for root element ", "person",doc.getDocumentElement().getLocalName());
+		Document doc = (Document) ((DOMResult) res.getPayload()).getNode();
+		assertEquals("Wrong name for root element ", "person", doc.getDocumentElement().getLocalName());
 	}
 
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUnmarshalling() throws Exception{
+	public void testUnmarshalling() throws Exception {
 		StringSource source = new StringSource("<person><firstname>bob</firstname></person>");
 		unmarshallIn.send(new GenericMessage<Source>(source));
 		GenericMessage<Object> res = (GenericMessage<Object>) unmarshallOut.receive(2000);
 		assertNotNull("No response", res);
 		assertTrue("Not a Person ", res.getPayload() instanceof JaxbAnnotatedPerson);
-		JaxbAnnotatedPerson person = (JaxbAnnotatedPerson)res.getPayload();
+		JaxbAnnotatedPerson person = (JaxbAnnotatedPerson) res.getPayload();
 		assertEquals("Worng firstname", "bob", person.getFirstName());
 
 	}

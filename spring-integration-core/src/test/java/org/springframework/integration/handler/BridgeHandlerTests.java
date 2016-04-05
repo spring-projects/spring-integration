@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.messaging.core.DestinationResolutionException;
  */
 public class BridgeHandlerTests {
 
-	private BridgeHandler handler= new BridgeHandler();
+	private BridgeHandler handler = new BridgeHandler();
 
 	@Factory
     public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
@@ -60,7 +60,7 @@ public class BridgeHandlerTests {
 		handler.handleMessage(request);
 	}
 
-	@Test(timeout=1000)
+	@Test(timeout = 1000)
 	public void missingOutputChannelAllowedForReplyChannelMessages() throws Exception {
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();

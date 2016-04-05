@@ -89,7 +89,7 @@ public class RFC5424SyslogParser {
 			Object structuredData = getStructuredData(r);
 
 			String message;
-			if(r.is(SPACE)) {
+			if (r.is(SPACE)) {
 				r.getc();
 				message = r.rest();
 			}
@@ -133,12 +133,12 @@ public class RFC5424SyslogParser {
 				map.put(SyslogHeaders.UNDECODED, line);
 			}
 		}
-		catch(IllegalStateException e) {
+		catch (IllegalStateException e) {
 			map.put(SyslogHeaders.DECODE_ERRORS, "true");
 			map.put(SyslogHeaders.ERRORS, e.getMessage());
 			map.put(SyslogHeaders.UNDECODED, line);
 		}
-		catch(StringIndexOutOfBoundsException sob) {
+		catch (StringIndexOutOfBoundsException sob) {
 			map.put(SyslogHeaders.DECODE_ERRORS, "true");
 			map.put(SyslogHeaders.ERRORS, "Unexpected end of message: " + sob.getMessage());
 			map.put(SyslogHeaders.UNDECODED, line);
@@ -155,11 +155,11 @@ public class RFC5424SyslogParser {
 
 		int c = r.getc();
 
-		if(c == NILVALUE) {
+		if (c == NILVALUE) {
 			return null;
 		}
 
-		if(!Character.isDigit(c)) {
+		if (!Character.isDigit(c)) {
 			throw new IllegalStateException("Year expected @" + r.idx);
 		}
 
@@ -173,7 +173,7 @@ public class RFC5424SyslogParser {
 	}
 
 	private Object getStructuredData(Reader r) {
-		if(r.is(NILVALUE)) {
+		if (r.is(NILVALUE)) {
 			r.getc();
 			return null;
 		}
@@ -354,28 +354,28 @@ public class RFC5424SyslogParser {
 		}
 
 		public static Severity parseInt(int syslogSeverity) {
-			if(syslogSeverity == 7) {
+			if (syslogSeverity == 7) {
 				return DEBUG;
 			}
-			if(syslogSeverity == 6) {
+			if (syslogSeverity == 6) {
 				return INFO;
 			}
-			if(syslogSeverity == 5) {
+			if (syslogSeverity == 5) {
 				return NOTICE;
 			}
-			if(syslogSeverity == 4) {
+			if (syslogSeverity == 4) {
 				return WARN;
 			}
-			if(syslogSeverity == 3) {
+			if (syslogSeverity == 3) {
 				return ERROR;
 			}
-			if(syslogSeverity == 2) {
+			if (syslogSeverity == 2) {
 				return CRITICAL;
 			}
-			if(syslogSeverity == 1) {
+			if (syslogSeverity == 1) {
 				return ALERT;
 			}
-			if(syslogSeverity == 0) {
+			if (syslogSeverity == 0) {
 				return EMERGENCY;
 			}
 			return UNDEFINED;

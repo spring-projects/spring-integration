@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleByteArray() {
-		handler.handleMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		handler.handleMessage(new GenericMessage<byte[]>(new byte[] {1, 2, 3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -98,9 +98,9 @@ public class ByteStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(3);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -114,9 +114,9 @@ public class ByteStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskLessThanMessageCount() {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -130,9 +130,9 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -146,9 +146,9 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -170,9 +170,9 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -193,9 +193,9 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setTrigger(trigger);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -216,9 +216,9 @@ public class ByteStreamWritingMessageHandlerTests {
 		endpoint.setTrigger(trigger);
 		endpoint.setMaxMessagesPerPoll(2);
 		endpoint.setReceiveTimeout(0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
-		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {1, 2, 3}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {4, 5, 6}), 0);
+		channel.send(new GenericMessage<byte[]>(new byte[] {7, 8, 9}), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();

@@ -78,10 +78,10 @@ public class GatewayCompletableFutureProxyFactoryBean extends GatewayProxyFactor
 			try {
 				return doInvoke(this.invocation, false);
 			}
-			catch (Error e) {//NOSONAR
+			catch (Error e) { //NOSONAR
 				throw e;
 			}
-			catch (Throwable t) {//NOSONAR
+			catch (Throwable t) { //NOSONAR
 				if (t instanceof RuntimeException) {
 					throw (RuntimeException) t;
 				}

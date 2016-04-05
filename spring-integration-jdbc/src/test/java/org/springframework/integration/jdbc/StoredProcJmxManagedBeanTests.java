@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class StoredProcJmxManagedBeanTests {
 
 	@Autowired
@@ -176,7 +176,7 @@ public class StoredProcJmxManagedBeanTests {
 		private final AtomicInteger count = new AtomicInteger();
 
 		public Integer next() throws InterruptedException {
-			if (count.get()>2){
+			if (count.get() > 2) {
 				//prevent message overload
 				return null;
 			}

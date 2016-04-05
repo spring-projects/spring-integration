@@ -28,7 +28,7 @@ public class TcpConnectionInterceptorFactoryChain {
 	private TcpConnectionInterceptorFactory[] interceptorFactories;
 
 	public TcpConnectionInterceptorFactory[] getInterceptorFactories() {
-		return this.interceptorFactories;//NOSONAR
+		return this.interceptorFactories; //NOSONAR
 	}
 
 	public void setInterceptors(TcpConnectionInterceptorFactory[] interceptorFactories) {

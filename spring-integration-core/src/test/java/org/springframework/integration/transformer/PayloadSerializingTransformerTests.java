@@ -73,7 +73,7 @@ public class PayloadSerializingTransformerTests {
 	@Test
 	public void customSerializer() {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
-		transformer.setConverter(new Converter<Object, byte[]>(){
+		transformer.setConverter(new Converter<Object, byte[]>() {
 			public byte[] convert(Object source) {
 				return "Converted".getBytes();
 			}

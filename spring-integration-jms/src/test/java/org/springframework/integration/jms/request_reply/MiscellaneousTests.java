@@ -46,7 +46,7 @@ public class MiscellaneousTests {
 	 * when requests are queued up (e.g., single consumer receiver)
 	 */
 	@Test
-	public void testTimeoutHonoringWhenRequestsQueuedUp() throws Exception{
+	public void testTimeoutHonoringWhenRequestsQueuedUp() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("honor-timeout.xml", this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);

@@ -198,7 +198,7 @@ public class SftpSession implements Session<LsEntry> {
 			this.channel.rename(pathFrom, pathTo);
 		}
 		catch (SftpException sftpex) {
-			if (this.logger.isDebugEnabled()){
+			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: "
 						+ pathTo + " and execute rename again.");
 			}

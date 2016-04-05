@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,7 +277,7 @@ public class BarrierMessageHandlerTests {
 			return new QueueChannel();
 		}
 
-		@ServiceActivator(inputChannel="in")
+		@ServiceActivator(inputChannel = "in")
 		@Bean
 		public BarrierMessageHandler barrier() {
 			BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
@@ -285,7 +285,7 @@ public class BarrierMessageHandlerTests {
 			return barrier;
 		}
 
-		@ServiceActivator (inputChannel="release", poller=@Poller(fixedDelay="0"))
+		@ServiceActivator (inputChannel = "release", poller = @Poller(fixedDelay = "0"))
 		@Bean
 		public MessageHandler releaser() {
 			return new MessageHandler() {

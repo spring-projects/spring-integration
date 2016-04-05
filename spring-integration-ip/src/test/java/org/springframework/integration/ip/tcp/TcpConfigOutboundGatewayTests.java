@@ -22,16 +22,17 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,38 +51,39 @@ public class TcpConfigOutboundGatewayTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value="crLfServer")
+	@Qualifier(value = "crLfServer")
 	AbstractServerConnectionFactory crLfServer;
 
 	@Autowired
-	@Qualifier(value="stxEtxServer")
+	@Qualifier(value = "stxEtxServer")
 	AbstractServerConnectionFactory stxEtxServer;
 
 	@Autowired
-	@Qualifier(value="lengthHeaderServer")
+	@Qualifier(value = "lengthHeaderServer")
 	AbstractServerConnectionFactory lengthHeaderServer;
 
 	@Autowired
-	@Qualifier(value="javaSerialServer")
+	@Qualifier(value = "javaSerialServer")
 	AbstractServerConnectionFactory javaSerialServer;
 
-	@Autowired	@Qualifier(value="crLfClient")
+	@Autowired
+	@Qualifier(value = "crLfClient")
 	AbstractClientConnectionFactory crLfClient;
 
 	@Autowired
-	@Qualifier(value="stxEtxClient")
+	@Qualifier(value = "stxEtxClient")
 	AbstractClientConnectionFactory stxEtxClient;
 
 	@Autowired
-	@Qualifier(value="lengthHeaderClient")
+	@Qualifier(value = "lengthHeaderClient")
 	AbstractClientConnectionFactory lengthHeaderClient;
 
 	@Autowired
-	@Qualifier(value="javaSerialClient")
+	@Qualifier(value = "javaSerialClient")
 	AbstractClientConnectionFactory javaSerialClient;
 
 	@Autowired
-	@Qualifier(value="gatewayCrLf")
+	@Qualifier(value = "gatewayCrLf")
 	TcpInboundGateway gatewayCrLf;
 
 //	@Autowired

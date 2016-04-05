@@ -139,7 +139,7 @@ public class ResequencerParserTests {
 	}
 
 	@Test
-	public void shouldSetReleasePartialSequencesFlag(){
+	public void shouldSetReleasePartialSequencesFlag() {
 				EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
 				ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
 						ResequencingMessageHandler.class);

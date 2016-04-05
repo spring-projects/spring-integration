@@ -54,7 +54,7 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 				try {
 					task.run();
 				}
-				catch (Throwable t) {//NOSONAR
+				catch (Throwable t) { //NOSONAR
 					ErrorHandlingTaskExecutor.this.errorHandler.handleError(t);
 				}
 			}

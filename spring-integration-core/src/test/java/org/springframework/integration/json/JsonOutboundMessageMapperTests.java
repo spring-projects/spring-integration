@@ -52,8 +52,8 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 	}
 
@@ -66,8 +66,8 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 		assertTrue(result.contains("\"history\":"));
 		assertTrue(result.contains("testName-1"));
@@ -95,8 +95,8 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":" + testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\"" + testMessage.getHeaders().getId() + "\""));
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertEquals(payload, parsedPayload);
 	}
@@ -117,7 +117,7 @@ public class JsonOutboundMessageMapperTests {
 		JsonParser parser = jsonFactory.createParser(json);
 		do {
 			parser.nextToken();
-		} while(parser.getCurrentToken() != JsonToken.FIELD_NAME || !parser.getCurrentName().equals("payload"));
+		} while (parser.getCurrentToken() != JsonToken.FIELD_NAME || !parser.getCurrentName().equals("payload"));
 		parser.nextToken();
 		return objectMapper.readValue(parser, TestBean.class);
 	}

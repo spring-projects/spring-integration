@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundC
 		sourceBuilder.addConstructorArgValue(element.getAttribute("pattern"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
 		boolean hasFilter = element.hasAttribute("filter");
-		if (hasFilter){
+		if (hasFilter) {
 			String filterValue = element.getAttribute("filter");
-			if (StringUtils.hasText(filterValue)){
+			if (StringUtils.hasText(filterValue)) {
 				sourceBuilder.addPropertyReference("filter", filterValue);
 			}
 		}

@@ -20,10 +20,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-@XmlType @XmlRootElement(name="person")
+@XmlType @XmlRootElement(name = "person")
 public class JaxbAnnotatedPerson {
 
-	@XmlElement(name="firstname")
+	@XmlElement(name = "firstname")
 	public String getFirstName() {
 		return firstName;
 	}

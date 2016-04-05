@@ -71,7 +71,7 @@ public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 			if (payload instanceof String) {
 				this.stream.write(((String) payload).getBytes());
 			}
-			else if (payload instanceof byte[]){
+			else if (payload instanceof byte[]) {
 				this.stream.write((byte[]) payload);
 			}
 			else {

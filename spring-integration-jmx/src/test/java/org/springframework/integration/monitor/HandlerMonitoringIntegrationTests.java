@@ -127,7 +127,7 @@ public class HandlerMonitoringIntegrationTests {
 	public static class HandlerInterceptor {
 		@Before("execution(* *..*Tests*(String)) && args(input)")
 		public void around(String input) {
-			logger.debug("Handling: "+input);
+			logger.debug("Handling: " + input);
 		}
 	}
 
