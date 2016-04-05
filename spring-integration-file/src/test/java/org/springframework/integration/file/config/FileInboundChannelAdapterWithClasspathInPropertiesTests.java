@@ -48,7 +48,7 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	}
 
 	@Test
-	public void inputDirectory() throws Exception {	
+	public void inputDirectory() throws Exception {
 		File expected = new ClassPathResource("").getFile();
 		File actual = (File) accessor.getPropertyValue("directory");
 		assertEquals("'directory' should be set", expected, actual);

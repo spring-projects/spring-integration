@@ -53,7 +53,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	private TestTrigger trigger = new TestTrigger();
 
-	private ThreadPoolTaskScheduler scheduler; 
+	private ThreadPoolTaskScheduler scheduler;
 
 
 	@Before
@@ -184,7 +184,7 @@ public class ByteStreamWritingMessageHandlerTests {
 		trigger.await();
 		endpoint.stop();
 		byte[] result2 = stream.toByteArray();
-		assertEquals(9, result2.length);	
+		assertEquals(9, result2.length);
 		assertEquals(1, result2[0]);
 	}
 

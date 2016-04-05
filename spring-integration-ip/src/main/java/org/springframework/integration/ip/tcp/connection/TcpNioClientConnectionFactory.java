@@ -70,7 +70,8 @@ public class TcpNioClientConnectionFactory extends
 		while (this.selector == null) {
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 			if (n++ > 600) {

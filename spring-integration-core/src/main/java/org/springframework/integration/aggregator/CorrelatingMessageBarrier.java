@@ -126,7 +126,8 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 							if (log.isDebugEnabled()) {
 								log.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
 							}
-						} else {
+						}
+						else {
 							remove(key);
 						}
 						@SuppressWarnings("unchecked")

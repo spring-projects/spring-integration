@@ -23,7 +23,7 @@ import org.springframework.messaging.Message;
  * of a {@link Message}. If the return value is itself a Message, it will be
  * used as the result. Otherwise, the return value will be used as the payload
  * of the result Message.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AbstractPayloadTransformer<T, U> extends AbstractTransformer {

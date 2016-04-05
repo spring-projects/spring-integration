@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ public class StoredProcExecutorTests {
 
 		try {
 		    new StoredProcExecutor(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("dataSource must not be null.", e.getMessage());
 			return;
 		}
@@ -76,7 +77,8 @@ public class StoredProcExecutorTests {
 			StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 			storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 			storedProcExecutor.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("You must either provide a "
 						+ "Stored Procedure Name or a Stored Procedure Name Expression.", e.getMessage());
 			return;
@@ -93,7 +95,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setStoredProcedureName("      ");
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("storedProcedureName must not be null and cannot be empty.", e.getMessage());
 			return;
 		}
@@ -140,7 +143,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setReturningResultSetRowMappers(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("returningResultSetRowMappers must not be null.", e.getMessage());
 			return;
 		}
@@ -160,7 +164,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("The provided map cannot contain null values.", e.getMessage());
 			return;
 		}
@@ -190,7 +195,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setSqlParameterSourceFactory(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("sqlParameterSourceFactory must not be null.", e.getMessage());
 			return;
 		}
@@ -210,7 +216,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setSqlParameters(sqlParameters);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("The provided list (sqlParameters) cannot contain null values.", e.getMessage());
 			return;
 		}
@@ -229,7 +236,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setSqlParameters(sqlParameters);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("sqlParameters must not be null or empty.", e.getMessage());
 			return;
 		}
@@ -246,7 +254,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setSqlParameters(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("sqlParameters must not be null or empty.", e.getMessage());
 			return;
 		}
@@ -266,7 +275,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setProcedureParameters(procedureParameters);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("The provided list (procedureParameters) cannot contain null values.", e.getMessage());
 			return;
 		}
@@ -285,7 +295,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setProcedureParameters(procedureParameters);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("procedureParameters must not be null or empty.", e.getMessage());
 			return;
 		}
@@ -302,7 +313,8 @@ public class StoredProcExecutorTests {
 
 		try {
 			storedProcExecutor.setProcedureParameters(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("procedureParameters must not be null or empty.", e.getMessage());
 			return;
 		}

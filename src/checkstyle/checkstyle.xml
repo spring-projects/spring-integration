@@ -31,27 +31,27 @@
 <!-- 		</module> -->
 
 		<!-- Block Checks -->
-<!-- 		<module name="EmptyBlock"> -->
-<!-- 			<property name="option" value="text" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="LeftCurly" /> -->
-<!-- 		<module name="RightCurly"> -->
-<!-- 			<property name="option" value="alone" /> -->
-<!-- 		</module> -->
-<!-- 		<module name="NeedBraces" /> -->
-<!-- 		<module name="AvoidNestedBlocks" /> -->
+		<module name="EmptyBlock">
+			<property name="option" value="text" />
+		</module>
+		<module name="LeftCurly" />
+		<module name="RightCurly">
+			<property name="option" value="alone" />
+		</module>
+		<module name="NeedBraces" />
+		<module name="AvoidNestedBlocks" />
 
 		<!-- Class Design -->
 		<module name="FinalClass" />
 		<module name="InterfaceIsType" />
 		<module name="HideUtilityClassConstructor" />
-<!-- 		<module name="MutableException" /> -->
+		<module name="MutableException" />
 		<module name="InnerTypeLast" />
 		<module name="OneTopLevelClass" />
 
 		<!-- Coding -->
 		<module name="CovariantEquals" />
-<!-- 		<module name="EmptyStatement" /> -->
+		<module name="EmptyStatement" />
 <!-- 		<module name="EqualsHashCode" /> -->
 <!-- 		<module name="InnerAssignment" /> -->
 <!-- 		<module name="SimplifyBooleanExpression" /> -->
@@ -148,11 +148,11 @@
 <!-- 				value="Please use AssertJ imports." /> -->
 <!-- 			<property name="ignoreComments" value="true" /> -->
 <!-- 		</module> -->
-<!-- 		<module name="Regexp"> -->
-<!-- 			<property name="format" value="[ \t]+$" /> -->
-<!-- 			<property name="illegalPattern" value="true" /> -->
-<!-- 			<property name="message" value="Trailing whitespace" /> -->
-<!-- 		</module> -->
+		<module name="Regexp">
+			<property name="format" value="[ \t]+$" />
+			<property name="illegalPattern" value="true" />
+			<property name="message" value="Trailing whitespace" />
+		</module>
 
 		<!-- Whitespace -->
 <!-- 		<module name="GenericWhitespace" /> -->

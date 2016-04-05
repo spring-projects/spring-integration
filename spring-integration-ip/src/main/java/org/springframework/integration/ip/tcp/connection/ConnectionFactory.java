@@ -22,7 +22,7 @@ import org.springframework.context.SmartLifecycle;
 
 /**
  * A factory used to create TcpConnection objects.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
@@ -30,5 +30,5 @@ import org.springframework.context.SmartLifecycle;
 public interface ConnectionFactory extends SmartLifecycle {
 
 	TcpConnection getConnection() throws Exception;
-	
+
 }

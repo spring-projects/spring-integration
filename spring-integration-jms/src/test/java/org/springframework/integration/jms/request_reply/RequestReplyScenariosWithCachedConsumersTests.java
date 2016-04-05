@@ -216,7 +216,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			for (int i = 0; i < 3; i++) {
 				try {
 					gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));
-				} catch (Exception e) {/*ignore*/}
+				}
+				catch (Exception e) {/*ignore*/}
 
 			}
 
@@ -237,7 +238,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 								replyMessage.setJMSCorrelationID(message.getJMSCorrelationID());
 								MessageProducer producer = session.createProducer(replyDestination);
 								producer.send(replyMessage);
-							} catch (Exception e) {
+							}
+							catch (Exception e) {
 								// ignore. the test will fail
 							}
 						}
@@ -264,7 +266,8 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 	private Object extractPayload(Message jmsMessage) {
 		try {
 			return converter.fromMessage(jmsMessage);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			fail();
 		}

@@ -17,7 +17,7 @@
 package org.springframework.integration.gemfire.config.xml;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
- 
+
 /**
  * @author David Turanski
  * @since 2.1

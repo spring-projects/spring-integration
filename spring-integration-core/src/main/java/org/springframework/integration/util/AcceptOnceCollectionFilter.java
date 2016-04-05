@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * An implementation of {@link CollectionFilter} that remembers the elements passed in
  * the previous invocation in order to avoid returning those elements more than once.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */

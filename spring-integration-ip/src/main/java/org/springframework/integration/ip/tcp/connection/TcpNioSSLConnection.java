@@ -311,7 +311,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 											+ remaining);
 						}
 						remaining = plainText.remaining();
-					} else {
+					}
+					else {
 						doClientSideHandshake(plainText, result);
 						writeEncodedIfAny();
 					}
@@ -374,7 +375,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 					logger.trace("Writer resuming handshake");
 				}
 				status = runTasksIfNeeded(result);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new MessagingException("Interrupted during SSL Handshaking");
 			}

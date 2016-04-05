@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 /**
  * A {@link MailReceiver} implementation that polls a mail server using the
  * POP3 protocol.
- * 
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  */

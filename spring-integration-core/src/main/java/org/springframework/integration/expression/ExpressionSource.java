@@ -22,7 +22,7 @@ import org.springframework.expression.Expression;
 
 /**
  * Strategy interface for retrieving Expressions.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -418,7 +418,8 @@ public class SftpOutboundTests {
 
 				when(jschSession.openChannel("sftp")).thenReturn(channel);
 				return SftpTestSessionFactory.createSftpSession(jschSession);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new RuntimeException("Failed to create mock sftp session", e);
 			}
 		}

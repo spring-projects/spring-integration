@@ -53,7 +53,8 @@ public final class TestingUtilities {
 		while (!serverConnectionFactory.isListening()) {
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e1) {
+			}
+			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e1);
 			}

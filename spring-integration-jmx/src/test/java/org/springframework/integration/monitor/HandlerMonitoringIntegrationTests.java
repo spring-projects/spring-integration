@@ -91,7 +91,8 @@ public class HandlerMonitoringIntegrationTests {
 			int count = messageHandlersMonitor.getHandlerDuration(monitor).getCount();
 			assertTrue("No statistics for input channel", count > 0);
 
-		} finally {
+		}
+		finally {
 			context.close();
 		}
 

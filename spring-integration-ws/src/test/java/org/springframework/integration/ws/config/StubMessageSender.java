@@ -23,7 +23,7 @@ import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
- * 
+ *
  * @author Jonas Partner
  *
  */

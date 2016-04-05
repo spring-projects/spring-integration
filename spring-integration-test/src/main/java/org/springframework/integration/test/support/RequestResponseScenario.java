@@ -37,7 +37,8 @@ public class RequestResponseScenario {
     protected Message<? extends Object> getMessage(){
         if (message == null){
             return new GenericMessage<Object>(this.payload);
-        } else {
+        }
+else {
             return message;
         }
     }

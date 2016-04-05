@@ -51,7 +51,8 @@ public class JdbcOutboundGatewayTests {
 			jdbcOutboundGateway.setBeanFactory(mock(BeanFactory.class));
 			jdbcOutboundGateway.afterPropertiesSet();
 
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());
 			return;
 		}
@@ -109,7 +110,8 @@ public class JdbcOutboundGatewayTests {
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(null);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			assertEquals("MaxRowsPerPoll must not be null.", e.getMessage());
 			return;
 		}

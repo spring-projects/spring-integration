@@ -69,7 +69,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		for (Object object : entities) {
 			if (entityClass == null) {
 				entityClass = object.getClass();
-			} else {
+			}
+			else {
 				if (entityClass != object.getClass()) {
 					throw new IllegalArgumentException("entities must be of the same type.");
 				}
@@ -159,7 +160,8 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		if (entityClass == null) {
 			query = entityManager.createNativeQuery(selectQuery);
-		} else {
+		}
+		else {
 			query = entityManager.createNativeQuery(selectQuery, entityClass);
 		}
 
@@ -307,27 +309,29 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 						if (source instanceof PositionSupportingParameterSource) {
 							paramValue = ((PositionSupportingParameterSource) source).getValueByPosition(position - 1);
 							query.setParameter(position, paramValue);
-						} else {
+						}
+						else {
 							throw new JpaOperationFailedException("Positional Parameters are only support "
-									+ "for PositionSupportingParameterSources.")
-							.withOffendingJPAQl(queryString);
+									+ "for PositionSupportingParameterSources.", queryString);
 						}
 
-					} else {
+					}
+					else {
 
 						if(StringUtils.hasText(paramName)) {
 							paramValue = source.getValue(paramName);
 							query.setParameter(paramName, paramValue);
-						} else {
+						}
+						else {
 							throw new JpaOperationFailedException(
 									"This parameter does not contain a parameter name. " +
-									"Additionally it is not a postitional parameter, neither.")
-							.withOffendingJPAQl(queryString);
+									"Additionally it is not a postitional parameter, neither.", queryString);
 						}
 					}
 
 				}
-			} else {
+			}
+			else {
 				throw new IllegalArgumentException("Query has parameters but no parameter source provided");
 			}
 

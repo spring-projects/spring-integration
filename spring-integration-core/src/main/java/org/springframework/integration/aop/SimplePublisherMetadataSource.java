@@ -23,7 +23,7 @@ import java.util.Map;
  * Simple implementation of {@link PublisherMetadataSource} that allows for
  * configuration of a single channel name, payload expression, and
  * array of header key=value expressions.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

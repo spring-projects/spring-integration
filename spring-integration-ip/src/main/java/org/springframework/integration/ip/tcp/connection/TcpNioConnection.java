@@ -194,7 +194,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		ByteBuffer buffer;
 		if (this.usingDirectBuffers) {
 			buffer = ByteBuffer.allocateDirect(length);
-		} else {
+		}
+		else {
 			buffer = ByteBuffer.allocate(length);
 		}
 		return buffer;

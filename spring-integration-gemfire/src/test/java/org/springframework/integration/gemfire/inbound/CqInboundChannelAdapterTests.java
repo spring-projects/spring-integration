@@ -100,7 +100,8 @@ public class CqInboundChannelAdapterTests {
 		try {
 			os.write("\n".getBytes());
 			os.flush();
-		} catch (IOException ex) {
+		}
+		catch (IOException ex) {
 			throw new IllegalStateException("Cannot communicate with forked VM", ex);
 		}
 	}

@@ -24,9 +24,9 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
  * @author Jonas Partner
  */
 public class StubDestinationProvider implements DestinationProvider {
-	
+
 	public URI getDestination() {
-		return null;  
+		return null;
 	}
 
 }

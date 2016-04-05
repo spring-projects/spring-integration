@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for the security namespace.
- * 
+ *
  * @author Jonas Partner
  */
 public class IntegrationSecurityNamespaceHandler extends AbstractIntegrationNamespaceHandler {

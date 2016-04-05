@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,54 +67,65 @@ public class FtpFileInfo extends AbstractFileInfo<FTPFile> {
 		StringBuilder sb = new StringBuilder();
 		if (this.ftpFile.isDirectory()) {
 			sb.append("d");
-		} else if (this.ftpFile.isSymbolicLink()) {
+		}
+		else if (this.ftpFile.isSymbolicLink()) {
 			sb.append("l");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.READ_PERMISSION)) {
 			sb.append("r");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.WRITE_PERMISSION)) {
 			sb.append("w");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.USER_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
 			sb.append("x");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.READ_PERMISSION)) {
 			sb.append("r");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.WRITE_PERMISSION)) {
 			sb.append("w");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.GROUP_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
 			sb.append("x");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.READ_PERMISSION)) {
 			sb.append("r");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.WRITE_PERMISSION)) {
 			sb.append("w");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		if (this.ftpFile.hasPermission(FTPFile.WORLD_ACCESS, FTPFile.EXECUTE_PERMISSION)) {
 			sb.append("x");
-		} else {
+		}
+		else {
 			sb.append("-");
 		}
 		return sb.toString();

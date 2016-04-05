@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
  * A zero-capacity version of {@link QueueChannel} that delegates to a
  * {@link SynchronousQueue} internally. This accommodates "handoff" scenarios
  * (i.e. blocking while waiting for another party to send or receive).
- * 
+ *
  * @author Mark Fisher
  */
 public class RendezvousChannel extends QueueChannel {

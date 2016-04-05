@@ -21,7 +21,7 @@ import javax.xml.transform.Result;
 /**
  * Factory to create a {@link Result} possibly taking into account the
  * provided message payload instance.
- * 
+ *
  * @author Jonas Partner
  */
 public interface ResultFactory {

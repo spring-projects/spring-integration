@@ -187,7 +187,8 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 			t1.join();
 			t2.join();
 			t3.join();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
@@ -268,7 +269,8 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 			t1.join();
 			t2.join();
 			t3.join();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}

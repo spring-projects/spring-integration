@@ -32,7 +32,7 @@ import org.springframework.xml.transform.StringResult;
 /**
  * Converts the passed {@link Result} to an instance of {@link String}.
  * Supports {@link StringResult} and {@link DOMResult}
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  */

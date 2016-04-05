@@ -21,15 +21,15 @@ import org.springframework.integration.store.MessageGroup;
 
 /**
  * A {@link ReleaseStrategy} that releases all messages if any of the following is true:
- * 
+ *
  * <ul>
  * <li>The sequence is complete (if there is one).</li>
  * <li>There are more messages than a threshold set by the user.</li>
  * <li>The time elapsed since the earliest message, according to their timestamps, exceeds a timeout set by the user.</li>
  * </ul>
- * 
+ *
  * @author Dave Syer
- * 
+ *
  * @since 2.0
  */
 public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy {

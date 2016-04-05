@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * Convenience class for a single {@link RequestResponseScenario} test
- * 
+ *
  * @author David Turanski
  */
 public abstract class SingleRequestResponseScenarioTests extends AbstractRequestResponseScenarioTests {

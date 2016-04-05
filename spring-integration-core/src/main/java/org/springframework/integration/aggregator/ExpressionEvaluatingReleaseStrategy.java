@@ -20,7 +20,7 @@ import org.springframework.integration.store.MessageGroup;
 
 /**
  * A {@link ReleaseStrategy} that evaluates an expression.
- * 
+ *
  * @author Dave Syer
  */
 public class ExpressionEvaluatingReleaseStrategy extends ExpressionEvaluatingMessageListProcessor implements

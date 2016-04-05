@@ -48,7 +48,7 @@ import org.springframework.ws.context.MessageContext;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * 
+ *
  * @author Iwein Fuld
  *
  */
@@ -60,7 +60,7 @@ public class MarshallingWebServiceIntegrationTests {
 	private static final String input = "<hello/>";
 
 	@Autowired MarshallingWebServiceInboundGateway gateway;
-	
+
 	@Mock
 	private MessageContext context;
 
@@ -71,20 +71,20 @@ public class MarshallingWebServiceIntegrationTests {
 	private WebServiceMessage request;
 
 	private Source stringSource = new StreamSource(new StringReader(input));
-	
+
 	private StringWriter output = new StringWriter();
 
 	private Result stringResult = new StreamResult(output);
-	
+
 	@Before public void setupMocks(){
 		MockitoAnnotations.initMocks(this);
 	}
-	
+
 	@Test
 	public void configOk() throws Exception {
 		// just flag invalid config
 	}
-	
+
 	@Test
 	public void sendString() throws Exception {
 		when(context.getResponse()).thenReturn(response);

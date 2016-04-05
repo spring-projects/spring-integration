@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 /**
  * This implementation of MessageGroupProcessor will take the messages from the
  * MessageGroup and pass them on in a single message with a Collection as a payload.
- * 
+ *
  * @author Iwein Fuld
  * @author Alexander Peters
  * @author Mark Fisher

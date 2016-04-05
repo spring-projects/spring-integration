@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
 /**
  * Parser for the &lt;application-event-multicaster&gt; element of the
  * integration namespace.
- * 
+ *
  * @author Mark Fisher
  */
 public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinitionParser {

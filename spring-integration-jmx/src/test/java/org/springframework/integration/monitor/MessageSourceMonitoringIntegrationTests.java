@@ -65,7 +65,8 @@ public class MessageSourceMonitoringIntegrationTests {
 			int count = exporter.getSourceMessageCount(monitor);
 			assertTrue("No statistics for input channel", count > 0);
 
-		} finally {
+		}
+		finally {
 			context.close();
 		}
 

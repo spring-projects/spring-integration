@@ -22,7 +22,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * A payload transformer that copies a File's contents to a byte array.
- * 
+ *
  * @author Mark Fisher
  */
 public class FileToByteArrayTransformer extends AbstractFilePayloadTransformer<byte[]> {

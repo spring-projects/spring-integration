@@ -38,7 +38,7 @@ public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFi
 	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer) {
 		super(synchronizer);
 	}
-	
+
 	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer, Comparator<File> comparator) {
 		super(synchronizer, comparator);
 	}

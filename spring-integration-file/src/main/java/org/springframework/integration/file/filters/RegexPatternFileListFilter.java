@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * Implementation of AbstractRegexPatternMatchingFileListFilter for java.io.File instances.
- * 
+ *
  * @author Mark Fisher
  */
 public class RegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<File> {

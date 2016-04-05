@@ -96,7 +96,8 @@ public class CorrelatingMessageBarrierTests {
 
 		try {
 			sent.await();
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 
@@ -113,7 +114,8 @@ public class CorrelatingMessageBarrierTests {
 			public void run() {
 				try {
 					start.await();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				handler.handleMessage(message);

@@ -25,7 +25,7 @@ import javax.jms.TextMessage;
 
 /**
  * Stub JMS Message implementation intended for testing purposes only.
- * 
+ *
  * @author Mark Fisher
  */
 public class StubTextMessage implements TextMessage {
@@ -35,7 +35,7 @@ public class StubTextMessage implements TextMessage {
 	private String text;
 
 	private int deliveryMode = DEFAULT_DELIVERY_MODE;
-	
+
 	private Destination destination;
 
 	private String correlationId;

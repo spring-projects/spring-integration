@@ -427,7 +427,8 @@ public final class RedisLockRegistry implements LockRegistry {
 
 				});
 
-			} finally {
+			}
+			finally {
 
 				if (!success) {
 					this.lockedAt = 0;
@@ -486,7 +487,8 @@ public final class RedisLockRegistry implements LockRegistry {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Released lock; " + this.toString());
 						}
-					} finally {
+					}
+					finally {
 						this.thread = null;
 						this.reLock = 0;
 						toWeakThreadStorage(this);

@@ -32,15 +32,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MultipleEndpointGatewayTests {
-	
+
 	@Autowired
 	@Qualifier("gatewayA")
 	private SampleGateway gatewayA;
-	
+
 	@Autowired
-	@Qualifier("gatewayB")  
+	@Qualifier("gatewayB")
 	private SampleGateway gatewayB;
-	
+
 	@Test
 	public void gatewayNoDefaultReplyChannel(){
 		gatewayA.echo("echoAsMessageChannel");
@@ -51,17 +51,17 @@ public class MultipleEndpointGatewayTests {
 		gatewayB.echo("echoAsMessageChannelIgnoreDefOutChannel");
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
-	
+
 	@Test
 	public void gatewayWithReplySentBackToDefaultReplyChannel(){
 		gatewayB.echo("echoAsMessageChannelDefaultOutputChannel");
 		// there is nothing to assert. Successful execution of the above is all we care in this test
 	}
-	
+
 	public interface SampleGateway{
 		Object echo(Object value);
 	}
-	
+
 	public static class SampleEchoService {
 		public Object echo(Object value){
 			return "R:" + value;

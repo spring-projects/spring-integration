@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation used for any test method that requires a running MongoDb process.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */

@@ -19,8 +19,8 @@ package org.springframework.integration.ip.tcp.connection;
 import org.springframework.messaging.Message;
 
 /**
- * Classes that implement this interface may register with a 
- * connection factory to receive messages retrieved from a 
+ * Classes that implement this interface may register with a
+ * connection factory to receive messages retrieved from a
  * {@link TcpConnection}
  * @author Gary Russell
  * @since 2.0
@@ -34,5 +34,5 @@ public interface TcpListener {
 	 * @return true if the message was intercepted
 	 */
 	boolean onMessage(Message<?> message);
-	
+
 }

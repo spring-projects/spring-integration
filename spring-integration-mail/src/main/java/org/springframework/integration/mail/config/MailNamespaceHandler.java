@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for the 'mail' namespace.
- * 
+ *
  * @author Mark Fisher
  */
 public class MailNamespaceHandler extends AbstractIntegrationNamespaceHandler {

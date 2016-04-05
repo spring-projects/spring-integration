@@ -27,7 +27,7 @@ import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * 
+ *
  * @author Jonas Partner
  *
  */

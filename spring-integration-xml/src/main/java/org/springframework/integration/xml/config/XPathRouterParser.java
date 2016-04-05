@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;xpath-router/&gt; element.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -55,7 +55,7 @@ public class XPathRouterParser extends AbstractRouterParser {
 			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
 			xpathRouterBuilder.addConstructorArgValue(beanDefinition);
 		}
-		else { 
+		else {
 			xpathRouterBuilder.addConstructorArgReference(xPathExpressionRef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(xpathRouterBuilder, element, "converter");

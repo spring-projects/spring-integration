@@ -33,7 +33,7 @@ import org.springframework.messaging.MessagingException;
 /**
  * {@link SourceFactory} implementation which supports creation of a {@link DOMSource}
  * from a {@link Document}, {@link File} or {@link String} payload.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  */

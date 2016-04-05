@@ -28,14 +28,14 @@ import org.springframework.util.Assert;
  *
  */
 /**
- * 
+ *
  *
  */
 @ManagedResource
 public class SimpleDynamicRouter{
 	private final Map<String, String> channelMappings = new HashMap<String, String>();
 	/**
-	 * 
+	 *
 	 * @param channelMappings
 	 */
 	public SimpleDynamicRouter(Map<String, String> channelMappings){
@@ -45,7 +45,7 @@ public class SimpleDynamicRouter{
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @param key
 	 * @param channelName
 	 */
@@ -54,20 +54,20 @@ public class SimpleDynamicRouter{
 		this.channelMappings.put(key, channelName);
 	}
 	/**
-	 * 
+	 *
 	 * @param key
 	 */
 	public void removeChannelMapping(String key){
 		this.channelMappings.remove(key);
 	}
 	/**
-	 * 
+	 *
 	 */
 	public Map<String, String> getChannelMappings(){
 		return channelMappings;
 	}
 	/**
-	 * 
+	 *
 	 * @param key
 	 */
 	public String route(Object key){

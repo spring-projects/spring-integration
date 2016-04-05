@@ -63,7 +63,7 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 				throw new IllegalArgumentException("An 'unmarshaller' is not allowed without 'marshaller'.");
 			}
 		}
-		
+
 		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)){
 			String extractPayload = element.getAttribute("extract-payload");
 			if (StringUtils.hasText(extractPayload)) {

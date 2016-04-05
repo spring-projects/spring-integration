@@ -75,7 +75,8 @@ public class XPathExpressionParserTests {
 
 		try {
 			getXPathExpression(xmlDoc.toString());
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getCause() instanceof SAXParseException);
 			return;
 		}
@@ -100,7 +101,8 @@ public class XPathExpressionParserTests {
 
 		try {
 			getXPathExpression(xmlDoc.toString());
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			assertEquals("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'namespace-map' attribute.", e.getCause().getMessage());
 			return;
 		}
@@ -117,7 +119,8 @@ public class XPathExpressionParserTests {
 		      .append("</si-xml:xpath-expression>");
 		try {
 			getXPathExpression(xmlDoc.toString());
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			assertEquals("It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.", e.getCause().getMessage());
 			return;
 		}
@@ -135,7 +138,8 @@ public class XPathExpressionParserTests {
 		      .append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
 		try {
 			getXPathExpression(xmlDoc.toString());
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			assertEquals("It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.", e.getCause().getMessage());
 			return;
 		}

@@ -87,7 +87,7 @@ public class PayloadDeserializingTransformerTests {
 	private static class TestBean implements Serializable {
 
 		private String name;
-		
+
 		TestBean(String name) {
 			this.name = name;
 		}

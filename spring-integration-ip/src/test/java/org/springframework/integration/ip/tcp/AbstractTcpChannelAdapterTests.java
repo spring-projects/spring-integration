@@ -36,9 +36,9 @@ public class AbstractTcpChannelAdapterTests {
 
 		@Override
 		public void publishEvent(Object event) {
-			
+
 		}
-		
+
 	};
 
 	protected HelloWorldInterceptorFactory newInterceptorFactory() {

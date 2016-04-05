@@ -21,7 +21,7 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * Exception that indicates an error during message mapping.
- * 
+ *
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")

@@ -283,7 +283,8 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	public boolean isClientModeConnected() {
 		if (this.isClientMode && this.clientModeConnectionManager != null) {
 			return this.clientModeConnectionManager.isConnected();
-		} else {
+		}
+		else {
 			return false;
 		}
 	}

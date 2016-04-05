@@ -26,7 +26,7 @@ import org.springframework.messaging.MessageHeaders;
 
 /**
  * Matcher to make assertions about message equality easier.  Usage:
- * 
+ *
  * <pre>
  * &#064;Test
  * public void testSomething() {
@@ -34,7 +34,7 @@ import org.springframework.messaging.MessageHeaders;
  *   Message<String> result = ...;
  *   assertThat(result, sameExceptImmutableHeaders(expected));
  * }
- * 
+ *
  * &#064;Factory
  * public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
  *   return new MessageMatcher(expected);
@@ -70,5 +70,5 @@ public class MessageMatcher extends BaseMatcher<Message<?>> {
 	public void describeTo(Description description) {
 		description.appendText("Headers match except ID and timestamp for payload: ").appendValue(payload).appendText(" and headers: ").appendValue(headers);
 	}
-	
+
 }

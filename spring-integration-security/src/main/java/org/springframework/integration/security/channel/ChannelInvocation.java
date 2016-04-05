@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * to the original {@link MethodInvocation} instance and provides convenient
  * access to the secured {@link MessageChannel}. If the intercepted invocation
  * is a <em>send</em> operation, the {@link Message} is also available.
- * 
+ *
  * @author Mark Fisher
  */
 public class ChannelInvocation {

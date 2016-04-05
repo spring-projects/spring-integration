@@ -90,7 +90,8 @@ public class CacheListeningMessageProducer extends ExpressionMessageProducerSupp
 		}
 		try {
 			this.region.getAttributesMutator().removeCacheListener(this.listener);
-		} catch (CacheClosedException e) {
+		}
+		catch (CacheClosedException e) {
 			if (this.logger.isDebugEnabled()){
 				this.logger.debug(e.getMessage(),e);
 			}

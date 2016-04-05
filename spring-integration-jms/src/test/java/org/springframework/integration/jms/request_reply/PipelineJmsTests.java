@@ -166,11 +166,14 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 						try {
 							assertEquals(y, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
 							successCounter.incrementAndGet();
-						} catch (MessageTimeoutException e) {
+						}
+						catch (MessageTimeoutException e) {
 							timeoutCounter.incrementAndGet();
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							failureCounter.incrementAndGet();
-						} finally {
+						}
+						finally {
 							latch.countDown();
 						}
 					}

@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * If the Message has a String-typed payload, that will be passed as the 'message' of
  * the Notification instance. Otherwise, the payload object will be passed as the
  * 'userData' of the Notification instance.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */

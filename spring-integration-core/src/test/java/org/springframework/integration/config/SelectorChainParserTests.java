@@ -42,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SelectorChainParserTests {
-	
+
 	@Autowired
 	ApplicationContext context;
 
@@ -103,13 +103,13 @@ public class SelectorChainParserTests {
 	private VotingStrategy getStrategy(MessageSelectorChain chain) {
 		return (VotingStrategy) new DirectFieldAccessor(chain).getPropertyValue("votingStrategy");
 	}
-	
+
 	public static class StubMessageSelector implements MessageSelector {
 		public boolean accept(Message<?> message) {
 			return true;
 		}
 	}
-	
+
 	public static class StubPojoSelector {
 		public boolean accept(Message<?> message) {
 			return true;

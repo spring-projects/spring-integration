@@ -24,13 +24,13 @@ package org.springframework.integration.leader;
  *
  * @author Patrick Peralta
  * @author Janne Valkealahti
- * 
+ *
  */
 public interface Candidate {
 
 	/**
 	 * Gets the role.
-	 * 
+	 *
 	 * @return a string indicating the name of the leadership role
 	 *         this candidate is participating in; other candidates
 	 *         present in the system with the same name will contend
@@ -40,7 +40,7 @@ public interface Candidate {
 
 	/**
 	 * Gets the identifier.
-	 * 
+	 *
 	 * @return a unique ID for this candidate; no other candidate for
 	 *         leader election should return the same id
 	 */

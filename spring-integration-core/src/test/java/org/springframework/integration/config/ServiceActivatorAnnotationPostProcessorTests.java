@@ -82,7 +82,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint	
+	@MessageEndpoint
 	public static class SimpleServiceActivatorAnnotationTestBean extends AbstractServiceActivatorAnnotationTestBean {
 
 		public SimpleServiceActivatorAnnotationTestBean(CountDownLatch latch) {

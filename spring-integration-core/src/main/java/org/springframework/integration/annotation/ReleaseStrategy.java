@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that a method is capable of asserting if a list of messages or
  * payload objects is complete.
- * 
+ *
  * @author Marius Bogoevici
  */
 @Retention(RetentionPolicy.RUNTIME)

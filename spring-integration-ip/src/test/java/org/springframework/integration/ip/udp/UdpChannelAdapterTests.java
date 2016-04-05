@@ -195,7 +195,8 @@ public class UdpChannelAdapterTests {
 					socket.receive(answer);
 					theAnswer.set(answer);
 					replyReceivedLatch.countDown();
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
