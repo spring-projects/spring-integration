@@ -84,11 +84,24 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private boolean requireComponentAnnotation;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
 				"a ConfigurableListableBeanFactory is required");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+	}
+
+	/**
+	 *
+	 * @param requireComponentAnnotation the {@code boolean} flag to indicate requirements for the
+	 * {@link Component} annotation presentation for the messaging annotations.
+	 * @since 4.3
+	 * @see org.springframework.integration.context.IntegrationProperties#REQUIRE_COMPONENT_ANNOTATION
+	 */
+	public void setRequireComponentAnnotation(boolean requireComponentAnnotation) {
+		this.requireComponentAnnotation = requireComponentAnnotation;
 	}
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {
@@ -134,7 +147,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		final Class<?> beanClass = this.getBeanClass(bean);
-		if (AnnotationUtils.findAnnotation(beanClass, Component.class) == null) {
+		if (this.requireComponentAnnotation && AnnotationUtils.findAnnotation(beanClass, Component.class) == null) {
 			// we only post-process stereotype components
 			return bean;
 		}

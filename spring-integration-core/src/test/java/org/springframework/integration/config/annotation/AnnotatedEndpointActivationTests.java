@@ -17,6 +17,7 @@
 package org.springframework.integration.config.annotation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -71,17 +72,15 @@ public class AnnotatedEndpointActivationTests {
 	}
 
 	@Test
-	public void configCheck() {
-		assertTrue(true);
-	}
-
-	@Test
 	public void sendAndReceive() {
 		this.input.send(new GenericMessage<String>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);
 		assertEquals("foo: 1", message.getPayload());
 		assertEquals(1, count);
+
+		assertTrue(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator"));
+		assertFalse(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
 	}
 
 	@Test
@@ -129,5 +128,16 @@ public class AnnotatedEndpointActivationTests {
 		}
 
 	}
+
+	private static class AnnotatedEndpoint2 {
+
+		@ServiceActivator(inputChannel = "input", outputChannel = "output")
+		public String process(String message) {
+			count++;
+			return message + ": " + count;
+		}
+
+	}
+
 
 }
