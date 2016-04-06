@@ -153,8 +153,8 @@
 		</recipient-list-router>
 	</chain>
 
-	<chain id="chainReplayRequired" input-channel="chainReplayRequiredChannel">
-		<transformer id="transformerReplayRequired" expression="null"/>
+	<chain id="chainReplyRequired" input-channel="chainReplyRequiredChannel">
+		<transformer id="transformerReplyRequired" expression="null"/>
 	</chain>
 
 	<chain id="chainMessageRejectedException" input-channel="chainMessageRejectedExceptionChannel">
@@ -190,5 +190,15 @@
 	</beans:bean>
 
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<chain id="chainWithNoOutput" input-channel="chainWithNoOutputChannel">
+		<header-enricher>
+			<reply-channel expression="headers.myReplyChannel"/>
+		</header-enricher>
+	</chain>
+
+	<chain id="chainWithTransformNoOutput" input-channel="chainWithTransformNoOutputChannel">
+		<transformer expression="headers.myMessage"/>
+	</chain>
 
 </beans:beans>

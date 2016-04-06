@@ -50,6 +50,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -157,10 +158,16 @@ public class ChainParserTests {
 	private PollableChannel numbers;
 
 	@Autowired
-	private MessageChannel chainReplayRequiredChannel;
+	private MessageChannel chainReplyRequiredChannel;
 
 	@Autowired
 	private MessageChannel chainMessageRejectedExceptionChannel;
+
+	@Autowired
+	private MessageChannel chainWithNoOutputChannel;
+
+	@Autowired
+	private MessageChannel chainWithTransformNoOutputChannel;
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -419,12 +426,12 @@ public class ChainParserTests {
 	public void testInt2755SubComponentException() {
 		GenericMessage<String> testMessage = new GenericMessage<String>("test");
 		try {
-			this.chainReplayRequiredChannel.send(testMessage);
+			this.chainReplyRequiredChannel.send(testMessage);
 			fail("Expected ReplyRequiredException");
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof ReplyRequiredException);
-			assertTrue(e.getMessage().contains("'chainReplayRequired$child.transformerReplayRequired'"));
+			assertTrue(e.getMessage().contains("'chainReplyRequired$child.transformerReplyRequired'"));
 		}
 
 		try {
@@ -436,6 +443,21 @@ public class ChainParserTests {
 			assertTrue(e.getMessage().contains("chainMessageRejectedException$child.filterMessageRejectedException"));
 		}
 
+	}
+
+	@Test
+	public void testChainWithNoOutput() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("myReplyChannel", replyChannel).build();
+		this.chainWithNoOutputChannel.send(message);
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+
+		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
+		Message<String> message2 = MessageBuilder.withPayload("bar").setHeader("myMessage", message).build();
+		this.chainWithTransformNoOutputChannel.send(message2);
+		receive = replyChannel.receive(10000);
+		assertNotNull(receive);
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
