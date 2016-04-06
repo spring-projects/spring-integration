@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor,
@@ -83,13 +84,18 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		Object payload = this.aggregatePayloads(group, headers);
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (payload instanceof Message<?>) {
-			builder = getMessageBuilderFactory().fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+			builder = getMessageBuilderFactory().fromMessage((Message<?>) payload);
+		}
+		else if (payload instanceof AbstractIntegrationMessageBuilder) {
+			builder = (AbstractIntegrationMessageBuilder<?>) payload;
 		}
 		else {
-			builder = getMessageBuilderFactory().withPayload(payload).copyHeadersIfAbsent(headers);
+			builder = getMessageBuilderFactory().withPayload(payload);
 		}
 
-		return builder.popSequenceDetails().build();
+		return builder.copyHeadersIfAbsent(headers)
+				.popSequenceDetails()
+				.build();
 	}
 
 	/**

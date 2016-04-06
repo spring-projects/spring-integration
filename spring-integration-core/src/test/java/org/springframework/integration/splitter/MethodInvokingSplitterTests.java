@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
@@ -37,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingSplitterTests {
 
@@ -136,6 +138,29 @@ public class MethodInvokingSplitterTests {
 		Message<?> reply2 = replies.get(1);
 		assertNotNull(reply2);
 		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
+	public void splitMessageToMessageBuilderList() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo.bar")
+				.setHeader("myHeader", "myValue")
+				.build();
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageBuilderList");
+		QueueChannel replyChannel = new QueueChannel();
+		splitter.setOutputChannel(replyChannel);
+		splitter.handleMessage(message);
+		List<Message<?>> replies = replyChannel.clear();
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		assertEquals("myValue", reply1.getHeaders().get("myHeader"));
+		assertEquals("bar", reply1.getHeaders().get("foo"));
+
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+		assertEquals("myValue", reply2.getHeaders().get("myHeader"));
+		assertEquals("bar", reply2.getHeaders().get("foo"));
 	}
 
 	@Test
@@ -484,6 +509,17 @@ public class MethodInvokingSplitterTests {
 				messages.add(new GenericMessage<String>(s));
 			}
 			return messages;
+		}
+
+		public List<AbstractIntegrationMessageBuilder> messageToMessageBuilderList(Message<?> input) {
+			String[] strings = input.getPayload().toString().split("\\.");
+			List<AbstractIntegrationMessageBuilder> messageBuilders = new ArrayList<>();
+			for (String s : strings) {
+				MessageBuilder<String> builder = MessageBuilder.withPayload(s)
+						.setHeader("foo", "bar");
+				messageBuilders.add(builder);
+			}
+			return messageBuilders;
 		}
 
 		public Message<String>[] stringToMessageArray(String input) {
