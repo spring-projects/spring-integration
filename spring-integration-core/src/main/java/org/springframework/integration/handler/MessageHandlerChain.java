@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
@@ -129,7 +128,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 				// If this 'handler' is a nested non-last &lt;chain&gt;, it is  necessary
 				// to 'force' re-init it for check its configuration in conjunction with current MessageHandlerChain.
 				if (handler instanceof MessageHandlerChain) {
-					new DirectFieldAccessor(handler).setPropertyValue("initialized", false);
+					((MessageHandlerChain) handler).initialized = false;
 					((MessageHandlerChain) handler).afterPropertiesSet();
 				}
 			}
