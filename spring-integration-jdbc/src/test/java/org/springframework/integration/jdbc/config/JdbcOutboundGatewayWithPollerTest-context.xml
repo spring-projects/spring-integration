@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
 		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc">
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc">
 
 
 	<int:channel id="target">
@@ -15,26 +15,28 @@
 	</int:channel>
 
 	<int:channel id="output">
-		<int:queue />
+		<int:queue/>
 	</int:channel>
 
-	<int-jdbc:outbound-gateway id="jdbcOutboundGateway" query="select * from bazz where id=:headers[id]" update="insert into bazz (id, status, name) values (:headers[id], 0, :payload[foo])"
-		request-channel="target" reply-channel="output" data-source="dataSource" auto-startup="true" reply-timeout="444">
+	<int-jdbc:outbound-gateway id="jdbcOutboundGateway"
+							   query="select * from bazz where id=:headers[id]"
+							   update="insert into bazz (id, status, name) values (:headers[id], 0, :payload[foo])"
+							   request-channel="target"
+							   reply-channel="output"
+							   data-source="dataSource"
+							   auto-startup="true"
+							   reply-timeout="444">
 		<int:poller fixed-rate="1000"/>
 	</int-jdbc:outbound-gateway>
-	
-    <jdbc:embedded-database id="dataSource" type="H2"/>
 
-    <jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
-        <jdbc:script location="classpath:org/springframework/integration/jdbc/config/outboundPollerSchema.sql"/>
-    </jdbc:initialize-database>
+	<jdbc:embedded-database id="dataSource" type="H2"/>
+
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/config/outboundPollerSchema.sql"/>
+	</jdbc:initialize-database>
 
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"/>
-	</bean>
-
-	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-		<constructor-arg ref="dataSource" />
 	</bean>
 
 </beans>
