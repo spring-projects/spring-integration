@@ -164,7 +164,7 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
 		assertEquals("foo", success.getPayload());
 
 		// advice with failure, not trapped
@@ -244,7 +244,7 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
 		assertEquals(ArithmeticException.class, success.getPayload().getClass());
 		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
 
@@ -262,7 +262,7 @@ public class AdvisedMessageHandlerTests {
 
 		success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals("Hello, world!", ((AdviceMessage<?>) success).getInputMessage().getPayload());
 		assertEquals(ArithmeticException.class, success.getPayload().getClass());
 		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
 

@@ -17,6 +17,7 @@
 package org.springframework.integration.mongodb.store;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -38,6 +39,7 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -186,7 +188,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		p.setFname("John");
 		p.setLname("Doe");
 		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
-		Message<?> messageToStore = new AdviceMessage("foo", inputMessage);
+		Message<?> messageToStore = new AdviceMessage<String>("foo", inputMessage);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertNotNull(retrievedMessage);
@@ -205,12 +207,12 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		p.setFname("John");
 		p.setLname("Doe");
 		Message<Person> inputMessage = MessageBuilder.withPayload(p).build();
-		Message<?> messageToStore = new GenericMessage<Message<?>>(new AdviceMessage("foo", inputMessage));
+		Message<?> messageToStore = new GenericMessage<Message<?>>(new AdviceMessage<String>("foo", inputMessage));
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertNotNull(retrievedMessage);
 		assertTrue(retrievedMessage.getPayload() instanceof AdviceMessage);
-		AdviceMessage adviceMessage = (AdviceMessage) retrievedMessage.getPayload();
+		AdviceMessage<?> adviceMessage = (AdviceMessage<?>) retrievedMessage.getPayload();
 		assertEquals("foo", adviceMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(inputMessage, adviceMessage.getInputMessage());
@@ -228,7 +230,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
 		assertNotNull(retrievedMessage);
-		assertEquals("org.springframework.integration.support.MutableMessage", retrievedMessage.getPayload().getClass().getName());
+		assertThat(retrievedMessage.getPayload(), instanceOf(MutableMessage.class));
 		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(((Message<?>) messageToStore.getPayload()).getPayload(), p);
