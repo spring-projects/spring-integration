@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
@@ -47,9 +46,6 @@ public class LoggingHandler extends AbstractMessageHandler {
 		FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}
 
-	private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
-
-
 	private volatile Expression expression;
 
 	private volatile boolean expressionSet;
@@ -69,7 +65,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * The valid levels are: FATAL, ERROR, WARN, INFO, DEBUG, or TRACE
 	 * </p>
 	 * @param level The level.
-	 * @see LoggingHandler(Level)
+	 * @see #LoggingHandler(Level)
 	 */
 	public LoggingHandler(String level) {
 		Assert.hasText(level, "'level' cannot be empty");

@@ -19,10 +19,11 @@ package org.springframework.integration.jpa.outbound;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
+
 import javax.persistence.EntityManager;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,14 +37,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  *
@@ -55,8 +55,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@Rollback
-@Transactional("transactionManager")
+@DirtiesContext
 public class JpaOutboundChannelAdapterTests {
 
 	@Autowired
@@ -71,9 +70,9 @@ public class JpaOutboundChannelAdapterTests {
 	@Autowired
 	private MessageChannel jpaOutboundChannelAdapterWithinChain;
 
-	@After
+	@Before
 	public void cleanUp() {
-		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003");
+		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003 or rollNumber < 1001");
 	}
 
 	@Test
@@ -85,22 +84,24 @@ public class JpaOutboundChannelAdapterTests {
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
+		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
 		jpaExecutor.afterPropertiesSet();
 
-		JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
+		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
 		jpaOutboundChannelAdapter.setProducesReply(false);
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
-		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
+		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		// explicitly setting the transaction name is something that can only be done programmatically
-		def.setName("SomeTxName");
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 
-		TransactionStatus status = transactionManager.getTransaction(def);
-		jpaOutboundChannelAdapter.handleMessage(message);
-		transactionManager.commit(status);
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				jpaOutboundChannelAdapter.handleMessage(message);
+			}
+
+		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
@@ -118,22 +119,24 @@ public class JpaOutboundChannelAdapterTests {
 		Assert.assertTrue(results1.size() == 3);
 
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
+		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
 		jpaExecutor.afterPropertiesSet();
 
-		JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
+		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
 		jpaOutboundChannelAdapter.setProducesReply(false);
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
-		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
+		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		// explicitly setting the transaction name is something that can only be done programmatically
-		def.setName("SomeTxName");
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 
-		TransactionStatus status = transactionManager.getTransaction(def);
-		jpaOutboundChannelAdapter.handleMessage(message);
-		transactionManager.commit(status);
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				jpaOutboundChannelAdapter.handleMessage(message);
+			}
+
+		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
@@ -153,28 +156,30 @@ public class JpaOutboundChannelAdapterTests {
 		JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
 		jpaExecutor.setPersistMode(PersistMode.PERSIST);
+		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
 		jpaExecutor.afterPropertiesSet();
 
-		JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
+		final JpaOutboundGateway jpaOutboundChannelAdapter = new JpaOutboundGateway(jpaExecutor);
 		jpaOutboundChannelAdapter.setProducesReply(false);
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 
 		Assert.assertNull(testStudent.getRollNumber());
 
-		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
+		final Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
 		jpaOutboundChannelAdapter.setBeanFactory(mock(BeanFactory.class));
 		jpaOutboundChannelAdapter.afterPropertiesSet();
 
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		// explicitly setting the transaction name is something that can only be done programmatically
-		def.setName("SomeTxName");
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 
-		TransactionStatus status = transactionManager.getTransaction(def);
-		jpaOutboundChannelAdapter.handleMessage(message);
-		transactionManager.commit(status);
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				jpaOutboundChannelAdapter.handleMessage(message);
+			}
+
+		});
 
 		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
