@@ -23,11 +23,10 @@ package org.springframework.integration.xmpp.core;
  */
 public final class XmppContextUtils {
 
+	public static final String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
 
 	private XmppContextUtils() {
 		super();
 	}
-
-	public static String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
 
 }

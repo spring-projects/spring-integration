@@ -31,7 +31,7 @@ import org.springframework.integration.mapping.HeaderMapper;
  */
 public abstract class JmsHeaderMapper implements HeaderMapper<Message> {
 
-	String CONTENT_TYPE_PROPERTY = "content_type";
+	protected final static String CONTENT_TYPE_PROPERTY = "content_type";
 
 }
 

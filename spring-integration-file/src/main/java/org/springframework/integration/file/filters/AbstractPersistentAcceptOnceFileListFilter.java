@@ -80,11 +80,9 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 				return true;
 			}
 			// same value in store
-			if (!isEqual(file, oldValue)) {
-				if (this.store.replace(key, oldValue, newValue)) {
-					flushIfNeeded();
-					return true;
-				}
+			if (!isEqual(file, oldValue) && this.store.replace(key, oldValue, newValue)) {
+				flushIfNeeded();
+				return true;
 			}
 			return false;
 		}
