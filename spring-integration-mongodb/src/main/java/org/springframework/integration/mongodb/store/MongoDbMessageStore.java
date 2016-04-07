@@ -19,13 +19,11 @@ package org.springframework.integration.mongodb.store;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.BeansException;
@@ -34,9 +32,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
@@ -64,6 +60,7 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
@@ -650,44 +647,27 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private final class DBObjectToMutableMessageConverter implements GenericConverter {
+	private final class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
 
-		private final Class<?> mutableMessageClass;
-
-		private DBObjectToMutableMessageConverter() {
-			try {
-				this.mutableMessageClass = ClassUtils.forName("org.springframework.integration.support.MutableMessage",
-						MongoDbMessageStore.this.classLoader);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalStateException(e);
-			}
-		}
 
 		@Override
-		public Set<ConvertiblePair> getConvertibleTypes() {
-			Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>();
-			convertiblePairs.add(new ConvertiblePair(DBObject.class, this.mutableMessageClass));
-			return convertiblePairs;
-		}
-
-		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-			DBObject dbObject = (DBObject) source;
+		public MutableMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
-					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) dbObject.get("headers"));
+					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
-			return MutableMessageBuilder.withPayload(MongoDbMessageStore.this.converter.extractPayload(dbObject))
+			Object payload = MongoDbMessageStore.this.converter.extractPayload(source);
+			return (MutableMessage<?>) MutableMessageBuilder.withPayload(payload)
 					.copyHeaders(headers)
 					.build();
 		}
+
 	}
 
-	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage> {
+	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage<?>> {
 
 		@Override
-		public AdviceMessage convert(DBObject source) {
+		public AdviceMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
@@ -698,16 +678,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				DBObject inputMessageObject = (DBObject) source.get("inputMessage");
 				Object inputMessageType = inputMessageObject.get("_class");
 				try {
-					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(), MongoDbMessageStore.this.classLoader);
-					inputMessage = (Message<?>) MongoDbMessageStore.this.converter.read(messageClass, inputMessageObject);
+					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(),
+							MongoDbMessageStore.this.classLoader);
+					inputMessage = (Message<?>) MongoDbMessageStore.this.converter.read(messageClass,
+							inputMessageObject);
 				}
 				catch (Exception e) {
 					throw new IllegalStateException("failed to load class: " + inputMessageType, e);
 				}
 			}
 
-			AdviceMessage message =
-					new AdviceMessage(MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
+			AdviceMessage<?> message = new AdviceMessage<Object>(
+					MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
 			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;

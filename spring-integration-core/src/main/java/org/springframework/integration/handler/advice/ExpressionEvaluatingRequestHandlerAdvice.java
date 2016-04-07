@@ -164,7 +164,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			evaluationFailed = true;
 		}
 		if (evalResult != null && this.successChannel != null) {
-			AdviceMessage resultMessage = new AdviceMessage(evalResult, message);
+			AdviceMessage<?> resultMessage = new AdviceMessage<Object>(evalResult, message);
 			this.messagingTemplate.send(this.successChannel, resultMessage);
 		}
 		if (evaluationFailed && this.propagateOnSuccessEvaluationFailures) {

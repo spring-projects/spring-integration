@@ -25,19 +25,31 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @SuppressWarnings("serial")
 public final class MessageHistory implements List<Properties>, Serializable {
+
+	private static final Log logger = LogFactory.getLog(MessageHistory.class);
 
 	public static final String HEADER_NAME = "history";
 
@@ -47,21 +59,21 @@ public final class MessageHistory implements List<Properties>, Serializable {
 
 	public static final String TIMESTAMP_PROPERTY = "timestamp";
 
-	private static final MessageBuilderFactory mesageBuilderFactory = new DefaultMessageBuilderFactory();
+	private static final MessageBuilderFactory MESSAGE_BUILDER_FACTORY = new DefaultMessageBuilderFactory();
 
 
 	private final List<Properties> components;
 
 
 	public static MessageHistory read(Message<?> message) {
-		return (message != null) ?
-				message.getHeaders().get(HEADER_NAME, MessageHistory.class) : null;
+		return message != null ? message.getHeaders().get(HEADER_NAME, MessageHistory.class) : null;
 	}
 
 	public static <T> Message<T> write(Message<T> message, NamedComponent component) {
-		return write(message, component, mesageBuilderFactory);
+		return write(message, component, MESSAGE_BUILDER_FACTORY);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> Message<T> write(Message<T> message, NamedComponent component,
 			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(message, "Message must not be null");
@@ -73,7 +85,38 @@ public final class MessageHistory implements List<Properties>, Serializable {
 					new ArrayList<Properties>(previousHistory) : new ArrayList<Properties>();
 			components.add(metadata);
 			MessageHistory history = new MessageHistory(components);
-			message = messageBuilderFactory.fromMessage(message).setHeader(HEADER_NAME, history).build();
+
+			if (message instanceof MutableMessage) {
+				message.getHeaders().put(HEADER_NAME, history);
+			}
+			else if (message instanceof ErrorMessage) {
+				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
+				headerAccessor.setHeader(HEADER_NAME, history);
+				Throwable payload = ((ErrorMessage) message).getPayload();
+				ErrorMessage errorMessage = new ErrorMessage(payload, headerAccessor.toMessageHeaders());
+				message = (Message<T>) errorMessage;
+			}
+			else if (message instanceof AdviceMessage) {
+				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
+				headerAccessor.setHeader(HEADER_NAME, history);
+				message = new AdviceMessage<T>(message.getPayload(), headerAccessor.toMessageHeaders(),
+						((AdviceMessage) message).getInputMessage());
+			}
+			else {
+				if (!(message instanceof GenericMessage) &&
+						(messageBuilderFactory instanceof DefaultMessageBuilderFactory ||
+								messageBuilderFactory instanceof MutableMessageBuilderFactory)) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("MessageHistory rebuilds the message and produces the result of the [" +
+								messageBuilderFactory + "], not an instance of the provided type [" +
+								message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
+								"to retain custom messages during MessageHistory tracking.");
+					}
+				}
+				message = messageBuilderFactory.fromMessage(message)
+						.setHeader(HEADER_NAME, history)
+						.build();
+			}
 		}
 		return message;
 	}
@@ -263,6 +306,7 @@ public final class MessageHistory implements List<Properties>, Serializable {
 		private void setTimestamp(String timestamp) {
 			this.setProperty(TIMESTAMP_PROPERTY, timestamp);
 		}
+
 	}
 
 }
