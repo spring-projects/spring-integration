@@ -151,37 +151,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="use-context-message-builder" type="xsd:string">
+			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						When 'true', use the configured message builder from the integration application context
-						(bean:"messageBuilderFactory", which defaults to a "DefaultMessageBuilderFactory").
-						When 'false', use an internal, optimized, message creation algorithm. Default 'false'.
+						An 'org.springframework.kafka.support.converter.MessageConverter' bean reference.
 					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="set-id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						When 'true', generate a unique ID header for each new message.
-						Default 'false'. Set to `true` if messages contain collections and you use a splitter
-						later in the flow, or a router where a message is sent to multiple recipients with
-						'apply-sequence' set to 'true'. In this cases, the message id is used as the correlation
-						id of the resulting messages. If 'use-context-message-builder' is 'true', this
-						setting may be ignored by the configured message builder factory (this is the case
-						for the 'DefaultMessageBuilderFactory', where an ID is always generated).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="set-timestamp" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						When 'true', generate a TIMESTAMP header for each new message.
-						Default 'false' (TIMESTAMP header is set to -1).
-						If 'use-context-message-builder' is 'true', this
-						setting may be ignored by the configured message builder factory (this is the case
-						for the 'DefaultMessageBuilderFactory', where a timestamp header is always generated).
-					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.kafka.support.converter.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
