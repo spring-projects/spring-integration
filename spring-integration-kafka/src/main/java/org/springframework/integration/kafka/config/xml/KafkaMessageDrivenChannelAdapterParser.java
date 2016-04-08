@@ -51,12 +51,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				"use-context-message-builder", "useMessageBuilderFactory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				"set-id", "generateMessageId");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				"set-timestamp", "generateTimestamp");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 
 		return builder.getBeanDefinition();
 	}

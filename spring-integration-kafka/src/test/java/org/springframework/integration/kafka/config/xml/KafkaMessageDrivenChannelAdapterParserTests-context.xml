@@ -20,7 +20,10 @@
 			phase="100"
 			send-timeout="5000"
 			channel="nullChannel"
+			message-converter="messageConverter"
 			error-channel="errorChannel" />
+
+	<bean id="messageConverter" class="org.springframework.kafka.support.converter.MessagingMessageConverter"/>
 
 	<bean id="container1" class="org.springframework.kafka.listener.KafkaMessageListenerContainer">
 		<constructor-arg>
