@@ -25,14 +25,19 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -43,6 +48,8 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("serial")
 public final class MessageHistory implements List<Properties>, Serializable {
+
+	private static final Log logger = LogFactory.getLog(MessageHistory.class);
 
 	public static final String HEADER_NAME = "history";
 
@@ -96,7 +103,19 @@ public final class MessageHistory implements List<Properties>, Serializable {
 						((AdviceMessage) message).getInputMessage());
 			}
 			else {
-				message = messageBuilderFactory.fromMessage(message).setHeader(HEADER_NAME, history).build();
+				if (!(message instanceof GenericMessage) &&
+						(messageBuilderFactory instanceof DefaultMessageBuilderFactory ||
+								messageBuilderFactory instanceof MutableMessageBuilderFactory)) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("MessageHistory rebuilds the message and produces the result of the [" +
+								messageBuilderFactory + "], not an instance of the provided type [" +
+								message.getClass() + "]. Consider to supply a custom MessageBuilderFactory " +
+								"to retain custom messages during MessageHistory tracking.");
+					}
+				}
+				message = messageBuilderFactory.fromMessage(message)
+						.setHeader(HEADER_NAME, history)
+						.build();
 			}
 		}
 		return message;
