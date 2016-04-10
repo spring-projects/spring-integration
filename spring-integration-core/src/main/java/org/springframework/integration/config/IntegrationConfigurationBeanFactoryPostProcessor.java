@@ -16,15 +16,14 @@
 
 package org.springframework.integration.config;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * {@link BeanFactoryPostProcessor} to apply external Integration infrastructure configurations
@@ -33,24 +32,23 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @since 4.0
  */
-public class IntegrationConfigurationBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+public class IntegrationConfigurationBeanFactoryPostProcessor implements BeanDefinitionRegistryPostProcessor {
+
+	@Override
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) registry;
+
+		List<IntegrationConfigurationInitializer> initializers =
+				SpringFactoriesLoader.loadFactories(IntegrationConfigurationInitializer.class,
+						beanFactory.getBeanClassLoader());
+
+		for (IntegrationConfigurationInitializer initializer : initializers) {
+			initializer.initialize(beanFactory);
+		}
+	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		Set<String> initializerNames = new HashSet<String>(
-				SpringFactoriesLoader.loadFactoryNames(IntegrationConfigurationInitializer.class, beanFactory.getBeanClassLoader()));
-
-		for (String initializerName : initializerNames) {
-			try {
-				Class<?> instanceClass = ClassUtils.forName(initializerName, beanFactory.getBeanClassLoader());
-				Assert.isAssignable(IntegrationConfigurationInitializer.class, instanceClass);
-				IntegrationConfigurationInitializer instance = (IntegrationConfigurationInitializer) instanceClass.newInstance();
-				instance.initialize(beanFactory);
-			}
-			catch (Exception e) {
-				throw new IllegalArgumentException("Cannot instantiate 'IntegrationConfigurationInitializer': " + initializerName, e);
-			}
-		}
 	}
 
 }

@@ -94,7 +94,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Test
 	public void testSendAndActivate() throws Exception {
 		input.send(new GenericMessage<String>("foo"));
-		Service.await(1000);
+		Service.await(10000);
 		assertEquals(1, Service.messages.size());
 	}
 
@@ -102,7 +102,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.fail = true;
 		input.send(new GenericMessage<String>("foo"));
-		Service.await(1000);
+		Service.await(10000);
 		assertThat(Service.messages.size(), Matchers.greaterThanOrEqualTo(1));
 		// After a rollback in the poller the message is still waiting to be delivered
 		// but unless we use a transaction here there is a chance that the queue will
@@ -252,6 +252,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	public static class Service {
+
 		private static boolean fail = false;
 
 		private static List<String> messages = new CopyOnWriteArrayList<String>();
@@ -278,6 +279,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 			}
 			return input;
 		}
+
 	}
 
 }

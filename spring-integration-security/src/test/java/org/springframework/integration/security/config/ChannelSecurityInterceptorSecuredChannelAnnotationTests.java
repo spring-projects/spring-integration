@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
@@ -208,6 +209,11 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	public static class ContextConfiguration {
 
 		@Bean
+		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+			return new PropertySourcesPlaceholderConfigurer();
+		}
+
+		@Bean
 		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
 		public SubscribableChannel securedChannel() {
 			return new DirectChannel();
@@ -225,7 +231,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		}
 
 		@Bean
-		@GlobalChannelInterceptor(patterns = {"queueChannel", "executorChannel"})
+		@GlobalChannelInterceptor(patterns = {"#{'queueChannel'}", "${security.channel:executorChannel}"})
 		public ChannelInterceptor securityContextPropagationInterceptor() {
 			return new SecurityContextPropagationChannelInterceptor();
 		}
