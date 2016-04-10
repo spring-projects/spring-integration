@@ -735,7 +735,7 @@ public class EnableIntegrationTests {
 
 
 		@Bean
-		@GlobalChannelInterceptor(patterns = "input")
+		@GlobalChannelInterceptor(patterns = "${global.wireTap.pattern}")
 		public WireTap wireTap() {
 			return new WireTap(this.wireTapChannel());
 		}
