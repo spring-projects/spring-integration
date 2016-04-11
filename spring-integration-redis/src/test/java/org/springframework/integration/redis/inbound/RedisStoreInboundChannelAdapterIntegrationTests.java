@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,13 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		//poll again, should get nothing since the collection was removed during synchronization
 		message = (Message<Integer>) redisChannel.receive(100);
 		assertNull(message);
+
+		int n = 0;
+		while (n++ < 100 && template.keys("bar").size() == 0) {
+			Thread.sleep(100);
+		}
+		assertTrue("Rename didn't occur", n < 100);
+
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
 
@@ -161,6 +168,13 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		//poll again, should get nothing since the collection was removed during synchronization
 		message = (Message<Integer>) redisChannel.receive(100);
 		assertNull(message);
+
+		int n = 0;
+		while (n++ < 100 && template.keys("bar").size() == 0) {
+			Thread.sleep(100);
+		}
+		assertTrue("Rename didn't occur", n < 100);
+
 		assertEquals(Long.valueOf(13), template.boundListOps("bar").size());
 		template.delete("bar");
 

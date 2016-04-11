@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -125,7 +126,14 @@ public class StompIntegrationTests {
 
 	@Autowired
 	@Qualifier("webSocketEvents")
-	private PollableChannel webSocketEvents;
+	private QueueChannel webSocketEvents;
+
+	@Before
+	public void setup() {
+		this.webSocketInputChannel.clear();
+		this.webSocketEvents.clear();
+	}
+
 
 	@Test
 	public void sendMessageToController() throws Exception {

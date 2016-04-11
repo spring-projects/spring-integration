@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.web.socket.CloseStatus;
@@ -64,7 +63,6 @@ public class ClientWebSocketContainerTests {
 	}
 
 	@Test
-	@Ignore("Ignored until fix for https://bz.apache.org/bugzilla/show_bug.cgi?id=58624")
 	public void testClientWebSocketContainer() throws Exception {
 		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
 		Map<String, Object> userProperties = new HashMap<String, Object>();
