@@ -77,7 +77,8 @@ To configure an outbound Web Service Gateway, use the "outbound-gateway" element
 ----
 
 NOTE: Notice that this example does not provide a 'reply-channel'.
-If the Web Service were to return a non-empty response, the Message containing that response would be sent to the reply channel provided in the request Message's REPLY_CHANNEL header, and if that were not available a channel resolution Exception would be thrown.
+If the Web Service were to return a non-empty response, the Message containing that response would be sent to the reply
+channel provided in the request Message's `REPLY_CHANNEL` header, and if that were not available a channel resolution Exception would be thrown.
 If you want to send the reply to another channel instead, then provide a 'reply-channel' attribute on the 'outbound-gateway' element.
 
 TIP: When invoking a Web Service that returns an empty response after using a String payload for the request Message, _no reply Message will be sent by default_.
@@ -152,7 +153,7 @@ _Controlling URI Encoding_
 
 By default, the URL string is encoded (see http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
 In some scenarios with a non-standard URI it is undesirable to perform the encoding.
-Since _version 4.1 _ the `<ws:outbound-gateway/>` provides an `encode-uri` attribute.
+Since _version 4.1_ the `<ws:outbound-gateway/>` provides an `encode-uri` attribute.
 To disable encoding the URL, this attribute should be set to `false` (by default it is `true`).
 If you wish to partially encode some of the URL, this can be achieved using an `expression` within a `<uri-variable/>`:
 [source,xml]
