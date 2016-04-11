@@ -142,7 +142,6 @@ subprojects { subproject ->
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.30"
-		smack3Version = '3.2.1'
 		smackVersion = '4.1.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.0.BUILD-SNAPSHOT'
 //		springCloudClusterVersion = '1.0.0.BUILD-SNAPSHOT'
@@ -154,7 +153,7 @@ subprojects { subproject ->
 		springSocialTwitterVersion = '1.1.1.RELEASE'
 		springRetryVersion = '1.1.2.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.0.BUILD-SNAPSHOT'
-		springWsVersion = '2.2.4.RELEASE'
+		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
 		zookeeperVersion = '3.4.7'
@@ -311,7 +310,9 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.springframework.retry:spring-retry:$springRetryVersion"
+		compile ("org.springframework.retry:spring-retry:$springRetryVersion") {
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 //		compile ("org.springframework.cloud:spring-cloud-cluster-core:$springCloudClusterVersion", optional)
 		compile ("io.projectreactor:reactor-stream:$reactorVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
@@ -668,12 +669,7 @@ project('spring-integration-ws') {
 			exclude group: 'org.springframework', module: 'spring-web'
 			exclude group: 'org.springframework', module: 'spring-webmvc'
 		}
-		compile("javax.xml.soap:saaj-api:$saajApiVersion") { dep ->
-			optional dep
-			exclude group: 'javax.activation', module: 'activation'
-		}
-		compile("com.sun.xml.messaging.saaj:saaj-impl:$saajImplVersion", optional)
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
+
 		testCompile "com.thoughtworks.xstream:xstream:$xstreamVersion"
 		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
@@ -682,8 +678,9 @@ project('spring-integration-ws') {
 			exclude group: 'org.springframework'
 		}
 		testCompile "javax.jms:jms-api:$jmsApiVersion"
-		testCompile "org.igniterealtime.smack:smack:$smack3Version"
-		testCompile "org.igniterealtime.smack:smackx:$smack3Version"
+		testCompile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+		testCompile "org.igniterealtime.smack:smack-java7:$smackVersion"
+		testCompile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testCompile "javax.mail:javax.mail-api:$javaxMailVersion"
 		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
 	}
