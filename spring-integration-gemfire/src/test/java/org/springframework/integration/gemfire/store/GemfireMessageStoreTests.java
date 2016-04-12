@@ -110,7 +110,7 @@ public class GemfireMessageStoreTests {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
+			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);

@@ -36,6 +36,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @author Enrique Rodríguez
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
@@ -55,9 +56,9 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	}
 
 	/**
-	 * Flag that determines if partial sequences are allowed. If true then as soon as enough messages arrive that can be
-	 * ordered they will be released, provided they all have sequence numbers greater than those already released.
-	 *
+	 * Flag that determines if partial sequences are allowed. If true then as soon as
+	 * enough messages arrive that can be ordered they will be released, provided they
+	 * all have sequence numbers greater than those already released.
 	 * @param releasePartialSequences true when partial sequences should be released.
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
@@ -69,13 +70,12 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 		boolean canRelease = false;
 
-		Collection<Message<?>> messages = messageGroup.getMessages();
-
-		if (this.releasePartialSequences && !messages.isEmpty()) {
-
+		int size = messageGroup.size();
+		if (this.releasePartialSequences && size > 0) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
+			Collection<Message<?>> messages = messageGroup.getMessages();
 			Message<?> minMessage = Collections.min(messages, this.comparator);
 
 			int nextSequenceNumber = new IntegrationMessageHeaderAccessor(minMessage).getSequenceNumber();
@@ -86,13 +86,11 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			}
 		}
 		else {
-			int size = messages.size();
-
 			if (size == 0) {
 				canRelease = true;
 			}
 			else {
-				int sequenceSize = new IntegrationMessageHeaderAccessor(messageGroup.getOne()).getSequenceSize();
+				int sequenceSize = messageGroup.getSequenceSize();
 				// If there is no sequence then it must be incomplete....
 				if (sequenceSize == size) {
 					canRelease = true;

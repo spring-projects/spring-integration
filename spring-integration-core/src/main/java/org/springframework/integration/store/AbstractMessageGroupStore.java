@@ -57,6 +57,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private volatile boolean messageBuilderFactorySet;
 
+	private volatile boolean lazyLoadMessageGroups = true;
+
 	public AbstractMessageGroupStore() {
 		super();
 	}
@@ -98,11 +100,21 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 * the {@link MessageGroup} was created. If you want the timeout to be based on the time
 	 * the {@link MessageGroup} was idling (e.g., inactive from the last update) invoke this method with 'true'.
 	 * Default is 'false'.
-	 *
 	 * @param timeoutOnIdle The boolean.
 	 */
 	public void setTimeoutOnIdle(boolean timeoutOnIdle) {
 		this.timeoutOnIdle = timeoutOnIdle;
+	}
+
+	/**
+	 * Specify if the result of the {@link #getMessageGroup(Object)} should be wrapped
+	 * to the {@link PersistentMessageGroup} - a lazy-load proxy for messages in group
+	 * Defaults to {@code true}.
+	 * @param lazyLoadMessageGroups the {@code boolean} flag to use.
+	 * @since 4.3
+	 */
+	public void setLazyLoadMessageGroups(boolean lazyLoadMessageGroups) {
+		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
 	}
 
 	@Override
@@ -119,7 +131,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 			long timestamp = group.getTimestamp();
 			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
-			    timestamp = group.getLastModified();
+				timestamp = group.getLastModified();
 			}
 
 			if (timestamp <= threshold) {
@@ -175,8 +187,25 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		addMessagesToGroup(groupId, message);
+		return getMessageGroup(groupId);
+	}
+
+	protected MessageGroup proxyMessageGroupForLazyLoad(MessageGroup original) {
+		if (this.lazyLoadMessageGroups) {
+			return new PersistentMessageGroup(this, original);
+		}
+		else {
+			Object groupId = original.getGroupId();
+			Collection<Message<?>> messagesForGroup = getMessagesForGroup(groupId);
+			MessageGroup messageGroup = getMessageGroupFactory().create(messagesForGroup, groupId,
+					original.getTimestamp(), original.isComplete());
+			messageGroup.setLastModified(original.getLastModified());
+			messageGroup.setLastReleasedMessageSequenceNumber(original.getLastReleasedMessageSequenceNumber());
+			return messageGroup;
+		}
+
 	}
 
 	private void expire(MessageGroup group) {

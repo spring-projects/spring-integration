@@ -30,15 +30,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +57,7 @@ import org.springframework.integration.store.MessageGroupStore.MessageGroupCallb
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,9 +77,8 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
+@Transactional
 public class JdbcMessageStoreTests {
-
-	private static final Log LOG = LogFactory.getLog(JdbcMessageStoreTests.class);
 
 	@Autowired
 	private DataSource dataSource;
@@ -89,14 +91,12 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testGetNonExistent() throws Exception {
 		Message<?> result = messageStore.getMessage(UUID.randomUUID());
 		assertNull(result);
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -109,7 +109,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testWithMessageHistory() throws Exception {
 
 		Message<?> message = new GenericMessage<String>("Hello");
@@ -131,7 +130,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testSize() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		messageStore.addMessage(message);
@@ -139,7 +137,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
 		messageStore.setSerializer(new Serializer<Message<?>>() {
@@ -165,7 +162,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndGetWithDifferentRegion() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -175,17 +171,16 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndUpdate() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
 		message = messageStore.addMessage(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.addMessage(message);
-		assertEquals("Y", new IntegrationMessageHeaderAccessor(messageStore.getMessage(message.getHeaders().getId())).getCorrelationId());
+		message = messageStore.getMessage(message.getHeaders().getId());
+		assertEquals("Y", new IntegrationMessageHeaderAccessor(message).getCorrelationId());
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndUpdateAlreadySaved() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
@@ -194,7 +189,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndUpdateAlreadySavedAndCopied() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -206,7 +200,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndUpdateWithChange() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -218,7 +211,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndRemoveMessageGroup() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
@@ -226,38 +218,34 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndGetMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		long now = System.currentTimeMillis();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(1, group.size());
 		assertTrue("Timestamp too early: " + group.getTimestamp() + "<" + now, group.getTimestamp() >= now);
 	}
 
 	@Test
-	@Transactional
 	public void testAddAndRemoveMessageFromMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.removeMessagesFromGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 
 	@Test
-	@Transactional
-	@DirtiesContext
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
 		String groupId = "X";
 		messageStore.setRemoveBatchSize(10);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
+			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);
@@ -268,29 +256,27 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testRemoveMessageGroup() throws Exception {
-		JdbcTemplate template = new JdbcTemplate(dataSource);
+		JdbcTemplate template = new JdbcTemplate(this.dataSource);
 		template.afterPropertiesSet();
 		String groupId = "X";
 
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.removeMessageGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 
 		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
 		assertTrue(template.queryForList(
-				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '"  + uuidGroupId + "'").size() == 0);
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = ?", uuidGroupId).size() == 0);
 	}
 
 	@Test
-	@Transactional
 	public void testCompleteMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.completeGroup(groupId);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertTrue(group.isComplete());
@@ -298,112 +284,148 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testUpdateLastReleasedSequence() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.setLastReleasedSequenceNumberForGroup(groupId, 5);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(5, group.getLastReleasedMessageSequenceNumber());
 	}
 
 	@Test
-	@Transactional
 	public void testMessageGroupCount() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		assertEquals(1, messageStore.getMessageGroupCount());
 	}
 
 	@Test
-	@Transactional
 	public void testMessageGroupSizes() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		assertEquals(1, messageStore.getMessageCountForAllMessageGroups());
 	}
 
 	@Test
-	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
 
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		MessageGroup group = messageStore.getMessageGroup(groupId);
+		this.messageStore.addMessagesToGroup(groupId,
+				MessageBuilder.withPayload("foo").setCorrelationId(groupId).build(),
+				MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		MessageGroup group = this.messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
-		assertEquals("foo", messageStore.pollMessageFromGroup(groupId).getPayload());
-		assertEquals("bar", messageStore.pollMessageFromGroup(groupId).getPayload());
+		assertEquals("foo", this.messageStore.pollMessageFromGroup(groupId).getPayload());
+		assertEquals("bar", this.messageStore.pollMessageFromGroup(groupId).getPayload());
 	}
 
 	@Test
-	@Transactional
 	public void testExpireMessageGroupOnCreateOnly() throws Exception {
-		String groupId = "X";
+		final String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
+		final CountDownLatch groupRemovalLatch = new CountDownLatch(1);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+
 			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
+
 		});
-		Thread.sleep(1000);
+
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(1, group.size());
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		Thread.sleep(2001);
+
+		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+
+		JdbcTemplate template = new JdbcTemplate(this.dataSource);
+		template.afterPropertiesSet();
+
+		template.update("UPDATE INT_MESSAGE_GROUP set CREATED_DATE=? where GROUP_KEY=? and REGION=?",
+				new PreparedStatementSetter() {
+
+					@Override
+					public void setValues(PreparedStatement ps) throws SQLException {
+						ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 10000));
+						ps.setString(2, UUIDConverter.getUUID(groupId).toString());
+						ps.setString(3, "DEFAULT");
+					}
+
+				});
+
 		messageStore.expireMessageGroups(2000);
+
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 
 	@Test
-	@Transactional
 	public void testExpireMessageGroupOnIdleOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.setTimeoutOnIdle(true);
-		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessagesToGroup(groupId, message);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+
 			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
+
 		});
-		Thread.sleep(1000);
+
+		JdbcTemplate template = new JdbcTemplate(this.dataSource);
+		template.afterPropertiesSet();
+
+		updateMessageGroup(template, groupId, 1000);
+
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(1, group.size());
-		Thread.sleep(2000);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+
+		updateMessageGroup(template, groupId, 2000);
+
+		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
-		Thread.sleep(2000);
+
+		updateMessageGroup(template, groupId, 2000);
+
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 
+	private void updateMessageGroup(JdbcTemplate template, final String groupId, final long timeout) {
+		template.update("UPDATE INT_MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?",
+				new PreparedStatementSetter() {
+
+					@Override
+					public void setValues(PreparedStatement ps) throws SQLException {
+						ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - timeout));
+						ps.setString(2, UUIDConverter.getUUID(groupId).toString());
+						ps.setString(3, "DEFAULT");
+					}
+
+				});
+
+	}
+
 	@Test
-	@Transactional
 	public void testMessagePollingFromTheGroup() throws Exception {
 		String groupId = "X";
 
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
+		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
 
-		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
+		messageStore.addMessagesToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build(),
+				MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
 
 		MessageGroup group = messageStore.getMessageGroup("X");
 		assertEquals(3, group.size());
@@ -424,7 +446,6 @@ public class JdbcMessageStoreTests {
 	}
 
 	@Test
-	@Transactional
 	public void testSameMessageToMultipleGroups() throws Exception {
 
 		final String group1Id = "group1";
@@ -450,16 +471,12 @@ public class JdbcMessageStoreTests {
 		assertNotNull(messageFromGroup1);
 		assertNotNull(messageFromGroup2);
 
-		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
-		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
-
-		assertEquals(Integer.valueOf(1), messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(1, messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(2, messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 
 	@Test
-	@Transactional
 	public void testSameMessageAndGroupToMultipleRegions() throws Exception {
 
 		final String groupId = "myGroup";
@@ -492,16 +509,12 @@ public class JdbcMessageStoreTests {
 		assertNotNull(messageFromRegion1);
 		assertNotNull(messageFromRegion2);
 
-		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
-		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
-
-		assertEquals(Integer.valueOf(1), messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(1, messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(2, messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 
 	@Test
-	@Transactional
 	public void testCompletedNotExpiredGroupINT3037() throws Exception {
 		/*
 		 * based on the aggregator scenario as follows;
@@ -518,11 +531,18 @@ public class JdbcMessageStoreTests {
 		//init
 		String groupId = "group";
 		//build the messages
-		Message<?> oneOfTwo = MessageBuilder.withPayload("hello").setSequenceNumber(1).setSequenceSize(2).setCorrelationId(groupId).build();
-		Message<?> twoOfTwo = MessageBuilder.withPayload("world").setSequenceNumber(2).setSequenceSize(2).setCorrelationId(groupId).build();
+		Message<?> oneOfTwo = MessageBuilder.withPayload("hello")
+				.setSequenceNumber(1)
+				.setSequenceSize(2)
+				.setCorrelationId(groupId)
+				.build();
+		Message<?> twoOfTwo = MessageBuilder.withPayload("world")
+				.setSequenceNumber(2)
+				.setSequenceSize(2)
+				.setCorrelationId(groupId)
+				.build();
 		//add to the messageStore
-		messageStore.addMessageToGroup(groupId, oneOfTwo);
-		messageStore.addMessageToGroup(groupId, twoOfTwo);
+		messageStore.addMessagesToGroup(groupId, oneOfTwo, twoOfTwo);
 		//check that 2 messages are there
 		assertTrue(messageStore.getMessageGroupCount() == 1);
 		assertTrue(messageStore.getMessageCount() == 2);

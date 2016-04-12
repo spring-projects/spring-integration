@@ -17,7 +17,9 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,8 +51,9 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.integration.store.AbstractBatchingMessageGroupStore;
+import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -66,7 +69,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  */
 
-public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBatchingMessageGroupStore
+public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		implements BasicMessageGroupStore, InitializingBean, ApplicationContextAware {
 
 	public final static String SEQUENCE_NAME = "messagesSequence";
@@ -217,6 +220,47 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractBa
 
 	protected static Query groupIdQuery(Object groupId) {
 		return Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).is(groupId));
+	}
+
+	@Override
+	@Deprecated
+	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public void removeMessagesFromGroup(Object key, Collection<Message<?>> messages) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public Iterator<MessageGroup> iterator() {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public void completeGroup(Object groupId) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
 	}
 
 	/**
