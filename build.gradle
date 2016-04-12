@@ -658,8 +658,8 @@ project('spring-integration-ws') {
 	description = 'Spring Integration Web Services Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-oxm:$springVersion"
-		compile "org.springframework:spring-webmvc:$springVersion"
+		compile ("org.springframework:spring-oxm:$springVersion", optional)
+		compile ("org.springframework:spring-webmvc:$springVersion", optional)
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
 			exclude group: 'org.springframework', module: 'spring-aop'
 			exclude group: 'org.springframework', module: 'spring-beans'
