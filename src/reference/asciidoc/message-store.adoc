@@ -94,3 +94,40 @@ This defaults to a `SimpleMessageGroupFactory` which produces `SimpleMessageGrou
 (`LinkedHashSet`) internal collection.
 Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
 previous `SimpleMessageGroup` behavior.
+Also the `PERSISTENT` option is available. See the next section for more information.
+
+[[lazy-load-message-group]]
+==== Persistence MessageGroupStore and Lazy-Load
+
+Starting with _version 4.3_, all persistence `MessageGroupStore` s retrieve `MessageGroup` s and their `messages`
+from the store with the _Lazy-Load_ manner.
+In most cases it is useful for the Correlation `MessageHandler` s (<<aggregator>> and <<resequencer>>),
+when it would be an overhead to load entire `MessageGroup` from the store on each correlation operation.
+
+To switch off the lazy-load behavior the `AbstractMessageGroupStore.setLazyLoadMessageGroups(false)` option
+can be used from the configuration.
+
+Our performance tests for _lazy-load_ on MongoDB `MessageStore` (<<mongodb-message-store>>) and
+`<aggregator>` (<<aggregator>>)
+with custom `release-strategy` like:
+
+[source,xml]
+----
+<int:aggregator input-channel="inputChannel"
+                output-channel="outputChannel"
+                message-store="mongoStore"
+                release-strategy-expression="size() == 1000"/>
+
+----
+
+demonstrate this results for 1000 simple messages:
+
+....
+StopWatch 'Lazy-Load Performance': running time (millis) = 38918
+-----------------------------------------
+ms     %     Task name
+-----------------------------------------
+02652  007%  Lazy-Load
+36266  093%  Eager
+....
+

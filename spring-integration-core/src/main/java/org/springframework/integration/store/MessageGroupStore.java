@@ -29,6 +29,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  *
@@ -36,9 +37,8 @@ import org.springframework.messaging.Message;
 public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
-	 * Optional attribute giving the number of messages in the store over all groups. Implementations may decline to
-	 * respond by throwing an exception.
-	 *
+	 * Optional attribute giving the number of messages in the store over all groups.
+	 * Implementations may decline to respond by throwing an exception.
 	 * @return the number of messages
 	 * @throws UnsupportedOperationException if not implemented
 	 */
@@ -46,9 +46,8 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	int getMessageCountForAllMessageGroups();
 
 	/**
-	 * Optional attribute giving the number of  message groups. Implementations may decline
-	 * to respond by throwing an exception.
-	 *
+	 * Optional attribute giving the number of  message groups.
+	 * Implementations may decline to respond by throwing an exception.
 	 * @return the number message groups
 	 * @throws UnsupportedOperationException if not implemented
 	 */
@@ -56,9 +55,8 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	int getMessageGroupCount();
 
 	/**
-	 * Persist the deletion of a single message from the group. The group is modified to reflect that 'messageToRemove' is
-	 * no longer present in the group.
-	 *
+	 * Persist the deletion of a single message from the group.
+	 * The group is modified to reflect that 'messageToRemove' is no longer present in the group.
 	 * @param key The groupId for the group containing the message.
 	 * @param messageToRemove The message to be removed.
 	 * @return The message Group.
@@ -69,27 +67,22 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
 	 * Persist the deletion of messages from the group.
-	 *
 	 * @param key The groupId for the group containing the message(s).
 	 * @param messages The messages to be removed.
-	 *
 	 * @since 4.2
 	 */
 	void removeMessagesFromGroup(Object key, Collection<Message<?>> messages);
 
 	/**
 	 * Persist the deletion of messages from the group.
-	 *
 	 * @param key The groupId for the group containing the message(s).
 	 * @param messages The messages to be removed.
-	 *
 	 * @since 4.2
 	 */
 	void removeMessagesFromGroup(Object key, Message<?>... messages);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
-	 *
 	 * @param callback A callback to execute when a message group is cleaned up.
 	 */
 	void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
@@ -99,10 +92,8 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * each of the registered callbacks on them in turn. For example: call with a timeout of 100 to expire all groups
 	 * that were created more than 100 milliseconds ago, and are not yet complete. Use a timeout of 0 (or negative to be
 	 * on the safe side) to expire all message groups.
-	 *
 	 * @param timeout the timeout threshold to use
 	 * @return the number of message groups expired
-	 *
 	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
 	@ManagedOperation
@@ -110,7 +101,6 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 
 	/**
 	 * Allows you to set the sequence number of the last released Message. Used for Resequencing use cases
-	 *
 	 * @param groupId The group identifier.
 	 * @param sequenceNumber The sequence number.
 	 */
@@ -125,7 +115,6 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means
 	 * that this group should not be allowing any more mutating operation to be performed on it.
 	 * For example any attempt to add/remove new Message form the group should not be allowed.
-	 *
 	 * @param groupId The group identifier.
 	 */
 	void completeGroup(Object groupId);
@@ -140,12 +129,29 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	MessageGroupMetadata getGroupMetadata(Object groupId);
 
 	/**
-	 * Return the one {@link org.springframework.messaging.Message} from {@link org.springframework.integration.store.MessageGroup}.
+	 * Return the one {@link Message} from {@link MessageGroup}.
 	 * @param groupId The group identifier.
-	 * @return the {@link org.springframework.messaging.Message}.
+	 * @return the {@link Message}.
 	 * @since 4.0
 	 */
 	Message<?> getOneMessageFromGroup(Object groupId);
+
+	/**
+	 * Store messages with an association to a group id.
+	 * This can be used to group messages together.
+	 * @param groupId The group id to store messages under.
+	 * @param messages The messages to add.
+	 * @since 4.3
+	 */
+	void addMessagesToGroup(Object groupId, Message<?>... messages);
+
+	/**
+	 * Retrieve messages for the provided group id.
+	 * @param groupId The group id to retrieve messages for.
+	 * @return the messages for group.
+	 * @since 4.3
+	 */
+	Collection<Message<?>> getMessagesForGroup(Object groupId);
 
 	/**
 	 * Invoked when a MessageGroupStore expires a group.

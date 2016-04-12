@@ -34,6 +34,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessageStoreTests {
 
@@ -80,7 +81,7 @@ public class MessageStoreTests {
 		assertEquals(1, store.getMessageCountForAllMessageGroups());
 	}
 
-	private static class TestMessageStore extends AbstractMessageGroupStore {
+	private static class TestMessageStore extends SimpleMessageStore  {
 
 		@SuppressWarnings("unchecked")
 		MessageGroup testMessages =
@@ -95,7 +96,7 @@ public class MessageStoreTests {
 		}
 
 		@Override
-		public MessageGroup addMessageToGroup(Object correlationKey, Message<?> message) {
+		public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 			throw new UnsupportedOperationException();
 		}
 

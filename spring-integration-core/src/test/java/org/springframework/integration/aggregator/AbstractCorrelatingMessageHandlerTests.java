@@ -293,9 +293,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
 		GenericMessage<String> secondMessage = new GenericMessage<String>("bar");
-		mgs.addMessageToGroup("foo", secondMessage);
+		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"), secondMessage);
 		MessageGroup group = mgs.getMessageGroup("foo");
 		// remove a message
 		mgs.removeMessagesFromGroup("foo", secondMessage);
@@ -324,7 +323,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
@@ -357,7 +356,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
@@ -393,7 +392,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);

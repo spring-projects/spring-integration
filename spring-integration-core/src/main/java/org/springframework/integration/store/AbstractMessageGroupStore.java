@@ -49,6 +49,9 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 
+	private final MessageGroupFactory persistentMessageGroupFactory =
+			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
+
 	private volatile boolean timeoutOnIdle;
 
 	private volatile BeanFactory beanFactory;
@@ -56,6 +59,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile boolean messageBuilderFactorySet;
+
+	private boolean lazyLoadMessageGroups = true;
 
 	public AbstractMessageGroupStore() {
 		super();
@@ -75,6 +80,16 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;
+	}
+
+	@Override
+	protected MessageGroupFactory getMessageGroupFactory() {
+		if (this.lazyLoadMessageGroups) {
+			return this.persistentMessageGroupFactory;
+		}
+		else {
+			return super.getMessageGroupFactory();
+		}
 	}
 
 	/**
@@ -98,11 +113,22 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 * the {@link MessageGroup} was created. If you want the timeout to be based on the time
 	 * the {@link MessageGroup} was idling (e.g., inactive from the last update) invoke this method with 'true'.
 	 * Default is 'false'.
-	 *
 	 * @param timeoutOnIdle The boolean.
 	 */
 	public void setTimeoutOnIdle(boolean timeoutOnIdle) {
 		this.timeoutOnIdle = timeoutOnIdle;
+	}
+
+	/**
+	 * Specify if the result of the {@link #getMessageGroup(Object)} should be wrapped
+	 * to the {@link PersistentMessageGroup} - a lazy-load proxy for messages in group
+	 * Defaults to {@code true}.
+	 * <p> The target logic is based on the {@link SimpleMessageGroupFactory.GroupType#PERSISTENT}.
+	 * @param lazyLoadMessageGroups the {@code boolean} flag to use.
+	 * @since 4.3
+	 */
+	public void setLazyLoadMessageGroups(boolean lazyLoadMessageGroups) {
+		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
 	}
 
 	@Override
@@ -119,7 +145,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 			long timestamp = group.getTimestamp();
 			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
-			    timestamp = group.getLastModified();
+				timestamp = group.getLastModified();
 			}
 
 			if (timestamp <= threshold) {
@@ -175,8 +201,9 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	}
 
 	@Override
-	public Message<?> getOneMessageFromGroup(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		addMessagesToGroup(groupId, message);
+		return getMessageGroup(groupId);
 	}
 
 	private void expire(MessageGroup group) {

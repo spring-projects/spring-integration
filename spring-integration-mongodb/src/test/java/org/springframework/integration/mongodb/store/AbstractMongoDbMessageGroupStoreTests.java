@@ -16,10 +16,12 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -42,7 +44,6 @@ import org.springframework.integration.store.AbstractBatchingMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -63,10 +64,11 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	public void testNonExistingEmptyMessageGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = getMessageGroupStore();
+		store.addMessagesToGroup(1, new GenericMessage<Object>("foo"));
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
-		assertTrue(messageGroup instanceof SimpleMessageGroup);
-		assertEquals(0, messageGroup.size());
+		assertThat(messageGroup.getClass().getName(), containsString("PersistentMessageGroup"));
+		assertEquals(1, messageGroup.size());
 	}
 
 	@Test
@@ -78,7 +80,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
-		store.addMessageToGroup(1, messageA);
+		store.addMessagesToGroup(1, messageA);
 		messageGroup = store.addMessageToGroup(1, messageB);
 		assertNotNull(messageGroup);
 		assertEquals(2, messageGroup.size());
@@ -101,7 +103,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		Message<?> messageA = MessageBuilder.withPayload("A").setHeader("foo", uuidA).build();
 		UUID uuidB = UUID.randomUUID();
 		Message<?> messageB = MessageBuilder.withPayload("B").setHeader("foo", uuidB).build();
-		store.addMessageToGroup(id, messageA);
+		store.addMessagesToGroup(id, messageA);
 		messageGroup = store.addMessageToGroup(id, messageB);
 		assertNotNull(messageGroup);
 		assertEquals(2, messageGroup.size());
@@ -122,8 +124,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
-		store.addMessageToGroup(1, messageA);
-		store.addMessageToGroup(1, messageB);
+		store.addMessagesToGroup(1, messageA, messageB);
 		assertEquals(2, store.messageGroupSize(1));
 	}
 
@@ -134,9 +135,9 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
-		store.addMessageToGroup(1, messageA);
+		store.addMessagesToGroup(1, messageA);
 		Thread.sleep(10);
-		store.addMessageToGroup(1, messageB);
+		store.addMessagesToGroup(1, messageB);
 		assertEquals(2, store.messageGroupSize(1));
 		Message<?> out = store.pollMessageFromGroup(1);
 		assertNotNull(out);
@@ -153,10 +154,10 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		Message<?> messageA = new GenericMessage<String>("A");
-		store.addMessageToGroup(1, messageA);
-		store.addMessageToGroup(2, messageA);
-		store.addMessageToGroup(3, messageA);
-		store.addMessageToGroup(4, messageA);
+		store.addMessagesToGroup(1, messageA);
+		store.addMessagesToGroup(2, messageA);
+		store.addMessagesToGroup(3, messageA);
+		store.addMessagesToGroup(4, messageA);
 		assertEquals(1, store.messageGroupSize(1));
 		assertEquals(1, store.messageGroupSize(2));
 		assertEquals(1, store.messageGroupSize(3));
@@ -190,10 +191,10 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store = this.getMessageGroupStore();
 
 		Message<?> messageA = new GenericMessage<String>("A");
-		store.addMessageToGroup(1, messageA);
-		store.addMessageToGroup(2, messageA);
-		store.addMessageToGroup(3, messageA);
-		store.addMessageToGroup(4, messageA);
+		store.addMessagesToGroup(1, messageA);
+		store.addMessagesToGroup(2, messageA);
+		store.addMessagesToGroup(3, messageA);
+		store.addMessagesToGroup(4, messageA);
 		assertEquals(1, store.messageGroupSize(1));
 		assertEquals(1, store.messageGroupSize(2));
 		assertEquals(1, store.messageGroupSize(3));
@@ -258,7 +259,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
-		store.addMessageToGroup(1, messageA);
+		store.addMessagesToGroup(1, messageA);
 		messageGroup = store.addMessageToGroup(1, messageB);
 		assertNotNull(messageGroup);
 		assertEquals(2, messageGroup.size());
@@ -306,7 +307,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
 		Message<?> message = new GenericMessage<String>("Hello");
-		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.addMessagesToGroup(messageGroup.getGroupId(), message);
 		store.completeGroup(messageGroup.getGroupId());
 		messageGroup = store.getMessageGroup(1);
 		assertTrue(messageGroup.isComplete());
@@ -321,7 +322,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
 		Message<?> message = new GenericMessage<String>("Hello");
-		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.addMessagesToGroup(messageGroup.getGroupId(), message);
 		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
@@ -335,8 +336,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
-		store.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store.addMessageToGroup(1, message);
+		store.addMessagesToGroup(1, new GenericMessage<String>("1"), message);
 		messageGroup = store.addMessageToGroup(1, new GenericMessage<String>("3"));
 		assertNotNull(messageGroup);
 		assertEquals(3, messageGroup.size());
@@ -355,9 +355,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store2 = this.getMessageGroupStore();
 
 		Message<?> message = new GenericMessage<String>("1");
-		store1.addMessageToGroup(1, message);
-		store2.addMessageToGroup(1, new GenericMessage<String>("2"));
-		store1.addMessageToGroup(1, new GenericMessage<String>("3"));
+		store1.addMessagesToGroup(1, message, new GenericMessage<String>("2"), new GenericMessage<String>("3"));
 
 		MessageGroupStore store3 = this.getMessageGroupStore();
 
@@ -380,9 +378,9 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store2 = this.getMessageGroupStore();
 
 		Message<?> message = new GenericMessage<String>("1");
-		store2.addMessageToGroup(1, message);
-		store1.addMessageToGroup(2, new GenericMessage<String>("2"));
-		store2.addMessageToGroup(3, new GenericMessage<String>("3"));
+		store2.addMessagesToGroup(1, message);
+		store1.addMessagesToGroup(2, new GenericMessage<String>("2"));
+		store2.addMessagesToGroup(3, new GenericMessage<String>("3"));
 
 		MessageGroupStore store3 = this.getMessageGroupStore();
 		Iterator<MessageGroup> iterator = store3.iterator();
@@ -415,7 +413,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
+			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);
@@ -477,20 +475,41 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
 
-		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1).build();
-		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1).build();
+		Message<?> m1 = MessageBuilder.withPayload("1")
+				.setSequenceNumber(1)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
+		Message<?> m2 = MessageBuilder.withPayload("2")
+				.setSequenceNumber(2)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
 		input.send(m1);
 		assertNull(output.receive(1000));
 		input.send(m2);
 		assertNull(output.receive(1000));
+
+		for (int i = 3; i < 10; i++) {
+			input.send(MessageBuilder.withPayload("" + i)
+					.setSequenceNumber(i)
+					.setSequenceSize(10)
+					.setCorrelationId(1)
+					.build());
+		}
+
 		context.close();
 
 		context = new ClassPathXmlApplicationContext(config, this.getClass());
 		input = context.getBean("inputChannel", MessageChannel.class);
 		output = context.getBean("outputChannel", QueueChannel.class);
 
-		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
-		input.send(m3);
+		Message<?> m10 = MessageBuilder.withPayload("10")
+				.setSequenceNumber(10)
+				.setSequenceSize(10)
+				.setCorrelationId(1)
+				.build();
+		input.send(m10);
 		assertNotNull(output.receive(2000));
 		context.close();
 	}
@@ -511,7 +530,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
-		store.addMessageToGroup(1, message);
+		store.addMessagesToGroup(1, message);
 		MessageGroup group = store.getMessageGroup(1);
 		assertNotNull(group);
 		Collection<Message<?>> messages = group.getMessages();
