@@ -40,6 +40,14 @@ If you have such configuration, simply remove the `reply-channel`.
 An option to make the Service Asynchronous has been added.
 See <<async-service-activator>> for more information.
 
+===== Messaging Annotation Support changes
+
+The Messaging Annotation Support doesn't require any more `@MessageEndpoint` (or any other `@Component`) annotation
+declaration on the class level.
+To restore the previous behaviour specify the `spring.integration.messagingAnnotations.require.componentAnnotation` of
+`spring.integration.properties` as `true`.
+See <<global-properties>> and <<annotations>> for more information.
+
 ==== Mail Changes
 
 The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been

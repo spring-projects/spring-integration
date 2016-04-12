@@ -193,15 +193,17 @@ Certain global framework properties can be overridden by providing a properties 
 
 The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core`
 jar.
-You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here], but here are the current default values:
+You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here],
+but here are the current default values:
 
 [source]
 ----
-spring.integraton.channels.autoCreate=true <1>
-spring.integraton.channels.maxUnicastSubscribers=0x7fffffff <2>
-spring.integraton.channels.maxBroadcastSubscribers=0x7fffffff <3>
-spring.integraton.taskScheduler.poolSize=10 <4>
-spring.integraton.messagingTemplate.throwExceptionOnLateReply=false <5>
+spring.integration.channels.autoCreate=true <1>
+spring.integration.channels.maxUnicastSubscribers=0x7fffffff <2>
+spring.integration.channels.maxBroadcastSubscribers=0x7fffffff <3>
+spring.integration.taskScheduler.poolSize=10 <4>
+spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
+spring.integration.messagingAnnotations.require.componentAnnotation=false <6>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -217,8 +219,11 @@ This can be overridden on individual channels with the `max-subscribers` attribu
 
 <4> The number of threads available in the default `taskScheduler` bean; see <<namespace-taskscheduler>>.
 
-<5> When true, messages that arrive at a gateway reply channel will throw an exception, when the gateway is not
+<5> When `true`, messages that arrive at a gateway reply channel will throw an exception, when the gateway is not
 expecting a reply - because the sending thread has timed out, or already received a reply.
+
+<5> When `true`, the Messaging Annotation Support (<<annotations>>) requires a declaration of the
+`@MessageEndpoint` (or any other `@Component`) annotation on the class level.
 
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.

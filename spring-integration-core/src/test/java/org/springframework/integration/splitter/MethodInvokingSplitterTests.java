@@ -511,9 +511,9 @@ public class MethodInvokingSplitterTests {
 			return messages;
 		}
 
-		public List<AbstractIntegrationMessageBuilder> messageToMessageBuilderList(Message<?> input) {
+		public List<AbstractIntegrationMessageBuilder<String>> messageToMessageBuilderList(Message<?> input) {
 			String[] strings = input.getPayload().toString().split("\\.");
-			List<AbstractIntegrationMessageBuilder> messageBuilders = new ArrayList<>();
+			List<AbstractIntegrationMessageBuilder<String>> messageBuilders = new ArrayList<>();
 			for (String s : strings) {
 				MessageBuilder<String> builder = MessageBuilder.withPayload(s)
 						.setHeader("foo", "bar");
