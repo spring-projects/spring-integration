@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -363,8 +363,11 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 */
 	private void registerMessagingAnnotationPostProcessors(AnnotationMetadata meta, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
+			String requireComponentAnnotationExpression =
+					IntegrationProperties.getExpressionFor(IntegrationProperties.REQUIRE_COMPONENT_ANNOTATION);
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
+							.addPropertyValue("requireComponentAnnotation", requireComponentAnnotationExpression)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,

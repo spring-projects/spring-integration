@@ -55,6 +55,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -83,11 +84,24 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private boolean requireComponentAnnotation;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
 				"a ConfigurableListableBeanFactory is required");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+	}
+
+	/**
+	 *
+	 * @param requireComponentAnnotation the {@code boolean} flag to indicate requirements for the
+	 * {@link Component} annotation presentation for the messaging annotations.
+	 * @since 4.3
+	 * @see org.springframework.integration.context.IntegrationProperties#REQUIRE_COMPONENT_ANNOTATION
+	 */
+	public void setRequireComponentAnnotation(boolean requireComponentAnnotation) {
+		this.requireComponentAnnotation = requireComponentAnnotation;
 	}
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {
@@ -132,8 +146,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-
-		final Class<?> beanClass = getBeanClass(bean);
+		final Class<?> beanClass = this.getBeanClass(bean);
+		if (this.requireComponentAnnotation && AnnotationUtils.findAnnotation(beanClass, Component.class) == null) {
+			// we only post-process stereotype components
+			return bean;
+		}
 
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
 

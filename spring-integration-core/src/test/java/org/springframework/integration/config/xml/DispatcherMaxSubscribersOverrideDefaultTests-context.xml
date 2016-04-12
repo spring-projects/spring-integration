@@ -8,8 +8,8 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<util:properties id="integrationGlobalProperties">
-		<prop key="spring.integraton.channels.maxUnicastSubscribers">456</prop>
-		<prop key="spring.integraton.channels.maxBroadcastSubscribers">789</prop>
+		<prop key="spring.integration.channels.maxUnicastSubscribers">456</prop>
+		<prop key="spring.integration.channels.maxBroadcastSubscribers">789</prop>
 	</util:properties>
 
 	<import resource="DispatcherMaxSubscribersDefaultConfigurationTests-context.xml" />
