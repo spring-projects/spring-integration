@@ -188,6 +188,9 @@ public class ExponentialMovingAverageRate {
 	 * @return the time in seconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
+		if (this.count == 0) {
+			return 0;
+		}
 		double t0 = lastTime();
 		return (System.nanoTime() / this.factor - t0);
 	}

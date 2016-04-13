@@ -77,9 +77,27 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		this.outputChannel = outputChannel;
 	}
 
+	/**
+	 * Return this endpoint's source.
+	 * @return the source.
+	 * @since 4.3
+	 */
+	public MessageSource<?> getMessageSource() {
+		return this.source;
+	}
+
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName;
+	}
+
+	/**
+	 * Return the name of the output channel.
+	 * @return the output channel name.
+	 */
+	public String getOutputChannelName() {
+		return this.outputChannel == null ? this.outputChannelName : this.outputChannel instanceof NamedComponent ?
+				((NamedComponent) this.outputChannel).getComponentName() : null;
 	}
 
 	/**

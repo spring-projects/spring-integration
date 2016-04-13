@@ -67,6 +67,24 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.outputChannelName = outputChannelName;
 	}
 
+	/**
+	 * Return the output channel.
+	 * @return the channel.
+	 * @since 4.3
+	 */
+	@Override
+	public MessageChannel getOutputChannel() {
+		if (this.outputChannelName != null) {
+			synchronized (this) {
+				if (this.outputChannelName != null) {
+					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+					this.outputChannelName = null;
+				}
+			}
+		}
+		return this.outputChannel;
+	}
+
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
 	}
@@ -99,9 +117,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	protected void doStart() {
 		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
 				"'outputChannel' or 'outputChannelName' is required");
-		if (this.outputChannelName != null) {
-			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
-		}
 	}
 
 	/**
@@ -120,7 +135,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		try {
-			this.messagingTemplate.send(this.outputChannel, message);
+			this.messagingTemplate.send(getOutputChannel(), message);
 		}
 		catch (RuntimeException e) {
 			if (this.errorChannel != null) {

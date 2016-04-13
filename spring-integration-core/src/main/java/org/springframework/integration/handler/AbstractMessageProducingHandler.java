@@ -106,6 +106,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 	}
 
+	@Override
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {
 			synchronized (this) {

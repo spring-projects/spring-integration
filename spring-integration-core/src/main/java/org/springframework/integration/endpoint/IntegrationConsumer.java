@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.endpoint;
 
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 
 /**
- * Base interface for any component that is capable of sending
- * Messages to a {@link MessageChannel}.
+ * Consumer.
  *
- * @author Mark Fisher
- * @since 2.0
+ * @author Gary Russell
+ * @since 4.3
+ *
  */
-public interface MessageProducer {
+public interface IntegrationConsumer extends NamedComponent {
 
 	/**
-	 * Specify the MessageChannel to which produced Messages should be sent.
-	 *
-	 * @param outputChannel The output channel.
+	 * Return the input channel.
+	 * @return the input channel.
 	 */
-	void setOutputChannel(MessageChannel outputChannel);
+	MessageChannel getInputChannel();
 
 	/**
-	 * Return the the output channel.
-	 * @return the channel.
+	 * Return the output channel (may be null).
+	 * @return the output channel.
 	 */
 	MessageChannel getOutputChannel();
+
+	/**
+	 * Return the consumer's handler.
+	 * @return the handler.
+	 */
+	MessageHandler getHandler();
 
 }

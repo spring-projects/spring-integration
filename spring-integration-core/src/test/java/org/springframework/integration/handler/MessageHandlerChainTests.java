@@ -181,6 +181,11 @@ public class MessageHandlerChainTests {
 		}
 
 		@Override
+		public MessageChannel getOutputChannel() {
+			return this.output;
+		}
+
+		@Override
 		public void handleMessage(Message<?> message) {
 			messageHandler.handleMessage(message);
 			output.send(message);

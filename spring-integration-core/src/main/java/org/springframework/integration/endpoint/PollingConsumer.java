@@ -23,8 +23,10 @@ import java.util.List;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -43,7 +45,7 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class PollingConsumer extends AbstractPollingEndpoint {
+public class PollingConsumer extends AbstractPollingEndpoint implements IntegrationConsumer {
 
 	private final PollableChannel inputChannel;
 
@@ -69,6 +71,26 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
+	}
+
+	@Override
+	public MessageChannel getInputChannel() {
+		return this.inputChannel == null ? null : this.inputChannel;
+	}
+
+	@Override
+	public MessageChannel getOutputChannel() {
+		if (this.handler instanceof MessageProducer) {
+			return ((MessageProducer) this.handler).getOutputChannel();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public MessageHandler getHandler() {
+		return this.handler;
 	}
 
 	@Override
