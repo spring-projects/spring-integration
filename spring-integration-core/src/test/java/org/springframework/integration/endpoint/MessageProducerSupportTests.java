@@ -133,7 +133,7 @@ public class MessageProducerSupportTests {
 		mps.setBeanFactory(testApplicationContext);
 		mps.afterPropertiesSet();
 		mps.start();
-		assertSame(outChannel, TestUtils.getPropertyValue(mps, "outputChannel"));
+		assertSame(outChannel, mps.getOutputChannel());
 	}
 
 	@Test

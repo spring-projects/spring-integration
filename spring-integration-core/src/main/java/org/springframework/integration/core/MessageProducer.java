@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,5 +33,12 @@ public interface MessageProducer {
 	 * @param outputChannel The output channel.
 	 */
 	void setOutputChannel(MessageChannel outputChannel);
+
+	/**
+	 * Return the the output channel.
+	 * @return the channel.
+	 * @since 4.3
+	 */
+	MessageChannel getOutputChannel();
 
 }

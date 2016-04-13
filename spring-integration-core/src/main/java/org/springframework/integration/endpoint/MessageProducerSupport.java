@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -35,7 +36,8 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent {
+public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent,
+		SmartInitializingSingleton {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -67,6 +69,19 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.outputChannelName = outputChannelName;
 	}
 
+	@Override
+	public MessageChannel getOutputChannel() {
+		if (this.outputChannelName != null) {
+			synchronized (this) {
+				if (this.outputChannelName != null) {
+					this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
+					this.outputChannelName = null;
+				}
+			}
+		}
+		return this.outputChannel;
+	}
+
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
 	}
@@ -85,6 +100,12 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	@Override
+	public void afterSingletonsInstantiated() {
+		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
+				"'outputChannel' or 'outputChannelName' is required");
+	}
+
+	@Override
 	protected void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
@@ -97,11 +118,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
-		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
-				"'outputChannel' or 'outputChannelName' is required");
-		if (this.outputChannelName != null) {
-			this.outputChannel = getChannelResolver().resolveDestination(this.outputChannelName);
-		}
 	}
 
 	/**
@@ -120,7 +136,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		try {
-			this.messagingTemplate.send(this.outputChannel, message);
+			this.messagingTemplate.send(getOutputChannel(), message);
 		}
 		catch (RuntimeException e) {
 			if (this.errorChannel != null) {
