@@ -23,6 +23,8 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -42,6 +44,8 @@ import org.springframework.util.StopWatch;
  * @author Gary Russell
  */
 public class MessageIdGenerationTests {
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@Test
 	public void testCustomIdGenerationWithParentRegistrar() throws Exception {
@@ -155,6 +159,7 @@ public class MessageIdGenerationTests {
 		Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGeneratorField);
 		ReflectionUtils.setField(idGeneratorField, null, new IdGenerator() {
+			@Override
 			public UUID generateId() {
 				return TimeBasedUUIDGenerator.generateId();
 			}
@@ -167,12 +172,12 @@ public class MessageIdGenerationTests {
 		watch.stop();
 		double timebasedGeneratorElapsedTime = watch.getTotalTimeSeconds();
 
-		System.out.println("Generated " + times + " messages using default UUID generator " +
+		logger.info("Generated " + times + " messages using default UUID generator " +
 				"in " + defaultGeneratorElapsedTime + " seconds");
-		System.out.println("Generated " + times + " messages using Timebased UUID generator " +
+		logger.info("Generated " + times + " messages using Timebased UUID generator " +
 				"in " + timebasedGeneratorElapsedTime + " seconds");
 
-		System.out.println("Time-based ID generator is " + defaultGeneratorElapsedTime / timebasedGeneratorElapsedTime + " times faster");
+		logger.info("Time-based ID generator is " + defaultGeneratorElapsedTime / timebasedGeneratorElapsedTime + " times faster");
 	}
 
 	private void assertDestroy() throws Exception {
@@ -183,6 +188,7 @@ public class MessageIdGenerationTests {
 
 
 	public static class SampleIdGenerator implements IdGenerator {
+		@Override
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}

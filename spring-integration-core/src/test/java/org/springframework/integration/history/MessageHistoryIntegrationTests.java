@@ -26,13 +26,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
@@ -48,26 +50,33 @@ import org.springframework.util.StopWatch;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class MessageHistoryIntegrationTests {
 
+	private final Log logger = LogFactory.getLog(getClass());
+
 	@Test
 	public void testNoHistoryAwareMessageHandler() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml",
+				MessageHistoryIntegrationTests.class);
 		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
 			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
 			assertFalse("org.springframework.integration.config.MessageHistoryWritingMessageHandler".equals(handlerClassName));
 		}
+		ac.close();
 	}
 
 	@Test
 	public void testMessageHistoryWithHistoryWriter() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml",
+				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 
@@ -140,14 +149,17 @@ public class MessageHistoryIntegrationTests {
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 		assertNotNull(result);
 		//assertEquals("hello", result);
+		ac.close();
 	}
 
 	@Test
 	public void testMessageHistoryWithoutHistoryWriter() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml",
+				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				assertNull(message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class));
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
@@ -157,16 +169,20 @@ public class MessageHistoryIntegrationTests {
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testMessageHistoryParser() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
+				"messageHistoryWithHistoryWriterNamespace.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertTrue(historyIterator.hasNext());
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
@@ -175,14 +191,17 @@ public class MessageHistoryIntegrationTests {
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test
 	public void testMessageHistoryParserWithNamePatterns() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespaceAndPatterns.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
+				"messageHistoryWithHistoryWriterNamespaceAndPatterns.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertTrue(historyIterator.hasNext());
@@ -199,21 +218,26 @@ public class MessageHistoryIntegrationTests {
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+		ac.close();
 	}
 
 	@Test(expected = BeanCreationException.class)
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
-		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
+		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml",
+				MessageHistoryIntegrationTests.class).close();
 	}
 
 	@Test @Ignore
 	public void testMessageHistoryWithHistoryPerformance() {
-		ApplicationContext acWithHistory = new ClassPathXmlApplicationContext("perfWithMessageHistory.xml", MessageHistoryIntegrationTests.class);
-		ApplicationContext acWithoutHistory = new ClassPathXmlApplicationContext("perfWithoutMessageHistory.xml", MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext acWithHistory = new ClassPathXmlApplicationContext("perfWithMessageHistory.xml",
+				MessageHistoryIntegrationTests.class);
+		ConfigurableApplicationContext acWithoutHistory = new ClassPathXmlApplicationContext(
+				"perfWithoutMessageHistory.xml", MessageHistoryIntegrationTests.class);
 
 		SampleGateway gatewayHistory = acWithHistory.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannelHistory = acWithHistory.getBean("endOfThePipeChannel", DirectChannel.class);
 		endOfThePipeChannelHistory.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message)
 					throws MessageRejectedException, MessageHandlingException,
 					MessageDeliveryException {
@@ -225,6 +249,7 @@ public class MessageHistoryIntegrationTests {
 		SampleGateway gateway = acWithoutHistory.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = acWithoutHistory.getBean("endOfThePipeChannel", DirectChannel.class);
 		endOfThePipeChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message)
 					throws MessageRejectedException, MessageHandlingException,
 					MessageDeliveryException {
@@ -239,14 +264,16 @@ public class MessageHistoryIntegrationTests {
 			gatewayHistory.echo("hello");
 		}
 		stopWatch.stop();
-		System.out.println("Elapsed time with history 10000 calls: " + stopWatch.getTotalTimeSeconds());
+		logger.info("Elapsed time with history 10000 calls: " + stopWatch.getTotalTimeSeconds());
 		stopWatch = new StopWatch();
 		stopWatch.start();
 		for (int i = 0; i < 10000; i++) {
 			gateway.echo("hello");
 		}
 		stopWatch.stop();
-		System.out.println("Elapsed time without history 10000 calls: " + stopWatch.getTotalTimeSeconds());
+		logger.info("Elapsed time without history 10000 calls: " + stopWatch.getTotalTimeSeconds());
+		acWithHistory.close();
+		acWithoutHistory.close();
 	}
 
 	public interface SampleGateway {

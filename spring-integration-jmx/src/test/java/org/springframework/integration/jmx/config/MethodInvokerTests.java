@@ -59,7 +59,7 @@ public class MethodInvokerTests {
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MethodInvoker:type=MessageHandler,*"), null);
-		// System.err.println(names);
+		// System . err.println(names);
 		// the router and the error handler...
 		assertEquals(2, names.size());
 		underscores.subscribe(new MessageHandler() {

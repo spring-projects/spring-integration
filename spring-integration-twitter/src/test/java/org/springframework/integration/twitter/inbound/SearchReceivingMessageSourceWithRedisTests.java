@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,18 +47,21 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
+import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.UserOperations;
-import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTests {
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private SourcePollingChannelAdapter twitterSearchAdapter;
 
@@ -86,6 +91,7 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 		this.metadataStore.put(metadataKey, "-1");
 
 		this.twitterMessageSource.afterPropertiesSet();
+		context.close();
 	}
 
 	/**

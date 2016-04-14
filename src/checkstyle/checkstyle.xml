@@ -151,6 +151,11 @@
 <!-- 			<property name="ignoreComments" value="true" /> -->
 <!-- 		</module> -->
 		<module name="Regexp">
+			<property name="format" value="System.(out|err).print" />
+			<property name="illegalPattern" value="true" />
+			<property name="message" value="System.out or .err" />
+		</module>
+		<module name="Regexp">
 			<property name="format" value="[ \t]+$" />
 			<property name="illegalPattern" value="true" />
 			<property name="message" value="Trailing whitespace" />

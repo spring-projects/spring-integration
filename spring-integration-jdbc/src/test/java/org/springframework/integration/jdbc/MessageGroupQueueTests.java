@@ -254,7 +254,6 @@ public class MessageGroupQueueTests {
 			public void run() {
 				try {
 					boolean offered = queue.offer(new GenericMessage<String>("Hi-2"), 2, TimeUnit.SECONDS);
-					System.out.println(offered);
 					booleanHolder2.set(offered);
 				}
 				catch (Exception e) {
@@ -269,7 +268,6 @@ public class MessageGroupQueueTests {
 			public void run() {
 				try {
 					boolean offered = queue.offer(new GenericMessage<String>("Hi-3"), 2, TimeUnit.SECONDS);
-					System.out.println(offered);
 					booleanHolder3.set(offered);
 				}
 				catch (Exception e) {

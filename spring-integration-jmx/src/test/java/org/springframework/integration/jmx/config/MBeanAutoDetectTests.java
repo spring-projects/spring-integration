@@ -26,6 +26,7 @@ import javax.management.ObjectName;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -49,7 +50,7 @@ public class MBeanAutoDetectTests {
 	public void testRouterMBeanExistsWhenDefinedFirst() throws Exception {
 		context = new ClassPathXmlApplicationContext("MBeanAutoDetectFirstTests-context.xml", getClass());
 		server = context.getBean(MBeanServer.class);
-		// System.err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
+		// System . err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
 		assertEquals(1, names.size());
@@ -60,7 +61,7 @@ public class MBeanAutoDetectTests {
 	public void testRouterMBeanExistsWhenDefinedSecond() throws Exception {
 		context = new ClassPathXmlApplicationContext("MBeanAutoDetectSecondTests-context.xml", getClass());
 		server = context.getBean(MBeanServer.class);
-		// System.err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
+		// System . err.println(server.queryNames(new ObjectName("test.MBeanAutoDetectFirst:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.MBeanAutoDetectFirst:type=ExpressionEvaluatingRouter,*"), null);
 		assertEquals(1, names.size());

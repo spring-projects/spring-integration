@@ -32,7 +32,7 @@ public class SyslogdTests {
 
 	public static void main(String[] args) throws Exception {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("SyslogdTests-context.xml", SyslogdTests.class);
-		System.out.println("Hit enter to terminate");
+		// System . out . println("Hit enter to terminate");
 		System.in.read();
 		ctx.close();
 	}

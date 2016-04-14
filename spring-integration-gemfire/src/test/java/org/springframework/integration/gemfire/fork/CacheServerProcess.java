@@ -20,6 +20,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
@@ -39,6 +42,8 @@ import com.gemstone.gemfire.cache.server.CacheServer;
  */
 public class CacheServerProcess {
 
+	private static final Log logger = LogFactory.getLog(CacheServerProcess.class);
+
 	private CacheServerProcess() {
 		super();
 	}
@@ -49,7 +54,7 @@ public class CacheServerProcess {
 		props.setProperty("name", "CacheServer");
 		props.setProperty("log-level", "info");
 
-		System.out.println("\nConnecting to the distributed system and creating the cache.");
+		logger.info("Connecting to the distributed system and creating the cache.");
 
 		Cache cache = new CacheFactory(props).create();
 
@@ -58,15 +63,15 @@ public class CacheServerProcess {
 				.setScope(Scope.DISTRIBUTED_ACK)
 				.create("test");
 
-		System.out.println("Test region, " + region.getFullPath() + ", created in cache.");
+		logger.info("Test region, " + region.getFullPath() + ", created in cache.");
 
 		// Start Cache Server.
 		CacheServer server = cache.addCacheServer();
 		server.setPort(40404);
-		System.out.println("Starting server");
+		logger.info("Starting server");
 		server.start();
 		ForkUtil.createControlFile(CacheServerProcess.class.getName());
-		System.out.println("Waiting for shutdown");
+		logger.info("Waiting for shutdown");
 
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 		bufferedReader.readLine();

@@ -16,7 +16,10 @@
 
 package org.springframework.integration.xmpp.ignore;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.packet.Message;
+
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.stereotype.Component;
 
@@ -25,10 +28,13 @@ import org.springframework.stereotype.Component;
  *
  * @author Josh Long
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @Component
 public class XmppMessageConsumer {
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	@ServiceActivator
 	public void consume(Object input) throws Throwable {
@@ -43,8 +49,8 @@ public class XmppMessageConsumer {
 			throw new IllegalArgumentException(
 					"expected either a Smack Message or a String, but received: " + input);
 		}
-		System.out.println("================================================================================");
-		System.out.println("message: " + text);
+		logger.info("================================================================================");
+		logger.info("message: " + text);
 	}
 
 }

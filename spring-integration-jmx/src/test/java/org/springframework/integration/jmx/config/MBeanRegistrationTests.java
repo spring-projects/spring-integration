@@ -62,8 +62,8 @@ public class MBeanRegistrationTests {
 
 	@Test
 	public void testExporterMBeanRegistration() throws Exception {
-		// System.err.println(server.queryNames(new ObjectName("*:type=*MBeanExporter,*"), null));
-		// System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
+		// System . err.println(server.queryNames(new ObjectName("*:type=*MBeanExporter,*"), null));
+		// System . err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
 		names = server.queryNames(new ObjectName("test.MBeanRegistration:*,name=org.springframework.integration.MyGateway"), null);
@@ -73,13 +73,11 @@ public class MBeanRegistrationTests {
 	@Test
 	@Ignore // re-instate this if Spring decides to look for @ManagedResource on super classes
 	public void testServiceActivatorMBeanHasTrackableComponent() throws Exception {
-		System.err.println(server.queryNames(new ObjectName("test.MBeanRegistration:*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=ServiceActivatingHandler,name=service,*"), null);
 		Map<String, MBeanOperationInfo> infos = new HashMap<String, MBeanOperationInfo>();
 		for (MBeanOperationInfo info : server.getMBeanInfo(names.iterator().next()).getOperations()) {
 			infos.put(info.getName(), info);
 		}
-		System.err.println(infos);
 		assertNotNull(infos.get("setShouldTrack"));
 	}
 

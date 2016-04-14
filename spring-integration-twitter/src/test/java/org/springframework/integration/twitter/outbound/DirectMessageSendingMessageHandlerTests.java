@@ -20,16 +20,18 @@ import java.util.Properties;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.messaging.Message;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class DirectMessageSendingMessageHandlerTests {
 
@@ -39,7 +41,6 @@ public class DirectMessageSendingMessageHandlerTests {
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
-		System.out.println(prop);
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("spring_eip.oauth.consumerKey"),
 										               prop.getProperty("spring_eip.oauth.consumerSecret"),
 										               prop.getProperty("spring_eip.oauth.accessToken"),

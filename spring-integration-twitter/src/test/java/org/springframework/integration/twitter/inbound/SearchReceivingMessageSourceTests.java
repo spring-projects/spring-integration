@@ -29,6 +29,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -54,6 +56,8 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  */
 public class SearchReceivingMessageSourceTests {
 
+	private final Log logger = LogFactory.getLog(getClass());
+
 	private static final String SEARCH_QUERY = "#springsource";
 
 	@SuppressWarnings("unchecked")
@@ -63,7 +67,6 @@ public class SearchReceivingMessageSourceTests {
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
-		System.out.println(prop);
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
 										               prop.getProperty("z_oleg.oauth.consumerSecret"),
 										               prop.getProperty("z_oleg.oauth.accessToken"),
@@ -75,7 +78,7 @@ public class SearchReceivingMessageSourceTests {
 			Message<Tweet> message = (Message<Tweet>) tSource.receive();
 			if (message != null) {
 				Tweet tweet = message.getPayload();
-				System.out.println(tweet.getFromUser() + " - " + tweet.getText() + " - " + tweet.getCreatedAt());
+				logger.info(tweet.getFromUser() + " - " + tweet.getText() + " - " + tweet.getCreatedAt());
 			}
 		}
 	}

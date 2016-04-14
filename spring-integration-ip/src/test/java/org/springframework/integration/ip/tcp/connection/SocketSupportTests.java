@@ -375,7 +375,6 @@ Certificate fingerprints:
 
 			@Override
 			public boolean onMessage(Message<?> message) {
-//				System.out.println("Server" + message);
 				messages.add(message);
 				latch.countDown();
 				return false;
@@ -392,7 +391,6 @@ Certificate fingerprints:
 
 			@Override
 			public boolean onMessage(Message<?> message) {
-//				System.out.println("Client" + message);
 				return false;
 			}
 
@@ -424,7 +422,6 @@ Certificate fingerprints:
 
 			@Override
 			public boolean onMessage(Message<?> message) {
-//				System.out.println("Server:" + message);
 				messages.add(message);
 				try {
 					replier.send(message);
@@ -454,7 +451,6 @@ Certificate fingerprints:
 
 			@Override
 			public boolean onMessage(Message<?> message) {
-//				System.out.println("Client:" + message);
 				messages.add(message);
 				latch.countDown();
 				return false;

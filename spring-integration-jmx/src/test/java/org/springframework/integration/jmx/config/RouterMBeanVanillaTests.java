@@ -46,7 +46,7 @@ public class RouterMBeanVanillaTests {
 
 	@Test
 	public void testHandlerMBeanRegistration() throws Exception {
-		// System.err.println(server.queryNames(new ObjectName("test.RouterMBeanVanilla:*"), null));
+		// System . err.println(server.queryNames(new ObjectName("test.RouterMBeanVanilla:*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBeanVanilla:type=ExpressionEvaluatingRouter,*"), null);
 		// The router is exposed...
 		assertEquals(1, names.size());

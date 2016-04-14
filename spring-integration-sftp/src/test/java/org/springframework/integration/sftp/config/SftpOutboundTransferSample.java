@@ -22,9 +22,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,9 +45,7 @@ public class SftpOutboundTransferSample {
 			inputChannel.send(message);
 			Thread.sleep(2000);
 		}
-		System.out.println("Done");
-		ac.stop();
-
+		ac.close();
 	}
 
 }

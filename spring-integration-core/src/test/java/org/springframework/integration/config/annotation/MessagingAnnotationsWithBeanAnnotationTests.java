@@ -277,7 +277,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Filter(inputChannel = "skippedChannel5")
 		@Profile("foo")
 		public MessageHandler skippedMessageHandler() {
-			return System.out::println;
+			return m -> { };
 		}
 
 		@Bean

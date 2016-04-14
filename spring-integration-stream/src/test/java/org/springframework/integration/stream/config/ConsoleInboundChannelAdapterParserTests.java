@@ -70,7 +70,6 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Charset readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
 		assertEquals(Charset.defaultCharset(), readerCharset);
 		Message<?> message = source.receive();
-		System.out.println(message);
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 	}

@@ -67,7 +67,7 @@ public class RouterMBeanTests {
 
 	@Test
 	public void testRouterMBeanExists() throws Exception {
-		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
+		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertEquals(1, names.size());
@@ -75,7 +75,7 @@ public class RouterMBeanTests {
 
 	@Test
 	public void testInputChannelMBeanExists() throws Exception {
-		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:type=MessageChannel,*"), null));
+		// System . err.println(server.queryNames(new ObjectName("test.RouterMBean:type=MessageChannel,*"), null));
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("test.RouterMBean:type=MessageChannel,name=testChannel,*"), null);
 		assertEquals(1, names.size());
@@ -90,7 +90,7 @@ public class RouterMBeanTests {
 
 	@Test
 	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
-		// System.err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
+		// System . err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertEquals(1, names.size());
 		// INT-3896

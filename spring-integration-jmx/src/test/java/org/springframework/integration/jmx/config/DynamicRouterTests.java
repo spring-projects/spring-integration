@@ -121,7 +121,6 @@ public class DynamicRouterTests {
 		for (int i = 0; i < 1000000000; i++) {
 			this.nullChannel.send(null);
 		}
-		System.out.println(this.nullChannel.getSendRate());
 	}
 
 }

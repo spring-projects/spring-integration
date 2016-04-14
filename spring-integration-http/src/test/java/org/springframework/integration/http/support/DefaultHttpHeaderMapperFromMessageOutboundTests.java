@@ -547,7 +547,6 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 			mapper.toHeaders(httpHeaders);
 		}
 		watch.stop();
-		System.out.println(watch.getTotalTimeMillis());
 
 	}
 

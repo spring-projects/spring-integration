@@ -24,6 +24,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Utility for forking Java processes. Modified from the SGF version for SI
  *
@@ -34,6 +37,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 public class ForkUtil {
+
+	private static final Log logger = LogFactory.getLog(ForkUtil.class);
 
 	private static String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
@@ -61,7 +66,7 @@ public class ForkUtil {
 			throw new IllegalStateException("Cannot start command " + cmdArray, ioe);
 		}
 
-		System.out.println("Started fork");
+		logger.info("Started fork");
 		final Process p = proc;
 
 		final BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -77,7 +82,7 @@ public class ForkUtil {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				System.out.println("Stopping fork...");
+				logger.info("Stopping fork...");
 				run.set(false);
 				if (p != null) {
 					p.destroy();
@@ -89,7 +94,7 @@ public class ForkUtil {
 				catch (InterruptedException e) {
 					// ignore
 				}
-				System.out.println("Fork stopped");
+				logger.info("Fork stopped");
 			}
 		});
 
@@ -144,7 +149,7 @@ public class ForkUtil {
 			}
 		}
 		if (controlFileExists(className)) {
-			System.out.println("Started cache server");
+			logger.info("Started cache server");
 		}
 		else {
 			throw new RuntimeException("could not fork cache server");
