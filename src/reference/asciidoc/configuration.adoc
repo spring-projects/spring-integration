@@ -141,30 +141,33 @@ The next section will describe what happens if Exceptions occur within the async
 [[namespace-errorhandler]]
 === Error Handling
 
-As described in the overview at the very beginning of this manual, one of the main motivations behind a Message-oriented framework like Spring Integration is to promote loose-coupling between components.
+As described in the overview at the very beginning of this manual, one of the main motivations behind a Message-oriented
+framework like Spring Integration is to promote loose-coupling between components.
 The Message Channel plays an important role in that producers and consumers do not have to know about each other.
 However, the advantages also have some drawbacks.
 Some things become more complicated in a very loosely coupled environment, and one example is error handling.
 
 When sending a Message to a channel, the component that ultimately handles that Message may or may not be operating within the same thread as the sender.
-If using a simple default DirectChannel (with the<channel> element that has no <queue> sub-element and no 'task-executor' attribute), the Message-handling will occur in the same thread as the Message-sending.
-In that case, if an Exception is thrown, it can be caught by the sender (or it may propagate past the sender if it is an uncaught RuntimeException).
+If using a simple default `DirectChannel` (with the `<channel>` element that has no `<queue>` sub-element and no 'task-executor' attribute),
+the Message-handling will occur in the same thread as the Message-sending.
+In that case, if an `Exception` is thrown, it can be caught by the sender (or it may propagate past the sender if it is an uncaught `RuntimeException`).
 So far, everything is fine.
 This is the same behavior as an Exception-throwing operation in a normal call stack.
 However, when adding the asynchronous aspect, things become much more complicated.
 For instance, if the 'channel' element _does_ provide a 'queue' sub-element, then the component that handles the Message _will_ be operating in a different thread than the sender.
-The sender may have dropped the Message into the channel and moved on to other things.
-There is no way for the Exception to be thrown directly back to that sender using standard Exception throwing techniques.
+The sender may have dropped the `Message` into the channel and moved on to other things.
+There is no way for the `Exception` to be thrown directly back to that sender using standard `Exception` throwing techniques.
 Instead, to handle errors for asynchronous processes requires an asynchronous error-handling mechanism as well.
 
 Spring Integration supports error handling for its components by publishing errors to a Message Channel.
-Specifically, the Exception will become the payload of a Spring Integration Message.
-That Message will then be sent to a Message Channel that is resolved in a way that is similar to the 'replyChannel' resolution.
-First, if the request Message being handled at the time the Exception occurred contains an 'errorChannel' header (the
-header name is defined in the constant: MessageHeaders.ERROR_CHANNEL), the ErrorMessage will be sent to that channel.
-Otherwise, the error handler will send to a "global" channel whose bean name is "errorChannel" (this is also defined as a constant: IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME).
+Specifically, the `Exception` will become the payload of a Spring Integration Message.
+That `Message` will then be sent to a Message Channel that is resolved in a way that is similar to the 'replyChannel' resolution.
+First, if the request `Message` being handled at the time the `Exception` occurred contains an 'errorChannel' header (the
+header name is defined in the constant: `MessageHeaders.ERROR_CHANNEL`), the `ErrorMessage` will be sent to that channel.
+Otherwise, the error handler will send to a "global" channel whose bean name is "errorChannel"
+(this is also defined as a constant: `IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME`).
 
-Whenever relying on Spring Integration's XML namespace support, a default "errorChannel" bean will be created behind the scenes.
+A default "errorChannel" bean is created behind the scenes by the Framework.
 However, you can just as easily define your own if you want to control the settings.
 
 [source,xml]
@@ -174,11 +177,12 @@ However, you can just as easily define your own if you want to control the setti
 </int:channel>
 ----
 
-NOTE: The default "errorChannel" is a PublishSubscribeChannel.
+NOTE: The default "errorChannel" is a `PublishSubscribeChannel`.
 
-The most important thing to understand here is that the messaging-based error handling will only apply to Exceptions that are thrown by a Spring Integration task that is executing within a TaskExecutor.
+The most important thing to understand here is that the messaging-based error handling will only apply to Exceptions
+that are thrown by a Spring Integration task that is executing within a `TaskExecutor`.
 This does _not_ apply to Exceptions thrown by a handler that is operating within the same thread as the sender (e.g.
-through a DirectChannel as described above).
+through a `DirectChannel` as described above).
 
 NOTE: When Exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in `ErrorMessages` and sent to the 'errorChannel' as well.
 
