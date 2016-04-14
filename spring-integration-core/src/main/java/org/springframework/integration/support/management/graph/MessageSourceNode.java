@@ -28,8 +28,8 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
  */
 public class MessageSourceNode extends IntegrationNode {
 
-	public MessageSourceNode(String name, MessageSource<?> messageSource, String output) {
-		super(name, messageSource, output, null, messageSource instanceof MessageSourceMetrics
+	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output) {
+		super(nodeId, name, messageSource, output, null, messageSource instanceof MessageSourceMetrics
 				? new Stats((MessageSourceMetrics) messageSource) : new IntegrationNode.Stats());
 	}
 

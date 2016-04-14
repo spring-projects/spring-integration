@@ -29,9 +29,9 @@ import org.springframework.messaging.MessageChannel;
  */
 public class MessageChannelNode extends IntegrationNode {
 
-	public MessageChannelNode(String name, MessageChannel channel) {
-		super(name, channel, channel instanceof MessageChannelMetrics ? new Stats((MessageChannelMetrics) channel) :
-			new IntegrationNode.Stats());
+	public MessageChannelNode(int nodeId, String name, MessageChannel channel) {
+		super(nodeId, name, channel, channel instanceof MessageChannelMetrics
+				? new Stats((MessageChannelMetrics) channel) : new IntegrationNode.Stats());
 	}
 
 

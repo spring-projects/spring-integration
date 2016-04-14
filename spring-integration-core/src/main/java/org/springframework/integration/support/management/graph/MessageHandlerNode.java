@@ -29,8 +29,8 @@ import org.springframework.messaging.MessageHandler;
  */
 public class MessageHandlerNode extends IntegrationNode {
 
-	public MessageHandlerNode(String name, MessageHandler handler, String input, String output) {
-		super(name, handler, output, input, handler instanceof MessageHandlerMetrics
+	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
+		super(nodeId, name, handler, output, input, handler instanceof MessageHandlerMetrics
 				? new Stats((MessageHandlerMetrics) handler) : new IntegrationNode.Stats());
 	}
 

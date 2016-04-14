@@ -16,8 +16,6 @@
 
 package org.springframework.integration.support.management.graph;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
@@ -29,9 +27,7 @@ import org.springframework.integration.support.context.NamedComponent;
  */
 public abstract class IntegrationNode {
 
-	private static final AtomicInteger nodeId = new AtomicInteger();
-
-	private final int myNodeId;
+	private final int nodeId;
 
 	private final String name;
 
@@ -45,24 +41,24 @@ public abstract class IntegrationNode {
 
 	private final String componentName;
 
-	protected IntegrationNode(String name, Object nodeObject, Stats stats) {
-		this(name, nodeObject, null, null, stats);
+	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
+		this(nodeId, name, nodeObject, null, null, stats);
 	}
 
-	protected IntegrationNode(String name, Object nodeObject, String output, String input, Stats stats) {
-		this.myNodeId = nodeId.incrementAndGet();
+	protected IntegrationNode(int nodeId, String name, Object nodeObject, String output, String input, Stats stats) {
+		this.nodeId = nodeId;
 		this.name = name;
 		this.output = output;
 		this.input = input;
 		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
-				: "unknown";
+				: nodeObject.getClass().getSimpleName();
 		this.componentName = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentName()
-				: "unknown";
+				: nodeObject.toString();
 		this.stats = stats;
 	}
 
 	public int getNodeId() {
-		return this.myNodeId;
+		return this.nodeId;
 	}
 
 	public String getName() {

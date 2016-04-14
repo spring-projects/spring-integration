@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -30,7 +31,6 @@ import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -41,6 +41,8 @@ import org.springframework.messaging.MessageChannel;
  *
  */
 public class GraphServer implements ApplicationContextAware, SmartInitializingSingleton {
+
+	private final NodeFactory nodeFactory = new NodeFactory();
 
 	private ApplicationContext applicationContext;
 
@@ -56,7 +58,7 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 	}
 
 	@Override
-	public void afterSingletonsInstantiated() {
+	public synchronized void afterSingletonsInstantiated() {
 		Map<String, MessageChannel> channels = this.applicationContext
 				.getBeansOfType(MessageChannel.class);
 		Map<String, SourcePollingChannelAdapter> spcas = this.applicationContext
@@ -71,79 +73,97 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 		Map<String, MessageChannelNode> channelInfos = new HashMap<String, MessageChannelNode>();
 		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			MessageChannel channel = entry.getValue();
-			MessageChannelNode channelInfo = new MessageChannelNode(entry.getKey(), channel);
+			MessageChannelNode channelNode = this.nodeFactory.channelNode(entry.getKey(), channel);
 			String beanName = entry.getKey();
-			nodes.add(channelInfo);
-			channelInfos.put(beanName, channelInfo);
+			nodes.add(channelNode);
+			channelInfos.put(beanName, channelNode);
 		}
 		for (Entry<String, SourcePollingChannelAdapter> entry : spcas.entrySet()) {
 			SourcePollingChannelAdapter adapter = entry.getValue();
-			MessageSourceNode sourceInfo = sourceInfo(entry.getKey(), adapter);
-			nodes.add(sourceInfo);
-			MessageChannelNode channelInfo = channelInfos.get(sourceInfo.getOutput());
-			if (channelInfo != null) {
-				links.add(new LinkNode(sourceInfo.getNodeId(), channelInfo.getNodeId()));
+			MessageSourceNode sourceNode = this.nodeFactory.sourceNode(entry.getKey(), adapter);
+			nodes.add(sourceNode);
+			MessageChannelNode channelNode = channelInfos.get(sourceNode.getOutput());
+			if (channelNode != null) {
+				links.add(new LinkNode(sourceNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
 		for (Entry<String, MessagingGatewaySupport> entry : gateways.entrySet()) {
 			MessagingGatewaySupport gateway = entry.getValue();
-			MessageGatewayNode gatewayInfo = gatewayInfo(entry.getKey(), gateway);
-			nodes.add(gatewayInfo);
-			MessageChannelNode channelInfo = channelInfos.get(gatewayInfo.getOutput());
+			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
+			nodes.add(gatewayNode);
+			MessageChannelNode channelInfo = channelInfos.get(gatewayNode.getOutput());
 			if (channelInfo != null) {
-				links.add(new LinkNode(gatewayInfo.getNodeId(), channelInfo.getNodeId()));
+				links.add(new LinkNode(gatewayNode.getNodeId(), channelInfo.getNodeId()));
 			}
 		}
 		for (Entry<String, MessageProducerSupport> entry : producers.entrySet()) {
 			MessageProducerSupport producer = entry.getValue();
-			MessageProducerNode producerInfo = producerInfo(entry.getKey(), producer);
-			nodes.add(producerInfo);
-			MessageChannelNode channelInfo = channelInfos.get(producerInfo.getOutput());
-			if (channelInfo != null) {
-				links.add(new LinkNode(producerInfo.getNodeId(), channelInfo.getNodeId()));
+			MessageProducerNode producerNode = this.nodeFactory.producerNode(entry.getKey(), producer);
+			nodes.add(producerNode);
+			MessageChannelNode channelNode = channelInfos.get(producerNode.getOutput());
+			if (channelNode != null) {
+				links.add(new LinkNode(producerNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
 		for (Entry<String, IntegrationConsumer> entry : consumers.entrySet()) {
 			IntegrationConsumer consumer = entry.getValue();
-			MessageHandlerNode handlerInfo = handlerInfo(entry.getKey(), consumer);
-			nodes.add(handlerInfo);
-			MessageChannelNode channelInfo = channelInfos.get(handlerInfo.getInput());
-			if (channelInfo != null) {
-				links.add(new LinkNode(channelInfo.getNodeId(), handlerInfo.getNodeId()));
+			MessageHandlerNode handlerNode = this.nodeFactory.handlerNode(entry.getKey(), consumer);
+			nodes.add(handlerNode);
+			MessageChannelNode channelNode = channelInfos.get(handlerNode.getInput());
+			if (channelNode != null) {
+				links.add(new LinkNode(channelNode.getNodeId(), handlerNode.getNodeId()));
 			}
-			if (handlerInfo.getOutput() != null) {
-				channelInfo = channelInfos.get(handlerInfo.getOutput());
-				if (channelInfo != null) {
-					links.add(new LinkNode(handlerInfo.getNodeId(), channelInfo.getNodeId()));
+			if (handlerNode.getOutput() != null) {
+				channelNode = channelInfos.get(handlerNode.getOutput());
+				if (channelNode != null) {
+					links.add(new LinkNode(handlerNode.getNodeId(), channelNode.getNodeId()));
 				}
 			}
 		}
 		this.graph = new Graph(nodes, links);
 	}
 
-	private MessageGatewayNode gatewayInfo(String name, MessagingGatewaySupport gateway) {
-		return new MessageGatewayNode(name, gateway, gateway.getRequestChannelName());
+	/**
+	 * Rebuild the graph if new components have been added.
+	 */
+	public void rebuild() {
+		this.nodeFactory.nodeId.set(0);
+		afterSingletonsInstantiated();
 	}
 
-	private MessageProducerNode producerInfo(String name, MessageProducerSupport producer) {
-		MessageChannel outputChannel = producer.getOutputChannel();
-		String outputChannelName = outputChannel instanceof NamedComponent
-				? ((NamedComponent) outputChannel).getComponentName() : "__unknown__";
-		return new MessageProducerNode(name, producer, outputChannelName);
-	}
+	private final static class NodeFactory {
 
-	private MessageSourceNode sourceInfo(String name, SourcePollingChannelAdapter adapter) {
-		return new MessageSourceNode(name, adapter.getMessageSource(), adapter.getOutputChannelName());
-	}
+		private final AtomicInteger nodeId = new AtomicInteger();
 
-	private MessageHandlerNode handlerInfo(String name, IntegrationConsumer consumer) {
-		MessageChannel inputChannel = consumer.getInputChannel();
-		MessageChannel outputChannel = consumer.getOutputChannel();
-		String inputChannelName = inputChannel instanceof NamedComponent
-				? ((NamedComponent) inputChannel).getComponentName() : "__unknown__";
-		String outputChannelName = outputChannel == null ? null : outputChannel instanceof NamedComponent
-				? ((NamedComponent) outputChannel).getComponentName() : "__unknown__";
-		return new MessageHandlerNode(name, consumer.getHandler(), inputChannelName, outputChannelName);
+		public MessageChannelNode channelNode(String name, MessageChannel channel) {
+			return new MessageChannelNode(this.nodeId.incrementAndGet(), name, channel);
+		}
+
+		public MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
+			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
+					gateway.getRequestChannelName());
+		}
+
+		public MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
+			MessageChannel outputChannel = producer.getOutputChannel();
+			String outputChannelName = outputChannel == null ? "__unknown__" : outputChannel.toString();
+			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannelName);
+		}
+
+		public MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
+			return new MessageSourceNode(this.nodeId.incrementAndGet(), name, adapter.getMessageSource(),
+					adapter.getOutputChannelName());
+		}
+
+		public MessageHandlerNode handlerNode(String name, IntegrationConsumer consumer) {
+			MessageChannel inputChannel = consumer.getInputChannel();
+			MessageChannel outputChannel = consumer.getOutputChannel();
+			String inputChannelName = inputChannel == null ? "__unknown__" : inputChannel.toString();
+			String outputChannelName = outputChannel == null ? "__unknown__" : outputChannel.toString();
+			return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(), inputChannelName,
+					outputChannelName);
+		}
+
 	}
 
 }
