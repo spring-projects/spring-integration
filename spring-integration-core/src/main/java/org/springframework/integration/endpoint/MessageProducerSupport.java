@@ -69,11 +69,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.outputChannelName = outputChannelName;
 	}
 
-	/**
-	 * Return the output channel.
-	 * @return the channel.
-	 * @since 4.3
-	 */
 	@Override
 	public MessageChannel getOutputChannel() {
 		if (this.outputChannelName != null) {

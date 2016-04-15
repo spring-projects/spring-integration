@@ -21,7 +21,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 /**
- * Consumer.
+ * Message consumers implement this interface, the message handler within a consumer
+ * may or may not emit output messages.
  *
  * @author Gary Russell
  * @since 4.3

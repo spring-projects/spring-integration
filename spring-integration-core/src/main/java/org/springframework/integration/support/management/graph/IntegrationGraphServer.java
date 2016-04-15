@@ -56,7 +56,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	public Graph getGraph() {
 		if (this.graph == null) {
-			synchronized(this) {
+			synchronized (this) {
 				if (this.graph == null) {
 					buildGraph();
 				}

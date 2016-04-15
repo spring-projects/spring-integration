@@ -37,6 +37,7 @@ public interface MessageProducer {
 	/**
 	 * Return the the output channel.
 	 * @return the channel.
+	 * @since 4.3
 	 */
 	MessageChannel getOutputChannel();
 
