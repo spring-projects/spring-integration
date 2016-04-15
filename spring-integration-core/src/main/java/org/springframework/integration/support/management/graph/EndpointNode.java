@@ -27,24 +27,17 @@ public abstract class EndpointNode extends IntegrationNode {
 
 	private final String output;
 
-	private final String input;
-
 	protected EndpointNode(int nodeId, String name, Object nodeObject, Stats stats) {
-		this(nodeId, name, nodeObject, null, null, stats);
+		this(nodeId, name, nodeObject, null, stats);
 	}
 
-	protected EndpointNode(int nodeId, String name, Object nodeObject, String output, String input, Stats stats) {
+	protected EndpointNode(int nodeId, String name, Object nodeObject, String output, Stats stats) {
 		super(nodeId, name, nodeObject, stats);
 		this.output = output;
-		this.input = input;
 	}
 
 	public String getOutput() {
 		return this.output;
-	}
-
-	public String getInput() {
-		return this.input;
 	}
 
 }

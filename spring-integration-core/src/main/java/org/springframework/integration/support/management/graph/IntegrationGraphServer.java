@@ -24,9 +24,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -40,7 +41,7 @@ import org.springframework.messaging.MessageChannel;
  * @since 4.3
  *
  */
-public class GraphServer implements ApplicationContextAware, SmartInitializingSingleton {
+public class IntegrationGraphServer implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
 	private final NodeFactory nodeFactory = new NodeFactory();
 
@@ -54,11 +55,25 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 	}
 
 	public Graph getGraph() {
+		if (this.graph == null) {
+			synchronized(this) {
+				if (this.graph == null) {
+					buildGraph();
+				}
+			}
+		}
 		return this.graph;
 	}
 
 	@Override
-	public synchronized void afterSingletonsInstantiated() {
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (event.getApplicationContext().equals(this.applicationContext)) {
+			buildGraph();
+		}
+	}
+
+	public synchronized void buildGraph() {
+		this.nodeFactory.reset();
 		Map<String, MessageChannel> channels = this.applicationContext
 				.getBeansOfType(MessageChannel.class);
 		Map<String, SourcePollingChannelAdapter> spcas = this.applicationContext
@@ -127,8 +142,7 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 	 * Rebuild the graph if new components have been added.
 	 */
 	public void rebuild() {
-		this.nodeFactory.nodeId.set(0);
-		afterSingletonsInstantiated();
+		buildGraph();
 	}
 
 	private final static class NodeFactory {
@@ -160,6 +174,10 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
 			return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(),
 					consumer.getInputChannel().toString(), outputChannelName);
+		}
+
+		private void reset() {
+			this.nodeId.set(0);
 		}
 
 	}

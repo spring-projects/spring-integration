@@ -29,11 +29,17 @@ import org.springframework.messaging.MessageHandler;
  */
 public class MessageHandlerNode extends EndpointNode {
 
+	private final String input;
+
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
-		super(nodeId, name, handler, output, input, handler instanceof MessageHandlerMetrics
+		super(nodeId, name, handler, output, handler instanceof MessageHandlerMetrics
 				? new Stats((MessageHandlerMetrics) handler) : new IntegrationNode.Stats());
+		this.input = input;
 	}
 
+	public String getInput() {
+		return this.input;
+	}
 
 	public static final class Stats extends IntegrationNode.Stats {
 

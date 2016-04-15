@@ -28,7 +28,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 public class MessageGatewayNode extends EndpointNode {
 
 	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, String output) {
-		super(nodeId, name, gateway, output, null, new Stats(gateway));
+		super(nodeId, name, gateway, output, new Stats(gateway));
 	}
 
 

@@ -56,10 +56,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-public class GraphServerTests {
+public class IntegrationGraphServerTests {
 
 	@Autowired
-	private GraphServer server;
+	private IntegrationGraphServer server;
 
 	@Test
 	public void test() throws Exception {
@@ -87,8 +87,8 @@ public class GraphServerTests {
 	public static class Config {
 
 		@Bean
-		public GraphServer builder() {
-			return new GraphServer();
+		public IntegrationGraphServer builder() {
+			return new IntegrationGraphServer();
 		}
 
 		@Bean

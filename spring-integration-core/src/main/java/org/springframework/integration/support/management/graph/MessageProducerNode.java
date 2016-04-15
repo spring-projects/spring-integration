@@ -28,7 +28,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 public class MessageProducerNode extends EndpointNode {
 
 	public MessageProducerNode(int nodeId, String name, MessageProducerSupport producer, String output) {
-		super(nodeId, name, producer, output, null, new IntegrationNode.Stats());
+		super(nodeId, name, producer, output, new IntegrationNode.Stats());
 	}
 
 }

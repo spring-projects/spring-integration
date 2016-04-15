@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -35,7 +36,8 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent {
+public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent,
+		SmartInitializingSingleton {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -103,6 +105,12 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	@Override
+	public void afterSingletonsInstantiated() {
+		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
+				"'outputChannel' or 'outputChannelName' is required");
+	}
+
+	@Override
 	protected void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
@@ -115,8 +123,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
-		Assert.state(this.outputChannel != null || StringUtils.hasText(this.outputChannelName),
-				"'outputChannel' or 'outputChannelName' is required");
 	}
 
 	/**
