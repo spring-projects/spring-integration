@@ -26,7 +26,7 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
  * @since 4.3
  *
  */
-public class MessageSourceNode extends IntegrationNode {
+public class MessageSourceNode extends EndpointNode {
 
 	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output) {
 		super(nodeId, name, messageSource, output, null, messageSource instanceof MessageSourceMetrics
@@ -43,7 +43,7 @@ public class MessageSourceNode extends IntegrationNode {
 		}
 
 		@Override
-		public boolean isAvailable() {
+		protected boolean isAvailable() {
 			return this.source.isCountsEnabled();
 		}
 

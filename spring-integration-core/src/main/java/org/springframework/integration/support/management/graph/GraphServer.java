@@ -70,19 +70,19 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class);
 		Collection<IntegrationNode> nodes = new ArrayList<IntegrationNode>();
 		Collection<LinkNode> links = new ArrayList<LinkNode>();
-		Map<String, MessageChannelNode> channelInfos = new HashMap<String, MessageChannelNode>();
+		Map<String, MessageChannelNode> channelNodes = new HashMap<String, MessageChannelNode>();
 		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			MessageChannel channel = entry.getValue();
 			MessageChannelNode channelNode = this.nodeFactory.channelNode(entry.getKey(), channel);
 			String beanName = entry.getKey();
 			nodes.add(channelNode);
-			channelInfos.put(beanName, channelNode);
+			channelNodes.put(beanName, channelNode);
 		}
 		for (Entry<String, SourcePollingChannelAdapter> entry : spcas.entrySet()) {
 			SourcePollingChannelAdapter adapter = entry.getValue();
 			MessageSourceNode sourceNode = this.nodeFactory.sourceNode(entry.getKey(), adapter);
 			nodes.add(sourceNode);
-			MessageChannelNode channelNode = channelInfos.get(sourceNode.getOutput());
+			MessageChannelNode channelNode = channelNodes.get(sourceNode.getOutput());
 			if (channelNode != null) {
 				links.add(new LinkNode(sourceNode.getNodeId(), channelNode.getNodeId()));
 			}
@@ -91,7 +91,7 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 			MessagingGatewaySupport gateway = entry.getValue();
 			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
 			nodes.add(gatewayNode);
-			MessageChannelNode channelInfo = channelInfos.get(gatewayNode.getOutput());
+			MessageChannelNode channelInfo = channelNodes.get(gatewayNode.getOutput());
 			if (channelInfo != null) {
 				links.add(new LinkNode(gatewayNode.getNodeId(), channelInfo.getNodeId()));
 			}
@@ -100,7 +100,7 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 			MessageProducerSupport producer = entry.getValue();
 			MessageProducerNode producerNode = this.nodeFactory.producerNode(entry.getKey(), producer);
 			nodes.add(producerNode);
-			MessageChannelNode channelNode = channelInfos.get(producerNode.getOutput());
+			MessageChannelNode channelNode = channelNodes.get(producerNode.getOutput());
 			if (channelNode != null) {
 				links.add(new LinkNode(producerNode.getNodeId(), channelNode.getNodeId()));
 			}
@@ -109,12 +109,12 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 			IntegrationConsumer consumer = entry.getValue();
 			MessageHandlerNode handlerNode = this.nodeFactory.handlerNode(entry.getKey(), consumer);
 			nodes.add(handlerNode);
-			MessageChannelNode channelNode = channelInfos.get(handlerNode.getInput());
+			MessageChannelNode channelNode = channelNodes.get(handlerNode.getInput());
 			if (channelNode != null) {
 				links.add(new LinkNode(channelNode.getNodeId(), handlerNode.getNodeId()));
 			}
 			if (handlerNode.getOutput() != null) {
-				channelNode = channelInfos.get(handlerNode.getOutput());
+				channelNode = channelNodes.get(handlerNode.getOutput());
 				if (channelNode != null) {
 					links.add(new LinkNode(handlerNode.getNodeId(), channelNode.getNodeId()));
 				}
@@ -135,33 +135,31 @@ public class GraphServer implements ApplicationContextAware, SmartInitializingSi
 
 		private final AtomicInteger nodeId = new AtomicInteger();
 
-		public MessageChannelNode channelNode(String name, MessageChannel channel) {
+		private MessageChannelNode channelNode(String name, MessageChannel channel) {
 			return new MessageChannelNode(this.nodeId.incrementAndGet(), name, channel);
 		}
 
-		public MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
+		private MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
-					gateway.getRequestChannelName());
+					gateway.getRequestChannel().toString());
 		}
 
-		public MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
+		private MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
 			MessageChannel outputChannel = producer.getOutputChannel();
 			String outputChannelName = outputChannel == null ? "__unknown__" : outputChannel.toString();
 			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannelName);
 		}
 
-		public MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
+		private MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
 			return new MessageSourceNode(this.nodeId.incrementAndGet(), name, adapter.getMessageSource(),
-					adapter.getOutputChannelName());
+					adapter.getOutputChannel().toString());
 		}
 
-		public MessageHandlerNode handlerNode(String name, IntegrationConsumer consumer) {
-			MessageChannel inputChannel = consumer.getInputChannel();
+		private MessageHandlerNode handlerNode(String name, IntegrationConsumer consumer) {
 			MessageChannel outputChannel = consumer.getOutputChannel();
-			String inputChannelName = inputChannel == null ? "__unknown__" : inputChannel.toString();
-			String outputChannelName = outputChannel == null ? "__unknown__" : outputChannel.toString();
-			return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(), inputChannelName,
-					outputChannelName);
+			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
+			return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(),
+					consumer.getInputChannel().toString(), outputChannelName);
 		}
 
 	}

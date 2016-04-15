@@ -44,7 +44,7 @@ public class MessageChannelNode extends IntegrationNode {
 		}
 
 		@Override
-		public boolean isAvailable() {
+		protected boolean isAvailable() {
 			return this.channel.isCountsEnabled();
 		}
 

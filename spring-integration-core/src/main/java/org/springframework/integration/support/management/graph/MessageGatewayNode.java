@@ -25,7 +25,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
  * @since 4.3
  *
  */
-public class MessageGatewayNode extends IntegrationNode {
+public class MessageGatewayNode extends EndpointNode {
 
 	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, String output) {
 		super(nodeId, name, gateway, output, null, new Stats(gateway));
@@ -41,7 +41,7 @@ public class MessageGatewayNode extends IntegrationNode {
 		}
 
 		@Override
-		public boolean isAvailable() {
+		protected boolean isAvailable() {
 			return this.gateway.isCountsEnabled();
 		}
 

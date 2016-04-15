@@ -29,7 +29,6 @@ import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageSourceMetrics;
@@ -143,17 +142,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	public void setRequestChannelName(String requestChannelName) {
 		Assert.hasText(requestChannelName, "'requestChannelName' must not be empty");
 		this.requestChannelName = requestChannelName;
-	}
-
-	/**
-	 * Return the name of the request channel
-	 * @return the channel name.
-	 * @since 4.3
-	 */
-	public String getRequestChannelName() {
-		return this.requestChannel == null ? this.requestChannelName :
-			this.requestChannel instanceof NamedComponent ? ((NamedComponent) this.requestChannel).getComponentName()
-					: null;
 	}
 
 	/**

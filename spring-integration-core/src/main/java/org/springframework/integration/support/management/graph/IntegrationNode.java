@@ -19,7 +19,7 @@ package org.springframework.integration.support.management.graph;
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
- * Base class for all endpoints.
+ * Base class for all nodes.
  *
  * @author Gary Russell
  * @since 4.3
@@ -31,10 +31,6 @@ public abstract class IntegrationNode {
 
 	private final String name;
 
-	private final String output;
-
-	private final String input;
-
 	private final Stats stats;
 
 	private final String componentType;
@@ -42,14 +38,8 @@ public abstract class IntegrationNode {
 	private final String componentName;
 
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
-		this(nodeId, name, nodeObject, null, null, stats);
-	}
-
-	protected IntegrationNode(int nodeId, String name, Object nodeObject, String output, String input, Stats stats) {
 		this.nodeId = nodeId;
 		this.name = name;
-		this.output = output;
-		this.input = input;
 		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
 				: nodeObject.getClass().getSimpleName();
 		this.componentName = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentName()
@@ -63,14 +53,6 @@ public abstract class IntegrationNode {
 
 	public String getName() {
 		return this.name;
-	}
-
-	public String getOutput() {
-		return this.output;
-	}
-
-	public String getInput() {
-		return this.input;
 	}
 
 	public String getComponentType() {
@@ -87,7 +69,7 @@ public abstract class IntegrationNode {
 
 	public static class Stats {
 
-		public boolean isAvailable() {
+		protected boolean isAvailable() {
 			return false;
 		}
 

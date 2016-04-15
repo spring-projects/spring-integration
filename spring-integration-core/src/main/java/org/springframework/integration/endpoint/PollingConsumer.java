@@ -75,7 +75,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 
 	@Override
 	public MessageChannel getInputChannel() {
-		return this.inputChannel == null ? null : this.inputChannel;
+		return this.inputChannel;
 	}
 
 	@Override

@@ -27,7 +27,7 @@ import org.springframework.messaging.MessageHandler;
  * @since 4.3
  *
  */
-public class MessageHandlerNode extends IntegrationNode {
+public class MessageHandlerNode extends EndpointNode {
 
 	public MessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output) {
 		super(nodeId, name, handler, output, input, handler instanceof MessageHandlerMetrics
@@ -44,7 +44,7 @@ public class MessageHandlerNode extends IntegrationNode {
 		}
 
 		@Override
-		public boolean isAvailable() {
+		protected boolean isAvailable() {
 			return this.handler.isCountsEnabled();
 		}
 

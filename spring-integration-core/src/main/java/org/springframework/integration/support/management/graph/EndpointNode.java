@@ -16,19 +16,35 @@
 
 package org.springframework.integration.support.management.graph;
 
-import org.springframework.integration.endpoint.MessageProducerSupport;
-
 /**
- * Represents an inbound message producer.
+ * Base class for all endpoints.
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class MessageProducerNode extends EndpointNode {
+public abstract class EndpointNode extends IntegrationNode {
 
-	public MessageProducerNode(int nodeId, String name, MessageProducerSupport producer, String output) {
-		super(nodeId, name, producer, output, null, new IntegrationNode.Stats());
+	private final String output;
+
+	private final String input;
+
+	protected EndpointNode(int nodeId, String name, Object nodeObject, Stats stats) {
+		this(nodeId, name, nodeObject, null, null, stats);
+	}
+
+	protected EndpointNode(int nodeId, String name, Object nodeObject, String output, String input, Stats stats) {
+		super(nodeId, name, nodeObject, stats);
+		this.output = output;
+		this.input = input;
+	}
+
+	public String getOutput() {
+		return this.output;
+	}
+
+	public String getInput() {
+		return this.input;
 	}
 
 }

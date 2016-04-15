@@ -50,7 +50,7 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 
 	@Override
 	public MessageChannel getInputChannel() {
-		return this.inputChannel == null ? null : this.inputChannel;
+		return this.inputChannel;
 	}
 
 	@Override

@@ -92,15 +92,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	}
 
 	/**
-	 * Return the name of the output channel.
-	 * @return the output channel name.
-	 */
-	public String getOutputChannelName() {
-		return this.outputChannel == null ? this.outputChannelName : this.outputChannel instanceof NamedComponent ?
-				((NamedComponent) this.outputChannel).getComponentName() : null;
-	}
-
-	/**
 	 * Specify the maximum time to wait for a Message to be sent to the
 	 * output channel.
 	 *
