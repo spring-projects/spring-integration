@@ -54,6 +54,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		this.applicationContext = applicationContext;
 	}
 
+	/**
+	 * Return the cached graph. Although the graph is cached, the data therein (stats
+	 * etc.) are dynamic.
+	 * @return the graph.
+	 * @see #rebuild()
+	 */
 	public Graph getGraph() {
 		if (this.graph == null) {
 			synchronized (this) {
@@ -72,7 +78,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 	}
 
-	public synchronized void buildGraph() {
+	private synchronized Graph buildGraph() {
 		this.nodeFactory.reset();
 		Map<String, MessageChannel> channels = this.applicationContext
 				.getBeansOfType(MessageChannel.class);
@@ -136,13 +142,17 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			}
 		}
 		this.graph = new Graph(nodes, links);
+		return this.graph;
 	}
 
 	/**
-	 * Rebuild the graph if new components have been added.
+	 * Rebuild the graph, re-cache it, and return it. Use this method if the application
+	 * components have changed (added or removed).
+	 * @return the graph.
+	 * @see #getGraph()
 	 */
-	public void rebuild() {
-		buildGraph();
+	public Graph rebuild() {
+		return buildGraph();
 	}
 
 	private final static class NodeFactory {
@@ -160,8 +170,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
 			MessageChannel outputChannel = producer.getOutputChannel();
-			String outputChannelName = outputChannel == null ? "__unknown__" : outputChannel.toString();
-			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannelName);
+			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannel.toString());
 		}
 
 		private MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
