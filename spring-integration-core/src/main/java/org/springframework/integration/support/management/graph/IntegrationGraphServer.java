@@ -61,7 +61,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @see #rebuild()
 	 */
 	public Graph getGraph() {
-		if (this.graph == null) {
+		if (this.graph == null) { //NOSONAR (sync)
 			synchronized (this) {
 				if (this.graph == null) {
 					buildGraph();
@@ -80,17 +80,20 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private synchronized Graph buildGraph() {
 		this.nodeFactory.reset();
-		Map<String, MessageChannel> channels = this.applicationContext
-				.getBeansOfType(MessageChannel.class);
-		Map<String, SourcePollingChannelAdapter> spcas = this.applicationContext
-				.getBeansOfType(SourcePollingChannelAdapter.class);
-		Map<String, MessagingGatewaySupport> gateways = this.applicationContext
-				.getBeansOfType(MessagingGatewaySupport.class);
-		Map<String, MessageProducerSupport> producers = this.applicationContext
-				.getBeansOfType(MessageProducerSupport.class);
-		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class);
 		Collection<IntegrationNode> nodes = new ArrayList<IntegrationNode>();
 		Collection<LinkNode> links = new ArrayList<LinkNode>();
+		Map<String, MessageChannelNode> channelNodes = channels(nodes);
+		pollingAdapters(nodes, links, channelNodes);
+		gateways(nodes, links, channelNodes);
+		producers(nodes, links, channelNodes);
+		consumers(nodes, links, channelNodes);
+		this.graph = new Graph(nodes, links);
+		return this.graph;
+	}
+
+	private Map<String, MessageChannelNode> channels(Collection<IntegrationNode> nodes) {
+		Map<String, MessageChannel> channels = this.applicationContext
+				.getBeansOfType(MessageChannel.class);
 		Map<String, MessageChannelNode> channelNodes = new HashMap<String, MessageChannelNode>();
 		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			MessageChannel channel = entry.getValue();
@@ -99,6 +102,13 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			nodes.add(channelNode);
 			channelNodes.put(beanName, channelNode);
 		}
+		return channelNodes;
+	}
+
+	private void pollingAdapters(Collection<IntegrationNode> nodes, Collection<LinkNode> links,
+			Map<String, MessageChannelNode> channelNodes) {
+		Map<String, SourcePollingChannelAdapter> spcas = this.applicationContext
+				.getBeansOfType(SourcePollingChannelAdapter.class);
 		for (Entry<String, SourcePollingChannelAdapter> entry : spcas.entrySet()) {
 			SourcePollingChannelAdapter adapter = entry.getValue();
 			MessageSourceNode sourceNode = this.nodeFactory.sourceNode(entry.getKey(), adapter);
@@ -108,6 +118,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				links.add(new LinkNode(sourceNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
+	}
+
+	private void gateways(Collection<IntegrationNode> nodes, Collection<LinkNode> links,
+			Map<String, MessageChannelNode> channelNodes) {
+		Map<String, MessagingGatewaySupport> gateways = this.applicationContext
+				.getBeansOfType(MessagingGatewaySupport.class);
 		for (Entry<String, MessagingGatewaySupport> entry : gateways.entrySet()) {
 			MessagingGatewaySupport gateway = entry.getValue();
 			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
@@ -117,6 +133,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				links.add(new LinkNode(gatewayNode.getNodeId(), channelInfo.getNodeId()));
 			}
 		}
+	}
+
+	private void producers(Collection<IntegrationNode> nodes, Collection<LinkNode> links,
+			Map<String, MessageChannelNode> channelNodes) {
+		Map<String, MessageProducerSupport> producers = this.applicationContext
+				.getBeansOfType(MessageProducerSupport.class);
 		for (Entry<String, MessageProducerSupport> entry : producers.entrySet()) {
 			MessageProducerSupport producer = entry.getValue();
 			MessageProducerNode producerNode = this.nodeFactory.producerNode(entry.getKey(), producer);
@@ -126,6 +148,11 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				links.add(new LinkNode(producerNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
+	}
+
+	private void consumers(Collection<IntegrationNode> nodes, Collection<LinkNode> links,
+			Map<String, MessageChannelNode> channelNodes) {
+		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class);
 		for (Entry<String, IntegrationConsumer> entry : consumers.entrySet()) {
 			IntegrationConsumer consumer = entry.getValue();
 			MessageHandlerNode handlerNode = this.nodeFactory.handlerNode(entry.getKey(), consumer);
@@ -141,8 +168,6 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				}
 			}
 		}
-		this.graph = new Graph(nodes, links);
-		return this.graph;
 	}
 
 	/**
@@ -155,7 +180,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		return buildGraph();
 	}
 
-	private final static class NodeFactory {
+	private static final class NodeFactory {
 
 		private final AtomicInteger nodeId = new AtomicInteger();
 
