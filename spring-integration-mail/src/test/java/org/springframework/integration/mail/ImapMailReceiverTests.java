@@ -49,6 +49,7 @@ import javax.mail.URLName;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
@@ -75,11 +76,15 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.codec.kryo.FileKryoRegistrar;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.mail.transformer.DetatchedMimeMessage;
+import org.springframework.integration.mail.transformer.MimeToDetatchedTransformer;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
@@ -147,7 +152,7 @@ public class ImapMailReceiverTests {
 		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver) throws MessagingException {
+	public void testIdleWithServerGuts(ImapMailReceiver receiver) throws Exception {
 		imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
@@ -174,6 +179,17 @@ public class ImapMailReceiverTests {
 		assertNotNull(received);
 		assertNotNull(received.getPayload().getReceivedDate());
 		assertTrue(received.getPayload().getLineCount() > -1);
+
+		// Kryo
+//		com.esotericsoftware.minlog.Log.TRACE();
+		org.springframework.messaging.Message<?> converted = new MimeToDetatchedTransformer().transform(received);
+		PojoCodec pojoCodec = new PojoCodec(new FileKryoRegistrar(), true);
+		byte[] encoded = pojoCodec.encode(converted.getPayload());
+		DetatchedMimeMessage decoded = pojoCodec.decode(encoded, DetatchedMimeMessage.class);
+		assertEquals("foo\r\n", decoded.getContent());
+		assertEquals(new InternetAddress("foo@bar"), decoded.getRecipients(RecipientType.TO)[0]);
+		assertEquals(new InternetAddress("bar@baz"), decoded.getFrom()[0]);
+
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
