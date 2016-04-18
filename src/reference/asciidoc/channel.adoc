@@ -788,6 +788,30 @@ That way, the framework will ask the interceptor if it's OK to intercept each ch
 You can also add runtime protection in the interceptor methods that ensures that the channel is not one that is referenced by the interceptor.
 The `WireTap` uses both of these techniques.
 
+Starting with _version 4.3_, the `WireTap` has additional constructors that take a `channelName` instead of a
+`MessageChannel` instance.
+This can be convenient for Java Configuration and when channel auto-creation logic is being used.
+The target `MessageChannel` bean is resolved from the provided `channelName` later, on the first interaction with the
+interceptor.
+
+IMPORTANT: Channel resolution requires a `BeanFactory` so the wire tap instance must be a Spring-managed bean.
+
+This _late-binding_ approach also allows simplification of typical wire-tapping patterns with Java DSL configuration:
+[source,java]
+----
+@Bean
+public PollableChannel myChannel() {
+    return MessageChannels.queue()
+            .wireTap("loggingFlow.input")
+            .get();
+}
+
+@Bean
+public IntegrationFlow loggingFlow() {
+    return f -> f.log();
+}
+----
+
 [[conditional-wiretap]]
 ===== Conditional Wire Taps
 

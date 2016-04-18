@@ -25,11 +25,13 @@ import org.junit.Test;
 import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class WireTapTests {
 
@@ -73,7 +75,7 @@ public class WireTapTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void wireTapTargetMustNotBeNull() {
-		new WireTap(null);
+		new WireTap((MessageChannel) null);
 	}
 
 	@Test
@@ -98,7 +100,7 @@ public class WireTapTests {
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		String headerName = "testAttribute";
 		Message<String> message = MessageBuilder.withPayload("testing")
-				.setHeader(headerName, new Integer(123)).build();
+				.setHeader(headerName, 123).build();
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
 		Message<?> intercepted = secondaryChannel.receive(0);

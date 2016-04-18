@@ -206,3 +206,9 @@ See <<annotations>> for more information.
 
 The XMPP Extensions (XEP) are now supported by the XMPP channel adapters.
 See <<xmpp-extensions>> for more information.
+
+==== WireTap Late Binding
+
+The `WireTap` `ChannelInterceptor` now can accept a `channelName` which is resolved to the target `MessageChannel`
+later, during the first active interceptor operation.
+See <<channel-wiretap>> for more information.

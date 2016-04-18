@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,13 @@ package org.springframework.integration.channel.interceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -37,13 +41,17 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ManagedResource
-public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, VetoCapableInterceptor {
+public class WireTap extends ChannelInterceptorAdapter
+		implements Lifecycle, VetoCapableInterceptor, BeanFactoryAware {
 
 	private static final Log logger = LogFactory.getLog(WireTap.class);
 
-	private final MessageChannel channel;
+	private volatile MessageChannel channel;
+
+	private volatile String channelName;
 
 	private volatile long timeout = 0;
 
@@ -51,10 +59,11 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, Vet
 
 	private volatile boolean running = true;
 
+	private BeanFactory beanFactory;
+
 
 	/**
 	 * Create a new wire tap with <em>no</em> {@link MessageSelector}.
-	 *
 	 * @param channel the MessageChannel to which intercepted messages will be sent
 	 */
 	public WireTap(MessageChannel channel) {
@@ -63,7 +72,6 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, Vet
 
 	/**
 	 * Create a new wire tap with the provided {@link MessageSelector}.
-	 *
 	 * @param channel the channel to which intercepted messages will be sent
 	 * @param selector the selector that must accept a message for it to be
 	 * sent to the intercepting channel
@@ -74,14 +82,44 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, Vet
 		this.selector = selector;
 	}
 
+	/**
+	 * Create a new wire tap based on the MessageChannel name and
+	 * with <em>no</em> {@link MessageSelector}.
+	 * @param channelName the name of the target MessageChannel
+	 * to which intercepted messages will be sent
+	 * @since 4.3
+	 */
+	public WireTap(String channelName) {
+		this(channelName, null);
+	}
+
+	/**
+	 * Create a new wire tap with the provided {@link MessageSelector}.
+	 * @param channelName the name of the target MessageChannel
+	 * to which intercepted messages will be sent.
+	 * @param selector the selector that must accept a message for it to be
+	 * sent to the intercepting channel
+	 * @since 4.3
+	 */
+	public WireTap(String channelName, MessageSelector selector) {
+		Assert.hasText(channelName, "channelName must not be empty");
+		this.channelName = channelName;
+		this.selector = selector;
+	}
 
 	/**
 	 * Specify the timeout value for sending to the intercepting target.
-	 *
 	 * @param timeout the timeout in milliseconds
 	 */
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		if (this.beanFactory == null) {
+			this.beanFactory = beanFactory;
+		}
 	}
 
 	/**
@@ -118,18 +156,19 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, Vet
 	 */
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		if (this.channel.equals(channel)) {
+		MessageChannel wireTapChannel = getChannel();
+		if (wireTapChannel.equals(channel)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("WireTap is refusing to intercept its own channel '" + this.channel + "'");
+				logger.debug("WireTap is refusing to intercept its own channel '" + wireTapChannel + "'");
 			}
 			return message;
 		}
 		if (this.running && (this.selector == null || this.selector.accept(message))) {
 			boolean sent = (this.timeout >= 0)
-					? this.channel.send(message, this.timeout)
-					: this.channel.send(message);
+					? wireTapChannel.send(message, this.timeout)
+					: wireTapChannel.send(message);
 			if (!sent && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to WireTap channel '" + this.channel + "'");
+				logger.warn("failed to send message to WireTap channel '" + wireTapChannel + "'");
 			}
 		}
 		return message;
@@ -137,7 +176,20 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle, Vet
 
 	@Override
 	public boolean shouldIntercept(String beanName, ChannelInterceptorAware channel) {
-		return !this.channel.equals(channel);
+		return !getChannel().equals(channel);
+	}
+
+	private MessageChannel getChannel() {
+		if (this.channelName != null) {
+			synchronized (this) {
+				if (this.channelName != null) {
+					this.channel = new BeanFactoryChannelResolver(this.beanFactory)
+							.resolveDestination(this.channelName);
+					this.channelName = null;
+				}
+			}
+		}
+		return this.channel;
 	}
 
 }

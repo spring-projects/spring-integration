@@ -186,6 +186,9 @@ public class EnableIntegrationTests {
 	private QueueChannel output;
 
 	@Autowired
+	private QueueChannel wireTapFromOutput;
+
+	@Autowired
 	private PollableChannel publishedChannel;
 
 	@Autowired
@@ -299,6 +302,7 @@ public class EnableIntegrationTests {
 				invocation.callRealMethod();
 				return null;
 			}
+
 		}).when(logger).debug("Received no Message during the poll, returning 'false'");
 		new DirectFieldAccessor(this.serviceActivatorEndpoint).setPropertyValue("logger", logger);
 
@@ -342,6 +346,10 @@ public class EnableIntegrationTests {
 		assertEquals("Foo", interceptedMessage.getPayload());
 
 		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertEquals("FOO", receive.getPayload());
+
+		receive = this.wireTapFromOutput.receive(10000);
 		assertNotNull(receive);
 		assertEquals("FOO", receive.getPayload());
 
@@ -723,7 +731,19 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
+		public WireTap wireTapFromOutputInterceptor() {
+			return new WireTap("wireTapFromOutput");
+		}
+
+		@Bean
 		public PollableChannel output() {
+			QueueChannel queueChannel = new QueueChannel();
+			queueChannel.addInterceptor(wireTapFromOutputInterceptor());
+			return queueChannel;
+		}
+
+		@Bean
+		public PollableChannel wireTapFromOutput() {
 			return new QueueChannel();
 		}
 
