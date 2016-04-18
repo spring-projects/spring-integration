@@ -56,6 +56,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
+import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
@@ -108,7 +109,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class StompIntegrationTests {
+public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
@@ -127,6 +128,10 @@ public class StompIntegrationTests {
 	@Autowired
 	@Qualifier("webSocketEvents")
 	private QueueChannel webSocketEvents;
+
+	public StompIntegrationTests() {
+		super("org.springframework", "org.springframework.integration");
+	}
 
 	@Before
 	public void setup() {

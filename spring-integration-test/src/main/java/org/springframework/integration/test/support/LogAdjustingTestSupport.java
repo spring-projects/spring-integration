@@ -34,8 +34,10 @@ import org.junit.rules.TestName;
  * Base class for module tests where logging is set to TRACE for the duration
  * of the test and reverted to the previous value. Also logs a start/end
  * message. Duplicated in s-i-core/src/test for use there, to avoid circular dep.
+ *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2.2
  *
  */
@@ -71,12 +73,12 @@ public class LogAdjustingTestSupport {
 			this.oldCategories.add(loggerToAdjust.getEffectiveLevel());
 			loggerToAdjust.setLevel(Level.TRACE);
 		}
-		this.logger.debug("!!!! Starting test: " + this.testName.getMethodName() + " !!!!");
+		this.logger.warn("!!!! Starting test: " + this.testName.getMethodName() + " !!!!");
 	}
 
 	@After
 	public void afterTest() {
-		logger.debug("!!!! Finished test: " + this.testName.getMethodName() + " !!!!");
+		logger.warn("!!!! Finished test: " + this.testName.getMethodName() + " !!!!");
 		Iterator<Level> oldCategory = this.oldCategories.iterator();
 		for (Logger loggerToAdjust : this.loggersToAdjust) {
 			loggerToAdjust.setLevel(oldCategory.next());
