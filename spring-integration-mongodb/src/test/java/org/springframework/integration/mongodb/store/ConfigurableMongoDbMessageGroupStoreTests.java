@@ -56,6 +56,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		GenericApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		testApplicationContext.refresh();
 		mongoDbMessageStore.setApplicationContext(testApplicationContext);
+		mongoDbMessageStore.setLazyLoadMessageGroups(true);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}

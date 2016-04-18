@@ -142,31 +142,24 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 
 		Query query = groupOrderQuery(groupId);
-		List<MessageDocument> messageDocuments = this.mongoTemplate.find(query, MessageDocument.class,
-				this.collectionName);
+		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
 
-		long createdTime = 0;
-		long lastModifiedTime = 0;
-		int lastReleasedSequence = 0;
-		boolean complete = false;
+		if (messageDocument != null) {
+			long createdTime = messageDocument.getCreatedTime();
+			long lastModifiedTime = messageDocument.getLastModifiedTime();
+			boolean complete = messageDocument.isComplete();
+			int lastReleasedSequence = messageDocument.getLastReleasedSequence();
 
-		if (messageDocuments.size() > 0) {
-			MessageDocument document = messageDocuments.get(0);
-			createdTime = document.getCreatedTime();
-			lastModifiedTime = document.getLastModifiedTime();
-			complete = document.isComplete();
-			lastReleasedSequence = document.getLastReleasedSequence();
+			MessageGroup messageGroup = getMessageGroupFactory()
+					.create(this, groupId, createdTime, complete);
+			messageGroup.setLastModified(lastModifiedTime);
+			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			return messageGroup;
+
 		}
-
-		List<Message<?>> messages = new ArrayList<Message<?>>();
-		for (MessageDocument document : messageDocuments) {
-			messages.add(document.getMessage());
+		else {
+			return new SimpleMessageGroup(groupId);
 		}
-		MessageGroup group = new SimpleMessageGroup(messages, groupId, createdTime, complete);
-		group.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
-		group.setLastModified(lastModifiedTime);
-
-		return proxyMessageGroupForLazyLoad(group);
 	}
 
 	@Override

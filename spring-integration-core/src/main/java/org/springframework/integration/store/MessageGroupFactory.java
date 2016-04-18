@@ -36,4 +36,10 @@ public interface MessageGroupFactory {
 	MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
 						boolean complete);
 
+
+	MessageGroup create(MessageGroupStore messageGroupStore, Object groupId);
+
+	MessageGroup create(MessageGroupStore messageGroupStore, Object groupId, long timestamp,
+			boolean complete);
+
 }

@@ -23,7 +23,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -460,13 +459,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			return new SimpleMessageGroup(groupId);
 		}
 
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId,
-				createDate.get().getTime(), completeFlag.get());
-
+		MessageGroup messageGroup = getMessageGroupFactory()
+				.create(this, groupId, createDate.get().getTime(), completeFlag.get());
 		messageGroup.setLastModified(updateDate.get().getTime());
 		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceRef.get());
-
-		return proxyMessageGroupForLazyLoad(messageGroup);
+		return messageGroup;
 	}
 
 	@Override

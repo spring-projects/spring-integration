@@ -18,7 +18,6 @@ package org.springframework.integration.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -98,12 +97,11 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		MessageGroupMetadata metadata = getGroupMetadata(groupId);
 		if (metadata != null) {
 
-			SimpleMessageGroup messageGroup = new SimpleMessageGroup(Collections.<Message<?>>emptyList(),
-					groupId, metadata.getTimestamp(), metadata.isComplete());
+			MessageGroup messageGroup = getMessageGroupFactory()
+					.create(this, groupId, metadata.getTimestamp(), metadata.isComplete());
 			messageGroup.setLastModified(metadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(metadata.getLastReleasedMessageSequenceNumber());
-
-			return proxyMessageGroupForLazyLoad(messageGroup);
+			return messageGroup;
 		}
 		else {
 			return new SimpleMessageGroup(groupId);

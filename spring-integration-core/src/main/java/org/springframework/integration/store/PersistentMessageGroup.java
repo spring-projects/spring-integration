@@ -82,7 +82,9 @@ class PersistentMessageGroup implements MessageGroup {
 		else {
 			Message<?> message = getOne();
 			if (message != null) {
-				return message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
+				Integer sequenceSize = message.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
+				return (sequenceSize != null ? sequenceSize : 0);
 			}
 			else {
 				return 0;

@@ -64,10 +64,11 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 	public void testNonExistingEmptyMessageGroup() throws Exception {
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = getMessageGroupStore();
+		store.addMessagesToGroup(1, new GenericMessage<Object>("foo"));
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
 		assertThat(messageGroup.getClass().getName(), containsString("PersistentMessageGroup"));
-		assertEquals(0, messageGroup.size());
+		assertEquals(1, messageGroup.size());
 	}
 
 	@Test

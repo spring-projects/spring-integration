@@ -94,6 +94,7 @@ This defaults to a `SimpleMessageGroupFactory` which produces `SimpleMessageGrou
 (`LinkedHashSet`) internal collection.
 Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
 previous `SimpleMessageGroup` behavior.
+Also the `PERSISTENT` option is available. See the next section for more information.
 
 [[lazy-load-message-group]]
 ==== Persistence MessageGroupStore and Lazy-Load
@@ -103,5 +104,6 @@ from the store with the _Lazy-Load_ manner.
 In most cases it is useful for the Correlation `MessageHandler` s (<<aggregator>> and <<resequencer>>),
 when it would be an overhead to load entire `MessageGroup` from the store on each correlation operation.
 
-To switch off the lazy-load behavior the `AbstractMessageGroupStore.setLazyLoadMessageGroups(false)` option
+To switch on the lazy-load behavior the `AbstractMessageGroupStore.setLazyLoadMessageGroups(true)` option
 can be used from the configuration.
+Or you can inject the `SimpleMessageGroupFactory` with the `SimpleMessageGroupFactory.GroupType.PERSISTENT` variant.

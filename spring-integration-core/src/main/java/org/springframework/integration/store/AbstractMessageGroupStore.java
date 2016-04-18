@@ -57,8 +57,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private volatile boolean messageBuilderFactorySet;
 
-	private volatile boolean lazyLoadMessageGroups = true;
-
 	public AbstractMessageGroupStore() {
 		super();
 	}
@@ -114,7 +112,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 * @since 4.3
 	 */
 	public void setLazyLoadMessageGroups(boolean lazyLoadMessageGroups) {
-		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
+		setMessageGroupFactory(new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT));
 	}
 
 	@Override
@@ -190,22 +188,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		addMessagesToGroup(groupId, message);
 		return getMessageGroup(groupId);
-	}
-
-	protected MessageGroup proxyMessageGroupForLazyLoad(MessageGroup original) {
-		if (this.lazyLoadMessageGroups) {
-			return new PersistentMessageGroup(this, original);
-		}
-		else {
-			Object groupId = original.getGroupId();
-			Collection<Message<?>> messagesForGroup = getMessagesForGroup(groupId);
-			MessageGroup messageGroup = getMessageGroupFactory().create(messagesForGroup, groupId,
-					original.getTimestamp(), original.isComplete());
-			messageGroup.setLastModified(original.getLastModified());
-			messageGroup.setLastReleasedMessageSequenceNumber(original.getLastReleasedMessageSequenceNumber());
-			return messageGroup;
-		}
-
 	}
 
 	private void expire(MessageGroup group) {
