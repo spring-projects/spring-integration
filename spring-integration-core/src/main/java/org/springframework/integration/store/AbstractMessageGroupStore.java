@@ -49,6 +49,9 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 
+	private final MessageGroupFactory persistentMessageGroupFactory =
+			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
+
 	private volatile boolean timeoutOnIdle;
 
 	private volatile BeanFactory beanFactory;
@@ -56,6 +59,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile boolean messageBuilderFactorySet;
+
+	private boolean lazyLoadMessageGroups = true;
 
 	public AbstractMessageGroupStore() {
 		super();
@@ -75,6 +80,16 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 			this.messageBuilderFactorySet = true;
 		}
 		return this.messageBuilderFactory;
+	}
+
+	@Override
+	protected MessageGroupFactory getMessageGroupFactory() {
+		if (this.lazyLoadMessageGroups) {
+			return this.persistentMessageGroupFactory;
+		}
+		else {
+			return super.getMessageGroupFactory();
+		}
 	}
 
 	/**
@@ -108,11 +123,12 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	 * Specify if the result of the {@link #getMessageGroup(Object)} should be wrapped
 	 * to the {@link PersistentMessageGroup} - a lazy-load proxy for messages in group
 	 * Defaults to {@code true}.
+	 * <p> The target logic is based on the {@link SimpleMessageGroupFactory.GroupType#PERSISTENT}.
 	 * @param lazyLoadMessageGroups the {@code boolean} flag to use.
 	 * @since 4.3
 	 */
 	public void setLazyLoadMessageGroups(boolean lazyLoadMessageGroups) {
-		setMessageGroupFactory(new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT));
+		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
 	}
 
 	@Override

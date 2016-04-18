@@ -246,7 +246,7 @@ public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implem
 		if (logger.isDebugEnabled()) {
 			logger.debug("registering: " + dir + " for file creation events");
 		}
-		dir.register(this.watcher, StandardWatchEventKinds.ENTRY_CREATE);
+		dir.register(this.watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
 	}
 
 }

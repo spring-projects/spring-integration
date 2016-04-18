@@ -24,7 +24,7 @@ See <<message-store>> for more information.
 ==== PersistentMessageGroup
 
 The `PersistentMessageGroup`, - lazy-load proxy, - implementation is provided for persistent `MessageGroupStore` s,
-which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (defaults to `false`).
+which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (defaults).
 See <<message-store>> for more information.
 
 [[x4.3-general]]

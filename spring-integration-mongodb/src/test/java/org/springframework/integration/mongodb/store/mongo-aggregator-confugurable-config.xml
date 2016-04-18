@@ -14,7 +14,6 @@
 
 	<bean id="mongoStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
 		<constructor-arg ref="mongoConnectionFactory"/>
-		<property name="lazyLoadMessageGroups" value="true"/>
 	</bean>
 
 	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">

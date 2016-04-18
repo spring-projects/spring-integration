@@ -36,7 +36,6 @@ public class MongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupSt
 	protected MongoDbMessageStore getMessageGroupStore() throws Exception {
 		MongoDbMessageStore mongoDbMessageStore =
 				new MongoDbMessageStore(new SimpleMongoDbFactory(new MongoClient(), "test"));
-		mongoDbMessageStore.setLazyLoadMessageGroups(true);
 		mongoDbMessageStore.afterPropertiesSet();
 		return mongoDbMessageStore;
 	}
