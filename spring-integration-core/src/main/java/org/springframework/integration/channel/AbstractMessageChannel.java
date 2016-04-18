@@ -26,6 +26,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -173,16 +175,28 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		Collections.sort(interceptors, this.orderComparator);
 		this.interceptors.set(interceptors);
+		populateBeanFactoryToInterceptors(interceptors.toArray(new ChannelInterceptor[interceptors.size()]));
+	}
+
+	protected void populateBeanFactoryToInterceptors(ChannelInterceptor... interceptors) {
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			for (ChannelInterceptor interceptor : interceptors) {
+				if (interceptor instanceof BeanFactoryAware) {
+					((BeanFactoryAware) interceptor).setBeanFactory(beanFactory);
+				}
+			}
+		}
 	}
 
 	/**
 	 * Add a channel interceptor to the end of the list.
-	 *
 	 * @param interceptor The interceptor.
 	 */
 	@Override
 	public void addInterceptor(ChannelInterceptor interceptor) {
 		this.interceptors.add(interceptor);
+		populateBeanFactoryToInterceptors(interceptor);
 	}
 
 	/**
@@ -194,6 +208,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void addInterceptor(int index, ChannelInterceptor interceptor) {
 		this.interceptors.add(index, interceptor);
+		populateBeanFactoryToInterceptors(interceptor);
 	}
 
 	/**
@@ -339,6 +354,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (this.statsEnabled) {
 			this.channelMetrics.setFullStatsEnabled(true);
 		}
+		populateBeanFactoryToInterceptors(this.interceptors.interceptors
+				.toArray(new ChannelInterceptor[this.interceptors.getSize()]));
 	}
 
 	/**
