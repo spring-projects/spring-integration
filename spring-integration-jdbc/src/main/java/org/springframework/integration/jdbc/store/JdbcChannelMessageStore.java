@@ -43,11 +43,8 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
-import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
-import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
-import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -246,27 +243,17 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * <p>
-	 * Sets the database specific {@link ChannelMessageStoreQueryProvider} to use. The {@link JdbcChannelMessageStore}
-	 * provides the SQL queries to retrieve messages from the database. The
-	 * following {@link ChannelMessageStoreQueryProvider} are provided:
-	 * </p>
-	 * <ul>
-	 *     <li>{@link DerbyChannelMessageStoreQueryProvider}</li>
-	 *     <li>{@link MySqlChannelMessageStoreQueryProvider}</li>
-	 *     <li>{@link OracleChannelMessageStoreQueryProvider}</li>
-	 *     <li>{@link PostgresChannelMessageStoreQueryProvider}</li>
-	 * </ul>
-	 * <p>
-	 * Beyond, you can provide your own query implementations, in case you need
-	 * to support additional databases and/or need to fine-tune the queries for
-	 * your requirements.
-	 * </p>
-	 *
+	 * Sets the database specific {@link ChannelMessageStoreQueryProvider} to use.
+	 * The {@link JdbcChannelMessageStore} provides the SQL queries to retrieve messages from
+	 * the database. See the JavaDocs {@link ChannelMessageStoreQueryProvider} (all known
+	 * implementing classes) to see those implementations provided by the framework.
+	 * <p> You can provide your own query implementations, if you need to support additional
+	 * databases and/or need to fine-tune the queries for your requirements.
 	 * @param channelMessageStoreQueryProvider Must not be null.
 	 */
 	public void setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider) {
-		Assert.notNull(channelMessageStoreQueryProvider, "The provided channelMessageStoreQueryProvider must not be null.");
+		Assert.notNull(channelMessageStoreQueryProvider,
+				"The provided channelMessageStoreQueryProvider must not be null.");
 		this.channelMessageStoreQueryProvider = channelMessageStoreQueryProvider;
 	}
 
