@@ -106,20 +106,29 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-			<xsd:attribute name="use-watch-service" type="xsd:string">
+			<xsd:attribute name="use-watch-service">
 				<xsd:annotation>
 					<xsd:documentation>
 						Indicates if the 'FileReadingMessageSource' should use an internal 'DirectoryScanner'
 						for the Java 7 'WatchService'.
 						Mutually exclusive with 'scanner' attribute.
 					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-									type="org.springframework.integration.file.DirectoryScanner"/>
-						</tool:annotation>
-					</xsd:appinfo>
 				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="watch-events" default="CREATE">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma-separated value for the 'FileReadingMessageSource.WatchEventType's
+						to specify which kinds of files system events the 'WatchService' will listen to.
+						Used only if 'use-watch-service == true'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="watchEventType xsd:string"/>
+				</xsd:simpleType>
 			</xsd:attribute>
 			<xsd:attribute name="ignore-hidden">
 				<xsd:annotation><xsd:documentation><![CDATA[
@@ -168,7 +177,16 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name="outbound-channel-adapter">
+	<xsd:simpleType name="watchEventType">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="CREATE"/>
+			<xsd:enumeration value="MODIFY"/>
+			<xsd:enumeration value="DELETE"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+
+	<xsd:element name="outbound-channel-adapter">
         <xsd:annotation>
             <xsd:documentation>
 				Configures a Consumer Endpoint for the

@@ -259,8 +259,8 @@ Since _version 4.3_, the top level `WatchServiceDirectoryScanner` has been depre
 Now this can be enable via `use-watch-service` option, which is mutually exclusive with the `scanner` option.
 An internal `FileReadingMessageSource.WatchServiceDirectoryScanner` instance is populated for the provided `directory`.
 
-In addition, now the `WatchService` polling logic tracks the `StandardWatchEventKinds.ENTRY_MODIFY` and
-`StandardWatchEventKinds.ENTRY_DELETE`.
+In addition, now the `WatchService` polling logic can track the `StandardWatchEventKinds.ENTRY_MODIFY` and
+`StandardWatchEventKinds.ENTRY_DELETE`, too.
 
 The `ENTRY_MODIFY` events logic should be implemented properly in the `FileListFilter` to track not only new files but
 also the modification, if that is requirement.
@@ -268,6 +268,25 @@ Otherwise the files from those events are treated the same way.
 
 The `ENTRY_DELETE` events have effect for the `ResettableFileListFilter` implementations and, therefore, their files
  are provided for the `remove()` operation.
+
+For this purpose the `watch-events`
+(`FileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType... watchEvents)`) has been introduced.
+With such an option we can implement some scenarios, when we would like to do one downstream flow logic for new files,
+and other for modified.
+We can achieve that with different `<int-file:inbound-channel-adapter>` definitions, but for the same directory:
+
+[source,xml]
+----
+<int-file:inbound-channel-adapter id="newFiles"
+     directory="${input.directory}"
+     use-watch-service="true"/>
+
+<int-file:inbound-channel-adapter id="modifiedFiles"
+     directory="${input.directory}"
+     use-watch-service="true"
+     filter="acceptAllFilter"
+     watch-events="MODIFY"/> <!-- CREATE by default -->
+----
 
 ==== Limiting Memory Consumption
 

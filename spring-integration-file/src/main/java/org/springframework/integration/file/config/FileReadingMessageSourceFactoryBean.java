@@ -35,6 +35,8 @@ import org.springframework.integration.file.locking.AbstractFileLockerFilter;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileReadingMessageSource>,
@@ -55,6 +57,8 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 	private volatile DirectoryScanner scanner;
 
 	private boolean useWatchService;
+
+	private FileReadingMessageSource.WatchEventType[] watchEvents;
 
 	private volatile Boolean scanEachPoll;
 
@@ -81,6 +85,10 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	public void setUseWatchService(boolean useWatchService) {
 		this.useWatchService = useWatchService;
+	}
+
+	public void setWatchEvents(FileReadingMessageSource.WatchEventType... watchEvents) {
+		this.watchEvents = watchEvents;
 	}
 
 	public void setFilter(FileListFilter<File> filter) {
@@ -154,6 +162,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 			}
 			else {
 				this.source.setUseWatchService(this.useWatchService);
+				if (this.watchEvents != null) {
+					this.source.setWatchEvents(this.watchEvents);
+				}
 			}
 			if (this.filter != null) {
 				if (this.locker == null) {

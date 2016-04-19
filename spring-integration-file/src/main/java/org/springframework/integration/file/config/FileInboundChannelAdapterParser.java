@@ -47,6 +47,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "comparator");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "scanner");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-watch-service");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "watch-events");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");

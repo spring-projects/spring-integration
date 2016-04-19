@@ -75,6 +75,9 @@ public class WatchServiceDirectoryScannerTests {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
 		fileReadingMessageSource.setDirectory(folder.getRoot());
 		fileReadingMessageSource.setUseWatchService(true);
+		fileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+				FileReadingMessageSource.WatchEventType.MODIFY,
+				FileReadingMessageSource.WatchEventType.DELETE);
 		fileReadingMessageSource.setBeanFactory(mock(BeanFactory.class));
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
@@ -161,12 +164,16 @@ public class WatchServiceDirectoryScannerTests {
 
 		baz2Copy.setLastModified(baz2.lastModified() + 100000);
 
+		Thread.sleep(100);
+
 		files = scanner.listFiles(folder.getRoot());
 
 		assertEquals(1, files.size());
 		assertTrue(files.contains(baz2));
 
 		baz2.delete();
+
+		Thread.sleep(100);
 
 		scanner.listFiles(folder.getRoot());
 

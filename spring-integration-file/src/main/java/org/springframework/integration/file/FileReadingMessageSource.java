@@ -110,6 +110,8 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private boolean useWatchService;
 
+	private WatchEventType[] watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
 	 */
@@ -255,8 +257,28 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.scanEachPoll = scanEachPoll;
 	}
 
+	/**
+	 * Switch this {@link FileReadingMessageSource} to use its internal
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * @param useWatchService the {@code boolean} flag to switch to
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @since 4.3
+	 * @see #setWatchEvents
+	 */
 	public void setUseWatchService(boolean useWatchService) {
 		this.useWatchService = useWatchService;
+	}
+
+	/**
+	 * The {@link WatchService} event types.
+	 * If {@link #setUseWatchService} isn't {@code true}, this option is ignored.
+	 * @param watchEvents the set of {@link WatchEventType}.
+	 * @since 4.3
+	 * @see #setUseWatchService
+	 */
+	public void setWatchEvents(WatchEventType... watchEvents) {
+		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
+		this.watchEvents = watchEvents;
 	}
 
 	@Override
@@ -378,34 +400,60 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	@UsesJava7
+	public enum WatchEventType {
+
+		CREATE(StandardWatchEventKinds.ENTRY_CREATE),
+
+		MODIFY(StandardWatchEventKinds.ENTRY_MODIFY),
+
+		DELETE(StandardWatchEventKinds.ENTRY_DELETE);
+
+		private final WatchEvent.Kind<Path> kind;
+
+		WatchEventType(WatchEvent.Kind<Path> kind) {
+			this.kind = kind;
+		}
+
+	}
+
+	@UsesJava7
 	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
 
-		private volatile WatchService watcher;
+		private WatchService watcher;
 
-		private volatile Collection<File> initialFiles;
+		private Collection<File> initialFiles;
+
+		private WatchEvent.Kind<?>[] kinds;
 
 		@Override
 		public void start() {
-				try {
-					this.watcher = FileSystems.getDefault().newWatchService();
-				}
-				catch (IOException e) {
-					logger.error("Failed to create watcher for " + FileReadingMessageSource.this.directory, e);
-				}
-				final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath());
-				initialFiles.addAll(filesFromEvents());
-				this.initialFiles = initialFiles;
+			try {
+				this.watcher = FileSystems.getDefault().newWatchService();
+			}
+			catch (IOException e) {
+				logger.error("Failed to create watcher for " + FileReadingMessageSource.this.directory, e);
+			}
+
+			this.kinds = new WatchEvent.Kind<?>[FileReadingMessageSource.this.watchEvents.length];
+
+			for (int i = 0; i < FileReadingMessageSource.this.watchEvents.length; i++) {
+				this.kinds[i] = FileReadingMessageSource.this.watchEvents[i].kind;
+			}
+
+			final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath());
+			initialFiles.addAll(filesFromEvents());
+			this.initialFiles = initialFiles;
 		}
 
 		@Override
 		public void stop() {
-				try {
-					this.watcher.close();
-					this.watcher = null;
-				}
-				catch (IOException e) {
-					logger.error("Failed to close watcher for " + FileReadingMessageSource.this.directory, e);
-				}
+			try {
+				this.watcher.close();
+				this.watcher = null;
+			}
+			catch (IOException e) {
+				logger.error("Failed to close watcher for " + FileReadingMessageSource.this.directory, e);
+			}
 		}
 
 		@Override
@@ -506,10 +554,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			if (logger.isDebugEnabled()) {
 				logger.debug("registering: " + dir + " for file events");
 			}
-			dir.register(this.watcher,
-					StandardWatchEventKinds.ENTRY_CREATE,
-					StandardWatchEventKinds.ENTRY_MODIFY,
-					StandardWatchEventKinds.ENTRY_DELETE);
+			dir.register(this.watcher, this.kinds);
 		}
 
 	}

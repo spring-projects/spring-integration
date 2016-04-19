@@ -95,7 +95,7 @@ structure for file in the target directory.
 See <<file-writing-file-names>> for more information.
 
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
-The `use-watch-service` option is provided to enable such a behaviour.
+The `use-watch-service` and `watch-events` options are provided to enable such a behaviour.
 The top level `WatchServiceDirectoryScanner` has been deprecated because of inconsistency around API.
 See <<watch-service-directory-scanner>> for more information.
 
