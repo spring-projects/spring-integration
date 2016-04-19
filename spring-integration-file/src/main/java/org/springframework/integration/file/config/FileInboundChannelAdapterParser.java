@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 				BeanDefinitionBuilder.genericBeanDefinition(FileReadingMessageSourceFactoryBean.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "comparator");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "scanner");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-watch-service");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");

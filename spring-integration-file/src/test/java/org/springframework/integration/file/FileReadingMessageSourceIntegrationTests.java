@@ -111,13 +111,10 @@ public class FileReadingMessageSourceIntegrationTests {
 	public void getFiles() throws Exception {
 		Message<File> received1 = pollableFileSource.receive();
 		assertNotNull("This should return the first message", received1);
-		pollableFileSource.onSend(received1);
 		Message<File> received2 = pollableFileSource.receive();
 		assertNotNull(received2);
-		pollableFileSource.onSend(received2);
 		Message<File> received3 = pollableFileSource.receive();
 		assertNotNull(received3);
-		pollableFileSource.onSend(received3);
 		assertNotSame(received1 + " == " + received2, received1.getPayload(), received2.getPayload());
 		assertNotSame(received1 + " == " + received3, received1.getPayload(), received3.getPayload());
 		assertNotSame(received2 + " == " + received3, received2.getPayload(), received3.getPayload());
@@ -154,7 +151,6 @@ public class FileReadingMessageSourceIntegrationTests {
 					Thread.yield();
 					received = pollableFileSource.receive();
 				}
-				pollableFileSource.onSend(received);
 			}
 
 		};
@@ -181,9 +177,6 @@ public class FileReadingMessageSourceIntegrationTests {
 		}
 		// make sure three different files were taken
 		Message<File> received = pollableFileSource.receive();
-		if (received != null) {
-			pollableFileSource.onSend(received);
-		}
 		assertNull(received);
 	}
 

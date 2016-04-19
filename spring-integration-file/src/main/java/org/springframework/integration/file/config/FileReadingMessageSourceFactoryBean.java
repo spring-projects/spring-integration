@@ -54,6 +54,8 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	private volatile DirectoryScanner scanner;
 
+	private boolean useWatchService;
+
 	private volatile Boolean scanEachPoll;
 
 	private volatile Boolean autoCreateDirectory;
@@ -75,6 +77,10 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	public void setScanner(DirectoryScanner scanner) {
 		this.scanner = scanner;
+	}
+
+	public void setUseWatchService(boolean useWatchService) {
+		this.useWatchService = useWatchService;
 	}
 
 	public void setFilter(FileListFilter<File> filter) {
@@ -145,6 +151,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 			this.source.setDirectory(this.directory);
 			if (this.scanner != null) {
 				this.source.setScanner(this.scanner);
+			}
+			else {
+				this.source.setUseWatchService(this.useWatchService);
 			}
 			if (this.filter != null) {
 				if (this.locker == null) {

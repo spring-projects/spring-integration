@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,11 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @param <F> The type that will be filtered.
  */
-public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, Closeable {
+public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, Closeable {
 
 	private final Set<FileListFilter<F>> fileFilters;
 
@@ -118,6 +119,18 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 				((ReversibleFileListFilter<F>) fileFilter).rollback(file, files);
 			}
 		}
+	}
+
+	@Override
+	public boolean remove(F f) {
+		boolean removed = false;
+		for (FileListFilter<F> fileFilter : this.fileFilters) {
+			if (fileFilter instanceof ResettableFileListFilter) {
+				((ResettableFileListFilter<F>) fileFilter).remove(f);
+				removed = true;
+			}
+		}
+		return removed;
 	}
 
 }

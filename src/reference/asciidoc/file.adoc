@@ -231,11 +231,12 @@ on that `scanner` not on the `FileReadingMessageSource`.
 NOTE: The `DefaultDirectoryScanner` uses a `IgnoreHiddenFileListFilter` and `AcceptOnceFileListFilter` by default.
 To prevent their use, you should configure your own filter (e.g. `AcceptAllFileListFilter`) or even set it to `null`.
 
-
+[[watch-service-directory-scanner]]
 ==== WatchServiceDirectoryScanner
 
 This scanner was added in _version 4.2_. It replaces the existing `RecursiveLeafOnlyDirectoryScanner` which is
-inefficient for large directory trees. The `WatchServiceDirectoryScanner` requires Java 7 or above.
+inefficient for large directory trees.
+The `FileReadingMessageSource.WatchServiceDirectoryScanner` requires Java 7 or above.
 
 This scanner relies on file system events when new files are added to the directory.
 During initialization, the directory is registered to generate events; the initial file list is also built.
@@ -253,20 +254,20 @@ In this case, the root directory is re-scanned completely.
 To avoid duplicates consider using an appropriate `FileListFilter` such as the `AcceptOnceFileListFilter` and/or
 remove files when processing is completed.
 
-[source, xml]
-----
-<bean id="wsScanner" class="org.springframework.integration.file.WatchServiceDirectoryScanner">
-    <constructor-arg value="/tmp/myDir" />
-</bean>
-----
+Since _version 4.3_, the top level `WatchServiceDirectoryScanner` has been deprecated in favor of
+`FileReadingMessageSource` internal logic for the `WatchService`.
+Now this can be enable via `use-watch-service` option, which is mutually exclusive with the `scanner` option.
+An internal `FileReadingMessageSource.WatchServiceDirectoryScanner` instance is populated for the provided `directory`.
 
-[source, java]
-----
-@Bean
-public DirectoryScanner scanner() {
-    return new WatchServiceDirectoryScanner("/tmp/myDir");
-}
-----
+In addition, now the `WatchService` polling logic tracks the `StandardWatchEventKinds.ENTRY_MODIFY` and
+`StandardWatchEventKinds.ENTRY_DELETE`.
+
+The `ENTRY_MODIFY` events logic should be implemented properly in the `FileListFilter` to track not only new files but
+also the modification, if that is requirement.
+Otherwise the files from those events are treated the same way.
+
+The `ENTRY_DELETE` events have effect for the `ResettableFileListFilter` implementations and, therefore, their files
+ are provided for the `remove()` operation.
 
 ==== Limiting Memory Consumption
 

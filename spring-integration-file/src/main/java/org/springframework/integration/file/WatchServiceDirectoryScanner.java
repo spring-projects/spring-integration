@@ -60,9 +60,13 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @since 4.2
+ * @deprecated since 4.3 in favor of internal {@link WatchService} logic in the {@link FileReadingMessageSource}.
+ * Will be removed in Spring Integration 5.0.
  *
  */
+@Deprecated
 @UsesJava7
+@SuppressWarnings("deprecation")
 public class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements SmartLifecycle {
 
 	private final static Log logger = LogFactory.getLog(WatchServiceDirectoryScanner.class);

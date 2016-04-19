@@ -30,7 +30,7 @@ import java.util.List;
  * @author Iwein Fuld
  * @author Gary Russell
  *
- * @deprecated in favor of {@link WatchServiceDirectoryScanner} (when using Java 7 or later)
+ * @deprecated in favor of {@link FileReadingMessageSource#setUseWatchService(boolean)} (when using Java 7 or later)
  */
 @Deprecated
 public class RecursiveLeafOnlyDirectoryScanner extends DefaultDirectoryScanner {
