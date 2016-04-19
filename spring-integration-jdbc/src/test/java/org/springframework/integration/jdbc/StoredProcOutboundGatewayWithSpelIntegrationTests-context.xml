@@ -42,11 +42,9 @@
 		<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper" />
 	</int-jdbc:stored-proc-outbound-gateway>
 
-	<int:channel id="outputChannel"/>
-
-	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
-
-	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithSpelIntegrationTests$Consumer"/>
+	<int:channel id="outputChannel">
+		<int:queue/>
+	</int:channel>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
 

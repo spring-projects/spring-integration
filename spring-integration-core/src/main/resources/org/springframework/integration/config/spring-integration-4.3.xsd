@@ -923,7 +923,7 @@
 						</xsd:choice>
 					</xsd:sequence>
 					<xsd:sequence>
-						<xsd:choice minOccurs="0" maxOccurs="1" >
+						<xsd:choice>
 							<xsd:element name="expression" type="innerExpressionType"/>
 							<xsd:any namespace="##other"/>
 						</xsd:choice>

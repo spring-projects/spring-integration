@@ -23,9 +23,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.CallableStatement;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -72,11 +70,11 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	private AbstractApplicationContext context;
 
 	@Autowired
-	private Consumer consumer;
-
-	@Autowired
 	@Qualifier("startChannel")
 	MessageChannel channel;
+
+	@Autowired
+	PollableChannel outputChannel;
 
 	@Autowired
 	@Qualifier("startErrorsChannel")
@@ -111,13 +109,8 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		channel.send(user1Message);
 		channel.send(user2Message);
 
-		List<Message<Collection<User>>> received = new ArrayList<Message<Collection<User>>>();
-
-		received.add(consumer.poll(2000));
-
-		Assert.assertEquals(Integer.valueOf(1), Integer.valueOf(received.size()));
-
-		Message<Collection<User>> message = received.get(0);
+		@SuppressWarnings("unchecked")
+		Message<Collection<User>> message = (Message<Collection<User>>) this.outputChannel.receive(10000);
 
 		context.stop();
 		assertNotNull(message);
@@ -141,7 +134,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 		this.channel.send(user1Message);
 
-		Message<?> receive = this.startErrorsChannel.receive(1000);
+		Message<?> receive = this.startErrorsChannel.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive, instanceOf(ErrorMessage.class));
 
@@ -163,7 +156,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		this.jdbcTemplate.update("INSERT INTO json_message VALUES (?,?)", messageId, jsonMessage);
 
 		this.getMessageChannel.send(new GenericMessage<String>(messageId));
-		Message<?> resultMessage = this.output2Channel.receive(1000);
+		Message<?> resultMessage = this.output2Channel.receive(10000);
 		assertNotNull(resultMessage);
 		Object resultPayload = resultMessage.getPayload();
 		assertTrue(resultPayload instanceof String);

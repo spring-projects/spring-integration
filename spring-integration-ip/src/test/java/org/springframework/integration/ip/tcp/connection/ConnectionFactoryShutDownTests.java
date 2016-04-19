@@ -72,7 +72,8 @@ public class ConnectionFactoryShutDownTests {
 		watch.start();
 		factory.stop();
 		watch.stop();
-		assertTrue("Expected < 1000, was:" + watch.getLastTaskTimeMillis(), watch.getLastTaskTimeMillis() < 1000);
+		assertTrue("Expected < 10000, was:" + watch.getLastTaskTimeMillis(), watch.getLastTaskTimeMillis() < 10000);
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 	}
+
 }
