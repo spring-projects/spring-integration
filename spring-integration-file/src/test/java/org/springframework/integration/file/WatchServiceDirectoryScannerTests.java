@@ -37,7 +37,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * @author Gary Russell
@@ -78,15 +79,18 @@ public class WatchServiceDirectoryScannerTests {
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
 
-		fileReadingMessageSource.setFilter(new AcceptOnceFileListFilter<File>() {
+		FileSystemPersistentAcceptOnceFileListFilter filter =
+				new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "test") {
 
-			@Override
-			public boolean remove(File fileToRemove) {
-				removeFileLatch.countDown();
-				return super.remove(fileToRemove);
-			}
+					@Override
+					public boolean remove(File fileToRemove) {
+						removeFileLatch.countDown();
+						return super.remove(fileToRemove);
+					}
 
-		});
+				};
+
+		fileReadingMessageSource.setFilter(filter);
 		fileReadingMessageSource.afterPropertiesSet();
 		fileReadingMessageSource.start();
 		DirectoryScanner scanner = fileReadingMessageSource.getScanner();
@@ -152,6 +156,15 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertTrue(accum.contains(baz2));
+
+		File baz2Copy = new File(baz2.getAbsolutePath());
+
+		baz2Copy.setLastModified(baz2.lastModified() + 100000);
+
+		files = scanner.listFiles(folder.getRoot());
+
+		assertEquals(1, files.size());
+		assertTrue(files.contains(baz2));
 
 		baz2.delete();
 

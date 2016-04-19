@@ -444,12 +444,14 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 							if (FileReadingMessageSource.this.filter instanceof ResettableFileListFilter) {
 								((ResettableFileListFilter<File>) FileReadingMessageSource.this.filter).remove(file);
 							}
+							files.remove(file);
 						}
 						else {
 							if (file.isDirectory()) {
 								files.addAll(walkDirectory(file.toPath()));
 							}
 							else {
+								files.remove(file);
 								files.add(file);
 							}
 						}
