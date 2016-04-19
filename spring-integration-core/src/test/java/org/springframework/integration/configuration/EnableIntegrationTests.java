@@ -56,6 +56,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
@@ -731,9 +732,14 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
+		public WireTap wireTapFromOutputInterceptor() {
+			return new WireTap("wireTapFromOutput");
+		}
+
+		@Bean
 		public PollableChannel output() {
 			QueueChannel queueChannel = new QueueChannel();
-			queueChannel.addInterceptor(new WireTap("wireTapFromOutput"));
+			queueChannel.addInterceptor(wireTapFromOutputInterceptor());
 			return queueChannel;
 		}
 
