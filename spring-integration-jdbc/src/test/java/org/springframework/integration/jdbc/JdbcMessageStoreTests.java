@@ -245,9 +245,9 @@ public class JdbcMessageStoreTests {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
+		messageStore.addMessagesToGroup(groupId, messages.toArray(new Message[messages.size()]));
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(25, group.size());
 		messageStore.removeMessagesFromGroup(groupId, messages);
@@ -314,7 +314,9 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 
 		this.messageStore.addMessagesToGroup(groupId,
-				MessageBuilder.withPayload("foo").setCorrelationId(groupId).build(),
+				MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		Thread.sleep(1);
+		this.messageStore.addMessagesToGroup(groupId,
 				MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		MessageGroup group = this.messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
