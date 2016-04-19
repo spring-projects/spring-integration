@@ -203,7 +203,7 @@ public class AsyncAmqpGatewayTests {
 		Message<?> returned = returnChannel.receive(10000);
 		assertNotNull(returned);
 		assertEquals("fiz", returned.getPayload());
-
+		ackChannel.receive(10000);
 		ackChannel.purge(null);
 
 		// Simulate a nack - it's hard to get Rabbit to generate one

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.file;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,11 +28,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * @author Gary Russell
@@ -62,9 +71,35 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
-	public void testInitialAndAddMore() throws Exception {
-		WatchServiceDirectoryScanner scanner = new WatchServiceDirectoryScanner(folder.getRoot().getAbsolutePath());
-		scanner.start();
+	public void testInitialAndAddMoreThanRemove() throws Exception {
+		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
+		fileReadingMessageSource.setDirectory(folder.getRoot());
+		fileReadingMessageSource.setUseWatchService(true);
+		fileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+				FileReadingMessageSource.WatchEventType.MODIFY,
+				FileReadingMessageSource.WatchEventType.DELETE);
+		fileReadingMessageSource.setBeanFactory(mock(BeanFactory.class));
+
+		final CountDownLatch removeFileLatch = new CountDownLatch(1);
+
+		FileSystemPersistentAcceptOnceFileListFilter filter =
+				new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "test") {
+
+					@Override
+					public boolean remove(File fileToRemove) {
+						removeFileLatch.countDown();
+						return super.remove(fileToRemove);
+					}
+
+				};
+
+		fileReadingMessageSource.setFilter(filter);
+		fileReadingMessageSource.afterPropertiesSet();
+		fileReadingMessageSource.start();
+		DirectoryScanner scanner = fileReadingMessageSource.getScanner();
+		assertThat(scanner.getClass().getName(),
+				containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+
 		List<File> files = scanner.listFiles(folder.getRoot());
 		assertEquals(3, files.size());
 		assertTrue(files.contains(top1));
@@ -125,7 +160,26 @@ public class WatchServiceDirectoryScannerTests {
 
 		assertTrue(accum.contains(baz2));
 
-		scanner.stop();
+		File baz2Copy = new File(baz2.getAbsolutePath());
+
+		baz2Copy.setLastModified(baz2.lastModified() + 100000);
+
+		Thread.sleep(100);
+
+		files = scanner.listFiles(folder.getRoot());
+
+		assertEquals(1, files.size());
+		assertTrue(files.contains(baz2));
+
+		baz2.delete();
+
+		Thread.sleep(100);
+
+		scanner.listFiles(folder.getRoot());
+
+		assertTrue(removeFileLatch.await(10, TimeUnit.SECONDS));
+
+		fileReadingMessageSource.stop();
 	}
 
 }

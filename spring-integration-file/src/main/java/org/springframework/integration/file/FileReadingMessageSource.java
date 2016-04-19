@@ -17,21 +17,39 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.ResettableFileListFilter;
+import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -64,7 +82,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File> {
+public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File>, Lifecycle {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
@@ -87,9 +105,15 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private volatile boolean scanEachPoll = false;
 
+	private volatile boolean running;
+
 	private FileListFilter<File> filter;
 
 	private FileLocker locker;
+
+	private boolean useWatchService;
+
+	private WatchEventType[] watchEvents = new WatchEventType[] { WatchEventType.CREATE };
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -236,9 +260,57 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.scanEachPoll = scanEachPoll;
 	}
 
+	/**
+	 * Switch this {@link FileReadingMessageSource} to use its internal
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * @param useWatchService the {@code boolean} flag to switch to
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @since 4.3
+	 * @see #setWatchEvents
+	 */
+	public void setUseWatchService(boolean useWatchService) {
+		this.useWatchService = useWatchService;
+	}
+
+	/**
+	 * The {@link WatchService} event types.
+	 * If {@link #setUseWatchService} isn't {@code true}, this option is ignored.
+	 * @param watchEvents the set of {@link WatchEventType}.
+	 * @since 4.3
+	 * @see #setUseWatchService
+	 */
+	public void setWatchEvents(WatchEventType... watchEvents) {
+		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
+		Assert.noNullElements(watchEvents, "'watchEvents' must not contain null elements.");
+		Assert.state(!this.running, "Cannot change watch events while running.");
+
+		this.watchEvents = Arrays.copyOf(watchEvents, watchEvents.length);
+	}
+
 	@Override
 	public String getComponentType() {
 		return "file:inbound-channel-adapter";
+	}
+
+	@Override
+	public void start() {
+		if (this.scanner instanceof Lifecycle) {
+			((Lifecycle) this.scanner).start();
+		}
+		this.running = true;
+	}
+
+	@Override
+	public void stop() {
+		if (this.scanner instanceof Lifecycle) {
+			((Lifecycle) this.scanner).start();
+		}
+		this.running = false;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
 	}
 
 	@Override
@@ -253,6 +325,14 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				"Source path [" + this.directory + "] does not point to a directory.");
 		Assert.isTrue(this.directory.canRead(),
 				"Source directory [" + this.directory + "] is not readable.");
+
+		Assert.state(!(this.scannerExplicitlySet && this.useWatchService),
+				"The 'scanner' and 'useWatchService' options are mutually exclusive: " + this.scanner);
+
+		if (this.useWatchService) {
+			this.scanner = new WatchServiceDirectoryScanner();
+		}
+
 		Assert.state(!(this.scannerExplicitlySet && (this.filter != null || this.locker != null)),
 				"The 'filter' and 'locker' options must be present on the provided external 'scanner': "
 						+ this.scanner);
@@ -262,6 +342,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		if (this.locker != null) {
 			this.scanner.setLocker(this.locker);
 		}
+
 	}
 
 	public Message<File> receive() throws MessagingException {
@@ -302,9 +383,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Adds the failed message back to the 'toBeReceived' queue if there is room.
-	 *
-	 * @param failedMessage
-	 *            the {@link org.springframework.messaging.Message} that failed
+	 * @param failedMessage the {@link Message} that failed
 	 */
 	public void onFailure(Message<File> failedMessage) {
 		if (logger.isWarnEnabled()) {
@@ -316,14 +395,200 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * The message is just logged. It was already removed from the queue during
 	 * the call to <code>receive()</code>
-	 *
-	 * @param sentMessage
-	 *            the message that was successfully delivered
+	 * @param sentMessage the message that was successfully delivered
+	 * @deprecated with no replacement. Redundant method.
 	 */
+	@Deprecated
 	public void onSend(Message<File> sentMessage) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sent: " + sentMessage);
 		}
+	}
+
+	@UsesJava7
+	public enum WatchEventType {
+
+		CREATE(StandardWatchEventKinds.ENTRY_CREATE),
+
+		MODIFY(StandardWatchEventKinds.ENTRY_MODIFY),
+
+		DELETE(StandardWatchEventKinds.ENTRY_DELETE);
+
+		private final WatchEvent.Kind<Path> kind;
+
+		WatchEventType(WatchEvent.Kind<Path> kind) {
+			this.kind = kind;
+		}
+
+	}
+
+	@UsesJava7
+	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
+
+		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<Path, WatchKey>();
+
+		private WatchService watcher;
+
+		private Collection<File> initialFiles;
+
+		private WatchEvent.Kind<?>[] kinds;
+
+		@Override
+		public void start() {
+			try {
+				this.watcher = FileSystems.getDefault().newWatchService();
+			}
+			catch (IOException e) {
+				logger.error("Failed to create watcher for " + FileReadingMessageSource.this.directory, e);
+			}
+
+			this.kinds = new WatchEvent.Kind<?>[FileReadingMessageSource.this.watchEvents.length];
+
+			for (int i = 0; i < FileReadingMessageSource.this.watchEvents.length; i++) {
+				this.kinds[i] = FileReadingMessageSource.this.watchEvents[i].kind;
+			}
+
+			final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
+			initialFiles.addAll(filesFromEvents());
+			this.initialFiles = initialFiles;
+		}
+
+		@Override
+		public void stop() {
+			try {
+				this.watcher.close();
+				this.watcher = null;
+			}
+			catch (IOException e) {
+				logger.error("Failed to close watcher for " + FileReadingMessageSource.this.directory, e);
+			}
+		}
+
+		@Override
+		public boolean isRunning() {
+			return true;
+		}
+
+		@Override
+		protected File[] listEligibleFiles(File directory) {
+			Assert.state(this.watcher != null, "The WatchService has'nt been started");
+			if (this.initialFiles != null) {
+				File[] initial = this.initialFiles.toArray(new File[this.initialFiles.size()]);
+				this.initialFiles = null;
+				return initial;
+			}
+			Collection<File> files = filesFromEvents();
+			return files.toArray(new File[files.size()]);
+		}
+
+		private Set<File> filesFromEvents() {
+			WatchKey key = this.watcher.poll();
+			Set<File> files = new LinkedHashSet<File>();
+			while (key != null) {
+				File parentDir = ((Path) key.watchable()).toAbsolutePath().toFile();
+				for (WatchEvent<?> event : key.pollEvents()) {
+					if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE ||
+							event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ||
+							event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+						Path item = (Path) event.context();
+						File file = new File(parentDir, item.toFile().getName());
+						if (logger.isDebugEnabled()) {
+							logger.debug("Watch event [" + event.kind() + "] for file [" + file + "]");
+						}
+
+						if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+							if (FileReadingMessageSource.this.filter instanceof ResettableFileListFilter) {
+								((ResettableFileListFilter<File>) FileReadingMessageSource.this.filter).remove(file);
+							}
+							boolean fileRemoved = files.remove(file);
+							if (fileRemoved && logger.isDebugEnabled()) {
+								logger.debug("The file [" + file +
+										"] has been removed from the queue because of DELETE event.");
+							}
+						}
+						else {
+							if (file.exists()) {
+								if (file.isDirectory()) {
+									files.addAll(walkDirectory(file.toPath(), event.kind()));
+								}
+								else {
+									files.remove(file);
+									files.add(file);
+								}
+							}
+							else {
+								if (logger.isDebugEnabled()) {
+									logger.debug("A file [" + file + "] for the event [" + event.kind() +
+											"] doesn't exist. Ignored.");
+								}
+							}
+						}
+					}
+					else if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Watch event [" + StandardWatchEventKinds.OVERFLOW +
+									"] with context [" + event.context() + "]");
+						}
+
+						for (WatchKey watchKey : pathKeys.values()) {
+							watchKey.cancel();
+						}
+						this.pathKeys.clear();
+
+						if (event.context() != null && event.context() instanceof Path) {
+							files.addAll(walkDirectory((Path) event.context(), event.kind()));
+						}
+						else {
+							files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
+						}
+					}
+				}
+				key.reset();
+				key = this.watcher.poll();
+			}
+			return files;
+		}
+
+		private Set<File> walkDirectory(Path directory, final WatchEvent.Kind<?> kind) {
+			final Set<File> walkedFiles = new LinkedHashSet<File>();
+			try {
+				registerWatch(directory);
+				Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+					@Override
+					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+						FileVisitResult fileVisitResult = super.preVisitDirectory(dir, attrs);
+						registerWatch(dir);
+						return fileVisitResult;
+					}
+
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						FileVisitResult fileVisitResult = super.visitFile(file, attrs);
+						if (!StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
+							walkedFiles.add(file.toFile());
+						}
+						return fileVisitResult;
+					}
+
+				});
+			}
+			catch (IOException e) {
+				logger.error("Failed to walk directory: " + directory.toString(), e);
+			}
+			return walkedFiles;
+		}
+
+		private void registerWatch(Path dir) throws IOException {
+			if (!this.pathKeys.containsKey(dir)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("registering: " + dir + " for file events");
+				}
+				WatchKey watchKey = dir.register(this.watcher, this.kinds);
+				this.pathKeys.putIfAbsent(dir, watchKey);
+			}
+		}
+
 	}
 
 }

@@ -16,9 +16,11 @@
 
 package org.springframework.integration.file;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -31,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -45,6 +48,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -108,6 +112,9 @@ public class FileInboundTransactionTests {
 		pseudoTx.stop();
 		assertFalse(transactionManager.getCommitted());
 		assertFalse(transactionManager.getRolledBack());
+
+		Object scanner = TestUtils.getPropertyValue(pseudoTx.getMessageSource(), "scanner");
+		assertThat(scanner.getClass().getName(), containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
 	}
 
 	@Test

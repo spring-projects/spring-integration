@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -52,13 +55,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class FileInboundChannelAdapterParserTests {
 
-	@Autowired(required = true)
+	@Autowired
 	private ApplicationContext context;
 
 	@Autowired
@@ -107,6 +111,18 @@ public class FileInboundChannelAdapterParserTests {
 		Object filter = scannerAccessor.getPropertyValue("filter");
 		assertTrue("'filter' should be set and be of instance AcceptOnceFileListFilter but got "
 			+ filter.getClass().getSimpleName(), filter instanceof AcceptOnceFileListFilter);
+
+		assertThat(scanner.getClass().getName(),
+				containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+
+		FileReadingMessageSource.WatchEventType[] watchEvents =
+				(FileReadingMessageSource.WatchEventType[]) this.accessor.getPropertyValue("watchEvents");
+		assertEquals(2, watchEvents.length);
+		for (FileReadingMessageSource.WatchEventType watchEvent : watchEvents) {
+			assertNotEquals(FileReadingMessageSource.WatchEventType.CREATE, watchEvent);
+			assertThat(watchEvent, isOneOf(FileReadingMessageSource.WatchEventType.MODIFY,
+					FileReadingMessageSource.WatchEventType.DELETE));
+		}
 	}
 
 	@Test

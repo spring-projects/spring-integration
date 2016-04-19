@@ -94,6 +94,11 @@ The generated file name for the `FileWritingMessageHandler` can represent _sub-p
 structure for file in the target directory.
 See <<file-writing-file-names>> for more information.
 
+The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
+The `use-watch-service` and `watch-events` options are provided to enable such a behaviour.
+The top level `WatchServiceDirectoryScanner` has been deprecated because of inconsistency around API.
+See <<watch-service-directory-scanner>> for more information.
+
 ===== Buffer Size
 
 When writing files, you can now specify the buffer size to use.

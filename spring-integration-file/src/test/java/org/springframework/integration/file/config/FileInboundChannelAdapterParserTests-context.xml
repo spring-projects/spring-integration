@@ -15,9 +15,11 @@
 							 filter="filter"
 							 comparator="testComparator"
 							 ignore-hidden="false"
-							 auto-startup="false">
+							 auto-startup="false"
+							 use-watch-service="true"
+							 watch-events="MODIFY, DELETE"> <!-- CREATE by default -->
 		<integration:poller fixed-rate="5000">
-		    <integration:transactional synchronization-factory="syncFactory"/>
+			<integration:transactional synchronization-factory="syncFactory"/>
 		</integration:poller>
 	</inbound-channel-adapter>
 
@@ -25,10 +27,10 @@
 							 directory="${java.io.tmpdir}"
 							 filter="filter"
 							 auto-startup="false">
-		<integration:poller fixed-rate="5000" />
+		<integration:poller fixed-rate="5000"/>
 	</inbound-channel-adapter>
 
-	<integration:channel id="successChannel" />
+	<integration:channel id="successChannel"/>
 
 	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean">
 		<beans:property name="ignoreHidden" value="false"/>
@@ -47,12 +49,17 @@
 
 	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
-	<beans:bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+	<beans:bean id="syncFactory"
+				class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<beans:constructor-arg>
-			<beans:bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
-				<beans:property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+			<beans:bean
+					class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<beans:property name="afterCommitExpression"
+								value="#{new org.springframework.expression.spel.standard.SpelExpressionParser()
+								                .parseExpression('payload.delete()')}"/>
 				<beans:property name="afterCommitChannel" ref="successChannel"/>
-				<beans:property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
+				<beans:property name="afterRollbackExpression"
+								value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
 				<beans:property name="afterRollbackChannel" ref="nullChannel"/>
 			</beans:bean>
 		</beans:constructor-arg>

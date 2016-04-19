@@ -12,7 +12,8 @@
 	<context:property-placeholder/>
 
 	<int-file:inbound-channel-adapter id="pseudoTx"
-		channel="input" auto-startup="false" directory="${java.io.tmpdir}/si-test1">
+		channel="input" auto-startup="false" directory="${java.io.tmpdir}/si-test1"
+						use-watch-service="true">
 		<int:poller fixed-rate="500">
 			<int:transactional synchronization-factory="syncFactoryA"/>
 		</int:poller>
@@ -29,7 +30,7 @@
 	</int:channel>
 
 	<int:channel id="txInput" />
-	
+
 	<int-file:inbound-channel-adapter id="realTx" channel="txInput" auto-startup="false"
 							 directory="${java.io.tmpdir}/si-test2">
 		<int:poller fixed-rate="500">
@@ -38,9 +39,9 @@
 	</int-file:inbound-channel-adapter>
 
 	<bean id="txManager" class="org.springframework.integration.file.FileInboundTransactionTests$DummyTxManager" />
-	
+
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
-	
+
 	<bean id="syncFactoryA" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
@@ -51,7 +52,7 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-	
+
 	<bean id="syncFactoryB" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
