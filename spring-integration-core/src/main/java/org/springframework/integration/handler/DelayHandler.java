@@ -30,6 +30,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
@@ -79,6 +81,8 @@ import org.springframework.util.CollectionUtils;
 @ManagedResource
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
+
+	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	private final String messageGroupId;
 
