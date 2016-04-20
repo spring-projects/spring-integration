@@ -159,6 +159,8 @@ public class AsyncAmqpGatewayTests {
 		});
 		gateway.handleMessage(message);
 		assertNull(errorChannel.receive(1000));
+		ack = ackChannel.receive(10000);
+		assertNotNull(ack);
 
 		gateway.setRequiresReply(true);
 		gateway.handleMessage(message);
@@ -170,6 +172,8 @@ public class AsyncAmqpGatewayTests {
 		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(AmqpReplyTimeoutException.class));
 		asyncTemplate.setReceiveTimeout(30000);
 		receiver.setMessageListener(messageListener);
+		ack = ackChannel.receive(10000);
+		assertNotNull(ack);
 
 		// error on sending result
 		DirectChannel errorForce = new DirectChannel();
@@ -195,7 +199,9 @@ public class AsyncAmqpGatewayTests {
 		assertNotNull(returned);
 		assertEquals("foo", returned.getPayload());
 
-		// Simulate a nack - hard to get Rabbit to generate one
+		// Simulate a nack - it's hard to get Rabbit to generate one
+		// We must have consumed all the real acks by now, though, to prevent partial stubbing errors
+
 		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null, null);
 		doReturn(future).when(asyncTemplate).sendAndReceive(anyString(), anyString(),
 				any(org.springframework.amqp.core.Message.class));
