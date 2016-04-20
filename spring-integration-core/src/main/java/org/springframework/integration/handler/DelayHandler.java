@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.aopalliance.aop.Advice;
@@ -30,8 +31,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
@@ -83,8 +82,6 @@ import org.springframework.util.CollectionUtils;
 @IntegrationManagedResource
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
-
-	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	private final String messageGroupId;
 
@@ -313,16 +310,48 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 
-		final Message<?> messageToSchedule = delayedMessage;
+		final UUID messageId = delayedMessage.getHeaders().getId();
 
 		this.getTaskScheduler().schedule(new Runnable() {
 
 			@Override
 			public void run() {
-				releaseMessage(messageToSchedule);
+				Message<?> messageToRelease = getMessageById(messageId);
+				if (messageToRelease != null) {
+					releaseMessage(messageToRelease);
+				}
 			}
 
 		}, new Date(messageWrapper.getRequestDate() + delay));
+	}
+
+	private Message<?> getMessageById(UUID messageId) {
+		Message<?> theMessage = null;
+		if (this.messageStore instanceof SimpleMessageStore) {
+			synchronized (this.messageGroupId) {
+				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
+				for (Message<?> message : messages) {
+					if (message.getHeaders().getId().equals(messageId)) {
+						theMessage = message;
+						break;
+					}
+				}
+			}
+		}
+		else {
+			theMessage = ((MessageStore) this.messageStore).getMessage(messageId);
+		}
+
+		if (theMessage == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No message in the Message Store for id: " + messageId +
+						". Likely another instance has already released it.");
+			}
+			return null;
+		}
+		else {
+			return theMessage;
+		}
 	}
 
 	private void releaseMessage(Message<?> message) {
@@ -371,17 +400,19 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Used for reading persisted Messages in the 'messageStore'
 	 * to reschedule them e.g. upon application restart.
 	 * The logic is based on iteration over {@code messageGroup.getMessages()}
-	 * and schedules task about 'delay' logic.
+	 * and schedules task for 'delay' logic.
 	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	@Override
 	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
-			this.getTaskScheduler().schedule(new Runnable() {
+			getTaskScheduler().schedule(new Runnable() {
 
 				@Override
 				public void run() {
+					// This is fine to keep the reference to the message,
+					// because the scheduled task is preformed immediately.
 					long delay = determineDelayForMessage(message);
 					if (delay > 0) {
 						releaseMessageAfterDelay(message, delay);
