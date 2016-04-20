@@ -423,41 +423,53 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	private void scheduleGroupToForceComplete(final MessageGroup messageGroup) {
-		final Long groupTimeout = this.obtainGroupTimeout(messageGroup);
+	private void scheduleGroupToForceComplete(MessageGroup messageGroup) {
+		final Long groupTimeout = obtainGroupTimeout(messageGroup);
 		/*
 		 * When 'groupTimeout' is evaluated to 'null' we do nothing.
 		 * The 'MessageGroupStoreReaper' can be used to 'forceComplete' message groups.
 		 */
 		if (groupTimeout != null && groupTimeout >= 0) {
 			if (groupTimeout > 0) {
-				ScheduledFuture<?> scheduledFuture = this.getTaskScheduler()
+				final Object groupId = messageGroup.getGroupId();
+				ScheduledFuture<?> scheduledFuture = getTaskScheduler()
 						.schedule(new Runnable() {
 
 							@Override
 							public void run() {
 								try {
-									forceReleaseProcessor.processMessageGroup(messageGroup);
+									processForceRelease(groupId);
 								}
 								catch (MessageDeliveryException e) {
 									if (logger.isDebugEnabled()) {
-										logger.debug("The MessageGroup [ " + messageGroup +
+										logger.debug("The MessageGroup [ " + groupId +
 												"] is rescheduled by the reason: " + e.getMessage());
 									}
-									scheduleGroupToForceComplete(messageGroup);
+									scheduleGroupToForceComplete(groupId);
 								}
 							}
+
 						}, new Date(System.currentTimeMillis() + groupTimeout));
 
 				if (logger.isDebugEnabled()) {
 					logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
 				}
-				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(messageGroup.getGroupId()), scheduledFuture);
+				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(groupId), scheduledFuture);
 			}
 			else {
 				this.forceReleaseProcessor.processMessageGroup(messageGroup);
 			}
 		}
+	}
+
+	private void scheduleGroupToForceComplete(Object groupId) {
+		MessageGroup messageGroup = this.messageStore.getMessageGroup(groupId);
+		scheduleGroupToForceComplete(messageGroup);
+	}
+
+	private void processForceRelease(Object groupId) {
+		MessageGroup messageGroup = this.messageStore.getMessageGroup(groupId);
+		this.forceReleaseProcessor.processMessageGroup(messageGroup);
 	}
 
 	private void discardMessage(Message<?> message) {
