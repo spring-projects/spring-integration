@@ -284,12 +284,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			if (delayValueException != null) {
 				if (this.ignoreExpressionFailures) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to get delay value from 'delayExpression': " + delayValueException.getMessage() +
+						logger.debug("Failed to get delay value from 'delayExpression': " +
+								delayValueException.getMessage() +
 								". Will fall back to default delay: " + this.defaultDelay);
 					}
 				}
 				else {
-					throw new MessageHandlingException(message, "Error occurred during 'delay' value determination", delayValueException);
+					throw new MessageHandlingException(message, "Error occurred during 'delay' value determination",
+							delayValueException);
 				}
 
 			}
@@ -306,41 +308,49 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
-			delayedMessage = this.getMessageBuilderFactory().withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
+			delayedMessage = getMessageBuilderFactory()
+					.withPayload(messageWrapper)
+					.copyHeaders(message.getHeaders())
+					.build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 
-		final UUID messageId = delayedMessage.getHeaders().getId();
 
-		this.getTaskScheduler().schedule(new Runnable() {
+		Runnable releaseTask;
 
-			@Override
-			public void run() {
-				Message<?> messageToRelease = getMessageById(messageId);
-				if (messageToRelease != null) {
-					releaseMessage(messageToRelease);
+		if (this.messageStore instanceof SimpleMessageStore) {
+			final Message<?> messageToSchedule = delayedMessage;
+
+			releaseTask = new Runnable() {
+
+				@Override
+				public void run() {
+					releaseMessage(messageToSchedule);
 				}
-			}
 
-		}, new Date(messageWrapper.getRequestDate() + delay));
+			};
+		}
+		else {
+			final UUID messageId = delayedMessage.getHeaders().getId();
+
+			releaseTask = new Runnable() {
+
+				@Override
+				public void run() {
+					Message<?> messageToRelease = getMessageById(messageId);
+					if (messageToRelease != null) {
+						releaseMessage(messageToRelease);
+					}
+				}
+
+			};
+		}
+
+		getTaskScheduler().schedule(releaseTask, new Date(messageWrapper.getRequestDate() + delay));
 	}
 
 	private Message<?> getMessageById(UUID messageId) {
-		Message<?> theMessage = null;
-		if (this.messageStore instanceof SimpleMessageStore) {
-			synchronized (this.messageGroupId) {
-				Collection<Message<?>> messages = this.messageStore.getMessageGroup(this.messageGroupId).getMessages();
-				for (Message<?> message : messages) {
-					if (message.getHeaders().getId().equals(messageId)) {
-						theMessage = message;
-						break;
-					}
-				}
-			}
-		}
-		else {
-			theMessage = ((MessageStore) this.messageStore).getMessage(messageId);
-		}
+		Message<?> theMessage = ((MessageStore) this.messageStore).getMessage(messageId);
 
 		if (theMessage == null) {
 			if (logger.isDebugEnabled()) {
