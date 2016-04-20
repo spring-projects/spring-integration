@@ -25,18 +25,26 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Jackson 2 JSON-processor (@link https://github.com/FasterXML) {@linkplain JsonObjectMapper} implementation.
  * Delegates <code>toJson</code> and <code>fromJson</code>
  * to the {@linkplain com.fasterxml.jackson.databind.ObjectMapper}
+ * <p>
+ * It customizes Jackson's default properties with the following ones:
+ * <ul>
+ * <li>{@link MapperFeature#DEFAULT_VIEW_INCLUSION} is disabled</li>
+ * <li>{@link DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} is disabled</li>
+ * </ul>
  *
  * @author Artem Bilan
  * @since 3.0
@@ -47,6 +55,8 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 
 	public Jackson2JsonObjectMapper() {
 		this.objectMapper = new ObjectMapper();
+		this.objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
+		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 
 	public Jackson2JsonObjectMapper(ObjectMapper objectMapper) {

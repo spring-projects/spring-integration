@@ -39,8 +39,11 @@ public class JsonToObjectTransformerTests {
 	@Test
 	public void objectPayload() throws Exception {
 		JsonToObjectTransformer transformer = new JsonToObjectTransformer(TestPerson.class);
-		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42,\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
-		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
+		// Since DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES is disabled by default (see Jackson2JsonObjectMapper)
+		// the extra "foo" property is ignored.
+		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
+				"\"address\":{\"number\":123,\"street\":\"Main Street\"}, \"foo\":\"bar\"}";
+		Message<?> message = transformer.transform(new GenericMessage<>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
 		assertEquals("John", person.getFirstName());
 		assertEquals("Doe", person.getLastName());
@@ -68,7 +71,8 @@ public class JsonToObjectTransformerTests {
 	@Test
 	public void testBoonJsonObjectMapper() throws Exception {
 		JsonToObjectTransformer transformer = new JsonToObjectTransformer(TestPerson.class, new BoonJsonObjectMapper());
-		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42,\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
+		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
+				"\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
 		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
 		TestPerson person = (TestPerson) message.getPayload();
 		assertEquals("John", person.getFirstName());
