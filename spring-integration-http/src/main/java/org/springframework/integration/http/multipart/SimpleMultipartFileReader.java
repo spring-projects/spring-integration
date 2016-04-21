@@ -51,7 +51,7 @@ public class SimpleMultipartFileReader implements MultipartFileReader<Object> {
 	public Object readMultipartFile(MultipartFile multipartFile) throws IOException {
 		if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
 			MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());
-			Charset charset = contentType.getCharSet();
+			Charset charset = contentType.getCharset();
 			if (charset == null) {
 				charset = this.defaultCharset;
 			}

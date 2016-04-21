@@ -143,7 +143,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * Message payload will contain either a List of Maps for each row or, if a
 	 * RowMapper has been provided, the values mapped from those rows. If the
 	 * query returns no rows, this method will return <code>null</code>.
-	 * #return the {@link Message<Object>} or {@code null} as a result of query.
+	 * #return the {@link Message} or {@code null} as a result of query.
 	 */
 	public Message<Object> receive() {
 		Object payload = poll();
