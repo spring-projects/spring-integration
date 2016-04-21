@@ -43,6 +43,8 @@ import org.springframework.messaging.Message;
  *
  * @author Jonas Partner
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
@@ -59,7 +61,8 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	private volatile String updateSql;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
+	private volatile SqlParameterSourceFactory sqlParameterSourceFactory =
+			new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	private volatile boolean sqlParameterSourceFactorySet;
 
@@ -131,15 +134,16 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		super.onInit();
 		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
-				.setBeanFactory(this.getBeanFactory());
+					.setBeanFactory(this.getBeanFactory());
 		}
 	}
 
 	/**
-	 * Executes the query. If a query result set contains one or more rows, the
+	 * Execute the query. If a query result set contains one or more rows, the
 	 * Message payload will contain either a List of Maps for each row or, if a
 	 * RowMapper has been provided, the values mapped from those rows. If the
 	 * query returns no rows, this method will return <code>null</code>.
+	 * #return the {@link Message<Object>} or {@code null} as a result of query.
 	 */
 	public Message<Object> receive() {
 		Object payload = poll();
@@ -173,18 +177,17 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	}
 
 	private void executeUpdateQuery(Object obj) {
-		SqlParameterSource updateParamaterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
-		this.jdbcOperations.update(this.updateSql, updateParamaterSource);
+		SqlParameterSource updateParameterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
+		this.jdbcOperations.update(this.updateSql, updateParameterSource);
 	}
 
 	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
-
-		List<?> payload = null;
 		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
 		ResultSetExtractor<List<Object>> resultSetExtractor;
 
 		if (this.maxRowsPerPoll > 0) {
 			resultSetExtractor = new ResultSetExtractor<List<Object>>() {
+
 				public List<Object> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRowsPerPoll);
 					int rowNum = 0;
@@ -197,21 +200,19 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		}
 		else {
 			@SuppressWarnings("unchecked")
-			ResultSetExtractor<List<Object>> temp = new RowMapperResultSetExtractor<Object>(
-					(RowMapper<Object>) rowMapper);
+			ResultSetExtractor<List<Object>> temp =
+					new RowMapperResultSetExtractor<Object>((RowMapper<Object>) rowMapper);
 			resultSetExtractor = temp;
 		}
 
 		if (sqlQueryParameterSource != null) {
-			payload = this.jdbcOperations.query(this.selectQuery,
-					sqlQueryParameterSource, resultSetExtractor);
+			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, resultSetExtractor);
 		}
 		else {
-			payload = this.jdbcOperations.getJdbcOperations().query(this.selectQuery, resultSetExtractor);
+			return this.jdbcOperations.getJdbcOperations().query(this.selectQuery, resultSetExtractor);
 		}
-
-		return payload;
 	}
+
 	@Override
 	public String getComponentType() {
 		return "jdbc:inbound-channel-adapter";
