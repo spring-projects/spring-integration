@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  */
 public final class MailUtils {
 
-	private MailUtils () {
+	private MailUtils() {
 		// empty
 	}
 

@@ -29,6 +29,7 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
@@ -97,6 +98,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected volatile boolean initialized;
 
 	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
+
+	private volatile boolean multipartAsBytes = true;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -220,6 +223,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
 		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * When a header mapper is provided determine whether a {@link Multipart} content
+	 * is rendered as a byte[] in the payload. Otherwise, leave as a {@link Multipart}.
+	 * {@link Multipart} is not suitable for downstream serialization. Default: true.
+	 * @param multipartAsBytes the multipartAsBytes to set.
+	 */
+	public void setMultipartAsBytes(boolean multipartAsBytes) {
+		this.multipartAsBytes = multipartAsBytes;
 	}
 
 	protected Folder getFolder() {
@@ -347,7 +360,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			if (content instanceof InputStream) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				FileCopyUtils.copy((InputStream) content, baos);
-				content = baos;
+				content = baos.toByteArray();
+			}
+			else if (content instanceof Multipart && this.multipartAsBytes) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				((Multipart) content).writeTo(baos);
+				content = baos.toByteArray();
 			}
 			return content;
 		}
