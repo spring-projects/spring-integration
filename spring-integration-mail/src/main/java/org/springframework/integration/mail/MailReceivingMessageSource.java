@@ -46,14 +46,14 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class MailReceivingMessageSource implements MessageSource<javax.mail.Message>,
+public class MailReceivingMessageSource implements MessageSource<Object>,
 		BeanFactoryAware, BeanNameAware, NamedComponent {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final MailReceiver mailReceiver;
 
-	private final Queue<javax.mail.Message> mailQueue = new ConcurrentLinkedQueue<javax.mail.Message>();
+	private final Queue<Object> mailQueue = new ConcurrentLinkedQueue<Object>();
 
 	private volatile BeanFactory beanFactory;
 
@@ -103,12 +103,13 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 		this.beanName = name;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Message<javax.mail.Message> receive() {
+	public Message<Object> receive() {
 		try {
-			javax.mail.Message mailMessage = this.mailQueue.poll();
+			Object mailMessage = this.mailQueue.poll();
 			if (mailMessage == null) {
-				javax.mail.Message[] messages = this.mailReceiver.receive();
+				Object[] messages = this.mailReceiver.receive();
 				if (messages != null) {
 					this.mailQueue.addAll(Arrays.asList(messages));
 				}
@@ -118,7 +119,12 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug("received mail message [" + mailMessage + "]");
 				}
-				return getMessageBuilderFactory().withPayload(mailMessage).build();
+				if (mailMessage instanceof Message) {
+					return (Message<Object>) mailMessage;
+				}
+				else {
+					return getMessageBuilderFactory().withPayload(mailMessage).build();
+				}
 			}
 		}
 		catch (Exception e) {

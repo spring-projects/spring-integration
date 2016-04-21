@@ -45,6 +45,7 @@ import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -56,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class InboundChannelAdapterParserTests {
 
 	@Autowired
@@ -73,16 +75,22 @@ public class InboundChannelAdapterParserTests {
 	public void pop3ShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldDeleteTrue");
 		assertEquals(Pop3MailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
+		assertNotNull(receiverAccessor.getPropertyValue("headerMapper"));
 	}
 
 	@Test
 	public void imapShouldMarkMessagesAsRead() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldMarkAsReadTrue");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldMarkMessagesAsRead");
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead");
 		assertTrue(value);
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
+		assertNull(receiverAccessor.getPropertyValue("headerMapper"));
 	}
 
 	@Test

@@ -55,9 +55,18 @@ See <<global-properties>> and <<annotations>> for more information.
 
 ==== Mail Changes
 
+===== Customizable User Flag
+
 The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been
 seen is now available using the XML namespace.
 See <<imap-seen>> for more information.
+
+===== Mail Message Mapping
+
+There is now an option to map inbound mail messages with the `MessageHeaders` containing the mail headers and the
+payload containing the email content.
+Previously, the payload was always the raw `MimeMessage`.
+See <<mail-mapping>> for more information.
 
 ==== JMS Changes
 

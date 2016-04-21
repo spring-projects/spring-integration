@@ -16,9 +16,12 @@
 
 package org.springframework.integration.mail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -27,6 +30,8 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
@@ -40,7 +45,10 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -88,9 +96,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile Expression selectorExpression;
 
+	private volatile HeaderMapper<MimeMessage> headerMapper;
+
 	protected volatile boolean initialized;
 
 	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
+
+	private volatile boolean embeddedPartsAsBytes = true;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -205,6 +217,33 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.userFlag = userFlag;
 	}
 
+	/**
+	 * Set the header mapper; if a header mapper is not provided, the message payload is
+	 * a {@link MimeMessage}, when provided, the headers are mapped and the payload is
+	 * the {@link MimeMessage} content.
+	 * @param headerMapper the header mapper.
+	 * @since 4.3
+	 * @see #setEmbeddedPartsAsBytes(boolean)
+	 */
+	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
+	 * {@link Message} or {@link Multipart} content is rendered as a byte[] in the
+	 * payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * downstream serialization. Default: true.
+	 * <p>This has no effect if there is no header mapper, in that case the payload is the
+	 * {@link MimeMessage}.
+	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
+	 * @since 4.3
+	 * @see #setHeaderMapper(HeaderMapper)
+	 */
+	public void setEmbeddedPartsAsBytes(boolean embeddedPartsAsBytes) {
+		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
+	}
+
 	protected Folder getFolder() {
 		return this.folder;
 	}
@@ -274,7 +313,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	@Override
-	public Message[] receive() throws javax.mail.MessagingException {
+	public Object[] receive() throws javax.mail.MessagingException {
 		synchronized (this.folderMonitor) {
 			try {
 				this.openFolder();
@@ -298,16 +337,70 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.logger.debug("Received " + messages.length + " messages");
 				}
 
-				Message[] filteredMessages = filterMessagesThruSelector(messages);
+				MimeMessage[] filteredMessages = filterMessagesThruSelector(messages);
 
 				postProcessFilteredMessages(filteredMessages);
 
-				return filteredMessages;
+				if (this.headerMapper != null) {
+					org.springframework.messaging.Message<?>[] converted =
+							new org.springframework.messaging.Message<?>[filteredMessages.length];
+					int n = 0;
+					for (MimeMessage message : filteredMessages) {
+						Map<String, Object> headers = this.headerMapper.toHeaders(message);
+						converted[n++] = getMessageBuilderFactory().withPayload(extractContent(message, headers))
+								.copyHeaders(headers)
+								.build();
+					}
+					return converted;
+				}
+				else {
+					return filteredMessages;
+				}
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			}
 		}
+	}
+
+	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
+		Object content;
+		try {
+			content = message.getContent();
+			if (content instanceof String) {
+				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
+				if (mailContentType != null && mailContentType.toLowerCase().startsWith("text")) {
+					headers.put(MessageHeaders.CONTENT_TYPE, mailContentType);
+				}
+				else {
+					headers.put(MessageHeaders.CONTENT_TYPE, "text/plain");
+				}
+			}
+			else if (content instanceof InputStream) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				FileCopyUtils.copy((InputStream) content, baos);
+				content = byteArrayToContent(headers, baos);
+			}
+			else if (content instanceof Multipart && this.embeddedPartsAsBytes) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				((Multipart) content).writeTo(baos);
+				content = byteArrayToContent(headers, baos);
+			}
+			else if (content instanceof Part && this.embeddedPartsAsBytes) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				((Part) content).writeTo(baos);
+				content = byteArrayToContent(headers, baos);
+			}
+			return content;
+		}
+		catch (Exception e) {
+			throw new org.springframework.messaging.MessagingException("Failed to extract content from " + message, e);
+		}
+	}
+
+	private Object byteArrayToContent(Map<String, Object> headers, ByteArrayOutputStream baos) {
+		headers.put(MessageHeaders.CONTENT_TYPE, "application/octet-stream");
+		return baos.toByteArray();
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
@@ -316,10 +409,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (shouldDeleteMessages()) {
 			deleteMessages(filteredMessages);
 		}
-		// Copy messages to cause an eager fetch
-		for (int i = 0; i < filteredMessages.length; i++) {
-			MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
-			filteredMessages[i] = mimeMessage;
+		if (this.headerMapper == null) {
+			// Copy messages to cause an eager fetch
+			for (int i = 0; i < filteredMessages.length; i++) {
+				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
+				filteredMessages[i] = mimeMessage;
+			}
 		}
 	}
 
@@ -358,8 +453,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Will filter Messages thru selector. Messages that did not pass selector filtering criteria
 	 * will be filtered out and remain on the server as never touched.
 	 */
-	private Message[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
-		List<Message> filteredMessages = new LinkedList<Message>();
+	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
+		List<MimeMessage> filteredMessages = new LinkedList<MimeMessage>();
 		for (int i = 0; i < messages.length; i++) {
 			MimeMessage message = (MimeMessage) messages[i];
 			if (this.selectorExpression != null) {
@@ -377,7 +472,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				filteredMessages.add(message);
 			}
 		}
-		return filteredMessages.toArray(new Message[filteredMessages.size()]);
+		return filteredMessages.toArray(new MimeMessage[filteredMessages.size()]);
 	}
 
 	/**

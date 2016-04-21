@@ -182,12 +182,15 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
-	private Runnable createMessageSendingTask(final Message mailMessage) {
+	private Runnable createMessageSendingTask(final Object mailMessage) {
 		Runnable sendingTask = new Runnable() {
 			@Override
 			public void run() {
+				@SuppressWarnings("unchecked")
 				org.springframework.messaging.Message<?> message =
-						ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build();
+						mailMessage instanceof Message
+							? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
+							:  (org.springframework.messaging.Message<Object>) mailMessage;
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
 					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
@@ -267,11 +270,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				}
 				ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
 				if (ImapIdleChannelAdapter.this.mailReceiver.getFolder().isOpen()) {
-					Message[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
+					Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
 					}
-					for (final Message mailMessage : mailMessages) {
+					for (final Object mailMessage : mailMessages) {
 
 						Runnable messageSendingTask = createMessageSendingTask(mailMessage);
 

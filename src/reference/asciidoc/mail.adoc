@@ -20,7 +20,7 @@ However, a few simple Message mapping strategies are supported out-of-the-box.
 For example, if the message payload is a byte array, then that will be mapped to an attachment.
 For simple text-based emails, you can provide a String-based Message payload.
 In that case, a MailMessage will be created with that String as the text content.
-If you are working with a Message payload type whose `toString()`` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
+If you are working with a Message payload type whose `toString()` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
 
 The outbound MailMessage may also be configured with certain values from the `MessageHeaders`.
 If available, values will be mapped to the outbound mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
@@ -54,6 +54,82 @@ Another option for receiving mail is the IMAP "idle" command (if supported by th
 Spring Integration provides the `ImapIdleChannelAdapter` which is itself a Message-producing endpoint.
 It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of Mail Messages.
 There are examples in the next section of configuring both types of inbound Channel Adapter with Spring Integration's namespace support in the 'mail' schema.
+
+[[mail-mapping]]
+=== Inbound Mail Message Mapping
+
+By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`; you can interrogate
+the headers and content using that object.
+Starting with _version 4.3_, you can provide a `HeaderMapper<MimeMessage>` to map the headers to `MessageHeaders`; for
+convenience, a `DefaultMailHeaderMapper` is provided for this purpose.
+This maps the following headers:
+
+- `mail_from` - A String representation of the `from` address.
+- `mail_bcc` - A String array containing the `bcc` addresses.
+- `mail_cc` - A String array containing the `cc` addresses.
+- `mail_to` - A String array containing the `to` addresses.
+- `mail_replyTo` - A String representation of the `replyTo` address.
+- `mail_subject` - The mail subject.
+- `mail_lineCount` - A line count (if available).
+- `mail_receivedDate` - The received date (if available).
+- `mail_size` - The mail size (if available).
+- `mail_expunged` - A boolen indicating if the message is expunged.
+- `mail_raw` - A `MultiValueMap` containing all the mail headers and their values.
+- `mail_contentType` - The content type of the original mail message.
+- `contentType` - The payload content type (see below).
+
+When message mapping is enabled, the payload depends on the mail message and its implementation.
+Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
+
+- For a simple `text/*` email, the payload will be a String and the `contentType` header will be the same as
+`mail_contentType`.
+
+- For a messages with embedded `javax.mail.Part` s, the `DataHandler` usually renders a `Part` object - these objects
+are not `Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
+For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the
+`Part` data.
+Examples of `Part` are `Message` and `Multipart`.
+The `contentType` header is `application/octet-stream` in this case.
+To change this behavior, and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on the
+`MailReceiver`.
+For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType`
+header of `application/octet-stream`.
+
+When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
+The framework provides a `MailToStringTransformer` which can be used to convert the message using a simple strategy
+to convert the mail contents to a String.
+This is also available using the XML namespace:
+
+[source, xml]
+----
+<int-mail:mail-to-string-transformer ... >
+----
+
+and with Java configuration:
+
+[source, java]
+----
+@Bean
+@Transformer(inputChannel="...", outputChannel="...")
+public Transformer transformer() {
+    return new MailToStringTransformer();
+}
+----
+
+and with the Java DSL:
+
+[source, java]
+----
+   ...
+   .transform(Transformers.fromMail())
+   ...
+----
+
+Starting with _version 4.3_, the transformer will handle embedded `Part` as well as `Multipart` which was handled
+previously.
+The transformer is a subclass of `AbstractMailTransformer` which maps the address and subject headers from the list
+above.
+If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
 
 [[mail-namespace]]
 === Mail Namespace Support
@@ -171,7 +247,7 @@ See <<imap-seen>> regarding message flagging.
 ----
 public interface SearchTermStrategy {
 
-	SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
+    SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
 
 }
 ----
@@ -206,11 +282,9 @@ If not specified, the previous behavior is retained (peek is `true`).
 When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost (e.g., network failure) and since Java Mail documentation explicitly states that the actual IMAP API is EXPERIMENTAL it is important to understand the differences in the API and how to deal with them when configuring IMAP IDLE adapters.
 Currently Spring Integration Mail adapters was tested with Java Mail 1.4.1 and Java Mail 1.4.3 and depending on which one is used special attention must be payed to some of the java mail properties that needs to be set with regard to auto-reconnect.
 
-_
-    The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect
-    issue with other providers, however feedback is always welcome.
+NOTE: The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect
+issue with other providers, however feedback is always welcome.
 Again, below notes are based on GMAIL.
-    _
 
 With Java Mail 1.4.1 if `mail.imaps.timeout` property is set for a relatively short period of time (e.g., ~ 5 min) then `IMAPFolder.idle()` will throw `FolderClosedException` after this timeout.
 However if this property is not set (should be indefinite) the behavior that was observed is that `IMAPFolder.idle()` method never returns nor it throws an exception.

@@ -16,13 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import static org.mockito.Mockito.mock;
-
-import javax.mail.Folder;
-
-import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.messaging.Message;
 
@@ -75,15 +69,6 @@ public class MailTestsHelper {
 				.setHeader(MailHeaders.FROM, MailTestsHelper.FROM)
 				.setHeader(MailHeaders.REPLY_TO, MailTestsHelper.REPLY_TO)
 				.build();
-	}
-
-	public static MailReceiverContext setupContextHolder(AbstractMailReceiver receiver) {
-		@SuppressWarnings("unchecked")
-		ThreadLocal<MailReceiverContext> contextHolder = TestUtils.getPropertyValue(receiver, "contextHolder", ThreadLocal.class);
-		Folder folder = mock(Folder.class);
-		MailReceiverContext context = new MailReceiverContext(folder);
-		contextHolder.set(context);
-		return context;
 	}
 
 }

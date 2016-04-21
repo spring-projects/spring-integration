@@ -16,10 +16,13 @@
 
 package org.springframework.integration.mail;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -29,7 +32,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.OutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -80,15 +83,15 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.FileCopyUtils;
 
 import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.IMAPMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -136,18 +139,26 @@ public class ImapMailReceiverTests {
 				}
 			}
 		});
-		testIdleWithServerGuts(receiver);
+		testIdleWithServerGuts(receiver, false);
 	}
 
 	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
 				+ "/INBOX");
-		testIdleWithServerGuts(receiver);
+		testIdleWithServerGuts(receiver, false);
 		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver) throws MessagingException {
+	@Test
+	public void testIdleWithMessageMapping() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		testIdleWithServerGuts(receiver, true);
+	}
+
+	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws MessagingException {
 		imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
@@ -168,12 +179,23 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		@SuppressWarnings("unchecked")
-		org.springframework.messaging.Message<MimeMessage> received =
-				(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
-		assertNotNull(received);
-		assertNotNull(received.getPayload().getReceivedDate());
-		assertTrue(received.getPayload().getLineCount() > -1);
+		if (!mapped) {
+			@SuppressWarnings("unchecked")
+			org.springframework.messaging.Message<MimeMessage> received =
+					(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
+			assertNotNull(received);
+			assertNotNull(received.getPayload().getReceivedDate());
+			assertTrue(received.getPayload().getLineCount() > -1);
+		}
+		else {
+			org.springframework.messaging.Message<?> received = channel.receive(10000);
+			assertNotNull(received);
+			assertNotNull(received.getHeaders().get(MailHeaders.RAW_HEADERS));
+			assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
+					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
+			assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
+					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
+		}
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
@@ -838,12 +860,52 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testAttachments() throws Exception {
 		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		Folder folder = testAttachmentsGuts(receiver);
+		Message[] messages = (Message[]) receiver.receive();
+		Object content = messages[0].getContent();
+		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
+		assertEquals("foo", ((Multipart) content).getBodyPart(1).getContent().toString().trim());
+
+		assertSame(folder, messages[0].getFolder());
+	}
+
+	@Test
+	public void testAttachmentsWithMappingMultiAsBytes() throws Exception {
+		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		testAttachmentsGuts(receiver);
+		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
+				.receive();
+		org.springframework.messaging.Message<?> received = messages[0];
+		Object content = received.getPayload();
+		assertThat(content, instanceOf(byte[].class));
+		assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
+				equalTo("multipart/mixed;\r\n boundary=\"------------040903000701040401040200\""));
+		assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
+				equalTo("application/octet-stream"));
+	}
+
+	@Test
+	public void testAttachmentsWithMapping() throws Exception {
+		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		receiver.setEmbeddedPartsAsBytes(false);
+		testAttachmentsGuts(receiver);
+		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
+				.receive();
+		Object content = messages[0].getPayload();
+		assertThat(content, instanceOf(Multipart.class));
+		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
+		assertEquals("foo", ((Multipart) content).getBodyPart(1).getContent().toString().trim());
+	}
+
+	private Folder testAttachmentsGuts(final ImapMailReceiver receiver) throws MessagingException, IOException {
 		Store store = mock(Store.class);
 		Folder folder = mock(Folder.class);
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(true);
 
-		IMAPMessage message = mock(IMAPMessage.class);
+		Message message = new MimeMessage(null, new ClassPathResource("test.mail").getInputStream());
 		when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{message});
 		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
@@ -852,20 +914,7 @@ public class ImapMailReceiverTests {
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				OutputStream os = (OutputStream) invocation.getArguments()[0];
-				FileCopyUtils.copy(new ClassPathResource("test.mail").getInputStream(), os);
-				return null;
-			}
-		}).when(message).writeTo(Mockito.any(OutputStream.class));
-		Message[] messages = receiver.receive();
-		Object content = messages[0].getContent();
-		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
-
-		assertSame(folder, messages[0].getFolder());
+		return folder;
 	}
 
 	@Test
@@ -922,10 +971,10 @@ public class ImapMailReceiverTests {
 
 		}
 		ImapMailReceiver receiver = new TestReceiver();
-		Message[] received = receiver.receive();
+		Message[] received = (Message[]) receiver.receive();
 		assertEquals(1, received.length);
 		assertSame(message1, received[0]);
-		received = receiver.receive();
+		received = (Message[]) receiver.receive();
 		assertEquals(1, received.length);
 		assertSame(messages2, received);
 		assertSame(message2, received[0]);

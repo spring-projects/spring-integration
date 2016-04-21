@@ -13,14 +13,24 @@
 
 	<!-- INT-982 -->
 
-	<mail:inbound-channel-adapter id="pop3ShouldDeleteTrue" store-uri="pop3:test" channel="testChannel" should-delete-messages="true" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3ShouldDeleteTrue"
+		store-uri="pop3:test" channel="testChannel" should-delete-messages="true"
+		header-mapper="mapper" embedded-parts-as-bytes="false"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="pop3ShouldDeleteFalse" store-uri="pop3:test" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3ShouldDeleteFalse"
+		store-uri="pop3:test" channel="testChannel" should-delete-messages="false"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapShouldDeleteTrue" store-uri="imap:test" channel="testChannel" should-delete-messages="true" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapShouldDeleteTrue"
+		store-uri="imap:test" channel="testChannel" should-delete-messages="true"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapShouldDeleteFalse" store-uri="imap:test" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapShouldDeleteFalse"
+		store-uri="imap:test" channel="testChannel" should-delete-messages="false"
+		auto-startup="false" />
 
+	<bean id="mapper" class="org.springframework.integration.mail.support.DefaultMailHeaderMapper" />
 
 	<!-- INT-1158 -->
 
@@ -31,46 +41,75 @@
 		<prop key="mail.delete.false">false</prop>
 	</util:properties>
 
-	<mail:inbound-channel-adapter id="pop3ShouldDeleteTrueProperty" store-uri="pop3:test" channel="testChannel" should-delete-messages="${mail.delete.true}" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3ShouldDeleteTrueProperty"
+		store-uri="pop3:test" channel="testChannel" should-delete-messages="${mail.delete.true}"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="pop3ShouldDeleteFalseProperty" store-uri="pop3:test" channel="testChannel" should-delete-messages="${mail.delete.false}" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3ShouldDeleteFalseProperty"
+		store-uri="pop3:test" channel="testChannel" should-delete-messages="${mail.delete.false}"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapShouldDeleteTrueProperty" store-uri="imap:test" channel="testChannel" should-delete-messages="${mail.delete.true}" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapShouldDeleteTrueProperty"
+		store-uri="imap:test" channel="testChannel" should-delete-messages="${mail.delete.true}"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapShouldDeleteFalseProperty" store-uri="imap:test" channel="testChannel" should-delete-messages="${mail.delete.false}" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapShouldDeleteFalseProperty"
+		store-uri="imap:test" channel="testChannel" should-delete-messages="${mail.delete.false}"
+		auto-startup="false" />
 
 
 	<!-- INT-1159 -->
 
-	<mail:inbound-channel-adapter id="pop3WithAuthenticator" store-uri="pop3:test" authenticator="testAuthenticator" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3WithAuthenticator"
+		store-uri="pop3:test" authenticator="testAuthenticator" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapWithAuthenticator" store-uri="imap:test" authenticator="testAuthenticator" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapWithAuthenticator"
+		store-uri="imap:test" authenticator="testAuthenticator" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:imap-idle-channel-adapter id="imapIdleWithAuthenticator" store-uri="imap:test" authenticator="testAuthenticator" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:imap-idle-channel-adapter id="imapIdleWithAuthenticator"
+		store-uri="imap:test" authenticator="testAuthenticator" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<bean id="testAuthenticator" class="org.springframework.integration.mail.config.InboundChannelAdapterParserTests$TestAuthenticator"/>
+	<bean id="testAuthenticator"
+		class="org.springframework.integration.mail.config.InboundChannelAdapterParserTests$TestAuthenticator" />
 
 
 	<!-- INT-1160 -->
 
-	<mail:inbound-channel-adapter id="pop3WithMaxFetchSize" store-uri="pop3:test" max-fetch-size="11" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3WithMaxFetchSize"
+		store-uri="pop3:test" max-fetch-size="11" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="pop3WithMaxFetchSizeFallsBackToPollerMax" store-uri="pop3:test" channel="testChannel" should-delete-messages="false" auto-startup="false">
-		<si:poller max-messages-per-poll="99" fixed-rate="30000"/>
+	<mail:inbound-channel-adapter
+		id="pop3WithMaxFetchSizeFallsBackToPollerMax" store-uri="pop3:test"
+		channel="testChannel" should-delete-messages="false" auto-startup="false">
+		<si:poller max-messages-per-poll="99" fixed-rate="30000" />
 	</mail:inbound-channel-adapter>
 
-	<mail:inbound-channel-adapter id="imapWithMaxFetchSize" store-uri="imap:test" max-fetch-size="22" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapWithMaxFetchSize"
+		store-uri="imap:test" max-fetch-size="22" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:imap-idle-channel-adapter id="imapIdleWithMaxFetchSize" store-uri="imap:test" max-fetch-size="33" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:imap-idle-channel-adapter id="imapIdleWithMaxFetchSize"
+		store-uri="imap:test" max-fetch-size="33" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
 
 	<!-- INT-1161 -->
 
-	<mail:inbound-channel-adapter id="pop3WithSession" store-uri="pop3:test" session="testSession" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3WithSession"
+		store-uri="pop3:test" session="testSession" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapWithSession" store-uri="imap:test" session="testSession" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapWithSession"
+		store-uri="imap:test" session="testSession" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
-	<mail:imap-idle-channel-adapter id="imapIdleWithSession" store-uri="imap:test" session="testSession" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:imap-idle-channel-adapter id="imapIdleWithSession"
+		store-uri="imap:test" session="testSession" channel="testChannel"
+		should-delete-messages="false" auto-startup="false" />
 
 	<bean id="testSession" class="javax.mail.Session" factory-method="getInstance">
 		<constructor-arg>
@@ -86,17 +125,28 @@
 
 	<!-- INT-1162 -->
 
-	<mail:inbound-channel-adapter id="pop3WithoutStoreUri" channel="testChannel" protocol="pop3" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="pop3WithoutStoreUri"
+		channel="testChannel" protocol="pop3" should-delete-messages="false"
+		auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="imapWithoutStoreUri" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false"/>
+	<mail:inbound-channel-adapter id="imapWithoutStoreUri"
+		channel="testChannel" protocol="imap" should-delete-messages="false"
+		auto-startup="false" />
 
-	<mail:imap-idle-channel-adapter id="imapIdleWithoutStoreUri" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
+	<mail:imap-idle-channel-adapter id="imapIdleWithoutStoreUri"
+		channel="testChannel" should-delete-messages="false" auto-startup="false" />
 
-	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadTrue" channel="testChannel" protocol="pop3" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="true"/>
+	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadTrue"
+		channel="testChannel" protocol="pop3" should-delete-messages="false"
+		auto-startup="false" should-mark-messages-as-read="true" />
 
-	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadFalse" channel="testChannel" protocol="pop3" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="false"/>
+	<mail:inbound-channel-adapter id="pop3ShouldMarkAsReadFalse"
+		channel="testChannel" protocol="pop3" should-delete-messages="false"
+		auto-startup="false" should-mark-messages-as-read="false" />
 
-    <mail:inbound-channel-adapter id="imapShouldMarkAsReadTrue" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="true"/>
+	<mail:inbound-channel-adapter id="imapShouldMarkAsReadTrue"
+		channel="testChannel" protocol="imap" should-delete-messages="false"
+		auto-startup="false" should-mark-messages-as-read="true" />
 
 	<!-- INT-2407 -->
 

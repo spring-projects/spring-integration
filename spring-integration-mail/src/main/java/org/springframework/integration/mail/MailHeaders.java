@@ -21,8 +21,9 @@ package org.springframework.integration.mail;
  * Message attributes from/to integration Message Headers.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public abstract class MailHeaders {
+public final class MailHeaders {
 
 	public static final String PREFIX = "mail_";
 
@@ -43,5 +44,22 @@ public abstract class MailHeaders {
 	public static final String ATTACHMENT_FILENAME = PREFIX + "attachmentFilename";
 
 	public static final String CONTENT_TYPE = PREFIX + "contentType";
+
+	public static final String RAW_HEADERS = PREFIX + "raw";
+
+	public static final String FLAGS = PREFIX + "flags";
+
+	public static final String LINE_COUNT = PREFIX + "lineCount";
+
+	public static final String RECEIVED_DATE = PREFIX + "receivedDate";
+
+	public static final String SIZE = PREFIX + "size";
+
+	public static final String EXPUNGED = PREFIX + "expunged";
+
+	private MailHeaders() {
+		// empty
+	}
+
 
 }

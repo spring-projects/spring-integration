@@ -21,6 +21,7 @@ import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.Session;
 import javax.mail.URLName;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +37,7 @@ import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.MailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -78,6 +80,10 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	private volatile String userFlag;
 
 	private volatile BeanFactory beanFactory;
+
+	private volatile HeaderMapper<MimeMessage> headerMapper;
+
+	private Boolean embeddedPartsAsBytes;
 
 	public void setStoreUri(String storeUri) {
 		this.storeUri = storeUri;
@@ -125,6 +131,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	public void setUserFlag(String userFlag) {
 		this.userFlag = userFlag;
+	}
+
+	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
+	public void setEmbeddedPartsAsBytes(Boolean embeddedPartsAsBytes) {
+		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
 	}
 
 	@Override
@@ -209,6 +223,12 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 		if (this.beanFactory != null) {
 			receiver.setBeanFactory(this.beanFactory);
+		}
+		if (this.headerMapper != null) {
+			receiver.setHeaderMapper(this.headerMapper);
+		}
+		if (this.embeddedPartsAsBytes != null) {
+			receiver.setEmbeddedPartsAsBytes(this.embeddedPartsAsBytes);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;
