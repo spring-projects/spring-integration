@@ -80,6 +80,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.PoorMansMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.PollableChannel;
@@ -136,18 +137,26 @@ public class ImapMailReceiverTests {
 				}
 			}
 		});
-		testIdleWithServerGuts(receiver);
+		testIdleWithServerGuts(receiver, false);
 	}
 
 	@Test
 	public void testIdleWithServerDefaultSearch() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
 				+ "/INBOX");
-		testIdleWithServerGuts(receiver);
+		testIdleWithServerGuts(receiver, false);
 		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver) throws MessagingException {
+	@Test
+	public void testIdleWithMessageMapping() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		testIdleWithServerGuts(receiver, true);
+	}
+
+	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws MessagingException {
 		imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
@@ -168,12 +177,19 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		@SuppressWarnings("unchecked")
-		org.springframework.messaging.Message<MimeMessage> received =
-				(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
-		assertNotNull(received);
-		assertNotNull(received.getPayload().getReceivedDate());
-		assertTrue(received.getPayload().getLineCount() > -1);
+		if (!mapped) {
+			@SuppressWarnings("unchecked")
+			org.springframework.messaging.Message<MimeMessage> received =
+					(org.springframework.messaging.Message<MimeMessage>) channel.receive(10000);
+			assertNotNull(received);
+			assertNotNull(received.getPayload().getReceivedDate());
+			assertTrue(received.getPayload().getLineCount() > -1);
+		}
+		else {
+			org.springframework.messaging.Message<?> received = channel.receive(10000);
+			assertNotNull(received);
+			assertNotNull(received.getHeaders().get(MailHeaders.RAW_HEADERS));
+		}
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
@@ -861,7 +877,7 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(message).writeTo(Mockito.any(OutputStream.class));
-		Message[] messages = receiver.receive();
+		Message[] messages = (Message[]) receiver.receive();
 		Object content = messages[0].getContent();
 		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
 
@@ -922,10 +938,10 @@ public class ImapMailReceiverTests {
 
 		}
 		ImapMailReceiver receiver = new TestReceiver();
-		Message[] received = receiver.receive();
+		Message[] received = (Message[]) receiver.receive();
 		assertEquals(1, received.length);
 		assertSame(message1, received[0]);
-		received = receiver.receive();
+		received = (Message[]) receiver.receive();
 		assertEquals(1, received.length);
 		assertSame(messages2, received);
 		assertSame(message2, received[0]);

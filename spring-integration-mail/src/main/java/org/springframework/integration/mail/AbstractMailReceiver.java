@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,7 +42,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -87,6 +91,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile Expression selectorExpression;
+
+	private volatile HeaderMapper<MimeMessage> headerMapper;
 
 	protected volatile boolean initialized;
 
@@ -205,6 +211,17 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.userFlag = userFlag;
 	}
 
+	/**
+	 * Set the header mapper; if a header mapper is not provided, the message payload is
+	 * a {@link MimeMessage}, when provided, the headers are mapped and the payload is
+	 * the {@link MimeMessage} content.
+	 * @param headerMapper the header mapper.
+	 * @since 4.3
+	 */
+	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
 	protected Folder getFolder() {
 		return this.folder;
 	}
@@ -274,7 +291,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	@Override
-	public Message[] receive() throws javax.mail.MessagingException {
+	public Object[] receive() throws javax.mail.MessagingException {
 		synchronized (this.folderMonitor) {
 			try {
 				this.openFolder();
@@ -298,15 +315,44 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.logger.debug("Received " + messages.length + " messages");
 				}
 
-				Message[] filteredMessages = filterMessagesThruSelector(messages);
+				MimeMessage[] filteredMessages = filterMessagesThruSelector(messages);
 
 				postProcessFilteredMessages(filteredMessages);
 
-				return filteredMessages;
+				if (this.headerMapper != null) {
+					org.springframework.messaging.Message<?>[] converted =
+							new org.springframework.messaging.Message<?>[filteredMessages.length];
+					int n = 0;
+					for (MimeMessage message : filteredMessages) {
+						converted[n++] = getMessageBuilderFactory().withPayload(extractContent(message))
+								.copyHeaders(this.headerMapper.toHeaders(message))
+								.build();
+					}
+					return converted;
+				}
+				else {
+					return filteredMessages;
+				}
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			}
+		}
+	}
+
+	private Object extractContent(MimeMessage message) {
+		Object content;
+		try {
+			content = message.getContent();
+			if (content instanceof InputStream) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				FileCopyUtils.copy((InputStream) content, baos);
+				content = baos;
+			}
+			return content;
+		}
+		catch (Exception e) {
+			throw new org.springframework.messaging.MessagingException("Failed to extract content from " + message, e);
 		}
 	}
 
@@ -316,10 +362,12 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (shouldDeleteMessages()) {
 			deleteMessages(filteredMessages);
 		}
-		// Copy messages to cause an eager fetch
-		for (int i = 0; i < filteredMessages.length; i++) {
-			MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
-			filteredMessages[i] = mimeMessage;
+		if (this.headerMapper == null) {
+			// Copy messages to cause an eager fetch
+			for (int i = 0; i < filteredMessages.length; i++) {
+				MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
+				filteredMessages[i] = mimeMessage;
+			}
 		}
 	}
 
@@ -358,7 +406,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Will filter Messages thru selector. Messages that did not pass selector filtering criteria
 	 * will be filtered out and remain on the server as never touched.
 	 */
-	private Message[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
+	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
 		List<Message> filteredMessages = new LinkedList<Message>();
 		for (int i = 0; i < messages.length; i++) {
 			MimeMessage message = (MimeMessage) messages[i];
@@ -377,7 +425,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				filteredMessages.add(message);
 			}
 		}
-		return filteredMessages.toArray(new Message[filteredMessages.size()]);
+		return filteredMessages.toArray(new MimeMessage[filteredMessages.size()]);
 	}
 
 	/**

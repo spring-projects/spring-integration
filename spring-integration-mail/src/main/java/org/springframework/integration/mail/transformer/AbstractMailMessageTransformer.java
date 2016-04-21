@@ -16,18 +16,14 @@
 
 package org.springframework.integration.mail.transformer;
 
-import java.util.HashMap;
 import java.util.Map;
-
-import javax.mail.Address;
-import javax.mail.Message.RecipientType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.mail.support.MailUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -35,8 +31,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.util.Assert;
 
 /**
  * Base class for Transformers that convert from a JavaMail Message to a
@@ -99,38 +93,7 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer,
 
 
 	private Map<String, Object> extractHeaderMapFromMailMessage(javax.mail.Message mailMessage) {
-		try {
-			Map<String, Object> headers = new HashMap<String, Object>();
-			headers.put(MailHeaders.FROM, this.convertToString(mailMessage.getFrom()));
-			headers.put(MailHeaders.BCC, this.convertToStringArray(mailMessage.getRecipients(RecipientType.BCC)));
-			headers.put(MailHeaders.CC, this.convertToStringArray(mailMessage.getRecipients(RecipientType.CC)));
-			headers.put(MailHeaders.TO, this.convertToStringArray(mailMessage.getRecipients(RecipientType.TO)));
-			headers.put(MailHeaders.REPLY_TO, this.convertToString(mailMessage.getReplyTo()));
-			headers.put(MailHeaders.SUBJECT, mailMessage.getSubject());
-			return headers;
-		}
-		catch (Exception e) {
-			throw new MessagingException("conversion of MailMessage headers failed", e);
-		}
-	}
-
-	private String convertToString(Address[] addresses) {
-		if (addresses == null || addresses.length == 0) {
-			return null;
-		}
-		Assert.state(addresses.length == 1, "expected a single value but received an Array");
-		return addresses[0].toString();
-	}
-
-	private String[] convertToStringArray(Address[] addresses) {
-		if (addresses != null) {
-			String[] addressStrings = new String[addresses.length];
-			for (int i = 0; i < addresses.length; i++) {
-				addressStrings[i] = addresses[i].toString();
-			}
-			return addressStrings;
-		}
-		return new String[0];
+		return MailUtils.extractStandardHeaders(mailMessage);
 	}
 
 }
