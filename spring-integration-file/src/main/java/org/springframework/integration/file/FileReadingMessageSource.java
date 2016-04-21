@@ -28,6 +28,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -278,7 +279,10 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 */
 	public void setWatchEvents(WatchEventType... watchEvents) {
 		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
-		this.watchEvents = watchEvents;
+		Assert.noNullElements(watchEvents, "'watchEvents' must not contain null elements.");
+		Assert.state(!this.running, "Cannot change watch events while running.");
+
+		this.watchEvents = Arrays.copyOf(watchEvents, watchEvents.length);
 	}
 
 	@Override
@@ -495,12 +499,14 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 							files.remove(file);
 						}
 						else {
-							if (file.isDirectory()) {
-								files.addAll(walkDirectory(file.toPath()));
-							}
-							else {
-								files.remove(file);
-								files.add(file);
+							if (file.exists()) {
+								if (file.isDirectory()) {
+									files.addAll(walkDirectory(file.toPath()));
+								}
+								else {
+									files.remove(file);
+									files.add(file);
+								}
 							}
 						}
 					}
