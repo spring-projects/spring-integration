@@ -21,7 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -34,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.core.MessageListener;
@@ -43,6 +46,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +62,8 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -65,10 +71,6 @@ public class AsyncAmqpGatewayTests {
 
 	@ClassRule
 	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues("asyncQ1", "asyncRQ1");
-
-//	@Rule
-//	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration",
-//			"org.springframework.amqp");
 
 	@AfterClass
 	public static void tearDown() {
@@ -89,6 +91,11 @@ public class AsyncAmqpGatewayTests {
 		AsyncRabbitTemplate asyncTemplate = spy(new AsyncRabbitTemplate(template, container));
 		asyncTemplate.setEnableConfirms(true);
 		asyncTemplate.setMandatory(true);
+
+		willAnswer(Mockito.CALLS_REAL_METHODS)
+				.given(asyncTemplate)
+				.confirm(any(CorrelationData.class), anyBoolean(), anyString());
+
 		asyncTemplate.start();
 
 		SimpleMessageListenerContainer receiver = new SimpleMessageListenerContainer(ccf);
@@ -120,14 +127,12 @@ public class AsyncAmqpGatewayTests {
 		returnChannel.setBeanName("returns");
 		QueueChannel ackChannel = new QueueChannel();
 		ackChannel.setBeanName("acks");
-		QueueChannel nackChannel = new QueueChannel();
-		nackChannel.setBeanName("nacks");
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName("errors");
 		gateway.setOutputChannel(outputChannel);
 		gateway.setReturnChannel(returnChannel);
 		gateway.setConfirmAckChannel(ackChannel);
-		gateway.setConfirmNackChannel(nackChannel);
+		gateway.setConfirmNackChannel(ackChannel);
 		gateway.setConfirmCorrelationExpressionString("#this");
 		gateway.setExchangeName("");
 		gateway.setRoutingKey("asyncQ1");
@@ -150,6 +155,7 @@ public class AsyncAmqpGatewayTests {
 
 		// timeout
 		asyncTemplate.setReceiveTimeout(100);
+
 		receiver.setMessageListener(new MessageListener() {
 
 			@Override
@@ -158,7 +164,7 @@ public class AsyncAmqpGatewayTests {
 
 		});
 		gateway.handleMessage(message);
-		assertNull(errorChannel.receive(1000));
+		assertNull(errorChannel.receive(10));
 		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
 
@@ -169,7 +175,7 @@ public class AsyncAmqpGatewayTests {
 		assertThat(received, instanceOf(ErrorMessage.class));
 		ErrorMessage error = (ErrorMessage) received;
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(AmqpReplyTimeoutException.class));
+		assertThat(error.getPayload().getCause(), instanceOf(AmqpReplyTimeoutException.class));
 		asyncTemplate.setReceiveTimeout(30000);
 		receiver.setMessageListener(messageListener);
 		ack = ackChannel.receive(10000);
@@ -213,7 +219,7 @@ public class AsyncAmqpGatewayTests {
 
 		gateway.handleMessage(message);
 
-		ack = nackChannel.receive(10000);
+		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
 		assertEquals("foo", ack.getPayload());
 		assertEquals("nacknack", ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE));

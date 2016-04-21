@@ -241,17 +241,17 @@ public class JdbcMessageStoreTests {
 	@Test
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
 		String groupId = "X";
-		messageStore.setRemoveBatchSize(10);
+		this.messageStore.setRemoveBatchSize(10);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messages.add(message);
 		}
-		messageStore.addMessagesToGroup(groupId, messages.toArray(new Message[messages.size()]));
-		MessageGroup group = messageStore.getMessageGroup(groupId);
+		this.messageStore.addMessagesToGroup(groupId, messages.toArray(new Message<?>[messages.size()]));
+		MessageGroup group = this.messageStore.getMessageGroup(groupId);
 		assertEquals(25, group.size());
-		messageStore.removeMessagesFromGroup(groupId, messages);
-		group = messageStore.getMessageGroup(groupId);
+		this.messageStore.removeMessagesFromGroup(groupId, messages);
+		group = this.messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 

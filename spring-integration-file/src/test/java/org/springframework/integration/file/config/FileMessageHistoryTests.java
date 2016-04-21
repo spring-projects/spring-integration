@@ -30,7 +30,6 @@ import java.util.Properties;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
@@ -41,13 +40,16 @@ import org.springframework.messaging.PollableChannel;
  * @author Oleg Zhurakousky
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class FileMessageHistoryTests {
 
 
 	@Test
 	public void testMessageHistory() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("file-message-history-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("file-message-history-context.xml", getClass());
+
 		TemporaryFolder input = context.getBean(TemporaryFolder.class);
 		File file = input.newFile("FileMessageHistoryTest.txt");
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
@@ -55,12 +57,15 @@ public class FileMessageHistoryTests {
 	    out.close();
 
 	    PollableChannel outChannel =  context.getBean("outChannel", PollableChannel.class);
-	    Message<?> message = outChannel.receive(1000);
+	    Message<?> message = outChannel.receive(10000);
 		assertThat(message, is(notNullValue()));
 	    MessageHistory history = MessageHistory.read(message);
 	    assertThat(history, is(notNullValue()));
 	    Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "fileAdapter", 0);
 	    assertNotNull(componentHistoryRecord);
 	    assertEquals("file:inbound-channel-adapter", componentHistoryRecord.get("type"));
+
+		context.close();
 	}
+
 }

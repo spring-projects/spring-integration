@@ -89,7 +89,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 		performLazyLoadEagerTest(watch, sequenceSize, false);
 
-		System. out .println(watch.prettyPrint()); // checkstyle
+//		System. out .println(watch.prettyPrint()); // checkstyle
 	}
 
 	private void performLazyLoadEagerTest(StopWatch watch, int sequenceSize, boolean lazyLoad) {
