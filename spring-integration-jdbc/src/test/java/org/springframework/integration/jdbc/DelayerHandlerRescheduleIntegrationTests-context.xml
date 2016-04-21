@@ -7,7 +7,9 @@
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<beans:bean id="messageStore"
-				class="org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests$TestJdbcMessageStore"/>
+				class="org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests$TestJdbcMessageStore">
+		<beans:property name="lazyLoadMessageGroups" value="false"/>
+	</beans:bean>
 
 	<beans:bean id="transactionManager"
 				class="org.springframework.jdbc.datasource.DataSourceTransactionManager"

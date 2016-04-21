@@ -239,7 +239,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messages, "'messages' must not be null");
+
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {
 			lock.lockInterruptibly();
@@ -247,31 +250,38 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 			try {
 				UpperBound upperBound;
 				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
+				MessagingException outOfCapacityException =
+						new MessagingException(getClass().getSimpleName() +
+								" was out of capacity (" + this.groupCapacity + ") for group '" + groupId +
+								"', try constructing it with a larger capacity.");
 				if (group == null) {
+					if (this.groupCapacity > 0 && messages.length > this.groupCapacity) {
+						throw outOfCapacityException;
+					}
 					group = getMessageGroupFactory().create(groupId);
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 					upperBound = new UpperBound(this.groupCapacity);
-					upperBound.tryAcquire(-1);
+					for (Message<?> message : messages) {
+						upperBound.tryAcquire(-1);
+						group.add(message);
+					}
 					this.groupToUpperBound.putIfAbsent(groupId, upperBound);
 				}
 				else {
 					upperBound = this.groupToUpperBound.get(groupId);
 					Assert.state(upperBound != null, "'upperBound' must not be null.");
-					lock.unlock();
-					if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
-						unlocked = true;
-						throw new MessagingException(this.getClass().getSimpleName()
-								+ " was out of capacity ("
-								+ this.groupCapacity
-								+ ") for group '"
-								+ groupId
-								+ "', try constructing it with a larger capacity.");
+					for (Message<?> message : messages) {
+						lock.unlock();
+						if (!upperBound.tryAcquire(this.upperBoundTimeout)) {
+							unlocked = true;
+							throw outOfCapacityException;
+						}
+						lock.lockInterruptibly();
+						group.add(message);
 					}
-					lock.lockInterruptibly();
 				}
-				group.add(message);
+
 				group.setLastModified(System.currentTimeMillis());
-				return group;
 			}
 			finally {
 				if (!unlocked) {
@@ -443,6 +453,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
 		return getMessageGroup(groupId).getOne();
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		return getMessageGroup(groupId).getMessages();
 	}
 
 	public void clearMessageGroup(Object groupId) {

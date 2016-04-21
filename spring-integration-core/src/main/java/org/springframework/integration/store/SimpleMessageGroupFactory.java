@@ -59,6 +59,28 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete);
 	}
 
+	@Override
+	public MessageGroup create(MessageGroupStore messageGroupStore, Object groupId) {
+		if (GroupType.PERSISTENT.equals(this.type)) {
+			return new PersistentMessageGroup(messageGroupStore, new SimpleMessageGroup(groupId));
+		}
+		else {
+			return create(messageGroupStore.getMessagesForGroup(groupId), groupId);
+		}
+	}
+
+	@Override
+	public MessageGroup create(MessageGroupStore messageGroupStore, Object groupId, long timestamp, boolean complete) {
+		if (GroupType.PERSISTENT.equals(this.type)) {
+			SimpleMessageGroup original = new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId,
+					timestamp, complete);
+			return new PersistentMessageGroup(messageGroupStore, original);
+		}
+		else {
+			return create(messageGroupStore.getMessagesForGroup(groupId), groupId, timestamp, complete);
+		}
+	}
+
 	public enum GroupType {
 
 		BLOCKING_QUEUE {
@@ -82,6 +104,14 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 			@Override
 			Collection<Message<?>> get() {
 				return Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
+			}
+
+		},
+		PERSISTENT {
+
+			@Override
+			Collection<Message<?>> get() {
+				return HASH_SET.get();
 			}
 
 		};

@@ -95,7 +95,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
-			this.store.addMessageToGroup(correlationKey, message);
+			this.store.addMessagesToGroup(correlationKey, message);
 		}
 		if (log.isDebugEnabled()) {
 			log.debug(String.format("Handled message for key [%s]: %s.", correlationKey, message));

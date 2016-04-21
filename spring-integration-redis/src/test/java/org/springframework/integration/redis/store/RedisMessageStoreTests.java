@@ -169,7 +169,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
+			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
 		messageStore.removeMessagesFromGroup(groupId, messages);

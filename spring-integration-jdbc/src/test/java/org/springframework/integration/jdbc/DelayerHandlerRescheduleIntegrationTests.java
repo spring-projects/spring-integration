@@ -16,9 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -36,6 +38,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.util.UUIDConverter;
@@ -80,7 +83,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	@Test //INT-1132
 	public void testDelayerHandlerRescheduleWithJdbcMessageStore() throws Exception {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
+		AbstractApplicationContext context =
+				new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
@@ -91,7 +95,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		// Emulate restart and check DB state before next start
 		// Interrupt taskScheduler as quickly as possible
-		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		ThreadPoolTaskScheduler taskScheduler =
+				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
@@ -112,6 +117,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
 		assertEquals(2, messageStore.getMessageCountForAllMessageGroups());
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
+		// Ensure that with the lazyLoadMessageGroups = false the MessageStore doesn't return PersistentMessageGroup
+		assertThat(messageGroup, instanceOf(SimpleMessageGroup.class));
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
 
@@ -140,7 +147,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	@Test //INT-2649
 	public void testRollbackOnDelayerHandlerReleaseTask() throws Exception {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
+		AbstractApplicationContext context =
+				new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", getClass());
 		MessageChannel input = context.getBean("transactionalDelayerInput", MessageChannel.class);
 
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);

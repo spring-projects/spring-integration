@@ -163,7 +163,7 @@ public class GemfireGroupStoreTests {
 		GemfireMessageStore store = new GemfireMessageStore(this.region);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
+		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
@@ -180,7 +180,7 @@ public class GemfireGroupStoreTests {
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageToMark = new GenericMessage<String>("1");
-		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
 		store.completeGroup(messageGroup.getGroupId());
 		messageGroup = store.getMessageGroup(1);
 		assertTrue(messageGroup.isComplete());
@@ -192,7 +192,7 @@ public class GemfireGroupStoreTests {
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageToMark = new GenericMessage<String>("1");
-		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
 		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
@@ -207,7 +207,7 @@ public class GemfireGroupStoreTests {
 		store2.afterPropertiesSet();
 
 		Message<?> message = new GenericMessage<String>("1");
-		store1.addMessageToGroup(1, message);
+		store1.addMessagesToGroup(1, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 
 		assertEquals(2, messageGroup.getMessages().size());
@@ -236,7 +236,7 @@ public class GemfireGroupStoreTests {
 
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
-		store.addMessageToGroup(1, message);
+		store.addMessagesToGroup(1, message);
 
 		message = store.getMessageGroup(1).getMessages().iterator().next();
 
@@ -255,10 +255,9 @@ public class GemfireGroupStoreTests {
 		GemfireMessageStore store2 = new GemfireMessageStore(this.region);
 		store2.afterPropertiesSet();
 
-		store1.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store2.addMessageToGroup(2, new GenericMessage<String>("2"));
-		store1.addMessageToGroup(3, new GenericMessage<String>("3"));
-		store2.addMessageToGroup(3, new GenericMessage<String>("3A"));
+		store1.addMessagesToGroup(1, new GenericMessage<String>("1"));
+		store2.addMessagesToGroup(2, new GenericMessage<String>("2"));
+		store1.addMessagesToGroup(3, new GenericMessage<String>("3"), new GenericMessage<String>("3A"));
 
 		Iterator<MessageGroup> messageGroups = store1.iterator();
 		int counter = 0;

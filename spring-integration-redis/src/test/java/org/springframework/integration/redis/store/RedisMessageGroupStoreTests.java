@@ -186,8 +186,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
-		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"), message);
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
 		assertEquals(3, messageGroup.size());
 
@@ -218,7 +217,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
-		store.addMessageToGroup(1, message);
+		store.addMessagesToGroup(1, message);
 
 		message = store.getMessageGroup(1).getMessages().iterator().next();
 
@@ -236,7 +235,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
+		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
@@ -259,7 +258,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		RedisMessageStore store2 = new RedisMessageStore(jcf);
 
 		Message<?> message = new GenericMessage<String>("1");
-		store1.addMessageToGroup(1, message);
+		store1.addMessagesToGroup(1, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 
 		assertEquals(2, messageGroup.getMessages().size());
@@ -280,10 +279,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		RedisMessageStore store2 = new RedisMessageStore(jcf);
 
 
-		store1.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store2.addMessageToGroup(2, new GenericMessage<String>("2"));
-		store1.addMessageToGroup(3, new GenericMessage<String>("3"));
-		store2.addMessageToGroup(3, new GenericMessage<String>("3A"));
+		store1.addMessagesToGroup(1, new GenericMessage<String>("1"));
+		store2.addMessagesToGroup(2, new GenericMessage<String>("2"));
+		store1.addMessagesToGroup(3, new GenericMessage<String>("3"), new GenericMessage<String>("3A"));
 
 		Iterator<MessageGroup> messageGroups = store1.iterator();
 		int counter = 0;
@@ -394,7 +392,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-			messageStore.addMessageToGroup(groupId, message);
+			messageStore.addMessagesToGroup(groupId, message);
 			messages.add(message);
 		}
 		MessageGroup group = messageStore.getMessageGroup(groupId);

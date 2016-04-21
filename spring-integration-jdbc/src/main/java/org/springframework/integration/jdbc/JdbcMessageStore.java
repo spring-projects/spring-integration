@@ -20,8 +20,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,6 +47,7 @@ import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -98,8 +99,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		GROUP_EXISTS("SELECT COUNT(GROUP_KEY) FROM %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
 		CREATE_MESSAGE_GROUP("INSERT into %PREFIX%MESSAGE_GROUP" +
-			"(GROUP_KEY, REGION, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
-			+ " values (?, ?, 0, 0, 0, ?, ?)"),
+				"(GROUP_KEY, REGION, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
+				+ " values (?, ?, 0, 0, 0, ?, ?)"),
 
 		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?"),
 
@@ -123,13 +124,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				"where %PREFIX%MESSAGE.MESSAGE_ID = " +
 				"(SELECT min(m.MESSAGE_ID) from %PREFIX%MESSAGE m " +
 				"join %PREFIX%GROUP_TO_MESSAGE on m.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
-					"where CREATED_DATE = " +
-					"(SELECT min(CREATED_DATE) from %PREFIX%MESSAGE, %PREFIX%GROUP_TO_MESSAGE " +
-						"where %PREFIX%MESSAGE.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
-						"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
-						"and %PREFIX%MESSAGE.REGION = ?) " +
-					"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
-					"and m.REGION = ?)"),
+				"where CREATED_DATE = " +
+				"(SELECT min(CREATED_DATE) from %PREFIX%MESSAGE, %PREFIX%GROUP_TO_MESSAGE " +
+				"where %PREFIX%MESSAGE.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
+				"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
+				"and %PREFIX%MESSAGE.REGION = ?) " +
+				"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
+				"and m.REGION = ?)"),
 
 		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ? and REGION=?"),
@@ -183,6 +184,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
+	private final MessageMapper mapper = new MessageMapper();
+
 	private volatile String region = "DEFAULT";
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
@@ -194,8 +197,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile SerializingConverter serializer;
 
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
-
-	private volatile MessageMapper mapper = new MessageMapper();
 
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
 
@@ -299,8 +300,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		if (message == null) {
 			return null;
 		}
-		int updated = this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE), new Object[] { getKey(id), this.region }, new int[] {
-				Types.VARCHAR, Types.VARCHAR });
+		int updated = this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE), getKey(id), this.region);
 		if (updated != 0) {
 			return message;
 		}
@@ -315,7 +315,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@Override
 	public Message<?> getMessage(UUID id) {
-		List<Message<?>> list = this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE), new Object[] { getKey(id), this.region }, this.mapper);
+		List<Message<?>> list =
+				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE), this.mapper, getKey(id), this.region);
 		if (list.isEmpty()) {
 			return null;
 		}
@@ -346,6 +347,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final byte[] messageBytes = this.serializer.convert(result);
 
 		this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -361,45 +363,52 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		final String groupKey = getKey(groupId);
-		final String messageId = getKey(message.getHeaders().getId());
-		boolean groupNotExist = this.jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS), Integer.class, groupKey, this.region) < 1;
+		boolean groupNotExist = this.jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS),
+				Integer.class, groupKey, this.region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
 
 		final Timestamp createdDate = groupNotExist ?
 				updatedDate :
-			    this.jdbcTemplate.queryForObject(getQuery(Query.GET_GROUP_CREATED_DATE), new Object[] { groupKey, this.region}, Timestamp.class);
+				this.jdbcTemplate.queryForObject(getQuery(Query.GET_GROUP_CREATED_DATE), Timestamp.class, groupKey,
+						this.region);
 
 		if (groupNotExist) {
 			try {
-				this.doCreateMessageGroup(groupKey, createdDate);
+				doCreateMessageGroup(groupKey, createdDate);
 			}
 			catch (DuplicateKeyException e) {
 				logger.warn("Lost race to create group; attempting update instead", e);
-				this.doUpdateMessageGroup(groupKey, updatedDate);
+				doUpdateMessageGroup(groupKey, updatedDate);
 			}
 		}
 		else {
-			this.doUpdateMessageGroup(groupKey, updatedDate);
+			doUpdateMessageGroup(groupKey, updatedDate);
 		}
 
-		this.addMessage(message);
+		for (Message<?> message : messages) {
+			addMessage(message);
+		}
+		this.jdbcTemplate.batchUpdate(getQuery(Query.CREATE_GROUP_TO_MESSAGE),
+				Arrays.asList(messages),
+				100,
+				new ParameterizedPreparedStatementSetter<Message<?>>() {
 
-		this.jdbcTemplate.update(getQuery(Query.CREATE_GROUP_TO_MESSAGE), new PreparedStatementSetter() {
-			@Override
-			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Inserting message with id key=" + messageId + " and created date=" + createdDate);
-				}
-				ps.setString(1, groupKey);
-				ps.setString(2, messageId);
-				ps.setString(3, JdbcMessageStore.this.region);
-			}
-		});
-		return getMessageGroup(groupId);
+					@Override
+					public void setValues(PreparedStatement ps, Message<?> messageToAdd) throws SQLException {
+						String messageId = getKey(messageToAdd.getHeaders().getId());
+						if (logger.isDebugEnabled()) {
+							logger.debug("Inserting message with id key=" + messageId +
+									" and created date=" + createdDate);
+						}
+						ps.setString(1, groupKey);
+						ps.setString(2, messageId);
+						ps.setString(3, JdbcMessageStore.this.region);
+					}
 
+				});
 	}
 
 	@Override
@@ -411,14 +420,16 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), Integer.class, this.region);
+		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS),
+				Integer.class, this.region);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), Integer.class, key, this.region);
+		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP),
+				Integer.class, key, this.region);
 	}
 
 	@Override
@@ -429,43 +440,29 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
-		List<Message<?>> messages = this.jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY),
-				new Object[] { key, this.region }, this.mapper);
+		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new RowCallbackHandler() {
 
-		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key, this.region},
-				new RowCallbackHandler() {
+			@Override
+			public void processRow(ResultSet rs) throws SQLException {
+				updateDate.set(rs.getTimestamp("UPDATED_DATE"));
 
-					@Override
-					public void processRow(ResultSet rs) throws SQLException {
-						updateDate.set(rs.getTimestamp("UPDATED_DATE"));
+				createDate.set(rs.getTimestamp("CREATED_DATE"));
 
-						createDate.set(rs.getTimestamp("CREATED_DATE"));
+				completeFlag.set(rs.getInt("COMPLETE") > 0);
 
-						completeFlag.set(rs.getInt("COMPLETE") > 0);
+				lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
+			}
 
-						lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
-					}
-
-				});
+		}, key, this.region);
 
 		if (createDate.get() == null && updateDate.get() == null) {
-			if (logger.isWarnEnabled()) {
-				for (Message<?> message : messages) {
-					logger.warn("Missing group row for message id: " + message.getHeaders().getId());
-				}
-			}
-			return getMessageGroupFactory().create(groupId);
+			return new SimpleMessageGroup(groupId);
 		}
 
-		long timestamp = createDate.get().getTime();
-		boolean complete = completeFlag.get();
-		long lastModified = updateDate.get().getTime();
-		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
-
 		MessageGroup messageGroup = getMessageGroupFactory()
-				.create(messages, groupId, timestamp, complete);
-		messageGroup.setLastModified(lastModified);
-		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
+				.create(this, groupId, createDate.get().getTime(), completeFlag.get());
+		messageGroup.setLastModified(updateDate.get().getTime());
+		messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceRef.get());
 		return messageGroup;
 	}
 
@@ -476,6 +473,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final String messageId = getKey(messageToRemove.getHeaders().getId());
 
 		this.jdbcTemplate.update(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -486,8 +484,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(3, JdbcMessageStore.this.region);
 			}
 		});
-		this.removeMessage(messageToRemove.getHeaders().getId());
-		this.updateMessageGroup(groupKey);
+		removeMessage(messageToRemove.getHeaders().getId());
+		updateMessageGroup(groupKey);
 		return getMessageGroup(groupId);
 	}
 
@@ -505,23 +503,27 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				messages,
 				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
+
 					@Override
 					public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
 						ps.setString(1, groupKey);
 						ps.setString(2, getKey(messageToRemove.getHeaders().getId()));
 						ps.setString(3, JdbcMessageStore.this.region);
 					}
-		});
+
+				});
 		this.jdbcTemplate.batchUpdate(getQuery(Query.DELETE_MESSAGE),
 				messages,
 				getRemoveBatchSize(),
 				new ParameterizedPreparedStatementSetter<Message<?>>() {
+
 					@Override
 					public void setValues(PreparedStatement ps, Message<?> messageToRemove) throws SQLException {
 						ps.setString(1, getKey(messageToRemove.getHeaders().getId()));
 						ps.setString(2, JdbcMessageStore.this.region);
 					}
-		});
+
+				});
 		this.updateMessageGroup(groupKey);
 	}
 
@@ -535,6 +537,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		this.jdbcTemplate.update(getQuery(Query.REMOVE_GROUP_TO_MESSAGE_JOIN), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -546,6 +549,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 
 		this.jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -563,6 +567,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final String groupKey = getKey(groupId);
 
 		this.jdbcTemplate.update(getQuery(Query.COMPLETE_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -582,10 +587,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final String groupKey = getKey(groupId);
 
 		this.jdbcTemplate.update(getQuery(Query.UPDATE_LAST_RELEASED_SEQUENCE), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Updating  the sequence number of the last released Message in the MessageGroup: " + groupKey);
+					logger.debug("Updating  the sequence number of the last released Message in the MessageGroup: " +
+							groupKey);
 				}
 				ps.setTimestamp(1, new Timestamp(updatedDate));
 				ps.setInt(2, sequenceNumber);
@@ -608,10 +615,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		return doPollForMessage(getKey(groupId));
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		return this.jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), this.mapper, getKey(groupId),
+				this.region);
+	}
+
+	@Override
 	public Iterator<MessageGroup> iterator() {
 
-		final Iterator<String> iterator = this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS), new Object[] { this.region },
-				new SingleColumnRowMapper<String>()).iterator();
+		final Iterator<String> iterator = this.jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS),
+				new SingleColumnRowMapper<String>(), this.region)
+				.iterator();
 
 		return new Iterator<MessageGroup>() {
 
@@ -663,14 +682,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
-	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
-	 *
+	 * Override this method if need to. For example if your DB supports advanced function such as FIRST etc.
 	 * @param groupIdKey String representation of message group ID
 	 * @return a message; could be null if query produced no Messages
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
-		List<Message<?>> messages = this.jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP),
-				new Object[] { groupIdKey, this.region, groupIdKey, this.region }, this.mapper);
+		List<Message<?>> messages = this.jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), this.mapper,
+				groupIdKey, this.region, groupIdKey, this.region);
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0) {
 			return messages.get(0);
@@ -680,6 +698,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private void doCreateMessageGroup(final String groupKey, final Timestamp createdDate) {
 		this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -695,6 +714,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private void doUpdateMessageGroup(final String groupKey, final Timestamp updatedDate) {
 		this.jdbcTemplate.update(getQuery(Query.UPDATE_MESSAGE_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -709,6 +729,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private void updateMessageGroup(final String groupId) {
 		this.jdbcTemplate.update(getQuery(Query.UPDATE_GROUP), new PreparedStatementSetter() {
+
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()) {
@@ -726,15 +747,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		final List<UUID> messageIds = new ArrayList<UUID>();
 
-		this.jdbcTemplate.query(getQuery(Query.LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, this.region },
+		this.jdbcTemplate.query(getQuery(Query.LIST_MESSAGEIDS_BY_GROUP_KEY),
 				new RowCallbackHandler() {
 
 					@Override
 					public void processRow(ResultSet rs) throws SQLException {
 						messageIds.add(UUID.fromString(rs.getString(1)));
 					}
-				}
-		);
+				}, key, this.region);
 		return messageIds;
 	}
 

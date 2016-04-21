@@ -60,6 +60,7 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -242,37 +243,30 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = whereGroupIdOrder(groupId);
-		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
-		List<Message<?>> messages = new ArrayList<Message<?>>();
-		long timestamp = 0;
-		long lastModified = 0;
-		int lastReleasedSequenceNumber = 0;
-		boolean completeGroup = false;
-		if (messageWrappers.size() > 0) {
-			MessageWrapper messageWrapper = messageWrappers.get(0);
-			timestamp = messageWrapper.get_Group_timestamp();
-			lastModified = messageWrapper.get_Group_update_timestamp();
-			completeGroup = messageWrapper.get_Group_complete();
-			lastReleasedSequenceNumber = messageWrapper.get_LastReleasedSequenceNumber();
-		}
+		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
-		for (MessageWrapper messageWrapper : messageWrappers) {
-			messages.add(messageWrapper.getMessage());
-		}
+		if (messageWrapper != null) {
+			long createdTime = messageWrapper.get_Group_timestamp();
+			long lastModifiedTime = messageWrapper.get_Group_update_timestamp();
+			boolean complete = messageWrapper.get_Group_complete();
+			int lastReleasedSequence = messageWrapper.get_LastReleasedSequenceNumber();
 
-		MessageGroup messageGroup = getMessageGroupFactory().create(messages, groupId, timestamp, completeGroup);
-		messageGroup.setLastModified(lastModified);
-		if (lastReleasedSequenceNumber > 0) {
-			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
-		}
+			MessageGroup messageGroup = getMessageGroupFactory()
+					.create(this, groupId, createdTime, complete);
+			messageGroup.setLastModified(lastModifiedTime);
+			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequence);
+			return messageGroup;
 
-		return messageGroup;
+		}
+		else {
+			return new SimpleMessageGroup(groupId);
+		}
 	}
 
 	@Override
-	public MessageGroup addMessageToGroup(final Object groupId, final Message<?> message) {
+	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(message, "'message' must not be null");
+		Assert.notNull(messages, "'message' must not be null");
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageDocument = this.template.findOne(query, MessageWrapper.class, this.collectionName);
 
@@ -286,18 +280,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			complete = messageDocument.get_Group_complete();
 		}
 
+		for (Message<?> message : messages) {
+			MessageWrapper wrapper = new MessageWrapper(message);
+			wrapper.set_GroupId(groupId);
+			wrapper.set_Group_timestamp(createdTime == 0 ? System.currentTimeMillis() : createdTime);
+			wrapper.set_Group_update_timestamp(System.currentTimeMillis());
+			wrapper.set_Group_complete(complete);
+			wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
+			wrapper.setSequence(getNextId());
 
-		MessageWrapper wrapper = new MessageWrapper(message);
-		wrapper.set_GroupId(groupId);
-		wrapper.set_Group_timestamp(createdTime == 0 ? System.currentTimeMillis() : createdTime);
-		wrapper.set_Group_update_timestamp(System.currentTimeMillis());
-		wrapper.set_Group_complete(complete);
-		wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
-		wrapper.setSequence(getNextId());
-
-		addMessageDocument(wrapper);
-		return getMessageGroup(groupId);
-
+			addMessageDocument(wrapper);
+		}
 	}
 
 	@Override
@@ -391,6 +384,32 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public void completeGroup(Object groupId) {
 		this.updateGroup(groupId, lastModifiedUpdate().set(GROUP_COMPLETE_KEY, true));
+	}
+
+	@Override
+	public Message<?> getOneMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = whereGroupIdOrder(groupId);
+		MessageWrapper messageWrapper = this.template.findOne(query, MessageWrapper.class, this.collectionName);
+		if (messageWrapper != null) {
+			return messageWrapper.getMessage();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Query query = whereGroupIdOrder(groupId);
+		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+
+		for (MessageWrapper messageWrapper : messageWrappers) {
+			messages.add(messageWrapper.getMessage());
+		}
+		return messages;
 	}
 
 	@Override
