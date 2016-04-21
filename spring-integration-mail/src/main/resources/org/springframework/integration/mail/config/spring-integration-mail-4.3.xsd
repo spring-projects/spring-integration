@@ -171,6 +171,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="inboundMappingGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -269,6 +270,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="inboundMappingGroup" />
 	</xsd:complexType>
 
 	<xsd:element name="mail-to-string-transformer">
@@ -362,5 +364,38 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:attributeGroup name="inboundMappingGroup">
+		<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to a `org.springframework.integration.mapping.HeaderMapper<MimeMessage>` bean.
+	When not supplied, the message payload will be the raw MimeMessage with no header mapping.
+	When a mapper is provided, the mail headers are mapped to 'MessageHeaders' and the payload
+	will depend on the email contents, and the setting of 'multipart-as-bytes'. The framework
+	provides a `DefaultMailHeaderMappe`; see the reference manual regarding the headers mapped
+	and the payload types.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="multipart-as-bytes">
+			<xsd:annotation>
+				<xsd:documentation>
+	When a 'header-mapper' is provided, and the 'MimeMessage' has 'MultiPart' contents, the message
+	payload will be a byte[] containing the raw multipart data. Set this boolean to 'false' for the
+	payload to be a decoded 'Multipart' object. Note that 'Multipart' is not 'Serializable', nor is it
+	suitable for serialization using other technologies such as Kryo. Default true (payload is 'byte[]').
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>

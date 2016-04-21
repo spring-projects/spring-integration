@@ -93,6 +93,8 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "header-mapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "multipart-as-bytes");
 
 		return receiverBuilder.getBeanDefinition();
 	}

@@ -55,6 +55,43 @@ Spring Integration provides the `ImapIdleChannelAdapter` which is itself a Messa
 It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of Mail Messages.
 There are examples in the next section of configuring both types of inbound Channel Adapter with Spring Integration's namespace support in the 'mail' schema.
 
+[[mail-mapping]]
+=== Inbound Mail Message Mapping
+
+By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`; you can interrogate
+the headers and content using that object.
+Starting with _version 4.3_, you can provide a `HeaderMapper<MimeMessage>` to map the headers to `MessageHeaders`; for
+convenience, a `DefaultMailHeaderMapper` is provided for this purpose.
+This maps the following headers:
+
+- `mail_from` - A String representation of the `from` address.
+- `mail_bcc` - A String array containing the `bcc` addresses.
+- `mail_cc` - A String array containing the `cc` addresses.
+- `mail_to` - A String array containing the `to` addresses.
+- `mail_replyTo` - A String representation of the `replyTo` address.
+- `mail_subject` - The mail subject.
+- `mail_lineCount` - A line count (if available).
+- `mail_receivedDate` - The received date (if available).
+- `mail_size` - The mail size (if available).
+- `mail_expunged` - A boolen indicating if the message is expunged.
+- `mail_raw` - A `MultiValueMap` containing all the mail headers and their values.
+- `mail_contentTYpe` - The content type of the original mail message.
+- `contentType` - The payload content type (see below).
+
+When message mapping is enabled, the payload depends on the mail message and its implementation.
+Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
+- For a simple `text/*` email, the payload will be a String and the `contentType` header will be the same as
+`mail_contentType`.
+- For a multipart message, the `DataHandler` usually renders a `Multipart` object - these objects are not
+`Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
+For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the
+multipart data.
+The `contentType` header is `application/octet-stream` in this case.
+To change this behavior, and receive a `Multipart` object payload, set `multipartAsByetes` to `false` on the
+`MailReceiver`.
+For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType`
+header of `application/octet-stream`.
+
 [[mail-namespace]]
 === Mail Namespace Support
 
