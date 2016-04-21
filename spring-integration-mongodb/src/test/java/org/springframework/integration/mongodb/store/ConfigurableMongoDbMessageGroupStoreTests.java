@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Map;
 
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -34,10 +35,13 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
+import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.util.StopWatch;
 
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
@@ -69,6 +73,48 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@MongoDbAvailable
 	public void testWithAggregatorWithShutdown() throws Exception {
 		super.testWithAggregatorWithShutdown("mongo-aggregator-confugurable-config.xml");
+	}
+
+	@Test
+	@Ignore("The performance test. Enough slow.")
+	@MongoDbAvailable
+	public void messageGroupStoreLazyLoadPerformance() throws Exception {
+		cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
+
+		StopWatch watch = new StopWatch("Lazy-Load Performance");
+
+		int sequenceSize = 1000;
+
+		performLazyLoadEagerTest(watch, sequenceSize, true);
+
+		performLazyLoadEagerTest(watch, sequenceSize, false);
+
+		System.out.println(watch.prettyPrint());
+	}
+
+	private void performLazyLoadEagerTest(StopWatch watch, int sequenceSize, boolean lazyLoad) {
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("mongo-aggregator-confugurable-config.xml", getClass());
+		context.refresh();
+
+		AbstractMessageGroupStore messageGroupStore = context.getBean("mongoStore", AbstractMessageGroupStore.class);
+		messageGroupStore.setLazyLoadMessageGroups(lazyLoad);
+		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
+		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
+
+		watch.start(lazyLoad ? "Lazy-Load" : "Eager");
+
+		for (int i = 0; i < sequenceSize; i++) {
+			input.send(MessageBuilder.withPayload("" + i)
+					.setCorrelationId(1)
+					.build());
+		}
+
+		assertNotNull(output.receive(20000));
+
+		watch.stop();
+
+		context.close();
 	}
 
 	@Test

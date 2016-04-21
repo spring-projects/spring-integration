@@ -616,8 +616,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), this.mapper,
-				getKey(groupId), this.region);
+		return doPollForMessage(getKey(groupId));
 	}
 
 	@Override
@@ -683,8 +682,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
-	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
-	 *
+	 * Override this method if need to. For example if your DB supports advanced function such as FIRST etc.
 	 * @param groupIdKey String representation of message group ID
 	 * @return a message; could be null if query produced no Messages
 	 */
