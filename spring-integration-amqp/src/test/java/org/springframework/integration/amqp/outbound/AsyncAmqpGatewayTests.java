@@ -163,14 +163,16 @@ public class AsyncAmqpGatewayTests {
 		});
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
-		assertNull(errorChannel.receive(100));
 		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
+		assertNull(errorChannel.receive(100));
 
 		gateway.setRequiresReply(true);
 		message = MessageBuilder.withPayload("baz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 
+		ack = ackChannel.receive(10000);
+		assertNotNull(ack);
 		received = errorChannel.receive(10000);
 		assertThat(received, instanceOf(ErrorMessage.class));
 		ErrorMessage error = (ErrorMessage) received;
@@ -178,8 +180,6 @@ public class AsyncAmqpGatewayTests {
 		assertThat(error.getPayload().getCause(), instanceOf(AmqpReplyTimeoutException.class));
 		asyncTemplate.setReceiveTimeout(30000);
 		receiver.setMessageListener(messageListener);
-		ack = ackChannel.receive(10000);
-		assertNotNull(ack);
 
 		// error on sending result
 		DirectChannel errorForce = new DirectChannel();
