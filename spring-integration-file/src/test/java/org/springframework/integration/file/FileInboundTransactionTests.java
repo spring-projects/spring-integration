@@ -98,7 +98,7 @@ public class FileInboundTransactionTests {
 		new File(tmpDir + "/si-test1").mkdir();
 		File file = new File(tmpDir + "/si-test1/foo");
 		file.createNewFile();
-		Message<?> result = successChannel.receive(10000);
+		Message<?> result = successChannel.receive(40000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertFalse(file.delete());
@@ -135,7 +135,7 @@ public class FileInboundTransactionTests {
 		new File(tmpDir + "/si-test2").mkdir();
 		File file = new File(tmpDir + "/si-test2/baz");
 		file.createNewFile();
-		Message<?> result = successChannel.receive(10000);
+		Message<?> result = successChannel.receive(40000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(file.delete());

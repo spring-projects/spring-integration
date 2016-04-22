@@ -267,7 +267,9 @@ also the modification, if that is requirement.
 Otherwise the files from those events are treated the same way.
 
 The `ENTRY_DELETE` events have effect for the `ResettableFileListFilter` implementations and, therefore, their files
- are provided for the `remove()` operation.
+are provided for the `remove()` operation.
+This means that (when this event is enabled), filters such as the `AcceptOnceFileListFilter` will have the file removed,
+meaning that, if a file with the same name appears, it will pass the filter and be sent as a message.
 
 For this purpose the `watch-events`
 (`FileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType... watchEvents)`) has been introduced.

@@ -71,7 +71,7 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
-	public void testInitialAndAddMoreThanRemove() throws Exception {
+	public void testInitialAndAddMoreThenRemove() throws Exception {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
 		fileReadingMessageSource.setDirectory(folder.getRoot());
 		fileReadingMessageSource.setUseWatchService(true);
@@ -164,18 +164,25 @@ public class WatchServiceDirectoryScannerTests {
 
 		baz2Copy.setLastModified(baz2.lastModified() + 100000);
 
-		Thread.sleep(100);
-
-		files = scanner.listFiles(folder.getRoot());
+		n = 0;
+		files.clear();
+		while (n++ < 300 && files.size() < 1) {
+			Thread.sleep(100);
+			files = scanner.listFiles(folder.getRoot());
+			accum.addAll(files);
+		}
 
 		assertEquals(1, files.size());
 		assertTrue(files.contains(baz2));
 
 		baz2.delete();
 
-		Thread.sleep(100);
 
-		scanner.listFiles(folder.getRoot());
+		n = 0;
+		while (n++ < 300 && removeFileLatch.getCount() > 0) {
+			Thread.sleep(100);
+			scanner.listFiles(folder.getRoot());
+		}
 
 		assertTrue(removeFileLatch.await(10, TimeUnit.SECONDS));
 
