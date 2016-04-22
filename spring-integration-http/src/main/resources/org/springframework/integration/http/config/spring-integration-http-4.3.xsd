@@ -492,6 +492,28 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="graph-controller">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a
+				'org.springframework.integration.http.management.IntegrationGraphController' bean
+				to expose a REST API for the
+				'org.springframework.integration.support.management.graph.IntegrationGraphServer' bean.
+				Note: Spring Web MVC must be present in the application to enable and register this component.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="path" type="xsd:string" default="/integration">
+				<xsd:annotation>
+					<xsd:documentation>
+						The root request mapping path for the 'IntegrationGraphController'.
+						Defaults to /integration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="uriVariableType">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
