@@ -78,7 +78,7 @@ public class InboundChannelAdapterParserTests {
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
-		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("multipartAsBytes"));
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
 		assertNotNull(receiverAccessor.getPropertyValue("headerMapper"));
 	}
 
@@ -89,7 +89,7 @@ public class InboundChannelAdapterParserTests {
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead");
 		assertTrue(value);
-		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("multipartAsBytes"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
 		assertNull(receiverAccessor.getPropertyValue("headerMapper"));
 	}
 

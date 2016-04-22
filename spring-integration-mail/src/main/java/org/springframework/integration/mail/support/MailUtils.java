@@ -28,6 +28,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
+ * Utilites for handling mail messages.
+ *
  * @author Gary Russell
  * @since 4.3
  *
@@ -38,6 +40,12 @@ public final class MailUtils {
 		// empty
 	}
 
+	/**
+	 * Map the message headers to a Map using {@link MailHeaders} keys; specifically
+	 * maps the address headers and the subject.
+	 * @param source the message.
+	 * @return the map.
+	 */
 	public static Map<String, Object> extractStandardHeaders(Message source) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
@@ -54,7 +62,7 @@ public final class MailUtils {
 		}
 	}
 
-	public static String convertToString(Address[] addresses) {
+	private static String convertToString(Address[] addresses) {
 		if (addresses == null || addresses.length == 0) {
 			return null;
 		}
@@ -62,7 +70,7 @@ public final class MailUtils {
 		return addresses[0].toString();
 	}
 
-	public static String[] convertToStringArray(Address[] addresses) {
+	private static String[] convertToStringArray(Address[] addresses) {
 		if (addresses != null) {
 			String[] addressStrings = new String[addresses.length];
 			for (int i = 0; i < addresses.length; i++) {

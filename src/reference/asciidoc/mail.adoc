@@ -20,7 +20,7 @@ However, a few simple Message mapping strategies are supported out-of-the-box.
 For example, if the message payload is a byte array, then that will be mapped to an attachment.
 For simple text-based emails, you can provide a String-based Message payload.
 In that case, a MailMessage will be created with that String as the text content.
-If you are working with a Message payload type whose `toString()`` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
+If you are working with a Message payload type whose `toString()` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
 
 The outbound MailMessage may also be configured with certain values from the `MessageHeaders`.
 If available, values will be mapped to the outbound mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
@@ -82,15 +82,25 @@ When message mapping is enabled, the payload depends on the mail message and its
 Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
 - For a simple `text/*` email, the payload will be a String and the `contentType` header will be the same as
 `mail_contentType`.
-- For a multipart message, the `DataHandler` usually renders a `Multipart` object - these objects are not
-`Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
+- For a messages with embedded `javax.mail.Part` s, the `DataHandler` usually renders a `Part` object - these objects
+are not `Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
 For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the
-multipart data.
+`Part` data.
+Examples of `Part` are `Message` and `MultiPart`.
 The `contentType` header is `application/octet-stream` in this case.
-To change this behavior, and receive a `Multipart` object payload, set `multipartAsByetes` to `false` on the
+To change this behavior, and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on the
 `MailReceiver`.
 For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType`
 header of `application/octet-stream`.
+
+When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
+The framework provides a `MailToStringTransformer` which can be used to convert the message using a simple strategy
+to convert the mail contents to a String.
+Starting with _version 4.3_, the transformer will handle embedded `Part` as well as `Multipart` which was handled
+previously.
+The transformer is a subclass of `AbstractMailTransformer` which maps the address and subject headers from the list
+above.
+If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
 
 [[mail-namespace]]
 === Mail Namespace Support

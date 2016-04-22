@@ -15,7 +15,7 @@
 
 	<mail:inbound-channel-adapter id="pop3ShouldDeleteTrue"
 		store-uri="pop3:test" channel="testChannel" should-delete-messages="true"
-		header-mapper="mapper" multipart-as-bytes="false"
+		header-mapper="mapper" embedded-parts-as-bytes="false"
 		auto-startup="false" />
 
 	<mail:inbound-channel-adapter id="pop3ShouldDeleteFalse"

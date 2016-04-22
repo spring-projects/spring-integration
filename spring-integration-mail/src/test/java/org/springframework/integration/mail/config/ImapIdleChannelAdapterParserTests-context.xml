@@ -36,7 +36,7 @@
 			channel="channel"
 			auto-startup="false"
 			header-mapper="mapper"
-			multipart-as-bytes="false"
+			embedded-parts-as-bytes="false"
 			should-delete-messages="true"/>
 
 	<bean id="mapper" class="org.springframework.integration.mail.support.DefaultMailHeaderMapper" />

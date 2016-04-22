@@ -97,7 +97,7 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "header-mapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "multipart-as-bytes");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "embedded-parts-as-bytes");
 
 		return receiverBuilder.getBeanDefinition();
 	}

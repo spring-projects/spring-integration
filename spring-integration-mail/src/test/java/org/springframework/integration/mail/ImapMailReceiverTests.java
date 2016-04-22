@@ -878,7 +878,7 @@ public class ImapMailReceiverTests {
 	public void testAttachmentsWithMapping() throws Exception {
 		final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
-		receiver.setMultipartAsBytes(false);
+		receiver.setEmbeddedPartsAsBytes(false);
 		testAttachmentsGuts(receiver);
 		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
 				.receive();

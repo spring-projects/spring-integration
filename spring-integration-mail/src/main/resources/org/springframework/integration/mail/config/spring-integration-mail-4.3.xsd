@@ -171,7 +171,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attributeGroup ref="inboundMappingGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -369,11 +368,11 @@
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	A reference to a `org.springframework.integration.mapping.HeaderMapper<MimeMessage>` bean.
+	A reference to a 'org.springframework.integration.mapping.HeaderMapper<MimeMessage>' bean.
 	When not supplied, the message payload will be the raw MimeMessage with no header mapping.
 	When a mapper is provided, the mail headers are mapped to 'MessageHeaders' and the payload
-	will depend on the email contents, and the setting of 'multipart-as-bytes'. The framework
-	provides a `DefaultMailHeaderMappe`; see the reference manual regarding the headers mapped
+	will depend on the email contents, and the setting of 'embedded-parts-as-bytes'. The framework
+	provides a 'DefaultMailHeaderMapper'; see the reference manual regarding the headers mapped
 	and the payload types.
 				]]></xsd:documentation>
 				<xsd:appinfo>
@@ -383,13 +382,14 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="multipart-as-bytes">
+		<xsd:attribute name="embedded-parts-as-bytes">
 			<xsd:annotation>
 				<xsd:documentation>
-	When a 'header-mapper' is provided, and the 'MimeMessage' has 'MultiPart' contents, the message
-	payload will be a byte[] containing the raw multipart data. Set this boolean to 'false' for the
-	payload to be a decoded 'Multipart' object. Note that 'Multipart' is not 'Serializable', nor is it
-	suitable for serialization using other technologies such as Kryo. Default true (payload is 'byte[]').
+	When a 'header-mapper' is provided, and the 'MimeMessage' has embedded 'Part' (e.g. 'Message' or
+	'Multipart') contents, the message payload will be a byte[] containing the raw data. Set this
+	boolean to 'false' for the payload to be a decoded 'Part' object. Note that 'Part's are not
+	'Serializable', nor are they suitable for serialization using other technologies such as Kryo.
+	Default 'true' (payload is 'byte[]').
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -30,6 +31,7 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
@@ -44,6 +46,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -99,7 +102,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
 
-	private volatile boolean multipartAsBytes = true;
+	private volatile boolean embeddedPartsAsBytes = true;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -220,19 +223,25 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * the {@link MimeMessage} content.
 	 * @param headerMapper the header mapper.
 	 * @since 4.3
+	 * @see #setEmbeddedPartsAsBytes(boolean)
 	 */
 	public void setHeaderMapper(HeaderMapper<MimeMessage> headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 
 	/**
-	 * When a header mapper is provided determine whether a {@link Multipart} content
-	 * is rendered as a byte[] in the payload. Otherwise, leave as a {@link Multipart}.
-	 * {@link Multipart} is not suitable for downstream serialization. Default: true.
-	 * @param multipartAsBytes the multipartAsBytes to set.
+	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
+	 * {@link Message} or {@link Multipart} content is rendered as a byte[] in the
+	 * payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * downstream serialization. Default: true.
+	 * <p>This has no effect if there is no header mapper, in that case the payload is the
+	 * {@link MimeMessage}.
+	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
+	 * @since 4.3
+	 * @see #setHeaderMapper(HeaderMapper)
 	 */
-	public void setMultipartAsBytes(boolean multipartAsBytes) {
-		this.multipartAsBytes = multipartAsBytes;
+	public void setEmbeddedPartsAsBytes(boolean embeddedPartsAsBytes) {
+		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
 	}
 
 	protected Folder getFolder() {
@@ -337,8 +346,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 							new org.springframework.messaging.Message<?>[filteredMessages.length];
 					int n = 0;
 					for (MimeMessage message : filteredMessages) {
-						converted[n++] = getMessageBuilderFactory().withPayload(extractContent(message))
-								.copyHeaders(this.headerMapper.toHeaders(message))
+						Map<String, Object> headers = this.headerMapper.toHeaders(message);
+						converted[n++] = getMessageBuilderFactory().withPayload(extractContent(message, headers))
+								.copyHeaders(headers)
 								.build();
 					}
 					return converted;
@@ -353,25 +363,44 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
-	private Object extractContent(MimeMessage message) {
+	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
 		Object content;
 		try {
 			content = message.getContent();
-			if (content instanceof InputStream) {
+			if (content instanceof String) {
+				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
+				if (mailContentType != null && mailContentType.startsWith("text")) {
+					headers.put(MessageHeaders.CONTENT_TYPE, mailContentType);
+				}
+				else {
+					headers.put(MessageHeaders.CONTENT_TYPE, "text/plain");
+				}
+			}
+			else if (content instanceof InputStream) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				FileCopyUtils.copy((InputStream) content, baos);
-				content = baos.toByteArray();
+				content = byteArrayToContent(headers, baos);
 			}
-			else if (content instanceof Multipart && this.multipartAsBytes) {
+			else if (content instanceof Multipart && this.embeddedPartsAsBytes) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				((Multipart) content).writeTo(baos);
-				content = baos.toByteArray();
+				content = byteArrayToContent(headers, baos);
+			}
+			else if (content instanceof Part && this.embeddedPartsAsBytes) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				((Part) content).writeTo(baos);
+				content = byteArrayToContent(headers, baos);
 			}
 			return content;
 		}
 		catch (Exception e) {
 			throw new org.springframework.messaging.MessagingException("Failed to extract content from " + message, e);
 		}
+	}
+
+	private Object byteArrayToContent(Map<String, Object> headers, ByteArrayOutputStream baos) {
+		headers.put(MessageHeaders.CONTENT_TYPE, "application/octet-stream");
+		return baos.toByteArray();
 	}
 
 	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
@@ -425,7 +454,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * will be filtered out and remain on the server as never touched.
 	 */
 	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
-		List<Message> filteredMessages = new LinkedList<Message>();
+		List<MimeMessage> filteredMessages = new LinkedList<MimeMessage>();
 		for (int i = 0; i < messages.length; i++) {
 			MimeMessage message = (MimeMessage) messages[i];
 			if (this.selectorExpression != null) {

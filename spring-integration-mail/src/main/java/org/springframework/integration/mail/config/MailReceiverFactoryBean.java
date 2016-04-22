@@ -83,7 +83,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	private volatile HeaderMapper<MimeMessage> headerMapper;
 
-	private Boolean multipartAsBytes;
+	private Boolean embeddedPartsAsBytes;
 
 	public void setStoreUri(String storeUri) {
 		this.storeUri = storeUri;
@@ -137,8 +137,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		this.headerMapper = headerMapper;
 	}
 
-	public void setMultipartAsBytes(Boolean multipartAsBytes) {
-		this.multipartAsBytes = multipartAsBytes;
+	public void setEmbeddedPartsAsBytes(Boolean embeddedPartsAsBytes) {
+		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
 	}
 
 	@Override
@@ -227,8 +227,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		if (this.headerMapper != null) {
 			receiver.setHeaderMapper(this.headerMapper);
 		}
-		if (this.multipartAsBytes != null) {
-			receiver.setMultipartAsBytes(this.multipartAsBytes);
+		if (this.embeddedPartsAsBytes != null) {
+			receiver.setEmbeddedPartsAsBytes(this.embeddedPartsAsBytes);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;
