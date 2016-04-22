@@ -28,7 +28,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Utilites for handling mail messages.
+ * Utilities for handling mail messages.
  *
  * @author Gary Russell
  * @since 4.3

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -85,6 +86,7 @@ import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserT
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -189,6 +191,10 @@ public class ImapMailReceiverTests {
 			org.springframework.messaging.Message<?> received = channel.receive(10000);
 			assertNotNull(received);
 			assertNotNull(received.getHeaders().get(MailHeaders.RAW_HEADERS));
+			assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
+					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
+			assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
+					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
 		}
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
@@ -870,8 +876,13 @@ public class ImapMailReceiverTests {
 		testAttachmentsGuts(receiver);
 		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
 				.receive();
-		Object content = messages[0].getPayload();
+		org.springframework.messaging.Message<?> received = messages[0];
+		Object content = received.getPayload();
 		assertThat(content, instanceOf(byte[].class));
+		assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
+				equalTo("multipart/mixed;\r\n boundary=\"------------040903000701040401040200\""));
+		assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
+				equalTo("application/octet-stream"));
 	}
 
 	@Test

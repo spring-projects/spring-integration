@@ -369,7 +369,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			content = message.getContent();
 			if (content instanceof String) {
 				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
-				if (mailContentType != null && mailContentType.startsWith("text")) {
+				if (mailContentType != null && mailContentType.toLowerCase().startsWith("text")) {
 					headers.put(MessageHeaders.CONTENT_TYPE, mailContentType);
 				}
 				else {

@@ -75,7 +75,7 @@ This maps the following headers:
 - `mail_size` - The mail size (if available).
 - `mail_expunged` - A boolen indicating if the message is expunged.
 - `mail_raw` - A `MultiValueMap` containing all the mail headers and their values.
-- `mail_contentTYpe` - The content type of the original mail message.
+- `mail_contentType` - The content type of the original mail message.
 - `contentType` - The payload content type (see below).
 
 When message mapping is enabled, the payload depends on the mail message and its implementation.
@@ -86,7 +86,7 @@ Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
 are not `Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
 For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the
 `Part` data.
-Examples of `Part` are `Message` and `MultiPart`.
+Examples of `Part` are `Message` and `Multipart`.
 The `contentType` header is `application/octet-stream` in this case.
 To change this behavior, and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on the
 `MailReceiver`.
@@ -96,6 +96,33 @@ header of `application/octet-stream`.
 When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
 The framework provides a `MailToStringTransformer` which can be used to convert the message using a simple strategy
 to convert the mail contents to a String.
+This is also available using the XML namespace:
+
+[source, xml]
+----
+<int-mail:mail-to-string-transformer ... >
+----
+
+and with Java configuration:
+
+[source, java]
+----
+@Bean
+@Transformer(inputChannel="...", outputChannel="...")
+public Transformer transformer() {
+    return new MailToStringTransformer();
+}
+----
+
+and with the Java DSL:
+
+[source, java]
+----
+   ...
+   .transform(new MailToStringTransformer())
+   ...
+----
+
 Starting with _version 4.3_, the transformer will handle embedded `Part` as well as `Multipart` which was handled
 previously.
 The transformer is a subclass of `AbstractMailTransformer` which maps the address and subject headers from the list

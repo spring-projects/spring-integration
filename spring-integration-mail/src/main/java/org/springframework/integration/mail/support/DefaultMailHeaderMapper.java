@@ -72,6 +72,7 @@ public class DefaultMailHeaderMapper implements HeaderMapper<MimeMessage> {
 				headers.put(MailHeaders.SIZE, size);
 			}
 			headers.put(MailHeaders.EXPUNGED, source.isExpunged());
+			headers.put(MailHeaders.CONTENT_TYPE, source.getContentType());
 		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to map message headers", e);
