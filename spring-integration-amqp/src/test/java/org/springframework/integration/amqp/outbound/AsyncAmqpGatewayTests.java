@@ -21,9 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -33,10 +31,11 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Level;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.core.MessageListener;
@@ -46,7 +45,6 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -54,6 +52,7 @@ import org.springframework.integration.amqp.rule.BrokerRunning;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -71,6 +70,10 @@ public class AsyncAmqpGatewayTests {
 
 	@ClassRule
 	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues("asyncQ1", "asyncRQ1");
+
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration",
+			"org.springframework.amqp");
 
 	@AfterClass
 	public static void tearDown() {
@@ -91,11 +94,6 @@ public class AsyncAmqpGatewayTests {
 		AsyncRabbitTemplate asyncTemplate = spy(new AsyncRabbitTemplate(template, container));
 		asyncTemplate.setEnableConfirms(true);
 		asyncTemplate.setMandatory(true);
-
-		willAnswer(Mockito.CALLS_REAL_METHODS)
-				.given(asyncTemplate)
-				.confirm(any(CorrelationData.class), anyBoolean(), anyString());
-
 		asyncTemplate.start();
 
 		SimpleMessageListenerContainer receiver = new SimpleMessageListenerContainer(ccf);
@@ -154,7 +152,7 @@ public class AsyncAmqpGatewayTests {
 		assertEquals("FOO", received.getPayload());
 
 		// timeout
-		asyncTemplate.setReceiveTimeout(100);
+		asyncTemplate.setReceiveTimeout(10);
 
 		receiver.setMessageListener(new MessageListener() {
 
@@ -163,12 +161,14 @@ public class AsyncAmqpGatewayTests {
 			}
 
 		});
+		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
-		assertNull(errorChannel.receive(10));
+		assertNull(errorChannel.receive(100));
 		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
 
 		gateway.setRequiresReply(true);
+		message = MessageBuilder.withPayload("baz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 
 		received = errorChannel.receive(10000);
@@ -183,6 +183,7 @@ public class AsyncAmqpGatewayTests {
 
 		// error on sending result
 		DirectChannel errorForce = new DirectChannel();
+		errorForce.setBeanName("errorForce");
 		errorForce.subscribe(new MessageHandler() {
 
 			@Override
@@ -192,18 +193,20 @@ public class AsyncAmqpGatewayTests {
 
 		});
 		gateway.setOutputChannel(errorForce);
+		message = MessageBuilder.withPayload("qux").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 		received = errorChannel.receive(10000);
 		assertThat(received, instanceOf(ErrorMessage.class));
 		error = (ErrorMessage) received;
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));
-		assertEquals("FOO", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+		assertEquals("QUX", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
 
 		gateway.setRoutingKey(UUID.randomUUID().toString());
+		message = MessageBuilder.withPayload("fiz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 		Message<?> returned = returnChannel.receive(10000);
 		assertNotNull(returned);
-		assertEquals("foo", returned.getPayload());
+		assertEquals("fiz", returned.getPayload());
 
 		// Simulate a nack - it's hard to get Rabbit to generate one
 		// We must have consumed all the real acks by now, though, to prevent partial stubbing errors
@@ -217,11 +220,12 @@ public class AsyncAmqpGatewayTests {
 		confirmFuture.set(false);
 		dfa.setPropertyValue("confirm", confirmFuture);
 
+		message = MessageBuilder.withPayload("buz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 
 		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
-		assertEquals("foo", ack.getPayload());
+		assertEquals("buz", ack.getPayload());
 		assertEquals("nacknack", ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE));
 		assertEquals(false, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
 

@@ -209,11 +209,11 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 			public Message createMessage(Session session) throws JMSException {
 				TextMessage reply = session.createTextMessage("bar");
 				reply.setJMSCorrelationID(request.getJMSMessageID());
+				logger.debug("Sent reply: " + reply);
 				return reply;
 			}
 		};
 		template.send(replyQ, reply);
-		logger.debug("Sent reply: " + reply);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());
