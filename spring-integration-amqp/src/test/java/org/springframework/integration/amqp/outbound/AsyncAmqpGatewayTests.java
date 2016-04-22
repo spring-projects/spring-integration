@@ -163,16 +163,12 @@ public class AsyncAmqpGatewayTests {
 		});
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
-		ack = ackChannel.receive(10000);
-		assertNotNull(ack);
 		assertNull(errorChannel.receive(100));
 
 		gateway.setRequiresReply(true);
 		message = MessageBuilder.withPayload("baz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
 
-		ack = ackChannel.receive(10000);
-		assertNotNull(ack);
 		received = errorChannel.receive(10000);
 		assertThat(received, instanceOf(ErrorMessage.class));
 		ErrorMessage error = (ErrorMessage) received;
@@ -207,6 +203,8 @@ public class AsyncAmqpGatewayTests {
 		Message<?> returned = returnChannel.receive(10000);
 		assertNotNull(returned);
 		assertEquals("fiz", returned.getPayload());
+
+		ackChannel.purge(null);
 
 		// Simulate a nack - it's hard to get Rabbit to generate one
 		// We must have consumed all the real acks by now, though, to prevent partial stubbing errors
