@@ -87,13 +87,10 @@ public class IntegrationGraphServerTests {
 	public static class Config {
 
 		@Bean
-		public String applicationNameAndVersion() {
-			return "myApp:1.0.0";
-		}
-
-		@Bean
-		public IntegrationGraphServer builder() {
-			return new IntegrationGraphServer();
+		public IntegrationGraphServer server() {
+			IntegrationGraphServer server = new IntegrationGraphServer();
+			server.setApplicationName("myAppName:1.0");
+			return server;
 		}
 
 		@Bean

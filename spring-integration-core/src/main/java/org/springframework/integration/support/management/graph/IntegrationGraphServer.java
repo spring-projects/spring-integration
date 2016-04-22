@@ -51,9 +51,21 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private Graph graph;
 
+	private String applicationName;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Set the application name that will appear in the  `contentDescriptor` under
+	 * the 'name' key. If not provided, the property 'spring.application.name' from
+	 * the application context environment will be used (if present).
+	 * @param applicationName the application name.
+	 */
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
 	}
 
 	/**
@@ -89,8 +101,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		descriptor.put("provider", "spring-integration");
 		descriptor.put("providerVersion", implementationVersion);
 		descriptor.put("providerFormatVersion", GRAPH_VERSION);
-		if (this.applicationContext.containsBean("applicationNameAndVersion")) {
-			descriptor.put("name", this.applicationContext.getBean("applicationNameAndVersion"));
+		String name = this.applicationName;
+		if (name == null) {
+			name = this.applicationContext.getEnvironment().getProperty("spring.application.name");
+		}
+		if (name != null) {
+			descriptor.put("name", name);
 		}
 		this.nodeFactory.reset();
 		Collection<IntegrationNode> nodes = new ArrayList<IntegrationNode>();
