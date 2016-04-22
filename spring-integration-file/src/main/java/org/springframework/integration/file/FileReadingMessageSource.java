@@ -35,6 +35,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
@@ -423,6 +425,8 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	@UsesJava7
 	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
 
+		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<Path, WatchKey>();
+
 		private WatchService watcher;
 
 		private Collection<File> initialFiles;
@@ -444,7 +448,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				this.kinds[i] = FileReadingMessageSource.this.watchEvents[i].kind;
 			}
 
-			final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath());
+			final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
 			initialFiles.addAll(filesFromEvents());
 			this.initialFiles = initialFiles;
 		}
@@ -489,36 +493,53 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 						Path item = (Path) event.context();
 						File file = new File(parentDir, item.toFile().getName());
 						if (logger.isDebugEnabled()) {
-							logger.debug("Watch Event: " + event.kind() + ": " + file);
+							logger.debug("Watch event [" + event.kind() + "] for file [" + file + "]");
 						}
 
 						if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
 							if (FileReadingMessageSource.this.filter instanceof ResettableFileListFilter) {
 								((ResettableFileListFilter<File>) FileReadingMessageSource.this.filter).remove(file);
 							}
-							files.remove(file);
+							boolean fileRemoved = files.remove(file);
+							if (fileRemoved && logger.isDebugEnabled()) {
+								logger.debug("The file [" + file +
+										"] has been removed from the queue because of DELETE event.");
+							}
 						}
 						else {
 							if (file.exists()) {
 								if (file.isDirectory()) {
-									files.addAll(walkDirectory(file.toPath()));
+									files.addAll(walkDirectory(file.toPath(), event.kind()));
 								}
 								else {
 									files.remove(file);
 									files.add(file);
 								}
 							}
+							else {
+								if (logger.isDebugEnabled()) {
+									logger.debug("A file [" + file + "] for the event [" + event.kind() +
+											"] doesn't exist. Ignored.");
+								}
+							}
 						}
 					}
 					else if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
 						if (logger.isDebugEnabled()) {
-							logger.debug("Watch Event: " + event.kind() + ": context: " + event.context());
+							logger.debug("Watch event [" + StandardWatchEventKinds.OVERFLOW +
+									"] with context [" + event.context() + "]");
 						}
+
+						for (WatchKey watchKey : pathKeys.values()) {
+							watchKey.cancel();
+						}
+						this.pathKeys.clear();
+
 						if (event.context() != null && event.context() instanceof Path) {
-							files.addAll(walkDirectory((Path) event.context()));
+							files.addAll(walkDirectory((Path) event.context(), event.kind()));
 						}
 						else {
-							files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath()));
+							files.addAll(walkDirectory(FileReadingMessageSource.this.directory.toPath(), event.kind()));
 						}
 					}
 				}
@@ -528,7 +549,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			return files;
 		}
 
-		private Set<File> walkDirectory(Path directory) {
+		private Set<File> walkDirectory(Path directory, final WatchEvent.Kind<?> kind) {
 			final Set<File> walkedFiles = new LinkedHashSet<File>();
 			try {
 				registerWatch(directory);
@@ -544,7 +565,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						FileVisitResult fileVisitResult = super.visitFile(file, attrs);
-						walkedFiles.add(file.toFile());
+						if (!StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
+							walkedFiles.add(file.toFile());
+						}
 						return fileVisitResult;
 					}
 
@@ -557,10 +580,13 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 
 		private void registerWatch(Path dir) throws IOException {
-			if (logger.isDebugEnabled()) {
-				logger.debug("registering: " + dir + " for file events");
+			if (!this.pathKeys.containsKey(dir)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("registering: " + dir + " for file events");
+				}
+				WatchKey watchKey = dir.register(this.watcher, this.kinds);
+				this.pathKeys.putIfAbsent(dir, watchKey);
 			}
-			dir.register(this.watcher, this.kinds);
 		}
 
 	}
