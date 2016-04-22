@@ -78,7 +78,8 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "java-mail-properties");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "authenticator", "javaMailAuthenticator");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "authenticator",
+					"javaMailAuthenticator");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "max-fetch-size");
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
@@ -95,6 +96,8 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "header-mapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "embedded-parts-as-bytes");
 
 		return receiverBuilder.getBeanDefinition();
 	}

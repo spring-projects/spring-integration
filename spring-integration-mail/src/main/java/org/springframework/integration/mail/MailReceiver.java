@@ -16,12 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.Folder;
-import javax.mail.Message;
-
-import org.springframework.util.Assert;
-
-
 /**
  * Strategy interface for receiving mail {@link javax.mail.Message Messages}.
  *
@@ -30,30 +24,6 @@ import org.springframework.util.Assert;
  */
 public interface MailReceiver {
 
-	javax.mail.Message[] receive() throws javax.mail.MessagingException;
-
-	class MailReceiverContext {
-
-		private final Folder folder;
-
-		private volatile Message[] messages = new Message[0];
-
-		MailReceiverContext(Folder folder) {
-			this.folder = folder;
-		}
-
-		Message[] getMessages() {
-			return this.messages;
-		}
-
-		void setMessages(Message[] messages) {
-			Assert.noNullElements(messages, "messages cannot be null");
-			this.messages = messages;
-		}
-
-		Folder getFolder() {
-			return this.folder;
-		}
-	}
+	Object[] receive() throws javax.mail.MessagingException;
 
 }

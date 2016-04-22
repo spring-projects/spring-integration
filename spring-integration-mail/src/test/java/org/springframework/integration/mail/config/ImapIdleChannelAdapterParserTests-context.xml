@@ -35,7 +35,11 @@
 			store-uri="imap:foo"
 			channel="channel"
 			auto-startup="false"
+			header-mapper="mapper"
+			embedded-parts-as-bytes="false"
 			should-delete-messages="true"/>
+
+	<bean id="mapper" class="org.springframework.integration.mail.support.DefaultMailHeaderMapper" />
 
 	<mail:imap-idle-channel-adapter id="simpleAdapterWithErrorChannel"
 			store-uri="imap:foo"

@@ -20,15 +20,16 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 
 import javax.mail.Multipart;
+import javax.mail.Part;
 
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * Transforms a Message payload of type {@link javax.mail.Message} to a String.
- * If the mail message's content is a String, it will be the payload of the
- * result Message. If the content is a Multipart, a String will be created from
- * an output stream of bytes using the provided charset (or UTF-8 by default).
+ * Transforms a Message payload of type {@link javax.mail.Message} to a String. If the
+ * mail message's content is a String, it will be the payload of the result Message. If
+ * the content is a Part or Multipart, a String will be created from an output stream of
+ * bytes using the provided charset (or UTF-8 by default).
  *
  * @author Mark Fisher
  * @author Gary Russell
@@ -59,6 +60,12 @@ public class MailToStringTransformer extends AbstractMailMessageTransformer<Stri
 		if (content instanceof Multipart) {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			((Multipart) content).writeTo(outputStream);
+			return this.getMessageBuilderFactory().withPayload(
+					new String(outputStream.toByteArray(), this.charset));
+		}
+		else if (content instanceof Part) {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			((Part) content).writeTo(outputStream);
 			return this.getMessageBuilderFactory().withPayload(
 					new String(outputStream.toByteArray(), this.charset));
 		}
