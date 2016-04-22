@@ -44,6 +44,7 @@ import org.springframework.integration.http.config.EnableIntegrationGraphControl
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,6 +64,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @WebAppConfiguration
+@TestPropertySource(properties = "spring.application.name:testApplication")
 public class IntegrationGraphControllerTests {
 
 	@Autowired
@@ -86,6 +88,8 @@ public class IntegrationGraphControllerTests {
 				.andExpect(jsonPath("$.nodes..name")
 						.value(Matchers.containsInAnyOrder("nullChannel", "errorChannel",
 								"_org.springframework.integration.errorLogger")))
+//				.andDo(print())
+				.andExpect(jsonPath("$.contentDescriptor.name").value("testApplication"))
 				.andExpect(jsonPath("$.links").exists());
 	}
 

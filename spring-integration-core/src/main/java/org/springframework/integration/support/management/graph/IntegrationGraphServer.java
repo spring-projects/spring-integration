@@ -43,15 +43,29 @@ import org.springframework.messaging.MessageChannel;
  */
 public class IntegrationGraphServer implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
+	private static final float GRAPH_VERSION = 1.0f;
+
 	private final NodeFactory nodeFactory = new NodeFactory();
 
 	private ApplicationContext applicationContext;
 
 	private Graph graph;
 
+	private String applicationName;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Set the application name that will appear in the 'contentDescriptor' under
+	 * the 'name' key. If not provided, the property 'spring.application.name' from
+	 * the application context environment will be used (if present).
+	 * @param applicationName the application name.
+	 */
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
 	}
 
 	/**
@@ -79,6 +93,21 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private synchronized Graph buildGraph() {
+		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
+		if (implementationVersion == null) {
+			implementationVersion = "unknown - is Spring Integration running from the distribution jar?";
+		}
+		Map<String, Object> descriptor = new HashMap<String, Object>();
+		descriptor.put("provider", "spring-integration");
+		descriptor.put("providerVersion", implementationVersion);
+		descriptor.put("providerFormatVersion", GRAPH_VERSION);
+		String name = this.applicationName;
+		if (name == null) {
+			name = this.applicationContext.getEnvironment().getProperty("spring.application.name");
+		}
+		if (name != null) {
+			descriptor.put("name", name);
+		}
 		this.nodeFactory.reset();
 		Collection<IntegrationNode> nodes = new ArrayList<IntegrationNode>();
 		Collection<LinkNode> links = new ArrayList<LinkNode>();
@@ -87,7 +116,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		gateways(nodes, links, channelNodes);
 		producers(nodes, links, channelNodes);
 		consumers(nodes, links, channelNodes);
-		this.graph = new Graph(nodes, links);
+		this.graph = new Graph(descriptor, nodes, links);
 		return this.graph;
 	}
 
