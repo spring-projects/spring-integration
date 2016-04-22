@@ -16,8 +16,11 @@
 
 package org.springframework.integration.http.support;
 
+import org.springframework.util.ClassUtils;
+
 /**
- * Utility class for accessing HTTP integration components from the {@link org.springframework.beans.factory.BeanFactory}.
+ * Utility class for accessing HTTP integration components
+ * from the {@link org.springframework.beans.factory.BeanFactory}.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -30,8 +33,33 @@ public final class HttpContextUtils {
 	}
 
 	/**
+	 * The {@code boolean} flag to indicate if the {@code org.springframework.web.servlet.DispatcherServlet}
+	 * is presented in the CLASSPATH to allow to register the Integration server components,
+	 * e.g. {@code IntegrationGraphController}.
+	 */
+	public static final boolean SERVLET_PRESENT =
+			ClassUtils.isPresent("org.springframework.web.servlet.DispatcherServlet",
+			HttpContextUtils.class.getClassLoader());
+
+	/**
 	 * @see org.springframework.integration.http.config.HttpInboundEndpointParser
 	 */
 	public static final String HANDLER_MAPPING_BEAN_NAME = "integrationRequestMappingHandlerMapping";
+
+	/**
+	 * Represents the environment property for the {@code IntegrationGraphController} request mapping path.
+	 */
+	public static final String GRAPH_CONTROLLER_PATH_PROPERTY =
+			"spring.integration.graph.controller.request.mapping.path";
+
+	/**
+	 * Represents the default request mapping path for the {@code IntegrationGraphController}.
+	 */
+	public static final String GRAPH_CONTROLLER_DEFAULT_PATH = "/integration";
+
+	/**
+	 * Represents the bean name for the default {@code IntegrationGraphController}.
+	 */
+	public static final String GRAPH_CONTROLLER_BEAN_NAME = "integrationGraphController";
 
 }

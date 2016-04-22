@@ -28,7 +28,6 @@ import org.springframework.integration.config.IntegrationConfigurationInitialize
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
 import org.springframework.integration.http.support.HttpContextUtils;
-import org.springframework.util.ClassUtils;
 
 /**
  * The HTTP Integration infrastructure {@code beanFactory} initializer.
@@ -39,9 +38,6 @@ import org.springframework.util.ClassUtils;
 public class HttpIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
 	private static final Log logger = LogFactory.getLog(HttpIntegrationConfigurationInitializer.class);
-
-	private static final boolean servletPresent = ClassUtils.isPresent("javax.servlet.Servlet",
-			HttpIntegrationConfigurationInitializer.class.getClassLoader());
 
 	@Override
 	public void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -65,7 +61,8 @@ public class HttpIntegrationConfigurationInitializer implements IntegrationConfi
 	 * the HTTP server components.
 	 */
 	private void registerRequestMappingHandlerMappingIfNecessary(BeanDefinitionRegistry registry) {
-		if (servletPresent && !registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
+		if (HttpContextUtils.SERVLET_PRESENT &&
+				!registry.containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,8 @@ public abstract class IntegrationContextUtils {
 			"toStringFriendlyJsonNodeToStringConverter";
 
 	public static final String INTEGRATION_LIFECYCLE_ROLE_CONTROLLER = "integrationLifecycleRoleController";
+
+	public static final String INTEGRATION_GRAPH_SERVER_BEAN_NAME = "integrationGraphServer";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
