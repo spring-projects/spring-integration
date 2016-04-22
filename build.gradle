@@ -261,6 +261,12 @@ subprojects { subproject ->
 		archives javadocJar
 	}
 
+	jar {
+		manifest {
+			attributes('Implementation-Version': version)
+		}
+	}
+
 	build.dependsOn jacocoTestReport
 }
 

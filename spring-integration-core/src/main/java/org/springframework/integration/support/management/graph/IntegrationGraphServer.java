@@ -43,6 +43,8 @@ import org.springframework.messaging.MessageChannel;
  */
 public class IntegrationGraphServer implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
+	private static final float GRAPH_VERSION = 1.0f;
+
 	private final NodeFactory nodeFactory = new NodeFactory();
 
 	private ApplicationContext applicationContext;
@@ -79,6 +81,17 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	private synchronized Graph buildGraph() {
+		String implementationVersion = IntegrationGraphServer.class.getPackage().getImplementationVersion();
+		if (implementationVersion == null) {
+			implementationVersion = "unknown - is Spring Integration running from the distribution jar?";
+		}
+		Map<String, Object> descriptor = new HashMap<String, Object>();
+		descriptor.put("provider", "spring-integration");
+		descriptor.put("providerVersion", implementationVersion);
+		descriptor.put("providerFormatVersion", GRAPH_VERSION);
+		if (this.applicationContext.containsBean("applicationNameAndVersion")) {
+			descriptor.put("name", this.applicationContext.getBean("applicationNameAndVersion"));
+		}
 		this.nodeFactory.reset();
 		Collection<IntegrationNode> nodes = new ArrayList<IntegrationNode>();
 		Collection<LinkNode> links = new ArrayList<LinkNode>();
@@ -87,7 +100,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		gateways(nodes, links, channelNodes);
 		producers(nodes, links, channelNodes);
 		consumers(nodes, links, channelNodes);
-		this.graph = new Graph(nodes, links);
+		this.graph = new Graph(descriptor, nodes, links);
 		return this.graph;
 	}
 

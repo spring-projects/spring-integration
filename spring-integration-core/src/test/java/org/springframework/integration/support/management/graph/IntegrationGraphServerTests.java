@@ -70,7 +70,7 @@ public class IntegrationGraphServerTests {
 		objectMapper.writeValue(baos, graph);
 //		System . out . println(new String(baos.toByteArray()));
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
-		assertThat(map.size(), is(equalTo(2)));
+		assertThat(map.size(), is(equalTo(3)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
@@ -85,6 +85,11 @@ public class IntegrationGraphServerTests {
 	@EnableIntegration
 	@EnableIntegrationManagement
 	public static class Config {
+
+		@Bean
+		public String applicationNameAndVersion() {
+			return "myApp:1.0.0";
+		}
 
 		@Bean
 		public IntegrationGraphServer builder() {
