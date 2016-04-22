@@ -345,6 +345,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	}
 
+	@Override
 	public Message<File> receive() throws MessagingException {
 		Message<File> message = null;
 
@@ -530,7 +531,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 									"] with context [" + event.context() + "]");
 						}
 
-						for (WatchKey watchKey : pathKeys.values()) {
+						for (WatchKey watchKey : this.pathKeys.values()) {
 							watchKey.cancel();
 						}
 						this.pathKeys.clear();
