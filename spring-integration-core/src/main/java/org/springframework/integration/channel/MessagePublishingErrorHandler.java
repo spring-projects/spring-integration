@@ -38,6 +38,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
@@ -61,6 +62,15 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 
 	public void setDefaultErrorChannel(MessageChannel defaultErrorChannel) {
 		this.defaultErrorChannel = defaultErrorChannel;
+	}
+
+	/**
+	 * Return the default error channel for this error handler.
+	 * @return the error channel.
+	 * @since 4.3
+	 */
+	public MessageChannel getDefaultErrorChannel() {
+		return this.defaultErrorChannel;
 	}
 
 	public void setSendTimeout(long sendTimeout) {

@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.MessageChannel;
@@ -113,10 +114,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			SourcePollingChannelAdapter adapter = entry.getValue();
 			MessageSourceNode sourceNode = this.nodeFactory.sourceNode(entry.getKey(), adapter);
 			nodes.add(sourceNode);
-			MessageChannelNode channelNode = channelNodes.get(sourceNode.getOutput());
-			if (channelNode != null) {
-				links.add(new LinkNode(sourceNode.getNodeId(), channelNode.getNodeId()));
-			}
+			producerLink(links, channelNodes, sourceNode);
 		}
 	}
 
@@ -128,10 +126,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessagingGatewaySupport gateway = entry.getValue();
 			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
 			nodes.add(gatewayNode);
-			MessageChannelNode channelInfo = channelNodes.get(gatewayNode.getOutput());
-			if (channelInfo != null) {
-				links.add(new LinkNode(gatewayNode.getNodeId(), channelInfo.getNodeId()));
-			}
+			producerLink(links, channelNodes, gatewayNode);
 		}
 	}
 
@@ -143,10 +138,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageProducerSupport producer = entry.getValue();
 			MessageProducerNode producerNode = this.nodeFactory.producerNode(entry.getKey(), producer);
 			nodes.add(producerNode);
-			MessageChannelNode channelNode = channelNodes.get(producerNode.getOutput());
-			if (channelNode != null) {
-				links.add(new LinkNode(producerNode.getNodeId(), channelNode.getNodeId()));
-			}
+			producerLink(links, channelNodes, producerNode);
 		}
 	}
 
@@ -155,17 +147,31 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class);
 		for (Entry<String, IntegrationConsumer> entry : consumers.entrySet()) {
 			IntegrationConsumer consumer = entry.getValue();
-			MessageHandlerNode handlerNode = this.nodeFactory.handlerNode(entry.getKey(), consumer);
+			MessageHandlerNode handlerNode = consumer instanceof PollingConsumer
+					? this.nodeFactory.polledHandlerNode(entry.getKey(), (PollingConsumer) consumer)
+					: this.nodeFactory.handlerNode(entry.getKey(), consumer);
 			nodes.add(handlerNode);
 			MessageChannelNode channelNode = channelNodes.get(handlerNode.getInput());
 			if (channelNode != null) {
 				links.add(new LinkNode(channelNode.getNodeId(), handlerNode.getNodeId()));
 			}
-			if (handlerNode.getOutput() != null) {
-				channelNode = channelNodes.get(handlerNode.getOutput());
-				if (channelNode != null) {
-					links.add(new LinkNode(handlerNode.getNodeId(), channelNode.getNodeId()));
-				}
+			producerLink(links, channelNodes, handlerNode);
+		}
+	}
+
+	private void producerLink(Collection<LinkNode> links, Map<String, MessageChannelNode> channelNodes,
+			EndpointNode endpointNode) {
+		MessageChannelNode channelNode;
+		if (endpointNode.getOutput() != null) {
+			channelNode = channelNodes.get(endpointNode.getOutput());
+			if (channelNode != null) {
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
+			}
+		}
+		if (endpointNode instanceof ErrorCapableNode) {
+			channelNode = channelNodes.get(((ErrorCapableNode) endpointNode).getErrors());
+			if (channelNode != null) {
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
 	}
@@ -189,18 +195,22 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		private MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
+			String errorChannel = gateway.getErrorChannel() != null ? gateway.getErrorChannel().toString() : null;
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
-					gateway.getRequestChannel().toString());
+					gateway.getRequestChannel().toString(), errorChannel);
 		}
 
 		private MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
-			MessageChannel outputChannel = producer.getOutputChannel();
-			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer, outputChannel.toString());
+			String errorChannel = producer.getErrorChannel() != null ? producer.getErrorChannel().toString() : null;
+			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer,
+					producer.getOutputChannel().toString(), errorChannel);
 		}
 
 		private MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
+			String errorChannel = adapter.getDefaultErrorChannel() != null
+					? adapter.getDefaultErrorChannel().toString() : null;
 			return new MessageSourceNode(this.nodeId.incrementAndGet(), name, adapter.getMessageSource(),
-					adapter.getOutputChannel().toString());
+					adapter.getOutputChannel().toString(), errorChannel);
 		}
 
 		private MessageHandlerNode handlerNode(String name, IntegrationConsumer consumer) {
@@ -208,6 +218,15 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
 			return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(),
 					consumer.getInputChannel().toString(), outputChannelName);
+		}
+
+		private MessageHandlerNode polledHandlerNode(String name, PollingConsumer consumer) {
+			MessageChannel outputChannel = consumer.getOutputChannel();
+			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
+			String errorChannel = consumer.getDefaultErrorChannel() != null
+					? consumer.getDefaultErrorChannel().toString() : null;
+			return new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, consumer.getHandler(),
+					consumer.getInputChannel().toString(), outputChannelName, errorChannel);
 		}
 
 		private void reset() {

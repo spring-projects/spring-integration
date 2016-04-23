@@ -26,10 +26,10 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
  * @since 4.3
  *
  */
-public class MessageSourceNode extends EndpointNode {
+public class MessageSourceNode extends ErrorCapableEndpointNode {
 
-	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output) {
-		super(nodeId, name, messageSource, output, messageSource instanceof MessageSourceMetrics
+	public MessageSourceNode(int nodeId, String name, MessageSource<?> messageSource, String output, String errors) {
+		super(nodeId, name, messageSource, output, errors, messageSource instanceof MessageSourceMetrics
 				? new Stats((MessageSourceMetrics) messageSource) : new IntegrationNode.Stats());
 	}
 

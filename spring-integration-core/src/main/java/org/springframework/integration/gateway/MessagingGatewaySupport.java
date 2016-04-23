@@ -315,6 +315,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
+	/**
+	 * Return this gateway's request channel.
+	 * @return the channel.
+	 * @since 4.2
+	 */
 	public MessageChannel getRequestChannel() {
 		if (this.requestChannelName != null) {
 			synchronized (this) {
@@ -339,7 +344,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.replyChannel;
 	}
 
-	protected MessageChannel getErrorChannel() {
+	/**
+	 * Return the error channel (if provided) to which error messages will
+	 * be routed.
+	 * @return the channel or null.
+	 * @since 4.3
+	 */
+	public MessageChannel getErrorChannel() {
 		if (this.errorChannelName != null) {
 			synchronized (this) {
 				if (this.errorChannelName != null) {

@@ -16,19 +16,15 @@
 
 package org.springframework.integration.support.management.graph;
 
-import org.springframework.integration.endpoint.MessageProducerSupport;
-
 /**
- * Represents an inbound message producer.
+ * Nodes implementing this interface are capable of emitting errors.
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class MessageProducerNode extends ErrorCapableEndpointNode {
+public interface ErrorCapableNode {
 
-	public MessageProducerNode(int nodeId, String name, MessageProducerSupport producer, String output, String errors) {
-		super(nodeId, name, producer, output, errors, new IntegrationNode.Stats());
-	}
+	String getErrors();
 
 }
