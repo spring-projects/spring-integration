@@ -36,6 +36,7 @@ import org.springframework.integration.transaction.IntegrationResourceHolderSync
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -59,6 +60,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile Executor taskExecutor = new SyncTaskExecutor();
 
 	private volatile ErrorHandler errorHandler;
+
+	private volatile boolean errorHandlerIsDefault;
 
 	private volatile Trigger trigger = new PeriodicTrigger(10);
 
@@ -111,6 +114,21 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
+	/**
+	 * Return the default error channel if the error handler is explicitly provided and
+	 * it is a {@link MessagePublishingErrorHandler}.
+	 * @return the channel or null.
+	 * @since 4.3
+	 */
+	public MessageChannel getDefaultErrorChannel() {
+		if (!this.errorHandlerIsDefault && this.errorHandler instanceof MessagePublishingErrorHandler) {
+			return ((MessagePublishingErrorHandler) this.errorHandler).getDefaultErrorChannel();
+		}
+		else {
+			return null;
+		}
+	}
+
 	protected ClassLoader getBeanClassLoader() {
 		return this.beanClassLoader;
 	}
@@ -145,6 +163,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
 						this.errorHandler = new MessagePublishingErrorHandler(
 								new BeanFactoryChannelResolver(getBeanFactory()));
+						this.errorHandlerIsDefault = true;
 					}
 					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 				}

@@ -47,6 +47,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private volatile MessageChannel errorChannel;
 
+	private volatile String errorChannelName;
+
 	private volatile boolean shouldTrack = false;
 
 	protected MessageProducerSupport() {
@@ -84,6 +86,36 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
+	}
+
+	/**
+	 * Set the error channel name. If no error channel is provided, this endpoint will
+	 * propagate Exceptions to the message-driven source. To completely suppress
+	 * Exceptions, provide a reference to the "nullChannel" here.
+	 * @param errorChannelName The error channel bean name.
+	 * @since 4.3
+	 */
+	public void setErrorChannelName(String errorChannelName) {
+		Assert.hasText(errorChannelName, "'errorChannelName' must not be empty");
+		this.errorChannelName = errorChannelName;
+	}
+
+	/**
+	 * Return the error channel (if provided) to which error messages will
+	 * be routed.
+	 * @return the channel or null.
+	 * @since 4.3
+	 */
+	public MessageChannel getErrorChannel() {
+		if (this.errorChannelName != null) {
+			synchronized (this) {
+				if (this.errorChannelName != null) {
+					this.errorChannel = getChannelResolver().resolveDestination(this.errorChannelName);
+					this.errorChannelName = null;
+				}
+			}
+		}
+		return this.errorChannel;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -139,8 +171,9 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			this.messagingTemplate.send(getOutputChannel(), message);
 		}
 		catch (RuntimeException e) {
-			if (this.errorChannel != null) {
-				this.messagingTemplate.send(this.errorChannel, new ErrorMessage(e));
+			MessageChannel errorChannel = getErrorChannel();
+			if (errorChannel != null) {
+				this.messagingTemplate.send(errorChannel, new ErrorMessage(e));
 			}
 			else  {
 				throw e;

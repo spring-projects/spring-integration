@@ -16,39 +16,28 @@
 
 package org.springframework.integration.support.management.graph;
 
-import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.messaging.MessageHandler;
 
 /**
- * Represents an inbound gateway.
+ * Represents a message handler that can produce errors (pollable).
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class MessageGatewayNode extends ErrorCapableEndpointNode {
+public class ErrorCapableMessageHandlerNode extends MessageHandlerNode implements ErrorCapableNode {
 
-	public MessageGatewayNode(int nodeId, String name, MessagingGatewaySupport gateway, String output, String errors) {
-		super(nodeId, name, gateway, output, errors, new Stats(gateway));
+	private final String errors;
+
+	public ErrorCapableMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			String output, String errors) {
+		super(nodeId, name, handler, input, output);
+		this.errors = errors;
 	}
 
-
-	public static final class Stats extends IntegrationNode.Stats {
-
-		private final MessagingGatewaySupport gateway;
-
-		private Stats(MessagingGatewaySupport gateway) {
-			this.gateway = gateway;
-		}
-
-		@Override
-		protected boolean isAvailable() {
-			return this.gateway.isCountsEnabled();
-		}
-
-		public long getSendCount() {
-			return this.gateway.getMessageCountLong();
-		}
-
+	@Override
+	public String getErrors() {
+		return this.errors;
 	}
 
 }

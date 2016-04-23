@@ -27,10 +27,6 @@ public abstract class EndpointNode extends IntegrationNode {
 
 	private final String output;
 
-	protected EndpointNode(int nodeId, String name, Object nodeObject, Stats stats) {
-		this(nodeId, name, nodeObject, null, stats);
-	}
-
 	protected EndpointNode(int nodeId, String name, Object nodeObject, String output, Stats stats) {
 		super(nodeId, name, nodeObject, stats);
 		this.output = output;
