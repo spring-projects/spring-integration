@@ -21,6 +21,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingPostProcessingMessageHandler;
+import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -40,7 +41,8 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author David Liu
  */
-public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler implements Lifecycle {
+public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHandler
+		implements DiscardingMessageHandler, Lifecycle {
 
 	private final MessageSelector selector;
 
@@ -105,6 +107,20 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
+	public MessageChannel getDiscardChannel() {
+		if (this.discardChannelName != null) {
+			synchronized (this) {
+				if (this.discardChannelName != null) {
+					this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
+					this.discardChannelName = null;
+				}
+			}
+		}
+		return this.discardChannel;
+	}
+
+
+	@Override
 	public String getComponentType() {
 		return "filter";
 	}
@@ -153,16 +169,9 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	@Override
 	public Object postProcess(Message<?> message, Object result) {
 		if (result == null) {
-			if (this.discardChannelName != null) {
-				synchronized (this) {
-					if (this.discardChannelName != null) {
-						this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
-						this.discardChannelName = null;
-					}
-				}
-			}
-			if (this.discardChannel != null) {
-				this.messagingTemplate.send(this.discardChannel, message);
+			MessageChannel discardChannel = getDiscardChannel();
+			if (discardChannel != null) {
+				this.messagingTemplate.send(discardChannel, message);
 			}
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName()

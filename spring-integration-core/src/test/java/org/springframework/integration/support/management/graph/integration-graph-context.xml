@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:chain id="myChain" input-channel="chainChannel">
+		<int:transformer expression="payload" />
+		<int:service-activator expression="payload" />
+	</int:chain>
+
+	<int:chain id="polledChain" input-channel="polledChannel">
+		<int:transformer expression="payload" />
+		<int:service-activator expression="payload" />
+	</int:chain>
+
+	<int:filter id="myFilter" input-channel="filterChannel" discard-channel="three" expression="true" />
+
+	<int:aggregator id="myAggregator" input-channel="polledChannel" discard-channel="three" />
+
+</beans>

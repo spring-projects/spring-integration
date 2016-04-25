@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -62,7 +63,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class MessageHandlerChain extends AbstractMessageProducingHandler implements MessageProducer, Lifecycle {
+public class MessageHandlerChain extends AbstractMessageProducingHandler implements MessageProducer,
+		CompositeMessageHandler, Lifecycle {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -76,6 +78,11 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 
 	public void setHandlers(List<MessageHandler> handlers) {
 		this.handlers = handlers;
+	}
+
+	@Override
+	public List<MessageHandler> getHandlers() {
+		return Collections.unmodifiableList(this.handlers);
 	}
 
 	@Override

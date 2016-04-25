@@ -43,6 +43,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
+import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
@@ -85,7 +86,7 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DisposableBean, ApplicationEventPublisherAware {
+		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware {
 
 	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
@@ -329,7 +330,16 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.releaseStrategy;
 	}
 
-	protected MessageChannel getDiscardChannel() {
+	@Override
+	public MessageChannel getDiscardChannel() {
+		if (this.discardChannelName != null) {
+			synchronized (this) {
+				if (this.discardChannelName != null) {
+					this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
+					this.discardChannelName = null;
+				}
+			}
+		}
 		return this.discardChannel;
 	}
 
@@ -476,15 +486,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void discardMessage(Message<?> message) {
-		if (this.discardChannelName != null) {
-			synchronized (this) {
-				if (this.discardChannelName != null) {
-					this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
-					this.discardChannelName = null;
-				}
-			}
-		}
-		this.messagingTemplate.send(this.discardChannel, message);
+		MessageChannel discardChannel = getDiscardChannel();
+		this.messagingTemplate.send(discardChannel, message);
 	}
 
 	/**

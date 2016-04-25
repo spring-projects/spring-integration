@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -48,6 +49,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,6 +61,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class IntegrationGraphServerTests {
 
 	@Autowired
@@ -77,16 +80,17 @@ public class IntegrationGraphServerTests {
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(13)));
+		assertThat(nodes.size(), is(equalTo(19)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(9)));
+		assertThat(links.size(), is(equalTo(17)));
 	}
 
 	@Configuration
 	@EnableIntegration
 	@EnableIntegrationManagement
+	@ImportResource("org/springframework/integration/support/management/graph/integration-graph-context.xml")
 	public static class Config {
 
 		@Bean
@@ -129,7 +133,7 @@ public class IntegrationGraphServerTests {
 		}
 
 		@Bean
-		public PollableChannel two() {
+		public PollableChannel polledChannel() {
 			return new QueueChannel();
 		}
 
@@ -162,12 +166,12 @@ public class IntegrationGraphServerTests {
 
 	public static class Services {
 
-		@ServiceActivator(inputChannel = "one", outputChannel = "two")
+		@ServiceActivator(inputChannel = "one", outputChannel = "polledChannel")
 		public String foo(String foo) {
 			return foo.toUpperCase();
 		}
 
-		@ServiceActivator(inputChannel = "two")
+		@ServiceActivator(inputChannel = "polledChannel")
 		public void bar(String foo) {
 		}
 
