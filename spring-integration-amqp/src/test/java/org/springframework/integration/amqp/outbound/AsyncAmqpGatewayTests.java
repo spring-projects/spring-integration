@@ -19,11 +19,13 @@ package org.springframework.integration.amqp.outbound;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -31,11 +33,15 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
 import org.apache.log4j.Level;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.core.MessageListener;
@@ -46,6 +52,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.amqp.rule.BrokerRunning;
@@ -81,7 +88,7 @@ public class AsyncAmqpGatewayTests {
 	}
 
 	@Test
-	public void testConfirmsAndReturns() {
+	public void testConfirmsAndReturns() throws Exception {
 		CachingConnectionFactory ccf = new CachingConnectionFactory("localhost");
 		ccf.setPublisherConfirms(true);
 		ccf.setPublisherReturns(true);
@@ -119,6 +126,20 @@ public class AsyncAmqpGatewayTests {
 		receiver.start();
 
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(asyncTemplate);
+		Log logger = spy(TestUtils.getPropertyValue(gateway, "logger", Log.class));
+		given(logger.isDebugEnabled()).willReturn(true);
+		final CountDownLatch replyTimeoutLatch = new CountDownLatch(1);
+		willAnswer(new Answer<Void>() {
+
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				invocation.callRealMethod();
+				replyTimeoutLatch.countDown();
+				return null;
+			}
+
+		}).given(logger).debug(Matchers.startsWith("Reply not required and async timeout for"));
+		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel outputChannel = new QueueChannel();
 		outputChannel.setBeanName("output");
 		QueueChannel returnChannel = new QueueChannel();
@@ -151,7 +172,7 @@ public class AsyncAmqpGatewayTests {
 		assertNotNull(received);
 		assertEquals("FOO", received.getPayload());
 
-		// timeout
+		// timeout tests
 		asyncTemplate.setReceiveTimeout(10);
 
 		receiver.setMessageListener(new MessageListener() {
@@ -161,10 +182,12 @@ public class AsyncAmqpGatewayTests {
 			}
 
 		});
+		// reply timeout with no requiresReply
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
-		assertNull(errorChannel.receive(100));
+		assertTrue(replyTimeoutLatch.await(10, TimeUnit.SECONDS));
 
+		// reply timeout with requiresReply
 		gateway.setRequiresReply(true);
 		message = MessageBuilder.withPayload("baz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
@@ -210,7 +233,7 @@ public class AsyncAmqpGatewayTests {
 		// We must have consumed all the real acks by now, though, to prevent partial stubbing errors
 
 		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null, null);
-		doReturn(future).when(asyncTemplate).sendAndReceive(anyString(), anyString(),
+		willReturn(future).given(asyncTemplate).sendAndReceive(anyString(), anyString(),
 				any(org.springframework.amqp.core.Message.class));
 		DirectFieldAccessor dfa = new DirectFieldAccessor(future);
 		dfa.setPropertyValue("nackCause", "nacknack");
