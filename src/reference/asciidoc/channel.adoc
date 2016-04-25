@@ -477,7 +477,7 @@ For more details on `MessageGroupStore` and `MessageStore` see <<message-store>>
 When a `QueueChannel` receives a Message, it will add it to the Message Store, and when a Message is polled from a `QueueChannel`, it is removed from the Message Store.
 
 By default, a `QueueChannel` stores its Messages in an in-memory Queue and can therefore lead to the lost message scenario mentioned above.
-However Spring Integration provides persistent stores, such as the `JdbcMessageStore`.
+However Spring Integration provides persistent stores, such as the `JdbcChannelMessageStore`.
 
 You can configure a Message Store for any `QueueChannel` by adding the `message-store` attribute as shown in the next example.
 
