@@ -34,8 +34,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -144,6 +146,12 @@ public class IntegrationGraphControllerTests {
 	@EnableIntegration
 	@EnableIntegrationGraphController(path = "/testIntegration")
 	public static class ContextConfiguration {
+
+		// TODO SF-4.3.RC1 compatibility. See https://jira.spring.io/browse/SPR-14140
+		@Bean
+		public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+			return new PropertySourcesPlaceholderConfigurer();
+		}
 
 	}
 
