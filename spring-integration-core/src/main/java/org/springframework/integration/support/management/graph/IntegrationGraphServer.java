@@ -59,7 +59,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	/**
-	 * Set the application name that will appear in the `contentDescriptor` under
+	 * Set the application name that will appear in the 'contentDescriptor' under
 	 * the 'name' key. If not provided, the property 'spring.application.name' from
 	 * the application context environment will be used (if present).
 	 * @param applicationName the application name.

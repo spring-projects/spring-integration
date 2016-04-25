@@ -35,15 +35,11 @@ public abstract class IntegrationNode {
 
 	private final String componentType;
 
-	private final String componentName;
-
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
 		this.nodeId = nodeId;
 		this.name = name;
 		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
 				: nodeObject.getClass().getSimpleName();
-		this.componentName = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentName()
-				: nodeObject.toString();
 		this.stats = stats;
 	}
 
@@ -57,10 +53,6 @@ public abstract class IntegrationNode {
 
 	public String getComponentType() {
 		return this.componentType;
-	}
-
-	public String getComponentName() {
-		return this.componentName;
 	}
 
 	public Stats getStats() {
