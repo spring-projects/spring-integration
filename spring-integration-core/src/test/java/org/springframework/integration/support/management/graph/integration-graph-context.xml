@@ -10,9 +10,13 @@
 		<int:service-activator expression="payload" />
 	</int:chain>
 
-	<int:chain id="polledChain" input-channel="two">
+	<int:chain id="polledChain" input-channel="polledChannel">
 		<int:transformer expression="payload" />
 		<int:service-activator expression="payload" />
 	</int:chain>
+
+	<int:filter id="myFilter" input-channel="filterChannel" discard-channel="three" expression="true" />
+
+	<int:aggregator id="myAggregator" input-channel="polledChannel" discard-channel="three" />
 
 </beans>

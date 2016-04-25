@@ -35,6 +35,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.CompositeMessageHandler;
+import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -207,6 +208,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
 			}
 		}
+		if (endpointNode instanceof DiscardingMessageHandlerNode) {
+			channelNode = channelNodes.get(((DiscardingMessageHandlerNode) endpointNode).getDiscards());
+			if (channelNode != null) {
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
+			}
+		}
 	}
 
 	/**
@@ -252,7 +259,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageHandler handler = consumer.getHandler();
 			return handler instanceof CompositeMessageHandler
 				? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null, false)
-				: new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+				: handler instanceof DiscardingMessageHandler
+					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
+							false)
+					: new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 						consumer.getInputChannel().toString(), outputChannelName);
 		}
 
@@ -265,7 +275,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			return handler instanceof CompositeMessageHandler
 				? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, errorChannel,
 						true)
-				: new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+				:  handler instanceof DiscardingMessageHandler
+					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
+							errorChannel, true)
+					: new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 						consumer.getInputChannel().toString(), outputChannelName, errorChannel);
 		}
 
@@ -286,7 +299,15 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 						consumer.getInputChannel().toString(), output, errors, innerHandlers)
 				: new CompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 						consumer.getInputChannel().toString(), output, innerHandlers);
+		}
 
+		private MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
+				DiscardingMessageHandler handler, String output, String errors, boolean polled) {
+			return polled
+				? new ErrorCapableDiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString(), errors)
+				: new DiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString());
 		}
 
 		private void reset() {
