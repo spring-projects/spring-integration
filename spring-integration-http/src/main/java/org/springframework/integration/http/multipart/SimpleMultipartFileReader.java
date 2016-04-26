@@ -51,8 +51,7 @@ public class SimpleMultipartFileReader implements MultipartFileReader<Object> {
 	public Object readMultipartFile(MultipartFile multipartFile) throws IOException {
 		if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
 			MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());
-			// TODO there is no yet in the SF-4.3.RC1 a MediaType.getCharset() method
-			Charset charset = contentType.getCharSet();
+			Charset charset = contentType.getCharset();
 			if (charset == null) {
 				charset = this.defaultCharset;
 			}

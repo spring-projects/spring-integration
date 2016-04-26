@@ -286,8 +286,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageBadExpression() throws Exception {
-		// TODO: should this be MessageHandlingException or NumberFormatException?
-		expected.expect(new ExceptionCauseMatcher(Exception.class));
+		expected.expect(MessageHandlingException.class);
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);

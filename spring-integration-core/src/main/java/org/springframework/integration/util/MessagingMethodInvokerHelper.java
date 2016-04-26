@@ -490,7 +490,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 							"] has no eligible methods for handling Messages.");
 		}
 		catch (Exception e) {
-			//TODO backward compatibility
+			//TODO backward compatibility. Remove in 5.0
 			throw  new IllegalArgumentException(e.getMessage());
 		}
 

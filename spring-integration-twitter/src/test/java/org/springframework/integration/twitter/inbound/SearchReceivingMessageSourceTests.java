@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -89,7 +88,8 @@ public class SearchReceivingMessageSourceTests {
 	@Test
 	public void testSearchReceivingMessageSourceInit() {
 
-		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate("test"), "foo");
+		final SearchReceivingMessageSource messageSource =
+				new SearchReceivingMessageSource(new TwitterTemplate("test"), "foo");
 		messageSource.setComponentName("twitterSearchMessageSource");
 
 		final Object metadataStore = TestUtils.getPropertyValue(messageSource, "metadataStore");
@@ -153,18 +153,11 @@ public class SearchReceivingMessageSourceTests {
 
 		final SearchOperations so = mock(SearchOperations.class);
 
-		final Tweet tweet1 = new Tweet(1L, "1", "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
-				"languageCode", "source");
-		final Tweet tweet2 = new Tweet(2L, "2",  "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
-				"languageCode", "source");
-		final Tweet tweet3 = new Tweet(3L, "3", "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L,
-				"languageCode", "source");
-
 		final List<Tweet> tweets = new ArrayList<Tweet>();
 
-		tweets.add(tweet1);
-		tweets.add(tweet2);
-		tweets.add(tweet3);
+		tweets.add(mock(Tweet.class));
+		tweets.add(mock(Tweet.class));
+		tweets.add(mock(Tweet.class));
 
 		final SearchResults results = new SearchResults(tweets, new SearchMetadata(111, 111));
 

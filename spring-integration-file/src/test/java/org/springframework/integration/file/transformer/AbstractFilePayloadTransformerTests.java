@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.test.matcher.HeaderMatcher;
 import org.springframework.messaging.Message;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -35,6 +36,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Alex Peters
+ * @author Artem Bilan
  */
 public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFilePayloadTransformer<?>> {
 
@@ -72,17 +74,14 @@ public abstract class AbstractFilePayloadTransformerTests<T extends AbstractFile
 		message = MessageBuilder.fromMessage(message).setHeader(anyKey, anyValue).build();
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
-		// TODO: refactor to header matcher
-		assertThat(result.getHeaders().get(anyKey, String.class), is(anyValue));
+		assertThat(result, HeaderMatcher.hasHeader(anyKey, anyValue));
 	}
 
 	@Test
 	public void transform_withFilePayload_filenameInHeaders() throws Exception {
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
-		// TODO: refactor to header matcher
-		assertThat(result.getHeaders().get(FileHeaders.FILENAME, String.class),
-				is(sourceFile.getName()));
+		assertThat(result, HeaderMatcher.hasHeader(FileHeaders.FILENAME, sourceFile.getName()));
 	}
 
 	@Test

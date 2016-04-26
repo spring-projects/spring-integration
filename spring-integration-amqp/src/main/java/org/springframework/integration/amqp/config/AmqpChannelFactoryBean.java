@@ -398,7 +398,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	private SimpleMessageListenerContainer createContainer() throws Exception {
-		//if (!messageDriven) TODO: no container attributes would apply if not message-driven
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		if (this.acknowledgeMode != null) {
 			container.setAcknowledgeMode(this.acknowledgeMode);

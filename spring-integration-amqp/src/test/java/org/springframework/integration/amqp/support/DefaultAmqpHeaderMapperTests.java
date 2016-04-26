@@ -58,7 +58,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_ENCODING, "test.contentEncoding");
 		headerMap.put(AmqpHeaders.CONTENT_LENGTH, 99L);
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
-		byte[] testCorrelationId = new byte[] {1, 2, 3};
+		byte[] testCorrelationId = new byte[] { 1, 2, 3 };
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
 		headerMap.put(AmqpHeaders.DELAY, 1234);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
@@ -158,7 +158,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setContentEncoding("test.contentEncoding");
 		amqpProperties.setContentLength(99L);
 		amqpProperties.setContentType("test.contentType");
-		byte[] testCorrelationId = new byte[] {1, 2, 3};
+		byte[] testCorrelationId = new byte[] { 1, 2, 3 };
 		amqpProperties.setCorrelationId(testCorrelationId);
 		amqpProperties.setReceivedDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
 		amqpProperties.setDeliveryTag(1234L);
@@ -200,20 +200,15 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.replyTo2", headerMap.get(AmqpHeaders.SPRING_REPLY_TO_STACK));
 	}
 
-	@Test // INT-3586 requires Spring AMQP 1.4.2
+	@Test
 	public void testToHeadersConsumerMetadata() {
-		try {
-			DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
-			MessageProperties amqpProperties = new MessageProperties();
-			amqpProperties.setConsumerTag("consumerTag");
-			amqpProperties.setConsumerQueue("consumerQueue");
-			Map<String, Object> headerMap = headerMapper.toHeadersFromRequest(amqpProperties);
-			assertEquals("consumerTag", headerMap.get(AmqpHeaders.CONSUMER_TAG));
-			assertEquals("consumerQueue", headerMap.get(AmqpHeaders.CONSUMER_QUEUE));
-		}
-		catch (NoSuchMethodError e) {
-			// TODO: temporary for Spring IO Compatibility build - until Spring IO 1.1.x moves to amqp 1.4.2
-		}
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setConsumerTag("consumerTag");
+		amqpProperties.setConsumerQueue("consumerQueue");
+		Map<String, Object> headerMap = headerMapper.toHeadersFromRequest(amqpProperties);
+		assertEquals("consumerTag", headerMap.get(AmqpHeaders.CONSUMER_TAG));
+		assertEquals("consumerQueue", headerMap.get(AmqpHeaders.CONSUMER_QUEUE));
 	}
 
 	@Test

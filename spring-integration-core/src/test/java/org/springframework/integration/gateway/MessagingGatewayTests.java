@@ -213,7 +213,6 @@ public class MessagingGatewayTests {
 			}
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
-		// TODO: commenting the next line causes the test to hang
 		this.messagingGateway.setReplyTimeout(100L);
 		Message<?> receiveMessage = this.messagingGateway.sendAndReceiveMessage("test");
 		assertSame(messageMock, receiveMessage);

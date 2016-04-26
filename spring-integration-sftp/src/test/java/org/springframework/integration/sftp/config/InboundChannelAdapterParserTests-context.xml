@@ -3,18 +3,11 @@
 		xmlns="http://www.springframework.org/schema/integration"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:p="http://www.springframework.org/schema/p"
 		xmlns:context="http://www.springframework.org/schema/context"
-		xmlns:util="http://www.springframework.org/schema/util"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:lang="http://www.springframework.org/schema/lang"
 		xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
 		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-                        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
-						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<context:property-placeholder location="classpath:org/springframework/integration/sftp/config/sftp.properties"/>
@@ -38,69 +31,69 @@
 	</beans:bean>
 
 	<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
-			session-factory="sftpSessionFactory"
-			channel="requestChannel"
-			filename-regex="f[o]+\.txt"
-			remote-directory-expression="'/foo'"
-			local-directory="file:local-test-dir"
-			auto-create-local-directory="false"
-			remote-file-separator="."
-			local-filename-generator-expression="#this.toUpperCase() + '.a'"
-			temporary-file-suffix=".bar"
-			comparator="comparator"
-			local-filter="acceptAllFilter"
-			delete-remote-files="${delete.remote.files}"
-			preserve-timestamp="true">
+								  session-factory="sftpSessionFactory"
+								  channel="requestChannel"
+								  filename-regex="f[o]+\.txt"
+								  remote-directory-expression="'/foo'"
+								  local-directory="file:local-test-dir"
+								  auto-create-local-directory="false"
+								  remote-file-separator="."
+								  local-filename-generator-expression="#this.toUpperCase() + '.a'"
+								  temporary-file-suffix=".bar"
+								  comparator="comparator"
+								  local-filter="acceptAllFilter"
+								  delete-remote-files="${delete.remote.files}"
+								  preserve-timestamp="true">
 		<poller fixed-rate="1000">
 			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
 
-	<beans:bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
+	<beans:bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter"/>
 
 	<transaction-synchronization-factory id="syncFactory">
 		<after-commit expression="'foo'" channel="successChannel"/>
 		<after-rollback expression="'bar'" channel="failureChannel"/>
 	</transaction-synchronization-factory>
 
-	<channel id="successChannel" />
+	<channel id="successChannel"/>
 
-	<channel id="failureChannel" />
+	<channel id="failureChannel"/>
 
 	<beans:bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg value="java.util.Comparator"/>
 	</beans:bean>
 
 	<sftp:inbound-channel-adapter id="sftpAdapter"
-			channel="requestChannel"
-			session-factory="sftpSessionFactory"
-			filter="filter"
-			remote-directory="/foo"
-			local-directory="file:local-test-dir"
-			auto-create-local-directory="true"
-			delete-remote-files="false">
+								  channel="requestChannel"
+								  session-factory="sftpSessionFactory"
+								  filter="filter"
+								  remote-directory="/foo"
+								  local-directory="file:local-test-dir"
+								  auto-create-local-directory="true"
+								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 
 	<sftp:inbound-channel-adapter id="sftpAdapterWithPattern"
-			session-factory="sftpSessionFactory"
-			channel="requestChannel"
-			filename-pattern="pattern"
-			remote-directory="/foo"
-			local-directory="file:local-test-dir"
-			auto-create-local-directory="false"
-			delete-remote-files="false">
+								  session-factory="sftpSessionFactory"
+								  channel="requestChannel"
+								  filename-pattern="pattern"
+								  remote-directory="/foo"
+								  local-directory="file:local-test-dir"
+								  auto-create-local-directory="false"
+								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 
 	<sftp:inbound-channel-adapter id="sftpAdapterNoLocalDir"
-			session-factory="sftpSessionFactory"
-			channel="requestChannel"
-			filename-pattern="pattern"
-			remote-directory="/foo"
-			local-directory="file:foo"
-			auto-create-local-directory="true"
-			delete-remote-files="false">
+								  session-factory="sftpSessionFactory"
+								  channel="requestChannel"
+								  filename-pattern="pattern"
+								  remote-directory="/foo"
+								  local-directory="file:foo"
+								  auto-create-local-directory="true"
+								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 
@@ -109,16 +102,16 @@
 	</beans:bean>
 
 	<sftp:inbound-channel-adapter id="autoChannel"
-			session-factory="sftpSessionFactory"
-			filter="filter"
-			remote-directory="/foo"
-			local-directory="file:foo"
-			auto-create-local-directory="false"
-			delete-remote-files="false">
+								  session-factory="sftpSessionFactory"
+								  filter="filter"
+								  remote-directory="/foo"
+								  local-directory="file:foo"
+								  auto-create-local-directory="false"
+								  delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 
-	<bridge input-channel="autoChannel" output-channel="nullChannel" />
+	<bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
 	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 

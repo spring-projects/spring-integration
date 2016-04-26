@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -79,7 +80,9 @@ import org.springframework.web.client.RestTemplate;
 public class HttpRequestExecutingMessageHandlerTests {
 
 	public static ParameterizedTypeReference<List<String>> testParameterizedTypeReference() {
-		return new ParameterizedTypeReference<List<String>>() { };
+		return new ParameterizedTypeReference<List<String>>() {
+
+		};
 	}
 
 	@Test
@@ -637,8 +640,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void contentTypeIsNotSetForGetRequest() throws Exception {
 		// GET
-		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
-				"http://www.springsource.org/spring-integration");
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
@@ -646,59 +649,54 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
-		Exception exception = null;
 		try {
 			handler.handleMessage(message);
+			fail("An Exception expected");
 		}
 		catch (Exception e) {
-			exception = e;
+			assertEquals("intentional", e.getCause().getMessage());
+			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
-		HttpEntity<?> request = template.lastRequestEntity.get();
-		assertNull(request.getHeaders().getContentType());
 
-		/*
-		 * TODO: reconsider the inclusion of content-type for various HttpMethods (only
-		 * ignoring for GET as of 2.0.5) uncomment code below accordingly (see INT-1951)
-		 */
+		//HEAD
+		handler.setHttpMethod(HttpMethod.HEAD);
 
-		/*
-		 * //HEAD handler = new HttpRequestExecutingMessageHandler(
-		 * "http://www.springsource.org/spring-integration"); template = new
-		 * MockRestTemplate(); new
-		 * DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
-		 * handler.setHttpMethod(HttpMethod.HEAD);
-		 *
-		 * message = MessageBuilder.withPayload(mock(Source.class)).build(); exception =
-		 * null; try { handler.handleMessage(message); } catch (Exception e) { exception =
-		 * e; } assertEquals("intentional", exception.getCause().getMessage()); request =
-		 * template.lastRequestEntity.get();
-		 * assertNull(request.getHeaders().getContentType());
-		 *
-		 * //DELETE handler = new HttpRequestExecutingMessageHandler(
-		 * "http://www.springsource.org/spring-integration"); template = new
-		 * MockRestTemplate(); new
-		 * DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
-		 * handler.setHttpMethod(HttpMethod.DELETE);
-		 *
-		 * message = MessageBuilder.withPayload(mock(Source.class)).build(); exception =
-		 * null; try { handler.handleMessage(message); } catch (Exception e) { exception =
-		 * e; } assertEquals("intentional", exception.getCause().getMessage()); request =
-		 * template.lastRequestEntity.get();
-		 * assertNull(request.getHeaders().getContentType());
-		 *
-		 * //TRACE handler = new HttpRequestExecutingMessageHandler(
-		 * "http://www.springsource.org/spring-integration"); template = new
-		 * MockRestTemplate(); new
-		 * DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
-		 * handler.setHttpMethod(HttpMethod.TRACE);
-		 *
-		 * message = MessageBuilder.withPayload(mock(Source.class)).build(); exception =
-		 * null; try { handler.handleMessage(message); } catch (Exception e) { exception =
-		 * e; } assertEquals("intentional", exception.getCause().getMessage()); request =
-		 * template.lastRequestEntity.get();
-		 * assertNull(request.getHeaders().getContentType());
-		 */
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		try {
+			handler.handleMessage(message);
+			fail("An Exception expected");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+		}
+
+
+		//DELETE
+		handler.setHttpMethod(HttpMethod.DELETE);
+
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		try {
+			handler.handleMessage(message);
+			fail("An Exception expected");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+		}
+
+		//TRACE
+		handler.setHttpMethod(HttpMethod.TRACE);
+
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		try {
+			handler.handleMessage(message);
+			fail("An Exception expected");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+		}
 	}
 
 	@Test // INT-2275

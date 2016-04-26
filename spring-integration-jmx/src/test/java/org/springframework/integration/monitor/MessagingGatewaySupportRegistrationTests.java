@@ -66,8 +66,7 @@ public class MessagingGatewaySupportRegistrationTests {
 
 	@Configuration
 	@EnableIntegration
-	// TODO INT-3869
-	@EnableIntegrationMBeanExport(server = "server")
+	@EnableIntegrationMBeanExport
 	public static class ContextConfiguration {
 
 		@Bean
@@ -101,7 +100,7 @@ public class MessagingGatewaySupportRegistrationTests {
 		}
 
 		@Bean
-		public MBeanServerFactoryBean server() {
+		public static MBeanServerFactoryBean server() {
 			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
 			fb.setLocateExistingServerIfPossible(true);
 			return fb;

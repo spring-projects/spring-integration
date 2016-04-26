@@ -16,10 +16,12 @@
 
 package org.springframework.integration.sftp.config;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -29,7 +31,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -79,11 +80,13 @@ public class InboundChannelAdapterParserTests {
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
 
-		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		PriorityBlockingQueue<?> blockingQueue =
+				TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		Comparator<?> comparator = blockingQueue.comparator();
 
 		assertNotNull(comparator);
-		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
+		SftpInboundFileSynchronizer synchronizer =
+				TestUtils.getPropertyValue(source, "synchronizer", SftpInboundFileSynchronizer.class);
 		assertEquals("'/foo'", TestUtils.getPropertyValue(synchronizer, "remoteDirectoryExpression", Expression.class)
 				.getExpressionString());
 		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));
@@ -93,9 +96,12 @@ public class InboundChannelAdapterParserTests {
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
-		assertNotNull(requestChannel.receive(2000));
+		assertNotNull(requestChannel.receive(10000));
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
-		assertTrue(TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
+		@SuppressWarnings("unchecked")
+		Collection<FileListFilter<?>> filters =
+				TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class);
+		assertThat(filters, hasItem(acceptAllFilter));
 		context.close();
 	}
 
@@ -119,15 +125,6 @@ public class InboundChannelAdapterParserTests {
 	public void testFailWithFilePatternAndFilter() throws Exception {
 		assertTrue(!new File("target/bar").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml", this.getClass()).close();
-	}
-
-	@Test @Ignore
-	public void testLocalFilesAreFound() throws Exception {
-		assertTrue(new File("target").exists());
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
-				"InboundChannelAdapterParserTests-context.xml", this.getClass());
-		assertTrue(new File("target").exists());
-		context.close();
 	}
 
 	@Test

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,8 +30,6 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,8 +59,6 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  * @since 3.0
  */
 public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTests {
-
-	private final Log logger = LogFactory.getLog(getClass());
 
 	private SourcePollingChannelAdapter twitterSearchAdapter;
 
@@ -143,21 +140,26 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 	}
 
 	@Configuration
-	@ImportResource("classpath:org/springframework/integration/twitter/inbound/SearchReceivingMessageSourceWithRedisTests-context.xml")
+	@ImportResource("org/springframework/integration/twitter/inbound/SearchReceivingMessageSourceWithRedisTests-context.xml")
 	static class SearchReceivingMessageSourceWithRedisTestsConfig {
 
 		@Bean(name = "twitterTemplate")
 		public TwitterTemplate twitterTemplate() {
-			final TwitterTemplate twitterTemplate = mock(TwitterTemplate.class);
+			TwitterTemplate twitterTemplate = mock(TwitterTemplate.class);
 
-			final SearchOperations so = mock(SearchOperations.class);
+			SearchOperations so = mock(SearchOperations.class);
 
-			final Tweet tweet3 = new Tweet(3L, "3", "first", new GregorianCalendar(2013, 2, 20).getTime(), "fromUser",
-					"profileImageUrl", 888L, 999L, "languageCode", "source");
-			final Tweet tweet1 = new Tweet(1L, "1", "first", new GregorianCalendar(2013, 0, 20).getTime(), "fromUser",
-					"profileImageUrl", 888L, 999L, "languageCode", "source");
-			final Tweet tweet2 = new Tweet(2L, "2", "first", new GregorianCalendar(2013, 1, 20).getTime(), "fromUser",
-					"profileImageUrl", 888L, 999L, "languageCode", "source");
+			Tweet tweet3 = mock(Tweet.class);
+			given(tweet3.getId()).willReturn(3L);
+			given(tweet3.getCreatedAt()).willReturn(new GregorianCalendar(2013, 2, 20).getTime());
+
+			Tweet tweet1 = mock(Tweet.class);
+			given(tweet1.getId()).willReturn(1L);
+			given(tweet1.getCreatedAt()).willReturn(new GregorianCalendar(2013, 0, 20).getTime());
+
+			final Tweet tweet2 = mock(Tweet.class);
+			given(tweet2.getId()).willReturn(2L);
+			given(tweet2.getCreatedAt()).willReturn(new GregorianCalendar(2013, 1, 20).getTime());
 
 			final List<Tweet> tweets = new ArrayList<Tweet>();
 

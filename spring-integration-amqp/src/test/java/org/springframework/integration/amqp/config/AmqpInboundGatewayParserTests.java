@@ -97,7 +97,7 @@ public class AmqpInboundGatewayParserTests {
 		Address expected = new Address("fooExchange/barRoutingKey");
 		assertEquals(expected.getExchangeName(), defaultReplyTo.getExchangeName());
 		assertEquals(expected.getRoutingKey(), defaultReplyTo.getRoutingKey());
-		//TODO Address.equals() when IO goes to Spring AMQP 1.5.0.RELEASE
+		assertEquals(expected, defaultReplyTo);
 	}
 
 	@SuppressWarnings("rawtypes")

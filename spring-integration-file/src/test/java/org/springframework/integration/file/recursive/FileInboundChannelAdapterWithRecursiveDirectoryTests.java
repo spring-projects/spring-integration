@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.recursive;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
@@ -67,15 +68,13 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(timeout = 10000)
 	public void shouldReturnFilesMultipleLevels() throws IOException {
-
-		//when
 		File folder = directory.newFolder("foo");
 		File siblingFile = directory.newFile("bar");
 		File childFile = new File(folder, "baz");
 		assertTrue(childFile.createNewFile());
 
 		List<Message> received = Arrays.asList((Message) files.receive(), files.receive());
-		//verify
-	//TODO	assertThat(received, hasItems(hasPayload(siblingFile), hasPayload(childFile)));
+		assertThat(received, containsInAnyOrder(hasPayload(siblingFile), hasPayload(childFile)));
 	}
+
 }

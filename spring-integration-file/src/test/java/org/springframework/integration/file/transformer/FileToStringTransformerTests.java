@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.integration.file.transformer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Alex Peters
+ * @author Artem Bilan
  */
 public class FileToStringTransformerTests extends
 		AbstractFilePayloadTransformerTests<FileToStringTransformer> {
@@ -43,9 +45,8 @@ public class FileToStringTransformerTests extends
 	public void transform_withFilePayload_convertedToString() throws Exception {
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
-		// TODO: refactor to payload matcher
-		assertThat(result.getPayload(), is(instanceOf(String.class)));
-		assertThat((String) result.getPayload(), is(SAMPLE_CONTENT));
+		assertThat(result, hasPayload(instanceOf(String.class)));
+		assertThat(result, hasPayload(SAMPLE_CONTENT));
 	}
 
 	@Test
@@ -53,9 +54,8 @@ public class FileToStringTransformerTests extends
 		transformer.setCharset("ISO-8859-1");
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
-		// TODO: refactor to payload matcher
-		assertThat(result.getPayload(), is(instanceOf(String.class)));
-		assertThat((String) result.getPayload(), is(not(SAMPLE_CONTENT)));
+		assertThat(result, hasPayload(instanceOf(String.class)));
+		assertThat(result, hasPayload(not(SAMPLE_CONTENT)));
 	}
 
 }

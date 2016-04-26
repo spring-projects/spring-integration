@@ -21,6 +21,4 @@
     <bean id="filter1" class="org.springframework.integration.file.locking.NioFileLocker"/>
     <bean id="filter2" class="org.springframework.integration.file.locking.NioFileLocker"/>
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-
 </beans>

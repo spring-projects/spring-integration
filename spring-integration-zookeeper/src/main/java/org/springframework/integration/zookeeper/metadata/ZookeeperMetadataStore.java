@@ -27,7 +27,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.CloseableUtils;
-import org.apache.curator.utils.EnsurePath;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
@@ -43,6 +42,7 @@ import org.springframework.util.Assert;
  *
  * @author Marius Bogoevici
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
@@ -274,10 +274,13 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			synchronized (this.lifecycleMonitor) {
 				if (!this.running) {
 					try {
-						EnsurePath ensurePath = new EnsurePath(this.root);
-						ensurePath.ensure(this.client.getZookeeperClient());
+						this.client.checkExists()
+								.creatingParentContainersIfNeeded()
+								.forPath(this.root);
+
 						this.cache = new PathChildrenCache(this.client, this.root, true);
-						this.cache.getListenable().addListener(new MetadataStoreListenerInvokingPathChildrenCacheListener());
+						this.cache.getListenable()
+								.addListener(new MetadataStoreListenerInvokingPathChildrenCacheListener());
 						this.cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
 						this.running = true;
 					}
@@ -343,52 +346,56 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 		private int getVersion() {
 			return this.version;
 		}
+
 	}
 
-	private class MetadataStoreListenerInvokingPathChildrenCacheListener implements
-			PathChildrenCacheListener {
+	private class MetadataStoreListenerInvokingPathChildrenCacheListener implements PathChildrenCacheListener {
+
 		@Override
-		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event)
-				throws Exception {
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 			synchronized (ZookeeperMetadataStore.this.updateMap) {
 				String eventPath = event.getData().getPath();
 				String eventKey = getKey(eventPath);
 				byte[] eventData = event.getData().getData();
 				switch (event.getType()) {
-				case CHILD_ADDED:
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
-						if (event.getData().getStat().getVersion() >=
-								ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
-							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
+					case CHILD_ADDED:
+						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
+							if (event.getData().getStat().getVersion() >=
+									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
+							}
 						}
-					}
-					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
-					}
-					break;
-				case CHILD_UPDATED:
-					if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
-						if (event.getData().getStat().getVersion() >=
-								ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
-							ZookeeperMetadataStore.this.updateMap.remove(eventPath);
+						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
+							listener.onAdd(eventKey, IntegrationUtils.bytesToString(eventData,
+									ZookeeperMetadataStore.this.encoding));
 						}
-					}
-					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
-					}
-					break;
-				case CHILD_REMOVED:
-					ZookeeperMetadataStore.this.updateMap.remove(eventKey);
-					for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
-						listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData, ZookeeperMetadataStore.this.encoding));
-					}
-					break;
-				default:
-					// ignore all other events
-					break;
+						break;
+					case CHILD_UPDATED:
+						if (ZookeeperMetadataStore.this.updateMap.containsKey(eventKey)) {
+							if (event.getData().getStat().getVersion() >=
+									ZookeeperMetadataStore.this.updateMap.get(eventKey).getVersion()) {
+								ZookeeperMetadataStore.this.updateMap.remove(eventPath);
+							}
+						}
+						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
+							listener.onUpdate(eventKey, IntegrationUtils.bytesToString(eventData,
+									ZookeeperMetadataStore.this.encoding));
+						}
+						break;
+					case CHILD_REMOVED:
+						ZookeeperMetadataStore.this.updateMap.remove(eventKey);
+						for (MetadataStoreListener listener : ZookeeperMetadataStore.this.listeners) {
+							listener.onRemove(eventKey, IntegrationUtils.bytesToString(eventData,
+									ZookeeperMetadataStore.this.encoding));
+						}
+						break;
+					default:
+						// ignore all other events
+						break;
 				}
 			}
 		}
+
 	}
 
 }

@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-
     <inbound-channel-adapter id="fileSource"
                              directory="#{directory.root}"
                              auto-startup="true"

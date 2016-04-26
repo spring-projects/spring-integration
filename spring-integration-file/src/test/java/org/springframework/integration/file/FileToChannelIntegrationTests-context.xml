@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:file="http://www.springframework.org/schema/integration/file"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
-	xmlns:p="http://www.springframework.org/schema/p"	 xmlns:si="http://www.springframework.org/schema/integration" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<!-- under test -->
 	<file:inbound-channel-adapter
@@ -28,9 +33,12 @@
 	<bean class="org.springframework.integration.file.filters.CompositeFileListFilter" id="compositeFilter">
 		<constructor-arg>
 			<util:list>
-				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
-				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
-				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:preventDuplicates="true"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:preventDuplicates="false"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean"
+					  p:filenamePattern="test*"/>
 			</util:list>
 		</constructor-arg>
 	</bean>
@@ -39,18 +47,17 @@
 		<si:transactional synchronization-factory="syncFactory"/>
 	</si:poller>
 
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-
 	<si:channel id="resultChannel">
-		<si:queue />
+		<si:queue/>
 	</si:channel>
-	
+
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
-	
+
 	<bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
-				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<property name="afterCommitExpression"
+						  value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
 				<property name="afterCommitChannel" ref="resultChannel"/>
 			</bean>
 		</constructor-arg>

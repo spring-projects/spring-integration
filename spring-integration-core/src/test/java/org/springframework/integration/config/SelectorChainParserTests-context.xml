@@ -34,11 +34,9 @@
 			<selector ref="selector6"/>
 		</selector-chain>
 	</selector-chain>
-	
-	<!-- TODO INT-547 
+
 	<selector id="pojoSelector" ref="pojoSelectorBean" method="accept"/>
-	 -->
-	
+
 	<beans:bean id="pojoSelectorBean" class="org.springframework.integration.config.SelectorChainParserTests$StubPojoSelector"/>
 
 	<beans:bean id="selector1" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
