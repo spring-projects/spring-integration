@@ -7,13 +7,15 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
+	<bean id="extraConfig" class="org.springframework.integration.sftp.inbound.RollbackLocalFilterTests$Config" />
+
 	<int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
 			remote-directory-expression="'/sftpSource'"
 			local-directory="file:local-test-dir/rollback"
 			auto-create-local-directory="true"
-			filename-pattern="sftpSource1.txt"
+			filename-pattern="sftpSource2.txt"
 			local-filter="acceptOnceFilter">
 		<int:poller fixed-rate="1000" max-messages-per-poll="2" error-channel="nullChannel">
 			<int:transactional synchronization-factory="syncFactory" />
@@ -33,7 +35,5 @@
 	</int:transaction-synchronization-factory>
 
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
-
-	<bean id="sftpServerConfig" class="org.springframework.integration.sftp.TestSftpServerConfig" />
 
 </beans>

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
 
@@ -86,6 +87,45 @@ public final class FileParserUtils {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(templateBuilder, element, "charset");
 		templateBuilder.addPropertyValue("remoteFileSeparator", element.getAttribute("remote-file-separator"));
 		return templateBuilder.getBeanDefinition();
+	}
+
+	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
+			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass) {
+		String filter = element.getAttribute("filter");
+		String fileNamePattern = element.getAttribute("filename-pattern");
+		String fileNameRegex = element.getAttribute("filename-regex");
+		boolean hasFilter = StringUtils.hasText(filter);
+		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
+		boolean hasFileNameRegex = StringUtils.hasText(fileNameRegex);
+		if (hasFilter || hasFileNamePattern || hasFileNameRegex) {
+			int count = 0;
+			if (hasFilter) {
+				count++;
+			}
+			if (hasFileNamePattern) {
+				count++;
+			}
+			if (hasFileNameRegex) {
+				count++;
+			}
+			if (count != 1) {
+				parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
+						"'filename-regex', or 'filter' is allowed on remote file inbound adapter", element);
+			}
+			if (hasFilter) {
+				synchronizerBuilder.addPropertyReference("filter", filter);
+			}
+			else if (hasFileNamePattern) {
+				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(patternClass);
+				filterBuilder.addConstructorArgValue(fileNamePattern);
+				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			}
+			else if (hasFileNameRegex) {
+				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(regexClass);
+				filterBuilder.addConstructorArgValue(fileNameRegex);
+				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			}
+		}
 	}
 
 }

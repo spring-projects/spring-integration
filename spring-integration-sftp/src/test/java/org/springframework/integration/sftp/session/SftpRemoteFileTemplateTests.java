@@ -21,19 +21,20 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.sftp.TestSftpServer;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.TestSftpServerConfig;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -53,20 +54,10 @@ import com.jcraft.jsch.SftpException;
 @ContextConfiguration(classes=TestSftpServerConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class SftpRemoteFileTemplateTests {
-
-	@Autowired
-	private TestSftpServer sftpServer;
+public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 
 	@Autowired
 	private DefaultSftpSessionFactory sessionFactory;
-
-	@Before
-	@After
-	public void setup() {
-		this.sftpServer.recursiveDelete(sftpServer.getTargetLocalDirectory());
-		this.sftpServer.recursiveDelete(sftpServer.getTargetSftpDirectory());
-	}
 
 	@Test
 	public void testINT3412AppendStatRmdir() {
@@ -113,6 +104,16 @@ public class SftpRemoteFileTemplateTests {
 			}
 		});
 		assertFalse(template.exists("foo"));
+	}
+
+	@Configuration
+	public static class Config {
+
+		@Bean
+		public SessionFactory<LsEntry> ftpSessionFactory() {
+			return SftpRemoteFileTemplateTests.sessionFactory();
+		}
+
 	}
 
 }

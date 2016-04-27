@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<bean id="ftpSessionFactory"
+		class="org.springframework.integration.ftp.config.FtpStreamingInboundChannelAdapterParserTests.TestSessionFactoryBean"/>
+
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="ftpSessionFactory"/>
+	</bean>
+
+	<int-ftp:inbound-streaming-channel-adapter id="ftpInbound"
+				channel="ftpChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				comparator="comparator"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-ftp:inbound-streaming-channel-adapter>
+
+	<int:channel id="ftpChannel">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="java.util.Comparator"/>
+	</bean>
+
+	<int-ftp:inbound-streaming-channel-adapter id="contextLoadsWithNoComparator"
+				channel="nullChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-ftp:inbound-streaming-channel-adapter>
+
+</beans>

@@ -355,6 +355,7 @@ project('spring-integration-ftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
 }
 
@@ -574,6 +575,7 @@ project('spring-integration-sftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
 }
 

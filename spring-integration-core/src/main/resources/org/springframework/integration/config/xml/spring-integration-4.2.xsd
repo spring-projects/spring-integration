@@ -1816,6 +1816,8 @@
 					<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
 					<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
 					<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type"/>
+					<xsd:element name="stream-transformer" type="stream-transformer-type"/>
+					<xsd:element name="syslog-to-map-transformer" type="specialized-transformer-type"/>
 					<xsd:element name="claim-check-in" type="claimCheckInTypeChain"/>
 					<xsd:element name="claim-check-out" type="claimCheckOutTypeChain"/>
 					<xsd:element name="control-bus" type="control-bus-type"/>
@@ -2661,10 +2663,48 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="inputOutputChannelGroup" />
-			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:complexContent>
+				<xsd:extension base="specialized-transformer-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="stream-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.StreamTransformer'
+				that converts an 'InputStream' payload to a byte[] or String.
+				Providing a 'charset' signals that the conversion to String is
+				required.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="stream-transformer-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="stream-transformer-type">
+		<xsd:complexContent>
+			<xsd:extension base="specialized-transformer-type">
+				<xsd:attribute name="charset" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Allows you to specify the Charset (e.g., US-ASCII,
+							ISO-8859-1, UTF-8) to be used when transforming byte[].
+							None by default, meaning the payload will be byte[].
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
     <!-- Claim Check -->
 
@@ -2762,8 +2802,7 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="specialized-transformer-type">
-		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+		<xsd:choice minOccurs="0" maxOccurs="1">
 			<xsd:element ref="poller" />
 		</xsd:choice>
 		<xsd:attribute name="id" type="xsd:string" />

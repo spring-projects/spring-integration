@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
@@ -43,12 +48,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class RollbackLocalFilterTests {
+public class RollbackLocalFilterTests extends SftpTestSupport {
 
 	@BeforeClass
 	@AfterClass
 	public static void clean() {
-		new File("local-test-dir/rollback/sftpSource1.txt").delete();
+		new File("local-test-dir/rollback/sftpSource2.txt").delete();
 	}
 
 	@Autowired
@@ -57,7 +62,7 @@ public class RollbackLocalFilterTests {
 	@Test
 	public void testRollback() throws Exception {
 		assertTrue(this.crash.getLatch().await(10, TimeUnit.SECONDS));
-		assertEquals("sftpSource1.txt", this.crash.getFile().getName());
+		assertEquals("sftpSource2.txt", this.crash.getFile().getName());
 	}
 
 	public static class Crash {
@@ -84,6 +89,15 @@ public class RollbackLocalFilterTests {
 			this.file = in;
 			latch.countDown();
 		}
+	}
+
+	public static class Config {
+
+		@Bean
+		public SessionFactory<LsEntry> sftpSessionFactory() {
+			return RollbackLocalFilterTests.sessionFactory();
+		}
+
 	}
 
 }

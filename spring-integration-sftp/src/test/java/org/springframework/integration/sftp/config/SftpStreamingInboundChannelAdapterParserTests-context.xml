@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
+
+	<bean id="sftpSessionFactory"
+		class="org.springframework.integration.sftp.config.SftpStreamingInboundChannelAdapterParserTests$TestSessionFactoryBean"/>
+
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="sftpSessionFactory"/>
+	</bean>
+
+	<int-sftp:inbound-streaming-channel-adapter id="sftpInbound"
+				channel="sftpChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				comparator="comparator"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-sftp:inbound-streaming-channel-adapter>
+
+	<int:channel id="sftpChannel">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="java.util.Comparator"/>
+	</bean>
+
+	<int-sftp:inbound-streaming-channel-adapter id="contextLoadsWithNoComparator"
+				channel="sftpChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-sftp:inbound-streaming-channel-adapter>
+
+</beans>
