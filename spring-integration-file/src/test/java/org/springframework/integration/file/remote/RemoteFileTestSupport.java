@@ -106,7 +106,7 @@ public abstract class RemoteFileTestSupport {
 		recursiveDelete(new File(localTemporaryFolder.getRoot(), "localTarget"));
 		this.targetLocalDirectory = localTemporaryFolder.newFolder("localTarget");
 
-		File file = new File(this.sourceRemoteDirectory, " " + prefix + "Source1.txt");
+		File file = new File(this.sourceRemoteDirectory, prefix + "Source1.txt");
 		file.createNewFile();
 		FileOutputStream fos = new FileOutputStream(file);
 		fos.write("source1".getBytes());
