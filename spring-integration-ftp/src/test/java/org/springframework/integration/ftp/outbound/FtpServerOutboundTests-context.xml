@@ -9,9 +9,7 @@
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean id="ftpServer" class="org.springframework.integration.ftp.TestFtpServer">
-		<constructor-arg value="FtpServerOutboundTests"/>
-	</bean>
+	<bean id="extraConfig" class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests$Config" />
 
 	<int:channel id="output">
 		<int:queue/>
@@ -23,7 +21,7 @@
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -43,7 +41,7 @@
 							  command="mget"
 							  command-options="-f"
 							  expression="payload"
-							  local-directory-expression="@ftpServer.targetLocalDirectoryName + (#remoteDirectory ?: '')"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + (#remoteDirectory ?: '')"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -54,7 +52,7 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
-							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -66,7 +64,7 @@
 							  expression="payload"
 							  command-options="-R"
 							  filename-regex="(subFtpSource|.*1.txt)"
-							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
