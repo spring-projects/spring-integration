@@ -27,6 +27,17 @@ The `PersistentMessageGroup`, - lazy-load proxy, - implementation is provided fo
 which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (defaults).
 See <<message-store>> for more information.
 
+==== FTP/SFTP Streaming Inbound Channel Adapters
+
+New inbound channel adapters are provided that return an `InputStream` for each file allowing you to retrieve remote
+files without writing them to the local file system
+See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+
+==== Stream Transformer
+
+A new `StreamTransformer` is provided to transform an `InputStream` payload to either a `byte[]` or `String`.
+See <<stream-transformer>> for more information.
+
 [[x4.3-general]]
 === General Changes
 
@@ -122,6 +133,13 @@ See <<file-flushing>> for more information.
 The outbound channel adapter can now be configured to set the destination file's lastmodified timestamp.
 See <<file-timestamps>> for more information.
 
+===== Splitter Changes
+
+The `FileSplitter` will now automatically close an (S)FTP session when the file is completely read.
+This applies when the outbound gateway returns an `InputStream` or the new (S)FTP streaming channel adapters are being
+used.
+See <<file-splitter>> for more information.
+
 ==== AMQP Changes
 
 ===== Content Type Message Converter
@@ -177,6 +195,8 @@ The SFTP outbound gateway (for `put` and `mput` commands) and the SFTP outbound 
 See <<sftp-outbound>> and <<sftp-outbound-gateway>> for more information.
 
 ==== FTP Changes
+
+===== Session Changes
 
 The `FtpSession` now supports `null` for the `list()` and `listNames()` method, since it is possible by the
 underlying FTP Client.

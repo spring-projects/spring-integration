@@ -70,9 +70,12 @@ Just like Routers, Aggregators and other components, as of Spring Integration 2.
 In the above configuration we are achieving a simple transformation of the _payload_ with a simple SpEL expression and without writing a custom transformer.
 Our _payload_ (assuming String) will be upper-cased and concatenated with the current timestamp with some simple formatting.
 
-_Common Transformers_
+===== Common Transformers
 
 There are also a few Transformer implementations available out of the box.
+
+====== Object-to-String Transformer
+
 Because, it is fairly common to use the `toString()` representation of an Object, Spring Integration provides an `ObjectToStringTransformer` whose output is a Message with a String payload.
 That String is the result of invoking the toString() operation on the inbound Message's payload.
 [source,xml]
@@ -112,7 +115,7 @@ These will use standard Java serialization by default, but you can provide an im
 <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>
 ----
 
-_Object-to-Map Transformer_
+====== Object-to-Map and Map-to-Object Transformers
 
 Spring Integration also provides _Object-to-Map_ and _Map-to-Object_ transformers which utilize the Spring Expression Language (SpEL) to serialize and de-serialize the object graphs.
 The object hierarchy is introspected to the most primitive types (String, int, etc.).
@@ -210,7 +213,35 @@ NOTE: NOTE: 'ref' and 'type' attributes are mutually exclusive.
 You can only use one.
 Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean, otherwise a BeanCreationException will be thrown. 
 
-*JSON Transformers*
+[[stream-transformer]]
+====== Stream Transformer
+
+The `StreamTransformer` transforms `InputStream` payloads to a `byte[]` or a `String` if a `charset` is provided.
+
+[source, xml]
+----
+<int:stream-transformer input-channel="directInput" output-channel="output"/> <!-- byte[] -->
+
+<int:stream-transformer id="withCharset" charset="UTF-8"
+    input-channel="charsetChannel" output-channel="output"/> <!-- String -->
+----
+
+[source, java]
+----
+@Bean
+@Transformer(inputChannel = "stream", outputChannel = "data")
+public StreamTransformer streamToBytes() {
+    return new StreamTransformer(); // transforms to byte[]
+}
+
+@Bean
+@Transformer(inputChannel = "stream", outputChannel = "data")
+public StreamTransformer streamToString() {
+    return new StreamTransformer("UTF-8"); // transforms to String
+}
+----
+
+====== JSON Transformers
 
 _Object to JSON_ and _JSON to Object_ transformers are provided.
 

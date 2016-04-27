@@ -40,20 +40,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.sftp.TestSftpServer;
+import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -69,24 +69,13 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
- * Runs against an embedded SFTP Server with the following directory tree:
- *
- * <pre class="code">
- *  $ tree sftpSource/
- *  sftpSource/
- *  ??? sftpSource1.txt - contains 'source1'
- *  ??? sftpSource2.txt - contains 'source2'
- *  ??? subSftpSource
- *      ??? subSftpSource1.txt - contains 'subSource1'
- * </pre>
- *
  * @author Artem Bilan
  * @author Gary Russell
  * @since 3.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class SftpServerOutboundTests {
+public class SftpServerOutboundTests extends SftpTestSupport {
 
 	@Autowired
 	private PollableChannel output;
@@ -128,26 +117,24 @@ public class SftpServerOutboundTests {
 	private DirectChannel failing;
 
 	@Autowired
-	private TestSftpServer sftpServer;
-
-	@Autowired
 	private DirectChannel inboundGetStream;
 
 	@Autowired
 	private DirectChannel inboundCallback;
 
+	@Autowired
+	private Config config;
+
 	@Before
-	@After
 	public void setup() {
-		this.sftpServer.recursiveDelete(sftpServer.getTargetLocalDirectory());
-		this.sftpServer.recursiveDelete(sftpServer.getTargetSftpDirectory());
+		this.config.targetLocalDirectoryName = getTargetLocalDirectoryName();
 	}
 
 	@Test
 	public void testInt2866LocalDirectoryExpressionGET() {
 		Session<?> session = this.sessionFactory.getSession();
 		String dir = "sftpSource/";
-		this.inboundGet.send(new GenericMessage<Object>(dir + "sftpSource1.txt"));
+		this.inboundGet.send(new GenericMessage<Object>(dir + " sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		File localFile = (File) result.getPayload();
@@ -169,7 +156,7 @@ public class SftpServerOutboundTests {
 	@Test
 	public void testInt2866InvalidLocalDirectoryExpression() {
 		try {
-			this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/sftpSource1.txt"));
+			this.invalidDirExpression.send(new GenericMessage<Object>("sftpSource/ sftpSource1.txt"));
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
@@ -257,7 +244,7 @@ public class SftpServerOutboundTests {
 	public void testInt3100RawGET() throws Exception {
 		Session<?> session = this.sessionFactory.getSession();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource1.txt"), baos);
+		FileCopyUtils.copy(session.readRaw("sftpSource/ sftpSource1.txt"), baos);
 		assertTrue(session.finalizeRaw());
 		assertEquals("source1", new String(baos.toByteArray()));
 
@@ -341,7 +328,7 @@ public class SftpServerOutboundTests {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPut.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
+		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -365,7 +352,7 @@ public class SftpServerOutboundTests {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPutRecursive.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
+		this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -393,7 +380,7 @@ public class SftpServerOutboundTests {
 		while (output.receive(0) != null) {
 			// drain
 		}
-		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(this.sftpServer.getSourceLocalDirectory()));
+		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -439,12 +426,12 @@ public class SftpServerOutboundTests {
 		session.close();
 
 		String dir = "sftpSource/";
-		this.inboundGetStream.send(new GenericMessage<Object>(dir + "sftpSource1.txt"));
+		this.inboundGetStream.send(new GenericMessage<Object>(dir + " sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		assertEquals("source1", result.getPayload());
 		assertEquals("sftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
-		assertEquals("sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals(" sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		verify(session).close();
 	}
 
@@ -475,6 +462,21 @@ public class SftpServerOutboundTests {
 		@Override
 		public Object doInSession(Session<ChannelSftp.LsEntry> session, Message<?> requestMessage) throws IOException {
 			return ((String) requestMessage.getPayload()).toUpperCase();
+		}
+
+	}
+
+	public static class Config {
+
+		private volatile String targetLocalDirectoryName;
+
+		@Bean
+		public SessionFactory<LsEntry> sftpSessionFactory() {
+			return SftpServerOutboundTests.sessionFactory();
+		}
+
+		public String getTargetLocalDirectoryName() {
+			return this.targetLocalDirectoryName;
 		}
 
 	}

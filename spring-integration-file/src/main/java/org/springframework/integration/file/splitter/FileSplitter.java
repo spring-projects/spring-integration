@@ -17,6 +17,7 @@
 package org.springframework.integration.file.splitter;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
@@ -158,7 +160,23 @@ public class FileSplitter extends AbstractMessageSplitter {
 			return message;
 		}
 
-		final BufferedReader bufferedReader = new BufferedReader(reader);
+		final BufferedReader bufferedReader = new BufferedReader(reader) {
+
+			@Override
+			public void close() throws IOException {
+				try {
+					super.close();
+				}
+				finally {
+					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+					if (closeableResource != null) {
+						closeableResource.close();
+					}
+				}
+			}
+
+		};
+
 		Iterator<Object> iterator = new Iterator<Object>() {
 
 			boolean markers = FileSplitter.this.markers;

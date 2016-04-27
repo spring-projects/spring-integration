@@ -30,12 +30,12 @@ import java.util.UUID;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
@@ -43,7 +43,7 @@ import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,20 +56,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class FtpRemoteFileTemplateTests {
-
-	@Autowired
-	private TestFtpServer ftpServer;
+public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 
 	@Autowired
 	private SessionFactory<FTPFile> sessionFactory;
-
-	@Before
-	@After
-	public void setup() {
-		this.ftpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
-		this.ftpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
-	}
 
 	@Test
 	public void testINT3412AppendStatRmdir() {
@@ -141,6 +131,16 @@ public class FtpRemoteFileTemplateTests {
 		assertTrue(file.renameTo(newFile));
 		file.delete();
 		newFile.delete();
+	}
+
+	@Configuration
+	public static class Config {
+
+		@Bean
+		public SessionFactory<FTPFile> ftpSessionFactory() {
+			return FtpRemoteFileTemplateTests.sessionFactory();
+		}
+
 	}
 
 }

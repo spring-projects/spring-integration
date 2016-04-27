@@ -146,7 +146,11 @@ public class FtpSession implements Session<FTPFile> {
 	public void close() {
 		try {
 			if (this.readingRaw.get()) {
-				finalizeRaw();
+				if (!finalizeRaw()) {
+					if (this.logger.isWarnEnabled()) {
+						this.logger.warn("Finalize on readRaw() returned false for " + this);
+					}
+				}
 			}
 			this.client.disconnect();
 		}

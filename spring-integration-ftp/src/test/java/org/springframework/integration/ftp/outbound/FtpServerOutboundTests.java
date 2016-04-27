@@ -60,7 +60,9 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
@@ -71,7 +73,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.ftp.TestFtpServer;
+import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
@@ -95,10 +97,7 @@ import org.springframework.util.FileCopyUtils;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class FtpServerOutboundTests {
-
-	@Autowired
-	private TestFtpServer ftpServer;
+public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Autowired
 	private SessionFactory<FTPFile> ftpSessionFactory;
@@ -151,10 +150,12 @@ public class FtpServerOutboundTests {
 	@Autowired
 	private SourcePollingChannelAdapter ftpInbound;
 
+	@Autowired
+	private Config config;
+
 	@Before
 	public void setup() {
-		this.ftpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
-		this.ftpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
+		this.config.targetLocalDirectoryName = getTargetLocalDirectoryName();
 	}
 
 	@Test
@@ -325,7 +326,7 @@ public class FtpServerOutboundTests {
 
 	@Test
 	public void testInt3088MPutNotRecursive() {
-		this.inboundMPut.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -342,7 +343,7 @@ public class FtpServerOutboundTests {
 
 	@Test
 	public void testInt3088MPutRecursive() {
-		this.inboundMPutRecursive.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -365,7 +366,7 @@ public class FtpServerOutboundTests {
 
 	@Test
 	public void testInt3088MPutRecursiveFiltered() {
-		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(getSourceLocalDirectory()));
 		@SuppressWarnings("unchecked")
 		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
 		assertNotNull(out);
@@ -415,7 +416,7 @@ public class FtpServerOutboundTests {
 		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals(" ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 
-		Session<?> session = (Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION);
+		Session<?> session = (Session<?>) result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		// Returned to cache
 		assertTrue(session.isOpen());
 		// Raw reading is finished
@@ -429,7 +430,8 @@ public class FtpServerOutboundTests {
 		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("ftpSource2.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertSame(TestUtils.getPropertyValue(session, "targetSession"),
-				TestUtils.getPropertyValue(result.getHeaders().get(FileHeaders.REMOTE_SESSION), "targetSession"));
+				TestUtils.getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
+						"targetSession"));
 	}
 
 	@Test
@@ -504,7 +506,7 @@ public class FtpServerOutboundTests {
 
 		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("localSource2"));
 		try {
-			this.inboundMPut.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+			this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
@@ -519,7 +521,7 @@ public class FtpServerOutboundTests {
 	@Test
 	public void testMputRecursivePartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		File sourceLocalSubDirectory =  new File(ftpServer.getSourceLocalDirectory(), "subLocalSource");
+		File sourceLocalSubDirectory =  new File(getSourceLocalDirectory(), "subLocalSource");
 		assertTrue(sourceLocalSubDirectory.isDirectory());
 		File extra = new File(sourceLocalSubDirectory, "subLocalSource2.txt");
 		FileOutputStream writer = new FileOutputStream(extra);
@@ -534,7 +536,7 @@ public class FtpServerOutboundTests {
 
 		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("subLocalSource2"));
 		try {
-			this.inboundMPutRecursive.send(new GenericMessage<File>(this.ftpServer.getSourceLocalDirectory()));
+			this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
 			fail("expected exception");
 		}
 		catch (PartialSuccessException e) {
@@ -656,12 +658,28 @@ public class FtpServerOutboundTests {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static final class TestMessageSessionCallback
 			implements MessageSessionCallback<FTPFile, Object> {
 
 		@Override
 		public Object doInSession(Session<FTPFile> session, Message<?> requestMessage) throws IOException {
 			return ((String) requestMessage.getPayload()).toUpperCase();
+		}
+
+	}
+
+	public static class Config {
+
+		private volatile String targetLocalDirectoryName;
+
+		@Bean
+		public SessionFactory<FTPFile> ftpSessionFactory() {
+			return FtpServerOutboundTests.sessionFactory();
+		}
+
+		public String getTargetLocalDirectoryName() {
+			return this.targetLocalDirectoryName;
 		}
 
 	}

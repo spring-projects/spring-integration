@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,30 @@
 
 package org.springframework.integration.ftp.config;
 
-import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.config.AbstractRemoteFileStreamingInboundChannelAdapterParser;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.remote.synchronizer.InboundFileSynchronizer;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
-import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
-import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
+import org.springframework.integration.ftp.inbound.FtpStreamingMessageSource;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
- * Parser for the FTP 'inbound-channel-adapter' element.
- *
- * @author Mark Fisher
  * @author Gary Russell
- * @since 2.0
+ * @since 4.3
+ *
  */
-public class FtpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
+public class FtpStreamingInboundChannelAdapterParser extends AbstractRemoteFileStreamingInboundChannelAdapterParser {
 
 	@Override
-	protected String getMessageSourceClassname() {
-		return FtpInboundFileSynchronizingMessageSource.class.getName();
+	protected Class<? extends RemoteFileOperations<?>> getTemplateClass() {
+		return FtpRemoteFileTemplate.class;
 	}
 
 	@Override
-	protected Class<? extends InboundFileSynchronizer> getInboundFileSynchronizerClass() {
-		return FtpInboundFileSynchronizer.class;
+	protected Class<? extends MessageSource<?>> getMessageSourceClass() {
+		return FtpStreamingMessageSource.class;
 	}
 
 	@Override

@@ -9,6 +9,8 @@
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<bean id="extraConfig" class="org.springframework.integration.sftp.outbound.SftpServerOutboundTests$Config" />
+
 	<int:channel id="output">
 		<int:queue/>
 	</int:channel>
@@ -19,7 +21,7 @@
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -38,7 +40,7 @@
 							  request-channel="inboundMGet"
 							  command="mget"
 							  expression="payload"
-							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -49,7 +51,7 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
-							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -61,7 +63,7 @@
 							  expression="payload"
 							  command-options="-R"
 							  filename-regex="(subSftpSource|.*1.txt)"
-							  local-directory-expression="@sftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -103,8 +105,6 @@
 							  reply-channel="output"/>
 
 	<int:channel id="appending" />
-
-	<bean id="sftpServerConfig" class="org.springframework.integration.sftp.TestSftpServerConfig" />
 
 	<int-sftp:outbound-channel-adapter id="appender"
 							  session-factory="sftpSessionFactory"

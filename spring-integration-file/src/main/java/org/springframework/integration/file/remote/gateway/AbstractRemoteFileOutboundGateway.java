@@ -35,6 +35,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -586,7 +587,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader(FileHeaders.REMOTE_SESSION, session)
+				.setHeader("file_remoteSession", session) // TODO: remove in 5.0
+				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
 				.build();
 	}
 
@@ -1012,6 +1014,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			else if (e instanceof IOException) {
 				throw (IOException) e;
+			}
+			else {
+				throw new MessagingException("Failed to process MGET on first file", e);
 			}
 		}
 		return files;

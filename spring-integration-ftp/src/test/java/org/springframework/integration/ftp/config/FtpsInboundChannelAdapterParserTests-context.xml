@@ -17,9 +17,8 @@
 	</bean>
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
-				channel="ftpChannel" 
+				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
-				charset="UTF-8"
 				auto-create-local-directory="true"
 				delete-remote-files="true"
 				local-directory="."
@@ -28,11 +27,10 @@
 				filter="entryListFilter">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
-	
-	<int-ftp:inbound-channel-adapter 
-				channel="ftpChannel" 
+
+	<int-ftp:inbound-channel-adapter
+				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
-				charset="UTF-8"
 				auto-create-local-directory="true"
 				delete-remote-files="true"
 				filename-regex="[0-9]+\.txt"
@@ -40,9 +38,9 @@
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
-				
+
 	<int:channel id="ftpChannel"/>
-	
+
 	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>

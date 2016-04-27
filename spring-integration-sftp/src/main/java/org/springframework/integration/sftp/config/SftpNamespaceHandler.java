@@ -32,6 +32,7 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new SftpInboundChannelAdapterParser());
+		registerBeanDefinitionParser("inbound-streaming-channel-adapter", new SftpStreamingInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new SftpOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-gateway", new SftpOutboundGatewayParser());
 	}

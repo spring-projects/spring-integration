@@ -434,6 +434,41 @@ This will work for any `ResettableFileListFilter`.
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
 
+[[sftp-streaming]]
+=== SFTP Streaming Inbound Channel Adapter
+
+The streaming inbound channel adapter was introduced in _version 4.3_.
+This adapter produces message with payloads of type `InputStream`, allowing files to be fetched without writing to the
+local file system.
+Since the session remains open, the consuming application is responsible for closing the session when the file has been
+consumed.
+The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
+Standard framework components, such as the `FileSplitter` and `StreamTransformer` will automatically close the session.
+See <<file-splitter>> and <<stream-transformer>> for more information about these components.
+
+[source, xml]
+----
+<int-sftp:inbound-streaming-channel-adapter id="ftpInbound"
+            channel="ftpChannel"
+            session-factory="sessionFactory"
+            filename-pattern="*.txt"
+            filename-regex=".*\.txt"
+            filter="filter"
+            remote-file-separator="/"
+            comparator="comparator"
+            remote-directory-expression="'foo/bar'">
+        <int:poller fixed-rate="1000" />
+</int-sftp:inbound-streaming-channel-adapter>
+----
+
+Only one of `filename-pattern`, `filename-regex` or `filter` is allowed.
+
+IMPORTANT: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
+If you do not delete the remote file (e.g. using an outbound gateway with an rm command) and you wish to prevent the
+file being processed again, you can configure an `SftpPersistentFileListFilter` in the `filter` attribute.
+If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
+If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+
 [[sftp-outbound]]
 === SFTP Outbound Channel Adapter
 
@@ -539,36 +574,50 @@ The remote directory is provided in the `file_remoteDirectory` header, and the f
 The message payload resulting from a _get_ operation is a `File` object representing the retrieved file, or
 an `InputStream` when the `-stream` option is provided.
 This option allows retrieving the file as a stream.
-For text files, a common use case is to combine this operation with a <<file-splitter>>.
+For text files, a common use case is to combine this operation with a <<file-splitter,File Splitter>> or
+<<stream-transformer,Stream Transformer>>.
 When consuming remote files as streams, the user is responsible for closing the `Session` after the stream is
 consumed.
-For convenience, the `Session` is provided in the `file_remoteSession` header.
+For convenience, the `Session` is provided in the `closeableResource` header, a convenience method is provided on the
+`IntegrationMessageHeaderAccessor`:
+
+[source, java]
+----
+Closeable closeable = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+if (closeable != null) {
+    closeable.close();
+}
+----
+
+Note: In previous releases the session was in the `file_remoteSession` header, but this is deprecated - use
+`closableResource` instead.
+
+Framework components such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>> will
+automatically close the session after the data is transferred.
 
 The following shows an example of consuming a file as a stream:
 
 [source, xml]
 ----
-<int-sftp:outbound-gateway session-factory="sftpSessionFactory"
-              request-channel="inboundGetStream"
-              command="get"
-              command-options="-stream"
-              expression="payload"
-              remote-directory="ftpTarget"
-              reply-channel="stream" />
+<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+                            request-channel="inboundGetStream"
+                            command="get"
+                            command-options="-stream"
+                            expression="payload"
+                            remote-directory="ftpTarget"
+                            reply-channel="stream" />
 
-<int:chain input-channel="stream">
-  <int-file:splitter markers="true" />
-  <int:payload-type-router resolution-required="false" default-output-channel="output">
-    <int:mapping type="org.springframework.integration.file.splitter.FileSplitter$FileMarker"
-           channel="markers" />
-  </int:payload-type-router>
-</int:chain>
-
-<int:service-activator input-channel="markers"
-  expression="payload.mark.toString().equals('END') ? headers['file_remoteSession'].close() : null"/>
+<int-file:splitter input-channel="stream" output-channel="lines" />
 ----
 
-The file lines are sent to the channel `output`.
+Note: if you consume the input stream in a custom component, you *must* close the `Session`.
+You can either do that in your custom code, or route a copy of the message to a `service-activator` and use SpEL:
+
+[source, xml]
+----
+<int:service-activator input-channel="closeSession"
+    expression="headers['closeableResource'].close()" />
+----
 
 *mget*
 

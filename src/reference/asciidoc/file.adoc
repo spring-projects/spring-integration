@@ -272,7 +272,8 @@ This means that (when this event is enabled), filters such as the `AcceptOnceFil
 meaning that, if a file with the same name appears, it will pass the filter and be sent as a message.
 
 For this purpose the `watch-events`
-(`FileReadingMessageSource.setWatchEvents(FileReadingMessageSource.WatchEventType... watchEvents)`) has been introduced.
+(`FileReadingMessageSource.setWatchEvents(WatchEventType... watchEvents)`) has been introduced
+(`WatchEventType` is a public inner enum in `FileReadingMessageSource`).
 With such an option we can implement some scenarios, when we would like to do one downstream flow logic for new files,
 and other for modified.
 We can achieve that with different `<int-file:inbound-channel-adapter>` definitions, but for the same directory:
@@ -858,3 +859,10 @@ public MessageHandler fileSplitter() {
     return splitter;
 }
 ----
+
+The `FileSplitter` will also split any text-based `InputStream` into lines.
+When used in conjunction with an FTP or SFTP streaming inbound channel adapter, or an FTP or SFTP outbound gateway
+using the `stream` option to retrieve a file, starting with _version 4.3_, the splitter will automatically close
+the session supporting the stream, when the file is completely consumed.
+See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more
+information about these facilities.
