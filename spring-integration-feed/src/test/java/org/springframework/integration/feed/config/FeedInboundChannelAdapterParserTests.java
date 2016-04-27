@@ -47,8 +47,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
-import com.rometools.fetcher.impl.AbstractFeedFetcher;
-import com.rometools.fetcher.impl.HttpURLFeedFetcher;
 import com.rometools.rome.feed.synd.SyndEntry;
 
 /**
@@ -56,6 +54,7 @@ import com.rometools.rome.feed.synd.SyndEntry;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParserTests {
@@ -64,7 +63,8 @@ public class FeedInboundChannelAdapterParserTests {
 
 	@Before
 	public void prepare() {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "feedAdapter.last.entry");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
+				"feedAdapter.last.entry");
 		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}
@@ -79,28 +79,29 @@ public class FeedInboundChannelAdapterParserTests {
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
 		assertTrue(metadataStore instanceof SampleMetadataStore);
 		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "feedFetcher");
+		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
 		assertEquals("FileUrlFeedFetcher", fetcher.getClass().getSimpleName());
 		context.destroy();
 	}
 
 
+	@SuppressWarnings("deprecation")
+	@Test
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
-		assertTrue(metadataStore instanceof SampleMetadataStore);
-		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "feedFetcher");
-		assertTrue(fetcher instanceof HttpURLFeedFetcher);
+		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
+		assertTrue(fetcher instanceof com.rometools.fetcher.impl.HttpURLFeedFetcher);
 		context.destroy();
 	}
 
 	@Test
 	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "metadata-store.properties");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
+				"metadata-store.properties");
 		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}

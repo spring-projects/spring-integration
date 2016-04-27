@@ -55,6 +55,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
  * @author Aaron Loes
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
 
 	private final URL feedUrl;

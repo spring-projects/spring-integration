@@ -31,7 +31,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
 
-import com.rometools.fetcher.FeedFetcher;
 import com.rometools.rome.feed.synd.SyndEntry;
 
 /**
@@ -39,11 +38,13 @@ import com.rometools.rome.feed.synd.SyndEntry;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Aaron Loes
+ * @author Artem Bilan
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class FeedEntryMessageSourceTests {
 
-	private final FeedFetcher feedFetcher = new FileUrlFeedFetcher();
+	private final com.rometools.fetcher.FeedFetcher feedFetcher = new FileUrlFeedFetcher();
 
 	@Before
 	public void prepare() {
