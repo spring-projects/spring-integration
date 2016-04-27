@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.remote;
 
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 
@@ -118,6 +119,13 @@ public interface RemoteFileOperations<F> {
 	void rename(String fromPath, String toPath);
 
 	/**
+	 * List the files at the remote path.
+	 * @param path the path.
+	 * @return the list.
+	 */
+	F[] list(String path);
+
+	/**
 	 * Execute the callback's doInSession method after obtaining a session.
 	 * Reliably closes the session when the method exits.
 	 *
@@ -140,5 +148,18 @@ public interface RemoteFileOperations<F> {
 	 * @since 4.1
 	 */
 	<T, C> T executeWithClient(ClientCallback<C, T> callback);
+
+	/**
+	 * Obtain a raw Session object. User must call {@link #returnSession(Session)}.
+	 * @return a session.
+	 */
+	Session<F> borrowSesssion();
+
+	/**
+	 * Return a borrowed session.
+	 * @param session the session.
+	 * @see #borrowSesssion()
+	 */
+	void returnSession(Session<F> session);
 
 }
