@@ -401,6 +401,30 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		});
 	}
 
+
+	@Override
+	public F[] list(final String path) {
+		return this.execute(new SessionCallback<F, F[]>() {
+
+			@Override
+			public F[] doInSession(Session<F> session) throws IOException {
+				return session.list(path);
+			}
+
+		});
+	}
+
+
+	@Override
+	public Session<F> borrowSesssion() {
+		return this.sessionFactory.getSession();
+	}
+
+	@Override
+	public void returnSession(Session<F> session) {
+		session.close();
+	}
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
