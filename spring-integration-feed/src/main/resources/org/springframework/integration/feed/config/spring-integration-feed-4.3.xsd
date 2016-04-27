@@ -56,13 +56,13 @@
 			<xsd:attribute name="feed-fetcher" use="optional" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a FeedFetcher instance for retrieveing Feeds from the provided URL.
+						Reference to a FeedFetcher instance for retrieving Feeds from the provided URL.
 						By default, the HTTP protocol is supported. For any other protocols or general
 						customizations, provide a reference to a different implementation.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.sun.syndication.fetcher.FeedFetcher" />
+							<tool:expected-type type="com.rometools.fetcher.FeedFetcher" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
