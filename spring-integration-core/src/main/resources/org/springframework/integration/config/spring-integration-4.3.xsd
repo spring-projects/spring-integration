@@ -214,6 +214,9 @@
 					Capacity for this queue. Default capacity is 0 which means
 					this queue will accumulate as many
 					messages as available resources allow.
+					This attribute is
+					mutually
+					exclusive with the "message-store" and "ref" attributes (only one can be specified).
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -230,7 +233,7 @@
 					message store has a way to specify a region or similar additional
 					tag for messages. This attribute is
 					mutually
-					exclusive with the "ref" attribute (only one can be specified).
+					exclusive with the "capacity" and "ref" attributes (only one can be specified).
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -243,7 +246,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to a Queue that can be used to buffer the messages. This attribute is
-					mutually exclusive with the "message-store" attribute (only one can be specified).
+					mutually exclusive with the "capacity" and "message-store" attributes (only one can be specified).
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

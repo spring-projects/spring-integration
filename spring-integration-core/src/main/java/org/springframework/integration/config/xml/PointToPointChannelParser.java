@@ -55,14 +55,19 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
 			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, channel, false);
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
-			if (!hasStoreRef) {
+			if (!hasStoreRef || !hasQueueRef) {
 				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
 				if (hasCapacity && hasQueueRef) {
 					parserContext.getReaderContext().error(
 							"The 'capacity' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
 							element);
 				}
-			}
+				if (hasCapacity && hasStoreRef) {
+					parserContext.getReaderContext().error(
+							"The 'capacity' attribute is not allowed" + " when providing a 'message-store' to a custom MessageGroupStore.",
+							element);
+				}
+			}			
 			if (hasStoreRef && hasQueueRef) {
 				parserContext.getReaderContext().error(
 						"The 'message-store' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
