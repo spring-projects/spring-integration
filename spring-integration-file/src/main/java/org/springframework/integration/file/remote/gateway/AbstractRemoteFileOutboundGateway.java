@@ -35,6 +35,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -47,7 +48,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -537,13 +537,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				}
 			});
 		}
-		AbstractIntegrationMessageBuilder<Object> builder = this.getMessageBuilderFactory().withPayload(payload)
-			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
-		if (session != null) {
-			builder.setHeader(FileHeaders.REMOTE_SESSION, session);
-		}
-		return builder.build();
+		return getMessageBuilderFactory().withPayload(payload)
+				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+				.setHeader("file_remoteSession", session) // TODO: remove in 5.0
+				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
+				.build();
 	}
 
 	private Object doMget(final Message<?> requestMessage) {
@@ -930,6 +929,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			else if (e instanceof IOException) {
 				throw (IOException) e;
+			}
+			else {
+				throw new MessagingException("Failed to process MGET on first file", e);
 			}
 		}
 		return files;

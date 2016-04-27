@@ -91,7 +91,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
-	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
+	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() throws Exception {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.deleteKey(jcf, "foo");
 		String key = "foo";
@@ -112,7 +112,10 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 		list.add("Jack");
 		Message<List<String>> message = MessageBuilder.withPayload(list).setHeader("redis_key", key).build();
 		handler.handleMessage(message);
-
+		int n = 0;
+		while (n++ < 100 && redisList.size() != 3) {
+			Thread.sleep(100);
+		}
 		assertEquals(3, redisList.size());
 		assertEquals("Manny", redisList.get(0));
 		assertEquals("Moe", redisList.get(1));

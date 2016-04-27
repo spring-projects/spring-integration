@@ -56,6 +56,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -380,7 +381,7 @@ public class FtpServerOutboundTests {
 		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("ftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 
-		Session<?> session = (Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION);
+		Session<?> session = (Session<?>) result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE);
 		// Returned to cache
 		assertTrue(session.isOpen());
 		// Raw reading is finished
@@ -394,7 +395,8 @@ public class FtpServerOutboundTests {
 		assertEquals("ftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("ftpSource2.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertSame(TestUtils.getPropertyValue(session, "targetSession"),
-				TestUtils.getPropertyValue(result.getHeaders().get(FileHeaders.REMOTE_SESSION), "targetSession"));
+				TestUtils.getPropertyValue(result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE),
+						"targetSession"));
 	}
 
 	@Test

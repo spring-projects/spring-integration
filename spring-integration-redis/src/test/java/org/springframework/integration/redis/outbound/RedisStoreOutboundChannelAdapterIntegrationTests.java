@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -85,7 +86,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		context.close();
 	}
 
-	@Test
+	@Test @Ignore
 	@RedisAvailable
 	public void testListWithKeyAsHeaderSimple(){
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
