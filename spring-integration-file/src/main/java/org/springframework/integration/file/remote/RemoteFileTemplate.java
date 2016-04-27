@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  *
  */
-public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, InitializingBean, BeanFactoryAware {
+public class RemoteFileTemplate<F> implements ExtendedRemoteFileOperations<F>, InitializingBean, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -404,6 +404,24 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				return session.finalizeRaw();
 			}
 		});
+	}
+
+
+	@Override
+	public F[] list(final String path) {
+		return this.execute(new SessionCallback<F, F[]>() {
+
+			@Override
+			public F[] doInSession(Session<F> session) throws IOException {
+				return session.list(path);
+			}
+
+		});
+	}
+
+	@Override
+	public Session<F> getSession() {
+		return this.sessionFactory.getSession();
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -45,6 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -422,7 +423,8 @@ public class SftpServerOutboundTests {
 		assertEquals("source1", result.getPayload());
 		assertEquals("sftpSource/", result.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("sftpSource1.txt", result.getHeaders().get(FileHeaders.REMOTE_FILE));
-		assertFalse(((Session<?>) result.getHeaders().get(FileHeaders.REMOTE_SESSION)).isOpen());
+		assertFalse(
+				((Session<?>) result.getHeaders().get(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE)).isOpen());
 	}
 
 	@Test

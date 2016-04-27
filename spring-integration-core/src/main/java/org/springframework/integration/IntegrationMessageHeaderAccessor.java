@@ -16,6 +16,7 @@
 
 package org.springframework.integration;
 
+import java.io.Closeable;
 import java.util.Date;
 import java.util.Map;
 
@@ -50,6 +51,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String DUPLICATE_MESSAGE = "duplicateMessage";
 
+	public static final String CLOSEABLE_RESOURCE = "closableResource";
+
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
 	}
@@ -74,6 +77,19 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public Integer getPriority() {
 		return this.getHeader(PRIORITY, Integer.class);
+	}
+
+	/**
+	 * If the payload was created by a {@link Closeable} that needs to remain
+	 * open until the payload is consumed, the resource will be added to this
+	 * header. After the payload is consumed the {@link Closeable} should be
+	 * closed. Usually this must occur in an endpoint close to the message
+	 * origin in the flow, and in the same JVM.
+	 * @return the {@link Closeable}.
+	 * @since 4.2.10
+	 */
+	public Closeable getCloseableResource() {
+		return this.getHeader(CLOSEABLE_RESOURCE, Closeable.class);
 	}
 
 	@SuppressWarnings("unchecked")
