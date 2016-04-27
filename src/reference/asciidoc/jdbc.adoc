@@ -446,7 +446,7 @@ To configure that scenario, simply extend one message store bean from the other:
 </bean>
 
 <int:channel id="queueChannel">
-    <int:queue message-store="store"/>
+    <int:queue message-store="channelStore"/>
 </int:channel>
 
 <bean id="priorityStore" parent="channelStore">
