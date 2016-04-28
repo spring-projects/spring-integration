@@ -23,7 +23,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
-import reactor.core.subscriber.ReactiveSession;
+import reactor.core.subscriber.SignalEmitter;
 
 
 /**
@@ -36,7 +36,7 @@ public class ReactiveEndpoint extends AbstractEndpoint {
 
 	private final Subscriber<Message<?>> subscriber;
 
-	private ReactiveSession<Message<?>> reactiveSession;
+	private SignalEmitter<Message<?>> emitter;
 
 	@SuppressWarnings("unchecked")
 	public ReactiveEndpoint(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
@@ -54,13 +54,13 @@ public class ReactiveEndpoint extends AbstractEndpoint {
 
 	@Override
 	protected void doStart() {
-		this.reactiveSession = ReactiveSession.create(this.subscriber);
-		this.inputChannel.subscribe(this.reactiveSession);
+		this.emitter = SignalEmitter.create(this.subscriber);
+		this.inputChannel.subscribe(this.emitter);
 	}
 
 	@Override
 	protected void doStop() {
-		this.reactiveSession.finish();
+		this.emitter.finish();
 	}
 
 }

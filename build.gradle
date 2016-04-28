@@ -305,8 +305,6 @@ project('spring-integration-core') {
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 //		testCompile ("net.openhft:chronicle:$chronicleVersion")
 //		testCompile ("io.projectreactor:reactor-chronicle:$reactorVersion")
-
-		testCompile "io.projectreactor:reactor-stream:$reactorVersion"
 	}
 }
 

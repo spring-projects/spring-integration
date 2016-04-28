@@ -19,10 +19,10 @@ package org.springframework.integration.gateway;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import org.reactivestreams.Publisher;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Payload;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Mark Fisher
@@ -52,7 +52,7 @@ public interface TestService {
 
 	Future<Message<?>> async(String s);
 
-	Publisher<Message<?>> promise(String s);
+	Mono<Message<?>> promise(String s);
 
 	CompletableFuture<String> completable(String s);
 
