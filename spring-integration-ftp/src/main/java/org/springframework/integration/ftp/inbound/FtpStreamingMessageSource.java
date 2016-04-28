@@ -51,7 +51,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 
 	@Override
 	public String getComponentType() {
-		return "int-ftp:inbound-streaming-channel-adapter";
+		return "ftp:inbound-streaming-channel-adapter";
 	}
 
 	@Override

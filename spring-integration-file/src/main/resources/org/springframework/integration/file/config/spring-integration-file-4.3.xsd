@@ -833,15 +833,11 @@ Only files matching this regular expression will be picked up by this adapter.
 	</xsd:simpleType>
 
 	<xsd:attributeGroup name="remoteOutboundAttributeGroup">
-		<xsd:attribute name="remote-directory-expression"
-			type="xsd:string">
+		<xsd:attribute name="charset" type="xsd:string" default="UTF-8">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify a SpEL expression which
-					will be used to evaluate the directory
-					path to where the files will be transferred
-					(e.g., "headers.['remote_dir'] +
-					'/myTransfers'");
+					Allows you to specify Charset (e.g., US-ASCII, ISO-8859-1, UTF-8). [UTF-8] is default -
+					used when converting String payloads to bytes.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

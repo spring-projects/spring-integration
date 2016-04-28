@@ -17,7 +17,6 @@
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
-				charset="UTF-8"
 				auto-create-local-directory="true"
 				auto-startup="false"
 				delete-remote-files="true"
@@ -57,7 +56,6 @@
 	<int-ftp:inbound-channel-adapter
 				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
-				charset="UTF-8"
 				auto-create-local-directory="true"
 				delete-remote-files="true"
 				filter="entryListFilter"

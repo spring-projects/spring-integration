@@ -57,7 +57,8 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
-		this.configureFilter(synchronizerBuilder, element, parserContext);
+		FileParserUtils.configureFilter(synchronizerBuilder, element, parserContext,
+				getSimplePatternFileListFilterClassname(), getRegexPatternFileListFilterClassname());
 
 		// build the MessageSource
 		BeanDefinitionBuilder messageSourceBuilder =
@@ -80,47 +81,6 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 					localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
 		return messageSourceBuilder.getBeanDefinition();
-	}
-
-	private void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element,
-	                             ParserContext parserContext) {
-		String filter = element.getAttribute("filter");
-		String fileNamePattern = element.getAttribute("filename-pattern");
-		String fileNameRegex = element.getAttribute("filename-regex");
-		boolean hasFilter = StringUtils.hasText(filter);
-		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
-		boolean hasFileNameRegex = StringUtils.hasText(fileNameRegex);
-		if (hasFilter || hasFileNamePattern || hasFileNameRegex) {
-			int count = 0;
-			if (hasFilter) {
-				count++;
-			}
-			if (hasFileNamePattern) {
-				count++;
-			}
-			if (hasFileNameRegex) {
-				count++;
-			}
-			if (count != 1) {
-				parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
-						"'filename-regex', or 'filter' is allowed on remote file inbound adapter", element);
-			}
-			if (hasFilter) {
-				synchronizerBuilder.addPropertyReference("filter", filter);
-			}
-			else if (hasFileNamePattern) {
-				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						this.getSimplePatternFileListFilterClassname());
-				filterBuilder.addConstructorArgValue(fileNamePattern);
-				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
-			}
-			else if (hasFileNameRegex) {
-				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						this.getRegexPatternFileListFilterClassname());
-				filterBuilder.addConstructorArgValue(fileNameRegex);
-				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
-			}
-		}
 	}
 
 	protected abstract String getMessageSourceClassname();

@@ -68,12 +68,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 	 */
 	private volatile FileListFilter<F> filter;
 
-	/**
-	 * Should we <em>delete</em> the remote <b>source</b> files
-	 * after copying to the local directory? By default this is false.
-	 */
-	private volatile boolean deleteRemoteFiles;
-
 	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<F> template,
 			Comparator<AbstractFileInfo<F>> comparator) {
 		this.remoteFileTemplate = template;
@@ -116,18 +110,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 		this.filter = filter;
 	}
 
-	/**
-	 * Set to true to enable deletion of remote files after successful transfer.
-	 * @param deleteRemoteFiles true to delete.
-	 */
-	public void setDeleteRemoteFiles(boolean deleteRemoteFiles) {
-		this.deleteRemoteFiles = deleteRemoteFiles;
-	}
-
-	protected boolean isDeleteRemoteFiles() {
-		return this.deleteRemoteFiles;
-	}
-
 	protected RemoteFileTemplate<F> getRemoteFileTemplate() {
 		return this.remoteFileTemplate;
 	}
@@ -150,9 +132,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 		AbstractFileInfo<F> file = poll();
 		if (file != null) {
 			String remotePath = remotePath(file);
-			if (this.deleteRemoteFiles) {
-				this.remoteFileTemplate.remove(remotePath);
-			}
 			Session<?> session = this.remoteFileTemplate.getSesssion();
 			try {
 				return getMessageBuilderFactory().withPayload(session.readRaw(remotePath))

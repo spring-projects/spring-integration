@@ -51,7 +51,7 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 
 	@Override
 	public String getComponentType() {
-		return "int-sftp:inbound-streaming-channel-adapter";
+		return "sftp:inbound-streaming-channel-adapter";
 	}
 
 	@Override
