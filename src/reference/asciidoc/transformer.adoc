@@ -218,6 +218,14 @@ Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean,
 
 The `StreamTransformer` transforms `InputStream` payloads to a `byte[]` or a `String` if a `charset` is provided.
 
+[source, xml]
+----
+<int:stream-transformer input-channel="directInput" output-channel="output"/> <!-- byte[] -->
+
+<int:stream-transformer id="withCharset" charset="UTF-8"
+    input-channel="charsetChannel" output-channel="output"/> <!-- String -->
+----
+
 [source, java]
 ----
 @Bean

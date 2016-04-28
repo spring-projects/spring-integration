@@ -34,4 +34,15 @@
 		<constructor-arg value="java.util.Comparator"/>
 	</bean>
 
+	<int-sftp:inbound-streaming-channel-adapter id="contextLoadsWithNoComparator"
+				channel="sftpChannel"
+				session-factory="csf"
+				auto-startup="false"
+				phase="23"
+				filename-pattern="*.txt"
+				remote-file-separator="X"
+				remote-directory-expression="'foo/bar'">
+			<int:poller fixed-rate="1000" />
+	</int-sftp:inbound-streaming-channel-adapter>
+
 </beans>

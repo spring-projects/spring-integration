@@ -38,7 +38,15 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
 public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<FTPFile> {
 
 	/**
-	 * Construct an instance with the suppplied template and comparator.
+	 * Construct an instance with the supplied template.
+	 * @param template the template.
+	 */
+	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template) {
+		super(template, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied template and comparator.
 	 * Note: the comparator is applied each time the remote directory is listed
 	 * which only occurs when the previous list is exhausted.
 	 * @param template the template.

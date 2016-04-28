@@ -38,7 +38,15 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessageSource<LsEntry> {
 
 	/**
-	 * Construct an instance with the suppplied template and comparator.
+	 * Construct an instance with the supplied template.
+	 * @param template the template.
+	 */
+	public SftpStreamingMessageSource(RemoteFileTemplate<LsEntry> template) {
+		super(template, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied template and comparator.
 	 * Note: the comparator is applied each time the remote directory is listed
 	 * which only occurs when the previous list is exhausted.
 	 * @param template the template.

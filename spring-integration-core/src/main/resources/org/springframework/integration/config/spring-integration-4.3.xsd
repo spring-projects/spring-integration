@@ -2691,6 +2691,34 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="stream-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Consumer Endpoint for the
+				'org.springframework.integration.transformer.StreamTransformer'
+				that converts an 'InputStream' payload to a byte[] or String.
+				Providing a 'charset' signals that the conversion to String is
+				required.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="specialized-transformer-type">
+					<xsd:attribute name="charset" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify the Charset (e.g., US-ASCII,
+								ISO-8859-1, UTF-8) to be used when transforming byte[].
+								None by default, meaning the payload will be byte[].
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
     <!-- Claim Check -->
 
 	<xsd:element name="claim-check-in" type="claimCheckInType">
