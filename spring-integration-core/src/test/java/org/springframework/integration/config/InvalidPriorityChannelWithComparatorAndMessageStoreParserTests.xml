@@ -7,7 +7,10 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="output">
-		<queue ref="queue" capacity="10" />
+		<priority-queue comparator="comparator" message-store="messageStore" />
 	</channel>
+
+	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore" />
+	<beans:bean id="comparator" class="org.springframework.integration.aggregator.MessageSequenceComparator" />
 
 </beans:beans>

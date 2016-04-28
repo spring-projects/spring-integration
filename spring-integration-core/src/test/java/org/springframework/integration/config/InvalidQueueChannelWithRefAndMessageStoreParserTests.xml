@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="output">
-		<queue message-store="messageStore" ref="queue" />
+		<queue ref="queue" message-store="messageStore" />
 	</channel>
 
 	<beans:bean id="queue" class="java.util.concurrent.LinkedBlockingQueue" />

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -30,6 +28,7 @@ import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;channel&gt; element.
@@ -64,10 +63,11 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 				}
 				if (hasCapacity && hasStoreRef) {
 					parserContext.getReaderContext().error(
-							"The 'capacity' attribute is not allowed" + " when providing a 'message-store' to a custom MessageGroupStore.",
+							"The 'capacity' attribute is not allowed"
+									+ " when providing a 'message-store' to a custom MessageGroupStore.",
 							element);
 				}
-			}			
+			}
 			if (hasStoreRef && hasQueueRef) {
 				parserContext.getReaderContext().error(
 						"The 'message-store' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
@@ -86,6 +86,11 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 					parserContext.getReaderContext().error(
 							"The 'message-store' attribute is not allowed" + " when providing a 'comparator' to a priority queue.",
 							element);
+				}
+				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+				if (hasCapacity) {
+					parserContext.getReaderContext().error("The 'capacity' attribute is not allowed"
+							+ " when providing a 'message-store' to a custom MessageGroupStore.", element);
 				}
 				builder.getRawBeanDefinition().setBeanClass(QueueChannel.class);
 			}

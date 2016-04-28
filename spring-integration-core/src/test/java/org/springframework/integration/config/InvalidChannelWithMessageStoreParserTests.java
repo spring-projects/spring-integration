@@ -17,22 +17,26 @@
 package org.springframework.integration.config;
 
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Dave Syer
+ * @deprecated replaced by InvalidQueueChannelParserTests and
+ *             InvalidPriorityChannelParserTests
  */
+@Deprecated
 public class InvalidChannelWithMessageStoreParserTests {
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
 	@Test
+	@Ignore
 	public void testRefAndStoreIllegal() throws Exception {
 		exception.expect(BeanDefinitionParsingException.class);
 		exception.expectMessage(Matchers.containsString("'message-store' attribute is not allowed"));

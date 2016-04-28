@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,32 @@ import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Manuel Jordan
+ * @since 4.3
  */
-public class InvalidChannelWithCapacityAndQueueParserTests {
+public class InvalidPriorityChannelParserTests {
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 
 	@Test
-	public void testQueueCapacityAndRefIllegal() throws Exception {
-		exception.expect(BeanDefinitionParsingException.class);
-		exception.expectMessage(Matchers.containsString("'capacity' attribute is not allowed"));
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass()).close();
-	}	
-	
+	public void testMessageStoreAndCapacityIllegal() throws Exception {
+		this.exception.expect(BeanDefinitionParsingException.class);
+		this.exception.expectMessage(Matchers.containsString("'capacity' attribute is not allowed"));
+		new ClassPathXmlApplicationContext("InvalidPriorityChannelWithMessageStoreAndCapacityParserTests.xml",
+				getClass())
+				.close();
+	}
+
+	@Test
+	public void testComparatorAndMessageStoreIllegal() throws Exception {
+		this.exception.expect(BeanDefinitionParsingException.class);
+		this.exception.expectMessage(Matchers.containsString("The 'message-store' attribute is not allowed"));
+		new ClassPathXmlApplicationContext("InvalidPriorityChannelWithComparatorAndMessageStoreParserTests.xml",
+				getClass()).close();
+	}
 }

@@ -631,7 +631,7 @@ The following example demonstrates all of these:
 
 ----
 
-Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` is not allowed in that case).
+Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore` and, in this case, the namespace parser will declare a `QueueChannel` instead of a `PriorityChannel`.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC` and `MongoDB`.
 See <<channel-configuration-queuechannel>>.
