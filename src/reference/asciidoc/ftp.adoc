@@ -163,7 +163,6 @@ The _FTP Inbound Channel Adapter_ is a special listener that will connect to the
 <int-ftp:inbound-channel-adapter id="ftpInbound"
     channel="ftpChannel"
     session-factory="ftpSessionFactory"
-    charset="UTF-8"
     auto-create-local-directory="true"
     delete-remote-files="true"
     filename-pattern="*.txt"
@@ -327,6 +326,41 @@ This will work for any `ResettableFileListFilter`.
 <bean id="transactionManager"
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
+
+[[ftp-streaming]]
+=== FTP Streaming Inbound Channel Adapter
+
+The streaming inbound channel adapter was introduced in _version 4.3_.
+This adapter produces message with payloads of type `InputStream`, allowing files to be fetched without writing to the
+local file system.
+Since the session remains open, the consuming application is responsible for closing the session when the file has been
+consumed.
+The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
+Standard framework components, such as the `FileSplitter` and `StreamTransformer` will automatically close the session.
+See <<file-splitter>> and <<stream-transformer>> for more information about these components.
+
+[source, xml]
+----
+<int-ftp:inbound-streaming-channel-adapter id="ftpInbound"
+            channel="ftpChannel"
+            session-factory="sessionFactory"
+            filename-pattern="*.txt"
+            filename-regex=".*\.txt"
+            filter="filter"
+            remote-file-separator="/"
+            comparator="comparator"
+            remote-directory-expression="'foo/bar'">
+        <int:poller fixed-rate="1000" />
+</int-ftp:inbound-streaming-channel-adapter>
+----
+
+Only one of `filename-pattern`, `filename-regex` or `filter` is allowed.
+
+IMPORTANT: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
+If you do not delete the remote file (e.g. using an outbound gateway with an rm command) and you wish to prevent the
+file being processed again, you can configure an `FtpPersistentFileListFilter` in the `filter` attribute.
+If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
+If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
 
 [[ftp-outbound]]
 === FTP Outbound Channel Adapter
