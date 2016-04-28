@@ -164,11 +164,15 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			@Override
 			public void close() throws IOException {
-				Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
-				if (closeableResource != null) {
-					closeableResource.close();
+				try {
+					super.close();
 				}
-				super.close();
+				finally {
+					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+					if (closeableResource != null) {
+						closeableResource.close();
+					}
+				}
 			}
 
 		};
