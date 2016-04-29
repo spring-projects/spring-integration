@@ -1,14 +1,16 @@
 language: java
 jdk: oraclejdk8
 sudo: false
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
   directories:
-  - $HOME/.gradle
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+install: true
 services:
   - mongodb
   - rabbitmq
   - redis-server
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true NO_REFERENCE_TASK=true
-#script:
-#  - travis_wait ./gradlew build
