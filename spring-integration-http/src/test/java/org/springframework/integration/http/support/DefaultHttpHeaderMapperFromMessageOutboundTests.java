@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -432,64 +432,64 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void validateIfNoneMatch() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("If-None-Match", "1234567");
+		messageHeaders.put("If-None-Match", "\"1234567\"");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(1, headers.getIfNoneMatch().size());
-		assertEquals("1234567", headers.getIfNoneMatch().get(0));
+		assertEquals("\"1234567\"", headers.getIfNoneMatch().get(0));
 	}
 
 	@Test
 	public void validateIfNoneMatchAsDelimitedString() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("If-None-Match", "1234567, 123");
+		messageHeaders.put("If-None-Match", "\"123,4567\", \"123\"");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(2, headers.getIfNoneMatch().size());
-		assertEquals("1234567", headers.getIfNoneMatch().get(0));
-		assertEquals("123", headers.getIfNoneMatch().get(1));
+		assertEquals("\"123,4567\"", headers.getIfNoneMatch().get(0));
+		assertEquals("\"123\"", headers.getIfNoneMatch().get(1));
 	}
 
 	@Test
 	public void validateIfNoneMatchAsStringArray() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("If-None-Match", new String[] {"1234567", "123"});
+		messageHeaders.put("If-None-Match", new String[] {"\"1234567\"", "\"123\""});
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(2, headers.getIfNoneMatch().size());
-		assertEquals("1234567", headers.getIfNoneMatch().get(0));
-		assertEquals("123", headers.getIfNoneMatch().get(1));
+		assertEquals("\"1234567\"", headers.getIfNoneMatch().get(0));
+		assertEquals("\"123\"", headers.getIfNoneMatch().get(1));
 	}
 
 	@Test
 	public void validateIfNoneMatchAsCommaDelimitedString() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("If-None-Match", "1234567, 123");
+		messageHeaders.put("If-None-Match", "\"123.4567\", \"123\"");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(2, headers.getIfNoneMatch().size());
-		assertEquals("1234567", headers.getIfNoneMatch().get(0));
-		assertEquals("123", headers.getIfNoneMatch().get(1));
+		assertEquals("\"123.4567\"", headers.getIfNoneMatch().get(0));
+		assertEquals("\"123\"", headers.getIfNoneMatch().get(1));
 	}
 
 	@Test
 	public void validateIfNoneMatchAsStringCollection() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("If-None-Match", Arrays.asList("1234567", "123"));
+		messageHeaders.put("If-None-Match", Arrays.asList("\"1234567\"", "\"123\""));
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(2, headers.getIfNoneMatch().size());
-		assertEquals("1234567", headers.getIfNoneMatch().get(0));
-		assertEquals("123", headers.getIfNoneMatch().get(1));
+		assertEquals("\"1234567\"", headers.getIfNoneMatch().get(0));
+		assertEquals("\"123\"", headers.getIfNoneMatch().get(1));
 	}
 
 	// Pragma tests
