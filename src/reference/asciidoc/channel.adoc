@@ -474,6 +474,8 @@ Since a `QueueChannel` provides the capability to buffer Messages, but does so i
 To mitigate this risk, a `QueueChannel` may be backed by a persistent implementation of the `MessageGroupStore` strategy interface.
 For more details on `MessageGroupStore` and `MessageStore` see <<message-store>>.
 
+IMPORTANT: The `capacity` attribute is not allowed when the `message-store` attribute is used.
+
 When a `QueueChannel` receives a Message, it will add it to the Message Store, and when a Message is polled from a `QueueChannel`, it is removed from the Message Store.
 
 By default, a `QueueChannel` stores its Messages in an in-memory Queue and can therefore lead to the lost message scenario mentioned above.
@@ -629,7 +631,7 @@ The following example demonstrates all of these:
 
 ----
 
-Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` is not allowed in that case).
+Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore` and, in this case, the namespace parser will declare a `QueueChannel` instead of a `PriorityChannel`.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC` and `MongoDB`.
 See <<channel-configuration-queuechannel>>.
