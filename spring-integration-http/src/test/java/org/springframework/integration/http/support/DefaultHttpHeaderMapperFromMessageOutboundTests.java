@@ -429,6 +429,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	// If-None-Match
 
 	@Test
+	@Ignore
 	public void validateIfNoneMatch() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -441,6 +442,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 
 	@Test
+	@Ignore
 	public void validateIfNoneMatchAsDelimitedString() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -454,6 +456,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 
 	@Test
+	@Ignore
 	public void validateIfNoneMatchAsStringArray() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -467,6 +470,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 
 	@Test
+	@Ignore
 	public void validateIfNoneMatchAsCommaDelimitedString() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -480,6 +484,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 
 	@Test
+	@Ignore
 	public void validateIfNoneMatchAsStringCollection() throws ParseException {
 		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();

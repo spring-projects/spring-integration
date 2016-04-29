@@ -38,6 +38,7 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Manuel Jordan
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
@@ -76,7 +77,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
-			this.parseQueueCapacity(builder, queueElement);
+			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
 			String comparatorRef = queueElement.getAttribute("comparator");
 			if (StringUtils.hasText(comparatorRef)) {
 				builder.addConstructorArgReference(comparatorRef);
@@ -87,7 +88,6 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 							"The 'message-store' attribute is not allowed" + " when providing a 'comparator' to a priority queue.",
 							element);
 				}
-				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
 				if (hasCapacity) {
 					parserContext.getReaderContext().error("The 'capacity' attribute is not allowed"
 							+ " when providing a 'message-store' to a custom MessageGroupStore.", element);
