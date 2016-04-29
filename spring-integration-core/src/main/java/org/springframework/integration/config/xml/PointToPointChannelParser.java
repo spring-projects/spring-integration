@@ -65,8 +65,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 				}
 				if (hasCapacity && hasStoreRef) {
 					parserContext.getReaderContext().error(
-							"The 'capacity' attribute is not allowed"
-									+ " when providing a 'message-store' to a custom MessageGroupStore.",
+							"The 'capacity' attribute is not allowed" + 
+							" when providing a 'message-store' to a custom MessageGroupStore.",
 							element);
 				}
 			}
