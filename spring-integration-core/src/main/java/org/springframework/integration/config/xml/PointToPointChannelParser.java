@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -28,7 +30,6 @@ import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;channel&gt; element.

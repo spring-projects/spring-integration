@@ -20,10 +20,12 @@ import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
+ * @author Dave Syer
  * @author Manuel Jordan
  * @since 4.3
  */
@@ -55,4 +57,5 @@ public class InvalidQueueChannelParserTests {
 		new ClassPathXmlApplicationContext("InvalidQueueChannelWithRefAndMessageStoreParserTests.xml", getClass())
 				.close();
 	}
+
 }
