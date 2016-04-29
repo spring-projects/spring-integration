@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
 
@@ -55,7 +56,7 @@ public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		messageSourceBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		FileParserUtils.configureFilter(messageSourceBuilder, element, parserContext,
-				getSimplePatternFileListFilterClassname(), getRegexPatternFileListFilterClassname());
+				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass());
 
 		String comparator = element.getAttribute("comparator");
 		if (StringUtils.hasText(comparator)) {
@@ -68,8 +69,8 @@ public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
 
 	protected abstract Class<? extends MessageSource<?>> getMessageSourceClass();
 
-	protected abstract String getSimplePatternFileListFilterClassname();
+	protected abstract Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass();
 
-	protected abstract String getRegexPatternFileListFilterClassname();
+	protected abstract Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass();
 
 }

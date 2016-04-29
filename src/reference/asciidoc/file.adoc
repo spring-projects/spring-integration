@@ -864,3 +864,5 @@ The `FileSplitter` will also split any text-based `InputStream` into lines.
 When used in conjunction with an FTP or SFTP streaming inbound channel adapter, or an FTP or SFTP outbound gateway
 using the `stream` option to retrieve a file, starting with _version 4.3_, the splitter will automatically close
 the session supporting the stream, when the file is completely consumed.
+See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more
+information about these facilities.

@@ -18,7 +18,6 @@ package org.springframework.integration.file.remote;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
@@ -213,9 +212,8 @@ public class StreamingInboundTests {
 				return session;
 			}
 			catch (Exception e) {
-				fail("failed to mock session");
+				throw new RuntimeException("failed to mock session", e);
 			}
-			return null;
 		}
 
 	}

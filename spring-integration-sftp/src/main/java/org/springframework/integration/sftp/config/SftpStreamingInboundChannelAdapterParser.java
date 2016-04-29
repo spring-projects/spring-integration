@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.config.AbstractRemoteFileStreamingInboundChannelAdapterParser;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
@@ -42,13 +43,13 @@ public class SftpStreamingInboundChannelAdapterParser extends AbstractRemoteFile
 	}
 
 	@Override
-	protected String getSimplePatternFileListFilterClassname() {
-		return SftpSimplePatternFileListFilter.class.getName();
+	protected Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass() {
+		return SftpSimplePatternFileListFilter.class;
 	}
 
 	@Override
-	protected String getRegexPatternFileListFilterClassname() {
-		return SftpRegexPatternFileListFilter.class.getName();
+	protected Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass() {
+		return SftpRegexPatternFileListFilter.class;
 	}
 
 }

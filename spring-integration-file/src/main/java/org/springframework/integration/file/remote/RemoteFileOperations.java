@@ -153,6 +153,7 @@ public interface RemoteFileOperations<F> {
 	 * Obtain a raw Session object. User must close the session when it is no longer
 	 * needed.
 	 * @return a session.
+	 * @since 4.3
 	 */
 	Session<F> getSesssion();
 

@@ -103,12 +103,12 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		}
 
 		@Bean
-		public static SftpRemoteFileTemplate template() {
+		public SftpRemoteFileTemplate template() {
 			return new SftpRemoteFileTemplate(ftpSessionFactory());
 		}
 
 		@Bean
-		public static SessionFactory<LsEntry> ftpSessionFactory() {
+		public SessionFactory<LsEntry> ftpSessionFactory() {
 			return SftpStreamingMessageSourceTests.sessionFactory();
 		}
 

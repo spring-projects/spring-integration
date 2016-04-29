@@ -23,7 +23,8 @@
 		<poller fixed-delay="10000"/>
 	</stream-transformer>
 
-	<stream-transformer id="withCharset" charset="UTF-8"
-		input-channel="charsetChannel" output-channel="output"/>
+	<chain input-channel="charsetChannel" output-channel="output">
+		<stream-transformer id="withCharset" charset="UTF-8" />
+	</chain>
 
 </beans:beans>

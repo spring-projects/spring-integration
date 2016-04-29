@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
 
@@ -90,7 +91,7 @@ public final class FileParserUtils {
 	}
 
 	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
-			String patternClass, String regexClass) {
+			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass) {
 		String filter = element.getAttribute("filter");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String fileNameRegex = element.getAttribute("filename-regex");

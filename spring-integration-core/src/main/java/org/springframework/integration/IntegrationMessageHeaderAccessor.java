@@ -81,7 +81,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	/**
 	 * If the payload was created by a {@link Closeable} that needs to remain
-	 * open until the payoad is consumed, the resource will be added to this
+	 * open until the payload is consumed, the resource will be added to this
 	 * header. After the payload is consumed the {@link Closeable} should be
 	 * closed. Usually this must occur in an endpoint close to the message
 	 * origin in the flow, and in the same JVM.

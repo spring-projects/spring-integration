@@ -7,7 +7,16 @@
 
 	<int:syslog-to-map-transformer id="toMap" input-channel="toMapChannel" output-channel="out" />
 
+	<int:syslog-to-map-transformer id="withPollerContextLoads" input-channel="nullChannel" output-channel="nullChannel">
+		<int:poller fixed-delay="50000" />
+	</int:syslog-to-map-transformer>
+
+	<int:chain input-channel="toMapChannel" output-channel="out">
+		<int:syslog-to-map-transformer />
+	</int:chain>
+
 	<int:channel id="out">
 		<int:queue />
 	</int:channel>
+
 </beans>

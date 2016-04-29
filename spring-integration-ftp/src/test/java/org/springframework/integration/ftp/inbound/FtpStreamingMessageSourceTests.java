@@ -102,12 +102,12 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		}
 
 		@Bean
-		public static FtpRemoteFileTemplate template() {
+		public FtpRemoteFileTemplate template() {
 			return new FtpRemoteFileTemplate(ftpSessionFactory());
 		}
 
 		@Bean
-		public static SessionFactory<FTPFile> ftpSessionFactory() {
+		public SessionFactory<FTPFile> ftpSessionFactory() {
 			return FtpStreamingMessageSourceTests.sessionFactory();
 		}
 

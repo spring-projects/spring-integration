@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.config;
 
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.config.AbstractRemoteFileStreamingInboundChannelAdapterParser;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
@@ -42,13 +43,13 @@ public class FtpStreamingInboundChannelAdapterParser extends AbstractRemoteFileS
 	}
 
 	@Override
-	protected String getSimplePatternFileListFilterClassname() {
-		return FtpSimplePatternFileListFilter.class.getName();
+	protected Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass() {
+		return FtpSimplePatternFileListFilter.class;
 	}
 
 	@Override
-	protected String getRegexPatternFileListFilterClassname() {
-		return FtpRegexPatternFileListFilter.class.getName();
+	protected Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass() {
+		return FtpRegexPatternFileListFilter.class;
 	}
 
 }

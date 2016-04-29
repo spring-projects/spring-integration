@@ -27,6 +27,12 @@ The `PersistentMessageGroup`, - lazy-load proxy, - implementation is provided fo
 which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (defaults).
 See <<message-store>> for more information.
 
+==== FTP/SFTP Streaming Inbound Channel Adapters
+
+New inbound channel adapters are provided that return an `InputStream` for each file allowing you to retrieve remote
+files without writing them to the local file system
+See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+
 ==== Stream Transformer
 
 A new `StreamTransformer` is provided to transform an `InputStream` payload to either a `byte[]` or `String`.
@@ -188,11 +194,6 @@ The SFTP outbound gateway (for `put` and `mput` commands) and the SFTP outbound 
 `chmod` attribute to change the remote file permissions after uploading.
 See <<sftp-outbound>> and <<sftp-outbound-gateway>> for more information.
 
-===== Streaming Inbound Channel Adapter
-
-A new inbound channel adapter is provided that returns an `InputStream` for each file.
-See <<sftp-streaming>> for more information.
-
 ==== FTP Changes
 
 ===== Session Changes
@@ -202,11 +203,6 @@ underlying FTP Client.
 With that the `FtpOutboundGateway` can now be configured without `remoteDirectory` expression.
 And the `<int-ftp:inbound-channel-adapter>` can be configured without `remote-directory`/`remote-directory-expression`.
 See <<ftp>> for more information.
-
-===== Streaming Inbound Channel Adapter
-
-A new inbound channel adapter is provided that returns an `InputStream` for each file.
-See <<ftp-streaming>> or more information.
 
 ==== Router Changes
 

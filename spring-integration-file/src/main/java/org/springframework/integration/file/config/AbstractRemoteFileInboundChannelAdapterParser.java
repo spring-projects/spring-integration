@@ -25,6 +25,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.remote.synchronizer.InboundFileSynchronizer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,7 +43,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 	@Override
 	protected final BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				this.getInboundFileSynchronizerClassname());
+				this.getInboundFileSynchronizerClass());
 
 		synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 
@@ -58,7 +60,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
 		FileParserUtils.configureFilter(synchronizerBuilder, element, parserContext,
-				getSimplePatternFileListFilterClassname(), getRegexPatternFileListFilterClassname());
+				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass());
 
 		// build the MessageSource
 		BeanDefinitionBuilder messageSourceBuilder =
@@ -85,10 +87,10 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 	protected abstract String getMessageSourceClassname();
 
-	protected abstract String getInboundFileSynchronizerClassname();
+	protected abstract Class<? extends InboundFileSynchronizer> getInboundFileSynchronizerClass();
 
-	protected abstract String getSimplePatternFileListFilterClassname();
+	protected abstract Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass();
 
-	protected abstract String getRegexPatternFileListFilterClassname();
+	protected abstract Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass();
 
 }

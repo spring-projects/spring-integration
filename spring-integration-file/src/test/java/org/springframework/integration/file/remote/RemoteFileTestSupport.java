@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
  * Abstract base class for tests requiring remote file servers, e.g. (S)FTP.
  *
  * @author Gary Russell
+ * @since 4.3
  *
  */
 public abstract class RemoteFileTestSupport {

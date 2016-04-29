@@ -19,6 +19,8 @@ package org.springframework.integration.config.xml;
 import org.springframework.integration.transformer.StreamTransformer;
 
 /**
+ * Parser for {@code <stream-transformer/>} element.
+ *
  * @author Gary Russell
  * @since 4.3
  *
