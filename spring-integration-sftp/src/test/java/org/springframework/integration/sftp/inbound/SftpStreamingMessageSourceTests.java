@@ -34,6 +34,7 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
@@ -93,6 +94,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		public MessageSource<InputStream> ftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
 			messageSource.setRemoteDirectory("sftpSource/");
+			messageSource.setFilter(new AcceptOnceFileListFilter<LsEntry>());
 			return messageSource;
 		}
 
