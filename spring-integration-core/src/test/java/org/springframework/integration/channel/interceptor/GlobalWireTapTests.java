@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -47,7 +48,7 @@ public class GlobalWireTapTests {
 
 	@Autowired
 	@Qualifier("channel")
-	MessageChannel channel;
+	DirectChannel channel;
 
 	@Autowired
 	@Qualifier("random-channel")
@@ -74,8 +75,8 @@ public class GlobalWireTapTests {
 		Message<?> wireTapMessage = this.wiretapSingle.receive(100);
 		assertNotNull(wireTapMessage);
 
-		// There should be three messages on this channel.
-		// One for 'channel', one for 'output', and one for 'wiretapSingle'.
+		// There should be 5 messages on this channel:
+		// 'channel', 'output', 'wiretapSingle', and too for 'unnamedGlobalWireTaps'.
 		wireTapMessage = this.wiretapAll.receive(100);
 		int msgCount = 0;
 		while (wireTapMessage != null) {
@@ -84,9 +85,11 @@ public class GlobalWireTapTests {
 			wireTapMessage = this.wiretapAll.receive(100);
 		}
 
-		assertEquals(3, msgCount);
+		assertEquals(5, msgCount);
 
 		assertNull(this.wiretapAll2.receive(1));
+
+		assertEquals(4, this.channel.getChannelInterceptors().size());
 	}
 
 	@Test

@@ -27,6 +27,7 @@
 	<channel id="random-channel"/>
 
 	<bridge input-channel="channel" output-channel="output"/>
+
 	<bridge input-channel="random-channel" output-channel="output"/>
 
 	<!-- This wiretap targets a single channel -->
@@ -42,5 +43,10 @@
 	<!-- This wiretap targets all channels -->
 	<wire-tap id="wiretap-all-channels" channel="wiretap-all"/>
 
+	<publish-subscribe-channel id="unnamedGlobalWireTaps"/>
+
+	<wire-tap channel="unnamedGlobalWireTaps" pattern="channel"/>
+
+	<wire-tap channel="unnamedGlobalWireTaps" pattern="channel"/>
 
 </beans:beans>
