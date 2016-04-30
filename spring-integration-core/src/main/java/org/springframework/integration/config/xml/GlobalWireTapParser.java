@@ -22,8 +22,10 @@ import org.springframework.beans.factory.xml.ParserContext;
 
 /**
  * Parser for the top level 'wire-tap' element
+ *
  * @author David Turanski
  * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -38,7 +40,14 @@ public class GlobalWireTapParser extends GlobalChannelInterceptorParser {
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
-		return super.resolveId(element, definition, parserContext) + ".globalChannelInterceptor";
+		RuntimeBeanReference wireTapBean =
+				(RuntimeBeanReference) definition.getConstructorArgumentValues()
+						.getIndexedArgumentValues()
+						.values()
+						.iterator()
+						.next()
+						.getValue();
+		return wireTapBean.getBeanName() + ".globalChannelInterceptor";
 	}
 
 }
