@@ -36,11 +36,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.rometools.fetcher.FeedFetcher;
-import com.rometools.fetcher.FetcherEvent;
-import com.rometools.fetcher.FetcherListener;
-import com.rometools.fetcher.impl.HashMapFeedInfoCache;
-import com.rometools.fetcher.impl.HttpURLFeedFetcher;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 
@@ -60,7 +55,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final URL feedUrl;
 
-	private final FeedFetcher feedFetcher;
+	private final com.rometools.fetcher.FeedFetcher feedFetcher;
 
 	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
 
@@ -82,12 +77,14 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	/**
 	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
-	 * {@link FeedFetcher} via the alternate constructor.
+	 * {@link com.rometools.fetcher.FeedFetcher} via the alternate constructor.
 	 * @param feedUrl The URL.
 	 * @param metadataKey The metadata key.
 	 */
 	public FeedEntryMessageSource(URL feedUrl, String metadataKey) {
-		this(feedUrl, metadataKey, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
+		this(feedUrl, metadataKey,
+				new com.rometools.fetcher.impl.HttpURLFeedFetcher(
+						com.rometools.fetcher.impl.HashMapFeedInfoCache.getInstance()));
 	}
 
 	/**
@@ -96,7 +93,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	 * @param metadataKey The metadata key.
 	 * @param feedFetcher The feed fetcher.
 	 */
-	public FeedEntryMessageSource(URL feedUrl, String metadataKey, FeedFetcher feedFetcher) {
+	public FeedEntryMessageSource(URL feedUrl, String metadataKey, com.rometools.fetcher.FeedFetcher feedFetcher) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
 		Assert.notNull(metadataKey, "metadataKey must not be null");
 		Assert.notNull(feedFetcher, "feedFetcher must not be null");
@@ -243,20 +240,17 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	}
 
 
-	private class FeedQueueUpdatingFetcherListener implements FetcherListener {
+	private class FeedQueueUpdatingFetcherListener implements com.rometools.fetcher.FetcherListener {
 
-		/**
-		 * @see FetcherListener#fetcherEvent(FetcherEvent)
-		 */
 		@Override
-		public void fetcherEvent(final FetcherEvent event) {
+		public void fetcherEvent(final com.rometools.fetcher.FetcherEvent event) {
 			String eventType = event.getEventType();
-			if (FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {
+			if (com.rometools.fetcher.FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
 				}
 			}
-			else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
+			else if (com.rometools.fetcher.FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
 				}

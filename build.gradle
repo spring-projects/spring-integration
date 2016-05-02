@@ -96,7 +96,7 @@ subprojects { subproject ->
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.4'
-		curatorVersion = '3.1.0'
+		curatorVersion = '2.10.0'
 		derbyVersion = '10.11.1.1'
 		eclipseLinkVersion = '2.5.2'
 		ftpServerVersion = '1.0.6'
@@ -146,7 +146,6 @@ subprojects { subproject ->
 		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
-		zookeeperVersion = '3.4.8'
 	}
 
 	eclipse {
@@ -713,15 +712,10 @@ project('spring-integration-zookeeper') {
 	description = 'Spring Integration Zookeeper Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
-			exclude group: 'io.netty', module: 'netty'
-			exclude group: 'junit', module: 'junit'
-			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-			exclude group: 'log4j', module: 'log4j'
-		}
-//		compile "org.springframework.cloud:spring-cloud-cluster-zookeeper:$springCloudClusterVersion"
+
 		compile("org.apache.curator:curator-recipes:$curatorVersion") {
-			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+			exclude group: 'io.netty', module: 'netty'
+			exclude group: 'log4j', module: 'log4j'
 		}
 
 		testCompile "org.apache.curator:curator-test:$curatorVersion"
