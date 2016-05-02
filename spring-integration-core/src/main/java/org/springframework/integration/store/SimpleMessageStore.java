@@ -128,6 +128,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		this.groupCapacity = groupCapacity;
 		this.lockRegistry = lockRegistry;
 		this.upperBoundTimeout = upperBoundTimeout;
+		disableLazyLoadMessageGroups();
+	}
+
+	private void disableLazyLoadMessageGroups() {
+		super.setLazyLoadMessageGroups(false);
 	}
 
 	/**
@@ -159,6 +164,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		Assert.isTrue(!(this.isUsed), "Cannot change the lock registry after the store has been used");
 		this.lockRegistry = lockRegistry;
+	}
+
+	@Override
+	public void setLazyLoadMessageGroups(boolean lazyLoadMessageGroups) {
+		throw new UnsupportedOperationException("The lazy-load isn't supported for in-memory 'SimpleMessageStore'");
 	}
 
 	@Override

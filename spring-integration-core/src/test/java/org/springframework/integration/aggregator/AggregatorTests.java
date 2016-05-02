@@ -27,6 +27,10 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
@@ -42,6 +46,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -58,6 +63,7 @@ import org.springframework.util.StopWatch;
  * @author Marius Bogoevici
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class AggregatorTests {
 
@@ -67,7 +73,7 @@ public class AggregatorTests {
 
 	private final SimpleMessageStore store = new SimpleMessageStore(50);
 
-	List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<MessageGroupExpiredEvent>();
+	private final List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<MessageGroupExpiredEvent>();
 
 	@Before
 	public void configureAggregator() {
@@ -92,7 +98,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	public void testAggPerf() {
+	public void testAggPerf() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(new CorrelationStrategy() {
 
@@ -100,20 +106,36 @@ public class AggregatorTests {
 			public Object getCorrelationKey(Message<?> message) {
 				return "foo";
 			}
+
 		});
 		handler.setReleaseStrategy(new MessageCountReleaseStrategy(60000));
 		handler.setExpireGroupsUponCompletion(true);
 		handler.setSendPartialResultOnExpiry(true);
 		DirectChannel outputChannel = new DirectChannel();
 		handler.setOutputChannel(outputChannel);
+
+		final CompletableFuture<Collection<?>> resultFuture = new CompletableFuture<>();
 		outputChannel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				logger.warn("Received " + ((Collection<?>) message.getPayload()).size());
+				Collection<?> payload = (Collection<?>) message.getPayload();
+				logger.warn("Received " + payload.size());
+				resultFuture.complete(payload);
 			}
 
 		});
+
+		SimpleMessageStore store = new SimpleMessageStore();
+
+		SimpleMessageGroupFactory messageGroupFactory =
+				new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.BLOCKING_QUEUE);
+
+		store.setMessageGroupFactory(messageGroupFactory);
+
+		handler.setMessageStore(store);
+
+
 		Message<?> message = new GenericMessage<String>("foo");
 		StopWatch stopwatch = new StopWatch();
 		stopwatch.start();
@@ -129,10 +151,14 @@ public class AggregatorTests {
 		stopwatch.stop();
 		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
 				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+
+		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
+		assertNotNull(result);
+		assertEquals(60000, result.size());
 	}
 
 	@Test
-	public void testCustomAggPerf() {
+	public void testCustomAggPerf() throws InterruptedException, ExecutionException, TimeoutException {
 		class CustomHandler extends AbstractMessageHandler {
 
 			// custom aggregator, only handles a single correlation
@@ -172,11 +198,15 @@ public class AggregatorTests {
 
 		DirectChannel outputChannel = new DirectChannel();
 		CustomHandler handler = new CustomHandler(outputChannel);
+
+		final CompletableFuture<Collection<?>> resultFuture = new CompletableFuture<>();
 		outputChannel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				logger.warn("Received " + ((Collection<?>) message.getPayload()).size());
+				Collection<?> payload = (Collection<?>) message.getPayload();
+				logger.warn("Received " + payload.size());
+				resultFuture.complete(payload);
 			}
 
 		});
@@ -195,6 +225,10 @@ public class AggregatorTests {
 		stopwatch.stop();
 		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
 				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+
+		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
+		assertNotNull(result);
+		assertEquals(60000, result.size());
 	}
 
 	@Test

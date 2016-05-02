@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,7 +56,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
@@ -108,7 +106,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	@Value("#{server.serverContext}")
@@ -131,12 +129,6 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	public StompIntegrationTests() {
 		super("org.springframework", "org.springframework.integration");
-	}
-
-	@Before
-	public void setup() {
-		this.webSocketInputChannel.clear();
-		this.webSocketEvents.clear();
 	}
 
 
@@ -331,7 +323,6 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
 		stompHeaderAccessor.setDestination(destination);
 		Message<byte[]> message = MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.toMessageHeaders());
-		Object sessions = TestUtils.getPropertyValue(subscriptionRegistry, "subscriptionRegistry.sessions");
 		MultiValueMap<String, String> subscriptions = subscriptionRegistry.findSubscriptions(message);
 		return !subscriptions.isEmpty();
 	}

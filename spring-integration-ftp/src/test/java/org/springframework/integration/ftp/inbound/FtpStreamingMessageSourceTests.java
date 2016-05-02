@@ -35,10 +35,11 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
@@ -49,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.3
  *
  */
@@ -68,7 +70,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source2"));
-		assertNull(this.data.receive(0));
+		assertNull(this.data.receive(10));
 	}
 
 	@Configuration
@@ -93,7 +95,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(), null);
 			messageSource.setRemoteDirectory("ftpSource/");
-			messageSource.setFilter(new AcceptOnceFileListFilter<FTPFile>());
+			messageSource.setFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
 			return messageSource;
 		}
 
