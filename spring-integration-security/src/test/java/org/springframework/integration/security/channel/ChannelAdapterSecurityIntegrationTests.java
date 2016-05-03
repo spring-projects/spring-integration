@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class ChannelAdapterSecurityIntegrationTests {
 		SecurityContextHolder.clearContext();
 
 		this.queueChannel.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = this.errorChannel.receive(1000);
+		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertThat(payload, instanceOf(MessageHandlingException.class));
