@@ -273,7 +273,13 @@ public class ConnectionEventTests {
 	}
 
 	private void testServerExceptionGuts(int port, AbstractServerConnectionFactory factory) throws Exception {
-		ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
+		ServerSocket ss = null;
+		try {
+			ss = ServerSocketFactory.getDefault().createServerSocket(port);
+		}
+		catch (Exception e) {
+			return; // skip this test, someone grabbed the port
+		}
 		final AtomicReference<TcpConnectionServerExceptionEvent> theEvent =
 				new AtomicReference<TcpConnectionServerExceptionEvent>();
 		final CountDownLatch latch = new CountDownLatch(1);
