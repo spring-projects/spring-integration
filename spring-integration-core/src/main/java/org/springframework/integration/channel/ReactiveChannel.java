@@ -25,11 +25,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
-import reactor.core.flow.Cancellation;
 import reactor.core.publisher.EmitterProcessor;
-import reactor.core.scheduler.Scheduler;
 import reactor.core.subscriber.BaseSubscriber;
 import reactor.core.subscriber.SignalEmitter;
+import reactor.core.util.PlatformDependent;
 
 /**
  * @author Artem Bilan
@@ -42,7 +41,7 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 	private final SignalEmitter<Message<?>> emitter;
 
 	public ReactiveChannel() {
-		this(EmitterProcessor.async(SyncScheduler.INSTANCE));
+		this(EmitterProcessor.create(PlatformDependent.SMALL_BUFFER_SIZE, Integer.MAX_VALUE, false));
 	}
 
 	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
@@ -81,39 +80,6 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.processor.subscribe(subscriber);
-	}
-
-
-	private static final class SyncScheduler implements Scheduler {
-
-		private final static Scheduler INSTANCE = new SyncScheduler();
-
-		private final Worker worker = new Worker() {
-
-			@Override
-			public Cancellation schedule(Runnable task) {
-				task.run();
-				return () -> {
-				};
-			}
-
-			@Override
-			public void shutdown() {
-
-			}
-
-		};
-
-		@Override
-		public Cancellation schedule(Runnable task) {
-			return this.worker.schedule(task);
-		}
-
-		@Override
-		public Worker createWorker() {
-			return this.worker;
-		}
-
 	}
 
 }

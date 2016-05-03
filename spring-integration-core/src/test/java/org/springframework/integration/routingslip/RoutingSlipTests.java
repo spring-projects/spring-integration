@@ -60,7 +60,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.GenericXmlContextLoader;
 
-import reactor.rx.Stream;
+import reactor.core.publisher.Flux;
+
 
 /**
  * @author Artem Bilan
@@ -145,7 +146,7 @@ public class RoutingSlipTests {
 
 	public static class TestRoutingSlipRoutePojo {
 
-		final String[] channels = {"channel2", "channel3"};
+		final String[] channels = { "channel2", "channel3" };
 
 		private int i = 0;
 
@@ -189,13 +190,15 @@ public class RoutingSlipTests {
 		public RoutingSlipRouteStrategy routeStrategy() {
 			return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
 					? new FixedSubscriberChannel(m ->
-					Stream.just((String) m.getPayload())
+					Flux.just((String) m.getPayload())
 							.map(String::toUpperCase)
-							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)))
+							.subscribe(v -> messagingTemplate()
+									.convertAndSend(resultsChannel(), v)))
 					: new FixedSubscriberChannel(m ->
-					Stream.just((Integer) m.getPayload())
+					Flux.just((Integer) m.getPayload())
 							.map(v -> v * 2)
-							.consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
+							.subscribe(v -> messagingTemplate()
+									.convertAndSend(resultsChannel(), v)));
 		}
 
 		@Bean

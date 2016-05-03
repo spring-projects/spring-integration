@@ -127,7 +127,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.MultiValueMap;
 
-import reactor.rx.Stream;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
@@ -617,11 +617,11 @@ public class EnableIntegrationTests {
 		final AtomicReference<List<Integer>> ref = new AtomicReference<List<Integer>>();
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
 
-		Stream.just("1", "2", "3", "4", "5")
+		Flux.just("1", "2", "3", "4", "5")
 				.map(Integer::parseInt)
 				.flatMap(this.testGateway::multiply)
 				.toList()
-				.doOnSuccess(integers -> {
+				.subscribe(integers -> {
 					ref.set(integers);
 					consumeLatch.countDown();
 				});
@@ -1349,7 +1349,7 @@ public class EnableIntegrationTests {
 	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
-			defaultRequestTimeout="${default.request.timeout:12300}", defaultReplyTimeout="#{13400}",
+			defaultRequestTimeout = "${default.request.timeout:12300}", defaultReplyTimeout = "#{13400}",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public @interface TestMessagingGateway {
 
