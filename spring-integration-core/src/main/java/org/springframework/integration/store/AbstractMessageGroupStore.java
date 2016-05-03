@@ -62,8 +62,12 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private boolean lazyLoadMessageGroups = true;
 
-	public AbstractMessageGroupStore() {
+	protected AbstractMessageGroupStore() {
 		super();
+	}
+
+	protected AbstractMessageGroupStore(boolean lazyLoadMessageGroups) {
+		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
 	}
 
 	@Override

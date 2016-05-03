@@ -121,18 +121,14 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	 * @since 4.3
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, long upperBoundTimeout,
-	                          LockRegistry lockRegistry) {
+			LockRegistry lockRegistry) {
+		super(false);
 		Assert.notNull(lockRegistry, "The LockRegistry cannot be null");
 		this.individualUpperBound = new UpperBound(individualCapacity);
 		this.individualCapacity = individualCapacity;
 		this.groupCapacity = groupCapacity;
 		this.lockRegistry = lockRegistry;
 		this.upperBoundTimeout = upperBoundTimeout;
-		disableLazyLoadMessageGroups();
-	}
-
-	private void disableLazyLoadMessageGroups() {
-		super.setLazyLoadMessageGroups(false);
 	}
 
 	/**
