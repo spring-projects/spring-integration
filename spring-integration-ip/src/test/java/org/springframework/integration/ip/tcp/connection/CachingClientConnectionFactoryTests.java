@@ -86,7 +86,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -570,8 +569,7 @@ public class CachingClientConnectionFactoryTests {
 
 	@Test
 	public void testCachedFailoverRealClose() throws Exception {
-		int port1 = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
+		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(new TcpListener() {
@@ -584,8 +582,8 @@ public class CachingClientConnectionFactoryTests {
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
-		int port2 = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
+		int port1 = server1.getPort();
+		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
@@ -598,6 +596,7 @@ public class CachingClientConnectionFactoryTests {
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
+		int port2 = server2.getPort();
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
@@ -657,8 +656,7 @@ public class CachingClientConnectionFactoryTests {
 
 	@Test
 	public void testCachedFailoverRealBadHost() throws Exception {
-		int port1 = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
+		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
 		server1.registerListener(new TcpListener() {
@@ -671,8 +669,8 @@ public class CachingClientConnectionFactoryTests {
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
-		int port2 = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
+		int port1 = server1.getPort();
+		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		server2.registerListener(new TcpListener() {
@@ -685,6 +683,7 @@ public class CachingClientConnectionFactoryTests {
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
+		int port2 = server2.getPort();
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
@@ -734,8 +733,7 @@ public class CachingClientConnectionFactoryTests {
 
 	@Test //INT-3650
 	public void testRealConnection() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(port);
+		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(0);
 		final CountDownLatch latch1 = new CountDownLatch(2);
 		final CountDownLatch latch2 = new CountDownLatch(102);
 		final List<String> connectionIds = new ArrayList<String>();
@@ -751,11 +749,8 @@ public class CachingClientConnectionFactoryTests {
 
 		});
 		in.start();
-		int n = 0;
-		while (n++ < 100 && !in.isListening()) {
-			Thread.sleep(100);
-		}
-		assertTrue(in.isListening());
+		TestingUtilities.waitListening(in, null);
+		int port = in.getPort();
 		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
 		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 1);
 		cache.setSingleUse(false);
@@ -783,8 +778,7 @@ public class CachingClientConnectionFactoryTests {
 	@SuppressWarnings("unchecked")
 	@Test //INT-3722
 	public void testGatewayRelease() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort();
-		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(port);
+		TcpNetServerConnectionFactory in = new TcpNetServerConnectionFactory(0);
 		in.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(in);
@@ -811,11 +805,8 @@ public class CachingClientConnectionFactoryTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.start();
-		int n = 0;
-		while (n++ < 100 && !in.isListening()) {
-			Thread.sleep(100);
-		}
-		assertTrue(in.isListening());
+		TestingUtilities.waitListening(in, null);
+		int port = in.getPort();
 		TcpNetClientConnectionFactory out = new TcpNetClientConnectionFactory("localhost", port);
 		out.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		CachingClientConnectionFactory cache = new CachingClientConnectionFactory(out, 2);
