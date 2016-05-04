@@ -460,7 +460,7 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:annotation>
 					<xsd:documentation>
 					Extension used when uploading files. We change it after we know it's uploaded.
-					This attribute is mutualy exclusive with 'append' since the append is done to the
+					This attribute is mutually exclusive with 'append' since the append is done to the
 					actual file and not its temporary counterpart. The default value of this attribute (i.e., .writing)
 					is ignored when 'append' is set to true.
 					</xsd:documentation>
@@ -487,19 +487,19 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:attribute>
         <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[Specify whether to automatically create the destination directory if it does not yet exist when this
+                <xsd:documentation>
+					Specify whether to automatically create the destination directory if it does not yet exist when this
                     adapter is being initialized. The default value is 'true'. If set to 'false' and the directory does
-                    not exist upon initialization, an Exception will be thrown.]]>
+                    not exist upon initialization, an Exception will be thrown.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="charset" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    <![CDATA[Set the charset name to use when writing a File from a String-based
+                    Set the charset name to use when writing a File from a String-based
                     Message payload, e.g. charset="UTF-8". If not set, the default charset of this
                     Java virtual machine is used.
-                    ]]>
                 </xsd:documentation>
             </xsd:annotation>
 		</xsd:attribute>
@@ -600,7 +600,9 @@ Only files matching this regular expression will be picked up by this adapter.
     <xsd:complexType name="transformerType">
         <xsd:attribute name="id" type="xsd:string">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (EventDrivenConsumer)]]></xsd:documentation>
+                <xsd:documentation>
+					Identifies the underlying Spring bean definition (EventDrivenConsumer)
+				</xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="input-channel" type="xsd:string">
@@ -777,7 +779,7 @@ Only files matching this regular expression will be picked up by this adapter.
 						to the existing file if such file exists, otherwise the
 						new file will be created as usual but, once created,
 						subsequent data will be appended to it. This attribute
-						is mutualy exclusive with the use of a temporary file,
+						is mutually exclusive with the use of a temporary file,
 						since append is done to the actual file and not its
 						temporary counterpart.
 
@@ -885,7 +887,7 @@ Only files matching this regular expression will be picked up by this adapter.
 					will compute file name of
 					the remote file (e.g., assuming payload
 					is java.io.File
-					"payload.getName() + '.transfered'");
+					"payload.getName() + '.transferred'");
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -913,7 +915,7 @@ Only files matching this regular expression will be picked up by this adapter.
 					to the existing file if such file exists, otherwise the
 					new file will be created as usual but, once created, the
 					subsequent data will be appended to it. This attribute
-					is mutualy exclusive with the use of a temporary file,
+					is mutually exclusive with the use of a temporary file,
 					since append is done to the actual file and not its
 					temporary counterpart. The file is closed after each write.
 
