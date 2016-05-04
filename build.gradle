@@ -176,7 +176,7 @@ subprojects { subproject ->
 	}
 
 	// enable all compiler warnings; individual projects may customize further
-	ext.xLintArg = '-Xlint:all,-options'
+	ext.xLintArg = '-Xlint:all,-options,-processing'
 	[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
 	task checkTestConfigs {
@@ -475,9 +475,6 @@ project('spring-integration-jpa') {
 		testRuntime "org.eclipse.persistence:org.eclipse.persistence.jpa:$eclipseLinkVersion"
 		testRuntime "org.springframework:spring-instrument:$springVersion"
 	}
-
-	//Suppress openjpa annotation processor warnings
-	compileTestJava.options.compilerArgs = ["${xLintArg},-processing"]
 
 	tasks.withType(Test).matching {it.name ==~ /(springIo.+)|(test)|(testAll)/}.all {
 		jvmArgs classpath.files.findAll {
