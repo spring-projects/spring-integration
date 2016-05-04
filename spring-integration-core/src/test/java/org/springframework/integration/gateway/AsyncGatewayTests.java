@@ -57,10 +57,6 @@ import reactor.core.publisher.Mono;
  */
 public class AsyncGatewayTests {
 
-
-	// TODO: changed from 0 because of recurrent failure: is this right?
-	private final long safety = 100;
-
 	@Test
 	public void futureWithMessageReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
@@ -73,10 +69,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
-		long start = System.currentTimeMillis();
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 200);
 		assertNotNull(result);
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
@@ -210,10 +203,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<String> f = service.returnString("foo");
-		long start = System.currentTimeMillis();
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 200 - safety);
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
@@ -230,10 +220,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<?> f = service.returnSomething("foo");
-		long start = System.currentTimeMillis();
 		Object result = f.get(10000, TimeUnit.MILLISECONDS);
-		long elapsed = System.currentTimeMillis() - start;
-		assertTrue(elapsed >= 200 - safety);
 		assertTrue(result instanceof String);
 		assertEquals("foobar", result);
 	}
@@ -344,7 +331,7 @@ public class AsyncGatewayTests {
 	}
 
 
-	interface TestEchoService {
+	private interface TestEchoService {
 
 		Future<String> returnString(String s);
 

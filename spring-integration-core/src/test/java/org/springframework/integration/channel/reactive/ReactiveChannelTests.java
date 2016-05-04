@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.channel.reactive;
 
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,10 +58,11 @@ public class ReactiveChannelTests {
 			this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
 		}
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 9; i++) {
 			Message<?> receive = replyChannel.receive(10000);
 			assertNotNull(receive);
-			System.out.println("Receive: " + receive.getPayload());
+			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
+			System .out.println("Receive: " + receive.getPayload());
 		}
 	}
 
@@ -74,7 +77,10 @@ public class ReactiveChannelTests {
 
 		@ServiceActivator(inputChannel = "reactiveChannel")
 		public String handle(int payload) {
-			System.out.println("CurrentThread: " + Thread.currentThread() + " for payload: " + payload);
+			if (payload == 5) {
+				throw new IllegalStateException("intentional");
+			}
+			System .out.println("CurrentThread: " + Thread.currentThread() + " for payload: " + payload);
 			return "" + payload;
 		}
 

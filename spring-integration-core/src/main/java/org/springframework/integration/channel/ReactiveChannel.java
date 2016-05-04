@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,10 +25,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.DirectProcessor;
 import reactor.core.subscriber.BaseSubscriber;
-import reactor.core.subscriber.SignalEmitter;
-import reactor.core.util.PlatformDependent;
+import reactor.core.subscriber.SubmissionEmitter;
 
 /**
  * @author Artem Bilan
@@ -38,19 +37,19 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 
 	private final Processor<Message<?>, Message<?>> processor;
 
-	private final SignalEmitter<Message<?>> emitter;
+	private final SubmissionEmitter<Message<?>> emitter;
 
 	public ReactiveChannel() {
-		this(EmitterProcessor.create(PlatformDependent.SMALL_BUFFER_SIZE, Integer.MAX_VALUE, false));
+		this(DirectProcessor.create());
 	}
 
 	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
-		this.emitter = SignalEmitter.create(processor);
+		this.emitter = SubmissionEmitter.create(processor);
 	}
 
-	Subscriber<Message<?>> asSubscriber() {
+	public Subscriber<Message<?>> asSubscriber() {
 		return new BaseSubscriber<Message<?>>() {
 
 			@Override

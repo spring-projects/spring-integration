@@ -295,7 +295,6 @@ public class ConsumerEndpointFactoryBean
 					subscriber = (Subscriber<Message<?>>) this.handler;
 				}
 				else {
-					//TODO errorConsumer, completeConsumer
 					subscriber = Subscribers.consumer(this.handler::handleMessage);
 				}
 				this.endpoint = new ReactiveEndpoint(channel, subscriber);

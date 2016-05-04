@@ -16,6 +16,9 @@
 
 package org.springframework.integration.handler;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
 import org.springframework.core.Ordered;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
@@ -34,6 +37,8 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
+import reactor.core.util.Exceptions;
+
 /**
  * Base class for MessageHandler implementations that provides basic validation
  * and error handling capabilities. Asserts that the incoming Message is not
@@ -46,7 +51,8 @@ import org.springframework.util.Assert;
  */
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
-		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable {
+		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable,
+		Subscriber<Message<?>> {
 
 	private volatile boolean shouldTrack = false;
 
@@ -118,7 +124,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		boolean countsEnabled = this.countsEnabled;
 		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
 		try {
-			if (message != null && this.shouldTrack) {
+			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
 			if (countsEnabled) {
@@ -138,6 +144,31 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			}
 			throw new MessageHandlingException(message, "error occurred in message handler [" + this + "]", e);
 		}
+	}
+
+	@Override
+	public void onSubscribe(Subscription subscription) {
+		Assert.notNull(subscription, "'subscription' must not be null");
+		subscription.request(Long.MAX_VALUE);
+	}
+
+	@Override
+	public void onNext(Message<?> message) {
+		handleMessage(message);
+	}
+
+	@Override
+	public void onError(Throwable throwable) {
+		Exceptions.throwIfFatal(throwable);
+		if (throwable instanceof MessagingException) {
+			throw (MessagingException) throwable;
+		}
+		throw new MessagingException("Error occurred in message handler [" + this + "]", throwable);
+	}
+
+	@Override
+	public void onComplete() {
+
 	}
 
 	protected abstract void handleMessageInternal(Message<?> message) throws Exception;

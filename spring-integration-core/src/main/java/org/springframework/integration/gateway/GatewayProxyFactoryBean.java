@@ -29,7 +29,6 @@ import java.util.concurrent.Future;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.reactivestreams.Publisher;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -46,7 +45,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.context.IntegrationProperties;
@@ -84,11 +82,6 @@ import reactor.core.publisher.Mono;
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
-
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-
-	private static final boolean reactorPresent = ClassUtils.isPresent("reactor.rx.Promise",
-			GatewayProxyFactoryBean.class.getClassLoader());
 
 	private volatile Class<?> serviceInterface;
 
@@ -400,7 +393,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				}
 			}
 		}
-		if (reactorPresent && Mono.class.isAssignableFrom(returnType)) {
+		if (Mono.class.isAssignableFrom(returnType)) {
 			return Mono.fromCallable(new AsyncInvocationTask(invocation));
 		}
 		return this.doInvoke(invocation, true);
@@ -530,7 +523,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					}
 					headerExpressions.put(name, hasValue
 							? new LiteralExpression(value)
-							: PARSER.parseExpression(expression));
+							: EXPRESSION_PARSER.parseExpression(expression));
 				}
 			}
 
@@ -639,7 +632,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
-		if (reactorPresent && Publisher.class.isAssignableFrom(expectedReturnType)) {
+		if (Mono.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
 		if (this.getConversionService() != null) {
@@ -653,7 +646,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private static boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
 		if (!runningOnCallerThread &&
 				(Future.class.isAssignableFrom(method.getReturnType())
-				|| (reactorPresent && Publisher.class.isAssignableFrom(method.getReturnType())))) {
+				|| Mono.class.isAssignableFrom(method.getReturnType()))) {
 			Type returnType = method.getGenericReturnType();
 			if (returnType instanceof ParameterizedType) {
 				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
