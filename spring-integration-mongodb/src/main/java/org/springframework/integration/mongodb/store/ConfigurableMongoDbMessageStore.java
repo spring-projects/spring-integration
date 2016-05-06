@@ -177,7 +177,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Query query = groupOrderQuery(groupId);
 		MessageDocument messageDocument = mongoTemplate.findOne(query, MessageDocument.class, collectionName);
 
-		long createdTime = 0;
+		long createdTime = System.currentTimeMillis();
 		int lastReleasedSequence = 0;
 		boolean complete = false;
 
@@ -191,8 +191,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		document.setGroupId(groupId);
 		document.setComplete(complete);
 		document.setLastReleasedSequence(lastReleasedSequence);
-		document.setCreatedTime(createdTime == 0 ? System.currentTimeMillis() : createdTime);
-		document.setLastModifiedTime(System.currentTimeMillis());
+		document.setCreatedTime(createdTime);
+		document.setLastModifiedTime(messageDocument == null ? createdTime : System.currentTimeMillis());
 		document.setSequence(getNextId());
 
 		addMessageDocument(document);

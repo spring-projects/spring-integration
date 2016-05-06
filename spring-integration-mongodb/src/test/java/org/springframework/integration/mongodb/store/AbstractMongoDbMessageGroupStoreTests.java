@@ -233,7 +233,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		long createdTimestamp = messageGroup.getTimestamp();
 		long updatedTimestamp = messageGroup.getLastModified();
 		assertEquals(createdTimestamp, updatedTimestamp);
-		Thread.sleep(1000);
+		Thread.sleep(10);
 		message = new GenericMessage<String>("Hello again");
 		messageGroup = store.addMessageToGroup(1, message);
 		createdTimestamp = messageGroup.getTimestamp();

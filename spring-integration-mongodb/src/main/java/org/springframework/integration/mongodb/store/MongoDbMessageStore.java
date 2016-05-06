@@ -280,7 +280,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Query query = whereGroupIdOrder(groupId);
 		MessageWrapper messageDocument = template.findOne(query, MessageWrapper.class, collectionName);
 
-		long createdTime = 0;
+		long createdTime = System.currentTimeMillis();
 		int lastReleasedSequence = 0;
 		boolean complete = false;
 
@@ -293,8 +293,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.set_GroupId(groupId);
-		wrapper.set_Group_timestamp(createdTime == 0 ? System.currentTimeMillis() : createdTime);
-		wrapper.set_Group_update_timestamp(System.currentTimeMillis());
+		wrapper.set_Group_timestamp(createdTime);
+		wrapper.set_Group_update_timestamp(messageDocument == null ? createdTime : System.currentTimeMillis());
 		wrapper.set_Group_complete(complete);
 		wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
 		wrapper.setSequence(getNextId());
