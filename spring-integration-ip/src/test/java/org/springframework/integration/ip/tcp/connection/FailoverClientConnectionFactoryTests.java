@@ -53,6 +53,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -403,6 +404,61 @@ public class FailoverClientConnectionFactoryTests {
 		SimplePool<?> pool = TestUtils.getPropertyValue(cachingFactory2, "pool", SimplePool.class);
 		assertEquals(2, pool.getIdleCount());
 		server2.stop();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testFailoverCachedWithGateway() throws Exception {
+		final TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
+		server.setBeanName("server");
+		server.afterPropertiesSet();
+		DirectChannel inChannel = new DirectChannel();
+		inChannel.setBeanName("inChannel");
+		TcpInboundGateway inbound = new TcpInboundGateway();
+		inbound.setConnectionFactory(server);
+		inbound.setRequestChannel(inChannel);
+		inbound.afterPropertiesSet();
+		inChannel.subscribe(new BridgeHandler());
+		inbound.start();
+		TestingUtilities.waitListening(server, 10000L);
+		int port = server.getPort();
+		AbstractClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
+		client.setBeanName("client");
+
+		// Cache
+		CachingClientConnectionFactory cachingClient = new CachingClientConnectionFactory(client, 2);
+		cachingClient.setBeanName("cache");
+		cachingClient.afterPropertiesSet();
+
+		// Failover
+		List<AbstractClientConnectionFactory> clientFactories = new ArrayList<AbstractClientConnectionFactory>();
+		clientFactories.add(cachingClient);
+		FailoverClientConnectionFactory failoverClient = new FailoverClientConnectionFactory(clientFactories);
+		failoverClient.setSingleUse(true);
+		failoverClient.afterPropertiesSet();
+
+		TcpOutboundGateway outbound = new TcpOutboundGateway();
+		outbound.setConnectionFactory(failoverClient);
+		QueueChannel replyChannel = new QueueChannel();
+		replyChannel.setBeanName("replyChannel");
+		outbound.setReplyChannel(replyChannel);
+		outbound.setBeanFactory(mock(BeanFactory.class));
+		outbound.afterPropertiesSet();
+		outbound.start();
+
+		outbound.handleMessage(new GenericMessage<String>("foo"));
+		Message<byte[]> result = (Message<byte[]>) replyChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals("foo", new String(result.getPayload()));
+
+		// INT-4024 - second reply had bad connection id
+		outbound.handleMessage(new GenericMessage<String>("foo"));
+		result = (Message<byte[]>) replyChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals("foo", new String(result.getPayload()));
+
+		inbound.stop();
+		outbound.stop();
 	}
 
 	@Test
