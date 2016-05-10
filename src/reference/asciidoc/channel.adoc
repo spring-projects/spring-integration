@@ -456,7 +456,7 @@ Alternatively, declare a `<bean/>` of type `MessageConverter` with an id `"datat
 [[channel-configuration-queuechannel]]
 ===== QueueChannel Configuration
 
-To create a `QueueChannel`, use the <queue/> sub-element.
+To create a `QueueChannel`, use the `<queue/>` sub-element.
 You may specify the channel's capacity:
 [source,xml]
 ----
@@ -465,7 +465,7 @@ You may specify the channel's capacity:
 </int:channel>
 ----
 
-NOTE: If you do not provide a value for the 'capacity' attribute on this <queue/> sub-element, the resulting queue will be unbounded.
+NOTE: If you do not provide a value for the 'capacity' attribute on this `<queue/>` sub-element, the resulting queue will be unbounded.
 To avoid issues such as OutOfMemoryErrors, it is highly recommended to set an explicit value for a bounded queue.
 
 _Persistent QueueChannel Configuration_
@@ -498,7 +498,7 @@ You can configure a Message Store for any `QueueChannel` by adding the `message-
 The Spring Integration JDBC module also provides schema DDL for a number of popular databases.
 These schemas are located in the _org.springframework.integration.jdbc.store.channel_ package of that module (spring-integration-jdbc).
 
-IMPORTANT: One important feature is that with any transactional persistent store (e.g., JdbcChannelMessageStore), as long as the poller has a transaction configured, a Message removed from the store will only be permanently removed if the transaction completes successfully, otherwise the transaction will roll back and the Message will not be lost.
+IMPORTANT: One important feature is that with any transactional persistent store (e.g., `JdbcChannelMessageStore`), as long as the poller has a transaction configured, a Message removed from the store will only be permanently removed if the transaction completes successfully, otherwise the transaction will roll back and the Message will not be lost.
 
 Many other implementations of the Message Store will be available as the growing number of Spring projects related to "NoSQL" data stores provide the underlying support.
 Of course, you can always provide your own implementation of the MessageGroupStore interface if you cannot find one that meets your particular needs.
@@ -609,7 +609,7 @@ So, the channel will have a round-robin load-balancing strategy with failover en
 [[channel-configuration-prioritychannel]]
 ===== PriorityChannel Configuration
 
-To create a `PriorityChannel`, use the <priority-queue/> sub-element:
+To create a `PriorityChannel`, use the `<priority-queue/>` sub-element:
 [source,xml]
 ----
 <int:channel id="priorityChannel">
@@ -634,12 +634,13 @@ The following example demonstrates all of these:
 Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore` and, in this case, the namespace parser will declare a `QueueChannel` instead of a `PriorityChannel`.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC` and `MongoDB`.
-See <<channel-configuration-queuechannel>>.
+See <<channel-configuration-queuechannel>> and <<message-store>> for more information.
+You can find sample configuration in <<jdbc-message-store-channels>>.
 
 [[channel-configuration-rendezvouschannel]]
 ===== RendezvousChannel Configuration
 
-A `RendezvousChannel` is created when the queue sub-element is a <rendezvous-queue>.
+A `RendezvousChannel` is created when the queue sub-element is a `<rendezvous-queue>`.
 It does not provide any additional configuration options to those described above, and its queue does not accept any capacity value since it is a 0-capacity direct handoff queue.
 
 [source,xml]
@@ -700,7 +701,7 @@ or
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>
 ----
 
-Each <channel-interceptor/> element allows you to define a global interceptor which will be applied on all channels that match any patterns defined via the `pattern` attribute.
+Each `<channel-interceptor/>` element allows you to define a global interceptor which will be applied on all channels that match any patterns defined via the `pattern` attribute.
 In the above case the global interceptor will be applied on the 'foo' channel and all other channels that begin with 'bar' or 'input'.
 The _order_ attribute allows you to manage where this interceptor will be injected if there are multiple interceptors on a given channel.
 For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
