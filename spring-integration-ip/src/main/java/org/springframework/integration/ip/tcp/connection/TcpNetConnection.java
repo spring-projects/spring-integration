@@ -154,7 +154,6 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 */
 	@Override
 	public void run() {
-		TcpListener listener = getListener();
 		boolean okToRun = true;
 		if (logger.isDebugEnabled()) {
 			logger.debug(this.getConnectionId() + " Reading...");
@@ -176,6 +175,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					logger.debug("Message received " + message);
 				}
 				try {
+					TcpListener listener = getListener();
 					if (listener == null) {
 						throw new NoListenerException("No listener");
 					}
