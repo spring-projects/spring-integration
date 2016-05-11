@@ -54,7 +54,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
-	private final ConnectionManagerSupport connectionManager;
+	private final IntegrationWebSocketConnectionManager connectionManager;
 
 	private volatile CountDownLatch connectionLatch;
 
@@ -108,6 +108,11 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	@Override
 	public WebSocketSession getSession(String sessionId) {
 		if (isRunning()) {
+			if (!isConnected()) {
+				stop();
+				start();
+			}
+
 			try {
 				this.connectionLatch.await(this.connectionTimeout, TimeUnit.SECONDS);
 			}
@@ -115,11 +120,18 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 				logger.error("'clientSession' has not been established during 'openConnection'");
 			}
 		}
-		if (this.openConnectionException != null) {
-			throw new IllegalStateException(this.openConnectionException);
+
+		try {
+			if (this.openConnectionException != null) {
+				throw new IllegalStateException(this.openConnectionException);
+			}
+			Assert.state(this.clientSession != null,
+					"'clientSession' has not been established. Consider to 'start' this container.");
 		}
-		Assert.state(this.clientSession != null,
-				"'clientSession' has not been established. Consider to 'start' this container.");
+		catch (IllegalStateException e){
+			stop();
+			throw e;
+		}
 		return this.clientSession;
 	}
 
@@ -129,6 +141,15 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	public void setPhase(int phase) {
 		this.connectionManager.setPhase(phase);
+	}
+
+	/**
+	 * Return {@code true} if the {@link #clientSession} is opened.
+	 * @return the {@link WebSocketSession#isOpen()} state.
+	 * @since 4.2.6
+	 */
+	public boolean isConnected() {
+		return this.connectionManager.isConnected();
 	}
 
 	@Override
@@ -149,6 +170,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	@Override
 	public synchronized void start() {
 		if (!isRunning()) {
+			this.clientSession = null;
+			this.openConnectionException = null;
 			this.connectionLatch = new CountDownLatch(1);
 			this.connectionManager.start();
 		}
@@ -178,7 +201,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 		private final boolean syncClientLifecycle;
 
-		private IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate, Object... uriVariables) {
+		private IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate,
+				Object... uriVariables) {
 			super(uriTemplate, uriVariables);
 			this.client = client;
 			this.syncClientLifecycle = ((client instanceof Lifecycle) && !((Lifecycle) client).isRunning());
@@ -202,14 +226,14 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			}
 			finally {
 				ClientWebSocketContainer.this.clientSession = null;
+				ClientWebSocketContainer.this.openConnectionException = null;
 			}
 		}
 
 		@Override
 		protected void openConnection() {
-
 			logger.info("Connecting to WebSocket at " + getUri());
-			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(ClientWebSocketContainer.this.getSubProtocols());
+			ClientWebSocketContainer.this.headers.setSecWebSocketProtocol(getSubProtocols());
 			ListenableFuture<WebSocketSession> future =
 					this.client.doHandshake(ClientWebSocketContainer.this.webSocketHandler,
 							ClientWebSocketContainer.this.headers, getUri());
@@ -229,6 +253,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 					ClientWebSocketContainer.this.openConnectionException = t;
 					ClientWebSocketContainer.this.connectionLatch.countDown();
 				}
+
 			});
 		}
 
