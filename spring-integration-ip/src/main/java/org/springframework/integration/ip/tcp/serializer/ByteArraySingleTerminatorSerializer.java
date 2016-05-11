@@ -28,7 +28,7 @@ import java.io.OutputStream;
  * @author Gary Russell
  * @since 2.2
  */
-public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerializer {
+public class ByteArraySingleTerminatorSerializer extends AbstractPooledBufferByteArraySerializer {
 
 	private final byte terminator;
 
@@ -43,8 +43,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 	 * being read).
 	 */
 	@Override
-	public byte[] deserialize(InputStream inputStream) throws IOException {
-		byte[] buffer = new byte[this.maxMessageSize];
+	protected byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite;
 		if (logger.isDebugEnabled()) {
@@ -67,9 +66,7 @@ public class ByteArraySingleTerminatorSerializer extends AbstractByteArraySerial
 							+ this.maxMessageSize);
 				}
 			}
-			byte[] assembledData = new byte[n];
-			System.arraycopy(buffer, 0, assembledData, 0, n);
-			return assembledData;
+			return copyToSizedArray(buffer, n);
 		}
 		catch (SoftEndOfStreamException e) {
 			throw e;

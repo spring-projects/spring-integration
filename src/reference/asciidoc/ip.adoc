@@ -243,14 +243,14 @@ Connection factories are configured to use (de)serializers to convert between th
 This is accomplished by providing a deserializer and serializer for inbound and outbound messages respectively.
 A number of standard (de)serializers are provided.
 
-The `ByteArrayCrlfSerializer`, converts a byte array to a stream of bytes followed by carriage return and linefeed characters (\r\n).
+The `ByteArrayCrlfSerializer`^*^, converts a byte array to a stream of bytes followed by carriage return and linefeed characters (\r\n).
 This is the default (de)serializer and can be used with telnet as a client, for example.
 
-The `ByteArraySingleTerminatorSerializer`, converts a byte array to a stream of bytes followed by a single termination character (default 0x00).
+The `ByteArraySingleTerminatorSerializer`^*^, converts a byte array to a stream of bytes followed by a single termination character (default 0x00).
 
-The `ByteArrayLfSerializer`, converts a byte array to a stream of bytes followed by a single linefeed character (0x0a).
+The `ByteArrayLfSerializer`^*^, converts a byte array to a stream of bytes followed by a single linefeed character (0x0a).
 
-The `ByteArrayStxEtxSerializer`, converts a byte array to a stream of bytes preceded by an STX (0x02) and followed by an ETX (0x03).
+The `ByteArrayStxEtxSerializer`^*^, converts a byte array to a stream of bytes preceded by an STX (0x02) and followed by an ETX (0x03).
 
 The `ByteArrayLengthHeaderSerializer`, converts a byte array to a stream of bytes preceded by a binary length in network byte order (big endian).
 This a very efficient deserializer because it does not have to parse every byte looking for a termination character sequence.
@@ -260,7 +260,7 @@ However, the length header can be a single byte (unsigned) for messages up to 25
 If you need any other format for the header, you can subclass this class and provide implementations for the readHeader and writeHeader methods.
 The absolute maximum data size supported is (2^31 - 1) bytes.
 
-The `ByteArrayRawSerializer`, converts a byte array to a stream of bytes and adds no additional message demarcation data; with this (de)serializer, the end of a message is indicated by the client closing the socket in an orderly fashion.
+The `ByteArrayRawSerializer`^*^, converts a byte array to a stream of bytes and adds no additional message demarcation data; with this (de)serializer, the end of a message is indicated by the client closing the socket in an orderly fashion.
 When using this serializer, message reception will hang until the client closes the socket, or a timeout occurs; a timeout will NOT result in a message.
 When this serializer is being used, and the client is a Spring Integration application, the client must use a connection factory that is configured with single-use=true - this causes the adapter to close the socket after sending the message; the serializer will not, itself, close the connection.
 This serializer should only be used with connection factories used by channel adapters (not gateways), and the connection factories should be used by either an inbound or outbound adapter, and not both.
@@ -279,6 +279,20 @@ To avoid memory exhaustion due to a badly behaved client (one that does not adhe
 If the size is exceeded by an incoming message, an exception will be thrown.
 The default maximum message size is 2048 bytes, and can be increased by setting the `maxMessageSize` property.
 If you are using the default (de)serializer and wish to increase the maximum message size, you must declare it as an explicit bean with the property set and configure the connection factory to use that bean.
+
+The classes marked with ^*^ above use an intermediate buffer and copy the decoded data to a final buffer of the correct
+size.
+Starting with _version 4.3_, these can be configured with a `poolSize` property to allow these raw buffers to be reused
+instead of being allocated and discarded for each message, which is the default behavior.
+Setting the property to a negative value will create a pool that has no bounds.
+If the pool is bounded, you can also set the `poolWaitTimeout` property (milliseconds) after which an exception is
+thrown if no buffer becomes available; it defaults to infinity.
+Such an exception will cause the socket to be closed.
+
+If you wish to use the same mechanism in custom deserializers, subclass `AbstractPooledBufferByteArraySerializer`
+instead of its super class `AbstractByteArraySerializer`, and implement `doDeserialize()` instead of `deserialize()`.
+The buffer will be returned to the pool automatically.
+`AbstractPooledBufferByteArraySerializer` also provides a convenient utility method `copyToSizedArray()`.
 
 The `MapJsonSerializer` uses a Jackson `ObjectMapper` to convert between a `Map` and JSON.
 This can be used in conjunction with a `MessageConvertingTcpMessageMapper` and a `MapMessageConverter` to transfer selected headers and the payload in a JSON format.

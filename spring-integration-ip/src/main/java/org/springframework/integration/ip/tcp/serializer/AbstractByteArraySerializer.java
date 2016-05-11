@@ -75,22 +75,6 @@ public abstract class AbstractByteArraySerializer implements
 		}
 	}
 
-	/**
-	 * Copy size bytes to a new buffer exactly size bytes long.
-	 * @param buffer The buffer containing the data.
-	 * @param size The number of bytes to copy.
-	 * @return The new buffer, or the buffer parameter if it is
-	 * already the correct size.
-	 */
-	protected byte[] copyToSizedArray(byte[] buffer, int size) {
-		if (size == buffer.length) {
-			return buffer;
-		}
-		byte[] assembledData = new byte[size];
-		System.arraycopy(buffer, 0, assembledData, 0, size);
-		return assembledData;
-	}
-
 	protected void publishEvent(Exception cause, byte[] buffer, int offset) {
 		TcpDeserializationExceptionEvent event = new TcpDeserializationExceptionEvent(this, cause, buffer, offset);
 		if (this.applicationEventPublisher != null) {

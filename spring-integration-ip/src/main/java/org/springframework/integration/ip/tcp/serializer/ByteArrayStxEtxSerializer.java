@@ -30,7 +30,7 @@ import org.springframework.integration.mapping.MessageMappingException;
  * @author Gary Russell
  * @since 2.0
  */
-public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
+public class ByteArrayStxEtxSerializer extends AbstractPooledBufferByteArraySerializer {
 
 	public static final int STX = 0x02;
 
@@ -45,18 +45,16 @@ public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
 	 *
 	 */
 	@Override
-	public byte[] deserialize(InputStream inputStream) throws IOException {
+	public byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int bite = inputStream.read();
 		if (bite < 0) {
 			throw new SoftEndOfStreamException("Stream closed between payloads");
 		}
-		byte[] buffer = null;
 		int n = 0;
 		try {
 			if (bite != STX) {
 				throw new MessageMappingException("Expected STX to begin message");
 			}
-			buffer = new byte[this.maxMessageSize];
 			while ((bite = inputStream.read()) != ETX) {
 				checkClosure(bite);
 				buffer[n++] = (byte) bite;
@@ -65,9 +63,7 @@ public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
 							+ this.maxMessageSize);
 				}
 			}
-			byte[] assembledData = new byte[n];
-			System.arraycopy(buffer, 0, assembledData, 0, n);
-			return assembledData;
+			return copyToSizedArray(buffer, n);
 		}
 		catch (IOException e) {
 			publishEvent(e, buffer, n);
