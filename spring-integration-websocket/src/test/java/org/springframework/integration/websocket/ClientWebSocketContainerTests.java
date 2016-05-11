@@ -50,7 +50,6 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 
 /**
  * @author Artem Bilan
@@ -72,7 +71,28 @@ public class ClientWebSocketContainerTests {
 
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
-		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+
+		final AtomicBoolean failure = new AtomicBoolean();
+
+		StandardWebSocketClient webSocketClient = new StandardWebSocketClient() {
+
+			@Override
+			protected ListenableFuture<WebSocketSession> doHandshakeInternal(WebSocketHandler webSocketHandler,
+					HttpHeaders headers, URI uri, List<String> protocols, List<WebSocketExtension> extensions,
+					Map<String, Object> attributes) {
+
+				ListenableFuture<WebSocketSession> future =
+						super.doHandshakeInternal(webSocketHandler, headers, uri, protocols, extensions,
+								attributes);
+				if (failure.get()) {
+					future.cancel(true);
+				}
+
+				return future;
+			}
+
+		};
+
 		Map<String, Object> userProperties = new HashMap<String, Object>();
 		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,
 				"" + (WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6));
@@ -110,55 +130,6 @@ public class ClientWebSocketContainerTests {
 		assertFalse(session.isOpen());
 		assertTrue(messageListener.started);
 		assertThat(messageListener.message, instanceOf(PongMessage.class));
-	}
-
-
-	@Test
-	public void testRecoveryAfterRestart() throws Exception {
-
-		final AtomicBoolean failure = new AtomicBoolean();
-
-		StandardWebSocketClient webSocketClient = new StandardWebSocketClient() {
-
-			@Override
-			protected ListenableFuture<WebSocketSession> doHandshakeInternal(WebSocketHandler webSocketHandler,
-					HttpHeaders headers, URI uri, List<String> protocols, List<WebSocketExtension> extensions,
-					Map<String, Object> attributes) {
-
-				ListenableFuture<WebSocketSession> future =
-						super.doHandshakeInternal(webSocketHandler, headers, uri, protocols, extensions,
-								attributes);
-				if (failure.get()) {
-					future.cancel(true);
-				}
-
-				return future;
-			}
-
-		};
-
-		ClientWebSocketContainer container =
-				new ClientWebSocketContainer(webSocketClient, server.getWsBaseUrl() + "/ws/websocket");
-
-
-		TestWebSocketListener messageListener = new TestWebSocketListener();
-		container.setMessageListener(messageListener);
-		container.setConnectionTimeout(30);
-
-		container.start();
-
-		WebSocketSession session = container.getSession(null);
-		assertNotNull(session);
-		assertTrue(session.isOpen());
-
-		SubProtocolWebSocketHandler webSocketHandler = server.getServerContext()
-				.getBean(SubProtocolWebSocketHandler.class);
-		webSocketHandler.stop();
-
-		assertTrue(messageListener.sessionEndedLatch.await(10, TimeUnit.SECONDS));
-		assertFalse(session.isOpen());
-
-		container.stop();
 
 		failure.set(true);
 

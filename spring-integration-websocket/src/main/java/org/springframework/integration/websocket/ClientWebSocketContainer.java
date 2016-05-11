@@ -64,6 +64,8 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 	private volatile int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
 
+	private volatile boolean connecting;
+
 	public ClientWebSocketContainer(WebSocketClient client, String uriTemplate, Object... uriVariables) {
 		Assert.notNull(client, "'client' must not be null");
 		this.connectionManager = new IntegrationWebSocketConnectionManager(client, uriTemplate, uriVariables);
@@ -108,7 +110,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 	@Override
 	public WebSocketSession getSession(String sessionId) {
 		if (isRunning()) {
-			if (!isConnected()) {
+			if (!isConnected() && !this.connecting) {
 				stop();
 				start();
 			}
@@ -119,6 +121,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			catch (InterruptedException e) {
 				logger.error("'clientSession' has not been established during 'openConnection'");
 			}
+			this.connecting = false;
 		}
 
 		try {
@@ -128,7 +131,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			Assert.state(this.clientSession != null,
 					"'clientSession' has not been established. Consider to 'start' this container.");
 		}
-		catch (IllegalStateException e){
+		catch (IllegalStateException e) {
 			stop();
 			throw e;
 		}
@@ -213,6 +216,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 			if (this.syncClientLifecycle) {
 				((Lifecycle) this.client).start();
 			}
+			ClientWebSocketContainer.this.connecting = true;
 			super.startInternal();
 		}
 
