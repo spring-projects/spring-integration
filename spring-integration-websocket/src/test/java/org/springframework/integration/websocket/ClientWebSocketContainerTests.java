@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,21 +25,28 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.tomcat.websocket.WsWebSocketContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
+import org.springframework.web.socket.WebSocketExtension;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -64,7 +71,28 @@ public class ClientWebSocketContainerTests {
 
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
-		StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+
+		final AtomicBoolean failure = new AtomicBoolean();
+
+		StandardWebSocketClient webSocketClient = new StandardWebSocketClient() {
+
+			@Override
+			protected ListenableFuture<WebSocketSession> doHandshakeInternal(WebSocketHandler webSocketHandler,
+					HttpHeaders headers, URI uri, List<String> protocols, List<WebSocketExtension> extensions,
+					Map<String, Object> attributes) {
+
+				ListenableFuture<WebSocketSession> future =
+						super.doHandshakeInternal(webSocketHandler, headers, uri, protocols, extensions,
+								attributes);
+				if (failure.get()) {
+					future.cancel(true);
+				}
+
+				return future;
+			}
+
+		};
+
 		Map<String, Object> userProperties = new HashMap<String, Object>();
 		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,
 				"" + (WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6));
@@ -102,8 +130,28 @@ public class ClientWebSocketContainerTests {
 		assertFalse(session.isOpen());
 		assertTrue(messageListener.started);
 		assertThat(messageListener.message, instanceOf(PongMessage.class));
-	}
 
+		failure.set(true);
+
+		container.start();
+
+		try {
+			container.getSession(null);
+			fail("IllegalStateException is expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getCause(), instanceOf(CancellationException.class));
+		}
+
+		failure.set(false);
+
+		container.start();
+
+		session = container.getSession(null);
+		assertNotNull(session);
+		assertTrue(session.isOpen());
+	}
 
 	private class TestWebSocketListener implements WebSocketListener {
 
