@@ -28,7 +28,7 @@ import java.io.OutputStream;
  * @author Gary Russell
  * @since 2.0
  */
-public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
+public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerializer {
 
 	private static final byte[] CRLF = "\r\n".getBytes();
 
@@ -39,8 +39,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	 * being read).
 	 */
 	@Override
-	public byte[] deserialize(InputStream inputStream) throws IOException {
-		byte[] buffer = new byte[this.maxMessageSize];
+	public byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = this.fillToCrLf(inputStream, buffer);
 		return this.copyToSizedArray(buffer, n);
 	}

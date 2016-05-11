@@ -41,7 +41,7 @@ import java.net.SocketTimeoutException;
  * @since 2.0.3
  *
  */
-public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
+public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySerializer {
 
 	private final boolean treatTimeoutAsEndOfMessage;
 
@@ -66,8 +66,7 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 	}
 
 	@Override
-	public byte[] deserialize(InputStream inputStream) throws IOException {
-		byte[] buffer = new byte[this.maxMessageSize];
+	protected byte[] doDeserialize(InputStream inputStream, byte[] buffer) throws IOException {
 		int n = 0;
 		int bite = 0;
 		if (logger.isDebugEnabled()) {
@@ -90,15 +89,13 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 					}
 					break;
 				}
-				buffer[n++] = (byte) bite;
 				if (n >= this.maxMessageSize) {
 					throw new IOException("Socket was not closed before max message length: "
 							+ this.maxMessageSize);
 				}
+				buffer[n++] = (byte) bite;
 			}
-			byte[] assembledData = new byte[n];
-			System.arraycopy(buffer, 0, assembledData, 0, n);
-			return assembledData;
+			return copyToSizedArray(buffer, n);
 		}
 		catch (SoftEndOfStreamException e) {
 			throw e;
