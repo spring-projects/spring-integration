@@ -130,7 +130,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 	private QueueChannel webSocketEvents;
 
 	public StompIntegrationTests() {
-		super("org.springframework", "org.springframework.integration");
+		super("org.springframework", "org.springframework.integration", "org.apache.catalina");
 	}
 
 	@Before
@@ -145,7 +145,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.CONNECT);
 		this.webSocketOutputChannel.send(MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build());
 
-		Message<?> receive = this.webSocketEvents.receive(10000);
+		Message<?> receive = this.webSocketEvents.receive(20000);
 		assertNotNull(receive);
 		Object event = receive.getPayload();
 		assertThat(event, instanceOf(SessionConnectedEvent.class));
@@ -161,7 +161,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 		this.webSocketOutputChannel.send(message);
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
-		assertTrue(controller.latch.await(10, TimeUnit.SECONDS));
+		assertTrue(controller.latch.await(20, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -177,7 +177,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		this.webSocketOutputChannel.send(message);
 
-		Message<?> receive = this.webSocketEvents.receive(10000);
+		Message<?> receive = this.webSocketEvents.receive(20000);
 		assertNotNull(receive);
 		Object event = receive.getPayload();
 		assertThat(event, instanceOf(ReceiptEvent.class));
@@ -195,7 +195,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		this.webSocketOutputChannel.send(message2);
 
-		receive = webSocketInputChannel.receive(10000);
+		receive = webSocketInputChannel.receive(20000);
 		assertNotNull(receive);
 		assertEquals("6", receive.getPayload());
 	}
@@ -221,7 +221,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(10000);
+		Message<?> receive = webSocketInputChannel.receive(20000);
 		assertNotNull(receive);
 		assertEquals("10", receive.getPayload());
 	}
@@ -240,7 +240,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		this.webSocketOutputChannel.send(message);
 
-		Message<?> receive = webSocketInputChannel.receive(10000);
+		Message<?> receive = webSocketInputChannel.receive(20000);
 		assertNotNull(receive);
 
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(receive);
@@ -276,7 +276,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 		this.webSocketOutputChannel.send(message2);
 
 
-		Message<?> receive = webSocketInputChannel.receive(10000);
+		Message<?> receive = webSocketInputChannel.receive(20000);
 		assertNotNull(receive);
 
 		StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(receive);
@@ -308,7 +308,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		this.webSocketOutputChannel.send(message2);
 
-		Message<?> receive = webSocketInputChannel.receive(10000);
+		Message<?> receive = webSocketInputChannel.receive(20000);
 		assertNotNull(receive);
 		assertEquals("Hello Bob", receive.getPayload());
 	}
