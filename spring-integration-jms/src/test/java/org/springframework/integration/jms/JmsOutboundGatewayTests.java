@@ -73,6 +73,10 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	public JmsOutboundGatewayTests() {
+		super("org.springframework.integration", "org.springframework.jms", "org.apache");
+	}
+
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
 		JmsOutboundGateway gateway = new JmsOutboundGateway();
@@ -263,6 +267,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 				return reply;
 			}
 		};
+		logger.debug("Sending reply to: " + replyQ);
 		template.send(replyQ, reply);
 		logger.debug("Sent reply to: " + replyQ);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
