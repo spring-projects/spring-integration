@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptorAware;
@@ -43,13 +43,14 @@ public class GlobalChannelInterceptorTests {
 	@Test
 	public void testJmsChannel() {
 		ActiveMqTestUtils.prepare();
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"GlobalChannelInterceptorTests-context.xml",  GlobalChannelInterceptorTests.class);
 		ChannelInterceptorAware jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
 		List<ChannelInterceptor> interceptors = jmsChannel.getChannelInterceptors();
 		assertNotNull(interceptors);
 		assertEquals(1, interceptors.size());
 		assertTrue(interceptors.get(0) instanceof SampleInterceptor);
+		context.close();
 	}
 
 

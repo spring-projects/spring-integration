@@ -88,7 +88,8 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 			.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
-		gateway.setConnectionFactory(getConnectionFactory());
+		ConnectionFactory connectionFactory = getConnectionFactory();
+		gateway.setConnectionFactory(connectionFactory);
 		gateway.setRequestDestination(requestQueue1);
 		gateway.setReplyDestination(replyQueue1);
 		gateway.setCorrelationKey("JMSCorrelationID");
@@ -112,7 +113,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
-		template.setConnectionFactory(getConnectionFactory());
+		template.setConnectionFactory(connectionFactory);
 		template.setReceiveTimeout(5000);
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertNotNull(request);
@@ -128,6 +129,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -180,6 +182,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -232,6 +235,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -284,6 +288,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -336,6 +341,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -388,6 +394,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertNotNull(reply.get());
 
 		gateway.stop();
+		scheduler.destroy();
 	}
 
 	@Test
@@ -452,10 +459,12 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		assertFalse(container.isRunning());
+		scheduler.destroy();
 	}
 
 	private ConnectionFactory getConnectionFactory() {
-		ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
+		ActiveMQConnectionFactory activeMQConnectionFactory =
+				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false");
 		CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(activeMQConnectionFactory);
 		cachingConnectionFactory.setCacheConsumers(false);
 		return cachingConnectionFactory;

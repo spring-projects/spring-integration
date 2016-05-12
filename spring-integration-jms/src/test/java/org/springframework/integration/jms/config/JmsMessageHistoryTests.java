@@ -48,18 +48,22 @@ public class JmsMessageHistoryTests {
 	@Test
 	public void testInboundAdapter() throws Exception {
 		ActiveMqTestUtils.prepare();
-		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("MessageHistoryTests-context.xml", JmsMessageHistoryTests.class);
+		ConfigurableApplicationContext applicationContext =
+				new ClassPathXmlApplicationContext("MessageHistoryTests-context.xml", JmsMessageHistoryTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		gateway.send("hello");
 		Message<?> message = jmsInputChannel.receive(5000);
-		Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+		Iterator<Properties> historyIterator = message.getHeaders()
+				.get(MessageHistory.HEADER_NAME, MessageHistory.class)
+				.iterator();
 		Properties event1 = historyIterator.next();
 		assertEquals("jms:inbound-channel-adapter", event1.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("sampleJmsInboundAdapter", event1.getProperty(MessageHistory.NAME_PROPERTY));
 		Properties event2 = historyIterator.next();
 		assertEquals("channel", event2.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("jmsInputChannel", event2.getProperty(MessageHistory.NAME_PROPERTY));
+		applicationContext.close();
 	}
 
 
@@ -115,6 +119,7 @@ public class JmsMessageHistoryTests {
 			headers.remove("outbound_history");
 			return headers;
 		}
+
 	}
 
 
@@ -136,6 +141,7 @@ public class JmsMessageHistoryTests {
 		public String getComponentType() {
 			return type;
 		}
+
 	}
 
 }

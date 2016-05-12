@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,7 +117,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		PollableChannel channel = new QueueChannel();
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint =
+				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(1000);
@@ -274,15 +276,14 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
 
-		Mockito.verify(boundListOperations).rightPush(Mockito.any(byte[].class));
+		Mockito.verify(boundListOperations, atLeastOnce()).rightPush(Mockito.any(byte[].class));
 	}
 
 
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	@Ignore
-	//JedisConnectionFactory doesn't support proper 'destroy()' and allows to create new fresh Redis connection
+	@Ignore("JedisConnectionFactory doesn't support proper 'destroy()' and allows to create new fresh Redis connection")
 	public void testInt3196Recovery() throws Exception {
 		String queueName = "test.si.Int3196Recovery";
 		QueueChannel channel = new QueueChannel();
@@ -398,7 +399,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				break;
 			}
 			Thread.sleep(100);
-		} while (!endpoint.isListening());
+		}
+		while (!endpoint.isListening());
 
 		assertTrue(n < 100);
 	}

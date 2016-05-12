@@ -143,8 +143,10 @@ public class OutboundGatewayConnectionTests {
 		assertTrue(latch4.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
-		broker.stop();
 		gateway.stop();
+		broker.stop();
+
+		scheduler.destroy();
 	}
 
 }

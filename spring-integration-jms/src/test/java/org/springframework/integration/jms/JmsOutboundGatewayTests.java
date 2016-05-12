@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 
-	final Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
@@ -268,6 +268,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
 		assertNotNull(received);
 		assertEquals("bar", received.getPayload());
+		gateway.stop();
 		connectionFactory1.destroy();
 		connectionFactory2.destroy();
 	}

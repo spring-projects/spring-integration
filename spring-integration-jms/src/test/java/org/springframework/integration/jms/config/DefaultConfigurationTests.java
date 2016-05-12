@@ -32,6 +32,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ErrorHandler;
@@ -43,6 +44,7 @@ import org.springframework.util.ErrorHandler;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class DefaultConfigurationTests {
 
 	@Autowired
