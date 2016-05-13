@@ -45,10 +45,26 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Filter {
 
+	/**
+	 * Specify the channel from which this filter will consume messages.
+	 * If the channel does not exist, a {@code DirectChannel} with this name will be
+	 * registered in the application context.
+	 * @return The channel name.
+	 */
 	String inputChannel() default "";
 
+	/**
+	 * Specify the channel to which this filter will send messages that pass the
+	 * selector.
+	 * @return The channel name.
+	 */
 	String outputChannel() default "";
 
+	/**
+	 * Specify the channel to which this filter will send messages that do no pass the
+	 * selector.
+	 * @return The channel name.
+	 */
 	String discardChannel() default "";
 
 	/**
@@ -59,6 +75,11 @@ public @interface Filter {
 	 */
 	String throwExceptionOnRejection() default "";
 
+	/**
+	 * Specify a "chain" of {@code Advice} beans that will "wrap" the message handler.
+	 * Only the handler is advised, not the downstream flow.
+	 * @return the advice chain.
+	 */
 	String[] adviceChain() default {};
 
 	/**

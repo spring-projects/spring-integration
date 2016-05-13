@@ -63,16 +63,46 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Gateway {
 
+	/**
+	 * Specify the channel to which messages will be sent; overrides the encompassing
+	 * gateway's default request channel.
+	 * @return the channel name.
+	 */
 	String requestChannel() default "";
 
+	/**
+	 * Specify the channel from which reply messages will be received; overrides the
+	 * encompassing gateway's default reply channel.
+	 * @return the channel name.
+	 */
 	String replyChannel() default "";
 
+	/**
+	 * Specify the timeout (ms) when sending to the request channel - only applies if the
+	 * send might block (such as a bounded {@code QueueChannel} that is currently full.
+	 * Overrides the encompassing gatewsy's default request timeout.
+	 * @return the timeout.
+	 */
 	long requestTimeout() default Long.MIN_VALUE;
 
+	/**
+	 * Specify the time (ms) that the thread sending the request will wait for a reply.
+	 * The timer starts when the thread returns to the gateway, not when the request
+	 * message is sent. Overrides the encompassing gateway's default reply timeout.
+	 * @return the timeout.
+	 */
 	long replyTimeout() default Long.MIN_VALUE;
 
+	/**
+	 * Specify a SpEL expression to determine the payload of the request message.
+	 * @return the expression.
+	 */
 	String payloadExpression() default "";
 
+	/**
+	 * Specify additional headers that will be added to the request message.
+	 * @return the headers.
+	 */
 	GatewayHeader[] headers() default {};
 
 }

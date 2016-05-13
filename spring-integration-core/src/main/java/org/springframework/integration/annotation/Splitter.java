@@ -47,8 +47,18 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Splitter {
 
+	/**
+	 * Specify the channel from which this splitter will consume messages.
+	 * If the channel does not exist, a {@code DirectChannel} with this name will be
+	 * registered in the application context.
+	 * @return The channel name.
+	 */
 	String inputChannel() default "";
 
+	/**
+	 * Specify the channel to which this splitter will send any replies.
+	 * @return The channel name.
+	 */
 	String outputChannel() default "";
 
 	/**
@@ -63,6 +73,11 @@ public @interface Splitter {
 	 */
 	String applySequence() default "";
 
+	/**
+	 * Specify a "chain" of {@code Advice} beans that will "wrap" the message handler.
+	 * Only the handler is advised, not the downstream flow.
+	 * @return the advice chain.
+	 */
 	String[] adviceChain() default {};
 
 	/**
