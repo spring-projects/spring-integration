@@ -80,7 +80,7 @@ public class MessageDrivenAdapterTests {
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic("testTopic1");
-		template.send(1, "foo");
+		template.sendDefault(1, "foo");
 
 		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
