@@ -51,19 +51,38 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Router {
 
+	/**
+	 * Specify the channel from which this router will consume messages.
+	 * If the channel does not exist, a {@code DirectChannel} with this name will be
+	 * registered in the application context.
+	 * @return The channel name.
+	 */
 	String inputChannel() default "";
 
+	/**
+	 * Specify the channel to which this router will send messages for which destination
+	 * channels are not resolved and {@link #resolutionRequired()} is false.
+	 * @return The channel name.
+	 */
 	String defaultOutputChannel() default "";
 
 	/**
 	 * The 'key=value' pairs to represent channelMapping entries
-	 * @return the channelMappings
+	 * @return the channelMappings.
 	 * @see org.springframework.integration.router.AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
 	String[] channelMappings() default {};
 
+	/**
+	 * Specify a prefix to be added to each channel name prior to resolution.
+	 * @param prefix The prefix.
+	 */
 	String prefix() default "";
 
+	/**
+	 * Specify a suffix to be added to each channel name prior to resolution.
+	 * @param suffix The suffix.
+	 */
 	String suffix() default "";
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,18 @@ import java.lang.annotation.Target;
 @Documented
 public @interface ServiceActivator {
 
+	/**
+	 * Specify the channel from which this service activator will consume messages.
+	 * If the channel does not exist, a {@code DirectChannel} with this name will be
+	 * registered in the application context.
+	 * @return The channel name.
+	 */
 	String inputChannel() default "";
 
+	/**
+	 * Specify the channel to which this service activator will send any replies.
+	 * @return The channel name.
+	 */
 	String outputChannel() default "";
 
 	/**
@@ -62,6 +72,11 @@ public @interface ServiceActivator {
 	 */
 	String requiresReply() default "";
 
+	/**
+	 * Specify a "chain" of {@code Advice} beans that will "wrap" the message handler.
+	 * Only the handler is advised, not the downstream flow.
+	 * @return the advice chain.
+	 */
 	String[] adviceChain() default {};
 
 	/**

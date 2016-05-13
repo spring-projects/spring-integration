@@ -37,10 +37,25 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Transformer {
 
+	/**
+	 * Specify the channel from which this transformer will consume messages.
+	 * If the channel does not exist, a {@code DirectChannel} with this name will be
+	 * registered in the application context.
+	 * @return The channel name.
+	 */
 	String inputChannel() default "";
 
+	/**
+	 * Specify the channel to which this transformer will send the transformed message.
+	 * @return The channel name.
+	 */
 	String outputChannel() default "";
 
+	/**
+	 * Specify a "chain" of {@code Advice} objects that will "wrap" the message handler.
+	 * Only the handler is advised, not the downstream flow.
+	 * @return the advice chain.
+	 */
 	String[] adviceChain() default {};
 
 	/**
