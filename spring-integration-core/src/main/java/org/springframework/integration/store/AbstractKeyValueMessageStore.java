@@ -144,9 +144,13 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		if (group != null) {
 			metadata = new MessageGroupMetadata(group);
+			// When the group is new reuse "create time" as a "last modified"
+			metadata.setLastModified(group.getTimestamp());
+		}
+		else {
+			metadata.setLastModified(System.currentTimeMillis());
 		}
 
-		metadata.setLastModified(System.currentTimeMillis());
 
 		// store MessageGroupMetadata built from enriched MG
 		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, metadata);
