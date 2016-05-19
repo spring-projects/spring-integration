@@ -358,7 +358,7 @@ This `channelMessageStoreQueryProvider` provides the SQL queries and Spring Inte
 * MySQL
 * Oracle
 * Derby
-
+* H2
 
 
 If your database is not listed, you can easily extend the `AbstractChannelMessageStoreQueryProvider` class and provide your own custom queries.

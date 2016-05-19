@@ -260,3 +260,7 @@ See <<xmpp-extensions>> for more information.
 The `WireTap` `ChannelInterceptor` now can accept a `channelName` which is resolved to the target `MessageChannel`
 later, during the first active interceptor operation.
 See <<channel-wiretap>> for more information.
+
+==== ChannelMessageStoreQueryProvider
+
+The `ChannelMessageStoreQueryProvider` now supports H2 database. See <<jdbc-message-store-channels>> for more information.
