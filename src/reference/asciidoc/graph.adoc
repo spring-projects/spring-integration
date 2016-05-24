@@ -1,0 +1,185 @@
+[[integration-graph]]
+=== Integration Graph
+
+Starting with _version 4.3_, the Spring Integration provides runtime object model, which, together with the Component Metrics (see <<metrics-management>>), can be exposed as a graph, which may be used to visualize the current state of the integration application.
+The `o.s.i.support.management.graph` package contains all the required classes to collect, build and render the runtime states of Spring Integration components as a single tree-like `Graph` object.
+The `IntegrationGraphServer` should be used as a bean to build, retrieve and refresh `Graph` object.
+The result `Graph` object can be serialized to any format, although JSON is much flexible and easier to build, parse and represent on the client side.
+Typical Spring Integration application may have such a graph model:
+
+[source,json]
+----
+{
+  "contentDescriptor": {
+    "providerVersion": "4.3.0.RELEASE",
+    "providerFormatVersion": 1.0,
+    "provider": "spring-integration",
+    "name": "testApplication"
+  },
+  "nodes": [
+    {
+      "nodeId": 1,
+      "name": "nullChannel",
+      "stats": null,
+      "componentType": "channel"
+    },
+    {
+      "nodeId": 2,
+      "name": "errorChannel",
+      "stats": null,
+      "componentType": "publish-subscribe-channel"
+    },
+    {
+      "nodeId": 3,
+      "name": "_org.springframework.integration.errorLogger",
+      "stats": {
+        "duration": {
+          "count": 0,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "standardDeviation": 0.0,
+          "countLong": 0
+        },
+        "errorCount": 0,
+        "standardDeviationDuration": 0.0,
+        "countsEnabled": true,
+        "statsEnabled": true,
+        "loggingEnabled": false,
+        "handleCount": 0,
+        "meanDuration": 0.0,
+        "maxDuration": 0.0,
+        "minDuration": 0.0,
+        "activeCount": 0
+      },
+      "componentType": "logging-channel-adapter",
+      "output": null,
+      "input": "errorChannel"
+    }
+  ],
+  "links": [
+    {
+      "from": 2,
+      "to": 3
+    }
+  ]
+}
+----
+
+So, the graph consists from tree top-level sections.
+
+The first one, `contentDescriptor`, is pretty straightforward and contains the general information about the application providing the model.
+The `name` can be customized on the `IntegrationGraphServer` bean or via `spring.application.name` environment property.
+Other properties are hard-coded by the framework and allow to distinguish the similar model from other vendors.
+
+The last one represents connections between nodes from the second section and, therefore, between integration components in the target Spring Integration application.
+For example _from_ a `MessageChannel` _to_ an `EventDrivenConsumer` with some `MessageHandler`.
+Or _from_ an `AbstractReplyProducingMessageHandler` _to_ a `MessageChannel`.
+The information from this section can be used by the visualizing tool to render strings between nodes from the section #2, where these numbers are exactly values from the `nodeId` property of those nodes.
+
+The second section is the most interesting because here we have not only the runtime components with their `componentType` s and `name` s, but also the metrics exposed by the component, if an `@EnableIntegrationManagement` is present with some `@Configuration`.
+See the `stats` attribute from the `_org.springframework.integration.errorLogger` component in the JSON example above.
+At the same time `nullChannel` and `errorChannel` don't provide such an information because our configuration may be like this:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
+      countsEnabled = "!*",
+      defaultLoggingEnabled = "false")
+public class ManagementConfiguration {
+
+    @Bean
+    public IntegrationGraphServer integrationGraphServer() {
+        return new IntegrationGraphServer();
+    }
+
+}
+----
+
+The `nodeId` represent unique, incremental identifier to allow to distinguish component from other on the client side.
+Plus it is used from the third section to represent relationship (connection) of this component to others, if any.
+The last two `input` and `output` attributes are for the `inputChannel` and `outputChannel` properties of the `AbstractEndpoint`, `MessageHandler` or `SourcePollingChannelAdapter` and `MessageProducerSupport`.
+See the next paragraph for more information.
+
+==== Graph Runtime Model
+
+The Spring Integration components are enough various and different by complexity.
+For example, any polling `MessageSource` must be present at runtime together with the `SourcePollingChannelAdapter` and `MessageChannel` to emit messages from the source data periodically.
+Other are middleware request-reply components, e.g. `JmsOutboundGateway`, with `AbstractEndpoint` to subscribe to (or poll messages from) the `requestChannel` (`input`) and `replyChannel` (`output`) to produce reply message downstream.
+Meanwhile any `MessageProducerSupport` implementation (e.g. `ApplicationEventListeningMessageProducer`) just wraps some target protocol listening logic and sends messages to the `outputChannel`.
+
+Independently of that diversity the Spring Integration components have many in common and after some approximation they can be represent as just an `IntegrationNode` hierarchy, which you can find in the `o.s.i.support.management.graph` package.
+For example the `ErrorCapableDiscardingMessageHandlerNode` is used for the `AggregatingMessageHandler` (because it has `discardChannel` option) on the `PollingConsumer` (because it has an `errorChannel` variant).
+Another more simple sample is `CompositeMessageHandlerNode` - for `MessageHandlerChain` on the `EventDrivenConsumer`.
+
+This  `IntegrationNode` hierarchy can be used for parsing the graph model on the client side, as well as for the understanding a general Spring Integration runtime behavior.
+See also <<programming-tips>> for more information.
+
+=== Integration Graph Controller
+
+If your application is WEB-based (or built on top of Spring Boot) and Spring Integration HTTP module (see <<http>>) is present on the classpath you can use special `IntegrationGraphController` to expose `IntegrationGraphServer` functionality as a REST service.
+For this purpose a special `@EnableIntegrationGraphController` `@Configuration`-level annotation and `<int-http:graph-controller/>` XML component, respectively, are present by HTTP module.
+Together with the `@EnableWebMvc` (or `<mvc:annotation-driven/>` for xml definitions) this configuration registers `IntegrationGraphController` `@RestController` where its `@RequestMapping.path` can be configured on the `@EnableIntegrationGraphController` or `<int-http:graph-controller/>`, respectively.
+The default is `/integration`.
+
+The `IntegrationGraphController` `@RestController` provides services like:
+
+- `@GetMapping(name = "getGraph")` - to retrieve the state of the Spring Integration components since the last `IntegrationGraphServer` refresh.
+The `o.s.i.support.management.graph.Graph` is returned as a `@ResponseBody` of the REST service;
+- `@GetMapping(path = "/refresh", name = "refreshGraph")` - to refresh the current `Graph` for the actual runtime state and return it as a REST response.
+
+Any Security and Cross Origin restrictions for the `IntegrationGraphController` can be achieved with the standard configuration options and components provided by Spring Security and Spring MVC projects.
+The simple example of that may be like this:
+
+[source,xml]
+----
+<mvc:annotation-driven />
+
+<mvc:cors>
+	<mvc:mapping path="/myIntegration/**"
+				 allowed-origins="http://localhost:9090"
+				 allowed-methods="GET" />
+</mvc:cors>
+
+<security:http>
+    <security:intercept-url pattern="/myIntegration/**" access="ROLE_ADMIN" />
+</security:http>
+
+
+<int-http:graph-controller path="/myIntegration" />
+----
+
+and Java & Annotation Configuration variant is:
+
+[source,java]
+----
+@Configuration
+@EnableWebMvc
+@EnableWebSecurity
+@EnableIntegration
+@EnableIntegrationGraphController(path = "/testIntegration")
+public class IntegrationConfiguration extends WebSecurityConfigurerAdapter
+            implements WebMvcConfigurer {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+	    http
+            .authorizeRequests()
+               .antMatchers("/testIntegration/**").hasRole("ADMIN")
+            // ...
+            .formLogin();
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+    	registry.addMapping("/testIntegration/**")
+    			.allowedOrigins("http://localhost:9090")
+    			.allowedMethods(HttpMethod.GET.name());
+    }
+
+    //...
+
+}
+----

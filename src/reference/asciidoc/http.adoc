@@ -791,6 +791,12 @@ If further customization is required you can also configure a `DefaultHttpHeader
 
 Of course, you can even implement the HeaderMapper strategy interface directly and provide a reference to that if you need to do something other than what the `DefaultHttpHeaderMapper` supports.
 
+[[int-graph-controller]]
+=== Integration Graph Controller
+
+Starting with _version 4.3_, the HTTP module provides an `@EnableIntegrationGraphController` `@Configuration`-level annotation and `<int-http:graph-controller/>` XML component, respectively, to expose `IntegrationGraphServer` as a REST service.
+See <<integration-graph>> for more information.
+
 [[http-samples]]
 === HTTP Samples
 
