@@ -36,10 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.http.config.EnableIntegrationGraphController;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -53,7 +56,9 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -80,6 +85,7 @@ public class IntegrationGraphControllerTests {
 	@Test
 	public void testIntegrationGraphGet() throws Exception {
 		this.mockMvc.perform(get("/testIntegration")
+				.header(HttpHeaders.ORIGIN, "http://foo.bar.com")
 				.accept(MediaType.parseMediaType("application/json;charset=UTF-8")))
 				.andExpect(status().isOk())
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -99,7 +105,6 @@ public class IntegrationGraphControllerTests {
 				"IntegrationGraphControllerParserTests-context.xml", getClass());
 
 
-
 		HandlerMapping handlerMapping =
 				context.getBean(RequestMappingHandlerMapping.class.getName(), HandlerMapping.class);
 
@@ -108,6 +113,7 @@ public class IntegrationGraphControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setRequestURI("/foo");
+		request.addHeader(HttpHeaders.ORIGIN, "http://foo.bar.com");
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		HandlerExecutionChain executionChain = handlerMapping.getHandler(request);
@@ -142,8 +148,19 @@ public class IntegrationGraphControllerTests {
 	@Configuration
 	@EnableWebMvc
 	@EnableIntegration
+	@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
+			countsEnabled = "!*",
+			defaultLoggingEnabled = "false")
 	@EnableIntegrationGraphController(path = "/testIntegration")
-	public static class ContextConfiguration {
+	public static class ContextConfiguration extends WebMvcConfigurerAdapter {
+
+		@Override
+		public void addCorsMappings(CorsRegistry registry) {
+			registry.addMapping("/testIntegration/**")
+					.allowedOrigins("http://foo.bar.com")
+					.allowedMethods(HttpMethod.GET.name());
+
+		}
 
 	}
 

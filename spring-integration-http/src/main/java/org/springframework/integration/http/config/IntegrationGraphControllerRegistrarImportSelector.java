@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
@@ -30,7 +29,7 @@ import org.springframework.integration.http.support.HttpContextUtils;
  */
 class IntegrationGraphControllerRegistrarImportSelector implements ImportSelector {
 
-	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
+	private static final Log logger = LogFactory.getLog(IntegrationGraphControllerRegistrarImportSelector.class);
 
 	@Override
 	public String[] selectImports(AnnotationMetadata importingClassMetadata) {
