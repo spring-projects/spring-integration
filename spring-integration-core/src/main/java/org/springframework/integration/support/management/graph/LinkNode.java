@@ -29,9 +29,12 @@ public class LinkNode {
 
 	private final int to;
 
-	public LinkNode(int from, int to) {
+	private final Type type;
+
+	public LinkNode(int from, int to, Type type) {
 		this.from = from;
 		this.to = to;
+		this.type = type;
 	}
 
 	public int getFrom() {
@@ -40,6 +43,14 @@ public class LinkNode {
 
 	public int getTo() {
 		return this.to;
+	}
+
+	public Type getType() {
+		return this.type;
+	}
+
+	public enum Type {
+		input, output, error, discard
 	}
 
 }
