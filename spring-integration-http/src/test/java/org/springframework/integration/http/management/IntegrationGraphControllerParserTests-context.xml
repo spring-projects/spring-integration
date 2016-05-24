@@ -10,8 +10,14 @@
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-	<mvc:annotation-driven/>
+	<mvc:annotation-driven />
 
-	<graph-controller path="/foo"/>
+	<mvc:cors>
+		<mvc:mapping path="/foo"
+					 allowed-origins="http://foo.bar.com"
+					 allowed-methods="GET" />
+	</mvc:cors>
+
+	<graph-controller path="/foo" />
 
 </beans:beans>

@@ -38,6 +38,11 @@ See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 A new `StreamTransformer` is provided to transform an `InputStream` payload to either a `byte[]` or `String`.
 See <<stream-transformer>> for more information.
 
+==== Integration Graph
+
+A new `IntegrationGraphServer` together with the `IntegrationGraphController` REST service are provided to expose the runtime model of a Spring Integration application as a graph.
+See <<integration-graph>> for more information.
+
 [[x4.3-general]]
 === General Changes
 
