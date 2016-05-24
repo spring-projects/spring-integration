@@ -205,7 +205,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			nodes.add(handlerNode);
 			MessageChannelNode channelNode = channelNodes.get(handlerNode.getInput());
 			if (channelNode != null) {
-				links.add(new LinkNode(channelNode.getNodeId(), handlerNode.getNodeId()));
+				links.add(new LinkNode(channelNode.getNodeId(), handlerNode.getNodeId(), LinkNode.Type.input));
 			}
 			producerLink(links, channelNodes, handlerNode);
 		}
@@ -217,19 +217,19 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		if (endpointNode.getOutput() != null) {
 			channelNode = channelNodes.get(endpointNode.getOutput());
 			if (channelNode != null) {
-				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.output));
 			}
 		}
 		if (endpointNode instanceof ErrorCapableNode) {
 			channelNode = channelNodes.get(((ErrorCapableNode) endpointNode).getErrors());
 			if (channelNode != null) {
-				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.error));
 			}
 		}
 		if (endpointNode instanceof DiscardingMessageHandlerNode) {
 			channelNode = channelNodes.get(((DiscardingMessageHandlerNode) endpointNode).getDiscards());
 			if (channelNode != null) {
-				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId()));
+				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.discard));
 			}
 		}
 	}

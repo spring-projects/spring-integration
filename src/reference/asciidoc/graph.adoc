@@ -61,7 +61,8 @@ A simple Spring Integration application with only the default components would e
   "links": [
     {
       "from": 2,
-      "to": 3
+      "to": 3,
+      "type": "input"
     }
   ]
 }
@@ -76,7 +77,32 @@ Other properties are provided by the framework and allows you to distinguish a s
 The `links` graph element represents connections between nodes from the `nodes` graph element and, therefore, between integration components in the source Spring Integration application.
 For example _from_ a `MessageChannel` _to_ an `EventDrivenConsumer` with some `MessageHandler`;
 or _from_ an `AbstractReplyProducingMessageHandler` _to_ a `MessageChannel`.
+For the convenience and to allow to determine a link purpose, the model is supplied with the `type` attribute.
+The possible types are:
+
+- _input_ - identify the direction from `MessageChannel` to the endpoint; `inputChannel` or `requestChannel` property;
+- _output_ - the direction from `MessageHandler`, `MessageProducer` or `SourcePollingChannelAdapter` to the `MessageChannel` via an `outputChannel` or `replyChannel` property;
+- _error_ - from `MessageHandler` on `PollingConsumer` or `MessageProducer` or `SourcePollingChannelAdapter` to the `MessageChannel` via an `errorChannel` property;
+- _discard_ - from `DiscardingMessageHandler` (e.g. `MessageFilter`) to the `MessageChannel` via `errorChannel` property.
+
 The information from this element can be used by a visualizing tool to render connections between nodes from the `nodes` graph element, where the `from` and `to` numbers represent the value from the `nodeId` property of the linked nodes.
+For example the link `type` can be used to determine the proper _port_ on the target node:
+
+----
+              +---(discard)
+              |
+         +----o----+
+         |         |
+         |         |
+         |         |
+(input)--o         o---(output)
+         |         |
+         |         |
+         |         |
+         +----o----+
+              |
+              +---(error)
+----
 
 The `nodes` graph element is perhaps the most interesting because its elements contain not only the runtime components with their `componentType` s and `name` s, but can also optionally contain metrics exposed by the component.
 To enable the metrics, add an `@EnableIntegrationManagement` to some `@Configuration` class or add an `<int:management/>` element to your XML configuration.
