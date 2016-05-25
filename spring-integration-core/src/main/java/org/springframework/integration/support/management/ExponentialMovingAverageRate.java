@@ -182,7 +182,7 @@ public class ExponentialMovingAverageRate {
 	}
 
 	/**
-	 * @return the time in seconds since the last measurement
+	 * @return the time in milliseconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
 		double t0 = lastTime();
