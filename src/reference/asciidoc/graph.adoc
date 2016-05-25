@@ -118,6 +118,53 @@ Within the graph, Spring Integration components are represented using the `Integ
 For example the `ErrorCapableDiscardingMessageHandlerNode` could be used for the `AggregatingMessageHandler` (because it has a `discardChannel` option) and can produce errors when consuming from a `PollableChannel` using a `PollingConsumer`.
 Another sample is `CompositeMessageHandlerNode` - for a `MessageHandlerChain` when subscribed to a `SubscribableChannel`, using an `EventDrivenConsumer`.
 
+NOTE: The `@MessagingGateway` (see <<gateway>>) provides nodes for each its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
+For example the gateway:
+
+[source,java]
+----
+@MessagingGateway(defaultRequestChannel = "four")
+public interface Gate {
+
+	void foo(String foo);
+
+	void foo(Integer foo);
+
+	void bar(String bar);
+
+}
+----
+
+produces nodes like:
+[source,json]
+
+----
+{
+  "nodeId" : 10,
+  "name" : "gate.bar(class java.lang.String)",
+  "stats" : null,
+  "componentType" : "gateway",
+  "output" : "four",
+  "errors" : null
+},
+{
+  "nodeId" : 11,
+  "name" : "gate.foo(class java.lang.String)",
+  "stats" : null,
+  "componentType" : "gateway",
+  "output" : "four",
+  "errors" : null
+},
+{
+  "nodeId" : 12,
+  "name" : "gate.foo(class java.lang.Integer)",
+  "stats" : null,
+  "componentType" : "gateway",
+  "output" : "four",
+  "errors" : null
+}
+----
+
 This  `IntegrationNode` hierarchy can be used for parsing the graph model on the client side, as well as for the understanding the general Spring Integration runtime behavior.
 See also <<programming-tips>> for more information.
 
@@ -133,7 +180,7 @@ The `IntegrationGraphController` `@RestController` provides these services:
 - `@GetMapping(name = "getGraph")` - to retrieve the state of the Spring Integration components since the last `IntegrationGraphServer` refresh.
 The `o.s.i.support.management.graph.Graph` is returned as a `@ResponseBody` of the REST service;
 - `@GetMapping(path = "/refresh", name = "refreshGraph")` - to refresh the current `Graph` for the actual runtime state and return it as a REST response.
-It is not necessaery to refresh the graph for metrics, they are provided in real-time when the graph is retrieved.
+It is not necessary to refresh the graph for metrics, they are provided in real-time when the graph is retrieved.
 Refresh can be called if the application context has been modified since the graph was last retrieved and the graph is completely rebuilt.
 
 Any Security and Cross Origin restrictions for the `IntegrationGraphController` can be achieved with the standard configuration options and components provided by Spring Security and Spring MVC projects.
