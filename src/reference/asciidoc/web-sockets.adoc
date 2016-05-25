@@ -41,18 +41,18 @@ That allows us to reuse many configuration items and infrastructure hooks to bui
 //Client side
 @Bean
 public WebSocketClient webSocketClient() {
-	return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new JettyWebSocketClient())));
+    return new SockJsClient(Collections.singletonList(new WebSocketTransport(new JettyWebSocketClient())));
 }
 
 @Bean
 public IntegrationWebSocketContainer clientWebSocketContainer() {
-	return new ClientWebSocketContainer(webSocketClient(), "ws://my.server.com/endpoint");
+    return new ClientWebSocketContainer(webSocketClient(), "ws://my.server.com/endpoint");
 }
 
 //Server side
 @Bean
 public IntegrationWebSocketContainer serverWebSocketContainer() {
-	return new ServerWebSocketContainer("/endpoint").withSockJs();
+    return new ServerWebSocketContainer("/endpoint").withSockJs();
 }
 ----
 
@@ -131,18 +131,18 @@ To include it in your configuration, simply provide the following namespace decl
 [source,xml]
 ----
 <int-websocket:client-container
-					id=""  <1>
-					client=""  <2>
-					uri=""  <3>
-					uri-variables=""  <4>
-					origin=""  <5>
-					send-time-limit=""  <6>
-					send-buffer-size-limit=""  <7>
-					auto-startup=""  <8>
-					phase="">  <9>
-				<int-websocket:http-headers>
-					<entry key="" value=""/>
-				</int-websocket:http-headers>  <10>
+                	id=""  <1>
+                	client=""  <2>
+                	uri=""  <3>
+                	uri-variables=""  <4>
+                	origin=""  <5>
+                	send-time-limit=""  <6>
+                	send-buffer-size-limit=""  <7>
+                	auto-startup=""  <8>
+                	phase="">  <9>
+                <int-websocket:http-headers>
+                	<entry key="" value=""/>
+                </int-websocket:http-headers>  <10>
 </int-websocket:client-container>
 ----
 
@@ -197,18 +197,20 @@ See `SmartLifeCycle`.
 					handshake-interceptors=""  <4>
 					decorator-factories=""  <5>
 					send-time-limit=""  <6>
-					send-buffer-size-limit="">  <7>
+					send-buffer-size-limit=""  <7>
+					allowed-origins="">  <8>
 				  <int-websocket:sockjs
-						client-library-url=""   <8>
-						stream-bytes-limit=""   <9>
-						session-cookie-needed=""   <10>
-						heartbeat-time=""   <11>
-						disconnect-delay=""   <12>
-						message-cache-size=""   <13>
-						websocket-enabled=""   <14>
-						scheduler=""   <15>
-						message-codec=""   <16>
-						transport-handlers="" />  <17>
+						client-library-url=""   <9>
+						stream-bytes-limit=""   <10>
+						session-cookie-needed=""   <11>
+						heartbeat-time=""   <12>
+						disconnect-delay=""   <13>
+						message-cache-size=""   <14>
+						websocket-enabled=""   <15>
+						scheduler=""   <16>
+						message-codec=""   <17>
+						transport-handlers=""  <18>
+						suppress-cors="true"="" />  <19>
 </int-websocket:server-container>
 ----
 
@@ -239,7 +241,15 @@ for more information.
 <7> See the same option on the `<int-websocket:client-container>`.
 
 
-<8> Transports with no native cross-domain communication (e.g.
+<8> Configure allowed Origin header values. Multiple origins may be specified as a comma-separated list.
+This check is mostly designed for browser clients.
+There is noting preventing other types of client to modify the Origin header value.
+When SockJS is enabled and allowed origins are restricted, transport types that do not use Origin headers for cross origin requests (jsonp-polling, iframe-xhr-polling, iframe-eventsource and iframe-htmlfile) are disabled.
+As a consequence, IE6/IE7 won't be supported anymore and IE8/IE9 will only be supported without cookies.
+By default, all origins are allowed.
+
+
+<9> Transports with no native cross-domain communication (e.g.
 "eventsource", "htmlfile") must get a simple page from the "foreign" domain in an invisible iframe so that code in the iframe can run from a domain local to the SockJS server.
 Since the iframe needs to load the SockJS javascript client library, this property allows specifying where to load it from.
 By default this is set to point to `https://d1fxtkz8shb9d2.cloudfront.net/sockjs-0.3.4.min.js`.
@@ -249,62 +259,66 @@ For example assuming a SockJS endpoint mapped to "/sockjs", and resulting iframe
 In case of a prefix-based Servlet mapping one more traversal may be needed.
 
 
-<9> Minimum number of bytes that can be send over a single HTTP streaming request before it will be closed.
+<10> Minimum number of bytes that can be send over a single HTTP streaming request before it will be closed.
 Defaults to `128K` (i.e.
 128*1024 bytes).
 
 
-<10> The "cookie_needed" value in the response from the SockJs `"/info"` endpoint.
+<11> The "cookie_needed" value in the response from the SockJs `"/info"` endpoint.
 This property indicates whether the use of a JSESSIONID cookie is required for the application to function correctly, e.g.
 for load balancing or in Java Servlet containers for the use of an HTTP session.
 
 
-<11> The amount of time in milliseconds when the server has not sent any messages and after which the server should
+<12> The amount of time in milliseconds when the server has not sent any messages and after which the server should
 send a heartbeat frame to the client in order to keep the connection from breaking.
 The default value is `25,000` (25 seconds).
 
 
-<12> The amount of time in milliseconds before a client is considered disconnected after not having a receiving
+<13> The amount of time in milliseconds before a client is considered disconnected after not having a receiving
 connection, i.e.
 an active connection over which the server can send data to the client.
 The default value is `5000`.
 
 
-<13> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request
+<14> The number of server-to-client messages that a session can cache while waiting for the next HTTP polling request
  from the client.
 The default size is `100`.
 
 
-<14> Some load balancers don't support websockets.
+<15> Some load balancers don't support websockets.
 Set this option to `false` to disable the WebSocket transport on the server side.
 The default value is `true`.
 
 
-<15> The `TaskScheduler` bean reference; a new `ThreadPoolTaskScheduler` instance will be created if no value is
+<16> The `TaskScheduler` bean reference; a new `ThreadPoolTaskScheduler` instance will be created if no value is
 provided.
 This scheduler instance will be used for scheduling heart-beat messages.
 
 
-<16> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
+<17> The `SockJsMessageCodec` bean reference to use for encoding and decoding SockJS messages.
 By default `Jackson2SockJsMessageCodec` is used requiring the Jackson library to be present on the classpath.
 
 
-<17> List of `TransportHandler` bean references.
+<18> List of `TransportHandler` bean references.
+
+
+<19> The option to disable automatic addition of CORS headers for SockJS requests.
+The default value is `false`.
 
 *<int-websocket:outbound-channel-adapter>*
 
 [source,xml]
 ----
 <int-websocket:outbound-channel-adapter
-						id=""  <1>
-						channel=""  <2>
-						container=""  <3>
-						default-protocol-handler=""  <4>
-						protocol-handlers=""  <5>
-						message-converters=""  <6>
-						merge-with-default-converters=""  <7>
-						auto-startup=""  <8>
-						phase=""/>  <9>
+                          id=""  <1>
+                          channel=""  <2>
+                          container=""  <3>
+                          default-protocol-handler=""  <4>
+                          protocol-handlers=""  <5>
+                          message-converters=""  <6>
+                          merge-with-default-converters=""  <7>
+                          auto-startup=""  <8>
+                          phase=""/>  <9>
 ----
 
 
@@ -357,19 +371,19 @@ See `SmartLifeCycle`.
 [source,xml]
 ----
 <int-websocket:inbound-channel-adapter
-						id=""  <1>
-						channel=""  <2>
-						error-channel=""  <3>
-						container=""  <4>
-						default-protocol-handler=""  <5>
-						protocol-handlers=""  <6>
-						message-converters=""  <7>
-						merge-with-default-converters=""  <8>
-						send-timeout=""  <9>
-						payload-type=""  <10>
-						use-broker=""  <11>
-						auto-startup=""  <12>
-						phase=""/>  <13>
+                            id=""  <1>
+                            channel=""  <2>
+                            error-channel=""  <3>
+                            container=""  <4>
+                            default-protocol-handler=""  <5>
+                            protocol-handlers=""  <6>
+                            message-converters=""  <7>
+                            merge-with-default-converters=""  <8>
+                            send-timeout=""  <9>
+                            payload-type=""  <10>
+                            use-broker=""  <11>
+                            auto-startup=""  <12>
+                            phase=""/>  <13>
 ----
 
 

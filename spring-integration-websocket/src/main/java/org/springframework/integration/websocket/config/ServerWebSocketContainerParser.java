@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ public class ServerWebSocketContainerParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sockjsBuilder, sockjs, "scheduler",
 					"taskScheduler");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sockjsBuilder, sockjs, "message-codec");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(sockjsBuilder, sockjs, "suppress-cors");
 
 			String transportHandlers = sockjs.getAttribute("transport-handlers");
 			if (StringUtils.hasText(transportHandlers)) {
@@ -103,6 +104,7 @@ public class ServerWebSocketContainerParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "handshake-handler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-buffer-size-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-time-limit");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "allowed-origins");
 	}
 
 }

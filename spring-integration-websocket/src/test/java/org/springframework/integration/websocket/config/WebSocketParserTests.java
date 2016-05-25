@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.websocket.config;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -164,6 +165,8 @@ public class WebSocketParserTests {
 		assertSame(this.handshakeInterceptor, interceptors[0]);
 		assertEquals(100, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendTimeLimit"));
 		assertEquals(100000, TestUtils.getPropertyValue(this.serverWebSocketContainer, "sendBufferSizeLimit"));
+		assertArrayEquals(new String[] {"http://foo.com"},
+				TestUtils.getPropertyValue(this.serverWebSocketContainer, "origins", String[].class));
 
 		WebSocketHandlerDecoratorFactory[] decoratorFactories =
 				TestUtils.getPropertyValue(this.serverWebSocketContainer, "decoratorFactories",
@@ -189,6 +192,7 @@ public class WebSocketParserTests {
 		assertEquals("https://foo.sock.js", sockJsService.getSockJsClientLibraryUrl());
 		assertFalse(sockJsService.isSessionCookieNeeded());
 		assertFalse(sockJsService.isWebSocketEnabled());
+		assertTrue(sockJsService.shouldSuppressCors());
 
 		assertSame(this.serverWebSocketContainer,
 				TestUtils.getPropertyValue(this.defaultInboundAdapter, "webSocketContainer"));
