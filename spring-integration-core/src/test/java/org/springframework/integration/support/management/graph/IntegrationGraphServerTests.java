@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -80,16 +82,17 @@ public class IntegrationGraphServerTests {
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(19)));
+		assertThat(nodes.size(), is(equalTo(21)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(17)));
+		assertThat(links.size(), is(equalTo(19)));
 	}
 
 	@Configuration
 	@EnableIntegration
 	@EnableIntegrationManagement
+	@IntegrationComponentScan
 	@ImportResource("org/springframework/integration/support/management/graph/integration-graph-context.xml")
 	public static class Config {
 
@@ -184,6 +187,14 @@ public class IntegrationGraphServerTests {
 			// empty
 		}
 
+	}
+
+	@MessagingGateway(defaultRequestChannel="four")
+	public interface Gate {
+
+		void foo(String foo);
+
+		void bar(String bar);
 	}
 
 }

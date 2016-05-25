@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management.graph;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.CompositeMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
@@ -161,6 +163,19 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
 			nodes.add(gatewayNode);
 			producerLink(links, channelNodes, gatewayNode);
+		}
+		Map<String, GatewayProxyFactoryBean> gpfbs = this.applicationContext
+				.getBeansOfType(GatewayProxyFactoryBean.class);
+		for (Entry<String, GatewayProxyFactoryBean> entry : gpfbs.entrySet()) {
+			Map<Method, MessagingGatewaySupport> methodMap = entry.getValue().getGateways();
+			int i = 0;
+			for (Entry<Method, MessagingGatewaySupport> gwEntry : methodMap.entrySet()) {
+				MessagingGatewaySupport gateway = gwEntry.getValue();
+				MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(
+						entry.getKey().substring(1) + "." + gwEntry.getKey().getName() + "#" + i++, gateway);
+				nodes.add(gatewayNode);
+				producerLink(links, channelNodes, gatewayNode);
+			}
 		}
 	}
 
