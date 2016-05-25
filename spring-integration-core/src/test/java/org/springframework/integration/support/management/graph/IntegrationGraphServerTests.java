@@ -82,11 +82,11 @@ public class IntegrationGraphServerTests {
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(21)));
+		assertThat(nodes.size(), is(equalTo(22)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(19)));
+		assertThat(links.size(), is(equalTo(20)));
 	}
 
 	@Configuration
@@ -189,12 +189,15 @@ public class IntegrationGraphServerTests {
 
 	}
 
-	@MessagingGateway(defaultRequestChannel="four")
+	@MessagingGateway(defaultRequestChannel = "four")
 	public interface Gate {
 
 		void foo(String foo);
 
+		void foo(Integer foo);
+
 		void bar(String bar);
+
 	}
 
 }

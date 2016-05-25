@@ -287,7 +287,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * @since 4.3
 	 */
 	public Map<Method, MessagingGatewaySupport> getGateways() {
-		return Collections.unmodifiableMap(this.gatewayMap);
+		return Collections.<Method, MessagingGatewaySupport>unmodifiableMap(this.gatewayMap);
 	}
 
 	@Override
@@ -531,8 +531,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
- 		messageMapper.setBeanFactory(this.getBeanFactory());
- 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
+		messageMapper.setBeanFactory(this.getBeanFactory());
+		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 		gateway.setErrorChannel(this.errorChannel);
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
@@ -605,7 +605,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private static boolean hasReturnParameterizedWithMessage(Method method, boolean runningOnCallerThread) {
 		if (!runningOnCallerThread &&
 				(Future.class.isAssignableFrom(method.getReturnType())
-				|| (reactorPresent && Promise.class.isAssignableFrom(method.getReturnType())))) {
+						|| (reactorPresent && Promise.class.isAssignableFrom(method.getReturnType())))) {
 			Type returnType = method.getGenericReturnType();
 			if (returnType instanceof ParameterizedType) {
 				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
