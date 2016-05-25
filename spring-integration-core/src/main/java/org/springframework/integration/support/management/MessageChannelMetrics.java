@@ -56,9 +56,9 @@ public interface MessageChannelMetrics extends IntegrationStatsManagement {
 	long getSendErrorCountLong();
 
 	/**
-	 * @return the time in seconds since the last send
+	 * @return the time in milliseconds since the last send
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Time Since Last Send in Seconds")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Time Since Last Send in Milliseconds")
 	double getTimeSinceLastSend();
 
 	/**
