@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 	private SockJsServiceOptions sockJsServiceOptions;
 
+	private String[] origins;
+
 	public ServerWebSocketContainer(String... paths) {
 		this.paths = paths;
 	}
@@ -91,6 +93,18 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 		return this;
 	}
 
+	/**
+	 * Configure allowed {@code Origin} header values.
+	 * @param origins the origins to allow.
+	 * @return the current ServerWebSocketContainer
+	 * @since 4.3
+	 * @see WebSocketHandlerRegistration#setAllowedOrigins(String...)
+	 */
+	public ServerWebSocketContainer setAllowedOrigins(String... origins) {
+		this.origins = origins; //NOSONAR - fully delegated
+		return this;
+	}
+
 	public ServerWebSocketContainer withSockJs(SockJsServiceOptions... sockJsServiceOptions) {
 		if (ObjectUtils.isEmpty(sockJsServiceOptions)) {
 			this.sockJsServiceOptions = new SockJsServiceOptions();
@@ -118,7 +132,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 		WebSocketHandlerRegistration registration = registry.addHandler(webSocketHandler, this.paths)
 				.setHandshakeHandler(this.handshakeHandler)
-				.addInterceptors(this.interceptors);
+				.addInterceptors(this.interceptors)
+				.setAllowedOrigins(this.origins);
 
 		if (this.sockJsServiceOptions != null) {
 			SockJsServiceRegistration sockJsServiceRegistration = registration.withSockJS();
@@ -155,6 +170,10 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 			if (this.sockJsServiceOptions.messageCodec != null) {
 				sockJsServiceRegistration.setMessageCodec(this.sockJsServiceOptions.messageCodec);
 			}
+			if (this.sockJsServiceOptions.suppressCors != null) {
+				sockJsServiceRegistration.setSupressCors(this.sockJsServiceOptions.suppressCors);
+			}
+
 		}
 
 	}
@@ -183,6 +202,8 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 		private TransportHandler[] transportHandlers;
 
 		private SockJsMessageCodec messageCodec;
+
+		private Boolean suppressCors;
 
 		public SockJsServiceOptions setTaskScheduler(TaskScheduler taskScheduler) {
 			this.taskScheduler = taskScheduler;
@@ -231,6 +252,11 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 		public SockJsServiceOptions setMessageCodec(SockJsMessageCodec messageCodec) {
 			this.messageCodec = messageCodec;
+			return this;
+		}
+
+		public SockJsServiceOptions setSuppressCors(boolean suppressCors) {
+			this.suppressCors = suppressCors;
 			return this;
 		}
 
