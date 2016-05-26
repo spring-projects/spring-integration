@@ -24,7 +24,7 @@ import java.util.List;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.MessageRouter;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -84,8 +84,8 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 		if (this.handler instanceof MessageProducer) {
 			return ((MessageProducer) this.handler).getOutputChannel();
 		}
-		else if (this.handler instanceof AbstractMessageRouter) {
-			return ((AbstractMessageRouter) this.handler).getDefaultOutputChannel();
+		else if (this.handler instanceof MessageRouter) {
+			return ((MessageRouter) this.handler).getDefaultOutputChannel();
 		}
 		else {
 			return null;

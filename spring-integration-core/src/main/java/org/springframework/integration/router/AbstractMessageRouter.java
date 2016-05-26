@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMessageRouter extends AbstractMessageHandler {
+public abstract class AbstractMessageRouter extends AbstractMessageHandler implements MessageRouter {
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -74,6 +74,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * @return the channel.
 	 * @since 4.3
 	 */
+	@Override
 	public MessageChannel getDefaultOutputChannel() {
 		if (this.defaultOutputChannelName != null) {
 			synchronized (this) {

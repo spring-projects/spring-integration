@@ -48,7 +48,6 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -185,8 +184,7 @@ public class IntegrationGraphServerTests {
 		@Router(inputChannel = "four")
 		public RecipientListRouter rlRouter() {
 			RecipientListRouter router = new RecipientListRouter();
-			router.setRecipients(
-					Arrays.asList(new Recipient[] { new Recipient(barChannel()), new Recipient(bazChannel()) }));
+			router.setChannels(Arrays.asList(new MessageChannel[] { barChannel(), bazChannel() }));
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}
