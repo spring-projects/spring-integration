@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Router;
@@ -46,6 +47,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -93,10 +95,10 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size(), is(equalTo(3)));
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(30)));
+		assertThat(nodes.size(), is(equalTo(31)));
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(29)));
+		assertThat(links.size(), is(equalTo(32)));
 
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
@@ -115,10 +117,10 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size(), is(equalTo(3)));
 		nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(30)));
+		assertThat(nodes.size(), is(equalTo(31)));
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(31)));
+		assertThat(links.size(), is(equalTo(34)));
 	}
 
 	@Configuration
@@ -212,6 +214,15 @@ public class IntegrationGraphServerTests {
 		public RecipientListRouter rlRouter() {
 			RecipientListRouter router = new RecipientListRouter();
 			router.setChannels(Arrays.asList(new MessageChannel[] { barChannel(), bazChannel() }));
+			router.setDefaultOutputChannel(discards());
+			return router;
+		}
+
+		@Bean
+		@Router(inputChannel = "four")
+		public ExpressionEvaluatingRouter expressionRouter() {
+			ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter(
+					new SpelExpressionParser().parseExpression("headers['foo']"));
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}
