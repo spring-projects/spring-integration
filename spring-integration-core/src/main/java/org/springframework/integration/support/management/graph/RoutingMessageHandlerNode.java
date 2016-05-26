@@ -16,41 +16,29 @@
 
 package org.springframework.integration.support.management.graph;
 
+import java.util.Collection;
+
+import org.springframework.messaging.MessageHandler;
+
 /**
- * Represents a link between nodes.
+ * Represents an endpoint that can route to multiple channels.
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class LinkNode {
+public class RoutingMessageHandlerNode extends MessageHandlerNode {
 
-	private final int from;
+	private final Collection<String> routes;
 
-	private final int to;
-
-	private final Type type;
-
-	public LinkNode(int from, int to, Type type) {
-		this.from = from;
-		this.to = to;
-		this.type = type;
+	public RoutingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input, String output,
+			Collection<String> routes) {
+		super(nodeId, name, handler, input, output);
+		this.routes = routes;
 	}
 
-	public int getFrom() {
-		return this.from;
-	}
-
-	public int getTo() {
-		return this.to;
-	}
-
-	public Type getType() {
-		return this.type;
-	}
-
-	public enum Type {
-		input, output, error, discard, route
+	public Collection<String> getRoutes() {
+		return this.routes;
 	}
 
 }

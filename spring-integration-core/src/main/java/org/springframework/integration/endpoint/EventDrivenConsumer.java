@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -57,6 +58,9 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 	public MessageChannel getOutputChannel() {
 		if (this.handler instanceof MessageProducer) {
 			return ((MessageProducer) this.handler).getOutputChannel();
+		}
+		else if (this.handler instanceof AbstractMessageRouter) {
+			return ((AbstractMessageRouter) this.handler).getDefaultOutputChannel();
 		}
 		else {
 			return null;

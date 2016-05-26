@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -44,8 +45,10 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -82,11 +85,11 @@ public class IntegrationGraphServerTests {
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(22)));
+		assertThat(nodes.size(), is(equalTo(26)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(20)));
+		assertThat(links.size(), is(equalTo(25)));
 	}
 
 	@Configuration
@@ -163,6 +166,31 @@ public class IntegrationGraphServerTests {
 			errorHandler.setDefaultErrorChannel(myErrors());
 			poller.setErrorHandler(errorHandler);
 			return poller;
+		}
+
+		@Bean
+		@Router(inputChannel = "four")
+		public HeaderValueRouter router() {
+			HeaderValueRouter router = new HeaderValueRouter("foo");
+			router.setChannelMapping("bar", "barChannel");
+			router.setChannelMapping("baz", "bazChannel");
+			router.setDefaultOutputChannel(discards());
+			return router;
+		}
+
+		@Bean
+		public MessageChannel discards() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public MessageChannel barChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public MessageChannel bazChannel() {
+			return new DirectChannel();
 		}
 
 	}
