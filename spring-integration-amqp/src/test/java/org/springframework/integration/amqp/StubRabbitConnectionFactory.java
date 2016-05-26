@@ -74,6 +74,11 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 	}
 
 	@Override
+	public String getUsername() {
+		return null;
+	}
+
+	@Override
 	public void addConnectionListener(ConnectionListener listener) {
 	}
 

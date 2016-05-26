@@ -1137,6 +1137,20 @@ JSON converter to be selected.
 
 This applies to both the outbound channel adapter and gateway.
 
+[[amqp-user-id]]
+=== Outbound User Id
+
+Spring AMQP _version 1.6_ introduced a mechanism to allow the specification of a default user id for outbound messages.
+It has always been possible to set the `AmqpHeaders.USER_ID` header which will now take precedence over the default.
+This might be useful to message recipients; for inbound messages, if the message publisher sets the property, it is made available in the `AmqpHeaders.RECEIVED_USER_ID` header.
+Note that RabbitMQ https://www.rabbitmq.com/validated-user-id.html[validates that the user id is the actual user id for the connection or one for which impersonation is allowed].
+
+To configure a default user id for outbound messages, configure it on a `RabbitTemplate` and configure the outbound adapter or gateway to use that template.
+Similarly, to set the user id property on replies, inject an appropriately configured template into the inbound gateway.
+See the http://docs.spring.io/spring-amqp/docs/1.6.0.RELEASE/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
+
+
+
 [[amqp-channels]]
 === AMQP Backed Message Channels
 

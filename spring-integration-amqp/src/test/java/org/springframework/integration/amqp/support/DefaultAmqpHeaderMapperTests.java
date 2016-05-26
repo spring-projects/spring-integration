@@ -174,7 +174,7 @@ public class DefaultAmqpHeaderMapperTests {
 		Date testTimestamp = new Date();
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
-		amqpProperties.setUserId("test.userId");
+		amqpProperties.setReceivedUserId("test.userId");
 		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_CORRELATION, "test.correlation");
 		amqpProperties.setHeader(AmqpHeaders.SPRING_REPLY_TO_STACK, "test.replyTo2");
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
@@ -195,7 +195,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.replyTo", headerMap.get(AmqpHeaders.REPLY_TO));
 		assertEquals(testTimestamp, headerMap.get(AmqpHeaders.TIMESTAMP));
 		assertEquals("test.type", headerMap.get(AmqpHeaders.TYPE));
-		assertEquals("test.userId", headerMap.get(AmqpHeaders.USER_ID));
+		assertEquals("test.userId", headerMap.get(AmqpHeaders.RECEIVED_USER_ID));
 		assertEquals("test.correlation", headerMap.get(AmqpHeaders.SPRING_REPLY_CORRELATION));
 		assertEquals("test.replyTo2", headerMap.get(AmqpHeaders.SPRING_REPLY_TO_STACK));
 	}
