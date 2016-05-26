@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
@@ -60,6 +61,11 @@ public class RouterMetrics extends LifecycleMessageHandlerMetrics implements Map
 	@Override
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		this.router.setChannelMappings(channelMappings);
+	}
+
+	@Override
+	public Collection<String> getDynamicChannelNames() {
+		return this.router.getDynamicChannelNames();
 	}
 
 }

@@ -49,6 +49,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -74,6 +75,10 @@ public class IntegrationGraphServerTests {
 	@Autowired
 	private IntegrationGraphServer server;
 
+	@Autowired
+	private MessageChannel toRouter;
+
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() throws Exception {
 		Graph graph = this.server.getGraph();
@@ -81,17 +86,39 @@ public class IntegrationGraphServerTests {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
+
 //		System . out . println(new String(baos.toByteArray()));
+
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
 		assertThat(map.size(), is(equalTo(3)));
-		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(27)));
-		@SuppressWarnings("unchecked")
+		assertThat(nodes.size(), is(equalTo(30)));
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(30)));
+		assertThat(links.size(), is(equalTo(29)));
+
+		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
+		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
+		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "quxChannel").build());
+		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "fizChannel").build());
+
+		this.server.rebuild();
+		graph = this.server.getGraph();
+		baos = new ByteArrayOutputStream();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		objectMapper.writeValue(baos, graph);
+
+//		System . out . println(new String(baos.toByteArray()));
+
+		map = objectMapper.readValue(baos.toByteArray(), Map.class);
+		assertThat(map.size(), is(equalTo(3)));
+		nodes = (List<Map<?, ?>>) map.get("nodes");
+		assertThat(nodes, is(notNullValue()));
+		assertThat(nodes.size(), is(equalTo(30)));
+		links = (List<Map<?, ?>>) map.get("links");
+		assertThat(links, is(notNullValue()));
+		assertThat(links.size(), is(equalTo(31)));
 	}
 
 	@Configuration
@@ -171,7 +198,7 @@ public class IntegrationGraphServerTests {
 		}
 
 		@Bean
-		@Router(inputChannel = "four")
+		@Router(inputChannel = "toRouter")
 		public HeaderValueRouter router() {
 			HeaderValueRouter router = new HeaderValueRouter("foo");
 			router.setChannelMapping("bar", "barChannel");
@@ -195,13 +222,28 @@ public class IntegrationGraphServerTests {
 		}
 
 		@Bean
-		public MessageChannel barChannel() {
+		public MessageChannel toRouter() {
 			return new DirectChannel();
 		}
 
 		@Bean
+		public MessageChannel barChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public MessageChannel bazChannel() {
-			return new DirectChannel();
+			return new QueueChannel();
+		}
+
+		@Bean
+		public MessageChannel quxChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public MessageChannel fizChannel() {
+			return new QueueChannel();
 		}
 
 	}

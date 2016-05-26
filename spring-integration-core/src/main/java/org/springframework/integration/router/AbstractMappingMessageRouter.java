@@ -19,7 +19,9 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +51,8 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter implements MappingMessageRouterManagement {
+
+	private final Set<String> dynamicChannels = new LinkedHashSet<String>();
 
 	protected volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
@@ -133,6 +137,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		this.channelMappings = newChannelMappings;
 	}
 
+	@Override
+	@ManagedOperation
+	public Collection<String> getDynamicChannelNames() {
+		return Collections.unmodifiableSet(this.dynamicChannels);
+	}
+
 	/**
 	 * Subclasses must implement this method to return the channel keys.
 	 * A "key" might be present in this router's "channelMappings", or it
@@ -208,8 +218,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		// if the channelMappings contains a mapping, we'll use the mapped value
 		// otherwise, the String-based channelKey itself will be used as the channel name
 		String channelName = channelKey;
+		boolean mapped = false;
 		if (this.channelMappings.containsKey(channelKey)) {
 			channelName = this.channelMappings.get(channelKey);
+			mapped = true;
 		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
@@ -220,6 +232,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		MessageChannel channel = resolveChannelForName(channelName, message);
 		if (channel != null) {
 			channels.add(channel);
+			if (!mapped && !this.dynamicChannels.contains(channelName)) {
+				this.dynamicChannels.add(channelName);
+			}
 		}
 	}
 

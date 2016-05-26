@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
@@ -77,5 +78,15 @@ public interface MappingMessageRouterManagement {
 	 */
 	@ManagedAttribute
 	void setChannelMappings(Map<String, String> channelMappings);
+
+	/**
+	 * @return an unmodifiable collection of channel names to which
+	 * we have routed messages where the channel was not explicitly
+	 * mapped.
+	 *
+	 * @since 4.3
+	 */
+	@ManagedAttribute
+	Collection<String> getDynamicChannelNames();
 
 }

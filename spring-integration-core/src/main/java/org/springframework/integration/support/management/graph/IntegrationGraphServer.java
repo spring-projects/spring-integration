@@ -175,8 +175,14 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			for (Entry<Method, MessagingGatewaySupport> gwEntry : methodMap.entrySet()) {
 				MessagingGatewaySupport gateway = gwEntry.getValue();
 				Method method = gwEntry.getKey();
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				String[] parameterTypeNames = new String[parameterTypes.length];
+				int i = 0;
+				for (Class<?> type : parameterTypes) {
+					parameterTypeNames[i++] = type.getName();
+				}
 				String signature = method.getName() +
-						"(" + StringUtils.arrayToCommaDelimitedString(method.getParameterTypes()) + ")";
+						"(" + StringUtils.arrayToCommaDelimitedString(parameterTypeNames) + ")";
 				MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(
 						entry.getKey().substring(1) + "." + signature, gateway);
 				nodes.add(gatewayNode);
@@ -364,6 +370,11 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		private MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
 				MappingMessageRouterManagement router, String output, String errors, boolean polled) {
 			Collection<String> routes = router.getChannelMappings().values();
+			Collection<String> dynamicChannelNames = router.getDynamicChannelNames();
+			if (dynamicChannelNames.size() > 0) {
+				routes = new ArrayList<String>(routes);
+				routes.addAll(dynamicChannelNames);
+			}
 			return polled
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
 						consumer.getInputChannel().toString(), output, errors, routes)
