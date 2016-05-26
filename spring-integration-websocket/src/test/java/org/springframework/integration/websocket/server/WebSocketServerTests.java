@@ -188,7 +188,10 @@ public class WebSocketServerTests {
 
 		@Bean
 		public IntegrationWebSocketContainer clientWebSocketContainer() {
-			return new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
+			ClientWebSocketContainer clientWebSocketContainer =
+					new ClientWebSocketContainer(webSocketClient(), server().getWsBaseUrl() + "/ws");
+			clientWebSocketContainer.setOrigin("http://foo.com");
+			return clientWebSocketContainer;
 		}
 
 		@Bean
@@ -251,6 +254,7 @@ public class WebSocketServerTests {
 		public ServerWebSocketContainer serverWebSocketContainer() {
 			return new ServerWebSocketContainer("/ws")
 					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
+					.setAllowedOrigins("http://foo.com")
 					.withSockJs();
 		}
 

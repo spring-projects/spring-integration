@@ -270,3 +270,8 @@ See <<channel-wiretap>> for more information.
 
 The `ChannelMessageStoreQueryProvider` now supports H2 database.
 See <<jdbc-message-store-channels>> for more information.
+
+==== WebSocket Changes
+
+The `ServerWebSocketContainer` now exposes `allowedOrigins` option and `SockJsServiceOptions` a `suppressCors` option.
+See <<web-sockets>> for more information.
