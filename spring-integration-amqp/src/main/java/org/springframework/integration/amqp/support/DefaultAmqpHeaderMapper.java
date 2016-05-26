@@ -215,9 +215,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(type)) {
 				headers.put(AmqpHeaders.TYPE, type);
 			}
-			String userId = amqpMessageProperties.getUserId();
+			String userId = amqpMessageProperties.getReceivedUserId();
 			if (StringUtils.hasText(userId)) {
-				headers.put(AmqpHeaders.USER_ID, userId);
+				headers.put(AmqpHeaders.RECEIVED_USER_ID, userId);
 			}
 
 			for (String jsonHeader : JsonHeaders.HEADERS) {
