@@ -138,7 +138,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	@Override
-	@ManagedOperation
+	@ManagedAttribute
 	public Collection<String> getDynamicChannelNames() {
 		return Collections.unmodifiableSet(this.dynamicChannels);
 	}

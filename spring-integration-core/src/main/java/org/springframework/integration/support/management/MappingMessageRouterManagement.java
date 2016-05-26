@@ -80,7 +80,7 @@ public interface MappingMessageRouterManagement {
 	void setChannelMappings(Map<String, String> channelMappings);
 
 	/**
-	 * @return an unmodifiable collection of channel names to which
+	 * @return a collection of channel names to which
 	 * we have routed messages where the channel was not explicitly
 	 * mapped.
 	 *
