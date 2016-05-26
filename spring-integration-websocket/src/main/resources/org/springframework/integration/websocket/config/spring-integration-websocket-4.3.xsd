@@ -331,8 +331,8 @@
 
 						When SockJS is enabled and allowed origins are restricted, transport types that do not
 						use Origin headers for cross origin requests (jsonp-polling, iframe-xhr-polling,
-						iframe-eventsource and iframe-htmlfile) are disabled. As a consequence, IE6/IE7 won't be
-						supported anymore and IE8/IE9 will only be supported without cookies.
+						iframe-eventsource and iframe-htmlfile) are disabled. As a consequence, IE6/IE7 aren't
+						supported and IE8/IE9 will only be supported without cookies.
 
 						By default, all origins are allowed.
 					</xsd:documentation>

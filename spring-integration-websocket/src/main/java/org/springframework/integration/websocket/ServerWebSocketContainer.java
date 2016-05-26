@@ -101,7 +101,7 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 	 * @see WebSocketHandlerRegistration#setAllowedOrigins(String...)
 	 */
 	public ServerWebSocketContainer setAllowedOrigins(String... origins) {
-		this.origins = origins;
+		this.origins = origins; //NOSONAR - fully delegated
 		return this;
 	}
 
