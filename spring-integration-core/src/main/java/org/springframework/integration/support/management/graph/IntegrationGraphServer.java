@@ -38,6 +38,8 @@ import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.CompositeMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.integration.router.RecipientListRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.messaging.MessageChannel;
@@ -297,6 +299,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 					? routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
 							outputChannelName, null, false)
 
+					: handler instanceof RecipientListRouterManagement
+					? recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+							outputChannelName, null, false)
+
 					: new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 							consumer.getInputChannel().toString(), outputChannelName);
 		}
@@ -317,6 +323,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 					: handler instanceof MappingMessageRouterManagement
 					? routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
+							outputChannelName, errorChannel, true)
+
+					: handler instanceof RecipientListRouterManagement
+					? recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
 							outputChannelName, errorChannel, true)
 
 					: new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
@@ -354,6 +364,21 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		private MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
 				MappingMessageRouterManagement router, String output, String errors, boolean polled) {
 			Collection<String> routes = router.getChannelMappings().values();
+			return polled
+					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, errors, routes)
+					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, routes);
+		}
+
+		private MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
+				MessageHandler handler, RecipientListRouterManagement router, String output, String errors,
+				boolean polled) {
+			Collection<?> recipients = router.getRecipients();
+			List<String> routes = new ArrayList<String>(recipients.size());
+			for (Object recipient : recipients) {
+				routes.add(((Recipient) recipient).getChannel().toString());
+			}
 			return polled
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
 						consumer.getInputChannel().toString(), output, errors, routes)

@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,8 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.router.HeaderValueRouter;
+import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -85,11 +88,11 @@ public class IntegrationGraphServerTests {
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(26)));
+		assertThat(nodes.size(), is(equalTo(27)));
 		@SuppressWarnings("unchecked")
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(25)));
+		assertThat(links.size(), is(equalTo(30)));
 	}
 
 	@Configuration
@@ -174,6 +177,16 @@ public class IntegrationGraphServerTests {
 			HeaderValueRouter router = new HeaderValueRouter("foo");
 			router.setChannelMapping("bar", "barChannel");
 			router.setChannelMapping("baz", "bazChannel");
+			router.setDefaultOutputChannel(discards());
+			return router;
+		}
+
+		@Bean
+		@Router(inputChannel = "four")
+		public RecipientListRouter rlRouter() {
+			RecipientListRouter router = new RecipientListRouter();
+			router.setRecipients(
+					Arrays.asList(new Recipient[] { new Recipient(barChannel()), new Recipient(bazChannel()) }));
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}
