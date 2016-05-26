@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.integration.router;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
@@ -33,6 +37,7 @@ import org.springframework.messaging.core.DestinationResolver;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class HeaderValueRouterTests {
 
@@ -51,6 +56,7 @@ public class HeaderValueRouterTests {
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
+		context.close();
 	}
 
 	@Test
@@ -84,6 +90,7 @@ public class HeaderValueRouterTests {
 		result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
+		context.close();
 	}
 
 	@Test
@@ -107,7 +114,9 @@ public class HeaderValueRouterTests {
 		Message<?> result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
+		context.close();
 	}
+
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void resolveChannelNameFromMapAndCustomeResolver() {
@@ -120,6 +129,7 @@ public class HeaderValueRouterTests {
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelMappings", channelMappings);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new DestinationResolver<MessageChannel>() {
+			@Override
 			public MessageChannel resolveDestination(String channelName) {
 				return context.getBean("anotherChannel", MessageChannel.class);
 			}
@@ -135,6 +145,7 @@ public class HeaderValueRouterTests {
 		Message<?> result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
+		context.close();
 	}
 
 	@Test
@@ -159,6 +170,7 @@ public class HeaderValueRouterTests {
 		assertNotNull(result2);
 		assertSame(message, result1);
 		assertSame(message, result2);
+		context.close();
 	}
 
 	@Test
@@ -183,7 +195,33 @@ public class HeaderValueRouterTests {
 		assertNotNull(result2);
 		assertSame(message, result1);
 		assertSame(message, result2);
+		context.close();
 	}
 
+	@Test
+	public void dynamicChannelCache() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
+		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("dynamicChannelLimit", "2");
+		context.registerBeanDefinition("router", routerBeanDefinition);
+		context.registerBeanDefinition("channel1", new RootBeanDefinition(QueueChannel.class));
+		context.registerBeanDefinition("channel2", new RootBeanDefinition(QueueChannel.class));
+		context.registerBeanDefinition("channel3", new RootBeanDefinition(QueueChannel.class));
+		context.refresh();
+		MessageHandler handler = (MessageHandler) context.getBean("router");
+		String channels = "channel1, channel2, channel1, channel3";
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", channels).build();
+		handler.handleMessage(message);
+		QueueChannel channel1 = (QueueChannel) context.getBean("channel1");
+		QueueChannel channel2 = (QueueChannel) context.getBean("channel2");
+		QueueChannel channel3 = (QueueChannel) context.getBean("channel3");
+		assertThat(channel1.getQueueSize(), equalTo(2));
+		assertThat(channel2.getQueueSize(), equalTo(1));
+		assertThat(channel3.getQueueSize(), equalTo(1));
+		assertThat(context.getBean(HeaderValueRouter.class).getDynamicChannelNames(), contains("channel1", "channel3"));
+		context.close();
+	}
 
 }

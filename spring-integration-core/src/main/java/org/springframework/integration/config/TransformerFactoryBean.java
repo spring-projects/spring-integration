@@ -63,7 +63,9 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
-		return this.createHandler(transformer);
+		MessageTransformingHandler handler = this.createHandler(transformer);
+		handler.setPrimaryExpression(expression);
+		return handler;
 	}
 
 	protected MessageTransformingHandler createHandler(Transformer transformer) {

@@ -307,9 +307,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
+		Expression parsedExpression = new SpelExpressionParser().parseExpression(expression);
 		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
-			new SpelExpressionParser().parseExpression(expression));
+			parsedExpression);
 		this.messageSessionCallback = null;
+		setPrimaryExpression(parsedExpression);
 	}
 
 	/**

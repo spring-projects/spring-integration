@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
@@ -53,7 +54,6 @@ public interface MappingMessageRouterManagement {
 	/**
 	 * Provide mappings from channel keys to channel names.
 	 * @param channelMappings The channel mappings.
-	 *
 	 * @since 4.0
 	 */
 	@ManagedOperation
@@ -61,7 +61,6 @@ public interface MappingMessageRouterManagement {
 
 	/**
 	 * @return an unmodifiable map of channel mappings.
-	 *
 	 * @since 4.0
 	 */
 	@ManagedAttribute
@@ -70,12 +69,21 @@ public interface MappingMessageRouterManagement {
 	/**
 	 * Provide mappings from channel keys to channel names.
 	 * Channel names will be resolved by the {@link DestinationResolver}.
-	 *
 	 * @param channelMappings The channel mappings.
-	 *
 	 * @since 4.0
 	 */
 	@ManagedAttribute
 	void setChannelMappings(Map<String, String> channelMappings);
+
+	/**
+	 * Provide a collection of channel names to which
+	 * we have routed messages where the channel was not explicitly mapped.
+	 * <p> Implementations may choose to return only the most recent channel names.
+	 * @return a collection of channel names to which
+	 * we have routed messages where the channel was not explicitly mapped.
+	 * @since 4.3
+	 */
+	@ManagedAttribute
+	Collection<String> getDynamicChannelNames();
 
 }

@@ -19,9 +19,12 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +52,21 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter implements MappingMessageRouterManagement {
+
+	private static final int DEFAULT_DYNAMIC_CHANNEL_LIMIT = 100;
+
+	private int dynamicChannelLimit = DEFAULT_DYNAMIC_CHANNEL_LIMIT;
+
+	@SuppressWarnings("serial")
+	private final Map<String, MessageChannel> dynamicChannels = Collections.<String, MessageChannel>synchronizedMap(
+			new LinkedHashMap<String, MessageChannel>(DEFAULT_DYNAMIC_CHANNEL_LIMIT, 0.75f, true) {
+
+				@Override
+				protected boolean removeEldestEntry(Entry<String, MessageChannel> eldest) {
+					return this.size() > AbstractMappingMessageRouter.this.dynamicChannelLimit;
+				}
+
+			});
 
 	protected volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
@@ -98,6 +116,18 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
+	 * Set a limit for how many dynamic channels are retained (for reporting purposes).
+	 * When the limit is exceeded, the oldest channel is discarded.
+	 * <p><b>NOTE: this does not affect routing, just the reporting which dynamically
+	 * resolved channels have been routed to.</b> Default {@code 100}.
+	 * @param dynamicChannelLimit the limit.
+	 * @see #getDynamicChannelNames()
+	 */
+	public void setDynamicChannelLimit(int dynamicChannelLimit) {
+		this.dynamicChannelLimit = dynamicChannelLimit;
+	}
+
+	/**
 	 * Returns an unmodifiable version of the channel mappings.
 	 * This is intended for use by subclasses only.
 	 * @return The channel mappings.
@@ -131,6 +161,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>(this.channelMappings);
 		newChannelMappings.remove(key);
 		this.channelMappings = newChannelMappings;
+	}
+
+	@Override
+	@ManagedAttribute
+	public Collection<String> getDynamicChannelNames() {
+		return Collections.unmodifiableSet(this.dynamicChannels.keySet());
 	}
 
 	/**
@@ -208,8 +244,10 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		// if the channelMappings contains a mapping, we'll use the mapped value
 		// otherwise, the String-based channelKey itself will be used as the channel name
 		String channelName = channelKey;
+		boolean mapped = false;
 		if (this.channelMappings.containsKey(channelKey)) {
 			channelName = this.channelMappings.get(channelKey);
+			mapped = true;
 		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
@@ -220,6 +258,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		MessageChannel channel = resolveChannelForName(channelName, message);
 		if (channel != null) {
 			channels.add(channel);
+			if (!mapped && !(this.dynamicChannels.get(channelName) != null)) {
+				this.dynamicChannels.put(channelName, channel);
+			}
 		}
 	}
 

@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 @IntegrationManagedResource
-public abstract class AbstractMessageRouter extends AbstractMessageHandler {
+public abstract class AbstractMessageRouter extends AbstractMessageHandler implements MessageRouter {
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -67,6 +67,24 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
+	}
+
+	/**
+	 * Get the default output channel.
+	 * @return the channel.
+	 * @since 4.3
+	 */
+	@Override
+	public MessageChannel getDefaultOutputChannel() {
+		if (this.defaultOutputChannelName != null) {
+			synchronized (this) {
+				if (this.defaultOutputChannelName != null) {
+					this.defaultOutputChannel = getChannelResolver().resolveDestination(this.defaultOutputChannelName);
+					this.defaultOutputChannelName = null;
+				}
+			}
+		}
+		return this.defaultOutputChannel;
 	}
 
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
@@ -188,14 +206,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 		if (!sent) {
-			if (this.defaultOutputChannelName != null) {
-				synchronized (this) {
-					if (this.defaultOutputChannelName != null) {
-						this.defaultOutputChannel = getChannelResolver().resolveDestination(this.defaultOutputChannelName);
-						this.defaultOutputChannelName = null;
-					}
-				}
-			}
+			getDefaultOutputChannel();
 			if (this.defaultOutputChannel != null) {
 				this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}

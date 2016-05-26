@@ -38,7 +38,10 @@ import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.CompositeMessageHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.integration.router.RecipientListRouterManagement;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.StringUtils;
@@ -172,8 +175,14 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			for (Entry<Method, MessagingGatewaySupport> gwEntry : methodMap.entrySet()) {
 				MessagingGatewaySupport gateway = gwEntry.getValue();
 				Method method = gwEntry.getKey();
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				String[] parameterTypeNames = new String[parameterTypes.length];
+				int i = 0;
+				for (Class<?> type : parameterTypes) {
+					parameterTypeNames[i++] = type.getName();
+				}
 				String signature = method.getName() +
-						"(" + StringUtils.arrayToCommaDelimitedString(method.getParameterTypes()) + ")";
+						"(" + StringUtils.arrayToCommaDelimitedString(parameterTypeNames) + ")";
 				MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(
 						entry.getKey().substring(1) + "." + signature, gateway);
 				nodes.add(gatewayNode);
@@ -232,6 +241,15 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.discard));
 			}
 		}
+		if (endpointNode instanceof RoutingMessageHandlerNode) {
+			Collection<String> routes = ((RoutingMessageHandlerNode) endpointNode).getRoutes();
+			for (String route : routes) {
+				channelNode = channelNodes.get(route);
+				if (channelNode != null) {
+					links.add(new LinkNode(endpointNode.getNodeId(), channelNode.getNodeId(), LinkNode.Type.route));
+				}
+			}
+		}
 	}
 
 	/**
@@ -275,13 +293,26 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageChannel outputChannel = consumer.getOutputChannel();
 			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
 			MessageHandler handler = consumer.getHandler();
-			return handler instanceof CompositeMessageHandler
-					? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null, false)
-					: handler instanceof DiscardingMessageHandler
-					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
-					false)
-					: new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), outputChannelName);
+			if (handler instanceof CompositeMessageHandler) {
+				return compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null,
+							false);
+			}
+			else if (handler instanceof DiscardingMessageHandler) {
+				return discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
+							false);
+			}
+			else if (handler instanceof MappingMessageRouterManagement) {
+				return routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
+							outputChannelName, null, false);
+			}
+			else if (handler instanceof RecipientListRouterManagement) {
+				return recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+							outputChannelName, null, false);
+			}
+			else {
+				return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+							consumer.getInputChannel().toString(), outputChannelName);
+			}
 		}
 
 		private MessageHandlerNode polledHandlerNode(String name, PollingConsumer consumer) {
@@ -290,14 +321,26 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			String errorChannel = consumer.getDefaultErrorChannel() != null
 					? consumer.getDefaultErrorChannel().toString() : null;
 			MessageHandler handler = consumer.getHandler();
-			return handler instanceof CompositeMessageHandler
-					? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, errorChannel,
-					true)
-					: handler instanceof DiscardingMessageHandler
-					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
-					errorChannel, true)
-					: new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), outputChannelName, errorChannel);
+			if (handler instanceof CompositeMessageHandler) {
+				return compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName,
+							errorChannel, true);
+			}
+			else if (handler instanceof DiscardingMessageHandler) {
+				return discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
+							errorChannel, true);
+			}
+			else if (handler instanceof MappingMessageRouterManagement) {
+				return routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
+							outputChannelName, errorChannel, true);
+			}
+			else if (handler instanceof RecipientListRouterManagement) {
+				return recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+							outputChannelName, errorChannel, true);
+			}
+			else {
+				return new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+							consumer.getInputChannel().toString(), outputChannelName, errorChannel);
+			}
 		}
 
 		private MessageHandlerNode compositeHandler(String name, IntegrationConsumer consumer,
@@ -314,18 +357,48 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			}
 			return polled
 					? new ErrorCapableCompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), output, errors, innerHandlers)
+						consumer.getInputChannel().toString(), output, errors, innerHandlers)
 					: new CompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), output, innerHandlers);
+						consumer.getInputChannel().toString(), output, innerHandlers);
 		}
 
 		private MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
 				DiscardingMessageHandler handler, String output, String errors, boolean polled) {
 			return polled
 					? new ErrorCapableDiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString(), errors)
+						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString(), errors)
 					: new DiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-					consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString());
+						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString());
+		}
+
+		private MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
+				MappingMessageRouterManagement router, String output, String errors, boolean polled) {
+			Collection<String> routes = router.getChannelMappings().values();
+			Collection<String> dynamicChannelNames = router.getDynamicChannelNames();
+			if (dynamicChannelNames.size() > 0) {
+				routes = new ArrayList<String>(routes);
+				routes.addAll(dynamicChannelNames);
+			}
+			return polled
+					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, errors, routes)
+					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, routes);
+		}
+
+		private MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
+				MessageHandler handler, RecipientListRouterManagement router, String output, String errors,
+				boolean polled) {
+			Collection<?> recipients = router.getRecipients();
+			List<String> routes = new ArrayList<String>(recipients.size());
+			for (Object recipient : recipients) {
+				routes.add(((Recipient) recipient).getChannel().toString());
+			}
+			return polled
+					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, errors, routes)
+					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+						consumer.getInputChannel().toString(), output, routes);
 		}
 
 		private void reset() {
