@@ -98,7 +98,9 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
 		processor.setBeanFactory(this.getBeanFactory());
-		return this.configureHandler(new ServiceActivatingHandler(processor));
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
+		handler.setExpression(expression);
+		return this.configureHandler(handler);
 	}
 
 	@Override
