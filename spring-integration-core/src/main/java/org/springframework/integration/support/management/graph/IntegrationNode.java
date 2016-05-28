@@ -72,7 +72,7 @@ public abstract class IntegrationNode {
 	}
 
 	public Map<String, Object> getProperties() {
-		return this.properties == null ? null : this.properties;
+		return this.properties.size() == 0 ? null : this.properties;
 	}
 
 	public static class Stats {

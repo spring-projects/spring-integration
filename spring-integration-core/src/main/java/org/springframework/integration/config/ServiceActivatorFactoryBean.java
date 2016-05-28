@@ -99,7 +99,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
 		processor.setBeanFactory(this.getBeanFactory());
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
-		handler.setExpression(expression);
+		handler.setPrimaryExpression(expression);
 		return this.configureHandler(handler);
 	}
 

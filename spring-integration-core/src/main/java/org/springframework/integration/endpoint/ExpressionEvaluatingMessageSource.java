@@ -47,4 +47,8 @@ public class ExpressionEvaluatingMessageSource<T> extends AbstractMessageSource<
 		return this.evaluateExpression(this.expression, this.expectedType);
 	}
 
+	public Expression getExpression() {
+		return this.expression;
+	}
+
 }

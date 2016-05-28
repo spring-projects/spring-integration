@@ -66,6 +66,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	 */
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
+		if (source instanceof ExpressionEvaluatingMessageSource) {
+			setPrimaryExpression(((ExpressionEvaluatingMessageSource<?>) source).getExpression());
+		}
 	}
 
 	/**

@@ -64,7 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent,
-		ApplicationContextAware, BeanFactoryAware, InitializingBean {
+		ApplicationContextAware, BeanFactoryAware, InitializingBean, ExpressionCapable {
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -147,10 +147,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.channelResolver = channelResolver;
 	}
 
-	/**
-	 * Return the primary expression string if this component is expression-based.
-	 * @return the expression as a String.
-	 */
+	@Override
 	public String getExpressionString() {
 		return this.expression == null ? null : this.expression.getExpressionString();
 	}

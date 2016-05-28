@@ -217,6 +217,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		Assert.notNull(requestDestinationExpression, "'requestDestinationExpression' must not be null");
 		this.requestDestinationExpressionProcessor =
 				new ExpressionEvaluatingMessageProcessor<Object>(requestDestinationExpression);
+		setPrimaryExpression(requestDestinationExpression);
 	}
 
 	/**
