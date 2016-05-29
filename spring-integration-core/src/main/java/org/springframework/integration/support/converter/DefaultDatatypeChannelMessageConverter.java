@@ -60,7 +60,10 @@ public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (!this.conversionServiceSet && beanFactory != null) {
-			this.conversionService = IntegrationUtils.getConversionService(beanFactory);
+			ConversionService integrationConversionService = IntegrationUtils.getConversionService(beanFactory);
+			if (integrationConversionService != null) {
+				this.conversionService = integrationConversionService;
+			}
 		}
 	}
 
