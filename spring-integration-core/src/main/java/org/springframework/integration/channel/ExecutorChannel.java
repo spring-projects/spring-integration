@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,12 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 
 	@Override
 	public final void onInit() {
+		try {
+			super.onInit(); // TODO add throws clause in 5.0
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
 					new BeanFactoryChannelResolver(this.getBeanFactory()));

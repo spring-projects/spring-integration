@@ -35,7 +35,8 @@
 		<queue capacity="10" />
 	</channel>
 
-	<beans:bean id="uselessConverter" class="org.springframework.integration.channel.config.ChannelParserTests$UselessMessageConverter" />
+	<beans:bean id="uselessConverter"
+				class="org.springframework.integration.channel.config.ChannelParserTests$UselessMessageConverter" />
 
 	<channel id="numberChannel" datatype="java.lang.Number">
 		<queue capacity="10" />
@@ -46,7 +47,10 @@
 		<queue capacity="10" />
 	</channel>
 
-	<beans:bean id="taskExecutor"
-		class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+	<channel id="executorChannel" datatype="java.lang.Byte[]">
+		<dispatcher task-executor="taskExecutor" />
+	</channel>
+
+	<beans:bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
 
 </beans:beans>
