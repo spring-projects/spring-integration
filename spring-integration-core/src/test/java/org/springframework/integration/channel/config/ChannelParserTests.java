@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
@@ -53,6 +57,9 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
@@ -62,7 +69,15 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @see ChannelWithCustomQueueParserTests
  */
+@ContextConfiguration(locations = {
+		"/org/springframework/integration/channel/config/ChannelParserTests-context.xml",
+		"/org/springframework/integration/channel/config/priorityChannelParserTests.xml" })
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class ChannelParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test(expected = FatalBeanException.class)
 	public void testChannelWithoutId() {
@@ -71,56 +86,62 @@ public class ChannelParserTests {
 
 	@Test
 	public void testChannelWithCapacity() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("capacityChannel");
 		for (int i = 0; i < 10; i++) {
 			boolean result = channel.send(new GenericMessage<String>("test"), 10);
 			assertTrue(result);
 		}
 		assertFalse(channel.send(new GenericMessage<String>("test"), 3));
-		context.close();
 	}
 
 	@Test
 	public void testDirectChannelByDefault() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
-		assertEquals(DirectChannel.class, channel.getClass());
+		assertThat(channel, instanceOf(DirectChannel.class));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
 		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
 		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"),
 				is(instanceOf(RoundRobinLoadBalancingStrategy.class)));
+	}
+
+	@Test
+	public void testExecutorChannel() throws InterruptedException {
+		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
+		assertThat(channel, instanceOf(ExecutorChannel.class));
+		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter"));
+		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
+	}
+
+	@Test
+	public void testExecutorChannelNoConverter() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ChannelParserTests-no-converter-context.xml", this.getClass());
+		MessageChannel channel = context.getBean("executorChannel", MessageChannel.class);
+		assertThat(channel, instanceOf(ExecutorChannel.class));
+		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter"));
+		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
 		context.close();
 	}
 
 	@Test
 	public void channelWithFailoverDispatcherAttribute() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailover");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
 		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
 		assertNull(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
-		context.close();
 	}
 
 	@Test
 	public void testPublishSubscribeChannel() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
 		assertEquals(PublishSubscribeChannel.class, channel.getClass());
 	}
 
 	@Test
 	public void testPublishSubscribeChannelWithTaskExecutorReference() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannelWithTaskExecutorRef");
 		assertEquals(PublishSubscribeChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
@@ -132,44 +153,34 @@ public class ChannelParserTests {
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		Object executorBean = context.getBean("taskExecutor");
 		assertEquals(executorBean, innerExecutor);
-		context.close();
 	}
 
 	@Test
 	public void channelWithCustomQueue() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"channelParserTests.xml", this.getClass());
 		Object customQueue = context.getBean("customQueue");
 		Object channelWithCustomQueue = context.getBean("channelWithCustomQueue");
 		assertEquals(QueueChannel.class, channelWithCustomQueue.getClass());
 		Object actualQueue = new DirectFieldAccessor(channelWithCustomQueue).getPropertyValue("queue");
 		assertSame(customQueue, actualQueue);
-		context.close();
 	}
 
 	@Test
 	public void testDatatypeChannelWithCorrectType() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
 		assertTrue(channel.send(new GenericMessage<Integer>(123)));
-		context.close();
 	}
 
 	@Test(expected = MessageDeliveryException.class)
 	public void testDatatypeChannelWithIncorrectType() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
 		channel.send(new GenericMessage<String>("incorrect type"));
-		context.close();
 		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter);
 	}
 
 	@Test
 	public void testDatatypeChannelGlobalConverter() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserGlobalConverterTests.xml", this
-				.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("channelParserGlobalConverterTests.xml", getClass());
 		MessageChannel channel = context.getBean("integerChannel", MessageChannel.class);
 		context.close();
 		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof UselessMessageConverter);
@@ -177,44 +188,36 @@ public class ChannelParserTests {
 
 	@Test
 	public void testDatatypeChannelWithAssignableSubTypes() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("numberChannel");
-		assertTrue(channel.send(new GenericMessage<Integer>(123)));
-		assertTrue(channel.send(new GenericMessage<Double>(123.45)));
-		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertTrue(TestUtils.getPropertyValue(channel, "messageConverter") instanceof DefaultDatatypeChannelMessageConverter);
+		assertTrue(channel.send(new GenericMessage<>(123)));
+		assertTrue(channel.send(new GenericMessage<>(123.45)));
+		assertTrue(channel.send(new GenericMessage<>(Boolean.TRUE)));
+		assertThat(TestUtils.getPropertyValue(channel, "messageConverter"),
+				instanceOf(DefaultDatatypeChannelMessageConverter.class));
 		assertNotNull(TestUtils.getPropertyValue(channel, "messageConverter.conversionService"));
-		context.close();
 	}
 
 	@Test
 	public void testMultipleDatatypeChannelWithCorrectTypes() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
-		assertTrue(channel.send(new GenericMessage<Integer>(123)));
-		assertTrue(channel.send(new GenericMessage<String>("accepted type")));
-		context.close();
+		assertTrue(channel.send(new GenericMessage<>(123)));
+		assertTrue(channel.send(new GenericMessage<>("accepted type")));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
 	public void testMultipleDatatypeChannelWithIncorrectType() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
-				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
-		channel.send(new GenericMessage<Boolean>(Boolean.TRUE));
-		context.close();
+		channel.send(new GenericMessage<>(Boolean.TRUE));
 	}
 
 	@Test
 	public void testChannelInteceptorRef() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", this
-				.getClass());
+		ConfigurableApplicationContext context =
+				new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorRef");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(0, interceptor.getSendCount());
-		channel.send(new GenericMessage<String>("test"));
+		channel.send(new GenericMessage<>("test"));
 		assertEquals(1, interceptor.getSendCount());
 		assertEquals(0, interceptor.getReceiveCount());
 		channel.receive();
@@ -224,8 +227,8 @@ public class ChannelParserTests {
 
 	@Test
 	public void testChannelInteceptorInnerBean() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", this
-				.getClass());
+		ConfigurableApplicationContext context =
+				new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorInnerBean");
 		channel.send(new GenericMessage<String>("test"));
 		Message<?> transformed = channel.receive(1000);
@@ -235,8 +238,7 @@ public class ChannelParserTests {
 
 	@Test
 	public void testPriorityChannelWithDefaultComparator() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this.getClass());
-		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithDefaultComparator");
+		PollableChannel channel = this.context.getBean("priorityChannelWithDefaultComparator", PollableChannel.class);
 		Message<String> lowPriorityMessage = MessageBuilder.withPayload("low").setPriority(-14).build();
 		Message<String> midPriorityMessage = MessageBuilder.withPayload("mid").setPriority(0).build();
 		Message<String> highPriorityMessage = MessageBuilder.withPayload("high").setPriority(99).build();
@@ -249,18 +251,15 @@ public class ChannelParserTests {
 		assertEquals("high", reply1.getPayload());
 		assertEquals("mid", reply2.getPayload());
 		assertEquals("low", reply3.getPayload());
-		context.close();
 	}
 
 	@Test
 	public void testPriorityChannelWithCustomComparator() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this
-				.getClass());
-		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithCustomComparator");
-		channel.send(new GenericMessage<String>("C"));
-		channel.send(new GenericMessage<String>("A"));
-		channel.send(new GenericMessage<String>("D"));
-		channel.send(new GenericMessage<String>("B"));
+		PollableChannel channel = this.context.getBean("priorityChannelWithCustomComparator", PollableChannel.class);
+		channel.send(new GenericMessage<>("C"));
+		channel.send(new GenericMessage<>("A"));
+		channel.send(new GenericMessage<>("D"));
+		channel.send(new GenericMessage<>("B"));
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
 		Message<?> reply3 = channel.receive(0);
@@ -269,30 +268,26 @@ public class ChannelParserTests {
 		assertEquals("B", reply2.getPayload());
 		assertEquals("C", reply3.getPayload());
 		assertEquals("D", reply4.getPayload());
-		context.close();
 	}
 
 	@Test
 	public void testPriorityChannelWithIntegerDatatypeEnforced() {
-		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this
-				.getClass());
-		PollableChannel channel = (PollableChannel) context.getBean("integerOnlyPriorityChannel");
-		channel.send(new GenericMessage<Integer>(3));
-		channel.send(new GenericMessage<Integer>(2));
-		channel.send(new GenericMessage<Integer>(1));
+		PollableChannel channel = this.context.getBean("integerOnlyPriorityChannel", PollableChannel.class);
+		channel.send(new GenericMessage<>(3));
+		channel.send(new GenericMessage<>(2));
+		channel.send(new GenericMessage<>(1));
 		assertEquals(1, channel.receive(0).getPayload());
 		assertEquals(2, channel.receive(0).getPayload());
 		assertEquals(3, channel.receive(0).getPayload());
 		boolean threwException = false;
 		try {
-			channel.send(new GenericMessage<String>("wrong type"));
+			channel.send(new GenericMessage<>("wrong type"));
 		}
 		catch (MessageDeliveryException e) {
 			assertEquals("wrong type", e.getFailedMessage().getPayload());
 			threwException = true;
 		}
 		assertTrue(threwException);
-		context.close();
 	}
 
 	public static class TestInterceptor extends ChannelInterceptorAdapter {
