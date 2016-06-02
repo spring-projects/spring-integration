@@ -51,8 +51,8 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return ((WebSocketStompClient) this.stompClient).connect(this.url, handler, this.handshakeHeaders,
-				getConnectHeaders(), this.uriVariables);
+		return ((WebSocketStompClient) this.stompClient).connect(this.url, this.handshakeHeaders, getConnectHeaders(),
+				handler, this.uriVariables);
 	}
 
 }
