@@ -27,6 +27,8 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
  * The {@link WebSocketStompClient} based {@link AbstractStompSessionManager} implementation.
  *
  * @author Artem Bilan
+ * @author Sean Mills
+ *
  * @see WebSocketStompClient
  * @since 4.2
  */
@@ -51,8 +53,8 @@ public class WebSocketStompSessionManager extends AbstractStompSessionManager {
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return ((WebSocketStompClient) this.stompClient).connect(this.url, handler, this.handshakeHeaders,
-				getConnectHeaders(), this.uriVariables);
+		return ((WebSocketStompClient) this.stompClient).connect(this.url, this.handshakeHeaders, getConnectHeaders(),
+				handler, this.uriVariables);
 	}
 
 }

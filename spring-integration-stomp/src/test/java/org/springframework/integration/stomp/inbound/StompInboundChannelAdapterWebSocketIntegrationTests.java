@@ -39,6 +39,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
@@ -70,6 +72,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
@@ -77,6 +81,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -264,6 +269,9 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 					new WebSocketStompSessionManager(stompClient, server().getWsBaseUrl() + "/ws");
 			webSocketStompSessionManager.setAutoReceipt(true);
 			webSocketStompSessionManager.setRecoveryInterval(1000);
+			WebSocketHttpHeaders handshakeHeaders = new WebSocketHttpHeaders();
+			handshakeHeaders.setOrigin("http://foo.com");
+			webSocketStompSessionManager.setHandshakeHeaders(handshakeHeaders);
 			StompHeaders stompHeaders = new StompHeaders();
 			stompHeaders.setHeartbeat(new long[] {10000, 10000});
 			webSocketStompSessionManager.setConnectHeaders(stompHeaders);
@@ -318,13 +326,31 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 
 		@Override
 		public void registerStompEndpoints(StompEndpointRegistry registry) {
-			registry.addEndpoint("/ws").setHandshakeHandler(handshakeHandler()).withSockJS();
+			registry.addEndpoint("/ws")
+					.setHandshakeHandler(handshakeHandler())
+					.setAllowedOrigins("http://foo.com")
+					.addInterceptors(new HandshakeInterceptor() {
+
+						@Override
+						public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+								WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+							return request.getHeaders().getOrigin() != null;
+						}
+
+						@Override
+						public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
+								WebSocketHandler wsHandler, Exception exception) {
+
+						}
+
+					})
+					.withSockJS();
 		}
 
 		@Override
 		public void configureMessageBroker(MessageBrokerRegistry configurer) {
-			configurer.setApplicationDestinationPrefixes("/app");
-			configurer.enableSimpleBroker("/topic", "/queue");
+			configurer.setApplicationDestinationPrefixes("/app")
+					.enableSimpleBroker("/topic", "/queue");
 		}
 
 		//TODO SimpleBrokerMessageHandler doesn't support RECEIPT frame, hence we emulate it this way
