@@ -46,6 +46,10 @@
 		<queue capacity="10" />
 	</channel>
 
+	<channel id="executorChannel" datatype="java.lang.Byte[]">
+		<dispatcher task-executor="taskExecutor" />
+	</channel>
+
 	<beans:bean id="taskExecutor"
 		class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
 
