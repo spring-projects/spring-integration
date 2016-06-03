@@ -14,43 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.router;
+
+import org.springframework.messaging.MessageChannel;
 
 /**
- * Represents a link between nodes.
+ * Routers implementing this interface have a default output channel.
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class LinkNode {
+public interface MessageRouter {
 
-	private final int from;
-
-	private final int to;
-
-	private final Type type;
-
-	public LinkNode(int from, int to, Type type) {
-		this.from = from;
-		this.to = to;
-		this.type = type;
-	}
-
-	public int getFrom() {
-		return this.from;
-	}
-
-	public int getTo() {
-		return this.to;
-	}
-
-	public Type getType() {
-		return this.type;
-	}
-
-	public enum Type {
-		input, output, error, discard, route
-	}
+	/**
+	 * Get the default output channel.
+	 * @return the channel.
+	 */
+	MessageChannel getDefaultOutputChannel();
 
 }

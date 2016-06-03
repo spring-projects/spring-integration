@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
  * the provided {@link Expression} expecting a <b>void return</b>.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @see MethodInvokingMessageHandler
  * @since 2.1
  */
@@ -36,9 +37,9 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
 
 	public ExpressionEvaluatingMessageHandler(Expression expression) {
-		Assert.notNull(expression, "Expression must not be null");
-		this.processor = new ExpressionEvaluatingMessageProcessor<Void>(
-				expression, Void.class);
+		Assert.notNull(expression, "'expression' must not be null");
+		this.processor = new ExpressionEvaluatingMessageProcessor<Void>(expression, Void.class);
+		setPrimaryExpression(expression);
 	}
 
 

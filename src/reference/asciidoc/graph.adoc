@@ -84,6 +84,10 @@ The possible types are:
 - _output_ - the direction from `MessageHandler`, `MessageProducer` or `SourcePollingChannelAdapter` to the `MessageChannel` via an `outputChannel` or `replyChannel` property;
 - _error_ - from `MessageHandler` on `PollingConsumer` or `MessageProducer` or `SourcePollingChannelAdapter` to the `MessageChannel` via an `errorChannel` property;
 - _discard_ - from `DiscardingMessageHandler` (e.g. `MessageFilter`) to the `MessageChannel` via `errorChannel` property.
+- _route_ - from `AbstractMappingMessageRouter` (e.g. `HeaderValueRouter`) to the `MessageChannel`.
+Similar to _output_ but determined at run-time.
+May be a configured channel mapping, or a dynamically resolved channel.
+Routers will typically only retain up to 100 dynamic routes for this purpose, but this can be modified using the `dynamicChannelLimit` property.
 
 The information from this element can be used by a visualizing tool to render connections between nodes from the `nodes` graph element, where the `from` and `to` numbers represent the value from the `nodeId` property of the linked nodes.
 For example the link `type` can be used to determine the proper _port_ on the target node:
@@ -105,6 +109,8 @@ For example the link `type` can be used to determine the proper _port_ on the ta
 ----
 
 The `nodes` graph element is perhaps the most interesting because its elements contain not only the runtime components with their `componentType` s and `name` s, but can also optionally contain metrics exposed by the component.
+Node elements contain various properties which are generally self-explanatory.
+For example, expression-based components include the `expression` property containing the primary expression string for the component.
 To enable the metrics, add an `@EnableIntegrationManagement` to some `@Configuration` class or add an `<int:management/>` element to your XML configuration.
 You can control exactly which components in the framework collect statistics.
 See  <<metrics-management>> for complete information.

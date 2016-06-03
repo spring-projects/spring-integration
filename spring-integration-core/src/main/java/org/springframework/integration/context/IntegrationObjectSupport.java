@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -63,7 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent,
-		ApplicationContextAware, BeanFactoryAware, InitializingBean {
+		ApplicationContextAware, BeanFactoryAware, InitializingBean, ExpressionCapable {
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -91,6 +92,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private volatile ApplicationContext applicationContext;
 
 	private volatile MessageBuilderFactory messageBuilderFactory;
+
+	private Expression expression;
 
 	@Override
 	public final void setBeanName(String beanName) {
@@ -142,6 +145,20 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
+	}
+
+	@Override
+	public Expression getExpression() {
+		return this.expression;
+	}
+
+	/**
+	 * For expression-based components, set the primary expression.
+	 * @param expression the expression.
+	 * @since 4.3
+	 */
+	public final void setPrimaryExpression(Expression expression) {
+		this.expression = expression;
 	}
 
 	@Override

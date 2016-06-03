@@ -16,6 +16,11 @@
 
 package org.springframework.integration.support.management.graph;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
@@ -35,12 +40,20 @@ public abstract class IntegrationNode {
 
 	private final String componentType;
 
+	private final Map<String, Object> properties = new HashMap<String, Object>();
+
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
 		this.nodeId = nodeId;
 		this.name = name;
 		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
 				: nodeObject.getClass().getSimpleName();
 		this.stats = stats;
+		if (nodeObject instanceof ExpressionCapable) {
+			Expression expression = ((ExpressionCapable) nodeObject).getExpression();
+			if (expression != null) {
+				this.properties.put("expression", expression.getExpressionString());
+			}
+		}
 	}
 
 	public int getNodeId() {
@@ -57,6 +70,10 @@ public abstract class IntegrationNode {
 
 	public Stats getStats() {
 		return this.stats.isAvailable() ? this.stats : null;
+	}
+
+	public Map<String, Object> getProperties() {
+		return this.properties.size() == 0 ? null : this.properties;
 	}
 
 	public static class Stats {
