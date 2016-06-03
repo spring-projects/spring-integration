@@ -213,7 +213,7 @@ public class IntegrationGraphServerTests {
 		@Router(inputChannel = "four")
 		public RecipientListRouter rlRouter() {
 			RecipientListRouter router = new RecipientListRouter();
-			router.setChannels(Arrays.asList(new MessageChannel[] { barChannel(), bazChannel() }));
+			router.setChannels(Arrays.asList(barChannel(), bazChannel()));
 			router.setDefaultOutputChannel(discards());
 			return router;
 		}

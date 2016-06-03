@@ -30,7 +30,6 @@ public interface MessageRouter {
 	/**
 	 * Get the default output channel.
 	 * @return the channel.
-	 * @since 4.3
 	 */
 	MessageChannel getDefaultOutputChannel();
 

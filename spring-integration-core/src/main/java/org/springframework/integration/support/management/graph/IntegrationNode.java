@@ -19,7 +19,8 @@ package org.springframework.integration.support.management.graph;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.expression.Expression;
+import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
@@ -47,10 +48,10 @@ public abstract class IntegrationNode {
 		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
 				: nodeObject.getClass().getSimpleName();
 		this.stats = stats;
-		if (nodeObject instanceof IntegrationObjectSupport) {
-			String expressionString = ((IntegrationObjectSupport) nodeObject).getExpressionString();
-			if (expressionString != null) {
-				this.properties.put("expression", expressionString);
+		if (nodeObject instanceof ExpressionCapable) {
+			Expression expression = ((ExpressionCapable) nodeObject).getExpression();
+			if (expression != null) {
+				this.properties.put("expression", expression.getExpressionString());
 			}
 		}
 	}

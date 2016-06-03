@@ -293,24 +293,26 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			MessageChannel outputChannel = consumer.getOutputChannel();
 			String outputChannelName = outputChannel == null ? null : outputChannel.toString();
 			MessageHandler handler = consumer.getHandler();
-			return handler instanceof CompositeMessageHandler
-					? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null,
-							false)
-
-					: handler instanceof DiscardingMessageHandler
-					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
-							false)
-
-					: handler instanceof MappingMessageRouterManagement
-					? routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
-							outputChannelName, null, false)
-
-					: handler instanceof RecipientListRouterManagement
-					? recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
-							outputChannelName, null, false)
-
-					: new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+			if (handler instanceof CompositeMessageHandler) {
+				return compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName, null,
+							false);
+			}
+			else if (handler instanceof DiscardingMessageHandler) {
+				return discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName, null,
+							false);
+			}
+			else if (handler instanceof MappingMessageRouterManagement) {
+				return routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
+							outputChannelName, null, false);
+			}
+			else if (handler instanceof RecipientListRouterManagement) {
+				return recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+							outputChannelName, null, false);
+			}
+			else {
+				return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 							consumer.getInputChannel().toString(), outputChannelName);
+			}
 		}
 
 		private MessageHandlerNode polledHandlerNode(String name, PollingConsumer consumer) {
@@ -319,24 +321,26 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			String errorChannel = consumer.getDefaultErrorChannel() != null
 					? consumer.getDefaultErrorChannel().toString() : null;
 			MessageHandler handler = consumer.getHandler();
-			return handler instanceof CompositeMessageHandler
-					? compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName,
-							errorChannel, true)
-
-					: handler instanceof DiscardingMessageHandler
-					? discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
-							errorChannel, true)
-
-					: handler instanceof MappingMessageRouterManagement
-					? routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
-							outputChannelName, errorChannel, true)
-
-					: handler instanceof RecipientListRouterManagement
-					? recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
-							outputChannelName, errorChannel, true)
-
-					: new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
+			if (handler instanceof CompositeMessageHandler) {
+				return compositeHandler(name, consumer, (CompositeMessageHandler) handler, outputChannelName,
+							errorChannel, true);
+			}
+			else if (handler instanceof DiscardingMessageHandler) {
+				return discardingHandler(name, consumer, (DiscardingMessageHandler) handler, outputChannelName,
+							errorChannel, true);
+			}
+			else if (handler instanceof MappingMessageRouterManagement) {
+				return routingHandler(name, consumer, handler, (MappingMessageRouterManagement) handler,
+							outputChannelName, errorChannel, true);
+			}
+			else if (handler instanceof RecipientListRouterManagement) {
+				return recipientListRoutingHandler(name, consumer, handler, (RecipientListRouterManagement) handler,
+							outputChannelName, errorChannel, true);
+			}
+			else {
+				return new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
 							consumer.getInputChannel().toString(), outputChannelName, errorChannel);
+			}
 		}
 
 		private MessageHandlerNode compositeHandler(String name, IntegrationConsumer consumer,

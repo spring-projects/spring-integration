@@ -148,8 +148,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	@Override
-	public String getExpressionString() {
-		return this.expression == null ? null : this.expression.getExpressionString();
+	public Expression getExpression() {
+		return this.expression;
 	}
 
 	/**

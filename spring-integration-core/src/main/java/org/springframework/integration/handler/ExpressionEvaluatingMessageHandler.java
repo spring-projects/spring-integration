@@ -37,7 +37,7 @@ public class ExpressionEvaluatingMessageHandler extends AbstractMessageHandler {
 
 
 	public ExpressionEvaluatingMessageHandler(Expression expression) {
-		Assert.notNull(expression, "Expression must not be null");
+		Assert.notNull(expression, "'expression' must not be null");
 		this.processor = new ExpressionEvaluatingMessageProcessor<Void>(expression, Void.class);
 		setPrimaryExpression(expression);
 	}

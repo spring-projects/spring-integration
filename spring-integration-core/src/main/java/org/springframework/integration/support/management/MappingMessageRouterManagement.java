@@ -82,7 +82,8 @@ public interface MappingMessageRouterManagement {
 	/**
 	 * @return a collection of channel names to which
 	 * we have routed messages where the channel was not explicitly
-	 * mapped.
+	 * mapped. Implementations may choose to return only the most
+	 * recent channel names.
 	 *
 	 * @since 4.3
 	 */

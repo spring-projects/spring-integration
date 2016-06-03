@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.util.Assert;
 
 /**
@@ -24,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageSource<T> extends AbstractMessageSource<T> {
+public class ExpressionEvaluatingMessageSource<T> extends AbstractMessageSource<T> implements ExpressionCapable {
 
 	private final Expression expression;
 
@@ -47,6 +48,7 @@ public class ExpressionEvaluatingMessageSource<T> extends AbstractMessageSource<
 		return this.evaluateExpression(this.expression, this.expectedType);
 	}
 
+	@Override
 	public Expression getExpression() {
 		return this.expression;
 	}

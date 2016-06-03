@@ -26,6 +26,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -66,8 +67,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	 */
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
-		if (source instanceof ExpressionEvaluatingMessageSource) {
-			setPrimaryExpression(((ExpressionEvaluatingMessageSource<?>) source).getExpression());
+		if (source instanceof ExpressionCapable) {
+			setPrimaryExpression(((ExpressionCapable) source).getExpression());
 		}
 	}
 

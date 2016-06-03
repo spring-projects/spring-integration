@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import org.springframework.expression.Expression;
+
 /**
  * Components that implement this interface are capable of supporting a primary
  * SpEL expression as part of their configuration.
@@ -27,9 +29,9 @@ package org.springframework.integration.context;
 public interface ExpressionCapable {
 
 	/**
-	 * Return the primary SpEL expression string if this component is expression-based.
+	 * Return the primary SpEL expression if this component is expression-based.
 	 * @return the expression as a String.
 	 */
-	String getExpressionString();
+	Expression getExpression();
 
 }
