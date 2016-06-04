@@ -17,6 +17,7 @@
 package org.springframework.integration.feed.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atLeast;
@@ -34,7 +35,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -81,7 +82,7 @@ public class FeedInboundChannelAdapterParserTests {
 		assertEquals(metadataStore, context.getBean("customMetadataStore"));
 		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
 		assertEquals("FileUrlFeedFetcher", fetcher.getClass().getSimpleName());
-		context.destroy();
+		context.close();
 	}
 
 
@@ -92,10 +93,10 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
+		assertNotNull(TestUtils.getPropertyValue(source, "metadataStore"));
 		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
 		assertTrue(fetcher instanceof com.rometools.fetcher.impl.HttpURLFeedFetcher);
-		context.destroy();
+		context.close();
 	}
 
 	@Test
@@ -111,7 +112,7 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(10, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
-		context.destroy();
+		context.close();
 
 		// since we are not deleting the persister file
 		// in this iteration no new feeds will be received and the latch will timeout
@@ -120,7 +121,7 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(500, TimeUnit.MILLISECONDS);
 		verify(latch, times(0)).countDown();
-		context.destroy();
+		context.close();
 	}
 
 	@Test
@@ -128,16 +129,18 @@ public class FeedInboundChannelAdapterParserTests {
 	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
 		});
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);
 		feedChannel.subscribe(handler);
 		latch.await(10, TimeUnit.SECONDS);
 		verify(handler, atLeast(3)).handleMessage(Mockito.any(Message.class));
+		context.close();
 	}
 
 	@Test
@@ -147,7 +150,7 @@ public class FeedInboundChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter adapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(adapter, "outputChannel"));
-		context.destroy();
+		context.close();
 	}
 
 	public static class SampleService {
@@ -182,9 +185,11 @@ public class FeedInboundChannelAdapterParserTests {
 
 	public static class SampleMetadataStore implements MetadataStore {
 
+		@Override
 		public void put(String key, String value) {
 		}
 
+		@Override
 		public String get(String key) {
 			return null;
 		}

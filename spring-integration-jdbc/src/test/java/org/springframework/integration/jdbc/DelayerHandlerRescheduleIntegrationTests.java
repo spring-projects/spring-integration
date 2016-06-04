@@ -169,6 +169,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		//On transaction rollback the delayed Message should remain in the persistent MessageStore
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
+		context.close();
 	}
 
 	@SuppressWarnings("unused")
@@ -184,6 +185,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	@SuppressWarnings("unused")
 	private static class ExceptionMessageHandler implements MessageHandler {
 
+		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			TransactionSynchronizationManager.registerSynchronization(new RollbackTxSync());
 			throw new RuntimeException("intentional");

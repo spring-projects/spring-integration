@@ -42,7 +42,7 @@ import org.springframework.messaging.PollableChannel;
  */
 public class JmsInboundChannelAdapterParserTests {
 
-	private long timeoutOnReceive = 3000;
+	private final long timeoutOnReceive = 3000;
 
 	@Test
 	public void adapterWithJmsTemplate() {
@@ -103,7 +103,7 @@ public class JmsInboundChannelAdapterParserTests {
 	@Test(expected = BeanCreationException.class)
 	public void adapterWithDestinationOnly() {
 		try {
-			new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass()).close();
 		}
 		catch (BeanCreationException e) {
 			Throwable rootCause = e.getRootCause();

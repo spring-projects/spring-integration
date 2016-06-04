@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd">
 
 	<feed:inbound-channel-adapter id="autoChannel"
-						auto-startup="false" 
+						auto-startup="false"
 						url="file:dummy.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</feed:inbound-channel-adapter>

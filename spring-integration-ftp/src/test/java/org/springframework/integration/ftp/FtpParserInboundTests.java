@@ -49,7 +49,7 @@ public class FtpParserInboundTests {
 	@Test
 	public void testLocalFilesAutoCreationTrue() throws Exception {
 		assertTrue(!new File("target/foo").exists());
-		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass()).close();
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
@@ -57,7 +57,7 @@ public class FtpParserInboundTests {
 	public void testLocalFilesAutoCreationFalse() throws Exception {
 		assertTrue(!new File("target/bar").exists());
 		try {
-			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass()).close();
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {

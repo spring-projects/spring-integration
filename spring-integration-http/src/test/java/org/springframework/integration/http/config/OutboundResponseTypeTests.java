@@ -204,7 +204,7 @@ public class OutboundResponseTypeTests {
 	@Test
 	public void testMutuallyExclusivityInMethodAndMethodExpression() throws Exception {
 		try {
-			new ClassPathXmlApplicationContext("OutboundResponseTypeTests-context-fail.xml", this.getClass());
+			new ClassPathXmlApplicationContext("OutboundResponseTypeTests-context-fail.xml", this.getClass()).close();
 			fail("Expected BeansException");
 		}
 		catch (BeansException e) {

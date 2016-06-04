@@ -36,7 +36,7 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 public class FtpPersistentAcceptOnceFileListFilterTests {
 
 	@Test
-	public void testRollback() {
+	public void testRollback() throws Exception {
 		FtpPersistentAcceptOnceFileListFilter filter = new FtpPersistentAcceptOnceFileListFilter(
 				new SimpleMetadataStore(), "rollback:");
 		FTPFile ftpFile1 = new FTPFile();
@@ -60,6 +60,7 @@ public class FtpPersistentAcceptOnceFileListFilterTests {
 		assertEquals("baz", now.get(1).getName());
 		now = filter.filterFiles(files);
 		assertEquals(0, now.size());
+		filter.close();
 	}
 
 }

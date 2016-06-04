@@ -45,7 +45,7 @@ import org.springframework.messaging.MessagingException;
 public class AbstractRemoteFileSynchronizerTests {
 
 	@Test
-	public void testRollback() {
+	public void testRollback() throws Exception {
 		final AtomicBoolean failWhenCopyingBar = new AtomicBoolean(true);
 		final AtomicInteger count = new AtomicInteger();
 		SessionFactory<String> sf = new StringSessionFactory();
@@ -91,6 +91,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		}
 		sync.synchronizeToLocalDirectory(mock(File.class));
 		assertEquals(3, count.get());
+		sync.close();
 	}
 
 	private class StringSessionFactory implements SessionFactory<String> {

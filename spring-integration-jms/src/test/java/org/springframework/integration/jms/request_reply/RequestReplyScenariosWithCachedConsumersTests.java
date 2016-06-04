@@ -73,10 +73,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final Destination replyDestination = context.getBean("siInQueueOptimizedA", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -89,7 +91,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			gateway.exchange(new GenericMessage<String>("foo"));
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 
 	}
@@ -109,10 +111,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final Destination replyDestination = context.getBean("siInQueueNonOptimizedB", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -126,7 +130,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -144,10 +148,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final Destination replyDestination = context.getBean("siInQueueOptimizedC", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -161,7 +167,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -179,10 +185,12 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final Destination replyDestination = context.getBean("siInQueueNonOptimizedD", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -196,7 +204,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -224,12 +232,14 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			final CountDownLatch latch = new CountDownLatch(1);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
 					dmlc.setConnectionFactory(connectionFactory);
 					dmlc.setDestination(requestDestination);
 					dmlc.setMessageListener(new SessionAwareMessageListener<Message>() {
 
+						@Override
 						public void onMessage(Message message, Session session) {
 							String requestPayload = (String) extractPayload(message);
 							try {
@@ -259,7 +269,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 			assertEquals("bar", gateway.exchange(new GenericMessage<String>("bar")).getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 

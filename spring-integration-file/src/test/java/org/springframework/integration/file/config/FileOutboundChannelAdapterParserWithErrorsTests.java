@@ -16,16 +16,18 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public class FileOutboundChannelAdapterParserWithErrorsTests {
@@ -34,7 +36,8 @@ public class FileOutboundChannelAdapterParserWithErrorsTests {
 	public void testSettingDirectoryAndDirectoryExpression() {
 
 		try {
-			new ClassPathXmlApplicationContext("FileOutboundChannelAdapterParserWithErrorsTests-context.xml", getClass());
+			new ClassPathXmlApplicationContext("FileOutboundChannelAdapterParserWithErrorsTests-context.xml",
+					getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertEquals("Configuration problem: Either directory or " +
@@ -53,7 +56,8 @@ public class FileOutboundChannelAdapterParserWithErrorsTests {
 	public void testNotSettingBothDirectoryAndDirectoryExpression() {
 
 		try {
-			new ClassPathXmlApplicationContext("FileOutboundChannelAdapterParserWithErrors2Tests-context.xml", getClass());
+			new ClassPathXmlApplicationContext("FileOutboundChannelAdapterParserWithErrors2Tests-context.xml",
+					getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertEquals("Configuration problem: directory or directory-expression " +

@@ -345,6 +345,7 @@ public class UdpChannelAdapterTests {
 		socket.receive(packet);
 		assertEquals("FOO", new String(packet.getData()));
 		assertEquals(receiverServerPort, packet.getPort());
+		socket.close();
 		context.close();
 	}
 

@@ -34,10 +34,10 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -60,10 +60,12 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			final Destination replyDestination = context.getBean("siInQueueC", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -77,7 +79,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -94,9 +96,11 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			final Destination replyDestination = context.getBean("siInQueueD", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -110,7 +114,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -127,10 +131,12 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			final Destination replyDestination = context.getBean("siInQueueA", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -144,7 +150,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 
@@ -161,10 +167,12 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			final Destination replyDestination = context.getBean("siInQueueB", Destination.class);
 			new Thread(new Runnable() {
 
+				@Override
 				public void run() {
 					final Message requestMessage = jmsTemplate.receive(requestDestination);
 					jmsTemplate.send(replyDestination, new MessageCreator() {
 
+						@Override
 						public Message createMessage(Session session) throws JMSException {
 							TextMessage message = session.createTextMessage();
 							message.setText("bar");
@@ -178,7 +186,7 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 			assertEquals("bar", siReplyMessage.getPayload());
 		}
 		finally {
-			context.destroy();
+			context.close();
 		}
 	}
 }

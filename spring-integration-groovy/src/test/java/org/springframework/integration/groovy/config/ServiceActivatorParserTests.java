@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -33,7 +34,7 @@ public class ServiceActivatorParserTests {
 	public void failExpressionAndScript() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-expression-and-script-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {

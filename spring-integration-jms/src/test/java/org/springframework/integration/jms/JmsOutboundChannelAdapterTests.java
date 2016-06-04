@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.jms.JmsOutboundChannelAdapterTests.CFConfig;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -44,9 +43,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class JmsOutboundChannelAdapterTests extends ActiveMQMultiContextTests {
-
-	@Autowired
-	private PollableChannel out;
 
 	@Autowired
 	private Aborter aborter;

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -36,7 +37,7 @@ public class InnerPollerParserTests {
 	@Test
 	public void testRefGood() {
 		// Just load the context to test the parse of a 'good' inner parser
-		new ClassPathXmlApplicationContext("InnerPollerParserTests-context.xml", InnerPollerParserTests.class);
+		new ClassPathXmlApplicationContext("InnerPollerParserTests-context.xml", InnerPollerParserTests.class).close();
 	}
 
 	@Test
@@ -68,7 +69,7 @@ public class InnerPollerParserTests {
 				"</beans>";
 
 			Resource resource = new ByteArrayResource(badContext.getBytes());
-			new GenericXmlApplicationContext(resource);
+			new GenericXmlApplicationContext(resource).close();
 			fail("Expected Failure to load ApplicationContext");
 		}
 		catch (BeanDefinitionParsingException bdpe) {
@@ -105,7 +106,7 @@ public class InnerPollerParserTests {
 				"</beans>";
 
 			Resource resource = new ByteArrayResource(badContext.getBytes());
-			new GenericXmlApplicationContext(resource);
+			new GenericXmlApplicationContext(resource).close();
 			fail("Expected Failure to load ApplicationContext");
 		}
 		catch (BeanDefinitionParsingException bdpe) {
@@ -142,7 +143,7 @@ public class InnerPollerParserTests {
 				"</beans>";
 
 			Resource resource = new ByteArrayResource(badContext.getBytes());
-			new GenericXmlApplicationContext(resource);
+			new GenericXmlApplicationContext(resource).close();
 			fail("Expected Failure to load ApplicationContext");
 		}
 		catch (BeanDefinitionParsingException bdpe) {

@@ -128,6 +128,7 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 		assertEquals(Integer.valueOf(0), theResult); // lost the race, key changed
 
 		file.delete();
+		filter.close();
 	}
 
 }

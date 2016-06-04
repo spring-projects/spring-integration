@@ -44,14 +44,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
@@ -172,7 +172,8 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void failWithRestTemplateAndRestAttributes() {
-		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass())
+				.close();
 	}
 
 	@Test
@@ -265,7 +266,8 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void failWithUrlAndExpression() {
-		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml",
+				this.getClass()).close();
 	}
 
 	public static class StubErrorHandler implements ResponseErrorHandler {

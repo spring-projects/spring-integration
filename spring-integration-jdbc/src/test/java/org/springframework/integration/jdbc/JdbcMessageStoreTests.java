@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
@@ -335,6 +336,7 @@ public class JdbcMessageStoreTests {
 			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
+				groupRemovalLatch.countDown();
 			}
 
 		});
@@ -364,6 +366,7 @@ public class JdbcMessageStoreTests {
 
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
+		assertTrue(groupRemovalLatch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test

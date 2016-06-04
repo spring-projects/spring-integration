@@ -58,6 +58,7 @@ public class CompositeFileListFilterTests {
 		assertEquals(returnedFiles, compositeFileFilter.filterFiles(new File[] { fileMock }));
 		verify(fileFilterMock1).filterFiles(isA(File[].class));
 		verify(fileFilterMock2).filterFiles(isA(File[].class));
+		compositeFileFilter.close();
 	}
 
 	@Test
@@ -71,6 +72,7 @@ public class CompositeFileListFilterTests {
 		assertEquals(returnedFiles, compositeFileFilter.filterFiles(new File[] { fileMock }));
 		verify(fileFilterMock1).filterFiles(isA(File[].class));
 		verify(fileFilterMock2).filterFiles(isA(File[].class));
+		compositeFileFilter.close();
 	}
 
 	@Test
@@ -82,5 +84,6 @@ public class CompositeFileListFilterTests {
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(new ArrayList<File>());
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(new ArrayList<File>());
 		assertTrue(compositeFileFilter.filterFiles(new File[] { fileMock }).isEmpty());
+		compositeFileFilter.close();
 	}
 }

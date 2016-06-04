@@ -23,7 +23,6 @@ import java.io.File;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -31,6 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class FtpInboundOutboundSanitySample {
 
@@ -55,18 +55,20 @@ public class FtpInboundOutboundSanitySample {
 			fileB.delete();
 		}
 
-		new ClassPathXmlApplicationContext("FtpInboundChannelAdapterSample-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FtpInboundChannelAdapterSample-context.xml", this.getClass());
 		Thread.sleep(3000);
 		fileA = new File("local-test-dir/b.test");
 		fileB = new File("local-test-dir/b.test");
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
+		context.close();
 	}
 
 	@Test
 	@Ignore
 	public void testFtpOutboundChannelAdapter() throws Exception {
-		ApplicationContext ac =
+		ClassPathXmlApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");
 		File fileB = new File("local-test-dir/b.test");
@@ -78,6 +80,7 @@ public class FtpInboundOutboundSanitySample {
 		fileB = new File("remote-target-dir/b.test");
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
+		ac.close();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +44,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
@@ -199,7 +200,8 @@ public class HttpOutboundGatewayParserTests {
 	@Test
 	public void testInt2718FailForGatewayRequestChannelAttribute() {
 		try {
-			new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml", this.getClass())
+					.close();
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {
@@ -217,10 +219,12 @@ public class HttpOutboundGatewayParserTests {
 
 	public static class StubErrorHandler implements ResponseErrorHandler {
 
+		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
 			return false;
 		}
 
+		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
 		}
 	}

@@ -19,20 +19,24 @@ package org.springframework.integration.ftp;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public class FtpMessageHistoryTests {
 	@Test
 	public void testMessageHistory() throws Exception {
-		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("ftp-message-history-context.xml", this.getClass());
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("ftp-message-history-context.xml",
+				this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("adapterFtp", SourcePollingChannelAdapter.class);
 		assertEquals("adapterFtp", adapter.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
+		ac.close();
 	}
 }

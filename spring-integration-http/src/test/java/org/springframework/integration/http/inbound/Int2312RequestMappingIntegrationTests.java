@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 //INT-2312
@@ -131,10 +132,10 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 
 				Object matrixVariables = headers.get("matrixVariables");
 				assertThat(matrixVariables, Matchers.instanceOf(Map.class));
-				Object value = ((Map) matrixVariables).get("value");
+				Object value = ((Map<?, ?>) matrixVariables).get("value");
 				assertThat(value, Matchers.instanceOf(MultiValueMap.class));
-				assertEquals("1", ((MultiValueMap) value).getFirst("q1"));
-				assertEquals("2", ((MultiValueMap) value).getFirst("q2"));
+				assertEquals("1", ((MultiValueMap<String, ?>) value).getFirst("q1"));
+				assertEquals("2", ((MultiValueMap<String, ?>) value).getFirst("q2"));
 
 				Object requestHeaders = headers.get("requestHeaders");
 				assertNotNull(requestParams);

@@ -15,11 +15,11 @@
 	<jdbc:embedded-database type="HSQL" id="dataSource">
 		<jdbc:script location="org/springframework/integration/jdbc/config/inboundSchema.sql" />
 	</jdbc:embedded-database>
-	
+
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"/>
 	</bean>
-	
+
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<constructor-arg ref="dataSource" />
 	</bean>

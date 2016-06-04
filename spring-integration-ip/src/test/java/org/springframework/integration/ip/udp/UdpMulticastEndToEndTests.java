@@ -157,6 +157,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void run() {
+		@SuppressWarnings("resource")
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"testIp-in-multicast-context.xml",
 				UdpMulticastEndToEndTests.class);
@@ -196,7 +197,6 @@ public class UdpMulticastEndToEndTests implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		ctx.stop();
 		ctx.close();
 	}
 

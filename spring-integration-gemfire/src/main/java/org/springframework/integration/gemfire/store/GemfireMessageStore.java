@@ -80,7 +80,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public void afterPropertiesSet() {
 		if (this.messageStoreRegion != null) {
 			return;

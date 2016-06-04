@@ -214,6 +214,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			}
 		}
 		assertEquals(50, replyCounter + timeoutCounter);
+		context.close();
 	}
 
 	@Test
@@ -264,6 +265,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		assertEquals(0, missmatches.get());
 		assertEquals(0, failures.get());
 		assertEquals(0, timeouts.get());
+		context.close();
 	}
 
 	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed) {

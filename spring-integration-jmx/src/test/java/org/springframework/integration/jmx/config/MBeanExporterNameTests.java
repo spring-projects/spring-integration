@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -28,7 +29,7 @@ public class MBeanExporterNameTests {
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void testHandlerMBeanRegistration() throws Exception {
-		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+		new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass()).close();
 	}
 
 	public static class Source {

@@ -165,7 +165,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	public void testFailOnDoubleReference() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception due to 2 endpoints referencing the same bean");
 		}
 		catch (Exception e) {

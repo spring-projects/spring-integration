@@ -37,8 +37,8 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -162,6 +162,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 			for (int i = 0; i < requests; i++) {
 				final int y = i;
 				executor.execute(new Runnable() {
+					@Override
 					public void run() {
 						try {
 							assertEquals(y, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
@@ -191,7 +192,7 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 			assertTrue(successCounter.get() > 10);
 			assertEquals(0, failureCounter.get());
 			assertEquals(requests, successCounter.get() + timeoutCounter.get());
-			context.destroy();
+			context.close();
 		}
 	}
 }

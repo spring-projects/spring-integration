@@ -13,7 +13,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:property-placeholder location="org/springframework/integration/gemfire/inbound/cq/common.properties"/>
-    
+
     <context:component-scan base-package="org.springframework.integration.gemfire.store"/>
 
     <int:channel id="i"/>
