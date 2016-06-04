@@ -23,7 +23,7 @@
 
 	<channel id="inbound_mentions"/>
 
-   <channel id="inputChannel"/>
+	<channel id="inputChannel"/>
 
 	<twitter:dm-outbound-channel-adapter id="dmAdapter" order="23"
 										 twitter-template="twitter"

@@ -68,7 +68,8 @@ public class TestSendingMessageHandlerParserTests {
 	@Test
 	public void testInt2718FailForOutboundAdapterWithRequestHandlerAdviceChainWithinChainConfig() {
 		try {
-			new ClassPathXmlApplicationContext("OutboundAdapterWithRHACWithinChain-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("OutboundAdapterWithRHACWithinChain-fail-context.xml", this.getClass())
+					.close();
 			fail("Expected BeanDefinitionParsingException");
 		}
 		catch (BeansException e) {

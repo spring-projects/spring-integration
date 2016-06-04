@@ -18,7 +18,7 @@
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<channel id="requestChannel"/>
-	
+
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
@@ -28,7 +28,7 @@
 		<beans:property name="port" value="2222"/>
 		<beans:property name="user" value="oleg"/>
 	</beans:bean>
-	
+
 	<sftp:inbound-channel-adapter id="sftpAdapterNoAutoCreate"
 			channel="requestChannel"
 			session-factory="sftpSessionFactory"
@@ -39,7 +39,7 @@
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
-	
+
 	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
 		<beans:constructor-arg value="."/>
 	</beans:bean>

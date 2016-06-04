@@ -33,17 +33,18 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -127,8 +128,8 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stdoutAdapterWithInvalidCharset() {
 		BeanCreationException beanCreationException = null;
 		try {
-			new ClassPathXmlApplicationContext(
-					"invalidConsoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
+			new ClassPathXmlApplicationContext("invalidConsoleOutboundChannelAdapterParserTests.xml",
+					ConsoleOutboundChannelAdapterParserTests.class).close();
 		}
 		catch (BeanCreationException e) {
 			beanCreationException = e;

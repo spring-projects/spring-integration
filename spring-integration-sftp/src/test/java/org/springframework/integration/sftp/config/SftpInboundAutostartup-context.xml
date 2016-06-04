@@ -16,11 +16,11 @@
 		<property name="port" value="2222"/>
 		<property name="user" value="oleg"/>
 	</bean>
-	
+
 	<int:channel id="requestChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int-sftp:inbound-channel-adapter id="sftpAutoStartup"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"

@@ -20,32 +20,32 @@
 	<beans:bean id="twitter" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg value="org.springframework.social.twitter.api.Twitter"/>
 	</beans:bean>
-	
+
 	<channel id="inbound_mentions"/>
-	
-    <twitter:mentions-inbound-channel-adapter id="mentionAdapter"
-    					twitter-template="twitter"
-    					channel="inbound_mentions"
-    					page-size="23"
-    					auto-startup="false">
-    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:mentions-inbound-channel-adapter>
-    
-    <twitter:dm-inbound-channel-adapter id="dmAdapter"
-    					twitter-template="twitter"
-    					channel="inbound_mentions"
-    					page-size="45"
-    					auto-startup="false">
-    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:dm-inbound-channel-adapter>
-    <twitter:inbound-channel-adapter id="updateAdapter"
-    					twitter-template="twitter"
-    					channel="inbound_mentions"
-    					page-size="67"
-    					auto-startup="false">
-    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-channel-adapter>
-   
+
+	<twitter:mentions-inbound-channel-adapter id="mentionAdapter"
+						twitter-template="twitter"
+						channel="inbound_mentions"
+						page-size="23"
+						auto-startup="false">
+		<poller fixed-rate="5000" max-messages-per-poll="3"/>
+	</twitter:mentions-inbound-channel-adapter>
+
+	<twitter:dm-inbound-channel-adapter id="dmAdapter"
+						twitter-template="twitter"
+						channel="inbound_mentions"
+						page-size="45"
+						auto-startup="false">
+		<poller fixed-rate="5000" max-messages-per-poll="3"/>
+	</twitter:dm-inbound-channel-adapter>
+	<twitter:inbound-channel-adapter id="updateAdapter"
+						twitter-template="twitter"
+						channel="inbound_mentions"
+						page-size="67"
+						auto-startup="false">
+		<poller fixed-rate="5000" max-messages-per-poll="3"/>
+	</twitter:inbound-channel-adapter>
+
 </beans:beans>
 
 

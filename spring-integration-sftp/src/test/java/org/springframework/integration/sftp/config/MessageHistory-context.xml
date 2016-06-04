@@ -18,7 +18,7 @@
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<channel id="inboundFilesChannel"/>
-	
+
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>

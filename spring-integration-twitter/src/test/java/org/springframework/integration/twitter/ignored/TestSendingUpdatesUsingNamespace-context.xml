@@ -17,10 +17,10 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
 						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-   <context:property-placeholder
+	<context:property-placeholder
 			location="classpath:twitter.receiver.properties"
 			ignore-unresolvable="true"/>
-        
+
 	<beans:bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
 		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
 		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>

@@ -46,7 +46,6 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
@@ -163,17 +162,20 @@ public class SftpOutboundTests {
 		File destFile = new File(targetDir, srcFile.getName());
 		destFile.deleteOnExit();
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundInsideChainTests-context.xml", getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"SftpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("outboundChannelAdapterInsideChain", MessageChannel.class);
 
 		channel.send(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+		context.close();
 	}
 
 	@Test //INT-2275
 	public void testFtpOutboundGatewayInsideChain() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundInsideChainTests-context.xml", getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"SftpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("outboundGatewayInsideChain", MessageChannel.class);
 
@@ -191,6 +193,7 @@ public class SftpOutboundTests {
 		for (FileInfo<?> remoteFile : remoteFiles) {
 			assertTrue(files.contains(remoteFile.getFilename()));
 		}
+		context.close();
 	}
 
 	@Test //INT-2954

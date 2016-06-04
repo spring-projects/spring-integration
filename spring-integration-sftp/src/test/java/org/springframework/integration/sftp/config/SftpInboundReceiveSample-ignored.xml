@@ -18,8 +18,8 @@
 	</bean>
 
 	<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
-			channel="receiveChannel" 
-			session-factory="sftpSessionFactory" 
+			channel="receiveChannel"
+			session-factory="sftpSessionFactory"
 			local-directory="file:local-test-dir"
 			remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"
 			auto-startup="true"
@@ -32,7 +32,7 @@
 	<int:channel id="receiveChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<task:executor id="executor" pool-size="15"/>
 
 </beans>

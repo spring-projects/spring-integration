@@ -72,6 +72,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Message<?> message = source.receive();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -92,14 +93,15 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Message<?> message = source.receive();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
+		context.close();
 	}
 
 	@Test
 	public void testConsoleSourceWithInvalidCharset() {
 		BeanCreationException beanCreationException = null;
 		try {
-			new ClassPathXmlApplicationContext(
-					"invalidConsoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
+			new ClassPathXmlApplicationContext("invalidConsoleInboundChannelAdapterParserTests.xml",
+					ConsoleInboundChannelAdapterParserTests.class).close();
 		}
 		catch (BeanCreationException e) {
 			beanCreationException = e;

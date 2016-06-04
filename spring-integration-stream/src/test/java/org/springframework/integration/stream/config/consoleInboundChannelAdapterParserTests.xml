@@ -9,7 +9,7 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
-			
+
 	<integration:message-history/>
 
 	<stdin-channel-adapter id="adapterWithDefaultCharset" auto-startup="false"/>

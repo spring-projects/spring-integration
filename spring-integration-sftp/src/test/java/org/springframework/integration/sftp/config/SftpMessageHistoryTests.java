@@ -19,21 +19,25 @@ package org.springframework.integration.sftp.config;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class SftpMessageHistoryTests {
 
 	@Test
 	public void testMessageHistoryCompliance() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("MessageHistory-context.xml", SftpMessageHistoryTests.class);
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("MessageHistory-context.xml",
+				SftpMessageHistoryTests.class);
 		SourcePollingChannelAdapter spca = ac.getBean("sftpAdapter", SourcePollingChannelAdapter.class);
 		assertEquals("sftpAdapter", spca.getComponentName());
 		assertEquals("sftp:inbound-channel-adapter", spca.getComponentType());
+		ac.close();
 	}
+
 }

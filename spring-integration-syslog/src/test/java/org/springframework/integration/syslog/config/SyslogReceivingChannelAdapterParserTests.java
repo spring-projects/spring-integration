@@ -164,19 +164,21 @@ public class SyslogReceivingChannelAdapterParserTests {
 	@Test
 	public void testPortOnUdpChild() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail1-context.xml", this.getClass())
+					.close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().startsWith(
-					"Configuration problem: When child element 'udp-attributes' is present, 'port' must be defined there"));
+				"Configuration problem: When child element 'udp-attributes' is present, 'port' must be defined there"));
 		}
 	}
 
 	@Test
 	public void testPortWithTCPFactory() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail2-context.xml", this.getClass())
+					.close();
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
@@ -187,7 +189,8 @@ public class SyslogReceivingChannelAdapterParserTests {
 	@Test
 	public void testUdpChildWithTcp() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail3-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail3-context.xml", this.getClass())
+					.close();
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
@@ -200,11 +203,13 @@ public class SyslogReceivingChannelAdapterParserTests {
 	@Test
 	public void testUDPWithTCPFactory() {
 		try {
-			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail4-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail4-context.xml", this.getClass())
+					.close();
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertEquals("Cannot specifiy 'connection-factory' unless the protocol is 'tcp'", e.getCause().getMessage());
+			assertEquals("Cannot specifiy 'connection-factory' unless the protocol is 'tcp'",
+					e.getCause().getMessage());
 		}
 	}
 

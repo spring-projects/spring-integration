@@ -15,9 +15,9 @@
 		<property name="user" value="ozhurakousky"/>
 		<property name="password" value="password"/>
 	</bean>
-	
+
 	<int:channel id="ftpChannel"/>
-	
+
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
 				channel="ftpChannel"
@@ -26,5 +26,5 @@
 				remote-filename-generator-expression="payload.getName() + '-foo'"
 				auto-create-directory="true"
 				remote-directory="spring-integration-sftp/remote-target-dir/bar/baz"/>
-			
+
 </beans>

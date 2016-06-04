@@ -64,6 +64,7 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		assertEquals("baz", now.get(1).getFilename());
 		now = filter.filterFiles(files);
 		assertEquals(0, now.size());
+		filter.close();
 	}
 
 	@Test
@@ -82,6 +83,7 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		assertEquals(2, now.size());
 		assertEquals("foo", now.get(0).getFilename());
 		assertEquals("bar", now.get(1).getFilename());
+		filter.close();
 	}
 
 }

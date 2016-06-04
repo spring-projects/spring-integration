@@ -16,6 +16,8 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -26,18 +28,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -132,13 +133,13 @@ public class Jsr223ServiceActivatorTests {
 		}
 		String payload = (String) replyChannel.receive(0).getPayload();
 
-		assertThat(payload, Matchers.startsWith("inline-test-1 - FOO"));
+		assertThat(payload, startsWith("inline-test-1 - FOO"));
 
 		payload = (String) replyChannel.receive(0).getPayload();
-		assertThat(payload, Matchers.startsWith("inline-test-2 - FOO"));
+		assertThat(payload, startsWith("inline-test-2 - FOO"));
 
 		payload = (String) replyChannel.receive(0).getPayload();
-		assertThat(payload, Matchers.startsWith("inline-test-3 - FOO"));
+		assertThat(payload, startsWith("inline-test-3 - FOO"));
 		assertTrue(payload.substring(payload.indexOf(":") + 1).matches(".+\\d{2}:\\d{2}:\\d{2}.+"));
 
 		assertNull(replyChannel.receive(0));
@@ -148,26 +149,30 @@ public class Jsr223ServiceActivatorTests {
 	@Test
 	public void variablesAndScriptVariableGenerator() throws Exception {
 		try {
-			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml",
+					this.getClass()).close();
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
-			assertThat(e.getMessage(), Matchers.containsString("'script-variable-generator' and 'variable' sub-elements are mutually exclusive."));
+			assertThat(e.getMessage(),
+					containsString("'script-variable-generator' and 'variable' sub-elements are mutually exclusive."));
 		}
 	}
 
 	@Test
 	public void testDuplicateVariable() throws Exception {
 		try {
-			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml",
+					this.getClass()).close();
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
-			assertThat(e.getMessage(), Matchers.containsString("Duplicated variable: foo"));
+			assertThat(e.getMessage(), containsString("Duplicated variable: foo"));
 		}
 	}
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
+		@Override
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
