@@ -136,7 +136,7 @@ public class DefaultXmlPayloadConverterTests {
 	public void testConvertSourceToDocument() throws Exception {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		DOMSource domSource = new DOMSource(element);
-		Document doc = converter.convertToDocument(element);
+		Document doc = converter.convertToDocument(domSource);
 		NodeList childNodes = doc.getChildNodes();
 		assertEquals(1, childNodes.getLength());
 		assertEquals("test", childNodes.item(0).getNodeName());

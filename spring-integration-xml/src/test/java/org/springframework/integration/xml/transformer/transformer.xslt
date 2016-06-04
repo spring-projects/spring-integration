@@ -6,13 +6,13 @@
 	<xsl:output omit-xml-declaration="yes" />
 	<xsl:template match="order">
 		<bob>test</bob>
-		<sampleElementA>  
+		<sampleElementA>
 			<xsl:value-of select="$testParam" />
 		</sampleElementA>
-		<sampleElementB>  
+		<sampleElementB>
 			<xsl:value-of select="$testParam2" />
 		</sampleElementB>
-		<sampleElementC>  
+		<sampleElementC>
 			<xsl:value-of select="$testParam3" />
 		</sampleElementC>
 	</xsl:template>

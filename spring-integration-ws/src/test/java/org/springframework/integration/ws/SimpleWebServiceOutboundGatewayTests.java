@@ -35,7 +35,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
@@ -103,12 +102,14 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	@Test //INT-1029
 	public void testWsOutboundGatewayInsideChain() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("WebServiceOutboundGatewayInsideChainTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"WebServiceOutboundGatewayInsideChainTests-context.xml", this.getClass());
 		MessageChannel channel = context.getBean("wsOutboundGatewayInsideChain", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload("<test>foo</test>").build());
 		PollableChannel replyChannel = context.getBean("replyChannel", PollableChannel.class);
 		Message<?> replyMessage = replyChannel.receive();
 		assertThat(replyMessage.getPayload().toString(), Matchers.endsWith(response));
+		context.close();
 	}
 
 	@Test(expected = ReplyRequiredException.class)

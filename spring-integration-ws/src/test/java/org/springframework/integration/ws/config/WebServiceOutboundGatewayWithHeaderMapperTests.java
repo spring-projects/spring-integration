@@ -40,7 +40,6 @@ import org.mockito.stubbing.Answer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
@@ -87,9 +86,12 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void headerMapperParserTest() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ws-outbound-gateway-with-headermappers.xml", this.getClass());
-		SimpleWebServiceOutboundGateway gateway = TestUtils.getPropertyValue(context.getBean("withHeaderMapper"), "handler", SimpleWebServiceOutboundGateway.class);
-		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper", DefaultSoapHeaderMapper.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ws-outbound-gateway-with-headermappers.xml", this.getClass());
+		SimpleWebServiceOutboundGateway gateway = TestUtils.getPropertyValue(context.getBean("withHeaderMapper"),
+				"handler", SimpleWebServiceOutboundGateway.class);
+		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper",
+				DefaultSoapHeaderMapper.class);
 		assertNotNull(headerMapper);
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(headerMapper,
@@ -109,6 +111,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertFalse(replyHeaderMatcher.matchHeader("123baz123"));
 		assertTrue(replyHeaderMatcher.matchHeader("bar"));
 		assertTrue(replyHeaderMatcher.matchHeader("bar123"));
+		context.close();
 	}
 
 	@Test
@@ -183,8 +186,10 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 	@SuppressWarnings("rawtypes")
 	public Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ws-outbound-gateway-with-headermappers.xml", this.getClass());
-		AbstractWebServiceOutboundGateway gateway = TestUtils.getPropertyValue(context.getBean(gatewayName), "handler", AbstractWebServiceOutboundGateway.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ws-outbound-gateway-with-headermappers.xml", this.getClass());
+		AbstractWebServiceOutboundGateway gateway = TestUtils.getPropertyValue(context.getBean(gatewayName), "handler",
+				AbstractWebServiceOutboundGateway.class);
 
 		if (!soap) {
 			WebServiceTemplate template = TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
@@ -257,6 +262,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		inputChannel.send(message);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		Message<?> replyMessage = outputChannel.receive(0);
+		context.close();
 		return replyMessage;
 	}
 

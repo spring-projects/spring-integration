@@ -19,7 +19,6 @@ package org.springframework.integration.xmpp.ignore;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -27,22 +26,26 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SmackMessageSampleTests {
 
 	@Test
 	@Ignore
 	public void validateSmackMessageSent() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("SmackMessageSampleTest-context.xml", this.getClass());
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("SmackMessageSampleTest-context.xml",
+				this.getClass());
 		MessageChannel xmppInput = ac.getBean("xmppInput", MessageChannel.class);
 
 
-		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("springintegration@gmail.com");
+		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message(
+				"springintegration@gmail.com");
 		smackMessage.setBody("Message sent as Smack Message");
 
 		Message<org.jivesoftware.smack.packet.Message> message =
 			new GenericMessage<org.jivesoftware.smack.packet.Message>(smackMessage);
 
 		xmppInput.send(message);
+		ac.close();
 	}
 }

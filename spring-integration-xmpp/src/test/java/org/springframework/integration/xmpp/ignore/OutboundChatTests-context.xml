@@ -15,14 +15,14 @@
 	<context:property-placeholder location="classpath:test.properties"/>
 
 	<beans:bean id="xmppProducer"
-                class="org.springframework.integration.xmpp.ignore.XmppMessageProducer"
-                p:recipient="${user.2.login}"/>
+	            class="org.springframework.integration.xmpp.ignore.XmppMessageProducer"
+	            p:recipient="${user.2.login}"/>
 
-    <xmpp:xmpp-connection id="testConnection"
-            user="${user.1.login}"
-            password="${user.1.password}"
-            host="${user.1.host}"
-            service-name="${user.1.service}"/>
+	<xmpp:xmpp-connection id="testConnection"
+	        user="${user.1.login}"
+	        password="${user.1.password}"
+	        host="${user.1.host}"
+	        service-name="${user.1.service}"/>
 
 	<inbound-channel-adapter ref="xmppProducer" channel="outboundChatChannel">
 		<poller fixed-rate="1000"/>

@@ -17,7 +17,7 @@
 	                     uri="http://example.org"
 	                     mapped-request-headers="foo*, *baz*"
 	                     mapped-reply-headers="bar*"/>
-	                     
+
 	<int-ws:outbound-gateway id="marshallingWithHeaderMapper"
 	                     request-channel="inputMarshallingChannel"
 	                     reply-channel="outputChannel"
@@ -26,13 +26,13 @@
 	                     unmarshaller="ubmarshaller"
 	                     mapped-request-headers="foo*, *baz*"
 	                     mapped-reply-headers="bar*"/>
-	                     
+
 	<bean id="marshaller" class="org.springframework.oxm.xstream.XStreamMarshaller"/>
-	
+
 	<bean id="ubmarshaller" class="org.springframework.integration.ws.config.WebServiceOutboundGatewayWithHeaderMapperTests.SampleUnmarshaller"/>
-	                     
+
 	<int:channel id="outputChannel">
 		<int:queue/>
-	</int:channel> 
-	
+	</int:channel>
+
 </beans>

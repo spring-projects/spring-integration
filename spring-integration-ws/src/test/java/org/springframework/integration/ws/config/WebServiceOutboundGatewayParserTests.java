@@ -309,6 +309,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithOrderAndAutoStartupFalse");
 		assertEquals(Boolean.FALSE, new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup"));
+		context.close();
 	}
 
 	@Test
