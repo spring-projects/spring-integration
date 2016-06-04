@@ -21,21 +21,21 @@
 	<channel id="noLoadBalancerNoFailoverExecutor" >
 		<dispatcher load-balancer="none" failover="false" task-executor="taskExecutor"/>
 	</channel>
-	
+
 	<channel id="loadBalancerNoFailover">
 		<dispatcher load-balancer="round-robin" failover="false"/>
 	</channel>
 	<channel id="loadBalancerNoFailoverExecutor">
 		<dispatcher load-balancer="round-robin" failover="false" task-executor="taskExecutor"/>
 	</channel>
-	
+
 	<channel id="noLoadBalancerFailover">
 		<dispatcher load-balancer="none" failover="true"/>
 	</channel>
 	<channel id="noLoadBalancerFailoverExecutor">
 		<dispatcher load-balancer="none" failover="true" task-executor="taskExecutor"/>
 	</channel>
-	
+
 	<beans:bean id="taskExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
 
 	<!-- send async errors to null channel to avoid chatter -->

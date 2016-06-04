@@ -12,5 +12,5 @@
 	<resequencer input-channel="in" output-channel="out" release-partial-sequences="true"/>
 
 	<channel id="out"/>
-	
+
 </beans:beans>
