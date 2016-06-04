@@ -10,17 +10,17 @@
 	<int-mail:outbound-channel-adapter id="adapterWithMailSenderReference"
 			order="23"
 			mail-sender="mailSender"/>
-			
+
 	<int-mail:outbound-channel-adapter id="adapterWithPollableChannel" channel="pollableChannel"
 			order="23"
 			mail-sender="mailSender">
 		<int:poller fixed-rate="100" max-messages-per-poll="4"/>
 	</int-mail:outbound-channel-adapter>
-	
+
 	<int:channel id="pollableChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int-mail:outbound-channel-adapter id="adapterWithHostProperty"
 			host="somehost" username="someuser" password="somepassword"/>
 

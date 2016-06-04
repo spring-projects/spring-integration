@@ -36,19 +36,20 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.mail.MailSendingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class MessageWithContentTypeTests {
@@ -56,12 +57,14 @@ public class MessageWithContentTypeTests {
 	@Test
 	@Ignore
 	public void testSendEmail() throws Exception {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("MessageWithContentTypeTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
+				"MessageWithContentTypeTests-context.xml", this.getClass());
 		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
 		StringWriter writer = new StringWriter();
 		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
 		FileCopyUtils.copy(reader, writer);
 		inputChannel.send(new GenericMessage<String>(writer.getBuffer().toString()));
+		ac.close();
 	}
 
 	@Test
@@ -80,6 +83,7 @@ public class MessageWithContentTypeTests {
 		// MOCKS
 		when(sender.createMimeMessage()).thenReturn(mMessage);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				MimeMessage mimeMessage = (MimeMessage) invocation.getArguments()[0];
 				assertEquals("text/html", mimeMessage.getDataHandler().getContentType());

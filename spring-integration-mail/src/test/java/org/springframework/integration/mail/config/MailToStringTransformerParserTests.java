@@ -73,7 +73,8 @@ public class MailToStringTransformerParserTests {
 	@Test(expected = BeanDefinitionStoreException.class)
 	public void topLevelTransformerMissingInput() {
 		try {
-			new ClassPathXmlApplicationContext("mailToStringTransformerWithoutInputChannel.xml", this.getClass());
+			new ClassPathXmlApplicationContext("mailToStringTransformerWithoutInputChannel.xml", this.getClass())
+					.close();
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().contains("input-channel"));

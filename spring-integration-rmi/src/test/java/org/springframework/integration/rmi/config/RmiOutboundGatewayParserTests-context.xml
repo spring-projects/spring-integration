@@ -30,7 +30,7 @@
 		</rmi:request-handler-advice-chain>
 	</rmi:outbound-gateway>
 
-	<beans:bean id="advice" 
+	<beans:bean id="advice"
 			class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
 
 	<chain input-channel="rmiOutboundGatewayInsideChain">

@@ -8,12 +8,12 @@
 	xmlns:int-mail="http://www.springframework.org/schema/integration/mail">
 
 	<int:channel id="receiveChannel"/>
-	
+
 	<int-mail:inbound-channel-adapter store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
 			channel="receiveChannel">
 			<int:poller max-messages-per-poll="1">
 				<int:interval-trigger interval="5000"/>
 			</int:poller>
 	</int-mail:inbound-channel-adapter>
-			
+
 </beans>

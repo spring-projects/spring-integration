@@ -9,7 +9,7 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/rmi
 			http://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd">
-			
+
 	<message-history/>
 
 	<channel id="testChannel"/>

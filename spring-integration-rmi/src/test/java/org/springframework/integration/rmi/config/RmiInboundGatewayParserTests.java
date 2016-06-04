@@ -21,13 +21,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 
 /**
  * @author Mark Fisher
@@ -37,7 +37,7 @@ public class RmiInboundGatewayParserTests {
 
 	@Test
 	public void gatewayWithDefaultsAndHistory() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithDefaults");
@@ -51,11 +51,12 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(1000L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(1000L, templateAccessor.getPropertyValue("receiveTimeout"));
+		context.close();
 	}
 
 	@Test
 	public void gatewayWithCustomProperties() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithCustomProperties");
@@ -67,37 +68,41 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("receiveTimeout"));
+		context.close();
 	}
 
 	@Test
 	public void gatewayWithHost() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHostAndErrorChannel");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("localhost", accessor.getPropertyValue("registryHost"));
 		assertSame(context.getBean("testErrorChannel"),
 				TestUtils.getPropertyValue(gateway, "errorChannel"));
+		context.close();
 	}
 
 	@Test
 	public void gatewayWithPort() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithPort");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(1234, accessor.getPropertyValue("registryPort"));
+		context.close();
 	}
 
 	@Test
 	public void gatewayWithRemoteInvocationExecutorReference() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithExecutorRef");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object remoteInvocationExecutor = accessor.getPropertyValue("remoteInvocationExecutor");
 		assertNotNull(remoteInvocationExecutor);
 		assertEquals(StubRemoteInvocationExecutor.class, remoteInvocationExecutor.getClass());
+		context.close();
 	}
 
 }

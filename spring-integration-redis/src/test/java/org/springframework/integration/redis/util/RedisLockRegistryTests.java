@@ -437,7 +437,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			lock.lock();
 		}
 		assertEquals(10,
-				((Collection) TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get()).size());
+			((Collection<?>) TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get()).size());
 		assertNull(TestUtils.getPropertyValue(registry, "weakThreadLocks", ThreadLocal.class).get());
 
 		for (int i = 0; i < 10; i++) {

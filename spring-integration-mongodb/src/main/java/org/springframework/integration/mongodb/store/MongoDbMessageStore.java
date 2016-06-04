@@ -797,7 +797,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this.payload = message.getPayload();
 			this.headers = message.getHeaders();
 			if (message instanceof AdviceMessage) {
-				this.inputMessage = ((AdviceMessage) message).getInputMessage();
+				this.inputMessage = ((AdviceMessage<?>) message).getInputMessage();
 			}
 			else {
 				this.inputMessage = null;
@@ -816,6 +816,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return this._group_complete;
 		}
 
+		@SuppressWarnings("unused")
 		public Object get_GroupId() {
 			return this._groupId;
 		}

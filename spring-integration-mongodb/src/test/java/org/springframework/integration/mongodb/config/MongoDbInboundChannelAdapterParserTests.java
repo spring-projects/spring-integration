@@ -31,6 +31,7 @@ import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class MongoDbInboundChannelAdapterParserTests {
 
@@ -47,6 +48,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("data", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		context.close();
 	}
 
 	@Test
@@ -63,6 +65,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof SpelExpression);
 		assertEquals("'foo'", TestUtils.getPropertyValue(source, "collectionNameExpression.expression"));
+		context.close();
 	}
 
 	@Test
@@ -79,6 +82,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		context.close();
 	}
 
 	@Test
@@ -94,15 +98,18 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
+		context.close();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void templateAndFactoryFail() {
-		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-factory-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-factory-config.xml", this.getClass())
+				.close();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void templateAndConverterFail() {
-		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml", this.getClass())
+				.close();
 	}
 }

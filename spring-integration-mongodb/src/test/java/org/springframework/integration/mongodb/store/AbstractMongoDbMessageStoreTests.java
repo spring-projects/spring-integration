@@ -195,7 +195,7 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertTrue(retrievedMessage instanceof AdviceMessage);
 		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
-		assertEquals(inputMessage, ((AdviceMessage) retrievedMessage).getInputMessage());
+		assertEquals(inputMessage, ((AdviceMessage<?>) retrievedMessage).getInputMessage());
 		assertEquals(messageToStore, retrievedMessage);
 	}
 

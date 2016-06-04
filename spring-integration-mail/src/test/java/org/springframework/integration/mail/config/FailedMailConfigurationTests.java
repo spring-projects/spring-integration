@@ -17,11 +17,13 @@
 package org.springframework.integration.mail.config;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class FailedMailConfigurationTests {
@@ -30,13 +32,13 @@ public class FailedMailConfigurationTests {
 	 */
 	@Test(expected = XmlBeanDefinitionStoreException.class)
 	public void testImapIdleWithNoDeleteMessageAttribute() {
-		new ClassPathXmlApplicationContext("failed-imap-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("failed-imap-config.xml", this.getClass()).close();
 	}
 	/**
 	 * validates that if 'should-delete-messages' is not set the context fails
 	 */
 	@Test(expected = XmlBeanDefinitionStoreException.class)
 	public void testAdapterWithNoDeleteMessageAttribute() {
-		new ClassPathXmlApplicationContext("failed-adapter-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("failed-adapter-config.xml", this.getClass()).close();
 	}
 }

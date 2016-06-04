@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,19 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Properties;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.mail.MailSendingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.MailSender;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -46,7 +47,7 @@ public class MailOutboundChannelAdapterParserTests {
 
 	@Test
 	public void adapterWithMailSenderReference() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithMailSenderReference.adapter");
 		MailSendingMessageHandler handler = (MailSendingMessageHandler)
@@ -55,22 +56,24 @@ public class MailOutboundChannelAdapterParserTests {
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 		assertEquals(23, fieldAccessor.getPropertyValue("order"));
+		context.close();
 	}
 
 	@Test
 	public void advised() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("advised.adapter");
 		MessageHandler handler = (MessageHandler)
 				new DirectFieldAccessor(adapter).getPropertyValue("handler");
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+		context.close();
 	}
 
 	@Test
 	public void adapterWithHostProperty() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithHostProperty.adapter");
 		MailSendingMessageHandler handler = (MailSendingMessageHandler)
@@ -78,20 +81,22 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
+		context.close();
 	}
 
 	@Test
 	public void adapterWithPollableChannel() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
 		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel", QueueChannel.class);
 		assertEquals("pollableChannel", pollableChannel.getComponentName());
+		context.close();
 	}
 
 	@Test
 	public void adapterWithJavaMailProperties() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"MailOutboundWithJavamailProperties-context.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithHostProperty.adapter");
 		MailSendingMessageHandler handler = (MailSendingMessageHandler)
@@ -103,6 +108,7 @@ public class MailOutboundChannelAdapterParserTests {
 		assertEquals(7, javaMailProperties.size());
 		assertNotNull(javaMailProperties);
 		assertEquals("true", javaMailProperties.get("mail.smtps.auth"));
+		context.close();
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

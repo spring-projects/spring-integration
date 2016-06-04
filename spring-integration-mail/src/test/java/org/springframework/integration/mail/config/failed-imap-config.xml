@@ -8,8 +8,8 @@
 	xmlns:int-mail="http://www.springframework.org/schema/integration/mail">
 
 	<int:channel id="receiveChannel"/>
-	
+
 	<int-mail:imap-idle-channel-adapter store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
 			channel="receiveChannel"/>
-			
+
 </beans>

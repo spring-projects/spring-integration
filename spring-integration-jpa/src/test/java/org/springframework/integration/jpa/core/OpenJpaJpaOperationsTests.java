@@ -16,11 +16,12 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 
-import org.junit.Assert;
 import org.apache.openjpa.jdbc.conf.JDBCConfiguration;
 import org.apache.openjpa.jdbc.conf.JDBCConfigurationImpl;
 import org.apache.openjpa.jdbc.meta.MappingTool;
@@ -28,8 +29,10 @@ import org.apache.openjpa.lib.conf.Configurations;
 import org.apache.openjpa.lib.util.Options;
 import org.apache.openjpa.persistence.InvalidStateException;
 import org.apache.openjpa.persistence.PersistenceException;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -47,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * </pre>
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -101,6 +105,7 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 
 		boolean ret = Configurations.runAgainstAllAnchors(opts,
 					new Configurations.Runnable() {
+					@Override
 					public boolean run(Options opts) throws IOException, SQLException {
 						JDBCConfiguration conf = new JDBCConfigurationImpl();
 						conf.setConnectionDriverName("org.h2.Driver");
@@ -116,7 +121,7 @@ public class OpenJpaJpaOperationsTests extends AbstractJpaOperationsTests {
 						}
 					}
 				});
-
+		assertTrue(ret);
 	}
 
 	@Test
