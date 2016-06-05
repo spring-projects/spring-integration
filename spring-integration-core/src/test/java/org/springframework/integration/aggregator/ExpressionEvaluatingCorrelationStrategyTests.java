@@ -30,11 +30,11 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Alex Peters
@@ -79,6 +79,7 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 		inputChannel.send(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
+		context.close();
 	}
 
 	public static class CustomCorrelator {

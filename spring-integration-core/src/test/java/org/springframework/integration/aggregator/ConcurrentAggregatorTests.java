@@ -347,6 +347,7 @@ public class ConcurrentAggregatorTests {
 	}
 
 
+	@SuppressWarnings("unused")
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
 		@Override
 		public Object processMessageGroup(MessageGroup group) {

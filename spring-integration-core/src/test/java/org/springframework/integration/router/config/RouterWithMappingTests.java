@@ -146,6 +146,7 @@ public class RouterWithMappingTests {
 
 		private boolean running;
 
+		@SuppressWarnings("unused")
 		public String route(TestBean bean) {
 			return bean.getName();
 		}

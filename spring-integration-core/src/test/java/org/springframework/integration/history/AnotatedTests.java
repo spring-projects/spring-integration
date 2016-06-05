@@ -30,16 +30,17 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public class AnotatedTests {
@@ -49,6 +50,7 @@ public class AnotatedTests {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("annotated-config.xml", this.getClass());
 		ApplicationListener<ApplicationEvent> listener = new ApplicationListener<ApplicationEvent>() {
 
+			@Override
 			public void onApplicationEvent(ApplicationEvent event) {
 				MessageHistory history = MessageHistory.read((Message<?>) event.getSource());
 				Properties adapterHistory = history.get(1);
@@ -67,5 +69,7 @@ public class AnotatedTests {
 		handlerField.set(consumer, handler);
 		channel.send(new GenericMessage<String>("hello"));
 		verify(listener, times(1)).onApplicationEvent((ApplicationEvent) Mockito.any());
+		ac.close();
 	}
+
 }

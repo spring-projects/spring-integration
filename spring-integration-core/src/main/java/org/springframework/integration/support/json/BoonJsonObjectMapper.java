@@ -128,7 +128,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception {
 		JsonParserAndMapper parser = this.objectMapper.parser();
 

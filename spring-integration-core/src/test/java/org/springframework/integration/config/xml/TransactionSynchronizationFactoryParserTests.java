@@ -25,52 +25,60 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
+import org.springframework.messaging.MessageChannel;
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class TransactionSynchronizationFactoryParserTests {
 
 	@Test // nothing to assert. Validates only XSD
 	public void validateXsdCombinationOfOrderOfSubelements() {
-		new ClassPathXmlApplicationContext("TransactionSynchronizationFactoryParserTests-xsd.xml", this.getClass());
+		new ClassPathXmlApplicationContext("TransactionSynchronizationFactoryParserTests-xsd.xml", this.getClass())
+				.close();
 	}
 
 	@Test
 	public void validateFullConfiguration() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("TransactionSynchronizationFactoryParserTests-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"TransactionSynchronizationFactoryParserTests-config.xml", this.getClass());
 
-		DefaultTransactionSynchronizationFactory syncFactory =
-				context.getBean("syncFactoryComplete", DefaultTransactionSynchronizationFactory.class);
+		DefaultTransactionSynchronizationFactory syncFactory = context.getBean("syncFactoryComplete",
+				DefaultTransactionSynchronizationFactory.class);
 		assertNotNull(syncFactory);
-		TransactionSynchronizationProcessor processor =
-				TestUtils.getPropertyValue(syncFactory, "processor", ExpressionEvaluatingTransactionSynchronizationProcessor.class);
+		TransactionSynchronizationProcessor processor = TestUtils.getPropertyValue(syncFactory, "processor",
+				ExpressionEvaluatingTransactionSynchronizationProcessor.class);
 		assertNotNull(processor);
 
-		MessageChannel beforeCommitResultChannel = TestUtils.getPropertyValue(processor, "beforeCommitChannel", MessageChannel.class);
+		MessageChannel beforeCommitResultChannel = TestUtils.getPropertyValue(processor, "beforeCommitChannel",
+				MessageChannel.class);
 		assertNotNull(beforeCommitResultChannel);
 		assertEquals(beforeCommitResultChannel, context.getBean("beforeCommitChannel"));
 		Object beforeCommitExpression = TestUtils.getPropertyValue(processor, "beforeCommitExpression");
 		assertNull(beforeCommitExpression);
 
-		MessageChannel afterCommitResultChannel = TestUtils.getPropertyValue(processor, "afterCommitChannel", MessageChannel.class);
+		MessageChannel afterCommitResultChannel = TestUtils.getPropertyValue(processor, "afterCommitChannel",
+				MessageChannel.class);
 		assertNotNull(afterCommitResultChannel);
 		assertEquals(afterCommitResultChannel, context.getBean("nullChannel"));
-		Expression afterCommitExpression = TestUtils.getPropertyValue(processor, "afterCommitExpression", Expression.class);
+		Expression afterCommitExpression = TestUtils.getPropertyValue(processor, "afterCommitExpression",
+				Expression.class);
 		assertNotNull(afterCommitExpression);
 		assertEquals("'afterCommit'", ((SpelExpression) afterCommitExpression).getExpressionString());
 
-		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackChannel", MessageChannel.class);
+		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackChannel",
+				MessageChannel.class);
 		assertNotNull(afterRollbackResultChannel);
 		assertEquals(afterRollbackResultChannel, context.getBean("afterRollbackChannel"));
-		Expression afterRollbackExpression = TestUtils.getPropertyValue(processor, "afterRollbackExpression", Expression.class);
+		Expression afterRollbackExpression = TestUtils.getPropertyValue(processor, "afterRollbackExpression",
+				Expression.class);
 		assertNotNull(afterRollbackExpression);
 		assertEquals("'afterRollback'", ((SpelExpression) afterRollbackExpression).getExpressionString());
+		context.close();
 	}
 
 }

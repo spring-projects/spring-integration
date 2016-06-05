@@ -338,6 +338,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 	public void testTwoMethodsWithSameParameterTypesAmbiguous() {
 
 		class AnnotatedParametersAggregator {
+
+			@SuppressWarnings("unused")
 			public Integer and(List<Integer> flags) {
 				int result = 0;
 				for (Integer flag : flags) {
@@ -346,6 +348,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 				return result;
 			}
 
+			@SuppressWarnings("unused")
 			public String listHeaderShouldBeIgnored(@Header List<Integer> flags) {
 				fail("this method should not be invoked");
 				return "";

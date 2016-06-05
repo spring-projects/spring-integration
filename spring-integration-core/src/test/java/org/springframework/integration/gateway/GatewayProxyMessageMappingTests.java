@@ -28,14 +28,14 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
 
 /**
  * @author Mark Fisher
@@ -153,6 +153,7 @@ public class GatewayProxyMessageMappingTests {
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("FOO!!!", result.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -184,6 +185,7 @@ public class GatewayProxyMessageMappingTests {
 		assertNotNull(barResult);
 		assertEquals(309, barResult.getPayload());
 		assertNull(channel.receive(0));
+		context.close();
 	}
 
 	@Test(expected = MessagingException.class)

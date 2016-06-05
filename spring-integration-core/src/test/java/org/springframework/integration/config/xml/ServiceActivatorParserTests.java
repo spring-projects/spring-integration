@@ -27,11 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -121,7 +121,7 @@ public class ServiceActivatorParserTests {
 	public void failRefAndExpression() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-ref-and-expression-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -134,7 +134,7 @@ public class ServiceActivatorParserTests {
 	public void failRefAndBean() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-ref-and-bean-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -149,7 +149,7 @@ public class ServiceActivatorParserTests {
 	public void failExpressionAndBean() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-expression-and-bean-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -163,7 +163,7 @@ public class ServiceActivatorParserTests {
 	public void failNoService() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-no-service-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -177,7 +177,7 @@ public class ServiceActivatorParserTests {
 	public void failExpressionAndExpression() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-expression-and-expression-element-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -191,7 +191,7 @@ public class ServiceActivatorParserTests {
 	public void failMethodAndExpressionElement() {
 		try {
 			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-method-and-expression-element-context.xml",
-					this.getClass());
+					this.getClass()).close();
 			fail("Expected exception");
 		}
 		catch (BeanDefinitionParsingException e) {

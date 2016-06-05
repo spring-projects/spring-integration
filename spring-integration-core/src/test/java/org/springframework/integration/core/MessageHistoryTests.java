@@ -113,7 +113,7 @@ public class MessageHistoryTests {
 		assertThat(result1, instanceOf(AdviceMessage.class));
 		assertNotSame(original, result1);
 		assertSame(original.getPayload(), result1.getPayload());
-		assertSame(original.getInputMessage(), ((AdviceMessage) result1).getInputMessage());
+		assertSame(original.getInputMessage(), ((AdviceMessage<?>) result1).getInputMessage());
 		MessageHistory history1 = MessageHistory.read(result1);
 		assertNotNull(history1);
 		assertEquals("testComponent-1", history1.toString());
@@ -121,7 +121,7 @@ public class MessageHistoryTests {
 		assertThat(result2, instanceOf(AdviceMessage.class));
 		assertNotSame(original, result2);
 		assertSame(original.getPayload(), result2.getPayload());
-		assertSame(original.getInputMessage(), ((AdviceMessage) result2).getInputMessage());
+		assertSame(original.getInputMessage(), ((AdviceMessage<?>) result2).getInputMessage());
 		assertNotSame(result1, result2);
 		MessageHistory history2 = MessageHistory.read(result2);
 		assertNotNull(history2);
@@ -137,10 +137,12 @@ public class MessageHistoryTests {
 			this.id = id;
 		}
 
+		@Override
 		public String getComponentName() {
 			return "testComponent-" + this.id;
 		}
 
+		@Override
 		public String getComponentType() {
 			return "type-" + this.id;
 		}

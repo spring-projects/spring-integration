@@ -166,6 +166,7 @@ public class GatewayProxyFactoryBeanTests {
 		TestService service = (TestService) context.getBean("proxy");
 		String result = service.requestReply("foo");
 		assertEquals("foo!!!", result);
+		context.close();
 	}
 
 	@Test
@@ -178,6 +179,7 @@ public class GatewayProxyFactoryBeanTests {
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(1, interceptor.getSentCount());
 		assertEquals(1, interceptor.getReceivedCount());
+		context.close();
 	}
 
 	@Test
@@ -213,6 +215,7 @@ public class GatewayProxyFactoryBeanTests {
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(numRequests, interceptor.getSentCount());
 		assertEquals(numRequests, interceptor.getReceivedCount());
+		context.close();
 	}
 
 	@Test
@@ -390,7 +393,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void autowiredGateway() {
-		new ClassPathXmlApplicationContext("gatewayAutowiring.xml", GatewayProxyFactoryBeanTests.class);
+		new ClassPathXmlApplicationContext("gatewayAutowiring.xml", GatewayProxyFactoryBeanTests.class).close();
 	}
 
 

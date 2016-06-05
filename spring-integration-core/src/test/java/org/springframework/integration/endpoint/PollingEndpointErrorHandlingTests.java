@@ -28,6 +28,7 @@ import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Jonas Partner
+ * @author Gary Russell
  */
 public class PollingEndpointErrorHandlingTests {
 
@@ -40,6 +41,7 @@ public class PollingEndpointErrorHandlingTests {
 		Message errorMessage = errorChannel.receive(5000);
 		assertNotNull("No error message received", errorMessage);
 		assertEquals("Message received was not an ErrorMessage", ErrorMessage.class, errorMessage.getClass());
+		context.close();
 	}
 
 }

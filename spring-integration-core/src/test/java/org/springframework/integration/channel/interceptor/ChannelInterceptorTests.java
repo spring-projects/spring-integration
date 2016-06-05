@@ -353,7 +353,7 @@ public class ChannelInterceptorTests {
 
 	private static class AfterCompletionTestInterceptor extends ChannelInterceptorAdapter {
 
-		private AtomicInteger counter = new AtomicInteger();
+		private final AtomicInteger counter = new AtomicInteger();
 
 		private volatile boolean afterCompletionInvoked;
 
@@ -363,6 +363,7 @@ public class ChannelInterceptorTests {
 			this.exceptionToRaise = exception;
 		}
 
+		@SuppressWarnings("unused")
 		public AtomicInteger getCounter() {
 			return this.counter;
 		}
@@ -390,7 +391,7 @@ public class ChannelInterceptorTests {
 
 	private static class PreReceiveReturnsTrueInterceptor extends ChannelInterceptorAdapter {
 
-		private AtomicInteger counter = new AtomicInteger();
+		private final AtomicInteger counter = new AtomicInteger();
 
 		private volatile boolean afterCompletionInvoked;
 

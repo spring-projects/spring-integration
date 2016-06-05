@@ -129,6 +129,7 @@ public class AnnotatedEndpointActivationTests {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static class AnnotatedEndpoint2 {
 
 		@ServiceActivator(inputChannel = "input", outputChannel = "output")

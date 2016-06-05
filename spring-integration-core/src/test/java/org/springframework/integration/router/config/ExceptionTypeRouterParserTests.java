@@ -21,11 +21,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -38,7 +37,8 @@ public class ExceptionTypeRouterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExceptionTypeRouterConfig() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ExceptionTypeRouterParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ExceptionTypeRouterParserTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inChannel", MessageChannel.class);
 
 		inputChannel.send(new GenericMessage<Throwable>(new NullPointerException()));
@@ -56,5 +56,6 @@ public class ExceptionTypeRouterParserTests {
 		inputChannel.send(new GenericMessage<String>("Hello"));
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		assertNotNull(outputChannel.receive(1000));
+		context.close();
 	}
 }

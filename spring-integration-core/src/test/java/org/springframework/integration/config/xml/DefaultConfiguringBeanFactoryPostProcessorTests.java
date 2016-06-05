@@ -41,6 +41,7 @@ import org.springframework.util.ErrorHandler;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -80,17 +81,24 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 
 	@Test
 	public void taskSchedulerNotRegisteredMoreThanOnce() {
-		ClassPathXmlApplicationContext superParentApplicationContext = new ClassPathXmlApplicationContext("superParentApplicationContext.xml", this.getClass());
-		ClassPathXmlApplicationContext parentApplicationContext =
-				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/parentApplicationContext.xml"}, superParentApplicationContext);
-		ClassPathXmlApplicationContext childApplicationContext =
-				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/childApplicationContext.xml"}, parentApplicationContext);
-		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler", TaskScheduler.class);
-        TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);
+		ClassPathXmlApplicationContext superParentApplicationContext = new ClassPathXmlApplicationContext(
+				"superParentApplicationContext.xml", this.getClass());
+		ClassPathXmlApplicationContext parentApplicationContext = new ClassPathXmlApplicationContext(
+				new String[] { "org/springframework/integration/config/xml/parentApplicationContext.xml" },
+				superParentApplicationContext);
+		ClassPathXmlApplicationContext childApplicationContext = new ClassPathXmlApplicationContext(
+				new String[] { "org/springframework/integration/config/xml/childApplicationContext.xml" },
+				parentApplicationContext);
+		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler",
+				TaskScheduler.class);
+		TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);
 
-        assertNotNull("Child task scheduler was null", childScheduler);
-        assertNotNull("Parent task scheduler was null", parentScheduler);
-        assertEquals("Different schedulers in parent and child", parentScheduler, childScheduler);
+		assertNotNull("Child task scheduler was null", childScheduler);
+		assertNotNull("Parent task scheduler was null", parentScheduler);
+		assertEquals("Different schedulers in parent and child", parentScheduler, childScheduler);
+		childApplicationContext.close();
+		parentApplicationContext.close();
+		superParentApplicationContext.close();
 	}
 
 }

@@ -20,20 +20,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public class UnicastingDispatcherTests {
@@ -41,10 +42,11 @@ public class UnicastingDispatcherTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void withInboundGatewayAsyncRequestChannelAndExplicitErrorChannel() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("unicasting-with-async.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("unicasting-with-async.xml", this.getClass());
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
 		MessageHandler errorHandler = new MessageHandler() {
 
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				assertTrue(message.getPayload() instanceof MessageDeliveryException);
@@ -56,6 +58,7 @@ public class UnicastingDispatcherTests {
 		RequestReplyExchanger exchanger = context.getBean(RequestReplyExchanger.class);
 		Message<String> reply = (Message<String>) exchanger.exchange(new GenericMessage<String>("Hello"));
 		assertEquals("reply", reply.getPayload());
+		context.close();
 	}
 
 }

@@ -131,10 +131,10 @@ public class ControlBusRecipientListRouterTests {
 		messagingTemplate.setReceiveTimeout(1000);
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.addRecipient('channel1')");
 		messagingTemplate.convertAndSend(input, "@'simpleRouter.handler'.getRecipients()");
-		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		Message<?> result = this.output.receive(0);
 		Collection<Recipient> mappings = (Collection<Recipient>) result.getPayload();
-		assertEquals(context.getBean("channel1"), mappings.iterator().next().getChannel());
+		assertEquals(channel1, mappings.iterator().next().getChannel());
 	}
 
 	@Test

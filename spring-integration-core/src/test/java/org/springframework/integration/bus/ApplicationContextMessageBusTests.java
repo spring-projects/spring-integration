@@ -29,22 +29,22 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -63,6 +63,7 @@ public class ApplicationContextMessageBusTests {
 				.setReplyChannelName("targetChannel").build();
 		sourceChannel.send(message);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				return message;
 			}
@@ -101,6 +102,7 @@ public class ApplicationContextMessageBusTests {
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -231,12 +233,13 @@ public class ApplicationContextMessageBusTests {
 
 	private static class FailingSource implements MessageSource<Object> {
 
-		private CountDownLatch latch;
+		private final CountDownLatch latch;
 
 		FailingSource(CountDownLatch latch) {
 			this.latch = latch;
 		}
 
+		@Override
 		public Message<Object> receive() {
 			latch.countDown();
 			throw new RuntimeException("intentional test failure");

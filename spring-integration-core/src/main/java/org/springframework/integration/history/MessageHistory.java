@@ -100,7 +100,7 @@ public final class MessageHistory implements List<Properties>, Serializable {
 				IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
 				headerAccessor.setHeader(HEADER_NAME, history);
 				message = new AdviceMessage<T>(message.getPayload(), headerAccessor.toMessageHeaders(),
-						((AdviceMessage) message).getInputMessage());
+						((AdviceMessage<?>) message).getInputMessage());
 			}
 			else {
 				if (!(message instanceof GenericMessage) &&

@@ -75,7 +75,8 @@ public class LoggingChannelAdapterParserTests {
 	@Test
 	public void failConfigLogFullMessageAndExpression() {
 		try {
-			new ClassPathXmlApplicationContext("LoggingChannelAdapterParserTests-fail-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("LoggingChannelAdapterParserTests-fail-context.xml", this.getClass())
+					.close();
 			fail("BeanDefinitionParsingException expected");
 		}
 		catch (BeansException e) {

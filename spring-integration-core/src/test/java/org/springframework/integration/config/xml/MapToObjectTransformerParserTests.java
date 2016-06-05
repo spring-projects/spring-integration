@@ -25,15 +25,16 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -127,7 +128,8 @@ public class MapToObjectTransformerParserTests {
 	}
 	@Test(expected = BeanCreationException.class)
 	public void testNonPrototypeFailure() {
-		new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml", MapToObjectTransformerParserTests.class);
+		new ClassPathXmlApplicationContext("MapToObjectTransformerParserTests-context-fail.xml",
+				MapToObjectTransformerParserTests.class).close();
 	}
 
 	public static class Person {
@@ -175,6 +177,7 @@ public class MapToObjectTransformerParserTests {
 
 	public static class StringToAddressConverter implements Converter<String, Address> {
 		public StringToAddressConverter() { }
+		@Override
 		public Address convert(String source) {
 			Address address = new Address();
 			address.setStreet(source);

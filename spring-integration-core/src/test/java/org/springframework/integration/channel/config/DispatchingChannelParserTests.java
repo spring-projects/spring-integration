@@ -138,7 +138,7 @@ public class DispatchingChannelParserTests {
 	public void loadBalancerRefFailWithLoadBalancer() {
 
 		try {
-			new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass());
+			new ClassPathXmlApplicationContext("ChannelWithLoadBalancerRef-fail-config.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertThat(e.getMessage(), Matchers.containsString("'load-balancer' and 'load-balancer-ref' are mutually exclusive"));

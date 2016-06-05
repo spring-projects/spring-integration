@@ -45,15 +45,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -85,7 +85,6 @@ public class ApplicationEventListeningMessageProducerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void onlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
@@ -347,6 +346,7 @@ public class ApplicationEventListeningMessageProducerTests {
 			this.counter = counter;
 		}
 
+		@Override
 		public void onApplicationEvent(ApplicationEvent event) {
 			this.counter.incrementAndGet();
 		}

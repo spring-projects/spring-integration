@@ -30,12 +30,13 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.test.util.TestUtils;
@@ -47,7 +48,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -233,7 +234,7 @@ public class RouterParserTests {
 
 	@Test // should not fail
 	public void routerFactoryBeanTest() {
-		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass()).close();
 	}
 
 
@@ -286,6 +287,7 @@ public class RouterParserTests {
 
 	static class TestChannelResover implements DestinationResolver<MessageChannel> {
 
+		@Override
 		public MessageChannel resolveDestination(String channelName) {
 			return null;
 		}

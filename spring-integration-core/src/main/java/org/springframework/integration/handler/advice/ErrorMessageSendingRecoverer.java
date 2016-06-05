@@ -22,10 +22,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -46,8 +46,6 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, B
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private BeanFactory beanFactory;
-
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		Assert.notNull(channel, "channel cannot be null");
 		this.messagingTemplate.setDefaultDestination(channel);
@@ -59,10 +57,10 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, B
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
 		this.messagingTemplate.setBeanFactory(beanFactory);
 	}
 
+	@Override
 	public Object recover(RetryContext context) throws Exception {
 		Throwable lastThrowable = context.getLastThrowable();
 		if (lastThrowable == null) {

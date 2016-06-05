@@ -101,7 +101,6 @@ public class RoutingSlipTests {
 			MessageHistory messageHistory = MessageHistory.read(message);
 			List<String> channelNames = Arrays.asList("input", "split", "process", "channel1", "channel2",
 					"channel3", "channel4", "channel5", "aggregate");
-			int i = 0;
 			for (Properties properties : messageHistory) {
 				assertTrue(channelNames.contains(properties.getProperty("name")));
 			}
@@ -163,7 +162,7 @@ public class RoutingSlipTests {
 
 	public static class TestRoutingSlipRouteStrategy implements RoutingSlipRouteStrategy {
 
-		private AtomicBoolean invoked = new AtomicBoolean();
+		private final AtomicBoolean invoked = new AtomicBoolean();
 
 		@Override
 		public Object getNextPath(Message<?> requestMessage, Object reply) {

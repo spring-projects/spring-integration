@@ -27,13 +27,13 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.annotation.Order;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -65,6 +65,7 @@ public class SubscriberOrderTests {
 		assertEquals(3, calls.get(2).intValue());
 		assertEquals(4, calls.get(3).intValue());
 		assertEquals(5, calls.get(4).intValue());
+		context.close();
 	}
 
 	@Test
@@ -106,6 +107,7 @@ public class SubscriberOrderTests {
 		channel.send(new GenericMessage<String>("test-11"));
 		assertEquals(1, testBean.calls.size());
 		assertEquals(1, testBean.calls.get(0).intValue());
+		context.close();
 	}
 
 	@Test
@@ -133,6 +135,7 @@ public class SubscriberOrderTests {
 		assertEquals(3, calls.get(2).intValue());
 		assertEquals(4, calls.get(3).intValue());
 		assertEquals(5, calls.get(4).intValue());
+		context.close();
 	}
 
 

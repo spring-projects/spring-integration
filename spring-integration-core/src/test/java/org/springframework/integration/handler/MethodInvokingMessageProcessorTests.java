@@ -525,6 +525,7 @@ public class MethodInvokingMessageProcessorTests {
 
 			private final Map<String, Object> arguments = new LinkedHashMap<String, Object>();
 
+			@SuppressWarnings("unused")
 			public void optionalHeaders(Optional<String> foo, @Header(value = "foo", required = false) String foo1,
 					@Header(value = "foo") Optional<String> foo2) {
 				this.arguments.put("foo", (foo.isPresent() ? foo.get() : null));

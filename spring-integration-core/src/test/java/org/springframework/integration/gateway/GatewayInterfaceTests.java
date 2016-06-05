@@ -132,6 +132,7 @@ public class GatewayInterfaceTests {
 		bar.foo("hello");
 		assertTrue(called.get());
 		Map<?, ?> gateways = TestUtils.getPropertyValue(ac.getBean("&sampleGateway"), "gatewayMap", Map.class);
+		assertEquals(5, gateways.size());
 		ac.close();
 	}
 

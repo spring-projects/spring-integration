@@ -16,6 +16,12 @@
 
 package org.springframework.integration.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -28,21 +34,16 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CollectionFilter;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.springframework.messaging.Message;
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  */
 public class ResourceInboundChannelAdapterParserTests {
@@ -72,9 +73,12 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@Test
 	public void testDefaultConfig() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml", this.getClass());
-		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml",
+				this.getClass());
+		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
+				SourcePollingChannelAdapter.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",
+				ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		boolean autoStartup = TestUtils.getPropertyValue(resourceAdapter, "autoStartup", Boolean.class);
 		assertFalse(autoStartup);
@@ -85,16 +89,20 @@ public class ResourceInboundChannelAdapterParserTests {
 
 	@Test(expected = BeanCreationException.class)
 	public void testDefaultConfigNoLocationPattern() {
-		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", this.getClass()).close();
 	}
 
 	@Test
 	public void testCustomPatternResolver() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", this.getClass());
-		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ResourcePatternResolver-config-custom.xml", this.getClass());
+		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
+				SourcePollingChannelAdapter.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",
+				ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		assertEquals(context.getBean("customResolver"), TestUtils.getPropertyValue(source, "patternResolver"));
+		context.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -106,7 +114,8 @@ public class ResourceInboundChannelAdapterParserTests {
 			f.createNewFile();
 		}
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usage.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ResourcePatternResolver-config-usage.xml", this.getClass());
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
 		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(3000);
 		assertNotNull(message);
@@ -114,6 +123,7 @@ public class ResourceInboundChannelAdapterParserTests {
 		for (Resource resource : resources) {
 			assertTrue(resource.getURI().toString().contains("testUsage"));
 		}
+		context.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -125,9 +135,12 @@ public class ResourceInboundChannelAdapterParserTests {
 			f.createNewFile();
 		}
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usagerf.xml", this.getClass());
-		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ResourcePatternResolver-config-usagerf.xml", this.getClass());
+		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
+				SourcePollingChannelAdapter.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",
+				ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		TestCollectionFilter customFilter = context.getBean("customFilter", TestCollectionFilter.class);
 		assertEquals(customFilter, TestUtils.getPropertyValue(source, "filter"));
@@ -138,6 +151,7 @@ public class ResourceInboundChannelAdapterParserTests {
 		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(1000);
 		assertNotNull(message);
 		assertTrue(customFilter.invoked);
+		context.close();
 	}
 
 	@Test
@@ -148,11 +162,15 @@ public class ResourceInboundChannelAdapterParserTests {
 			f.createNewFile();
 		}
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usage-emptyref.xml", this.getClass());
-		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ResourcePatternResolver-config-usage-emptyref.xml", this.getClass());
+		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault",
+				SourcePollingChannelAdapter.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source",
+				ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		assertNull(TestUtils.getPropertyValue(source, "filter"));
+		context.close();
 	}
 
 
@@ -160,6 +178,7 @@ public class ResourceInboundChannelAdapterParserTests {
 
 		private volatile boolean invoked = false;
 
+		@Override
 		public Collection<Resource> filter(Collection<Resource> unfilteredResources) {
 			this.invoked = true;
 			return unfilteredResources;

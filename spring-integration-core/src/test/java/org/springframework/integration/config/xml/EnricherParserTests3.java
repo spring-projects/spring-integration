@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.messaging.Message;
@@ -40,7 +40,8 @@ public class EnricherParserTests3 {
 
 	@Test
 	public void testSourceBeanResolver() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				this.getClass().getSimpleName() + "-context.xml", this.getClass());
 		MessageChannel beanResolveIn = context.getBean("beanResolveIn", MessageChannel.class);
 		PollableChannel beanResolveOut = context.getBean("beanResolveOut", PollableChannel.class);
 		SomeBean payload = new SomeBean("foo");
@@ -50,11 +51,13 @@ public class EnricherParserTests3 {
 		Message<SomeBean> out =  (Message<SomeBean>) beanResolveOut.receive();
 		assertSame(payload, out.getPayload());
 		assertEquals("bar", out.getPayload().getNested().getValue());
+		context.close();
 	}
 
 	@Test
 	public void testTargetBeanResolver() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				this.getClass().getSimpleName() + "-fail-context.xml", this.getClass());
 		MessageChannel beanResolveIn = context.getBean("beanResolveIn", MessageChannel.class);
 		SomeBean payload = new SomeBean("foo");
 		assertEquals("foo", payload.getNested().getValue());
@@ -65,11 +68,12 @@ public class EnricherParserTests3 {
 		catch (MessageHandlingException e) {
 			assertTrue(e.getCause() instanceof SpelEvaluationException);
 		}
+		context.close();
 	}
 
 	public static class SomeBean {
 
-		private Nested nested = new Nested();
+		private final Nested nested = new Nested();
 
 		public SomeBean(String someProperty) {
 			this.nested.setValue(someProperty);

@@ -28,7 +28,6 @@ import org.aopalliance.aop.Advice;
 import org.junit.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.config.TestTrigger;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -47,38 +46,40 @@ public class PollerParserTests {
 
 	@Test
 	public void defaultPollerWithId() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"defaultPollerWithId.xml", PollerParserTests.class);
 		Object poller = context.getBean("defaultPollerWithId");
 		assertNotNull(poller);
 		Object defaultPoller = context.getBean(PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME);
 		assertNotNull(defaultPoller);
 		assertEquals(defaultPoller, context.getBean("defaultPollerWithId"));
+		context.close();
 	}
 
 	@Test
 	public void defaultPollerWithoutId() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"defaultPollerWithoutId.xml", PollerParserTests.class);
 		Object defaultPoller = context.getBean(PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME);
 		assertNotNull(defaultPoller);
+		context.close();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void multipleDefaultPollers() {
 		new ClassPathXmlApplicationContext(
-				"multipleDefaultPollers.xml", PollerParserTests.class);
+				"multipleDefaultPollers.xml", PollerParserTests.class).close();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void topLevelPollerWithoutId() {
 		new ClassPathXmlApplicationContext(
-				"topLevelPollerWithoutId.xml", PollerParserTests.class);
+				"topLevelPollerWithoutId.xml", PollerParserTests.class).close();
 	}
 
 	@Test
 	public void pollerWithAdviceChain() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithAdviceChain.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
 		assertNotNull(poller);
@@ -97,12 +98,13 @@ public class PollerParserTests {
 		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
 		assertEquals(1, nameMap.size());
 		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
+		context.close();
 
 	}
 
 	@Test
 	public void pollerWithReceiveTimeoutAndTimeunit() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithReceiveTimeout.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
 		assertNotNull(poller);
@@ -110,34 +112,36 @@ public class PollerParserTests {
 		assertEquals(1234, metadata.getReceiveTimeout());
 		PeriodicTrigger trigger = (PeriodicTrigger) metadata.getTrigger();
 		assertEquals(TimeUnit.SECONDS.toString(), TestUtils.getPropertyValue(trigger, "timeUnit").toString());
+		context.close();
 	}
 
     @Test
 	public void pollerWithTriggerReference() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+    	ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithTriggerReference.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
 		assertNotNull(poller);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertTrue(metadata.getTrigger() instanceof TestTrigger);
+		context.close();
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)
 	public void pollerWithCronTriggerAndTimeUnit() {
 		new ClassPathXmlApplicationContext(
-				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class);
+				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class).close();
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)
 	public void topLevelPollerWithRef() {
 		new ClassPathXmlApplicationContext(
-				"defaultPollerWithRef.xml", PollerParserTests.class);
+				"defaultPollerWithRef.xml", PollerParserTests.class).close();
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)
 	public void pollerWithCronAndFixedDelay() {
 		new ClassPathXmlApplicationContext(
-				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class);
+				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class).close();
 	}
 
 }

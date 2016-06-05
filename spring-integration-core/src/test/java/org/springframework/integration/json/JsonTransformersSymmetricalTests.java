@@ -31,6 +31,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class JsonTransformersSymmetricalTests {
@@ -50,7 +51,7 @@ public class JsonTransformersSymmetricalTests {
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer();
 		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
 		assertThat(result, Matchers.instanceOf(List.class));
-		assertEquals(person, ((List) result).get(0));
+		assertEquals(person, ((List<?>) result).get(0));
 	}
 
 	@Test
@@ -68,7 +69,7 @@ public class JsonTransformersSymmetricalTests {
 		JsonToObjectTransformer jsonToObjectTransformer = new JsonToObjectTransformer(new BoonJsonObjectMapper());
 		Object result = jsonToObjectTransformer.transform(jsonMessage).getPayload();
 		assertThat(result, Matchers.instanceOf(List.class));
-		assertEquals(person, ((List) result).get(0));
+		assertEquals(person, ((List<?>) result).get(0));
 	}
 
 

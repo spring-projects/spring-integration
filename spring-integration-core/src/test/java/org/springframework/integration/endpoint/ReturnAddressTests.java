@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ReturnAddressTests {
 
@@ -50,6 +51,7 @@ public class ReturnAddressTests {
 		Message<?> response = channel5.receive(3000);
 		assertNotNull(response);
 		assertEquals("**", response.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -65,6 +67,7 @@ public class ReturnAddressTests {
 		Message<?> response = channel5.receive(3000);
 		assertNotNull(response);
 		assertEquals("**", response.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -82,6 +85,7 @@ public class ReturnAddressTests {
 		assertEquals("********", response.getPayload());
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		assertNull(channel2.receive(0));
+		context.close();
 	}
 
 	@Test
@@ -99,6 +103,7 @@ public class ReturnAddressTests {
 		assertEquals("********", response.getPayload());
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		assertNull(channel2.receive(0));
+		context.close();
 	}
 
 	@Test
@@ -114,6 +119,7 @@ public class ReturnAddressTests {
 		catch (MessagingException e) {
 			assertTrue(e.getCause() instanceof DestinationResolutionException);
 		}
+		context.close();
 	}
 
 	@Test
@@ -128,6 +134,7 @@ public class ReturnAddressTests {
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
 		assertEquals("**", response.getPayload());
+		context.close();
 	}
 
 	@Test
@@ -145,6 +152,7 @@ public class ReturnAddressTests {
 		assertEquals("**", response.getPayload());
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		assertNull(channel5.receive(0));
+		context.close();
 	}
 
 }

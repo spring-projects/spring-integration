@@ -19,13 +19,14 @@ package org.springframework.integration.dispatcher;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.springframework.aop.framework.Advised;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  * This test was influenced by INT-1483 where by registering TX Advisor
  * in the BeanFactory while having <aop:config> resent resulted in
@@ -35,11 +36,12 @@ public class TransactionalPollerWithMixedAopConfigTests {
 
 	@Test
 	public void validateTransactionalProxyIsolationToThePollerOnly() {
-		ApplicationContext context =
+		ClassPathXmlApplicationContext context =
 			new ClassPathXmlApplicationContext("TransactionalPollerWithMixedAopConfig-context.xml", this.getClass());
 
 		assertTrue(!(context.getBean("foo") instanceof Advised));
 		assertTrue(!(context.getBean("inputChannel") instanceof Advised));
+		context.close();
 	}
 
 	public static class SampleService {

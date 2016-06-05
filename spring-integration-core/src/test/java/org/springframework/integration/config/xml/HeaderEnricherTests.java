@@ -258,7 +258,7 @@ public class HeaderEnricherTests {
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void testFailConfigUnexpectedSubElement() {
 		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml",
-				this.getClass());
+				this.getClass()).close();
 	}
 
 	@Test
@@ -272,7 +272,7 @@ public class HeaderEnricherTests {
 		assertNotNull(routingSlip);
 		assertThat(routingSlip, instanceOf(Map.class));
 		@SuppressWarnings("unchecked")
-		List<Object> routingSlipPath = (List<Object>) ((Map) routingSlip).keySet().iterator().next();
+		List<Object> routingSlipPath = (List<Object>) ((Map<?, ?>) routingSlip).keySet().iterator().next();
 
 		assertEquals("fooChannel", routingSlipPath.get(0));
 		assertThat(routingSlipPath.get(1), instanceOf(ExpressionEvaluatingRoutingSlipRouteStrategy.class));

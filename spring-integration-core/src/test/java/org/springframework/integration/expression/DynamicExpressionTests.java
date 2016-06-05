@@ -60,7 +60,9 @@ public class DynamicExpressionTests {
 		ClassPathResource resource = new ClassPathResource(filepath);
 		byte[] bytes = new String(key + "=" + expressionString).getBytes();
 		try {
-			new FileOutputStream(resource.getFile()).write(bytes);
+			FileOutputStream fileOutputStream = new FileOutputStream(resource.getFile());
+			fileOutputStream.write(bytes);
+			fileOutputStream.close();
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to write expression string to file", e);

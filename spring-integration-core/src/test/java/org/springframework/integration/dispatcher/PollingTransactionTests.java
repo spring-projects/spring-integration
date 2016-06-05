@@ -33,13 +33,13 @@ import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -47,6 +47,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PollingTransactionTests {
 
@@ -65,7 +66,7 @@ public class PollingTransactionTests {
 		assertNotNull(message);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -95,7 +96,7 @@ public class PollingTransactionTests {
 		assertNotNull(message);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -113,7 +114,7 @@ public class PollingTransactionTests {
 		assertNull(message);
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(1, txManager.getRollbackCount());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -130,7 +131,7 @@ public class PollingTransactionTests {
 		txManager.waitForCompletion(3000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRED.value(), txManager.getLastDefinition().getPropagationBehavior());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -147,7 +148,7 @@ public class PollingTransactionTests {
 		txManager.waitForCompletion(3000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRES_NEW.value(), txManager.getLastDefinition().getPropagationBehavior());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -163,7 +164,7 @@ public class PollingTransactionTests {
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -179,7 +180,7 @@ public class PollingTransactionTests {
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
-		context.stop();
+		context.close();
 	}
 
 	@Test
@@ -198,12 +199,14 @@ public class PollingTransactionTests {
 		assertEquals(IllegalTransactionStateException.class, payload.getClass());
 		assertNull(output.receive(0));
 		assertEquals(0, txManager.getCommitCount());
-		context.stop();
+		context.close();
 	}
 
 	public static class SampleAdvice implements MethodInterceptor {
+		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			return invocation.proceed();
 		}
 	}
+
 }

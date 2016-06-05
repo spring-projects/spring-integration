@@ -55,8 +55,9 @@ public class ConverterParserWithExistingConversionServiceTests {
 	}
 	@Test
 	public void testParentConversionServiceAvailability() {
-		ApplicationContext parentContext =
-			new ClassPathXmlApplicationContext("ConverterParserWithExistingConversionServiceTests-parent.xml", ConverterParserWithExistingConversionServiceTests.class);
+		ClassPathXmlApplicationContext parentContext = new ClassPathXmlApplicationContext(
+				"ConverterParserWithExistingConversionServiceTests-parent.xml",
+				ConverterParserWithExistingConversionServiceTests.class);
 		GenericApplicationContext childContext = new GenericApplicationContext();
 		childContext.setParent(parentContext);
 
@@ -69,6 +70,8 @@ public class ConverterParserWithExistingConversionServiceTests {
 		conversionServiceChild.addConverter(new TestConverter3());
 		Assert.isTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean2.class));
 		Assert.isTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean3.class));
+		childContext.close();
+		parentContext.close();
 	}
 
 

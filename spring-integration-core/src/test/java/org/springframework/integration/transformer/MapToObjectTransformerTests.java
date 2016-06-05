@@ -90,6 +90,7 @@ public class MapToObjectTransformerTests {
 		assertNull(person.getSsn());
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
+		ac.close();
 	}
 
 	@Test
