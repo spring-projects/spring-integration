@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,9 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.MimeType;
 
 /**
  * @author Gary Russell
@@ -69,7 +72,6 @@ public class TcpMessageMapperTests {
 
 	@Test
 	public void testToMessage() throws Exception {
-
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		TcpConnection connection = mock(TcpConnection.class);
 		Socket socket = mock(Socket.class);
@@ -87,11 +89,62 @@ public class TcpMessageMapperTests {
 		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
 		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
+		assertNull(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testToMessageWithContentType() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setAddContentTypeHeader(true);
+		TcpConnection connection = mock(TcpConnection.class);
+		Socket socket = mock(Socket.class);
+		InetAddress local = mock(InetAddress.class);
+		SocketInfo info = new SocketInfo(socket);
+		when(socket.getLocalAddress()).thenReturn(local);
+		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
+		when(connection.getHostName()).thenReturn("MyHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getSocketInfo()).thenReturn(info);
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
+		assertEquals("application/octet-stream;charset=UTF-8", message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		MimeType parseOk = MimeType.valueOf((String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(message.getHeaders().get(MessageHeaders.CONTENT_TYPE), parseOk.toString());
+	}
+
+	@Test
+	public void testToMessageWithCustomContentType() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setAddContentTypeHeader(true);
+		mapper.setContentType("application/octet-stream;charset=ISO-8859-1");
+		TcpConnection connection = mock(TcpConnection.class);
+		Socket socket = mock(Socket.class);
+		InetAddress local = mock(InetAddress.class);
+		SocketInfo info = new SocketInfo(socket);
+		when(socket.getLocalAddress()).thenReturn(local);
+		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
+		when(connection.getHostName()).thenReturn("MyHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getSocketInfo()).thenReturn(info);
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertSame(local, message.getHeaders().get(IpHeaders.LOCAL_ADDRESS));
+		assertEquals("application/octet-stream;charset=ISO-8859-1", message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		MimeType parseOk = MimeType.valueOf((String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(message.getHeaders().get(MessageHeaders.CONTENT_TYPE), parseOk.toString());
 	}
 
 	@Test
 	public void testToMessageSequence() throws Exception {
-
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
