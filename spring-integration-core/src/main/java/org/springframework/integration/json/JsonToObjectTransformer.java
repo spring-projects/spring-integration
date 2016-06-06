@@ -19,17 +19,23 @@ package org.springframework.integration.json;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 
 /**
- * Transformer implementation that converts a JSON string payload into an instance of the provided target Class.
- * By default this transformer uses {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider} factory
- * to get an instance of Jackson 1 or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
- * depending on the jackson-databind or jackson-mapper-asl libs on the classpath.
- * Any other {@linkplain JsonObjectMapper} implementation can be provided.
+ * Transformer implementation that converts a JSON string payload into an instance of the
+ * provided target Class. By default this transformer uses
+ * {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider}
+ * factory to get an instance of Jackson 1 or Jackson 2 JSON-processor
+ * {@linkplain JsonObjectMapper} implementation depending on the jackson-databind or
+ * jackson-mapper-asl libs on the classpath. Any other {@linkplain JsonObjectMapper}
+ * implementation can be provided.
+ * <p>Since version 3.0, you can omit the target class and the target type can be
+ * determined by the {@link JsonHeaders} type entries - including the contents of a
+ * one-level container or map type.
+ * <p>The type headers can be classes or fully-qualified class names.
  *
  * @author Mark Fisher
  * @author Artem Bilan

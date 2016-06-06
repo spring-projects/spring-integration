@@ -26,11 +26,25 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
 
 /**
- * Transformer implementation that converts a payload instance into a JSON string representation.
- * By default this transformer uses {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider} factory
- * to get an instance of a Jackson or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
- * depending on the jackson-databind or jackson-mapper-asl libs on the classpath.
- * Any other {@linkplain JsonObjectMapper} implementation can be provided.
+ * Transformer implementation that converts a payload instance into a JSON string
+ * representation. By default this transformer uses
+ * {@linkplain org.springframework.integration.support.json.JsonObjectMapperProvider}
+ * factory to get an instance of a Jackson or Jackson 2 JSON-processor
+ * {@linkplain JsonObjectMapper} implementation depending on the jackson-databind or
+ * jackson-mapper-asl libs on the classpath. Any other {@linkplain JsonObjectMapper}
+ * implementation can be provided.
+ * <p>Since version 3.0, adds headers to represent the object types that were mapped
+ * from (including one level of container and Map content types). These headers
+ * are compatible with the Spring AMQP Json type mapper such that messages mapped
+ * or converted by either technology are compatible. One difference, however, is the
+ * Spring AMQP converter, when converting to JSON, sets the header types to the class
+ * name. This transformer sets the header types to the class itself.
+ * <p>The compatibility is achieved because, when mapping the Spring Integration
+ * message in the outbound endpoint (via the {@code DefaultAmqpHeaderMapper}), the
+ * classes are converted to String at that time.
+ * <p>Note: the first element of container/map types are used to determine the
+ * container/map content types. If the first element is null, the type is set to
+ * {@link Object}.
  *
  * @author Mark Fisher
  * @author James Carr

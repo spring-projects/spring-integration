@@ -16,12 +16,16 @@
 
 package org.springframework.integration.json;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +36,7 @@ import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
@@ -148,6 +153,34 @@ public class ObjectToJsonTransformerTests {
 		String addressResult = matcher.group(1);
 		assertTrue(addressResult.contains("number:123"));
 		assertTrue(addressResult.contains("street:\"Main Street\""));
+	}
+
+	@Test
+	public void collectionOrMap() {
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
+		List<String> list = Collections.singletonList("foo");
+		Message<?> out = transformer.transform(new GenericMessage<>(list));
+		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString(), containsString("SingletonList"));
+		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID), equalTo(String.class));
+		Map<String, Long> map = Collections.singletonMap("foo", 1L);
+		out = transformer.transform(new GenericMessage<>(map));
+		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString(), containsString("SingletonMap"));
+		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID), equalTo(Long.class));
+		assertThat(out.getHeaders().get(JsonHeaders.KEY_TYPE_ID), equalTo(String.class));
+	}
+
+	@Test
+	public void collectionOrMapWithNullFirstElement() {
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
+		List<String> list = Collections.singletonList(null);
+		Message<?> out = transformer.transform(new GenericMessage<>(list));
+		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString(), containsString("SingletonList"));
+		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID), equalTo(Object.class));
+		Map<String, String> map = Collections.singletonMap("foo", null);
+		out = transformer.transform(new GenericMessage<>(map));
+		assertThat(out.getHeaders().get(JsonHeaders.TYPE_ID).toString(), containsString("SingletonMap"));
+		assertThat(out.getHeaders().get(JsonHeaders.CONTENT_TYPE_ID), equalTo(Object.class));
+		assertThat(out.getHeaders().get(JsonHeaders.KEY_TYPE_ID), equalTo(String.class));
 	}
 
 	@Test
