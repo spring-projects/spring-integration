@@ -1,4 +1,4 @@
 /**
- * Provides classes for the outbound channel adapter.
+ * Provides classes for the SFTP outbound channel adapter.
  */
 package org.springframework.integration.sftp.outbound;

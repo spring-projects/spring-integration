@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ftp.config;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.file.config.AbstractRemoteFileOutboundGatewayParser;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
@@ -49,6 +53,19 @@ public class FtpOutboundGatewayParser extends AbstractRemoteFileOutboundGatewayP
 	@Override
 	protected Class<? extends RemoteFileOperations<?>> getTemplateClass() {
 		return FtpRemoteFileTemplate.class;
+	}
+
+	@Override
+	protected void postProcessBuilder(BeanDefinitionBuilder builder, Element element) {
+		BeanDefinition templateDefinition = (BeanDefinition) builder.getRawBeanDefinition()
+				.getConstructorArgumentValues()
+				.getIndexedArgumentValues()
+				.values()
+				.iterator()
+				.next()
+				.getValue();
+		templateDefinition.getPropertyValues()
+				.add("existsMode", FtpRemoteFileTemplate.ExistsMode.NLIST);
 	}
 
 }

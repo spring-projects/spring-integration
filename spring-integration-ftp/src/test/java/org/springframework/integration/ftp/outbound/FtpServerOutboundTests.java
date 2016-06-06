@@ -385,13 +385,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Test
 	public void testInt3412FileMode() {
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
+		assertFalse(template.exists("ftpTarget/appending.txt"));
 		Message<String> m = MessageBuilder.withPayload("foo")
 				.setHeader(FileHeaders.FILENAME, "appending.txt")
 				.build();
 		appending.send(m);
 		appending.send(m);
 
-		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
 		assertLength6(template);
 
 		ignoring.send(m);

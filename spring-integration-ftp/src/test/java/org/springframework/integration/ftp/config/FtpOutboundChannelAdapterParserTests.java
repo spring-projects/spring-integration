@@ -39,6 +39,7 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
@@ -94,7 +95,8 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
 		FileTransferringMessageHandler<?> handler =
 				TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
+				"remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
 		assertEquals("", remoteFileSeparator);
@@ -102,6 +104,8 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
+		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLIST,
+				TestUtils.getPropertyValue(handler, "remoteFileTemplate.existsMode"));
 		Object sfProperty = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
 		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;

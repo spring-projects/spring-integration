@@ -132,7 +132,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 		AbstractFileInfo<F> file = poll();
 		if (file != null) {
 			String remotePath = remotePath(file);
-			Session<?> session = this.remoteFileTemplate.getSesssion();
+			Session<?> session = this.remoteFileTemplate.getSession();
 			try {
 				return getMessageBuilderFactory().withPayload(session.readRaw(remotePath))
 						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)

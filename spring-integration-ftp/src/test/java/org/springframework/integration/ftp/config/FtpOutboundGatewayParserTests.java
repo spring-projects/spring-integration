@@ -42,6 +42,7 @@ import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOut
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
@@ -94,7 +95,7 @@ public class FtpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
-		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
+		assertFalse(TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory", Boolean.class));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
 
@@ -106,7 +107,8 @@ public class FtpOutboundGatewayParserTests {
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(RegexPatternFileListFilter.class));
+		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"),
+				Matchers.instanceOf(RegexPatternFileListFilter.class));
 		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(gateway, "fileExistsMode"));
 	}
 
@@ -116,10 +118,13 @@ public class FtpOutboundGatewayParserTests {
 				"handler", FtpOutboundGateway.class);
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory") instanceof CachingSessionFactory);
+		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"),
+				Matchers.instanceOf(CachingSessionFactory.class));
+		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLIST,
+				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.existsMode"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
-		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
+		assertFalse(TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory", Boolean.class));
 		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
