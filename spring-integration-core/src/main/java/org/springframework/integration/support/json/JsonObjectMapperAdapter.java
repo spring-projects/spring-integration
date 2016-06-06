@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.mapping.support.JsonHeaders;
  * to provide entire operations implementation.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<N, P> {
@@ -64,12 +65,15 @@ public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<
 	@Override
 	public void populateJavaTypes(Map<String, Object> map, Object object) {
 		map.put(JsonHeaders.TYPE_ID, object.getClass());
-		if (object instanceof Collection && !((Collection) object).isEmpty()) {
-			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Collection) object).iterator().next().getClass());
+		if (object instanceof Collection && !((Collection<?>) object).isEmpty()) {
+			Object firstElement = ((Collection<?>) object).iterator().next();
+			map.put(JsonHeaders.CONTENT_TYPE_ID, firstElement != null ? firstElement.getClass() : Object.class);
 		}
-		if (object instanceof Map && !((Map) object).isEmpty()) {
-			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Map) object).values().iterator().next().getClass());
-			map.put(JsonHeaders.KEY_TYPE_ID, ((Map) object).keySet().iterator().next().getClass());
+		if (object instanceof Map && !((Map<?, ?>) object).isEmpty()) {
+			Object firstValue = ((Map<?, ?>) object).values().iterator().next();
+			map.put(JsonHeaders.CONTENT_TYPE_ID, firstValue != null ? firstValue.getClass() : Object.class);
+			Object firstKey = ((Map<?, ?>) object).keySet().iterator().next();
+			map.put(JsonHeaders.KEY_TYPE_ID, firstKey != null ? firstKey.getClass() : Object.class);
 		}
 	}
 
