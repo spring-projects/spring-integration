@@ -38,7 +38,7 @@ public abstract class RemoteFileOutboundChannelAdapterParser extends AbstractOut
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
+		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(handlerClass());
 
 		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, true,
 				getTemplateClass());
@@ -48,7 +48,16 @@ public abstract class RemoteFileOutboundChannelAdapterParser extends AbstractOut
 		if (StringUtils.hasText(mode)) {
 			handlerBuilder.addConstructorArgValue(mode);
 		}
+		postProcessBuilder(handlerBuilder, element);
 		return handlerBuilder.getBeanDefinition();
+	}
+
+	protected Class<?> handlerClass() {
+		return FileTransferringMessageHandler.class;
+	}
+
+	protected void postProcessBuilder(BeanDefinitionBuilder builder, Element element) {
+		// no-op
 	}
 
 	protected abstract Class<? extends RemoteFileOperations<?>> getTemplateClass();

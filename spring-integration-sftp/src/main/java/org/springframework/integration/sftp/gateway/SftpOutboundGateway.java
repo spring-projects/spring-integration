@@ -27,6 +27,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
@@ -47,7 +48,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory,
 			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
-		super(sessionFactory, messageSessionCallback);
+		this(new SftpRemoteFileTemplate(sessionFactory), messageSessionCallback);
 	}
 
 	/**
@@ -69,7 +70,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param expression the filename expression.
 	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
-		super(sessionFactory, command, expression);
+		this(new SftpRemoteFileTemplate(sessionFactory), command, expression);
 	}
 
 	/**
