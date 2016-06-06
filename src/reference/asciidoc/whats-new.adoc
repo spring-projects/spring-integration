@@ -120,6 +120,11 @@ pooling of the raw buffer into which the data is received, rather than creating 
 message.
 See <<connection-factories>> for more information.
 
+===== TCP Message Mapper
+
+The message mapper now, optionally, sets a configured content type header.
+See <<ip-msg-headers>> for more information.
+
 ==== File Changes
 
 ===== Destination Directory Creation

@@ -34,6 +34,10 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.Assert;
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeType;
 
 /**
  * Maps incoming data from a {@link TcpConnection} to a {@link Message}.
@@ -68,9 +72,14 @@ public class TcpMessageMapper implements
 
 	private volatile boolean messageBuilderFactorySet;
 
+	private volatile String contentType = "application/octet-stream;charset=" + this.charset;
+
+	private volatile boolean addContentTypeHeader;
+
 	private BeanFactory beanFactory;
 
 	/**
+	 * Set the charset to use when converting outbound String messages to {@code byte[]}.
 	 * @param charset the charset to set
 	 */
 	public void setCharset(String charset) {
@@ -91,6 +100,37 @@ public class TcpMessageMapper implements
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
+	}
+
+	/**
+	 * Set the content type header value to add to inbound messages when
+	 * {@link #setAddContentTypeHeader(boolean) addContentTypeHeader} is true.
+	 * Default {@code application/octet-stream;charset=UTF-8}. This default is <b>not</b>
+	 * modified by {@link #setCharset(String)}.
+	 * @param contentType the content type header value to set.
+	 * @since 4.3
+	 * @see #setAddContentTypeHeader(boolean)
+	 * @see TcpMessageMapper#setCharset(String)
+	 */
+	public void setContentType(String contentType) {
+		Assert.notNull(contentType, "'contentType' cannot be null");
+		try {
+			MimeType.valueOf(contentType);
+		}
+		catch (InvalidMimeTypeException e) {
+			throw new IllegalArgumentException("'contentType' could not be parsed", e);
+		}
+		this.contentType = contentType;
+	}
+
+	/**
+	 * Set to true to add a content type header; default false.
+	 * @param addContentTypeHeader true to add a content type header.
+	 * @since 4.3
+	 * @see #setContentType(String)
+	 */
+	public void setAddContentTypeHeader(boolean addContentTypeHeader) {
+		this.addContentTypeHeader = addContentTypeHeader;
 	}
 
 	@Override
@@ -126,7 +166,8 @@ public class TcpMessageMapper implements
 		return message;
 	}
 
-	protected final void addStandardHeaders(TcpConnection connection, AbstractIntegrationMessageBuilder<?> messageBuilder) {
+	protected final void addStandardHeaders(TcpConnection connection,
+			AbstractIntegrationMessageBuilder<?> messageBuilder) {
 		String connectionId = connection.getConnectionId();
 		messageBuilder
 			.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
@@ -142,9 +183,13 @@ public class TcpMessageMapper implements
 				.setCorrelationId(connectionId)
 				.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
 		}
+		if (this.addContentTypeHeader) {
+			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+		}
 	}
 
-	protected final void addCustomHeaders(TcpConnection connection, AbstractIntegrationMessageBuilder<?> messageBuilder) {
+	protected final void addCustomHeaders(TcpConnection connection,
+			AbstractIntegrationMessageBuilder<?> messageBuilder) {
 		Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
 		if (customHeaders != null) {
 			messageBuilder.copyHeadersIfAbsent(customHeaders);
