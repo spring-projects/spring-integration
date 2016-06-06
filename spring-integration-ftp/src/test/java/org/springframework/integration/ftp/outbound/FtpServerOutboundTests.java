@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -321,13 +322,14 @@ public class FtpServerOutboundTests {
 
 	@Test
 	public void testInt3412FileMode() {
+		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
+		assertFalse(template.exists("ftpTarget/appending.txt"));
 		Message<String> m = MessageBuilder.withPayload("foo")
 				.setHeader(FileHeaders.FILENAME, "appending.txt")
 				.build();
 		appending.send(m);
 		appending.send(m);
 
-		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(ftpSessionFactory);
 		assertLength6(template);
 
 		ignoring.send(m);

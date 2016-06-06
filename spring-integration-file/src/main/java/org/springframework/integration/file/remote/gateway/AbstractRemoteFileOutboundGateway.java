@@ -62,7 +62,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
 
-	private final RemoteFileTemplate<F> remoteFileTemplate;
+	protected final RemoteFileTemplate<F> remoteFileTemplate;
 
 	protected final Command command;
 

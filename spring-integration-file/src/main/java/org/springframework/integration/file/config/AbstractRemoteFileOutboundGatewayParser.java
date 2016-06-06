@@ -78,7 +78,12 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 			builder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mode", "fileExistsMode");
+		postProcessBuilder(builder, element);
 		return builder;
+	}
+
+	protected void postProcessBuilder(BeanDefinitionBuilder builder, Element element) {
+		// no-op
 	}
 
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext,

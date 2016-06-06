@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.file.config.RemoteFileOutboundChannelAdapterParser;
 import org.springframework.integration.file.remote.RemoteFileOperations;
+import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 
 /**
@@ -27,6 +28,12 @@ import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
  *
  */
 public class SftpOutboundChannelAdapterParser extends RemoteFileOutboundChannelAdapterParser {
+
+
+	@Override
+	protected Class<?> handlerClass() {
+		return SftpMessageHandler.class;
+	}
 
 	@Override
 	protected Class<? extends RemoteFileOperations<?>> getTemplateClass() {

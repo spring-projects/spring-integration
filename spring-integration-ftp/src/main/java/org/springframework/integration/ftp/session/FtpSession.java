@@ -29,6 +29,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -192,17 +193,21 @@ public class FtpSession implements Session<FTPFile> {
 	public boolean exists(String path) throws IOException{
 		Assert.hasText(path, "'path' must not be empty");
 
-		String currentWorkingPath = this.client.printWorkingDirectory();
-		Assert.state(currentWorkingPath != null, "working directory cannot be determined, therefore exists check can not be completed");
-		boolean exists = false;
+		String[] names = this.client.listNames(path);
+		boolean exists = !ObjectUtils.isEmpty(names);
 
-		try {
-			if (this.client.changeWorkingDirectory(path)) {
-				exists = true;
+		if (!exists) {
+			String currentWorkingPath = this.client.printWorkingDirectory();
+			Assert.state(currentWorkingPath != null,
+					"working directory cannot be determined; exists check can not be completed");
+
+			try {
+				exists = this.client.changeWorkingDirectory(path);
 			}
-		}
-		finally {
-			this.client.changeWorkingDirectory(currentWorkingPath);
+			finally {
+				this.client.changeWorkingDirectory(currentWorkingPath);
+			}
+
 		}
 
 		return exists;

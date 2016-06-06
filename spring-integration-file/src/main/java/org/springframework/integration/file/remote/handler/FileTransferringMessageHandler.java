@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
-	private final RemoteFileTemplate<F> remoteFileTemplate;
+	protected final RemoteFileTemplate<F> remoteFileTemplate;
 
 	private final FileExistsMode mode;
 

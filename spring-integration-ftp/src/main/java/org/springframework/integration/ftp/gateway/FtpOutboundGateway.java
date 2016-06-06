@@ -27,6 +27,7 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
@@ -38,7 +39,8 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 
 	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command,
 			String expression) {
-		super(sessionFactory, command, expression);
+		this(new FtpRemoteFileTemplate(sessionFactory), command, expression);
+		((FtpRemoteFileTemplate) this.remoteFileTemplate).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
 	}
 
 	public FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command, String expression) {

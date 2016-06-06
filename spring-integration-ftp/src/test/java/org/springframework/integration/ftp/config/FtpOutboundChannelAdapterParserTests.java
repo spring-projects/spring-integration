@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
@@ -91,7 +92,8 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(ftpChannel, TestUtils.getPropertyValue(ftpOutbound, "inputChannel"));
 		assertEquals("ftpOutbound", ftpOutbound.getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(ftpOutbound, "handler", FileTransferringMessageHandler.class);
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
+				"remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
 		assertEquals("", remoteFileSeparator);
@@ -99,6 +101,8 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
+		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLST,
+				TestUtils.getPropertyValue(handler, "remoteFileTemplate.existsMode"));
 		Object sfProperty = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
 		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;
