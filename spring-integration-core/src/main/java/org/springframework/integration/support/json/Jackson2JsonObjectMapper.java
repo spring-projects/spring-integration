@@ -107,7 +107,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 
 	@Override
 	public <T> T fromJson(JsonParser parser, Type valueType) throws Exception {
-		return this.objectMapper.readValue(parser, this.constructType(valueType));
+		return this.objectMapper.readValue(parser, constructType(valueType));
 	}
 
 	@Override

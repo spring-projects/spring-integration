@@ -66,11 +66,14 @@ public abstract class JsonObjectMapperAdapter<N, P> implements JsonObjectMapper<
 	public void populateJavaTypes(Map<String, Object> map, Object object) {
 		map.put(JsonHeaders.TYPE_ID, object.getClass());
 		if (object instanceof Collection && !((Collection<?>) object).isEmpty()) {
-			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Collection<?>) object).iterator().next().getClass());
+			Object firstElement = ((Collection<?>) object).iterator().next();
+			map.put(JsonHeaders.CONTENT_TYPE_ID, firstElement != null ? firstElement.getClass() : Object.class);
 		}
 		if (object instanceof Map && !((Map<?, ?>) object).isEmpty()) {
-			map.put(JsonHeaders.CONTENT_TYPE_ID, ((Map<?, ?>) object).values().iterator().next().getClass());
-			map.put(JsonHeaders.KEY_TYPE_ID, ((Map<?, ?>) object).keySet().iterator().next().getClass());
+			Object firstValue = ((Map<?, ?>) object).values().iterator().next();
+			map.put(JsonHeaders.CONTENT_TYPE_ID, firstValue != null ? firstValue.getClass() : Object.class);
+			Object firstKey = ((Map<?, ?>) object).keySet().iterator().next();
+			map.put(JsonHeaders.KEY_TYPE_ID, firstKey != null ? firstKey.getClass() : Object.class);
 		}
 	}
 
