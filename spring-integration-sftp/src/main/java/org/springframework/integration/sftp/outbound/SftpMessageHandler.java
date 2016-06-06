@@ -63,7 +63,7 @@ public class SftpMessageHandler extends FileTransferringMessageHandler<LsEntry> 
 	 * (SessionFactory)
 	 */
 	public SftpMessageHandler(SessionFactory<LsEntry> sessionFactory) {
-		super(sessionFactory);
+		this(new SftpRemoteFileTemplate(sessionFactory));
 	}
 
 	@Override

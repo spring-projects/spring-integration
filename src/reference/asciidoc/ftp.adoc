@@ -710,6 +710,22 @@ There is a subclass for FTP: `FtpRemoteFileTemplate`.
 
 Additional methods were added in _version 4.1_ including `getClientInstance()` which provides access to the underlying `FTPClient` enabling access to low-level APIs.
 
+Not all FTP servers properly implement `STAT <path>` command, in that it can return a positive result for a non-existent path.
+The `NLST` command reliably returns the name, when the path is a file and it exists.
+However, this does not support checking that an empty directory exists since `NLST` always returns an empty list in this case, when the path is a directory.
+Since the template doesn't know if the path represents a directory or not, it has to perform additional checks when the path does not appear to exist, when using `NLST`.
+This adds overhead, requiring several requests to the server.
+Starting with _version 4.1.9_ the `FtpRemoteFileTemplate` provides `FtpRemoteFileTemplate.ExistsMode` property with the following options:
+
+- `STAT` - Perform the `STAT` FTP command (`FTPClient.getStatus(path)`) to check the path existence; this is the default and requires that your FTP server properly supports the `STAT` command (with a path).
+- `NLST` - Perform the `NLST` FTP command - `FTPClient.listName(path)`; use this if you are testing for a path that is a full path to a file; it won't work for empty directories.
+- `NLST_AND_DIRS` -  Perform the `NLST` command first and if it returns no files, fall back to a technique which temporarily switches the working directory using `FTPClient.changeWorkingDirectory(path)`.
+See `FtpSession.exists()` for more information.
+
+Since we know that the `FileExistsMode.FAIL` case is always only looking for a file (and not a directory), we safely use `NLST` mode for the `FtpMessageHandler` and `FtpOutboundGateway` components.
+
+For any other cases the `FtpRemoteFileTemplate` can be extended for implementing a custom logic in the overridden `exist()` method.
+
 [[ftp-session-callback]]
 === MessageSessionCallback
 

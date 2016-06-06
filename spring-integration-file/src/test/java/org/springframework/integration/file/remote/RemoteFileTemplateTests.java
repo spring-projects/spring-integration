@@ -24,8 +24,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+
+import org.hamcrest.Matchers;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -34,13 +40,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
-
-import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 /**
  * @author Gary Russell
@@ -62,19 +61,7 @@ public class RemoteFileTemplateTests {
 	@Before
 	public void setUp() throws Exception {
 		SessionFactory<Object> sessionFactory = mock(SessionFactory.class);
-		this.template = new RemoteFileTemplate<Object>(sessionFactory) {
-
-			@Override
-			public boolean exists(String path) {
-				try {
-					return sessionFactory.getSession().exists(path);
-				}
-				catch (IOException e) {
-					return false;
-				}
-			}
-
-		};
+		this.template = new RemoteFileTemplate<Object>(sessionFactory);
 		this.template.setRemoteDirectoryExpression(new LiteralExpression("/foo"));
 		this.template.setBeanFactory(mock(BeanFactory.class));
 		this.template.afterPropertiesSet();

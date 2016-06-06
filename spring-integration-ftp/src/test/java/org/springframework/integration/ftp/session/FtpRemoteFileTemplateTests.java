@@ -62,7 +62,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 	private SessionFactory<FTPFile> sessionFactory;
 
 	@Test
-	public void testINT3412AppendStatRmdir() {
+	public void testINT3412AppendStatRmdir() throws IOException {
 		FtpRemoteFileTemplate template = new FtpRemoteFileTemplate(sessionFactory);
 		DefaultFileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 		fileNameGenerator.setExpression("'foobar.txt'");
@@ -105,7 +105,7 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 				assertTrue(session.rmdir("foo/"));
 			}
 		});
-		assertFalse(template.exists("foo"));
+		assertFalse(template.getSession().exists("foo"));
 	}
 
 	@Test
