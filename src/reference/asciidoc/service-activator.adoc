@@ -7,7 +7,7 @@
 The Service Activator is the endpoint type for connecting any Spring-managed Object to an input channel so that it may play the role of a service.
 If the service produces output, it may also be connected to an output channel.
 Alternatively, an output producing service may be located at the end of a processing pipeline or message flow in which case, the inbound Message's "replyChannel" header can be used.
-This is the default behavior if no output channel is defined, and as with most of the configuration options you'll see here, the same behavior actually applies for most of the other components we have seen.
+This is the default behavior if no output channel is defined and, as with most of the configuration options you'll see here, the same behavior actually applies for most of the other components we have seen.
 
 [[service-activator-namespace]]
 ==== Configuring Service Activator
@@ -34,13 +34,22 @@ To determine the reply channel, it will first check if an "output-channel" was p
                        ref="somePojo" method="someMethod"/>
 ----
 
-If no "output-channel" is available, it will then check the Message's `replyChannel` header value.
+If the method returns a result and no "output-channel" is defined, the framework will then check the Message's `replyChannel` header value.
 If that value is available, it will then check its type.
 If it is a`MessageChannel`, the reply message will be sent to that channel.
 If it is a `String`, then the endpoint will attempt to resolve the channel name to a channel instance.
 If the channel cannot be resolved, then a `DestinationResolutionException` will be thrown.
 It it can be resolved, the Message will be sent there.
 This is the technique used for Request Reply messaging in Spring Integration, and it is also an example of the Return Address pattern.
+
+If your method returns a result, and you want to discard it and end the flow, you should configure the `output-channel` to send to a `NullChannel`.
+For convenience, the framework registers one with the name `nullChannel`.
+See <<channel-special-channels>> for more information.
+
+The Service Activator is one of those components that is not required to produce a reply message.
+If your method returns `null` or has a `void` return type, the Service Activator exits after the method invocation, without any signals.
+This behavior can be controlled by the `AbstractReplyProducingMessageHandler.requiresReply` option, also exposed as `requires-reply` when configuring with the XML namespace.
+If the flag is set to `true` and the method returns null, a `ReplyRequiredException` is thrown.
 
 The argument in the service method could be either a Message or an arbitrary type.
 If the latter, then it will be assumed that it is a Message payload, which will be extracted from the message and injected into such service method.
