@@ -16,10 +16,12 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -141,6 +143,19 @@ public class TcpMessageMapperTests {
 		assertEquals("application/octet-stream;charset=ISO-8859-1", message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		MimeType parseOk = MimeType.valueOf((String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		assertEquals(message.getHeaders().get(MessageHeaders.CONTENT_TYPE), parseOk.toString());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testToMessageWithBadContentType() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setAddContentTypeHeader(true);
+		try {
+			mapper.setContentType("");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), containsString("'contentType' could not be parsed"));
+			throw e;
+		}
 	}
 
 	@Test

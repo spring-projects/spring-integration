@@ -36,6 +36,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeType;
 
 /**
  * Maps incoming data from a {@link TcpConnection} to a {@link Message}.
@@ -103,7 +105,7 @@ public class TcpMessageMapper implements
 	/**
 	 * Set the content type header value to add to inbound messages when
 	 * {@link #setAddContentTypeHeader(boolean) addContentTypeHeader} is true.
-	 * Default {@code application/octet-stream;charset=UTF8}. This default is <b>not</b>
+	 * Default {@code application/octet-stream;charset=UTF-8}. This default is <b>not</b>
 	 * modified by {@link #setCharset(String)}.
 	 * @param contentType the content type header value to set.
 	 * @since 4.3
@@ -112,6 +114,12 @@ public class TcpMessageMapper implements
 	 */
 	public void setContentType(String contentType) {
 		Assert.notNull(contentType, "'contentType' cannot be null");
+		try {
+			MimeType.valueOf(contentType);
+		}
+		catch (InvalidMimeTypeException e) {
+			throw new IllegalArgumentException("'contentType' could not be parsed", e);
+		}
 		this.contentType = contentType;
 	}
 
