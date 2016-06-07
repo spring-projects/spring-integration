@@ -974,3 +974,36 @@ a `stored-proc-outbound-gateway`
     <int-jdbc:parameter name="ID" expression="payload" />
 </int-jdbc:stored-proc-outbound-gateway>
 ----
+
+[[jdbc-lock-registry]]
+=== JDBC Lock Registry
+
+Starting with _version 4.3_, the `JdbcLockRegistry` is available.
+Certain components (for example aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread is manipulating a group at a time.
+The `DefaultLockRegistry` performs this function within a single component; you can now configure an external lock registry on these components.
+When used with a shared `MessageGroupStore`, the `JdbcLockRegistry` can be use to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
+
+When a lock is released by a local thread, another local thread will generally be able to acquire the lock immediately.
+If a lock is released by a thread using a different registry instance, it can take up to 100ms to acquire the lock.
+
+The `JdbcLockRegistry` is based on the `LockRepository` abstraction, where a `DefaultLockRepository` implementation is present.
+The data base schema scripts are located in the `org.springframework.integration.jdbc` package divided to the particular RDBMS vendors.
+For example the H2 DDL for lock table looks like:
+
+[source,sql]
+----
+CREATE TABLE INT_LOCK  (
+    LOCK_KEY CHAR(36),
+    REGION VARCHAR(100),
+    CLIENT_ID CHAR(36),
+    CREATED_DATE TIMESTAMP NOT NULL,
+    constraint LOCK_PK primary key (LOCK_KEY, REGION)
+);
+----
+
+The `INT_` can be changed according to the target data base design requirements.
+Therefore `prefix` property must be used on the `DefaultLockRepository` bean definition.
+
+Sometimes it happens that one application has moved to the state when it can't release distributed lock - remove the particular record in the data base.
+For this purpose such dead locks can be expired by the other application on the next locking invocation.
+The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.

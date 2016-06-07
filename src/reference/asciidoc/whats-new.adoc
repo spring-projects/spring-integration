@@ -43,6 +43,11 @@ See <<stream-transformer>> for more information.
 A new `IntegrationGraphServer` together with the `IntegrationGraphController` REST service are provided to expose the runtime model of a Spring Integration application as a graph.
 See <<integration-graph>> for more information.
 
+==== JDBC Lock Registry
+
+A new `JdbcLockRegistry` is provided for distributed locks shared through the data base table.
+See <<jdbc-lock-registry>> for more information.
+
 [[x4.3-general]]
 === General Changes
 
