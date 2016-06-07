@@ -42,6 +42,13 @@ If the channel cannot be resolved, then a `DestinationResolutionException` will 
 It it can be resolved, the Message will be sent there.
 This is the technique used for Request Reply messaging in Spring Integration, and it is also an example of the Return Address pattern.
 
+If you are not interested in a reply producing based on the service method return, you should configure `output-channel` as a `nullChannel`.
+See <<channel-special-channels>> for more information.
+
+The Service Activator is one of those components who doesn't require a return for producing reply.
+If your method returns `null` or it is just `void`, the Service Activator stops its work after method invocation without any signals.
+This behaviour can be controlled by the `AbstractReplyProducingMessageHandler.requiresReply` option.
+
 The argument in the service method could be either a Message or an arbitrary type.
 If the latter, then it will be assumed that it is a Message payload, which will be extracted from the message and injected into such service method.
 This is generally the recommended approach as it follows and promotes a POJO model when working with Spring Integration.
