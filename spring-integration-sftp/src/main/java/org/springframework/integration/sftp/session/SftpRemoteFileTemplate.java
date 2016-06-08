@@ -26,7 +26,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpException;
 
 /**
  * SFTP version of {@code RemoteFileTemplate} providing type-safe access to
@@ -57,23 +56,5 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<LsEntry> {
 			}
 		});
 	}
-
-	@Override
-	public boolean exists(final String path) {
-		return executeWithClient(new ClientCallback<ChannelSftp, Boolean>() {
-
-			@Override
-			public Boolean doWithClient(ChannelSftp client) {
-				try {
-					return client.stat(path) != null;
-				}
-				catch (SftpException e) {
-					return false;
-				}
-			}
-		});
-	}
-
-
 
 }

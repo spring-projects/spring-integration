@@ -68,6 +68,12 @@ public interface Session<F> extends Closeable {
 
 	boolean isOpen();
 
+	/**
+	 * Check if the remote file or directory exists.
+	 * @param path the remote path.
+	 * @return {@code true} or {@code false} if remote path exists or not.
+	 * @throws IOException an IO exception during remote interaction.
+	 */
 	boolean exists(String path) throws IOException;
 
 	String[] listNames(String path) throws IOException;

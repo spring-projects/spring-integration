@@ -341,8 +341,14 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public boolean exists(String path) {
-		throw new UnsupportedOperationException("exists() is not supported by the generic template");
+	public boolean exists(final String path) {
+		return this.execute(new SessionCallback<F, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<F> session) throws IOException {
+				return session.exists(path);
+			}
+		});
 	}
 
 	@Override
@@ -415,7 +421,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public Session<F> getSesssion() {
+	public Session<F> getSession() {
 		return this.sessionFactory.getSession();
 	}
 

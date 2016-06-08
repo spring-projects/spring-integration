@@ -155,6 +155,6 @@ public interface RemoteFileOperations<F> {
 	 * @return a session.
 	 * @since 4.3
 	 */
-	Session<F> getSesssion();
+	Session<F> getSession();
 
 }
