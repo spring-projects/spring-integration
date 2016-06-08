@@ -39,4 +39,9 @@ public abstract class FileHeaders {
 
 	public static final String RENAME_TO = PREFIX + "renameTo";
 
+	/**
+	 * Record is a file marker (START/END)
+	 */
+	public static final String MARKER = PREFIX + "marker";
+
 }
