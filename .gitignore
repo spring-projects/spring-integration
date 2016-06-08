@@ -11,6 +11,7 @@
 .pmd
 .project
 .settings
+.checkstyle
 bin
 build
 build.log
