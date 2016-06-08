@@ -37,6 +37,7 @@ public class FileSplitterParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileSplitter.class);
 		builder.addConstructorArgValue(element.getAttribute("iterator"));
 		builder.addConstructorArgValue(element.getAttribute("markers"));
+		builder.addConstructorArgValue(element.getAttribute("markers-json"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");

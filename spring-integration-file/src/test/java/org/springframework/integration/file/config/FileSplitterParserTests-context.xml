@@ -12,6 +12,7 @@
 	<int-file:splitter id="fullBoat"
 		iterator="false"
 		markers="true"
+		markers-json="true"
 		apply-sequence="true"
 		requires-reply="true"
 		charset="UTF-8"

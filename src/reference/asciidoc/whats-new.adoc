@@ -149,14 +149,14 @@ See <<file-flushing>> for more information.
 
 ===== Preserving Timestamps
 
-The outbound channel adapter can now be configured to set the destination file's lastmodified timestamp.
+The outbound channel adapter can now be configured to set the destination file's `lastmodified` timestamp.
 See <<file-timestamps>> for more information.
 
 ===== Splitter Changes
 
 The `FileSplitter` will now automatically close an (S)FTP session when the file is completely read.
-This applies when the outbound gateway returns an `InputStream` or the new (S)FTP streaming channel adapters are being
-used.
+This applies when the outbound gateway returns an `InputStream` or the new (S)FTP streaming channel adapters are being used.
+Also a new `markers-json` options has been introduced to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
 See <<file-splitter>> for more information.
 
 ==== AMQP Changes

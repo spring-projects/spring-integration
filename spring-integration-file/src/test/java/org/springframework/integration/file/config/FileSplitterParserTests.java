@@ -60,6 +60,7 @@ public class FileSplitterParserTests {
 	public void testComplete() {
 		assertFalse(TestUtils.getPropertyValue(this.splitter, "iterator", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.splitter, "markers", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.splitter, "markersJson", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.splitter, "requiresReply", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.splitter, "applySequence", Boolean.class));
 		assertEquals(Charset.forName("UTF-8"), TestUtils.getPropertyValue(this.splitter, "charset"));
