@@ -120,7 +120,7 @@ public class FtpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertThat(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"),
 				Matchers.instanceOf(CachingSessionFactory.class));
-		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLIST,
+		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLST,
 				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.existsMode"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));

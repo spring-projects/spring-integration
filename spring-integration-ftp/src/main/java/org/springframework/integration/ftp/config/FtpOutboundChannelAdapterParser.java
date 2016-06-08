@@ -55,7 +55,7 @@ public class FtpOutboundChannelAdapterParser extends RemoteFileOutboundChannelAd
 				.next()
 				.getValue();
 		templateDefinition.getPropertyValues()
-				.add("existsMode", FtpRemoteFileTemplate.ExistsMode.NLIST);
+				.add("existsMode", FtpRemoteFileTemplate.ExistsMode.NLST);
 	}
 
 }

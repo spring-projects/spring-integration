@@ -57,7 +57,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	 * Specify an {@link ExistsMode} for {@link #exists(String)} operation.
 	 * Defaults to {@link ExistsMode#STAT}.
 	 * When used internally by framework components for file operation,
-	 * switched to {@link ExistsMode#NLIST}.
+	 * switched to {@link ExistsMode#NLST}.
 	 * @param existsMode the {@link ExistsMode} to use.
 	 * @since 4.1.9
 	 */
@@ -98,11 +98,11 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 						case STAT:
 							return client.getStatus(path) != null;
 
-						case NLIST:
+						case NLST:
 							String[] names = client.listNames(path);
 							return !ObjectUtils.isEmpty(names);
 
-						case NLIST_AND_DIRS:
+						case NLST_AND_DIRS:
 							return getSession().exists(path);
 
 						default:
@@ -131,16 +131,21 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 		STAT,
 
 		/**
-		 * Perform the {@code NLIST} FTP command.
+		 * Perform the {@code NLST} FTP command.
 		 * Used as default internally by framework components for files only operations.
 		 */
-		NLIST,
+		NLST,
 
 		/**
-		 * Perform the {@code NLIST} FTP command and fall back to
+		 * Perform the {@code NLST} FTP command and fall back to
 		 * {@link FTPClient#changeWorkingDirectory(String)}.
+		 * <p> This technique is required when you want to check if a directory exists
+		 * and the server does not support {@code STAT} - it requires 4 requests/replies.
+		 * <p> If you are only checking for an existing file, {@code NLST} is preferred
+		 * (unless {@code STAT} is supported).
+		 * @see FtpSession#exists(String)
 		 */
-		NLIST_AND_DIRS
+		NLST_AND_DIRS
 	}
 
 }

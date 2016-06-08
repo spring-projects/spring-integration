@@ -104,7 +104,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
-		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLIST,
+		assertEquals(FtpRemoteFileTemplate.ExistsMode.NLST,
 				TestUtils.getPropertyValue(handler, "remoteFileTemplate.existsMode"));
 		Object sfProperty = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());

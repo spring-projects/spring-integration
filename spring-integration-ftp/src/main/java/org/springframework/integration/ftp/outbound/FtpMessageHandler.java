@@ -25,14 +25,18 @@ import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
+ * The FTP specific {@link FileTransferringMessageHandler} extension.
+ * Based on the {@link FtpRemoteFileTemplate}.
+ *
  * @author Artem Bilan
  * @since 4.1.9
+ * @see FtpRemoteFileTemplate
  */
 public class FtpMessageHandler extends FileTransferringMessageHandler<FTPFile> {
 
 	public FtpMessageHandler(SessionFactory<FTPFile> sessionFactory) {
 		this(new FtpRemoteFileTemplate(sessionFactory));
-		((FtpRemoteFileTemplate) this.remoteFileTemplate).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLIST);
+		((FtpRemoteFileTemplate) this.remoteFileTemplate).setExistsMode(FtpRemoteFileTemplate.ExistsMode.NLST);
 	}
 
 	public FtpMessageHandler(FtpRemoteFileTemplate remoteFileTemplate) {
