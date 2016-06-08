@@ -38,6 +38,8 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
@@ -280,7 +282,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 				}
 			}
 
-			private Message<?> markerToReturn(FileMarker fileMarker) {
+			private AbstractIntegrationMessageBuilder<Object> markerToReturn(FileMarker fileMarker) {
 				Object payload;
 				if (FileSplitter.this.markersJson) {
 					try {
@@ -294,8 +296,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 					payload = fileMarker;
 				}
 				return getMessageBuilderFactory().withPayload(payload)
-						.setHeader(FileHeaders.MARKER, fileMarker.mark.name())
-						.build();
+						.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
 			}
 
 		};
