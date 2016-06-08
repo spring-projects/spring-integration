@@ -43,6 +43,11 @@ public final class JsonObjectMapperProvider {
 		super();
 	}
 
+	/**
+	 * Return an object mapper if available.
+	 * @return the mapper.
+	 * @throws IllegalStateException if an implementation is not available.
+	 */
 	public static JsonObjectMapper<?, ?> newInstance() {
 		if (JacksonJsonUtils.isJackson2Present()) {
 			return new Jackson2JsonObjectMapper();
@@ -53,6 +58,14 @@ public final class JsonObjectMapperProvider {
 		else {
 			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar is present in the classpath.");
 		}
+	}
+
+	/**
+	 * Returns true if a supported JSON implementation is on the class path.
+	 * @return true if {@link #newInstance()} will return a mapper.
+	 */
+	public static boolean jsonAvailable() {
+		return JacksonJsonUtils.isJackson2Present() || boonPresent;
 	}
 
 }

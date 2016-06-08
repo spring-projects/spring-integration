@@ -45,4 +45,9 @@ public abstract class FileHeaders {
 
 	public static final String SET_MODIFIED = PREFIX + "setModified";
 
+	/**
+	 * Record is a file marker (START/END)
+	 */
+	public static final String MARKER = PREFIX + "marker";
+
 }

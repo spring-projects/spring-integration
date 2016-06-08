@@ -35,7 +35,6 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Date;
 
-import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,6 +50,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
+import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -189,7 +190,8 @@ public class FileSplitterTests {
 		Message<?> received = outputChannel.receive(0);
 		assertNotNull(received);
 		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
-		assertThat(received.getPayload(), Matchers.instanceOf(FileSplitter.FileMarker.class));
+		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
 		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
 		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
 		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
@@ -197,8 +199,38 @@ public class FileSplitterTests {
 		assertNotNull(outputChannel.receive(0));
 		received = outputChannel.receive(0);
 		assertNotNull(received);
-		assertThat(received.getPayload(), Matchers.instanceOf(FileSplitter.FileMarker.class));
+		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
 		fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(2, fileMarker.getLineCount());
+	}
+
+	@Test
+	public void testMarkersJson() throws Exception {
+		JsonObjectMapper<?, ?> objectMapper = JsonObjectMapperProvider.newInstance();
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter(true, true, true);
+		splitter.setOutputChannel(outputChannel);
+		splitter.handleMessage(new GenericMessage<File>(file));
+		Message<?> received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(String.class));
+		String payload = (String) received.getPayload();
+		assertThat(payload, containsString("\"mark\":\"START\",\"lineCount\":0"));
+		FileMarker fileMarker = objectMapper.fromJson(payload, FileSplitter.FileMarker.class);
+		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertNotNull(outputChannel.receive(0));
+		assertNotNull(outputChannel.receive(0));
+		received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(String.class));
+		fileMarker = objectMapper.fromJson((String) received.getPayload(), FileSplitter.FileMarker.class);
 		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
 		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
 		assertEquals(2, fileMarker.getLineCount());
