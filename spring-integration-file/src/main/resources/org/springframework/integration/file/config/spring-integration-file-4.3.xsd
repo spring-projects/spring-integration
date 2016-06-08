@@ -717,8 +717,22 @@ Only files matching this regular expression will be picked up by this adapter.
 						are filtered.
 						The 'END' marker includes a line count.
 						They enable the downstream processing to know when a file has been completely processed.
+						A header 'file_marker' is also added, containing START/END appropriately.
 						Default: 'false'.
 						When 'true', 'apply-sequence' is 'false' by default.
+						Also see 'markers-json'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="markers-json" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						When 'markers' is true, if this is 'true', the message payload of the marker
+						is a JSON String representation of the marker object.
+						Requires a supported JSON implementation on the class path.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>

@@ -38,9 +38,14 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.StringUtils;
+
+import reactor.core.support.Assert;
 
 /**
  * The {@link AbstractMessageSplitter} implementation to split the {@link File}
@@ -61,9 +66,14 @@ import org.springframework.util.StringUtils;
  */
 public class FileSplitter extends AbstractMessageSplitter {
 
+	private static final JsonObjectMapper<?, ?> objectMapper =
+			JsonObjectMapperProvider.jsonAvailable() ? JsonObjectMapperProvider.newInstance() : null;
+
 	private final boolean iterator;
 
 	private final boolean markers;
+
+	private final boolean markersJson;
 
 	private Charset charset;
 
@@ -96,11 +106,33 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * @since 4.1.5
 	 */
 	public FileSplitter(boolean iterator, boolean markers) {
+		this(iterator, markers, false);
+	}
+
+	/**
+	 * Construct a splitter where the {@link #splitMessage(Message)} method returns an
+	 * iterator, and the file is read line-by-line during iteration, or a list of lines
+	 * from the file. When file markers are enabled (START/END)
+	 * {@link #setApplySequence(boolean) applySequence} is false by default. If enabled,
+	 * the markers are included in the sequence size.
+	 * @param iterator true to return an iterator, false to return a list of lines.
+	 * @param markers true to emit start of file/end of file marker messages before/after
+	 * the data.
+	 * @param markersJson when true, markers are represented as JSON - requires a
+	 * supported JSON implementation on the classpath. See
+	 * {@link JsonObjectMapperProvider} for supported implementations.
+	 * @since 4.2.7
+	 */
+	public FileSplitter(boolean iterator, boolean markers, boolean markersJson) {
 		this.iterator = iterator;
 		this.markers = markers;
 		if (markers) {
 			setApplySequence(false);
+			if (markersJson) {
+				Assert.notNull(objectMapper, "'markersJson' requires an object mapper");
+			}
 		}
+		this.markersJson = markersJson;
 	}
 
 	/**
@@ -214,7 +246,9 @@ public class FileSplitter extends AbstractMessageSplitter {
 						bufferedReader.close();
 						this.done = true;
 					}
-					catch (IOException e1) { }
+					catch (IOException e1) {
+						// ignored
+					}
 					throw new MessageHandlingException(message, "IOException while iterating", e);
 				}
 			}
@@ -227,13 +261,13 @@ public class FileSplitter extends AbstractMessageSplitter {
 				this.hasNextCalled = false;
 				if (this.sof) {
 					this.sof = false;
-					return new FileMarker(filePath, Mark.START, 0);
+					return markerToReturn(new FileMarker(filePath, Mark.START, 0));
 				}
 				if (this.eof) {
 					this.eof = false;
 					this.markers = false;
 					this.done = true;
-					return new FileMarker(filePath, Mark.END, this.lineCount);
+					return markerToReturn(new FileMarker(filePath, Mark.END, this.lineCount));
 				}
 				if (this.line != null) {
 					String line = this.line;
@@ -245,6 +279,23 @@ public class FileSplitter extends AbstractMessageSplitter {
 					this.done = true;
 					throw new NoSuchElementException(filePath + " has been consumed");
 				}
+			}
+
+			private AbstractIntegrationMessageBuilder<Object> markerToReturn(FileMarker fileMarker) {
+				Object payload;
+				if (FileSplitter.this.markersJson) {
+					try {
+						payload = objectMapper.toJson(fileMarker);
+					}
+					catch (Exception e) {
+						throw new MessageHandlingException(message, "Failed to convert marker to JSON", e);
+					}
+				}
+				else {
+					payload = fileMarker;
+				}
+				return getMessageBuilderFactory().withPayload(payload)
+						.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
 			}
 
 		};
@@ -311,6 +362,15 @@ public class FileSplitter extends AbstractMessageSplitter {
 		private final Mark mark;
 
 		private final long lineCount;
+
+		/*
+		 * Provided solely to allow deserialization from JSON
+		 */
+		public FileMarker() {
+			this.filePath = null;
+			this.mark = null;
+			this.lineCount = 0;
+		}
 
 		public FileMarker(String filePath, Mark mark, long lineCount) {
 			this.filePath = filePath;
