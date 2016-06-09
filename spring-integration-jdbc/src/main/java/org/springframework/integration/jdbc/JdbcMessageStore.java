@@ -69,12 +69,14 @@ import org.springframework.util.StringUtils;
  * Implementation of {@link MessageStore} using a relational database via JDBC. SQL scripts to create the necessary
  * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
  * target database type.
- *
- * Notice: Starting with Spring Integration 3.0, this class will move to package:
- * <code>org.springframework.integration.jdbc.store</code>.
- *
+ * <p>
+ * Notice: Starting with Spring Integration 5.0, this class will move to package:
+ * {@code org.springframework.integration.jdbc.store}.
+ * <p>
  * If you intend backing a {@link MessageChannel} using a JDBC-based Message Store,
  * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
+ * This implementation is intended for correlation components (e.g. {@code <aggregator>}),
+ * {@code <delayer>} and similar.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
