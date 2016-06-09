@@ -59,7 +59,7 @@ public class JdbcClient implements Closeable {
 
 		INSERT("INSERT INTO %SLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)"),
 
-		COUNT("SELECT COUNT(REGION) FROM %SLOCK WHERE CLIENT_ID=? AND CREATED_DATE>=?");
+		COUNT("SELECT COUNT(REGION) FROM %SLOCK WHERE REGION=? AND CLIENT_ID=? AND CREATED_DATE>=?");
 
 		private String sql;
 
@@ -131,7 +131,7 @@ public class JdbcClient implements Closeable {
 
 	public boolean isAcquired(String lock) {
 		deleteExpired(lock);
-		return this.template.queryForObject(Query.COUNT.getSql(this.prefix), Integer.class, getId(),
+		return this.template.queryForObject(Query.COUNT.getSql(this.prefix), Integer.class, this.region, getId(),
 				new Date(System.currentTimeMillis() - this.ttl)) == 1;
 	}
 

@@ -16,10 +16,6 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.messaging.MessagingException;
+import org.springframework.integration.util.UUIDConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -72,21 +68,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 		return lock;
 	}
 
-	private String pathFor(String lockKey) {
-		MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
-		}
-		try {
-			byte[] bytes = digest.digest(lockKey.getBytes("UTF-8"));
-			return String.format("%032x", new BigInteger(1, bytes));
-		}
-		catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException("UTF-8 encoding not available.  Fatal (should be in the JDK).");
-		}
+	private String pathFor(String input) {
+		return input == null ? null : UUIDConverter.getUUID(input).toString();
 	}
 
 	@Override
@@ -194,7 +177,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				return acquired;
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to aquire mutex at " + this.path, e);
+				throw new RuntimeException("Failed to aquire mutex at " + this.path, e);
 			}
 		}
 
@@ -211,7 +194,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				this.mutex.delete(this.path);
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to release mutex at " + this.path, e);
+				throw new RuntimeException("Failed to release mutex at " + this.path, e);
 			}
 			finally {
 				this.delegate.unlock();
