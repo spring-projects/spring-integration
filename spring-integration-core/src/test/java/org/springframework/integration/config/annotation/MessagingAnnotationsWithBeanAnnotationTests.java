@@ -54,6 +54,7 @@ import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
@@ -75,6 +76,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -119,6 +121,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Qualifier("skippedMessageSource")
 	private MessageSource<?> skippedMessageSource;
 
+	@Autowired
+	private PollableChannel publisherChannel;
+
 	@Test
 	public void testMessagingAnnotationsFlow() {
 		this.sourcePollingChannelAdapter.start();
@@ -145,6 +150,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		assertNull(this.skippedChannel);
 		assertNull(this.skippedChannel2);
 		assertNull(this.skippedMessageSource);
+
+		assertNotNull(this.publisherChannel.receive(10000));
 	}
 
 	@Test
@@ -257,12 +264,19 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
+		public PollableChannel publisherChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		@ServiceActivator(inputChannel = "serviceChannel")
 		public MessageHandler service() {
 			final List<Message<?>> collector = this.collector();
 			return new MessageHandler() {
 
 				@Override
+				@Publisher(channel = "publisherChannel")
+				@Payload("#args[0]")
 				public void handleMessage(Message<?> message) throws MessagingException {
 					collector.add(message);
 				}

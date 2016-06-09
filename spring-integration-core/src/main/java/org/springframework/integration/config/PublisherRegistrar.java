@@ -46,10 +46,8 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		Map<String, Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
-		if (annotationAttributes == null) {
-			return;
-		}
-		String value = (String) annotationAttributes.get("value");
+
+		String value = (annotationAttributes == null ? null : (String) annotationAttributes.get("value"));
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)

@@ -82,7 +82,6 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		return this.order;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void afterPropertiesSet() {
 		this.advisor = new PublisherAnnotationAdvisor();
