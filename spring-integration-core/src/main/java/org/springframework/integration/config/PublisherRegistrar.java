@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -46,10 +47,10 @@ public class PublisherRegistrar implements ImportBeanDefinitionRegistrar {
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		Map<String, Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnablePublisher.class.getName());
-		if (annotationAttributes == null) {
-			return;
-		}
-		String value = (String) annotationAttributes.get("value");
+
+		String value = (annotationAttributes == null
+				? (String) AnnotationUtils.getDefaultValue(EnablePublisher.class)
+				: (String) annotationAttributes.get("value"));
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME)) {
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(PublisherAnnotationBeanPostProcessor.class)

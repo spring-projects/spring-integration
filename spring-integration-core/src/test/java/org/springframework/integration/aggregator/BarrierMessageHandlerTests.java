@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -60,6 +61,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -67,6 +69,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -83,6 +86,9 @@ public class BarrierMessageHandlerTests {
 
 	@Autowired
 	private MessageChannel release;
+
+	@Autowired
+	private PollableChannel publisherChannel;
 
 	@Test
 	public void testRequestBeforeReply() throws Exception {
@@ -256,6 +262,10 @@ public class BarrierMessageHandlerTests {
 		Message<?> out = this.out.receive(10000);
 		assertNotNull(out);
 		assertEquals("[foo, bar]", out.getPayload().toString());
+
+		Message<?> publisherMessage = this.publisherChannel.receive(10000);
+		assertNotNull(publisherMessage);
+		assertEquals("BAR", publisherMessage.getPayload());
 	}
 
 	@Configuration
@@ -277,6 +287,11 @@ public class BarrierMessageHandlerTests {
 			return new QueueChannel();
 		}
 
+		@Bean
+		public PollableChannel publisherChannel() {
+			return new QueueChannel();
+		}
+
 		@ServiceActivator(inputChannel = "in")
 		@Bean
 		public BarrierMessageHandler barrier() {
@@ -291,6 +306,8 @@ public class BarrierMessageHandlerTests {
 			return new MessageHandler() {
 
 				@Override
+				@Publisher(channel = "publisherChannel")
+				@Payload("#args[0].payload.toUpperCase()")
 				public void handleMessage(Message<?> message) throws MessagingException {
 					barrier().trigger(message);
 				}
