@@ -124,7 +124,7 @@
 	</int:chain>
 
 	<int:service-activator input-channel="markers"
-	  expression="payload.mark.toString().equals('END') ? headers['file_remoteSession'].close() : null"/>
+	  expression="'END'.equals(headers['file_marker']) ? headers['file_remoteSession'].close() : null"/>
 
 	<int:channel id="appending" />
 
