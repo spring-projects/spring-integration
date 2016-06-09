@@ -117,7 +117,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new RuntimeException("Failed to aquire mutex at " + this.path, e);
+				throw new RuntimeException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 
@@ -177,7 +177,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				return acquired;
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Failed to aquire mutex at " + this.path, e);
+				throw new RuntimeException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 
