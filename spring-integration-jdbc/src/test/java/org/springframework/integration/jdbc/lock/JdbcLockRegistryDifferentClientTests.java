@@ -138,7 +138,7 @@ public class JdbcLockRegistryDifferentClientTests {
 
 			final JdbcLockRegistry registry1 = this.registry;
 			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
-			final List<String> locked = new ArrayList<>();
+			final List<String> locked = new ArrayList<String>();
 			final CountDownLatch latch = new CountDownLatch(2);
 			ExecutorService pool = Executors.newFixedThreadPool(2);
 			pool.execute(new Runnable() {
@@ -203,7 +203,7 @@ public class JdbcLockRegistryDifferentClientTests {
 
 		for (int i = 0; i < 100; i++) {
 
-			final List<String> locked = new ArrayList<>();
+			final List<String> locked = new ArrayList<String>();
 			final CountDownLatch latch = new CountDownLatch(20);
 			ExecutorService pool = Executors.newFixedThreadPool(6);
 			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();

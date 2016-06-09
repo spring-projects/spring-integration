@@ -136,7 +136,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				try {
 					locked = doLock();
 				}
-				catch (Exception e) {
+				catch (RuntimeException e) {
 					this.delegate.unlock();
 					throw e;
 				}
@@ -162,7 +162,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			try {
 				return doLock();
 			}
-			catch (Exception e) {
+			catch (RuntimeException e) {
 				this.delegate.unlock();
 				throw e;
 			}
