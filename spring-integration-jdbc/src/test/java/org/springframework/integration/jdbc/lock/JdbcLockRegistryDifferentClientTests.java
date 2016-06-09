@@ -46,8 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Gary Russell
- * @since 4.2
+ * @author Dave Syer
  *
  */
 @ContextConfiguration("JdbcLockRegistryTests-context.xml")
@@ -76,7 +75,7 @@ public class JdbcLockRegistryDifferentClientTests {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
 		this.child = new AnnotationConfigApplicationContext();
-		this.child.register(JdbcClient.class);
+		this.child.register(DefaultJdbcClient.class);
 		this.child.setParent(this.context);
 		this.child.refresh();
 	}
@@ -209,7 +208,7 @@ public class JdbcLockRegistryDifferentClientTests {
 			ExecutorService pool = Executors.newFixedThreadPool(6);
 			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
 			for (int j = 0; j < 20; j++) {
-				final JdbcClient client = new JdbcClient(this.dataSource);
+				final JdbcClient client = new DefaultJdbcClient(this.dataSource);
 				this.context.getAutowireCapableBeanFactory().autowireBean(client);
 				Callable<Boolean> task = new Callable<Boolean>() {
 

@@ -44,8 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Gary Russell
- * @since 4.2
+ * @author Dave Syer
  *
  */
 @ContextConfiguration

@@ -26,8 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
@@ -38,9 +36,22 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  *
  */
+public interface JdbcClient extends Closeable {
+
+	boolean isAcquired(String lock);
+
+	void delete(String lock);
+
+	boolean acquire(String lock);
+
+	@Override
+	void close();
+
+}
+
 @Component
-@Transactional
-public class JdbcClient implements Closeable {
+// @Transactional
+class DefaultJdbcClient implements JdbcClient {
 
 	/**
 	 * Default value for the table prefix property.
@@ -83,7 +94,7 @@ public class JdbcClient implements Closeable {
 	private volatile String region = "DEFAULT";
 
 	@Autowired
-	public JdbcClient(DataSource dataSource) {
+	public DefaultJdbcClient(DataSource dataSource) {
 		this.template = new JdbcTemplate(dataSource);
 	}
 
@@ -111,11 +122,13 @@ public class JdbcClient implements Closeable {
 		this.template.update(Query.DELETE_ALL.getSql(this.prefix), this.region, getId());
 	}
 
+	@Override
 	public void delete(String lock) {
 		this.template.update(Query.DELETE.getSql(this.prefix), this.region, lock, getId());
 	}
 
-	@Transactional(isolation = Isolation.SERIALIZABLE, timeout = 1)
+	// @Transactional(isolation = Isolation.SERIALIZABLE, timeout = 1)
+	@Override
 	public boolean acquire(String lock) {
 		deleteExpired(lock);
 		if (this.template.update(Query.UPDATE.getSql(this.prefix), new Date(), this.region, lock, getId()) > 0) {
@@ -129,6 +142,7 @@ public class JdbcClient implements Closeable {
 		}
 	}
 
+	@Override
 	public boolean isAcquired(String lock) {
 		deleteExpired(lock);
 		return this.template.queryForObject(Query.COUNT.getSql(this.prefix), Integer.class, this.region, getId(),
