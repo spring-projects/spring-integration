@@ -42,7 +42,7 @@ public class DefaultLockRepository implements LockRepository {
 
 		DELETE("DELETE FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?"),
 
-		DELETE_EXPIRED("DELETE FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE<?"),
+		DELETE_EXPIRED("DELETE FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CREATED_DATE<?"),
 
 		DELETE_ALL("DELETE FROM %SLOCK WHERE REGION=? AND CLIENT_ID=?"),
 
@@ -130,7 +130,7 @@ public class DefaultLockRepository implements LockRepository {
 	}
 
 	private int deleteExpired(String lock) {
-		return this.template.update(Query.DELETE_EXPIRED.getSql(this.prefix), this.region, lock, getId(),
+		return this.template.update(Query.DELETE_EXPIRED.getSql(this.prefix), this.region, lock,
 				new Date(System.currentTimeMillis() - this.ttl));
 	}
 
