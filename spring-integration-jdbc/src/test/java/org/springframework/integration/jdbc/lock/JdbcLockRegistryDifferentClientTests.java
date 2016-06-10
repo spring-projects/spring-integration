@@ -60,7 +60,7 @@ public class JdbcLockRegistryDifferentClientTests {
 	private JdbcLockRegistry registry;
 
 	@Autowired
-	private JdbcClient client;
+	private LockRepository client;
 
 	@Autowired
 	private ConfigurableApplicationContext context;
@@ -75,7 +75,7 @@ public class JdbcLockRegistryDifferentClientTests {
 		this.registry.expireUnusedOlderThan(0);
 		this.client.close();
 		this.child = new AnnotationConfigApplicationContext();
-		this.child.register(DefaultJdbcClient.class);
+		this.child.register(DefaultLockRepository.class);
 		this.child.setParent(this.context);
 		this.child.refresh();
 	}
@@ -208,7 +208,7 @@ public class JdbcLockRegistryDifferentClientTests {
 			ExecutorService pool = Executors.newFixedThreadPool(6);
 			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
 			for (int j = 0; j < 20; j++) {
-				final JdbcClient client = new DefaultJdbcClient(this.dataSource);
+				final LockRepository client = new DefaultLockRepository(this.dataSource);
 				this.context.getAutowireCapableBeanFactory().autowireBean(client);
 				Callable<Boolean> task = new Callable<Boolean>() {
 

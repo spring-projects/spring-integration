@@ -56,7 +56,7 @@ public class JdbcLockRegistryTests {
 	private JdbcLockRegistry registry;
 
 	@Autowired
-	private JdbcClient client;
+	private LockRepository client;
 
 	@Before
 	public void clear() {

@@ -26,7 +26,7 @@ import java.io.Closeable;
  * @author Dave Syer
  *
  */
-public interface JdbcClient extends Closeable {
+public interface LockRepository extends Closeable {
 
 	boolean isAcquired(String lock);
 

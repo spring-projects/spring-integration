@@ -29,7 +29,7 @@
 		<constructor-arg name="client" ref="lockClient"/>
 	</bean>
 
-	<bean id="lockClient" class="org.springframework.integration.jdbc.lock.DefaultJdbcClient">
+	<bean id="lockClient" class="org.springframework.integration.jdbc.lock.DefaultLockRepository">
 		<constructor-arg name="dataSource" ref="dataSource"/>
 	</bean>
 	

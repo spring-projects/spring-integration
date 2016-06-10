@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 
 @Component
 @Transactional
-class DefaultJdbcClient implements JdbcClient {
+public class DefaultLockRepository implements LockRepository {
 
 	/**
 	 * Default value for the table prefix property.
@@ -74,7 +74,7 @@ class DefaultJdbcClient implements JdbcClient {
 	private volatile String region = "DEFAULT";
 
 	@Autowired
-	DefaultJdbcClient(DataSource dataSource) {
+	DefaultLockRepository(DataSource dataSource) {
 		this.template = new JdbcTemplate(dataSource);
 	}
 
