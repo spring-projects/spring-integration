@@ -25,10 +25,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
+import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.util.Assert;
 
 /**
@@ -109,10 +111,21 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 		@Override
 		public void lock() {
 			this.delegate.lock();
+			boolean locked = false;
 			try {
-				boolean acquired = this.mutex.acquire(this.path);
-				if (acquired) {
-					this.lastUsed = System.currentTimeMillis();
+				// this is a bit ugly, but...
+				while (!locked) {
+					try {
+						locked = doLock();
+					} catch (TransactionTimedOutException e) {
+						// try again
+					} catch (DuplicateKeyException e) {
+						// try again
+					}
+					catch (RuntimeException e) {
+						this.delegate.unlock();
+						throw e;
+					}
 				}
 			}
 			catch (Exception e) {
@@ -139,6 +152,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				catch (RuntimeException e) {
 					this.delegate.unlock();
 					throw e;
+				}
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException();
 				}
 			}
 		}
