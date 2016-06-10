@@ -40,9 +40,8 @@ import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import reactor.core.support.Assert;
 
 /**
  * The {@link AbstractMessageSplitter} implementation to split the {@link File}
