@@ -117,9 +117,11 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				while (!locked) {
 					try {
 						locked = doLock();
-					} catch (TransactionTimedOutException e) {
+					}
+					catch (TransactionTimedOutException e) {
 						// try again
-					} catch (DuplicateKeyException e) {
+					}
+					catch (DuplicateKeyException e) {
 						// try again
 					}
 					catch (RuntimeException e) {
@@ -148,6 +150,12 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			while (!locked) {
 				try {
 					locked = doLock();
+				}
+				catch (TransactionTimedOutException e) {
+					throw new InterruptedException("Transaction timed out");
+				}
+				catch (DuplicateKeyException e) {
+					throw new InterruptedException("Duplicate key");
 				}
 				catch (RuntimeException e) {
 					this.delegate.unlock();
