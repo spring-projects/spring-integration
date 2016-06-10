@@ -85,11 +85,11 @@ import org.springframework.util.StringUtils;
  * As such, the {@link JdbcChannelMessageStore} uses database specific SQL queries.
  * </p>
  * <p>
- * Contrary to the {@link JdbcMessageStore}, this implementation uses one single
- * database table only and optimized for queue behaviour.
- * The SQL scripts to create the necessary table are packaged
- * under <code>org/springframework/integration/jdbc/messagestore/channel/schema-*.sql</code>,
- * where <code>*</code> denotes the target database type.
+ * Contrary to the {@link JdbcMessageStore}, this implementation uses a single database table,
+ * optimized to operate like a queue
+ * The SQL scripts for creating the table are packaged
+ * under {@code org/springframework/integration/jdbc/messagestore/channel/schema-*.sql},
+ * where {@code *} denotes the target database type.
  * </p>
  *
  * @author Gunnar Hillert
