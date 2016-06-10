@@ -10,7 +10,7 @@ RDBMS).
 
 Spring Integration provides support for the _Message Store_ pattern by a) defining a `org.springframework.integration.store.MessageStore` strategy interface, b) providing several implementations of this interface, and c) exposing a `message-store` attribute on all components that have the capability to buffer messages so that you can inject any instance that implements the `MessageStore` interface.
 
-Details on how to configure a specific _Message Store_ implementation and/or how to inject a `MessageStore` implementation into a specific buffering component are described throughout the manual (see the specific component, such as _QueueChannel_, _Aggregator_, _Resequencer_ etc.), but here are a couple of samples to give you an idea:
+Details on how to configure a specific _Message Store_ implementation and/or how to inject a `MessageStore` implementation into a specific buffering component are described throughout the manual (see the specific component, such as <<channel-configuration-queuechannel,_QueueChannel_>>, <<aggregator,_Aggregator_>>, <<delayer,_Delayer_>> etc.), but here are a couple of samples to give you an idea:
 
 QueueChannel
 [source,xml]
@@ -62,7 +62,7 @@ For more information, refer to the <<header-enricher>>.
 
 _Spring Integration 4.0_ introduced two new interfaces `ChannelMessageStore` - to implement operations specific for `QueueChannel` s, `PriorityCapableChannelMessageStore` - to mark `MessageStore` implementation to be used for `PriorityChannel` s and to provide _priority_ order for persisted Messages.
 The real behaviour depends on implementation.
-The Framework provides these implementations, which can be used as a persistent `MessageStore` for `PriorityChannel`:
+The Framework provides these implementations, which can be used as a persistent `MessageStore` for `QueueChannel` and `PriorityChannel`:
 
 * <<redis-cms>>
 * <<mongodb-priority-channel-message-store>>
