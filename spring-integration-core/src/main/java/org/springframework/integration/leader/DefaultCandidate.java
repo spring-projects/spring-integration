@@ -16,16 +16,20 @@
 
 package org.springframework.integration.leader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Simple {@link Candidate} for leadership.
  * This implementation simply logs when it is elected and when its leadership is revoked.
+ *
+ * @author Janne Valkealahti
+ * @author Artem Bilan
+ * @since 4.2
  */
 public class DefaultCandidate extends AbstractCandidate {
 
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private volatile Context leaderContext;
 
@@ -48,13 +52,17 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	@Override
 	public void onGranted(Context ctx) {
-		this.logger.info("{} has been granted leadership; context: {}", this, ctx);
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info(this + " has been granted leadership; context: " + ctx);
+		}
 		this.leaderContext = ctx;
 	}
 
 	@Override
 	public void onRevoked(Context ctx) {
-		this.logger.info("{} leadership has been revoked", this, ctx);
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info(this + " leadership has been revoked: " + ctx);
+		}
 	}
 
 	/**
