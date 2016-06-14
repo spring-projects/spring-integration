@@ -25,6 +25,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -111,58 +113,59 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 		@Override
 		public void lock() {
 			this.delegate.lock();
-			try {
-				while (true) {
-					try {
-						while (!doLock()) {
-							Thread.sleep(100);
-						}
-						break;
+			while (true) {
+				try {
+					while (!doLock()) {
+						Thread.sleep(100); //NOSONAR
 					}
-					catch (TransactionTimedOutException e) {
-						// try again
-					}
-					catch (InterruptedException e) {
+					break;
+				}
+				catch (TransactionTimedOutException e) {
+					// try again
+				}
+				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
 						 * interrupts and only break out of the while loop when
 						 * we get the lock.
 						 */
-					}
+				}
+				catch (Exception e) {
+					this.delegate.unlock();
+					rethrowAsLockException(e);
 				}
 			}
-			catch (Exception e) {
-				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
-			}
+		}
+
+		private void rethrowAsLockException(Exception e) {
+			throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
 		}
 
 		@Override
 		public void lockInterruptibly() throws InterruptedException {
 			this.delegate.lockInterruptibly();
-			try {
-				while (true) {
-					try {
-						while (!this.doLock()) {
-							Thread.sleep(100);
-							if (Thread.currentThread().isInterrupted()) {
-								throw new InterruptedException();
-							}
+			while (true) {
+				try {
+					while (!doLock()) {
+						Thread.sleep(100); //NOSONAR
+						if (Thread.currentThread().isInterrupted()) {
+							throw new InterruptedException();
 						}
-						break;
 					}
-					catch (TransactionTimedOutException e) {
-						// try again
-					}
+					break;
 				}
-			}
-			catch (InterruptedException ie) {
-				this.delegate.unlock();
-				throw ie;
-			}
-			catch (Exception e) {
-				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
+				catch (TransactionTimedOutException e) {
+					// try again
+				}
+				catch (InterruptedException ie) {
+					this.delegate.unlock();
+					Thread.currentThread().interrupt();
+					throw ie;
+				}
+				catch (Exception e) {
+					this.delegate.unlock();
+					rethrowAsLockException(e);
+				}
 			}
 		}
 
@@ -183,27 +186,25 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			if (!this.delegate.tryLock(time, unit)) {
 				return false;
 			}
-			try {
-				long expire = now + TimeUnit.MILLISECONDS.convert(time, unit);
-				boolean acquired;
-				while (true) {
-					try {
-						while (!(acquired = doLock()) && System.currentTimeMillis() < expire) {
-							Thread.sleep(100);
-						}
-						if (!acquired) {
-							this.delegate.unlock();
-						}
-						return acquired;
+			long expire = now + TimeUnit.MILLISECONDS.convert(time, unit);
+			boolean acquired;
+			while (true) {
+				try {
+					while (!(acquired = doLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+						Thread.sleep(100); //NOSONAR
 					}
-					catch (TransactionTimedOutException e) {
-						// try again
+					if (!acquired) {
+						this.delegate.unlock();
 					}
+					return acquired;
 				}
-			}
-			catch (Exception e) {
-				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
+				catch (TransactionTimedOutException e) {
+					// try again
+				}
+				catch (Exception e) {
+					this.delegate.unlock();
+					rethrowAsLockException(e);
+				}
 			}
 		}
 
@@ -228,7 +229,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				this.mutex.delete(this.path);
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Failed to release mutex at " + this.path, e);
+				throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
 			}
 			finally {
 				this.delegate.unlock();

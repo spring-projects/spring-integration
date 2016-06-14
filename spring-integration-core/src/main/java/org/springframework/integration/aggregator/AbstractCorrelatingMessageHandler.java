@@ -63,9 +63,9 @@ import org.springframework.util.CollectionUtils;
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
  * {@link MessageStore}. This class takes care of correlated groups of messages
- * that can be completed in batches. It is useful for custom implementation of MessageHandlers that require correlation
- * and is used as a base class for Aggregator - {@link AggregatingMessageHandler} and
- * Resequencer - {@link ResequencingMessageHandler},
+ * that can be completed in batches. It is useful for custom implementation of
+ * MessageHandlers that require correlation and is used as a base class for Aggregator -
+ * {@link AggregatingMessageHandler} and Resequencer - {@link ResequencingMessageHandler},
  * or custom implementations requiring correlation.
  * <p>
  * To customize this handler inject {@link CorrelationStrategy},
@@ -94,9 +94,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
 
-	protected volatile MessageGroupStore messageStore;
-
 	private final MessageGroupProcessor outputProcessor;
+
+	private volatile MessageGroupStore messageStore;
 
 	private volatile CorrelationStrategy correlationStrategy;
 
@@ -486,8 +486,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	private void discardMessage(Message<?> message) {
-		MessageChannel discardChannel = getDiscardChannel();
-		this.messagingTemplate.send(discardChannel, message);
+		this.messagingTemplate.send(getDiscardChannel(), message);
 	}
 
 	/**

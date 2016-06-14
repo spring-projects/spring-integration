@@ -82,19 +82,20 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		}
 		else {
 			Object groupId = messageGroup.getGroupId();
+			MessageGroupStore messageStore = getMessageStore();
 			if (completedMessages != null) {
 				int lastReleasedSequenceNumber = findLastReleasedSequenceNumber(groupId, completedMessages);
-				this.messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
-				if (this.messageStore instanceof SimpleMessageStore
+				messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedSequenceNumber);
+				if (messageStore instanceof SimpleMessageStore
 						&& completedMessages.size() == messageGroup.size()) {
-					((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
+					((SimpleMessageStore) messageStore).clearMessageGroup(groupId);
 				}
 				else {
-					this.messageStore.removeMessagesFromGroup(groupId, completedMessages);
+					messageStore.removeMessagesFromGroup(groupId, completedMessages);
 				}
 			}
 			if (timeout) {
-				this.messageStore.completeGroup(groupId);
+				messageStore.completeGroup(groupId);
 			}
 		}
 	}

@@ -52,11 +52,16 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
+	/**
+	 * Default value for the time-to-live property.
+	 */
+	public static final int DEFAULT_TTL = 10000;
+
 	private final String id = UUID.randomUUID().toString();
 
 	private final JdbcTemplate template;
 
-	private int ttl = 10000;
+	private int ttl = DEFAULT_TTL;
 
 	private String prefix = DEFAULT_TABLE_PREFIX;
 
@@ -108,7 +113,7 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		this.deleteQuery = String.format(this.deleteQuery, this.prefix);
 		this.deleteExpiredQuery = String.format(this.deleteExpiredQuery, this.prefix);
 		this.deleteAllQuery = String.format(this.deleteAllQuery, this.prefix);

@@ -36,6 +36,7 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -80,6 +81,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Konstantin Yakimov
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -155,7 +157,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		this.redisTemplate = new RedisTemplate<String, RedisLockRegistry.RedisLock>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
-		this.redisTemplate.setValueSerializer(new LockSerializer());
+		this.redisTemplate.setValueSerializer(this.lockSerializer);
 		this.redisTemplate.afterPropertiesSet();
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
@@ -323,27 +325,29 @@ public final class RedisLockRegistry implements LockRegistry {
 		public void lock() {
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			localLock.lock();
-			try {
-				while (true) {
-					try {
-						while (!this.obtainLock()) {
-							Thread.sleep(100);
-						}
-						break;
+			while (true) {
+				try {
+					while (!this.obtainLock()) {
+						Thread.sleep(100); //NOSONAR
 					}
-					catch (InterruptedException e) {
+					break;
+				}
+				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
 						 * interrupts and only break out of the while loop when
 						 * we get the lock.
 						 */
-					}
+				}
+				catch (Exception e) {
+					localLock.unlock();
+					rethrowAsLockException(e);
 				}
 			}
-			catch (Exception e) {
-				localLock.unlock();
-				throw new RuntimeException(e);
-			}
+		}
+
+		private void rethrowAsLockException(Exception e) {
+			throw new CannotAcquireLockException("Failed to lock mutex at " + this.lockKey, e);
 		}
 
 		@Override
@@ -352,16 +356,17 @@ public final class RedisLockRegistry implements LockRegistry {
 			localLock.lockInterruptibly();
 			try {
 				while (!this.obtainLock()) {
-					Thread.sleep(100);
+					Thread.sleep(100); //NOSONAR
 				}
 			}
 			catch (InterruptedException ie) {
 				localLock.unlock();
+				Thread.currentThread().interrupt();
 				throw ie;
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				rethrowAsLockException(e);
 			}
 		}
 
@@ -380,8 +385,9 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				rethrowAsLockException(e);
 			}
+			return false;
 		}
 
 		private boolean obtainLock() {
@@ -455,9 +461,9 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			try {
 				long expire = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
-				boolean acquired = false;
-				while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
-					Thread.sleep(100);
+				boolean acquired;
+				while (!(acquired = obtainLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+					Thread.sleep(100); //NOSONAR
 				}
 				if (!acquired) {
 					localLock.unlock();
@@ -466,8 +472,9 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				rethrowAsLockException(e);
 			}
+			return false;
 		}
 
 		@Override
