@@ -25,6 +25,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -115,7 +116,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				while (true) {
 					try {
 						while (!doLock()) {
-							Thread.sleep(100);
+							Thread.sleep(100); //NOSONAR
 						}
 						break;
 					}
@@ -133,7 +134,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
+				throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
 			}
 		}
 
@@ -144,7 +145,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				while (true) {
 					try {
 						while (!this.doLock()) {
-							Thread.sleep(100);
+							Thread.sleep(100); //NOSONAR
 							if (Thread.currentThread().isInterrupted()) {
 								throw new InterruptedException();
 							}
@@ -156,13 +157,14 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 				}
 			}
-			catch (InterruptedException ie) {
-				this.delegate.unlock();
-				throw ie;
-			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
+				if (e instanceof InterruptedException) {
+					throw (InterruptedException) e;
+				}
+				else {
+					throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
+				}
 			}
 		}
 
@@ -188,8 +190,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				boolean acquired;
 				while (true) {
 					try {
-						while (!(acquired = doLock()) && System.currentTimeMillis() < expire) {
-							Thread.sleep(100);
+						while (!(acquired = doLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+							Thread.sleep(100); //NOSONAR
 						}
 						if (!acquired) {
 							this.delegate.unlock();
@@ -203,7 +205,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new RuntimeException("Failed to lock mutex at " + this.path, e);
+				throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
 			}
 		}
 
@@ -228,7 +230,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				this.mutex.delete(this.path);
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Failed to release mutex at " + this.path, e);
+				throw new CannotAcquireLockException("Failed to release mutex at " + this.path, e);
 			}
 			finally {
 				this.delegate.unlock();

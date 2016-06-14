@@ -37,6 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
@@ -80,6 +81,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Konstantin Yakimov
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -327,7 +329,7 @@ public final class RedisLockRegistry implements LockRegistry {
 				while (true) {
 					try {
 						while (!this.obtainLock()) {
-							Thread.sleep(100);
+							Thread.sleep(100); //NOSONAR
 						}
 						break;
 					}
@@ -342,7 +344,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
 			}
 		}
 
@@ -352,7 +354,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			localLock.lockInterruptibly();
 			try {
 				while (!this.obtainLock()) {
-					Thread.sleep(100);
+					Thread.sleep(100); //NOSONAR
 				}
 			}
 			catch (InterruptedException ie) {
@@ -361,7 +363,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
 			}
 		}
 
@@ -380,7 +382,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
 			}
 		}
 
@@ -455,9 +457,9 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			try {
 				long expire = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
-				boolean acquired = false;
-				while (!(acquired = this.obtainLock()) && System.currentTimeMillis() < expire) {
-					Thread.sleep(100);
+				boolean acquired;
+				while (!(acquired = obtainLock()) && System.currentTimeMillis() < expire) { //NOSONAR
+					Thread.sleep(100); //NOSONAR
 				}
 				if (!acquired) {
 					localLock.unlock();
@@ -466,7 +468,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RuntimeException(e);
+				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
 			}
 		}
 
