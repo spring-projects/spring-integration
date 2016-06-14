@@ -302,9 +302,15 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 //		compile ("org.springframework.cloud:spring-cloud-cluster-core:$springCloudClusterVersion", optional)
-		compile ("io.projectreactor:reactor-stream:$reactorVersion", optional)
+		compile ("io.projectreactor:reactor-stream:$reactorVersion") {
+			optional it
+			exclude group: 'org.slf4j', module: 'slf4j-api'
+		}
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
-		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)
+		compile("com.jayway.jsonpath:json-path:$jsonpathVersion") {
+			optional it
+			exclude group: 'org.slf4j', module: 'slf4j-api'
+		}
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 

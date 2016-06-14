@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.leader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Simple {@link Candidate} for leadership.
  * This implementation simply logs when it is elected and when its leadership is revoked.
+ *
+ * @author Janne Valkealahti
+ * @author Artem Bilan
+ * @since 4.2
  */
 public class DefaultCandidate extends AbstractCandidate {
 
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private volatile Context leaderContext;
 
@@ -47,13 +52,17 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	@Override
 	public void onGranted(Context ctx) {
-		logger.info("{} has been granted leadership; context: {}", this, ctx);
-		leaderContext = ctx;
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info(this + " has been granted leadership; context: " + ctx);
+		}
+		this.leaderContext = ctx;
 	}
 
 	@Override
 	public void onRevoked(Context ctx) {
-		logger.info("{} leadership has been revoked", this, ctx);
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info(this + " leadership has been revoked: " + ctx);
+		}
 	}
 
 	/**
@@ -63,8 +72,8 @@ public class DefaultCandidate extends AbstractCandidate {
 	 * leader initiator.
 	 */
 	public void yieldLeadership() {
-		if (leaderContext != null) {
-			leaderContext.yield();
+		if (this.leaderContext != null) {
+			this.leaderContext.yield();
 		}
 	}
 
