@@ -36,6 +36,7 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -344,8 +345,12 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
+				rethrowAsLockException(e);
 			}
+		}
+
+		private void rethrowAsLockException(Exception e) {
+			throw new CannotAcquireLockException("Failed to lock mutex at " + this.lockKey, e);
 		}
 
 		@Override
@@ -359,11 +364,12 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (InterruptedException ie) {
 				localLock.unlock();
+				Thread.currentThread().interrupt();
 				throw ie;
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
+				rethrowAsLockException(e);
 			}
 		}
 
@@ -382,7 +388,8 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
+				rethrowAsLockException(e);
+				return false;
 			}
 		}
 

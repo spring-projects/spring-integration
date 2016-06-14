@@ -26,6 +26,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -134,8 +135,12 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
+				rethrowAsLockException(e);
 			}
+		}
+
+		private void rethrowAsLockException(Exception e) {
+			throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
 		}
 
 		@Override
@@ -157,14 +162,14 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 				}
 			}
+			catch (InterruptedException ie) {
+				this.delegate.unlock();
+				Thread.currentThread().interrupt();
+				throw ie;
+			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				if (e instanceof InterruptedException) {
-					throw (InterruptedException) e;
-				}
-				else {
-					throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
-				}
+				rethrowAsLockException(e);
 			}
 		}
 
@@ -205,7 +210,8 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 			}
 			catch (Exception e) {
 				this.delegate.unlock();
-				throw new CannotAcquireLockException("Failed to lock mutex at " + this.path, e);
+				rethrowAsLockException(e);
+				return false;
 			}
 		}
 
@@ -230,7 +236,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				this.mutex.delete(this.path);
 			}
 			catch (Exception e) {
-				throw new CannotAcquireLockException("Failed to release mutex at " + this.path, e);
+				throw new DataAccessResourceFailureException("Failed to release mutex at " + this.path, e);
 			}
 			finally {
 				this.delegate.unlock();

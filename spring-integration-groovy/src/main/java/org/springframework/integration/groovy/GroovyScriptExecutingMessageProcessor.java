@@ -16,6 +16,8 @@
 
 package org.springframework.integration.groovy;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -66,7 +68,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private volatile ScriptSource scriptSource;
 
-	private volatile GroovyClassLoader groovyClassLoader = new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
+	private volatile GroovyClassLoader groovyClassLoader = AccessController.doPrivileged(
+			new PrivilegedAction<GroovyClassLoader>() {
+
+				public GroovyClassLoader run() {
+					return new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
+				}
+
+			});
 
 	private volatile Class<?> scriptClass;
 
