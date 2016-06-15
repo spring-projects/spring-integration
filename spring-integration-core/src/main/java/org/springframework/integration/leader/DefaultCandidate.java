@@ -16,8 +16,8 @@
 
 package org.springframework.integration.leader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Simple {@link Candidate} for leadership.
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultCandidate extends AbstractCandidate {
 
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile Context leaderContext;
 
@@ -48,13 +48,13 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	@Override
 	public void onGranted(Context ctx) {
-		this.logger.info("{} has been granted leadership; context: {}", this, ctx);
+		this.logger.info(this + " has been granted leadership; context: " + ctx);
 		this.leaderContext = ctx;
 	}
 
 	@Override
 	public void onRevoked(Context ctx) {
-		this.logger.info("{} leadership has been revoked", this, ctx);
+		this.logger.info(this + " leadership has been revoked");
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class DefaultCandidate extends AbstractCandidate {
 
 	@Override
 	public String toString() {
-		return String.format("DefaultCandidate{role=%s, id=%s}", getRole(), getId());
+		return String.format("DefaultCandidate{role=" + getRole() + ", id=" + getId() + "}");
 	}
 
 }
