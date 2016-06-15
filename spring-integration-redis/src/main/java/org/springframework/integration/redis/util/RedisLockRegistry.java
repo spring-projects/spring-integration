@@ -38,7 +38,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
