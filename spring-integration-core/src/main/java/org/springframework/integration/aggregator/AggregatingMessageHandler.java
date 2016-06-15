@@ -64,17 +64,18 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 		Object groupId = messageGroup.getGroupId();
-		this.messageStore.completeGroup(groupId);
+		MessageGroupStore messageStore = getMessageStore();
+		messageStore.completeGroup(groupId);
 
 		if (this.expireGroupsUponCompletion) {
 			remove(messageGroup);
 		}
 		else {
-			if (this.messageStore instanceof SimpleMessageStore) {
-				((SimpleMessageStore) this.messageStore).clearMessageGroup(groupId);
+			if (messageStore instanceof SimpleMessageStore) {
+				((SimpleMessageStore) messageStore).clearMessageGroup(groupId);
 			}
 			else {
-				this.messageStore.removeMessagesFromGroup(groupId, messageGroup.getMessages());
+				messageStore.removeMessagesFromGroup(groupId, messageGroup.getMessages());
 			}
 		}
 	}

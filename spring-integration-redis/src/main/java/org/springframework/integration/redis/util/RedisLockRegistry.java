@@ -158,7 +158,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		this.redisTemplate = new RedisTemplate<String, RedisLockRegistry.RedisLock>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
-		this.redisTemplate.setValueSerializer(new LockSerializer());
+		this.redisTemplate.setValueSerializer(this.lockSerializer);
 		this.redisTemplate.afterPropertiesSet();
 		this.registryKey = registryKey;
 		this.expireAfter = expireAfter;
@@ -326,26 +326,24 @@ public final class RedisLockRegistry implements LockRegistry {
 		public void lock() {
 			Lock localLock = RedisLockRegistry.this.localRegistry.obtain(this.lockKey);
 			localLock.lock();
-			try {
-				while (true) {
-					try {
-						while (!this.obtainLock()) {
-							Thread.sleep(100); //NOSONAR
-						}
-						break;
+			while (true) {
+				try {
+					while (!this.obtainLock()) {
+						Thread.sleep(100); //NOSONAR
 					}
-					catch (InterruptedException e) {
+					break;
+				}
+				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
 						 * interrupts and only break out of the while loop when
 						 * we get the lock.
 						 */
-					}
 				}
-			}
-			catch (Exception e) {
-				localLock.unlock();
-				rethrowAsLockException(e);
+				catch (Exception e) {
+					localLock.unlock();
+					rethrowAsLockException(e);
+				}
 			}
 		}
 
@@ -389,8 +387,8 @@ public final class RedisLockRegistry implements LockRegistry {
 			catch (Exception e) {
 				localLock.unlock();
 				rethrowAsLockException(e);
-				return false;
 			}
+			return false;
 		}
 
 		private boolean obtainLock() {
@@ -475,8 +473,9 @@ public final class RedisLockRegistry implements LockRegistry {
 			}
 			catch (Exception e) {
 				localLock.unlock();
-				throw new RedisSystemException("Failed to lock mutex at " + this.lockKey, e);
+				rethrowAsLockException(e);
 			}
+			return false;
 		}
 
 		@Override
