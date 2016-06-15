@@ -281,6 +281,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			else if (channelKey instanceof String) {
 				addChannelFromString(channels, (String) channelKey, message);
 			}
+			else if (channelKey instanceof Class) {
+				addChannelFromString(channels, ((Class<?>) channelKey).getName(), message);
+			}
 			else if (channelKey instanceof String[]) {
 				for (String indicatorName : (String[]) channelKey) {
 					addChannelFromString(channels, indicatorName, message);

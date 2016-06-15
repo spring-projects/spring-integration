@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,10 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+/**
+ * @author Gary Russell
+ * @since 2.0
+ */
 public class TcpInboundGatewayTests {
 
 	@Test
@@ -82,8 +86,8 @@ public class TcpInboundGatewayTests {
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
-		handler.handleMessage(channel.receive(1000));
-		handler.handleMessage(channel.receive(1000));
+		handler.handleMessage(channel.receive(10000));
+		handler.handleMessage(channel.receive(10000));
 		byte[] bytes = new byte[12];
 		readFully(socket1.getInputStream(), bytes);
 		assertEquals("Echo:Test1\r\n", new String(bytes));
@@ -275,24 +279,28 @@ public class TcpInboundGatewayTests {
 	}
 
 
-	private class Service {
-		@SuppressWarnings("unused")
-		public String serviceMethod(byte[] bytes) {
-			return "Echo:" + new String(bytes);
-		}
-	}
-
-	private class FailingService {
-		@SuppressWarnings("unused")
-		public String serviceMethod(byte[] bytes) {
-			throw new RuntimeException("Planned Failure For Tests");
-		}
-	}
-
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();
 		}
+	}
+
+	private class Service {
+
+		@SuppressWarnings("unused")
+		public String serviceMethod(byte[] bytes) {
+			return "Echo:" + new String(bytes);
+		}
+
+	}
+
+	private class FailingService {
+
+		@SuppressWarnings("unused")
+		public String serviceMethod(byte[] bytes) {
+			throw new RuntimeException("Planned Failure For Tests");
+		}
+
 	}
 
 }

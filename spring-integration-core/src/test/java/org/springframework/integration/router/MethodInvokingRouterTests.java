@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingRouterTests {
 
@@ -548,6 +549,32 @@ public class MethodInvokingRouterTests {
 
 	}
 
+	@Test
+	public void testClassAsKeyResolution() {
+		QueueChannel stringsChannel = new QueueChannel();
+		QueueChannel numbersChannel = new QueueChannel();
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		channelResolver.addChannel("stringsChannel", stringsChannel);
+		channelResolver.addChannel("numbersChannel", numbersChannel);
+
+		MethodInvokingRouter router = new MethodInvokingRouter(new ClassAsKeyTestBean());
+		router.setChannelResolver(channelResolver);
+		router.setChannelMapping(String.class.getName(), "stringsChannel");
+		router.setChannelMapping(Integer.class.getName(), "numbersChannel");
+
+		Message<?> message = new GenericMessage<>("bar");
+		router.handleMessage(message);
+		Message<?> replyMessage = stringsChannel.receive(10000);
+		assertNotNull(replyMessage);
+		assertEquals(message, replyMessage);
+
+		message = new GenericMessage<>(11);
+		router.handleMessage(message);
+		replyMessage = numbersChannel.receive(10000);
+		assertNotNull(replyMessage);
+		assertEquals(message, replyMessage);
+	}
+
 
 	public static class SingleChannelNameRoutingTestBean {
 
@@ -664,6 +691,14 @@ public class MethodInvokingRouterTests {
 				results[1] = channelResolver.resolveDestination("bar-channel");
 			}
 			return results;
+		}
+
+	}
+
+	private static class ClassAsKeyTestBean {
+
+		public Class<?> routePayload(Object payload) {
+			return payload.getClass();
 		}
 
 	}
