@@ -76,7 +76,7 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 
 	@Autowired
-	DefaultLockRepository(DataSource dataSource) {
+	public DefaultLockRepository(DataSource dataSource) {
 		this.template = new JdbcTemplate(dataSource);
 	}
 
