@@ -630,4 +630,26 @@ The `SmartLifecycleRoleController` implements `ApplicationListener<AbstractLeade
 start/stop its configured `SmartLifecycle` objects when leadership is granted/revoked (when some bean publishes
 `OnGrantedEvent` or `OnRevokedEvent` respectively).
 
-See <<zk-leadership>> for more information about leadership election and events.
+[[leadership-event-handling]]
+=== Leadership Event Handling
+
+Groups of endpoints can be started/stopped based on leadership being granted or revoked respectively.
+This is useful in clustered scenarios where shared resources must only be consumed by a single instance.
+An example of this is a file inbound channel adapter that is polling a shared directory.
+(See <<file-reading>>).
+
+To participate in a leader election and be notified when elected leader or when leadership is revoked, an application creates a component in the application context called a "leader initiator". Normally a leader initiator is a `SmartLifecycle` so it starts up (optionally) automatically when the context starts, and then publishes notifications when leadership changes. By convention the user provides a `Candidate` that receives the callbacks and also can revoke the leadership through a `Context` object provided by the framework. User code can also listen for `AbstractLeaderEvents`, and respond accordingly, for instance using a `SmartLifecycleRoleController`.
+
+There is a basic implementation of a leader initiator based on the `LockRegistry` abstraction. To use it you just need to create an instance as a bean, for example:
+
+[source, java]
+----
+@Bean
+public LockRegistryLeaderInitiator leaderInitiator(LockRegistry locks) {
+    return new LockRegistryLeaderInitiator(locks);
+}
+----
+
+If the lock registry is implemented correctly, there will only ever be at most one leader. If the lock registry also provides locks which throw exceptions (ideally `InterruptedException`) when they expire or are broken, then the duration of the leaderless periods can be as short as is allowed by the inherent latency in the lock implementation. By default there is a `busyWaitMillis` property that adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect and you only know they expired by trying to obtain one again.
+
+See <<zk-leadership>> for more information about leadership election and events using Zookeeper.

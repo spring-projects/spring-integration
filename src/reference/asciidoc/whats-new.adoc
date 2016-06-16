@@ -48,6 +48,11 @@ See <<integration-graph>> for more information.
 A new `JdbcLockRegistry` is provided for distributed locks shared through the data base table.
 See <<jdbc-lock-registry>> for more information.
 
+==== Leader Initiator for Lock Registry
+
+A new `LeaderInitiator` implementation is provided based on the `LockRegistry` strategy.
+See <<leadership-event-handling>> for more information.
+
 [[x4.3-general]]
 === General Changes
 

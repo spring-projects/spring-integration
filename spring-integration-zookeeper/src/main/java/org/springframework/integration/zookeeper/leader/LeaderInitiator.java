@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Patrick Peralta
  * @author Janne Valkealahti
  * @author Gary Russell
- *
+ * @since 4.2
  */
 public class LeaderInitiator implements SmartLifecycle {
 
@@ -68,7 +68,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	private volatile boolean autoStartup = true;
 
 	/**
-	 * @See SmartLifecycle which is an extension of org.springframework.context.Phased
+	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
 	private volatile int phase;
 
@@ -214,7 +214,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Implementation of Curator leadership election listener.
 	 */
-	class LeaderListener extends LeaderSelectorListenerAdapter {
+	protected class LeaderListener extends LeaderSelectorListenerAdapter {
 
 		@Override
 		public void takeLeadership(CuratorFramework framework) throws Exception {
@@ -223,7 +223,8 @@ public class LeaderInitiator implements SmartLifecycle {
 			try {
 				LeaderInitiator.this.candidate.onGranted(context);
 				if (LeaderInitiator.this.leaderEventPublisher != null) {
-					LeaderInitiator.this.leaderEventPublisher.publishOnGranted(LeaderInitiator.this, context, LeaderInitiator.this.candidate.getRole());
+					LeaderInitiator.this.leaderEventPublisher.publishOnGranted(LeaderInitiator.this, context,
+							LeaderInitiator.this.candidate.getRole());
 				}
 
 				// when this method exits, the leadership will be revoked;
@@ -239,7 +240,8 @@ public class LeaderInitiator implements SmartLifecycle {
 			finally {
 				LeaderInitiator.this.candidate.onRevoked(context);
 				if (LeaderInitiator.this.leaderEventPublisher != null) {
-					LeaderInitiator.this.leaderEventPublisher.publishOnRevoked(LeaderInitiator.this, context, LeaderInitiator.this.candidate.getRole());
+					LeaderInitiator.this.leaderEventPublisher.publishOnRevoked(LeaderInitiator.this, context,
+							LeaderInitiator.this.candidate.getRole());
 				}
 			}
 		}
@@ -248,7 +250,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * Implementation of leadership context backed by Curator.
 	 */
-	class CuratorContext implements Context {
+	private class CuratorContext implements Context {
 
 		@Override
 		public boolean isLeader() {
@@ -262,8 +264,9 @@ public class LeaderInitiator implements SmartLifecycle {
 
 		@Override
 		public String toString() {
-			return String.format("CuratorContext{role=%s, id=%s, isLeader=%s}",
-					LeaderInitiator.this.candidate.getRole(), LeaderInitiator.this.candidate.getId(), isLeader());
+			return "LockContext{role=" + LeaderInitiator.this.candidate.getRole() +
+					", id=" + LeaderInitiator.this.candidate.getId() +
+					", isLeader=" + isLeader() + "}";
 		}
 
 	}
