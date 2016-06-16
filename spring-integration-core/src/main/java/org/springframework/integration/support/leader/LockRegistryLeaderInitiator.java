@@ -27,10 +27,13 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
+import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
@@ -47,11 +50,12 @@ import org.springframework.integration.support.locks.LockRegistry;
  * is likely to be more efficient. If there is no native leader initiator available, but
  * there is a lock registry (e.g. on a shared database), this implementation is likely to
  * be useful.
- * 
+ *
  * @author Dave Syer
  *
  */
-public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean {
+public class LockRegistryLeaderInitiator
+		implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
 	private static final long DEFAULT_HEART_BEAT_TIME = 500L;
 
@@ -119,6 +123,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	private LeaderSelector leaderSelector;
 
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	/**
 	 * Create a new leader initiator. The candidate implementation is provided by the user
 	 * to listen for leadership events and carry out business actions.
@@ -134,11 +140,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * Create a new leader initiator with the provided lock registry and a default
 	 * candidate (which just logs the leadership events).
-	 * 
+	 *
 	 * @param locks lock registry
 	 */
-	public LockRegistryLeaderInitiator(LockRegistry client) {
-		this(client, new DefaultCandidate());
+	public LockRegistryLeaderInitiator(LockRegistry locks) {
+		this(locks, new DefaultCandidate());
+	}
+
+	@Override
+	public void setApplicationEventPublisher(
+			ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
@@ -207,10 +219,14 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	@Override
 	public void start() {
+		if (this.leaderEventPublisher == null && this.applicationEventPublisher != null) {
+			this.leaderEventPublisher = new DefaultLeaderEventPublisher(
+					this.applicationEventPublisher);
+		}
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
 				this.leaderSelector = new LeaderSelector(buildLeaderPath());
-				this.future = executorService.submit(leaderSelector);
+				this.future = this.executorService.submit(this.leaderSelector);
 				this.running = true;
 				logger.debug("Started LeaderInitiator");
 			}
@@ -226,7 +242,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
 				this.running = false;
-				future.cancel(true);
+				this.future.cancel(true);
 				logger.debug("Stopped LeaderInitiator");
 			}
 		}
@@ -241,7 +257,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	@Override
 	public void destroy() throws Exception {
 		stop();
-		executorService.shutdown();
+		this.executorService.shutdown();
 	}
 
 	/**
@@ -264,10 +280,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * @return the context (or null if not running)
 	 */
 	public Context getContext() {
-		if (leaderSelector == null) {
+		if (this.leaderSelector == null) {
 			return NULL_CONTEXT;
 		}
-		return leaderSelector.context;
+		return this.leaderSelector.context;
 	}
 
 	class LeaderSelector implements Callable<Void> {
@@ -276,52 +292,52 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		private final LockContext context = new LockContext();
 		private volatile boolean locked = false;
 
-		public LeaderSelector(String lockKey) {
-			this.lock = locks.obtain(lockKey);
+		LeaderSelector(String lockKey) {
+			this.lock = LockRegistryLeaderInitiator.this.locks.obtain(lockKey);
 		}
 
 		@Override
 		public Void call() throws Exception {
 			try {
-				while (running) {
+				while (LockRegistryLeaderInitiator.this.running) {
 					try {
 						// We always try to acquire the lock, in case it expired
-						boolean acquired = lock.tryLock(heartBeatMillis,
+						boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
 								TimeUnit.MILLISECONDS);
-						if (!locked) {
+						if (!this.locked) {
 							if (acquired) {
 								// Success: we are now leader
-								locked = true;
-								candidate.onGranted(context);
-								if (leaderEventPublisher != null) {
-									leaderEventPublisher.publishOnGranted(
-											LockRegistryLeaderInitiator.this, context,
-											candidate.getRole());
+								this.locked = true;
+								LockRegistryLeaderInitiator.this.candidate.onGranted(this.context);
+								if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
+									LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnGranted(
+											LockRegistryLeaderInitiator.this, this.context,
+											LockRegistryLeaderInitiator.this.candidate.getRole());
 								}
 							}
 						}
 						else if (acquired) {
 							// If we were able to acquire it but we were already locked we
 							// should release it
-							lock.unlock();
+							this.lock.unlock();
 							// Give it a chance to expire.
-							Thread.sleep(heartBeatMillis);
+							Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
 						}
 						else {
 							// Try again quickly in case the lock holder dropped it
-							Thread.sleep(busyWaitMillis);
+							Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
 						}
 					}
 					catch (Exception e) {
-						if (locked) {
+						if (this.locked) {
 							// The lock was broken and we are no longer leader
-							candidate.onRevoked(context);
-							if (leaderEventPublisher != null) {
-								leaderEventPublisher.publishOnRevoked(
-										LockRegistryLeaderInitiator.this, context,
-										candidate.getRole());
+							LockRegistryLeaderInitiator.this.candidate.onRevoked(this.context);
+							if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
+								LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
+										LockRegistryLeaderInitiator.this, this.context,
+										LockRegistryLeaderInitiator.this.candidate.getRole());
 							}
-							locked = false;
+							this.locked = false;
 						}
 					}
 				}
@@ -329,7 +345,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			finally {
 				try {
 					// Clean up the lock
-					lock.unlock();
+					this.lock.unlock();
 				}
 				catch (Exception e) {
 				}
@@ -338,7 +354,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		}
 
 		public boolean isLeader() {
-			return locked;
+			return this.locked;
 		}
 
 	}
@@ -350,20 +366,20 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		@Override
 		public boolean isLeader() {
-			return leaderSelector.isLeader();
+			return LockRegistryLeaderInitiator.this.leaderSelector.isLeader();
 		}
 
 		@Override
 		public void yield() {
-			if (future != null) {
-				future.cancel(true);
+			if (LockRegistryLeaderInitiator.this.future != null) {
+				LockRegistryLeaderInitiator.this.future.cancel(true);
 			}
 		}
 
 		@Override
 		public String toString() {
 			return String.format("LockContext{role=%s, id=%s, isLeader=%s}",
-					candidate.getRole(), candidate.getId(), isLeader());
+					LockRegistryLeaderInitiator.this.candidate.getRole(), LockRegistryLeaderInitiator.this.candidate.getId(), isLeader());
 		}
 
 	}

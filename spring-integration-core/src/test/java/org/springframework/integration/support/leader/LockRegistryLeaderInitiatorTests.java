@@ -39,51 +39,51 @@ public class LockRegistryLeaderInitiatorTests {
 	private CountDownLatch granted = new CountDownLatch(1);
 	private CountDownLatch revoked = new CountDownLatch(1);
 	private LockRegistry registry = new DefaultLockRegistry();
-	private CountingPublisher publisher = new CountingPublisher(granted, revoked);
+	private CountingPublisher publisher = new CountingPublisher(this.granted, this.revoked);
 
 	private LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(
-			registry, new DefaultCandidate());
+			this.registry, new DefaultCandidate());
 
 	@Before
 	public void init() {
-		initiator.setLeaderEventPublisher(publisher);
+		this.initiator.setLeaderEventPublisher(this.publisher);
 	}
 
 	@Test
 	public void startAndStop() throws Exception {
-		assertThat(initiator.getContext().isLeader(), is(false));
-		initiator.start();
-		assertThat(initiator.isRunning(), is(true));
-		granted.await(2, TimeUnit.SECONDS);
-		assertThat(initiator.getContext().isLeader(), is(true));
+		assertThat(this.initiator.getContext().isLeader(), is(false));
+		this.initiator.start();
+		assertThat(this.initiator.isRunning(), is(true));
+		this.granted.await(2, TimeUnit.SECONDS);
+		assertThat(this.initiator.getContext().isLeader(), is(true));
 		Thread.sleep(200L);
-		assertThat(initiator.getContext().isLeader(), is(true));
-		initiator.stop();
-		revoked.await(2, TimeUnit.SECONDS);
-		assertThat(initiator.getContext().isLeader(), is(false));
+		assertThat(this.initiator.getContext().isLeader(), is(true));
+		this.initiator.stop();
+		this.revoked.await(2, TimeUnit.SECONDS);
+		assertThat(this.initiator.getContext().isLeader(), is(false));
 	}
 
 	@Test
 	public void yield() throws Exception {
-		assertThat(initiator.getContext().isLeader(), is(false));
-		initiator.start();
-		assertThat(initiator.isRunning(), is(true));
-		granted.await(2, TimeUnit.SECONDS);
-		assertThat(initiator.getContext().isLeader(), is(true));
-		initiator.getContext().yield();
-		assertThat(revoked.await(2, TimeUnit.SECONDS), is(true));
+		assertThat(this.initiator.getContext().isLeader(), is(false));
+		this.initiator.start();
+		assertThat(this.initiator.isRunning(), is(true));
+		this.granted.await(2, TimeUnit.SECONDS);
+		assertThat(this.initiator.getContext().isLeader(), is(true));
+		this.initiator.getContext().yield();
+		assertThat(this.revoked.await(2, TimeUnit.SECONDS), is(true));
 	}
 
 	@Test
 	public void competing() throws Exception {
-		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry,
+		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(this.registry,
 				new DefaultCandidate());
 		CountDownLatch other = new CountDownLatch(1);
 		another.setLeaderEventPublisher(new CountingPublisher(other));
-		initiator.start();
-		assertThat(granted.await(2, TimeUnit.SECONDS), is(true));
+		this.initiator.start();
+		assertThat(this.granted.await(2, TimeUnit.SECONDS), is(true));
 		another.start();
-		initiator.stop();
+		this.initiator.stop();
 		assertThat(other.await(2, TimeUnit.SECONDS), is(true));
 		assertThat(another.getContext().isLeader(), is(true));
 	}
@@ -92,23 +92,23 @@ public class LockRegistryLeaderInitiatorTests {
 		private CountDownLatch granted;
 		private CountDownLatch revoked;
 
-		public CountingPublisher(CountDownLatch granted, CountDownLatch revoked) {
+		CountingPublisher(CountDownLatch granted, CountDownLatch revoked) {
 			this.granted = granted;
 			this.revoked = revoked;
 		}
 
-		public CountingPublisher(CountDownLatch granted) {
+		CountingPublisher(CountDownLatch granted) {
 			this(granted, new CountDownLatch(1));
 		}
 
 		@Override
 		public void publishOnRevoked(Object source, Context context, String role) {
-			revoked.countDown();
+			this.revoked.countDown();
 		}
 
 		@Override
 		public void publishOnGranted(Object source, Context context, String role) {
-			granted.countDown();
+			this.granted.countDown();
 		}
 	}
 
