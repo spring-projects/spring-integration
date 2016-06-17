@@ -118,6 +118,8 @@ public class LockRegistryLeaderInitiator
 	 */
 	private volatile boolean running;
 
+	private static int count = 0;
+
 	/** Leader event publisher if set */
 	private volatile LeaderEventPublisher leaderEventPublisher;
 
@@ -158,9 +160,10 @@ public class LockRegistryLeaderInitiator
 	 */
 	private final ExecutorService executorService = Executors
 			.newSingleThreadExecutor(new ThreadFactory() {
+
 				@Override
 				public Thread newThread(Runnable r) {
-					Thread thread = new Thread(r, "LockRegistry leadership");
+					Thread thread = new Thread(r, "lock-leadership-" + (count++));
 					thread.setDaemon(true);
 					return thread;
 				}
