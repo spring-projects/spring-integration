@@ -141,7 +141,7 @@ subprojects { subproject ->
 		springSecurityVersion = '4.1.0.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.1.2.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.0.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.1.BUILD-SNAPSHOT'
 		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
@@ -836,7 +836,7 @@ task schemaZip(type: Zip) {
 
 	duplicatesStrategy = 'exclude'
 
-	subprojects.each { subproject ->
+	subprojects.findAll{ !it.name.endsWith('-bom') }.each { subproject ->
 		def Properties schemas = new Properties();
 		def shortName = subproject.name.replaceFirst("${rootProject.name}-", '')
 		if (subproject.name.endsWith("-core")) {
@@ -901,7 +901,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		into "${baseDir}/schema"
 	}
 
-	subprojects.each { subproject ->
+	subprojects.findAll{ !it.name.endsWith('-bom') }.each { subproject ->
 		into ("${baseDir}/libs") {
 			from subproject.jar
 			from subproject.sourcesJar
