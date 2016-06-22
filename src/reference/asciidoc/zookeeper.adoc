@@ -64,10 +64,7 @@ to time, to remove old unused locks from memory.
 [[zk-leadership]]
 === Zookeeper Leadership Event Handling
 
-Groups of endpoints can be started/stopped based on leadership being granted or revoked respectively.
-This is useful in clustered scenarios where shared resources must only be consumed by a single instance.
-An example of this is a file inbound channel adapter that is polling a shared directory.
-(See <<file-reading>>).
+To configure an application for leader election using Zookeeper in XML:
 
 [source, xml]
 ----
@@ -80,6 +77,8 @@ will be started.
 When leadership is revoked, an `OnRevokedEvent` will be published for the role `cluster`; any endpoints in that role
 will be stopped.
 See <<endpoint-roles>> for more information.
+
+In Java configuration you can create an instance of the leader initiator like this:
 
 [source, java]
 ----
