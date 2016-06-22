@@ -31,7 +31,7 @@ Also note that the `lang` attribute on the `<script>` tag is not valid in this n
 
 _Groovy object customization_
 
-If you need to customize the Groovy object itself, beyond setting variables, you can reference a bean that implements `org.springframework.scripting.groovy.GroovyObjectCustomizer` via the `customizer` attribute.
+If you need to customize the Groovy object itself, beyond setting variables, you can reference a bean that implements `GroovyObjectCustomizer` via the `customizer` attribute.
 For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script:
 [source,xml]
 ----
@@ -50,10 +50,10 @@ Also, groovy scripts have the ability to resolve a variable to a bean in the `Be
 [source,xml]
 ----
 <int-groovy:script>
-	<![CDATA[
-		entityManager.persist(payload)
-		payload
-	]]>
+    <![CDATA[
+        entityManager.persist(payload)
+        payload
+    ]]>
 </int-groovy:script>
 ----
 
@@ -126,7 +126,7 @@ In Spring Integration we build upon the adapters described above so that it's po
 One option for those operations is Groovy scripts.
 [source,xml]
 ----
- <int-groovy:control-bus input-channel="operationChannel"/>
+<int-groovy:control-bus input-channel="operationChannel"/>
 ----
 
 The Control Bus has an input channel that can be accessed for invoking operations on the beans in the application context.
@@ -141,7 +141,7 @@ IMPORTANT: Be careful about using managed beans with custom scopes (e.g.
 If The Control Bus' `MessageProcessor` can't expose a bean from the application context, you may end up with some `BeansException` during _command script's_ executing.
 For example, if a custom scope's context is not established, the attempt to get a bean within that scope will trigger a `BeanCreationException`.
 
-If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `org.springframework.scripting.groovy.GroovyObjectCustomizer` via the `customizer` attribute.
+If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `GroovyObjectCustomizer` via the `customizer` attribute.
 
 [source,xml]
 ----

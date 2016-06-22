@@ -199,8 +199,7 @@ The second most efficient is a POJO method with a `Collection<Message<?>>` param
 The least efficient is a POJO method with a `Collection<Foo>` type - the framework has to copy the payloads from the messages in the group into a new collection (and possibly attempt conversion on the payloads to `Foo`) every time the release strategy is called.
 `Collection<?>` avoids the conversion but still requires creating the new `Collection`.
 
-*For these reasons, for large groups, it is recommended that you implement
-	`ReleaseStrategy`.*
+*For these reasons, for large groups, it is recommended that you implement `ReleaseStrategy`.*
 =====
 
 When the group is released for aggregation, all its not-yet-released messages are processed and removed from the group.
@@ -265,38 +264,38 @@ Below you can see an example of an aggregator.
 <channel id="inputChannel"/>
 
 <int:aggregator id=""myAggregator"  <1>
-		auto-startup="true"  <2>
-		input-channel="inputChannel"  <3>
-		output-channel="outputChannel"  <4>
-		discard-channel="throwAwayChannel"  <5>
-		message-store="persistentMessageStore"  <6>
-		order="1"  <7>
-		send-partial-result-on-expiry="false"  <8>
-		send-timeout="1000"  <9>
+        auto-startup="true"  <2>
+        input-channel="inputChannel"  <3>
+        output-channel="outputChannel"  <4>
+        discard-channel="throwAwayChannel"  <5>
+        message-store="persistentMessageStore"  <6>
+        order="1"  <7>
+        send-partial-result-on-expiry="false"  <8>
+        send-timeout="1000"  <9>
 
-		correlation-strategy="correlationStrategyBean"  <10>
-		correlation-strategy-method="correlate"  <11>
-		correlation-strategy-expression="headers['foo']"  <12>
+        correlation-strategy="correlationStrategyBean"  <10>
+        correlation-strategy-method="correlate"  <11>
+        correlation-strategy-expression="headers['foo']"  <12>
 
-		ref="aggregatorBean"  <13>
-		method="aggregate"  <14>
+        ref="aggregatorBean"  <13>
+        method="aggregate"  <14>
 
-		release-strategy="releaseStrategyBean"  <15>
-		release-strategy-method="release"  <16>
-		release-strategy-expression="size() == 5"  <17>
+        release-strategy="releaseStrategyBean"  <15>
+        release-strategy-method="release"  <16>
+        release-strategy-expression="size() == 5"  <17>
 
-		expire-groups-upon-completion="false"  <18>
-		empty-group-min-timeout="60000"  <19>
+        expire-groups-upon-completion="false"  <18>
+        empty-group-min-timeout="60000"  <19>
 
-		lock-registry="lockRegistry"  <20>
+        lock-registry="lockRegistry"  <20>
 
-		group-timeout="60000"  <21>
-		group-timeout-expression="size() ge 2 ? 100 : -1"  <22>
-		expire-groups-upon-timeout="true"  <23>
+        group-timeout="60000"  <21>
+        group-timeout-expression="size() ge 2 ? 100 : -1"  <22>
+        expire-groups-upon-timeout="true"  <23>
 
-		scheduler="taskScheduler" >  <24>
-			<expire-transactional/>  <25>
-			<expire-advice-chain/>  <26>
+        scheduler="taskScheduler" >  <24>
+            <expire-transactional/>  <25>
+            <expire-advice-chain/>  <26>
 </aggregator>
 
 <int:channel id="outputChannel"/>
@@ -304,7 +303,7 @@ Below you can see an example of an aggregator.
 <int:channel id="throwAwayChannel"/>
 
 <bean id="persistentMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
-	<constructor-arg ref="dataSource"/>
+    <constructor-arg ref="dataSource"/>
 </bean>
 
 <bean id="aggregatorBean" class="sample.PojoAggregator"/>
@@ -329,8 +328,7 @@ _Required_.
 
 
 <4> The channel to which the aggregator will send the aggregation results.
-_Optional (because incoming messages can specify a
-        reply channel themselves via 'replyChannel' Message Header)_.
+_Optional (because incoming messages can specify a reply channel themselves via 'replyChannel' Message Header)_.
 
 
 
@@ -344,7 +342,8 @@ _Optional_, by default a volatile in-memory store.
 
 
 
-<7> Order of this aggregator when more than one handle is subscribed to the same DirectChannel (use for load balancing purposes)._Optional_.
+<7> Order of this aggregator when more than one handle is subscribed to the same DirectChannel (use for load balancing purposes).
+_Optional_.
 
 
 
@@ -380,9 +379,7 @@ _Optional (by default, the aggregator will use the `IntegrationMessageHeaderAcce
 
 
 <11> A method defined on the bean referenced by `correlation-strategy`, that implements the correlation decision algorithm.
-_Optional, with
-        restrictions (requires `correlation-strategy` to be
-        present)._
+_Optional, with restrictions (requires `correlation-strategy` to be present)._
 
 
 
@@ -394,8 +391,7 @@ Only one of `correlation-strategy` or `correlation-strategy-expression` is allow
 
 <13> A reference to a bean defined in the application context.
 The bean must implement the aggregation logic as described above.
-_Optional (by default the list of aggregated Messages will become a
-    payload of the output message)._
+_Optional (by default the list of aggregated Messages will become a payload of the output message)._
 
 
 <14> A method defined on the bean referenced by `ref`, that implements the message aggregation algorithm.
@@ -406,15 +402,12 @@ _Optional, depends on `ref` attribute being defined._
 <15> A reference to a bean that implements the release strategy.
 The bean can be an implementation of the `ReleaseStrategy` interface or a POJO.
 In the latter case the release-strategy-method attribute must be defined as well.
-_Optional (by default, the
-        aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
+_Optional (by default, the aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
 
 
 
 <16> A method defined on the bean referenced by `release-strategy`, that implements the completion decision algorithm.
-_Optional, with
-        restrictions (requires `release-strategy` to be
-        present)._
+_Optional, with restrictions (requires `release-strategy` to be present)._
 
 
 
@@ -575,7 +568,7 @@ NOTE: Wherever it makes sense, the release strategy method, correlation strategy
 
 _Aggregators and Spring Expression Language (SpEL)_
 
-Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
+Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
 Let's say you have a legacy component that was designed to receive an array of objects.
 We know that the default release strategy will assemble all aggregated messages in the List.
 So now we have two problems.
@@ -601,7 +594,7 @@ However, with SpEL such a requirement could actually be handled relatively easil
     expression="#this.![payload].toArray()"/>
 ----
 
-In the above configuration we are using a http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113[Collection Projection] expression to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus achieving the same result as the java code above.
+In the above configuration we are using a http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection[Collection Projection] expression to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus achieving the same result as the java code above.
 
 The same expression-based approach can be applied when dealing with custom _Release_ and _Correlation_ strategies.
 
@@ -692,12 +685,12 @@ If not present on any method, the aggregator will use the SequenceSizeReleaseStr
 
 
 <3> An annotation indicating that this method shall be used as the correlation strategy of an aggregator.
-If no correlation strategy is indicated, the aggregator will use the HeaderAttributeCorrelationStrategy based on CORRELATION_ID.
+If no correlation strategy is indicated, the aggregator will use the `HeaderAttributeCorrelationStrategy` based on `CORRELATION_ID`.
 
 
-All of the configuration options provided by the xml element are also available for the @Aggregator annotation.
+All of the configuration options provided by the xml element are also available for the `@Aggregator` annotation.
 
-The aggregator can be either referenced explicitly from XML or, if the @MessageEndpoint is defined on the class, detected automatically through classpath scanning.
+The aggregator can be either referenced explicitly from XML or, if the `@MessageEndpoint` is defined on the class, detected automatically through classpath scanning.
 
 Annotation configuration (`@Aggregator` and others) for the Aggregator component covers only simple use cases,
 where most default options are sufficient.
@@ -807,7 +800,7 @@ So it is recommended to set the rate at least equal to the value of the timeout 
 
 In addition to the reaper, the expiry callbacks are invoked when the application shuts down via a lifecycle callback in the `AbstractCorrelatingMessageHandler`.
 
-The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag` send-partial-result-on-expiry` in the XML configuration of the aggregator.
+The `AbstractCorrelatingMessageHandler` registers its own expiry callback, and this is the link with the boolean flag `send-partial-result-on-expiry` in the XML configuration of the aggregator.
 If the flag is set to true, then when the expiry callback is invoked, any unmarked messages in groups that are not yet released can be sent on to the output channel.
 
 [IMPORTANT]

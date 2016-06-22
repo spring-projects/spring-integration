@@ -21,7 +21,8 @@ public interface MessageSelector {
 }
 ----
 
- The `MessageFilter` constructor accepts a selector instance:
+The `MessageFilter` constructor accepts a selector instance:
+
 [source,java]
 ----
 MessageFilter filter = new MessageFilter(someSelector);
@@ -97,7 +98,7 @@ It can be used to avoid Java entirely for simple filters.
 ----
 
 The string passed as the expression attribute will be evaluated as a SpEL expression with the Message available in the evaluation context.
-If it is necessary to include the result of an expression in the scope of the application context you can use the #{} notation as defined in thehttp://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef[SpEL reference documentation].
+If it is necessary to include the result of an expression in the scope of the application context you can use the #{} notation as defined in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-beandef[SpEL reference documentation].
 
 [source,xml]
 ----

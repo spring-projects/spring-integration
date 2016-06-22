@@ -68,7 +68,8 @@ _Optional_.
 
 
 
-<5> Whether to send out ordered sequences as soon as they are available, or only after the whole message group arrives._Optional (false by default)_.
+<5> Whether to send out ordered sequences as soon as they are available, or only after the whole message group arrives.
+_Optional (false by default)_.
 
 
 
@@ -77,7 +78,8 @@ _Optional_ with default a volatile in-memory store.
 
 
 
-<7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing)._Optional (false by default)_.
+<7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing).
+_Optional (false by default)_.
 See <<reaper>>.
 
 
@@ -101,9 +103,7 @@ _Optional (by default, the aggregator will use the `IntegrationMessageHeaderAcce
 
 
 <10> A method defined on the bean referenced by `correlation-strategy`, that implements the correlation decision algorithm.
-_Optional, with
-          restrictions (requires `correlation-strategy` to be
-          present)._
+_Optional, with restrictions (requires `correlation-strategy` to be present)._
 
 
 
@@ -116,15 +116,12 @@ Only one of `correlation-strategy` or `correlation-strategy-expression` is allow
 <12> A reference to a bean that implements the release strategy.
 The bean can be an implementation of the `ReleaseStrategy` interface or a POJO.
 In the latter case the release-strategy-method attribute must be defined as well.
-_Optional (by default, the
-          aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
+_Optional (by default, the aggregator will use the `IntegrationMessageHeaderAccessor.SEQUENCE_SIZE` header attribute)_.
 
 
 
 <13> A method defined on the bean referenced by `release-strategy`, that implements the completion decision algorithm.
-_Optional, with
-          restrictions (requires `release-strategy` to be
-          present)._
+_Optional, with restrictions (requires `release-strategy` to be present)._
 
 
 
@@ -134,7 +131,7 @@ Only one of `release-strategy` or `release-strategy-expression` is allowed.
 
 
 
-<15> Only applies if a `MessageGroupStoreReaper` is configured for the `<resequcencer>`'s `MessageStore`.
+<15> Only applies if a `MessageGroupStoreReaper` is configured for the `<resequcencer>` `MessageStore`.
 By default, when a `MessageGroupStoreReaper` is configured to expire partial groups, empty groups are also removed.
 Empty groups exist after a group is released normally.
 This is to enable the detection and discarding of late-arriving messages.

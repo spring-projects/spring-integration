@@ -52,13 +52,13 @@ If the return value is itself a `Message`, that will be passed along to the tran
 
 As of Spring Integration 2.0, a Message Transformer's transformation method can no longer return `null`.
 Returning `null` will result in an exception since a Message Transformer should always be expected to transform each source Message into a valid target Message.
-In other words, a Message Transformer should not be used as a Message Filter since there is a dedicated <filter> option for that.
-However, if you do need this type of behavior (where a component might return NULL and that should not be considered an error), a_service-activator_ could be used.
+In other words, a Message Transformer should not be used as a Message Filter since there is a dedicated `<filter>` option for that.
+However, if you do need this type of behavior (where a component might return NULL and that should not be considered an error), a _service-activator_ could be used.
 Its `requires-reply` value is FALSE by default, but that can be set to TRUE in order to have Exceptions thrown for NULL return values as with the transformer.
 
 _Transformers and Spring Expression Language (SpEL)_
 
-Just like Routers, Aggregators and other components, as of Spring Integration 2.0 Transformers can also benefit from SpEL support (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html) whenever transformation logic is relatively simple.
+Just like Routers, Aggregators and other components, as of Spring Integration 2.0 Transformers can also benefit from SpEL support (http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html) whenever transformation logic is relatively simple.
 
 [source,xml]
 ----
@@ -76,8 +76,8 @@ There are also a few Transformer implementations available out of the box.
 
 ====== Object-to-String Transformer
 
-Because, it is fairly common to use the `toString()` representation of an Object, Spring Integration provides an `ObjectToStringTransformer` whose output is a Message with a String payload.
-That String is the result of invoking the toString() operation on the inbound Message's payload.
+Because, it is fairly common to use the `toString()` representation of an Object, Spring Integration provides an `ObjectToStringTransformer` whose output is a `Message` with a String `payload`.
+That String is the result of invoking the `toString()` operation on the inbound Message's payload.
 [source,xml]
 ----
 <int:object-to-string-transformer input-channel="in" output-channel="out"/>
@@ -102,7 +102,7 @@ For more sophistication (such as selection of the charset dynamically, at runtim
 [source,xml]
 ----
 <int:transformer input-channel="in" output-channel="out"
-		 expression="new java.lang.String(payload, headers['myCharset']" />
+       expression="new java.lang.String(payload, headers['myCharset']" />
 ----
 =====
 
@@ -132,9 +132,9 @@ public class Parent{
 }
 
 public class Child{
-   private String name; 
-   private List<String> nickNames;
-   // setters and getters are omitted
+    private String name; 
+    private List<String> nickNames;
+    // setters and getters are omitted
 }
 ----
 
@@ -152,9 +152,9 @@ public class Father {
 }
 
 public class Kid {
-   private String name; 
-   private List<String> nickNames;
-   // setters and getters are omitted
+    private String name; 
+    private List<String> nickNames;
+    // setters and getters are omitted
 }
 ----
 

@@ -102,7 +102,7 @@ This is also defined as a constant:
 IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ----
 
-By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
+By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
 That default TaskScheduler will startup automatically with a pool of 10 threads, but see <<global-properties>>.
 If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property to _false_, and/or you can provide your own pool size value.
 
@@ -115,10 +115,8 @@ Also, polling consumers have a default `receiveTimeout` of 1 second; since the p
 it is recommended that a task executor be used when many such endpoints exist, again to avoid starvation.
 Alternatively, reduce the `receiveTimeout`.
 
-NOTE: An endpoint is a _Polling Consumer_ if its input channel is one of the queue-based (i.e.
-pollable) channels.
-_Event Driven Consumers_ are those having input channels that have dispatchers instead of queues (i.e.
-they are subscribable).
+NOTE: An endpoint is a _Polling Consumer_ if its input channel is one of the queue-based (i.e. pollable) channels.
+_Event Driven Consumers_ are those having input channels that have dispatchers instead of queues (i.e. they are subscribable).
 Such endpoints have no poller configuration since their handlers will be invoked directly.
 
 [IMPORTANT]
@@ -273,9 +271,9 @@ Annotations available in Spring Integration include:
 The behavior of each is described in its own chapter or section within this reference.
 
 NOTE: If you are using XML configuration in combination with annotations, the `@MessageEndpoint` annotation is not required.
-If you want to configure a POJO reference from the "ref" attribute of a <service-activator/> element,
+If you want to configure a POJO reference from the "ref" attribute of a `<service-activator/>` element,
 it is sufficient to provide the method-level annotations.
-In that case, the annotation prevents ambiguity even when no "method" attribute exists on the <service-activator/> element.
+In that case, the annotation prevents ambiguity even when no "method" attribute exists on the `<service-activator/>` element.
 
 In most cases, the annotated handler method should not require the `Message` type as its parameter.
 Instead, the method parameter type can match the message's payload type.
@@ -757,7 +755,7 @@ The only difference is that the first argument will be mapped to the Message Pay
 
 [source,java]
 ----
-public String foo(@Headers Map m, @Header("foo")Map f, @Header("bar") String bar)
+public String foo(@Headers Map m, @Header("foo") Map f, @Header("bar") String bar)
 ----
 
 Yet another signature that would definitely be treated as ambiguous without annotations because it has more than 2 arguments.

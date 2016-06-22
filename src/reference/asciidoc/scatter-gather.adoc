@@ -28,7 +28,7 @@ However, this channel can be any `MessageChannel` implementation as is the case 
 
 _Distribution_
 
-The _Distribution_`Scatter-Gather` variant is based on the `RecipientListRouter` (see <<router-implementations-recipientlistrouter>>) with all available options for the `RecipientListRouter`.
+The _Distribution_ `Scatter-Gather` variant is based on the `RecipientListRouter` (see <<router-implementations-recipientlistrouter>>) with all available options for the `RecipientListRouter`.
 This is the second `ScatterGatherHandler` constructor argument.
 If you want to rely just on the default `correlationStrategy` for the `recipient-list-router` and the `aggregator`, you should specify `apply-sequence="true"`.
 Otherwise, a custom `correlationStrategy` should be supplied for the `aggregator`.
@@ -50,11 +50,11 @@ For Java and Annotation configuration, the bean definition for the `Scatter-Gath
 ----
 @Bean
 public MessageHandler distributor() {
-	RecipientListRouter router = new RecipientListRouter();
-	router.setApplySequence(true);
-	router.setChannels(Arrays.asList(distributionChannel1(), distributionChannel2(),
-	        distributionChannel3()));
-	return router;
+    RecipientListRouter router = new RecipientListRouter();
+    router.setApplySequence(true);
+    router.setChannels(Arrays.asList(distributionChannel1(), distributionChannel2(),
+            distributionChannel3()));
+    return router;
 }
 
 @Bean
@@ -121,14 +121,13 @@ _Required_.
 
 
 <4> The channel to which the Scatter-Gather will send the aggregation results.
-_Optional (because incoming messages can specify a
-						reply channel themselves via `replyChannel` Message Header)_.
+_Optional (because incoming messages can specify a reply channel themselves via `replyChannel` Message Header)_.
 
 
 
 <5> The channel to send the scatter message for the _Auction_ scenario.
 _Optional_.
-Mutually exclusive with `<scatterer>` sub -element.
+Mutually exclusive with `<scatterer>` sub-element.
 
 
 

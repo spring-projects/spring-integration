@@ -716,8 +716,7 @@ They are available using <<control-bus>> as well as via JMX:
 [source,java]
 ----
 
-          messagingTemplate.convertAndSend(controlBus,
-          "@'simpleRouter.handler'.addRecipient('channel2')");
+messagingTemplate.convertAndSend(controlBus, "@'simpleRouter.handler'.addRecipient('channel2')");
 
 ----
 
@@ -975,14 +974,15 @@ But the configuration is still perfectly valid.
 So the natural question is what about the mapping in the Step 2?
 
 What this means is that Step 2 is now an optional step.
-If `mapping` is not defined then the `channel identifier` value computed in Step 1 will automatically be treated as the `channel name`, which will now be resolved to the actual `MessageChannel` as in Step 3. What it also means is that Step 2 is one of the key steps to provide dynamic characteristics to the routers, since it introduces a process which_allows you to change the way 'channel identifier' resolves to 'channel name'_, thus influencing the process of determining the final instance of the `MessageChannel` from the initial `channel identifier`. 
+If `mapping` is not defined then the `channel identifier` value computed in Step 1 will automatically be treated as the `channel name`, which will now be resolved to the actual `MessageChannel` as in Step 3. 
+What it also means is that Step 2 is one of the key steps to provide dynamic characteristics to the routers, since it introduces a process which _allows you to change the way 'channel identifier' resolves to 'channel name'_, thus influencing the process of determining the final instance of the `MessageChannel` from the initial `channel identifier`. 
 
 _For Example:_
 
 In the above configuration let's assume that the `testHeader` value is 'kermit' which is now a `channel identifier` (Step 1).
 Since there is no mapping in this router, resolving this `channel identifier` to a `channel name` (Step 2) is impossible and this `channel identifier` is now treated as `channel name`.
-However what if there was a mapping but for a different value? The end result would still be the same and that is:_if a new value cannot be determined through the process of resolving the 'channel identifier' to a 'channel name',
-            such 'channel identifier' becomes 'channel name'._
+However what if there was a mapping but for a different value?
+The end result would still be the same and that is: _if a new value cannot be determined through the process of resolving the 'channel identifier' to a 'channel name', such 'channel identifier' becomes 'channel name'._
 
 So all that is left is for Step 3 to resolve the `channel name` ('kermit') to an actual instance of the `MessageChannel` identified by this name.
 That basically involves a bean lookup for the name provided.
@@ -1064,8 +1064,8 @@ Configuration for the _Routing Slip_ is presented as a `HeaderEnricher` option -
 
 <header-enricher input-channel="input" output-channel="process">
     <routing-slip
-            value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
-                    routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
+        value="${myRoutePath1}; @routingSlipRoutingPojo.get(request, reply);
+               routingSlipRoutingStrategy; ${myRoutePath2}; finishChannel"/>
 </header-enricher>
 ----
 

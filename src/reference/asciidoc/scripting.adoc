@@ -83,9 +83,9 @@ You can bind additional variables to a script via `<variable>` sub-elements:
 [source,xml]
 ----
 <script:script lang="js" location="foo/bar/MyScript.js">
-	<script:variable name="foo" value="foo"/>
-	<script:variable name="bar" value="bar"/>
-	<script:variable name="date" ref="date"/>
+    <script:variable name="foo" value="foo"/>
+    <script:variable name="bar" value="bar"/>
+    <script:variable name="date" ref="date"/>
 </script:script>
 ----
 
@@ -99,17 +99,17 @@ Also, since _Spring Integration 3.0_, variable bindings are allowed for inline s
 [source,xml]
 ----
 <service-activator input-channel="input">
-	<script:script lang="ruby" variables="foo=FOO, date-ref=dateBean">
-		<script:variable name="bar" ref="barBean"/>
-		<script:variable name="baz" value="bar"/>
-		<![CDATA[
-   			payload.foo = foo
-   			payload.date = date
-   			payload.bar = bar
-   			payload.baz = baz
-  			payload
-		]]>
-	</script:script>
+    <script:script lang="ruby" variables="foo=FOO, date-ref=dateBean">
+        <script:variable name="bar" ref="barBean"/>
+        <script:variable name="baz" value="bar"/>
+        <![CDATA[
+            payload.foo = foo
+            payload.date = date
+            payload.bar = bar
+            payload.baz = baz
+            payload
+        ]]>
+    </script:script>
 </service-activator>
 ----
 
@@ -124,7 +124,7 @@ If you need more control over how variables are generated, you can implement you
 ----
 public interface ScriptVariableGenerator {
 
-	Map<String, Object> generateScriptVariables(Message<?> message);
+    Map<String, Object> generateScriptVariables(Message<?> message);
 
 }
 ----
@@ -136,11 +136,11 @@ All you need to do is provide an implementation of `ScriptVariableGenerator` and
 [source,xml]
 ----
 <int-script:script location="foo/bar/MyScript.groovy"
-		script-variable-generator="variableGenerator"/>
+        script-variable-generator="variableGenerator"/>
 
 <bean id="variableGenerator" class="foo.bar.MyScriptVariableGenerator"/>
 ----
 
-If a `script-variable-generator` is not provided, script components use `org.springframework.integration.scripting.DefaultScriptVariableGenerator`, which merges any provided `<variable>` s with _payload_ and _headers_ variables from the `Message` in its `generateScriptVariables(Message)` method.
+If a `script-variable-generator` is not provided, script components use `DefaultScriptVariableGenerator`, which merges any provided `<variable>` s with _payload_ and _headers_ variables from the `Message` in its `generateScriptVariables(Message)` method.
 
 IMPORTANT: You cannot provide both the `script-variable-generator` attribute and `<variable>` sub-element(s) as they are mutually exclusive.

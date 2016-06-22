@@ -61,12 +61,12 @@ recommended by `RFC 2616`.
 Previously, the body of such messages was ignored.
 
 Starting with _Spring Integration 2.0_, MultiPart File support is implemented.
-If the request has been wrapped as a _MultipartHttpServletRequest_, when using the default converters, that request will be converted to a Message payload that is a MultiValueMap containing values that may be byte arrays, Strings, or instances of Spring's `MultipartFile` depending on the content type of the individual parts.
+If the request has been wrapped as a `MultipartHttpServletRequest`, when using the default converters, that request will be converted to a Message payload that is a `MultiValueMap` containing values that may be byte arrays, Strings, or instances of Spring's `MultipartFile` depending on the content type of the individual parts.
 
-NOTE: The HTTP inbound Endpoint will locate a MultipartResolver in the context if one exists with the bean name "multipartResolver" (the same name expected by Spring's DispatcherServlet).
+NOTE: The HTTP inbound Endpoint will locate a `MultipartResolver` in the context if one exists with the bean name "multipartResolver" (the same name expected by Spring's `DispatcherServlet`).
 If it does in fact locate that bean, then the support for MultipartFiles will be enabled on the inbound request mapper.
 Otherwise, it will fail when trying to map a multipart-file request to a Spring Integration Message.
-For more on Spring's support for MultipartResolvers, refer to the
+For more on Spring's support for `MultipartResolver`, refer to the
 http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart[Spring Reference Manual].
 
 [NOTE]
@@ -245,7 +245,7 @@ The parsing of the _HTTP Inbound Gateway_ or the _HTTP Inbound Channel Adapter_ 
 This particular implementation of the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html[`HandlerMapping`] delegates its logic to the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html[`RequestMappingInfoHandlerMapping`].
 The implementation provides similar functionality as the one provided by the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html[`org.springframework.web.bind.annotation.RequestMapping`] annotation in Spring MVC.
 
-NOTE: For more information, please see http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping[Mapping Requests With @RequestMapping].
+NOTE: For more information, please see http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping[Mapping Requests With `@RequestMapping`].
 
 For this purpose, _Spring Integration 3.0_ introduces the `<request-mapping>` sub-element.
 This optional sub-element can be added to the `<http:inbound-channel-adapter>` and the `<http:inbound-gateway>`.
@@ -642,7 +642,7 @@ With some JVM implementations, the handling of timeouts using the _URLConnection
 
 E.g.
 from the _Java™ Platform, Standard Edition 6 API Specification_ on _setConnectTimeout_: [quote]
-Some non-standard implmentation of this method may ignore the specified timeout.
+Some non-standard implementation of this method may ignore the specified timeout.
 To see the connect timeout set, please call getConnectTimeout().
 
 Please test your timeouts if you have specific needs.
@@ -756,7 +756,7 @@ However if you do need further customization you may provide additional configur
 You can provide a comma-separated list of header names, and you can also include simple patterns with the '*' character acting as a wildcard.
 If you do provide such values, it will override the default behavior.
 Basically, it assumes you are in complete control at that point.
-However, if you do want to include all of the standard HTTP headers, you can use the shortcut patterns: HTTP_REQUEST_HEADERS and HTTP_RESPONSE_HEADERS.
+However, if you do want to include all of the standard HTTP headers, you can use the shortcut patterns: `HTTP_REQUEST_HEADERS` and `HTTP_RESPONSE_HEADERS`.
 Here are some examples:
 [source,xml]
 ----
