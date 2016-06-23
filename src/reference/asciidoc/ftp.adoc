@@ -81,7 +81,7 @@ NOTE: If you experience connectivity problems and would like to trace Session cr
 Now all you need to do is inject these session factories into your adapters.
 Obviously the protocol (FTP or FTPS) that an adapter will use depends on the type of session factory that has been injected into the adapter.
 
-NOTE: A more practical way to provide values for _FTP/FTPS Session Factories_ is by using Spring's property placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
+NOTE: A more practical way to provide values for _FTP/FTPS Session Factories_ is by using Spring's property placeholder support (See: http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
 
 *Advanced Configuration*
 
@@ -194,8 +194,7 @@ Starting with _version 4.3_, the `remote-directory`/`remote-directory-expression
 In this case, according to the FTP protocol, the Client working directory is used as a default remote directory.
 
 Sometimes file filtering based on the simple pattern specified via `filename-pattern` attribute might not be sufficient.
-If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g.
-`filename-regex=".*\.test$"`).
+If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g. `filename-regex=".*\.test$"`).
 And of course if you need complete control you can use `filter` attribute and provide a reference to any custom implementation of the `org.springframework.integration.file.filters.FileListFilter`, a strategy interface for filtering a list of files.
 This filter determines which remote files are retrieved.
 You can also combine a pattern based filter with other filters, such as an `AcceptOnceFileListFilter` to avoid synchronizing files that have previously been fetched, by using a `CompositeFileListFilter`.
@@ -268,7 +267,7 @@ Also, when configuring a trigger on the poller you should pay close attention to
 Its default value is 1 for all `SourcePollingChannelAdapter` instances (including FTP).
 This means that as soon as one file is processed, it will wait for the next execution time as determined by your trigger configuration.
 If you happened to have one or more files sitting in the `local-directory`, it would process those files before it would initiate communication with the remote FTP server.
-And, if the `max-messages-per-poll` were set to 1 (default), then it would be processing only one file at a time with intervals as defined by your trigger, essentially working as _one-poll = one-file_.
+And, if the `max-messages-per-poll` were set to 1 (default), then it would be processing only one file at a time with intervals as defined by your trigger, essentially working as _one-poll === one-file_.
 
 For typical file-transfer use cases, you most likely want the opposite behavior: to process all the files you can for each poll and only then wait for the next poll.
 If that is the case, set `max-messages-per-poll` to -1.
@@ -451,8 +450,7 @@ Starting with _version 4.3_, the `FtpSession` supports `null` for the `list()` a
 therefore the `expression` attribute can be omitted.
 From Java perspective there are two new constructor without `expression` argument for convenience.
 The `null` for `LS` command is treated as an Client working directory according to the FTP protocol.
-The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the
-`DefaultFtpSessionFactory` and implement `postProcessClientBeforeConnect()` callback.
+The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the `DefaultFtpSessionFactory` and implement `postProcessClientAfterConnect()` callback.
 
 *get*
 
