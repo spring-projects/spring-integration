@@ -1457,8 +1457,9 @@ The framework includes acknowledgment information in the data packet.
 | ACTUAL_ CONNECTION_ID
 | For information only - when using a cached or failover client connection factory, contains the actual underlying connection id.
 | contentType
-| MessageHeaders.CONTENT_TYPE
+| MessageHeaders. CONTENT_TYPE
 | An optional content type for inbound messages; see below.
+Note that, unlike the other header constants, this constant is in the class `MessageHeaders` not `IpHeaders`.
 |===
 
 For inbound messages, `ip_hostname`, `ip_address`, `ip_tcp_remotePort` and `ip_connectionId` are mapped by the default
