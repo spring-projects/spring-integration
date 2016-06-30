@@ -52,11 +52,13 @@ public class CacheWritingMessageHandlerTests {
 	public void mapPayloadWritesToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
 		regionFactoryBean.setName("test.mapPayloadWritesToCache");
 		regionFactoryBean.setCache(cache);
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
+
 		assertEquals(0, region.size());
 
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
@@ -69,7 +71,9 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		assertEquals(1, region.size());
 		assertEquals("bar", region.get("foo"));
-		cache.close();
+
+		regionFactoryBean.destroy();
+		cacheFactoryBean.destroy();
 	}
 
 	@Test
@@ -77,12 +81,15 @@ public class CacheWritingMessageHandlerTests {
 	public void ExpressionsWriteToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, Object> regionFactoryBean = new RegionFactoryBean<String, Object>() { };
 		regionFactoryBean.setName("test.expressionsWriteToCache");
 		regionFactoryBean.setCache(cache);
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, Object> region = regionFactoryBean.getObject();
+
 		assertEquals(0, region.size());
+
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
 
 		Map<String, String> expressions = new HashMap<String, String>();
@@ -106,7 +113,9 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("test"));
 		assertEquals(3, region.size());
 		assertEquals(10L, region.get("baz"));
-		cache.close();
+
+		regionFactoryBean.destroy();
+		cacheFactoryBean.destroy();
 	}
 
 }

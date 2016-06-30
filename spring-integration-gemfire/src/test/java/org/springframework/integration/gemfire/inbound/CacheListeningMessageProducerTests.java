@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -31,7 +33,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 
-import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
@@ -44,18 +45,33 @@ public class CacheListeningMessageProducerTests {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
+	private static CacheFactoryBean cacheFactoryBean;
+
+	private static RegionFactoryBean<String, String> regionFactoryBean;
+
+	private static Region<String, String> region;
+
+	@BeforeClass
+	public static void setup() throws Exception {
+		cacheFactoryBean = new CacheFactoryBean();
+
+		regionFactoryBean = new RegionFactoryBean<String, String>() { };
+		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
+		regionFactoryBean.setCache(cacheFactoryBean.getObject());
+		setRegionAttributes(regionFactoryBean);
+		regionFactoryBean.afterPropertiesSet();
+
+		region = regionFactoryBean.getObject();
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		regionFactoryBean.destroy();
+		cacheFactoryBean.destroy();
+	}
+
 	@Test
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
-		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
-		regionFactoryBean.setCache(cache);
-		this.setRegionAttributes(regionFactoryBean);
-
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression(PARSER.parseExpression("key + '=' + newValue"));
@@ -63,25 +79,18 @@ public class CacheListeningMessageProducerTests {
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
+
 		assertNull(channel.receive(0));
 		region.put("x", "abc");
 		Message<?> message = channel.receive(0);
 		assertNotNull(message);
 		assertEquals("x=abc", message.getPayload());
+
+		producer.stop();
 	}
 
 	@Test
 	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
-		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
-		regionFactoryBean.setCache(cache);
-		this.setRegionAttributes(regionFactoryBean);
-
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression(PARSER.parseExpression("newValue"));
@@ -89,6 +98,7 @@ public class CacheListeningMessageProducerTests {
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
+
 		assertNull(channel.receive(0));
 		region.put("x", "abc");
 		Message<?> message1 = channel.receive(0);
@@ -98,20 +108,12 @@ public class CacheListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
 		assertEquals("xyz", message2.getPayload());
+
+		producer.stop();
 	}
 
 	@Test
 	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
-		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
-		regionFactoryBean.setCache(cache);
-		this.setRegionAttributes(regionFactoryBean);
-
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.DESTROYED);
@@ -120,6 +122,7 @@ public class CacheListeningMessageProducerTests {
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
+
 		assertNull(channel.receive(0));
 		region.put("foo", "abc");
 		assertNull(channel.receive(0));
@@ -127,20 +130,12 @@ public class CacheListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
 		assertEquals("abc", message2.getPayload());
+
+		producer.stop();
 	}
 
 	@Test
 	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
-		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
-		regionFactoryBean.setCache(cache);
-		this.setRegionAttributes(regionFactoryBean);
-
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.INVALIDATED);
@@ -149,6 +144,7 @@ public class CacheListeningMessageProducerTests {
 		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
+
 		assertNull(channel.receive(0));
 		region.put("foo", "abc");
 		assertNull(channel.receive(0));
@@ -156,10 +152,12 @@ public class CacheListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
 		assertEquals("foo was abc", message2.getPayload());
+
+		producer.stop();
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception {
+	private static void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception {
 		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());

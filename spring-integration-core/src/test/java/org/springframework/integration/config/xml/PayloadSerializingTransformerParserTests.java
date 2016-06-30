@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,17 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class PayloadSerializingTransformerParserTests {
 
 	@Autowired
@@ -70,7 +73,7 @@ public class PayloadSerializingTransformerParserTests {
 	@Test
 	public void queueChannelWithStringMessage() throws Exception {
 		queueInput.send(new GenericMessage<String>("foo"));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof byte[]);
 		assertEquals("foo", deserialize((byte[]) result.getPayload()));
@@ -90,7 +93,7 @@ public class PayloadSerializingTransformerParserTests {
 	@Test
 	public void queueChannelWithObjectMessage() throws Exception {
 		queueInput.send(new GenericMessage<TestBean>(new TestBean()));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertTrue(result.getPayload() instanceof byte[]);
 		Object deserialized = deserialize((byte[]) result.getPayload());
 		assertEquals(TestBean.class, deserialized.getClass());
@@ -105,7 +108,7 @@ public class PayloadSerializingTransformerParserTests {
 	@Test
 	public void customSerializer() throws Exception {
 		customSerializerInput.send(new GenericMessage<String>("test"));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertEquals(byte[].class, result.getPayload().getClass());
 		assertEquals("TEST", new String((byte[]) result.getPayload(), "UTF-8"));
@@ -134,6 +137,7 @@ public class PayloadSerializingTransformerParserTests {
 			outputStream.flush();
 			outputStream.close();
 		}
+
 	}
 
 }
