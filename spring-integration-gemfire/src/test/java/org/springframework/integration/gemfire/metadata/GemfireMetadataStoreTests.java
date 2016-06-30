@@ -53,6 +53,7 @@ public class GemfireMetadataStoreTests {
 
 	@AfterClass
 	public static void cleanUp() {
+		getRegion().close();
 		if (cache != null) {
 			cache.close();
 			Assert.isTrue(cache.isClosed(), "Cache did not close after close() call");

@@ -24,8 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.data.gemfire.CacheFactoryBean;
@@ -37,7 +38,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
@@ -47,17 +47,18 @@ import com.gemstone.gemfire.cache.Scope;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class GemfireMessageStoreTests {
 
-	private Cache cache;
+	private static CacheFactoryBean cacheFactoryBean;
 
-	private Region<Object, Object> region;
+	private static Region<Object, Object> region;
 
 	@Test
 	public void addAndGetMessage() throws Exception {
-		GemfireMessageStore store = new GemfireMessageStore(this.region);
+		GemfireMessageStore store = new GemfireMessageStore(region);
 		store.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("test").build();
@@ -70,17 +71,19 @@ public class GemfireMessageStoreTests {
 	public void testRegionConstructor() throws Exception {
 		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>() { };
 		region.setName("someRegion");
-		region.setCache(this.cache);
+		region.setCache(cacheFactoryBean.getObject());
 		region.afterPropertiesSet();
 
 		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
 		store.afterPropertiesSet();
 		assertSame(region.getObject(), TestUtils.getPropertyValue(store, "messageStoreRegion"));
+
+		region.destroy();
 	}
 
 	@Test
 	public void testWithMessageHistory() throws Exception {
-		GemfireMessageStore store = new GemfireMessageStore(this.region);
+		GemfireMessageStore store = new GemfireMessageStore(region);
 		store.afterPropertiesSet();
 
 		Message<?> message = new GenericMessage<String>("Hello");
@@ -103,7 +106,7 @@ public class GemfireMessageStoreTests {
 
 	@Test
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
-		GemfireMessageStore messageStore = new GemfireMessageStore(this.region);
+		GemfireMessageStore messageStore = new GemfireMessageStore(region);
 		messageStore.afterPropertiesSet();
 
 		String groupId = "X";
@@ -121,17 +124,26 @@ public class GemfireMessageStoreTests {
 	}
 
 	@Before
-	public void init() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		this.cache = cacheFactoryBean.getObject();
-		this.region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
+	public void prepare() {
+		if (region != null) {
+			region.clear();
+		}
 	}
 
-	@After
-	public void cleanup() {
-		if (this.cache != null) {
-			this.cache.close();
-			Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+	@BeforeClass
+	public static void init() throws Exception {
+		cacheFactoryBean = new CacheFactoryBean();
+		Cache cache = cacheFactoryBean.getObject();
+		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
+	}
+
+	@AfterClass
+	public static void cleanup() throws Exception {
+		if (region != null) {
+			region.close();
+		}
+		if (cacheFactoryBean != null) {
+			cacheFactoryBean.destroy();
 		}
 	}
 
