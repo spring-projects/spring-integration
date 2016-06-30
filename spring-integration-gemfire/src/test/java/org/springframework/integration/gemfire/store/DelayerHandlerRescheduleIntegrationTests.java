@@ -39,9 +39,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
 
 
 /**
@@ -53,22 +54,28 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithGemfireMS";
 
-	public static Cache cache;
+	public static Region<Object, Object> region;
+
+	private static CacheFactoryBean cacheFactoryBean;
 
 	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@BeforeClass
 	public static void startUp() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cache = cacheFactoryBean.getObject();
+		cacheFactoryBean = new CacheFactoryBean();
+		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = cacheFactoryBean.getObject();
+		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
 	}
 
 	@AfterClass
-	public static void cleanUp() {
-		if (cache != null) {
-			cache.close();
-			Assert.isTrue(cache.isClosed(), "Cache did not close after close() call");
+	public static void cleanUp() throws Exception {
+		if (region != null) {
+			region.close();
+		}
+		if (cacheFactoryBean != null) {
+			cacheFactoryBean.destroy();
 		}
 	}
 

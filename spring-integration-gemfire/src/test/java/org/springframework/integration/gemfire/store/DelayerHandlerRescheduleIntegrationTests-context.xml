@@ -6,7 +6,8 @@
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<beans:bean id="messageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-		<beans:constructor-arg value="#{T (org.springframework.integration.gemfire.store.DelayerHandlerRescheduleIntegrationTests).cache}"/>
+		<beans:constructor-arg
+				value="#{T (org.springframework.integration.gemfire.store.DelayerHandlerRescheduleIntegrationTests).region}"/>
 	</beans:bean>
 
 	<channel id="output">
