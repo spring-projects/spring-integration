@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,6 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,12 +53,16 @@ public class ChannelCapacityPlaceholderTests {
 		assertEquals(98, channel.getRemainingCapacity());
 	}
 
-
-	public interface TestService {
-
-		@org.springframework.integration.annotation.Gateway(requestChannel = "channel")
-		void test();
-
+	@Test
+	public void testCapacityOnPriorityChannel() {
+		PriorityChannel channel = context.getBean("priorityChannel", PriorityChannel.class);
+		assertNotNull(channel);
+		assertEquals(99, channel.getRemainingCapacity());
+		channel.send(MessageBuilder.withPayload("test1").build());
+		channel.send(MessageBuilder.withPayload("test2").build());
+		assertEquals(97, channel.getRemainingCapacity());
+		assertNotNull(channel.receive(0));
+		assertEquals(98, channel.getRemainingCapacity());
 	}
 
 }

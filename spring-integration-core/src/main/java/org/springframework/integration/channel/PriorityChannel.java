@@ -85,6 +85,11 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	@Override
+	public int getRemainingCapacity() {
+		return this.upperBound.availablePermits();
+	}
+
+	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (!this.upperBound.tryAcquire(timeout)) {
 			return false;

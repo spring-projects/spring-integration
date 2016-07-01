@@ -13,11 +13,12 @@
 	<context:property-placeholder
 		location="/org/springframework/integration/channel/config/ChannelCapacityPlaceholderTests.properties"/>
 
-	<gateway id="gateway"
-		service-interface="org.springframework.integration.channel.config.ChannelCapacityPlaceholderTests$TestService"/>
-
 	<channel id="channel">
 		<queue capacity="${capacity}"/>
+	</channel>
+
+	<channel id="priorityChannel">
+		<priority-queue capacity="${capacity}"/>
 	</channel>
 
 </beans:beans>

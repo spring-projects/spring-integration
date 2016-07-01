@@ -26,7 +26,7 @@
 	<int-redis:queue-outbound-gateway id="outboundGateway"
 									  request-channel="sendChannel"
 									  queue="#{redisQueue.toString()}"
-									  reply-timeout="1000"
+									  reply-timeout="10000"
 									  requires-reply="true"
 									  reply-channel="outputChannel"/>
 
