@@ -57,10 +57,12 @@
 	<int:channel-interceptor pattern="input*, foo" order="-3">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="two"/>
 	</int:channel-interceptor>
+
 	<int:channel-interceptor pattern="input*" order="-4">
-		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="three"/>
+		<ref bean="sampleInterceptor" />
 	</int:channel-interceptor>
 
+	<bean id="sampleInterceptor" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="three"/>
 
 	<bean id="channelInterceptor" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="seven"/>
 
