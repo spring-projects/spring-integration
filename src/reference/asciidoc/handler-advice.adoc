@@ -1,6 +1,9 @@
 [[message-handler-advice-chain]]
 === Adding Behavior to Endpoints
 
+[[mhac-intro]]
+==== Introduction
+
 Prior to Spring Integration _2.2_, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's `<advice-chain/>` element.
 However, let's say you want to retry, say, just a REST Web Service call, and not any downstream endpoints.
 
@@ -452,6 +455,38 @@ For more information, see the http://docs.spring.io/spring-framework/docs/curren
 
 While the abstract class mentioned above is provided as a convenience, you can add any `Advice` to the chain, including a transaction advice.
 
+[[handle-message-advice]]
+==== Handle Message Advice
+
+As discussed in <<mhac-intro, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
+For `MessageHandler` s that produce a reply (`AbstractReplyProducingMessageHandler`), the advice is applied to an internal method
+`handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
+For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
+
+There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method - for example, the <<idempotent-receiver, Idempotent Receiver>> might return `null` and this would cause an exception if the handler's `replyRequired` property is true.
+
+Starting with _version 4.3.1_, a new `HandleMessageAdvice` and the `AbstractHandleMessageAdvice` base implementation have been introduced.
+`Advice` s that implement `HandleMessageAdvice` will always be applied to the `handleMessage()` method, regardless of the handler type.
+
+It is important to understand that `HandleMessageAdvice` implementations (such as <<idempotent-receiver, Idempotent Receiver>>), when applied to a handler that returns a response, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
+Bear in mind, however, that this means the advice chain order is not complied with; and, with configuration such as:
+
+[source,xml]
+----
+<some-reply-producing-endpoint ... >
+    <int:request-handler-advice-chain>
+        <tx:advice ... />
+        <bean ref="myHandleMessageAdvice" />
+    </int:request-handler-advice-chain>
+</some-reply-producing-endpoint>
+----
+
+The `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`, but `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()` and, therefore, invoked **before** the `<tx:advice>`.
+To retain the order, you should follow with standard http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
+Note, however, that in that case, the entire downstream flow would be within the transaction scope.
+
+In the case of a `MessageHandler` that does **not** return a response, the advice chain order is retained.
+
 [[advising-filters]]
 ==== Advising Filters
 
@@ -620,3 +655,6 @@ public MessageHandler myService() {
     ....
 }
 ----
+
+NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method and starting with _version 4.3.1_ it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
+See <<handle-message-advice>> for more information.
