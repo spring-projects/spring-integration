@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.xml;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,6 +26,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -57,38 +60,52 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
 	@Override
 	public Document convertToDocument(Object object) {
-		if (object instanceof Document) {
-			return (Document) object;
-		}
-		if (object instanceof Node) {
-			return nodeToDocument((Node) object);
-		}
-		else if (object instanceof DOMSource) {
-			Node node = ((DOMSource) object).getNode();
-			if (node instanceof Document) {
-				return (Document) node;
+		try {
+			if (object instanceof Document) {
+				return (Document) object;
 			}
-			else {
-				return nodeToDocument(node);
+			else if (object instanceof Node) {
+				return nodeToDocument((Node) object);
 			}
-		}
-		if (object instanceof File) {
-			try {
+			else if (object instanceof DOMSource) {
+				Node node = ((DOMSource) object).getNode();
+				if (node instanceof Document) {
+					return (Document) node;
+				}
+				else {
+					return nodeToDocument(node);
+				}
+			}
+			else if (object instanceof Source) {
+				InputSource inputSource = sourceToInputSource((Source) object);
+				return getDocumentBuilder().parse(inputSource);
+			}
+			else if (object instanceof File) {
 				return getDocumentBuilder().parse((File) object);
 			}
-			catch (Exception e) {
-				throw new MessagingException("failed to parse File payload '" + object + "'", e);
-			}
-		}
-		if (object instanceof String) {
-			try {
+			else if (object instanceof String) {
 				return getDocumentBuilder().parse(new InputSource(new StringReader((String) object)));
 			}
-			catch (Exception e) {
-				throw new MessagingException("failed to parse String payload '" + object + "'", e);
+			else if (object instanceof InputStream) {
+				return getDocumentBuilder().parse((InputStream) object);
+			}
+			else if (object instanceof byte[]) {
+				return getDocumentBuilder().parse(new ByteArrayInputStream((byte[]) object));
 			}
 		}
+		catch (Exception e) {
+			throw new MessagingException("failed to parse " + object.getClass() + " payload '" + object + "'", e);
+		}
+
 		throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+	}
+
+	private static InputSource sourceToInputSource(Source source) {
+		InputSource inputSource = SAXSource.sourceToInputSource(source);
+		if (inputSource == null) {
+			inputSource = new InputSource(source.getSystemId());
+		}
+		return inputSource;
 	}
 
 	protected Document nodeToDocument(Node node) {

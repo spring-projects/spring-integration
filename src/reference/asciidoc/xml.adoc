@@ -60,8 +60,7 @@ When creating XPath expressions, the best XPath implementation that is available
 
 NOTE: Spring Integration under the covers uses the XPath functionality as provided by the _Spring Web Services_ project (http://www.spring.io/spring-ws).
 Specifically, Spring Web Services' XML module (spring-xml-x.x.x.jar) is being used.
-Therefore, for a deeper understanding, please refer to the respective documentation as well at: +
-http://docs.spring.io/spring-ws/sites/2.0/reference/html/common.html#xpath
+Therefore, for a deeper understanding, please refer to the respective documentation as well at: http://docs.spring.io/spring-ws/docs/current/reference/html/common.html#xpath
 
 Here is an overview of all available configuration parameters of the `xpath-expression` element:
 
@@ -118,7 +117,7 @@ As such, namespaces can be defined using one of the following 3 choices:
 
 
 
-All three options are mutially exlusive.
+All three options are mutually exclusive.
 Only one option can be set.
 
 Below, please find several different usage examples on how to use XPath expressions using the XML namespace support including the various option for setting the XML namespaces as discussed above.
@@ -131,7 +130,7 @@ Below, please find several different usage examples on how to use XPath expressi
 <int-xml:xpath-expression id="refToXpathExpression" expression="/name"/>
 
 <int-xml:xpath-filter id="filterWithoutNamespace">
-   <int-xml:xpath-expression expression="/name"/>
+    <int-xml:xpath-expression expression="/name"/>
 </int-xml:xpath-filter>
 
 <int-xml:xpath-filter id="filterWithOneNamespace">
@@ -161,21 +160,21 @@ Below, please find several different usage examples on how to use XPath expressi
 
 ===== Using XPath Expressions with Default Namespaces
 
-When working with default nanmespaces, you may run into situations that behave differently than originally expected.
+When working with default namespaces, you may run into situations that behave differently than originally expected.
 Let's assume we have the following XML document:
 
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <order>
-	<orderItem>
-		<isbn>0321200683</isbn>
-		<quantity>2</quantity>
-	</orderItem>
-	<orderItem>
-		<isbn>1590596439</isbn>
-		<quantity>1</quantity>
-	</orderItem>
+    <orderItem>
+        <isbn>0321200683</isbn>
+        <quantity>2</quantity>
+    </orderItem>
+    <orderItem>
+        <isbn>1590596439</isbn>
+        <quantity>1</quantity>
+    </orderItem>
 </order>
 ----
 
@@ -209,14 +208,14 @@ _http://www.example.org/orders_
 
 However, the XPath Expression used previously will fail in this case.
 
-In order to solve this issue, you must provide a namespace prefix and a namespace URI using either the _ns-prefix_ and _ns-uri_ attibute or by providing a _namespace-map_ attribute instead.
+In order to solve this issue, you must provide a namespace prefix and a namespace URI using either the _ns-prefix_ and _ns-uri_ attribute or by providing a _namespace-map_ attribute instead.
 The namespace URI must match the namespace declared in your XML document, which in this example is _http://www.example.org/orders_.
 
 The namespace prefix, however, can be arbitrarily chosen.
 In fact, just providing an empty String will actually work (Null is not allowed).
 In the case of a namespace prefix consisting of an empty String, your Xpath Expression will use a colon (":") to indicate the default namespace.
 If you leave the colon off, the XPath expression will not match.
-The following XPath Expression will match agains the XML document above:
+The following XPath Expression will match against the XML document above:
 
 [source,xml]
 ----
@@ -259,22 +258,22 @@ This section will explain the workings of the following transformers and how to 
 
 
 
-All of the provided XML transformers extend http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[AbstractTransformer] or  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[AbstractPayloadTransformer] and therefore implement  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/Transformer.html[Transformer].
-When configuring XML transformers as beans in Spring Integration, you would normally configure the _Transformer_ in conjunction with a  http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html[MessageTransformingHandler].
+All of the provided XML transformers extend http://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html[AbstractTransformer] or  http://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html[AbstractPayloadTransformer] and therefore implement  http://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[Transformer].
+When configuring XML transformers as beans in Spring Integration, you would normally configure the _Transformer_ in conjunction with a  http://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html[MessageTransformingHandler].
 This allows the transformer to be used as an _Endpoint_.
 Finally, the namespace support will be discussed, which allows for the simple configuration of the transformers as elements in XML.
 
 [[xml-unmarshalling-transformer]]
 ===== UnmarshallingTransformer
 
-An http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html[UnmarshallingTransformer] allows an XML `Source` to be unmarshalled using implementations of the http://static.springsource.org/spring-ws/site/reference/html/oxm.html[Spring OXM] `Unmarshaller`.
+An http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html[UnmarshallingTransformer] allows an XML `Source` to be unmarshalled using implementations of the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Spring OXM] `Unmarshaller`.
 Spring's Object/XML Mapping support provides several implementations supporting marshalling and unmarshalling using http://en.wikipedia.org/wiki/Java_Architecture_for_XML_Binding[JAXB], http://www.castor.org/[Castor] and http://jibx.sourceforge.net/[JiBX] amongst others.
 The unmarshaller requires an instance of `Source`.
 If the message payload is not an instance of `Source`, conversion will be attempted.
 Currently `String`, `File` and `org.w3c.dom.Document` payloads are supported.
-Custom conversion to a `Source` is also supported by injecting an implementation of a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+Custom conversion to a `Source` is also supported by injecting an implementation of a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
 
-NOTE: If a `SourceFactory` is not set explicitly, the property on the `UnmarshallingTransformer` will by default be set to a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
+NOTE: If a `SourceFactory` is not set explicitly, the property on the `UnmarshallingTransformer` will by default be set to a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
 
 [source,xml]
 ----
@@ -290,7 +289,7 @@ NOTE: If a `SourceFactory` is not set explicitly, the property on the `Unmarshal
 [[xml-marshalling-transformer]]
 ===== MarshallingTransformer
 
-The http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/MarshallingTransformer.html[MarshallingTransformer] allows an object graph to be converted into XML using a Spring OXM `Marshaller`.
+The http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/MarshallingTransformer.html[MarshallingTransformer] allows an object graph to be converted into XML using a Spring OXM `Marshaller`.
 By default the `MarshallingTransformer` will return a `DomResult`.
 However, the type of result can be controlled by configuring an alternative `ResultFactory` such as `StringResultFactory`.
 In many cases it will be more convenient to transform the payload into an alternative XML format.
@@ -317,20 +316,20 @@ That may be useful for certain custom implementations of the `Marshaller` interf
 [[xml-xslt-payload-transformers]]
 ===== XsltPayloadTransformer
 
-http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] transforms XML payloads using http://en.wikipedia.org/wiki/XSL_Transformations[Extensible Stylesheet Language Transformations] (XSLT).
-The transformer's constructor requires an instance of either http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource] or http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] to be passed in.
+http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] transforms XML payloads using http://en.wikipedia.org/wiki/XSL_Transformations[Extensible Stylesheet Language Transformations] (XSLT).
+The transformer's constructor requires an instance of either http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource] or http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] to be passed in.
 Passing in a `Templates` instance allows for greater configuration of the `TransformerFactory` used to create the template instance.
 
 As with the link:#xml-unmarshalling-transformer[UnmarshallingTransformer], the `XsltPayloadTransformer` will do the actual XSLT transformation using instances of `Source`.
 Therefore, if the message payload is not an instance of `Source`, conversion will be attempted.
 `String` and `Document` payloads are supported directly.
 
-Custom conversion to a `Source` is also supported by injecting an implementation of a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+Custom conversion to a `Source` is also supported by injecting an implementation of a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
 
-NOTE: If a `SourceFactory` is not set explicitly, the property on the `XsltPayloadTransformer` will by default be set to a  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
+NOTE: If a `SourceFactory` is not set explicitly, the property on the `XsltPayloadTransformer` will by default be set to a  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
 
 By default, the `XsltPayloadTransformer` will create a message with a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html[Result] payload, similar to the `XmlPayloadMarshallingTransformer`.
-This can be customised by providing a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/ResultFactory.html[ResultFactory] and/or a  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
+This can be customised by providing a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/result/ResultFactory.html[ResultFactory] and/or a  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
 
 [source,xml]
 ----
@@ -348,13 +347,13 @@ This is configured using the `transformer-factory-class` attribute when using th
 [[xml-using-result-transformers]]
 ===== ResultTransformers
 
-Both the `MarshallingTransformer` and the `XsltPayloadTransformer` allow you to specify a http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
+Both the `MarshallingTransformer` and the `XsltPayloadTransformer` allow you to specify a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html[ResultTransformer].
 Thus, if the Marshalling or XSLT transformation returns a http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html[Result], than you have the option to also use a `ResultTransformer` to transform the `Result` into another format.
 Spring Integration provides 2 concrete`ResultTransformer` implementations:
 
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToDocumentTransformer.html[ResultToDocumentTransformer]
+* http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/ResultToDocumentTransformer.html[ResultToDocumentTransformer]
 
-* http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToStringTransformer.html[ResultToStringTransformer]
+* http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/ResultToStringTransformer.html[ResultToStringTransformer]
 
 
 
@@ -424,15 +423,15 @@ Valid values are `StringResult` or `DomResult` (the default).
 Where the provided result types are not sufficient, a reference to a custom implementation of `ResultFactory` can be provided as an alternative to setting the `result-type` attribute, using the `result-factory` attribute.
 The attributes _result-type_ and _result-factory_ are mutually exclusive.
 
-NOTE: Internally, the result types `StringResult` and `DomResult` are represented by the `ResultFactory` s  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/StringResultFactory.html[StringResultFactory] and  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/DomResultFactory.html[DomResultFactory] respectively.
+NOTE: Internally, the result types `StringResult` and `DomResult` are represented by the `ResultFactory` s  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/result/StringResultFactory.html[StringResultFactory] and  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/result/DomResultFactory.html[DomResultFactory] respectively.
 
 _XsltPayloadTransformer_
 
 Namespace support for the `XsltPayloadTransformer` allows you to either pass in a `Resource`, in order to create the http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] instance, or alternatively, you can pass in a precreated `Templates` instance as a reference.
 In common with the marshalling transformer, the type of the result output can be controlled by specifying either the `result-factory` or `result-type` attribute.
-A `result-transfomer` attribute can also be used to reference an implementation of `ResultTransfomer` where conversion of the result is required before sending.
+A `result-transformer` attribute can also be used to reference an implementation of `ResultTransformer` where conversion of the result is required before sending.
 
-IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, then the `alwaysUseResultFactory` property on the underlying http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] will be set to `true` by the http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html[XsltPayloadTransformerParser].
+IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, then the `alwaysUseResultFactory` property on the underlying http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] will be set to `true` by the http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html[XsltPayloadTransformerParser].
 
 [source,xml]
 ----
@@ -447,7 +446,7 @@ IMPORTANT: If you specify the `result-factory` or the `result-type` attribute, t
 ----
 
 Often you may need to have access to Message data, such as the Message Headers, in order to assist with transformation.
-For example, you may need to get access to certain Message Headers and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)).
+For example, you may need to get access to certain Message Headers and pass them on as parameters to a transformer (e.g., `transformer.setParameter(..)`).
 Spring Integration provides two convenient ways to accomplish this, as illustrated in following example:
 
 [source,xml]
@@ -505,8 +504,8 @@ IMPORTANT: If the incoming message's payload is of type `String`, the payload af
 Similarly, if the incoming message's payload is of type `Document`, the payload after the Xslt transformation will be a`Document`.
 The specified _ResultTransformer_ will be ignored with `String` or `Document` payloads.
 
-If the message payload is neither a `Source`, `String` or `Document`, as a fallback option, it is attempted to create a`Source` using the default  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
-As we did not specify a `SourceFactory` explicitly using the _source-factory_ attribute, the default  http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory] is used.
+If the message payload is neither a `Source`, `String` or `Document`, as a fallback option, it is attempted to create a`Source` using the default  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
+As we did not specify a `SourceFactory` explicitly using the _source-factory_ attribute, the default  http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory] is used.
 If successful, the XSLT transformation is executed as if the payload was of type `Source`, which we described in the previous paragraphs.
 
 NOTE: The `DomSourceFactory` supports the creation of a `DOMSource` from a either `Document`, `File` or `String` payloads.
@@ -530,8 +529,8 @@ Therefore, if you transform a payload of type `String`, the resulting payload wi
 _XsltPayloadTransformer and <xsl:output method="text"/>_
 
 `<xsl:output method="text"/>` tells the XSLT template to only produce text content from the input source.
-In this particuliar case there is no reason to have a `DomResult`.
-Therefore, the http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] defaults to `StringResult` if the http://docs.oracle.com/javase/7/docs/api/javax/xml/transform/Transformer.html#getOutputProperties()[output property] called `method` of the underlying `javax.xml.transform.Transformer` returns `"text"`.
+In this particular case there is no reason to have a `DomResult`.
+Therefore, the http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[XsltPayloadTransformer] defaults to `StringResult` if the http://docs.oracle.com/javase/7/docs/api/javax/xml/transform/Transformer.html#getOutputProperties()[output property] called `method` of the underlying `javax.xml.transform.Transformer` returns `"text"`.
 This coercion is performed independent from the inbound payload type.
 Keep in mind that this [quote]
 smart behavior is only available, if the `result-type` or `result-factory` attributes aren't provided for the respective `<int-xml:xslt-transformer>` component.
@@ -638,8 +637,8 @@ class TestXmlPayloadConverter implements XmlPayloadConverter {
 }
 ----
 
-The DefaultXmlPayloadConverter is used if this reference is not provided, and it should be sufficient in most cases since it can convert from Node, Document, Source, File, and String typed payloads.
-If you need to extend beyond the capabilities of that default implementation, then an upstream Transformer is probably a better option than providing a reference to a custom implementation of this strategy here.
+The `DefaultXmlPayloadConverter` is used if this reference is not provided, and it should be sufficient in most cases since it can convert from `Node`, `Document`, `Source`, `File`, `String`, `InputStream` and `byte[]` typed payloads.
+If you need to extend beyond the capabilities of that default implementation, then an upstream `Transformer` is probably a better option than providing a reference to a custom implementation of this strategy here.
 
 [[xml-xpath-splitting]]
 === Splitting XML Messages
@@ -698,13 +697,12 @@ request `payload` isn't of `org.w3c.dom.Node` type:
 </util:properties>
 
 <xpath-splitter input-channel="input"
-				output-properties="outputProperties">
-	<xpath-expression expression="/orders/order"/>
+             output-properties="outputProperties">
+    <xpath-expression expression="/orders/order"/>
 </xpath-splitter>
 ----
 
-Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults
-to `true`).
+Starting with `version 4.2`, the `XPathMessageSplitter` exposes an `iterator` option as a `boolean` flag (defaults to `true`).
 This allows the "streaming" of split nodes in the downstream flow.
 With the `iterator` mode, each node is transformed while iterating. When false, all entries are transformed first,
 before the split nodes start being sent to the output channel (transform, send, transform, send Vs. transform,
@@ -823,10 +821,10 @@ Please see below for an overview of all available configuration parameters:
 [source,xml]
 ----
 <int-xml:xpath-header-enricher default-overwrite="true"    <1>
-	                           id=""                       <2>
-	                           input-channel=""            <3>
-	                           output-channel=""           <4>
-	                           should-skip-nulls="true">   <5>
+                               id=""                       <2>
+                               input-channel=""            <3>
+                               output-channel=""           <4>
+                               should-skip-nulls="true">   <5>
     <int:poller></int:poller>                              <6>
     <int-xml:header name=""                                <7>
                     evaluation-type="STRING_RESULT"        <8>
@@ -870,7 +868,7 @@ _Mandatory_.
 
 <8> The result type expected from the XPath evaluation.
 This will be the type of the header value, if there is no `header-type` attribute provided.
-The following values are allowed: BOOLEAN_RESULT, STRING_RESULT, NUMBER_RESULT, NODE_RESULT and NODE_LIST_RESULT.
+The following values are allowed: `BOOLEAN_RESULT`, `STRING_RESULT`, `NUMBER_RESULT`, `NODE_RESULT` and `NODE_LIST_RESULT`.
 Defaults internally to `XPathEvaluationType.STRING_RESULT` if not set.
 _Optional_.
 
@@ -878,9 +876,7 @@ _Optional_.
 <9> The fully qualified class name for the header value type.
 The result of XPath evaluation will be converted to this type using the `ConversionService`.
 This allows, for example, a `NUMBER_RESULT` (a double) to be converted to an `Integer`.
-The type can be declared as a primitive (e.g.
-`int`) but the result will always be the equivalent wrapper class (e.g.
-`Integer`).
+The type can be declared as a primitive (e.g. `int`) but the result will always be the equivalent wrapper class (e.g. `Integer`).
 The same integration `ConversionService` discussed in <<payload-type-conversion>> is used for the conversion, so conversion to custom types is supported, by adding a custom converter to the service._Optional_.
 
 
@@ -920,7 +916,7 @@ The underlying implementation uses a `RegexTestXPathMessageSelector`
 
 
 
-When providing a 'match-type' value of 'regex', the value provided with thos `match-value` attribute must be a valid Regular Expression.
+When providing a 'match-type' value of 'regex', the value provided with the `match-value` attribute must be a valid Regular Expression.
 
 [source,xml]
 ----
@@ -964,7 +960,7 @@ _Optional_.
 
 
 <7> By default, this property is set to _false_ and rejected Messages (Messages that did not match the filter criteria) will be silently dropped.
-However, if set to_true_ message rejection will result in an error condition and the exception will be propagated upstream to the caller.
+However, if set to _true_ message rejection will result in an error condition and the exception will be propagated upstream to the caller.
 _Optional_.
 
 
@@ -993,8 +989,8 @@ The following shows some usage examples:
 <splitter expression="#xpath(payload, '//book', 'document_list')"/>
 
 <router expression="#xpath(payload, '/person/@age', 'number')">
-	<mapping channel="output1" value="16"/>
-	<mapping channel="output2" value="45"/>
+    <mapping channel="output1" value="16"/>
+    <mapping channel="output2" value="45"/>
 </router>
 ----
 
