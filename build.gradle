@@ -366,10 +366,6 @@ project('spring-integration-ftp') {
 
 project('spring-integration-gemfire') {
 	description = 'Spring Integration GemFire Support'
-	tasks.withType(Test).matching {it.name ==~ /(springIo.+)|(test)|(testAll)/}.all {
-		forkEvery = 1
-		systemProperties['gemfire.disableShutdownHook'] = 'true'
-	}
 	dependencies {
 		compile project(":spring-integration-core")
 		compile ("org.springframework.data:spring-data-gemfire:$springGemfireVersion") {
