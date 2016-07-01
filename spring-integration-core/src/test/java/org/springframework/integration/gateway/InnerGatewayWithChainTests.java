@@ -17,19 +17,17 @@
 package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
@@ -92,25 +91,26 @@ public class InnerGatewayWithChainTests {
 
 	@Test
 	public void testWithSPCADefaultErrorChannel() throws Exception {
-		MessageHandler handler = mock(MessageHandler.class);
-		errorChannel.subscribe(handler);
+		CountDownLatch errorLatch = new CountDownLatch(1);
+		errorChannel.subscribe(message -> errorLatch.countDown());
 		inboundAdapterDefaultErrorChannel.start();
-		Thread.sleep(1000);
+		assertTrue(errorLatch.await(10, TimeUnit.SECONDS));
 		inboundAdapterDefaultErrorChannel.stop();
-		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
 	@Test
 	public void testWithSPCAAssignedErrorChannel() throws Exception {
-		MessageHandler handler = mock(MessageHandler.class);
-		assignedErrorChannel.subscribe(handler);
+		CountDownLatch errorLatch = new CountDownLatch(1);
+		assignedErrorChannel.subscribe(message -> errorLatch.countDown());
 		inboundAdapterAssignedErrorChannel.start();
-		Thread.sleep(1000);
+		assertTrue(errorLatch.await(10, TimeUnit.SECONDS));
 		inboundAdapterAssignedErrorChannel.stop();
-		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
 	public interface TestGateway {
+
 		String echo(int value);
+
 	}
+
 }
