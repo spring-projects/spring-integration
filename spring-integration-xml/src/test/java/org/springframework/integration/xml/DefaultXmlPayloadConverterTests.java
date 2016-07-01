@@ -143,4 +143,10 @@ public class DefaultXmlPayloadConverterTests {
 		assertEquals("hello", childNodes.item(0).getTextContent());
 	}
 
+	@Test
+	public void testConvertBytesToDocument() throws Exception {
+		Document doc = converter.convertToDocument("<test>hello</test>".getBytes());
+		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
 }
