@@ -22,6 +22,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -81,10 +82,16 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		super.onInit();
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
+			boolean advised = false;
 			for (Advice advice : this.adviceChain) {
-				proxyFactory.addAdvice(advice);
+				if (!(advice instanceof HandleMessageAdvice)) {
+					proxyFactory.addAdvice(advice);
+					advised = true;
+				}
 			}
-			this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
+			if (advised) {
+				this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
+			}
 		}
 		doInit();
 	}

@@ -16,12 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
-import java.lang.reflect.Method;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -59,9 +55,7 @@ import org.springframework.util.Assert;
  * @see org.springframework.integration.selector.MetadataStoreSelector
  * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
  */
-public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFactoryAware {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
+public class IdempotentReceiverInterceptor extends HandleMessageAdvice implements BeanFactoryAware {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -142,26 +136,7 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 	}
 
 	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		Method method = invocation.getMethod();
-		Object invocationThis = invocation.getThis();
-		Object[] arguments = invocation.getArguments();
-		boolean isMessageHandler = invocationThis != null && invocationThis instanceof MessageHandler;
-		boolean isMessageMethod = method.getName().equals("handleMessage")
-				&& (arguments.length == 1 && arguments[0] instanceof Message);
-		if (!isMessageHandler || !isMessageMethod) {
-			if (this.logger.isWarnEnabled()) {
-				String clazzName = invocationThis == null
-						? method.getDeclaringClass().getName()
-						: invocationThis.getClass().getName();
-				this.logger.warn("This advice " + this.getClass().getName() +
-						" can only be used for MessageHandlers; an attempt to advise method '"
-						+ method.getName() + "' in '" + clazzName + "' is ignored");
-			}
-			return invocation.proceed();
-		}
-
-		Message<?> message = (Message<?>) arguments[0];
+	protected Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable {
 		boolean accept = this.messageSelector.accept(message);
 		if (!accept) {
 			boolean discarded = false;
@@ -175,7 +150,7 @@ public class IdempotentReceiverInterceptor implements MethodInterceptor, BeanFac
 			}
 
 			if (!discarded) {
-				arguments[0] = getMessageBuilderFactory().fromMessage(message)
+				invocation.getArguments()[0] = getMessageBuilderFactory().fromMessage(message)
 						.setHeader(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true).build();
 			}
 			else {
