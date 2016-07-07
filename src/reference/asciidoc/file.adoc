@@ -820,7 +820,8 @@ Markers are messages with `FileSplitter.FileMarker` payloads (with `START` and `
 Markers might be used when sequentially processing files in a downstream flow where some lines are filtered.
 They enable the downstream processing to know when a file has been completely processed.
 In addition, a header `file_marker` containing `START` or `END` are added to these messages.
-The 'END' marker includes a line count.
+The `END` marker includes a line count.
+If file is empty, only `START` and `END` markers are emitted with `0` as `lineCount` respectively.
 Default: `false`.
 When `true`, `apply-sequence` is `false` by default.
 Also see `markers-json`.

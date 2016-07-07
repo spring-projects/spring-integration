@@ -235,6 +235,9 @@ public class FileSplitter extends AbstractMessageSplitter {
 					if (!ready) {
 						if (this.markers) {
 							this.eof = true;
+							if (this.sof) {
+								this.done = true;
+							}
 						}
 						bufferedReader.close();
 					}
@@ -353,7 +356,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		public enum Mark implements Serializable {
 			START,
-			END
+			END,
 		}
 
 		private final String filePath;
