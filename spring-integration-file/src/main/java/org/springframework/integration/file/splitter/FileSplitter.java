@@ -235,6 +235,9 @@ public class FileSplitter extends AbstractMessageSplitter {
 					if (!ready) {
 						if (this.markers) {
 							this.eof = true;
+							if (this.sof) {
+								this.done = true;
+							}
 						}
 						bufferedReader.close();
 					}
