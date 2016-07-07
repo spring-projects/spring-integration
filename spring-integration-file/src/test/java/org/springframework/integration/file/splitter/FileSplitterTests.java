@@ -204,6 +204,32 @@ public class FileSplitterTests {
 		assertEquals(2, fileMarker.getLineCount());
 	}
 
+	@Test
+	public void testMarkersEmptyFile() throws IOException {
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setOutputChannel(outputChannel);
+		File file = File.createTempFile("empty", ".txt");
+		splitter.handleMessage(new GenericMessage<File>(file));
+		Message<?> received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileMarker.Mark.START, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(0, fileMarker.getLineCount());
+
+		received = outputChannel.receive(0);
+		assertNotNull(received);
+
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileMarker.Mark.END, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(0, fileMarker.getLineCount());
+	}
+
 	@Configuration
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/file/splitter/FileSplitterTests-context.xml")
