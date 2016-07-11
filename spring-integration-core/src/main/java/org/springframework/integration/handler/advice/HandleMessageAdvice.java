@@ -16,51 +16,15 @@
 
 package org.springframework.integration.handler.advice;
 
-import java.lang.reflect.Method;
-
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 
 /**
- * The base {@link MethodInterceptor} for advices which can be applied only
- * for the {@link MessageHandler#handleMessage(Message)}.
+ * The marker {@link MethodInterceptor} interface extension
+ * to distinguish advices for some reason.
  *
  * @author Artem Bilan
  * @since 4.3.1
  */
-public abstract class HandleMessageAdvice implements MethodInterceptor {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	@Override
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
-		Method method = invocation.getMethod();
-		Object invocationThis = invocation.getThis();
-		Object[] arguments = invocation.getArguments();
-		boolean isMessageHandler = invocationThis != null && invocationThis instanceof MessageHandler;
-		boolean isMessageMethod = method.getName().equals("handleMessage")
-				&& (arguments.length == 1 && arguments[0] instanceof Message);
-		if (!isMessageHandler || !isMessageMethod) {
-			if (this.logger.isWarnEnabled()) {
-				String clazzName = invocationThis == null
-						? method.getDeclaringClass().getName()
-						: invocationThis.getClass().getName();
-				this.logger.warn("This advice " + getClass().getName() +
-						" can only be used for MessageHandlers; an attempt to advise method '"
-						+ method.getName() + "' in '" + clazzName + "' is ignored.");
-			}
-			return invocation.proceed();
-		}
-
-		Message<?> message = (Message<?>) arguments[0];
-		return doInvoke(invocation, message);
-	}
-
-	protected abstract Object doInvoke(MethodInvocation invocation, Message<?> message) throws Throwable;
+public interface HandleMessageAdvice extends MethodInterceptor {
 
 }

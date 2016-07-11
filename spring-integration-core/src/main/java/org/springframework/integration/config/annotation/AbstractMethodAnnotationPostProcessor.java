@@ -279,43 +279,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return adviceChain;
 	}
 
-	protected final void setAdviceChainIfPresent(String beanName, List<Annotation> annotations, MessageHandler handler) {
-		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
-				String[].class);
-		/*
-		 * Note: we don't merge advice chain contents; if the directAnnotation has a non-empty
-		 * attribute, it wins. You cannot "remove" an advice chain from a meta-annotation
-		 * by setting an empty array on the custom annotation.
-		 */
-		if (adviceChainNames != null && adviceChainNames.length > 0) {
-			if (!(handler instanceof AbstractReplyProducingMessageHandler)) {
-				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
-			}
-			List<Advice> adviceChain = new ArrayList<Advice>();
-			for (String adviceChainName : adviceChainNames) {
-				Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
-				if (adviceChainBean instanceof Advice) {
-					adviceChain.add((Advice) adviceChainBean);
-				}
-				else if (adviceChainBean instanceof Advice[]) {
-					Collections.addAll(adviceChain, (Advice[]) adviceChainBean);
-				}
-				else if (adviceChainBean instanceof Collection) {
-					@SuppressWarnings("unchecked")
-					Collection<Advice> adviceChainEntries = (Collection<Advice>) adviceChainBean;
-					for (Advice advice : adviceChainEntries) {
-						adviceChain.add(advice);
-					}
-				}
-				else {
-					throw new IllegalArgumentException("Invalid advice chain type:" +
-						adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
-				}
-			}
-			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
-		}
-	}
-
 	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, getInputChannelAttribute(),

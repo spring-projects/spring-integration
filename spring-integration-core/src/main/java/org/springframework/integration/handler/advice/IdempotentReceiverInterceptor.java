@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
  * @see org.springframework.integration.selector.MetadataStoreSelector
  * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
  */
-public class IdempotentReceiverInterceptor extends HandleMessageAdvice implements BeanFactoryAware {
+public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice implements BeanFactoryAware {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
