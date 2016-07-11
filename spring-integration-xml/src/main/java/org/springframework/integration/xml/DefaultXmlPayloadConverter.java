@@ -27,7 +27,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -102,20 +101,11 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	}
 
 	private static InputSource sourceToInputSource(Source source) {
-		if (source instanceof SAXSource) {
-			return ((SAXSource) source).getInputSource();
+		InputSource inputSource = SAXSource.sourceToInputSource(source);
+		if (inputSource == null) {
+			inputSource = new InputSource(source.getSystemId());
 		}
-		else if (source instanceof StreamSource) {
-			StreamSource ss = (StreamSource) source;
-			InputSource inputSource = new InputSource(ss.getSystemId());
-			inputSource.setByteStream(ss.getInputStream());
-			inputSource.setCharacterStream(ss.getReader());
-			inputSource.setPublicId(ss.getPublicId());
-			return inputSource;
-		}
-		else {
-			return new InputSource(source.getSystemId());
-		}
+		return inputSource;
 	}
 
 	protected Document nodeToDocument(Node node) {

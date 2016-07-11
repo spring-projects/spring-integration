@@ -19,12 +19,16 @@ package org.springframework.integration.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamSource;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Assert;
@@ -35,6 +39,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringSource;
 
@@ -46,17 +51,17 @@ import org.springframework.xml.transform.StringSource;
  */
 public class DefaultXmlPayloadConverterTests {
 
-	DefaultXmlPayloadConverter converter;
+	private static final String TEST_DOCUMENT_AS_STRING = "<test>hello</test>";
 
-	Document testDocument;
+	private DefaultXmlPayloadConverter converter;
 
-	String testDocumentAsString = "<test>hello</test>";
+	private Document testDocument;
 
 	@Before
 	public void setUp() throws Exception {
 		converter = new DefaultXmlPayloadConverter();
 		testDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-				new InputSource(new StringReader(testDocumentAsString)));
+				new InputSource(new StringReader(TEST_DOCUMENT_AS_STRING)));
 	}
 
 	@Test
@@ -99,7 +104,7 @@ public class DefaultXmlPayloadConverterTests {
 
 	@Test
 	public void testGetSourcePassingString() throws Exception {
-		Source source = converter.convertToSource(testDocumentAsString);
+		Source source = converter.convertToSource(TEST_DOCUMENT_AS_STRING);
 		assertEquals(StringSource.class, source.getClass());
 	}
 
@@ -147,6 +152,55 @@ public class DefaultXmlPayloadConverterTests {
 	public void testConvertBytesToDocument() throws Exception {
 		Document doc = converter.convertToDocument("<test>hello</test>".getBytes());
 		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
+	@Test
+	public void testConvertFileToDocument() throws Exception {
+		File file = new ClassPathResource("org/springframework/integration/xml/customSource.data").getFile();
+		Document doc = converter.convertToDocument(file);
+		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
+	@Test
+	public void testConvertInputStreamToDocument() throws Exception {
+		InputStream inputStream = new ClassPathResource("org/springframework/integration/xml/customSource.data")
+				.getInputStream();
+		Document doc = converter.convertToDocument(inputStream);
+		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
+	@Test
+	public void testConvertStreamSourceToDocument() throws Exception {
+		ClassPathResource resource = new ClassPathResource("org/springframework/integration/xml/customSource.data");
+		StreamSource source = new StreamSource(resource.getInputStream());
+		Document doc = converter.convertToDocument(source);
+		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
+	@Test
+	public void testConvertCustomSourceToDocument() throws Exception {
+		Document doc = converter.convertToDocument(new MySource());
+		XMLAssert.assertXMLEqual(testDocument, doc);
+	}
+
+	private static class MySource implements Source {
+
+		@Override
+		public void setSystemId(String systemId) {
+		}
+
+		@Override
+		public String getSystemId() {
+			try {
+				return new ClassPathResource("org/springframework/integration/xml/customSource.data")
+						.getFile()
+						.getPath();
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
 	}
 
 }
