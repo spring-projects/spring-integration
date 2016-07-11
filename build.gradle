@@ -3,21 +3,19 @@ buildscript {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
-		classpath 'io.spring.gradle:spring-io-plugin:0.0.4.RELEASE'
+		classpath 'io.spring.gradle:spring-io-plugin:0.0.5.RELEASE'
 		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 	}
 }
 
 plugins {
-	id "org.sonarqube" version "1.2"
+	id 'java'
+	id 'base'
+	id 'org.sonarqube' version '1.2'
 }
 
 description = 'Spring Integration'
-
-apply plugin: 'base'
-apply plugin: 'idea'
-
 
 def docsDir = 'src/reference/asciidoc' // Will be default with newer asciidoctor plugin
 
@@ -141,7 +139,7 @@ subprojects { subproject ->
 		springSecurityVersion = '4.1.0.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.1.2.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.1.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.1.RELEASE'
 		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
