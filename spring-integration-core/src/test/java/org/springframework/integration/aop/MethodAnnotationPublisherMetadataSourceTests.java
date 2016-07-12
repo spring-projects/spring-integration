@@ -19,14 +19,17 @@ package org.springframework.integration.aop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.integration.annotation.Publisher;
 
 /**
  * @author Mark Fisher
@@ -105,9 +108,31 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		source.getPayloadExpression(method);
 	}
 
-	private static Method getMethod(String name, Class<?> ... params) {
+	@Test
+	public void explicitAnnotationAttributeOverride() {
+		Method method = getMethod("methodWithExplicitAnnotationAttributeOverride");
+		String channelName = source.getChannelName(method);
+		assertEquals("foo", channelName);
+	}
+
+	@Test
+	public void explicitAnnotationAttributeOverrideOnDeclaringClass() {
+		Method method = getMethodFromTestClass("methodWithAnnotationOnTheDeclaringClass");
+		String channelName = source.getChannelName(method);
+		assertEquals("bar", channelName);
+	}
+
+	private static Method getMethodFromTestClass(String name, Class<?>... params) {
+		return getMethodFromClass(TestClass.class, name, params);
+	}
+
+	private static Method getMethod(String name, Class<?>... params) {
+		return getMethodFromClass(MethodAnnotationPublisherMetadataSourceTests.class, name, params);
+	}
+
+	private static Method getMethodFromClass(Class<?> sourceClass, String name, Class<?>... params) {
 		try {
-			return MethodAnnotationPublisherMetadataSourceTests.class.getMethod(name, params);
+			return sourceClass.getMethod(name, params);
 		}
 		catch (Exception e) {
 			throw new RuntimeException("failed to resolve method", e);
@@ -154,6 +179,23 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 
 	@Publisher
 	public void methodWithVoidReturnAndNoPayloadAnnotation(String payload) {
+	}
+
+	@Publisher
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface CustomPublisher {
+		@AliasFor(annotation = Publisher.class, attribute = "channel")
+		String custom();
+	}
+
+	@CustomPublisher(custom = "foo")
+	public void methodWithExplicitAnnotationAttributeOverride() {
+	}
+
+	@CustomPublisher(custom = "bar")
+	public class TestClass {
+		public void methodWithAnnotationOnTheDeclaringClass() {
+		}
 	}
 
 }
