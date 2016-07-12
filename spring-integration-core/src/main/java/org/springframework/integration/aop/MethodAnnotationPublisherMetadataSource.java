@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.messaging.handler.annotation.Header;
@@ -38,6 +39,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gareth Chapman
  * @since 2.0
  */
 public class MethodAnnotationPublisherMetadataSource implements PublisherMetadataSource {
@@ -137,7 +139,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	private <T> T getAnnotationValue(Method method, String attributeName, Class<T> expectedType) {
 		T value = null;
 		for (Class<? extends Annotation> annotationType : this.annotationTypes) {
-			Annotation annotation = AnnotationUtils.findAnnotation(method, annotationType);
+			Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(method, annotationType);
 			if (annotation != null) {
 				if (value != null) {
 					throw new IllegalStateException(
@@ -152,7 +154,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	private <T> T getAnnotationValue(Class<?> clazz, String attributeName, Class<T> expectedType) {
 		T value = null;
 		for (Class<? extends Annotation> annotationType : this.annotationTypes) {
-			Annotation annotation = AnnotationUtils.findAnnotation(clazz, annotationType);
+			Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(clazz, annotationType);
 			if (annotation != null) {
 				if (value != null) {
 					throw new IllegalStateException(
