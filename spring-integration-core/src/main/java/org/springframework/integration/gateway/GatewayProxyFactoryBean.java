@@ -48,6 +48,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -134,6 +135,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	private volatile GatewayMethodMetadata globalMethodMetadata;
 
 	private volatile MethodArgsMessageMapper argsMapper;
+
+	private volatile boolean convertReceiveMessage;
 
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
@@ -358,6 +361,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					this.asyncSubmitListenableType = submitType.getClass();
 				}
 			}
+
+			this.convertReceiveMessage =
+					getIntegrationProperty(IntegrationProperties.GATEWAY_CONVERT_RECEIVE_MESSAGE, Boolean.class);
 			this.initialized = true;
 		}
 	}
@@ -452,7 +458,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (paramCount == 0 && !hasPayloadExpression) {
 			if (shouldReply) {
 				if (shouldReturnMessage) {
-					return gateway.receive();
+					if (this.convertReceiveMessage) {
+						return gateway.receive();
+					}
+					else {
+						return gateway.receiveMessage();
+					}
 				}
 				response = gateway.receive();
 			}

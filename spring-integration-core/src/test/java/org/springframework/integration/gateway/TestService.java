@@ -39,6 +39,8 @@ public interface TestService {
 
 	String solicitResponse();
 
+	Message<String> getMessage();
+
 	Integer requestReplyWithIntegers(Integer input);
 
 	String requestReplyWithMessageParameter(Message<?> message);

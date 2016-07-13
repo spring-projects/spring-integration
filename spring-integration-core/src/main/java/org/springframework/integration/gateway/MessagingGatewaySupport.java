@@ -59,7 +59,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
-	private final MessagingTemplate messagingTemplate;
+	protected final MessagingTemplate messagingTemplate;
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
 			new HistoryWritingMessagePostProcessor();
@@ -391,6 +391,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
 		return this.messagingTemplate.receiveAndConvert(replyChannel, null);
+	}
+
+	protected Message<?> receiveMessage() {
+		initializeIfNecessary();
+		MessageChannel replyChannel = getReplyChannel();
+		Assert.state(replyChannel instanceof PollableChannel,
+				"receive is not supported, because no pollable reply channel has been configured");
+		return this.messagingTemplate.receive(replyChannel);
 	}
 
 	protected Object sendAndReceive(Object object) {
