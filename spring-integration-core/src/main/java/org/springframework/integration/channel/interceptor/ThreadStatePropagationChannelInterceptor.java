@@ -16,6 +16,14 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import java.util.UUID;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -50,13 +58,41 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @since 4.2
  */
 public abstract class ThreadStatePropagationChannelInterceptor<S>
-		extends ChannelInterceptorAdapter implements ExecutorChannelInterceptor {
+		extends ChannelInterceptorAdapter implements BeanFactoryAware, ExecutorChannelInterceptor {
+
+	private volatile MessageBuilderFactory messageBuilderFactory;
+
+	private BeanFactory beanFactory;
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	protected MessageBuilderFactory getMessageBuilderFactory() {
+		if (this.messageBuilderFactory == null) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
+			}
+			else {
+				this.messageBuilderFactory = new DefaultMessageBuilderFactory();
+			}
+		}
+		return this.messageBuilderFactory;
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
 
 	@Override
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {
 		S threadContext = obtainPropagatingContext(message, channel);
 		if (threadContext != null) {
-			return new MessageWithThreadState<S>(message, threadContext);
+			if (this.messageBuilderFactory == null) {
+				getMessageBuilderFactory();
+			}
+			return new MessageWithThreadState<S>(message, threadContext, this.messageBuilderFactory);
 		}
 		else {
 			return message;
@@ -91,15 +127,18 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	private static final class MessageWithThreadState<S> implements Message<Object> {
+	public static final class MessageWithThreadState<S> implements Message<Object> {
 
-		private final Message<?> message;
+		private Message<?> message;
 
 		private final S state;
 
-		private MessageWithThreadState(Message<?> message, S state) {
+		private final MessageBuilderFactory messageBuilderFactory;
+
+		private MessageWithThreadState(Message<?> message, S state, MessageBuilderFactory messageBuilderFactory) {
 			this.message = message;
 			this.state = state;
+			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
 		@Override
@@ -110,6 +149,16 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		@Override
 		public MessageHeaders getHeaders() {
 			return this.message.getHeaders();
+		}
+
+		public Message<?> getMessage() {
+			return this.message;
+		}
+
+		public void pushSequenceDetails(UUID sequenceId, int sequenceNumber, int sequenceSize) {
+			this.message = this.messageBuilderFactory.fromMessage(this.message)
+					.pushSequenceDetails(sequenceId, sequenceNumber, sequenceSize)
+					.build();
 		}
 
 		@Override

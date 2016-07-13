@@ -33,10 +33,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.GlobalChannelInterceptor;
@@ -94,6 +97,14 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	@Autowired
 	@Qualifier("executorChannel")
 	MessageChannel executorChannel;
+
+	@Autowired
+	@Qualifier("publishSubscribeChannel")
+	PublishSubscribeChannel publishSubscribeChannel;
+
+	@Autowired
+	@Qualifier("securedChannelQueue2")
+	PollableChannel securedChannelQueue2;
 
 	@Autowired
 	@Qualifier("errorChannel")
@@ -187,7 +198,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 		SecurityContextHolder.clearContext();
 
-		this.queueChannel.send(new GenericMessage<String>("test"));
+		this.executorChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = this.errorChannel.receive(1000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
@@ -196,6 +207,48 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 				instanceOf(AuthenticationCredentialsNotFoundException.class));
 	}
 
+	@Test
+	public void testSecurityContextPropagationPublishSubscribeChannel() {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+
+		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+
+		Message<?> receive = this.securedChannelQueue.receive(10000);
+		assertNotNull(receive);
+		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(receive);
+		assertEquals(new Integer(0), headerAccessor.getSequenceNumber());
+
+		receive = this.securedChannelQueue2.receive(10000);
+		assertNotNull(receive);
+		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
+		assertEquals(new Integer(0), headerAccessor.getSequenceNumber());
+
+		this.publishSubscribeChannel.setApplySequence(true);
+
+		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+
+		receive = this.securedChannelQueue.receive(10000);
+		assertNotNull(receive);
+		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
+		assertEquals(new Integer(1), headerAccessor.getSequenceNumber());
+
+		receive = this.securedChannelQueue2.receive(10000);
+		assertNotNull(receive);
+		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
+		assertEquals(new Integer(2), headerAccessor.getSequenceNumber());
+
+		this.publishSubscribeChannel.setApplySequence(false);
+
+		SecurityContextHolder.clearContext();
+
+		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
+		Message<?> errorMessage = this.errorChannel.receive(1000);
+		assertNotNull(errorMessage);
+		Object payload = errorMessage.getPayload();
+		assertThat(payload, instanceOf(MessageHandlingException.class));
+		assertThat(((MessageHandlingException) payload).getCause(),
+				instanceOf(AuthenticationCredentialsNotFoundException.class));
+	}
 
 	private void login(String username, String password, String... roles) {
 		SecurityContext context = SecurityTestUtils.createContext(username, password, roles);
@@ -231,7 +284,10 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		}
 
 		@Bean
-		@GlobalChannelInterceptor(patterns = {"#{'queueChannel'}", "${security.channel:executorChannel}"})
+		@GlobalChannelInterceptor(patterns = {
+				"#{'queueChannel'}",
+				"${security.channel:executorChannel}",
+				"publishSubscribeChannel" })
 		public ChannelInterceptor securityContextPropagationInterceptor() {
 			return new SecurityContextPropagationChannelInterceptor();
 		}
@@ -254,6 +310,19 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 			return new ExecutorChannel(Executors.newSingleThreadExecutor());
 		}
 
+
+		@Bean
+		@BridgeTo("securedChannelQueue")
+		public PublishSubscribeChannel publishSubscribeChannel() {
+			return new PublishSubscribeChannel(Executors.newCachedThreadPool());
+		}
+
+		@Bean
+		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
+		@BridgeFrom("publishSubscribeChannel")
+		public PollableChannel securedChannelQueue2() {
+			return new QueueChannel();
+		}
 
 		@Bean
 		public TaskScheduler taskScheduler() {

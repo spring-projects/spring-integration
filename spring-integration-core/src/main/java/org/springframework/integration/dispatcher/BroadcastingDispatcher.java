@@ -17,12 +17,14 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.channel.interceptor.ThreadStatePropagationChannelInterceptor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -158,13 +160,23 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
 		int sequenceSize = handlers.size();
+		Message<?> messageToSend = message;
+		UUID sequenceId = null;
+		if (this.applySequence) {
+			sequenceId = message.getHeaders().getId();
+		}
 		for (MessageHandler handler : handlers) {
-			Message<?> messageToSend = message;
 			if (this.applySequence) {
-				messageToSend = getMessageBuilderFactory()
-						.fromMessage(message)
-						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
-						.build();
+				if (message instanceof ThreadStatePropagationChannelInterceptor.MessageWithThreadState) {
+					((ThreadStatePropagationChannelInterceptor.MessageWithThreadState) message)
+							.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize);
+				}
+				else {
+					messageToSend = getMessageBuilderFactory()
+							.fromMessage(message)
+							.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize)
+							.build();
+				}
 			}
 
 			if (this.executor != null) {
