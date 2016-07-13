@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import org.springframework.integration.support.MessageDecorator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -90,14 +91,15 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	private static class MessageWithThreadState<S> implements Message<Object> {
+	private static final class MessageWithThreadState<S> implements Message<Object>, MessageDecorator {
 
-		private final Message<?> message;
+		private final Message<Object> message;
 
 		private final S state;
 
-		public MessageWithThreadState(Message<?> message, S state) {
-			this.message = message;
+		@SuppressWarnings("unchecked")
+		private MessageWithThreadState(Message<?> message, S state) {
+			this.message = (Message<Object>) message;
 			this.state = state;
 		}
 
@@ -109,6 +111,11 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		@Override
 		public MessageHeaders getHeaders() {
 			return this.message.getHeaders();
+		}
+
+		@Override
+		public Message<?> decorateMessage(Message<?> message) {
+			return new MessageWithThreadState<S>(message, this.state);
 		}
 
 		@Override
