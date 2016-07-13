@@ -138,6 +138,21 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
+	public void testReceiveMessage() throws Exception {
+		QueueChannel replyChannel = new QueueChannel();
+		replyChannel.send(new GenericMessage<>("foo"));
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setDefaultReplyChannel(replyChannel);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		Message<String> message = service.getMessage();
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
 	public void testRequestReplyWithTypeConversion() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {

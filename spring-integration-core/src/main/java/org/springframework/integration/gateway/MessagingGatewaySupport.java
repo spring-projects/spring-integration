@@ -59,7 +59,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
-	private final MessagingTemplate messagingTemplate;
+	protected final MessagingTemplate messagingTemplate;
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
 			new HistoryWritingMessagePostProcessor();

@@ -55,6 +55,7 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
@@ -452,7 +453,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (paramCount == 0 && !hasPayloadExpression) {
 			if (shouldReply) {
 				if (shouldReturnMessage) {
-					return gateway.receive();
+					// TODO use messagingTemplate directly to avoid breaking changes
+					MessageChannel replyChannel = gateway.getReplyChannel();
+					Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
+							"receive is not supported, because no pollable reply channel has been configured");
+					return gateway.messagingTemplate.receive(replyChannel);
 				}
 				response = gateway.receive();
 			}
