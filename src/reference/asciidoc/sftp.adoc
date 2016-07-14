@@ -434,6 +434,98 @@ This will work for any `ResettableFileListFilter`.
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
 
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SessionFactory<LsEntry> sftpSessionFactory() {
+        DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+        factory.setHost("localhost");
+        factory.setPort(port);
+        factory.setUser("foo");
+        factory.setPassword("foo");
+        factory.setAllowUnknownKeys(true);
+        return new CachingSessionFactory<LsEntry>(factory);
+    }
+
+    @Bean
+    public SftpInboundFileSynchronizer sftpInboundFileSynchronizer() {
+        SftpInboundFileSynchronizer fileSynchronizer = new SftpInboundFileSynchronizer(sftpSessionFactory());
+        fileSynchronizer.setDeleteRemoteFiles(false);
+        fileSynchronizer.setRemoteDirectory("/");
+        fileSynchronizer.setFilter(new SftpSimplePatternFileListFilter("*.xml"));
+        return fileSynchronizer;
+    }
+
+    @Bean
+    @InboundChannelAdapter(channel = "sftpChannel")
+    public MessageSource<File> sftpMessageSource() {
+        SftpInboundFileSynchronizingMessageSource source =
+                new SftpInboundFileSynchronizingMessageSource(sftpInboundFileSynchronizer());
+        source.setLocalDirectory(new File("ftp-inbound"));
+        source.setAutoCreateLocalDirectory(true);
+        source.setLocalFilter(new AcceptOnceFileListFilter<File>());
+        return source;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "sftpChannel")
+    public MessageHandler handler() {
+        return new MessageHandler() {
+
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+                System.out.println(message.getPayload());
+            }
+
+        };
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow sftpInboundFlow() {
+        return IntegrationFlows
+            .from(s -> s.sftp(this.sftpSessionFactory)
+                     .preserveTimestamp(true)
+                     .remoteDirectory("sftpSource")
+                     .regexFilter(".*\\.txt$")
+                     .localFilenameExpression("#this.toUpperCase() + '.a'")
+                     .localDirectory(this.sftpServer.getTargetLocalDirectory()),
+                 e -> e.id("sftpInboundAdapter").autoStartup(false))
+            .handle(m -> System.out.println(m.getPayload()))
+            .get();
+    }
+}
+----
+
 [[sftp-streaming]]
 === SFTP Streaming Inbound Channel Adapter
 
@@ -468,6 +560,45 @@ If you do not delete the remote file (e.g. using an outbound gateway with an rm 
 file being processed again, you can configure an `SftpPersistentFileListFilter` in the `filter` attribute.
 If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    @InboundChannelAdapter(channel = "stream")
+    public MessageSource<InputStream> ftpMessageSource() {
+        SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
+        messageSource.setRemoteDirectory("sftpSource/");
+        messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(),
+                           "streaming"));
+        return messageSource;
+    }
+
+    @Bean
+    @Transformer(inputChannel = "stream", outputChannel = "data")
+    public org.springframework.integration.transformer.Transformer transformer() {
+        return new StreamTransformer();
+    }
+
+    @Bean
+    public SftpRemoteFileTemplate template() {
+        return new SftpRemoteFileTemplate(sftpSessionFactory());
+    }
+
+}
+----
+
 
 [[sftp-outbound]]
 === SFTP Outbound Channel Adapter
