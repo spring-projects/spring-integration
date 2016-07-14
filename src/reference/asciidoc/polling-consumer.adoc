@@ -100,7 +100,7 @@ If you wish to change the order, you should wire up the proxy yourself.
 
 ===== SimpleActiveIdleMessageSourceAdvice
 
-This advice is a simple implementation of `AbstractMessageSourceAdvice`, when used in conjunction with a `DynamicPeriodicTrigger`, it adjuststhe polling frequency depending on whether or not the previous poll resulted in a message or not.
+This advice is a simple implementation of `AbstractMessageSourceAdvice`, when used in conjunction with a `DynamicPeriodicTrigger`, it adjusts the polling frequency depending on whether or not the previous poll resulted in a message or not.
 The poller must also have a reference to the same `DynamicPeriodicTrigger`.
 
 .Important: Async Handoff
