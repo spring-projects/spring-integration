@@ -140,12 +140,12 @@ public interface TempConverter {
 
 <int:chain id="wsChain" input-channel="viaWebService">
 	<int:transformer
-	   expression="'&lt;FahrenheitToCelsius xmlns=''http://www.w3schools.com/webservices/''&gt;&lt;Fahrenheit&gt;XXX&lt;/Fahrenheit&gt;&lt;/FahrenheitToCelsius&gt;'.replace('XXX', payload.toString())" />
+	   expression="'&lt;FahrenheitToCelsius xmlns=''http://www.w3schools.com/xml/''&gt;&lt;Fahrenheit&gt;XXX&lt;/Fahrenheit&gt;&lt;/FahrenheitToCelsius&gt;'.replace('XXX', payload.toString())" />
 	<int-ws:header-enricher>
-		<int-ws:soap-action value="http://www.w3schools.com/webservices/FahrenheitToCelsius"/>
+		<int-ws:soap-action value="http://www.w3schools.com/xml/FahrenheitToCelsius"/>
 	</int-ws:header-enricher>
 	<int-ws:outbound-gateway
-		uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+		uri="http://www.w3schools.com/xml/tempconvert.asmx"/>
 	<int-xml:xpath-transformer
 		xpath-expression="/*[local-name()='FahrenheitToCelsiusResponse']/*[local-name()='FahrenheitToCelsiusResult']"/>
 </int:chain>
@@ -178,14 +178,14 @@ public class Application {
   public IntegrationFlow convert() {
       return f -> f
         .transform(payload ->
-              "<FahrenheitToCelsius xmlns=\"http://www.w3schools.com/webservices/\">"
-            +     "<Fahrenheit>" + payload +"</Fahrenheit>"
+              "<FahrenheitToCelsius xmlns=\"http://www.w3schools.com/xml/\">"
+            +     "<Fahrenheit>" + payload + "</Fahrenheit>"
             + "</FahrenheitToCelsius>")
         .enrichHeaders(h -> h
             .header(WebServiceHeaders.SOAP_ACTION,
-                "http://www.w3schools.com/webservices/FahrenheitToCelsius"))
+                "http://www.w3schools.com/xml/FahrenheitToCelsius"))
         .handle(new SimpleWebServiceOutboundGateway(
-            "http://www.w3schools.com/webservices/tempconvert.asmx"))
+            "http://www.w3schools.com/xml/tempconvert.asmx"))
         .transform(Transformers.xpath("/*[local-name()=\"FahrenheitToCelsiusResponse\"]"
             + "/*[local-name()=\"FahrenheitToCelsiusResult\"]"));
   }
