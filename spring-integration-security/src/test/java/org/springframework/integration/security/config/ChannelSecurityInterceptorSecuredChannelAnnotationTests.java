@@ -34,15 +34,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.GlobalChannelInterceptor;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.integration.security.TestHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
@@ -50,6 +51,7 @@ import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.integration.security.channel.SecurityContextPropagationChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -312,16 +314,32 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 
 		@Bean
-		@BridgeTo("securedChannelQueue")
 		public PublishSubscribeChannel publishSubscribeChannel() {
 			return new PublishSubscribeChannel(Executors.newCachedThreadPool());
 		}
 
 		@Bean
+		@ServiceActivator(inputChannel = "publishSubscribeChannel")
+		public MessageHandler securedChannelQueueBridge() {
+			BridgeHandler handler = new BridgeHandler();
+			handler.setOutputChannel(securedChannelQueue());
+			handler.setOrder(1);
+			return handler;
+		}
+
+		@Bean
 		@SecuredChannel(interceptor = "channelSecurityInterceptor", sendAccess = {"ROLE_ADMIN", "ROLE_PRESIDENT"})
-		@BridgeFrom("publishSubscribeChannel")
 		public PollableChannel securedChannelQueue2() {
 			return new QueueChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "publishSubscribeChannel")
+		public MessageHandler securedChannelQueue2Bridge() {
+			BridgeHandler handler = new BridgeHandler();
+			handler.setOutputChannel(securedChannelQueue2());
+			handler.setOrder(2);
+			return handler;
 		}
 
 		@Bean
