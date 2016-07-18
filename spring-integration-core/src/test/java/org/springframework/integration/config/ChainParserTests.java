@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -387,8 +387,8 @@ public class ChainParserTests {
 		//INT-3117
 		GatewayProxyFactoryBean gatewayProxyFactoryBean = this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
 				GatewayProxyFactoryBean.class);
-		assertSame(this.strings, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannel", MessageChannel.class));
-		assertSame(this.numbers, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannel", MessageChannel.class));
+		assertEquals("strings", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"));
+		assertEquals("numbers", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName"));
 		assertEquals(new Long(1000), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Long.class));
 		assertEquals(new Long(100), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Long.class));
 

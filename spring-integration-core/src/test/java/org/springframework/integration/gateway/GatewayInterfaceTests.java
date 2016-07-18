@@ -50,7 +50,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -59,8 +61,10 @@ import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -73,6 +77,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -83,6 +88,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration(classes = GatewayInterfaceTests.TestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -108,6 +114,9 @@ public class GatewayInterfaceTests {
 
 	@Autowired
 	private SimpleAsyncTaskExecutor exec;
+
+	@Autowired
+	private AutoCreateChannelService autoCreateChannelService;
 
 
 	@Test
@@ -395,6 +404,10 @@ public class GatewayInterfaceTests {
 		assertThat(result2.get().getName(), startsWith("exec-"));
 	}
 
+	@Test
+	public void testAutoCreateChannelGateway() {
+		assertEquals("foo", this.autoCreateChannelService.service("foo"));
+	}
 
 	public interface Foo {
 
@@ -432,9 +445,23 @@ public class GatewayInterfaceTests {
 
 	}
 
+	@Component
+	public static class AutoCreateChannelService {
+
+		@Autowired
+		private AutoCreateChannelGateway gateway;
+
+		public String service(String request) {
+			return this.gateway.foo(request);
+		}
+
+	}
+
 	@Configuration
-	@EnableIntegration
+	@ComponentScan(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+			classes = AutoCreateChannelService.class))
 	@IntegrationComponentScan
+	@EnableIntegration
 	public static class TestConfig {
 
 		@Bean
@@ -475,6 +502,12 @@ public class GatewayInterfaceTests {
 			return simpleAsyncTaskExecutor;
 		}
 
+		@Bean
+		@ServiceActivator(inputChannel = "autoCreateChannel")
+		public MessageHandler autoCreateServiceActivator() {
+			return new BridgeHandler();
+		}
+
 	}
 
 	@MessagingGateway
@@ -507,6 +540,14 @@ public class GatewayInterfaceTests {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
 		Future<Thread> test1(Thread caller);
+
+	}
+
+
+	@MessagingGateway(defaultRequestChannel = "autoCreateChannel")
+	public interface AutoCreateChannelGateway {
+
+		String foo(String payload);
 
 	}
 

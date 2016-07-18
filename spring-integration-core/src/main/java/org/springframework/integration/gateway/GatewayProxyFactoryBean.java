@@ -92,9 +92,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private volatile MessageChannel defaultRequestChannel;
 
+	private volatile String defaultRequestChannelName;
+
 	private volatile MessageChannel defaultReplyChannel;
 
+	private volatile String defaultReplyChannelName;
+
 	private volatile MessageChannel errorChannel;
+
+	private volatile String errorChannelName;
 
 	private volatile Long defaultRequestTimeout;
 
@@ -160,7 +166,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	/**
 	 * Set the default request channel.
-	 *
 	 * @param defaultRequestChannel the channel to which request messages will
 	 * be sent if no request channel has been configured with an annotation.
 	 */
@@ -169,10 +174,19 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	/**
+	 * Set the default request channel bean name.
+	 * @param defaultRequestChannelName the channel name to which request messages will
+	 * be sent if no request channel has been configured with an annotation.
+	 * @since 4.2.9
+	 */
+	public void setDefaultRequestChannelName(String defaultRequestChannelName) {
+		this.defaultRequestChannelName = defaultRequestChannelName;
+	}
+
+	/**
 	 * Set the default reply channel. If no default reply channel is provided,
 	 * and no reply channel is configured with annotations, an anonymous,
 	 * temporary channel will be used for handling replies.
-	 *
 	 * @param defaultReplyChannel the channel from which reply messages will be
 	 * received if no reply channel has been configured with an annotation
 	 */
@@ -181,14 +195,36 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	/**
+	 * Set the default reply channel bean name. If no default reply channel is provided,
+	 * and no reply channel is configured with annotations, an anonymous,
+	 * temporary channel will be used for handling replies.
+	 * @param defaultReplyChannelName the channel name from which reply messages will be
+	 * received if no reply channel has been configured with an annotation
+	 * @since 4.2.9
+	 */
+	public void setDefaultReplyChannelName(String defaultReplyChannelName) {
+		this.defaultReplyChannelName = defaultReplyChannelName;
+	}
+
+	/**
 	 * Set the error channel. If no error channel is provided, this gateway will
 	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
 	 * a reference to the "nullChannel" here.
-	 *
 	 * @param errorChannel The error channel.
 	 */
 	public void setErrorChannel(MessageChannel errorChannel) {
 		this.errorChannel = errorChannel;
+	}
+
+	/**
+	 * Set the error channel name. If no error channel is provided, this gateway will
+	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
+	 * a reference to the "nullChannel" here.
+	 * @param errorChannelName The error channel bean name.
+	 * @since 4.2.9
+	 */
+	public void setErrorChannelName(String errorChannelName) {
+		this.errorChannelName = errorChannelName;
 	}
 
 	/**
@@ -451,13 +487,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
-		MessageChannel requestChannel = this.defaultRequestChannel;
 		String requestChannelName = null;
-		MessageChannel replyChannel = this.defaultReplyChannel;
 		String replyChannelName = null;
 		Long requestTimeout = this.defaultRequestTimeout;
 		Long replyTimeout = this.defaultReplyTimeout;
-		String payloadExpression = this.globalMethodMetadata != null ? this.globalMethodMetadata.getPayloadExpression()
+		String payloadExpression = this.globalMethodMetadata != null
+				? this.globalMethodMetadata.getPayloadExpression()
 				: null;
 		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 		if (gatewayAnnotation != null) {
@@ -487,7 +522,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					String name = gatewayHeader.name();
 					boolean hasValue = StringUtils.hasText(value);
 
-					if (!(hasValue ^ StringUtils.hasText(expression))) {
+					if (hasValue == StringUtils.hasText(expression)) {
 						throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
 								"is required on a gateway's header.");
 					}
@@ -526,25 +561,41 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
- 		messageMapper.setBeanFactory(this.getBeanFactory());
- 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
-		gateway.setErrorChannel(this.errorChannel);
+		messageMapper.setBeanFactory(this.getBeanFactory());
+		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
+
+		if (this.errorChannel != null) {
+			gateway.setErrorChannel(this.errorChannel);
+		}
+		else if (StringUtils.hasText(this.errorChannelName)) {
+			gateway.setErrorChannelName(this.errorChannelName);
+		}
+
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}
 		gateway.setBeanName(this.getComponentName());
+
 		if (StringUtils.hasText(requestChannelName)) {
 			gateway.setRequestChannelName(requestChannelName);
 		}
-		else {
-			gateway.setRequestChannel(requestChannel);
+		else if (StringUtils.hasText(this.defaultRequestChannelName)) {
+			gateway.setRequestChannelName(this.defaultRequestChannelName);
 		}
+		else {
+			gateway.setRequestChannel(this.defaultRequestChannel);
+		}
+
 		if (StringUtils.hasText(replyChannelName)) {
 			gateway.setReplyChannelName(replyChannelName);
 		}
-		else {
-			gateway.setReplyChannel(replyChannel);
+		else if (StringUtils.hasText(this.defaultReplyChannelName)) {
+			gateway.setReplyChannelName(this.defaultReplyChannelName);
 		}
+		else {
+			gateway.setReplyChannel(this.defaultReplyChannel);
+		}
+
 		if (requestTimeout == null) {
 			gateway.setRequestTimeout(-1);
 		}

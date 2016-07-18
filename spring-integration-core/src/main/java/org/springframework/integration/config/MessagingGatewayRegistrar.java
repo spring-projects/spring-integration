@@ -143,13 +143,13 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 
 
 		if (StringUtils.hasText(defaultRequestChannel)) {
-			gatewayProxyBuilder.addPropertyReference("defaultRequestChannel", defaultRequestChannel);
+			gatewayProxyBuilder.addPropertyValue("defaultRequestChannelName", defaultRequestChannel);
 		}
 		if (StringUtils.hasText(defaultReplyChannel)) {
-			gatewayProxyBuilder.addPropertyReference("defaultReplyChannel", defaultReplyChannel);
+			gatewayProxyBuilder.addPropertyValue("defaultReplyChannelName", defaultReplyChannel);
 		}
 		if (StringUtils.hasText(errorChannel)) {
-			gatewayProxyBuilder.addPropertyReference("errorChannel", errorChannel);
+			gatewayProxyBuilder.addPropertyValue("errorChannelName", errorChannel);
 		}
 		if (asyncExecutor == null || AnnotationConstants.NULL.equals(asyncExecutor)) {
 			gatewayProxyBuilder.addPropertyValue("asyncExecutor", null);
