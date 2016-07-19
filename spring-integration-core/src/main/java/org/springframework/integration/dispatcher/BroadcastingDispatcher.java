@@ -168,8 +168,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		for (MessageHandler handler : handlers) {
 			if (this.applySequence) {
 				if (message instanceof ThreadStatePropagationChannelInterceptor.MessageWithThreadState) {
-					((ThreadStatePropagationChannelInterceptor.MessageWithThreadState) message)
-							.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize);
+					messageToSend = ((ThreadStatePropagationChannelInterceptor.MessageWithThreadState) message)
+							.cloneWithSequenceDetails(sequenceId, sequenceNumber++, sequenceSize);
 				}
 				else {
 					messageToSend = getMessageBuilderFactory()

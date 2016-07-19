@@ -183,7 +183,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		SecurityContextHolder.clearContext();
 
 		this.queueChannel.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = this.errorChannel.receive(1000);
+		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertThat(payload, instanceOf(MessageHandlingException.class));
@@ -201,7 +201,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		SecurityContextHolder.clearContext();
 
 		this.executorChannel.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = this.errorChannel.receive(1000);
+		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertThat(payload, instanceOf(MessageHandlingException.class));
@@ -244,7 +244,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		SecurityContextHolder.clearContext();
 
 		this.publishSubscribeChannel.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = this.errorChannel.receive(1000);
+		Message<?> errorMessage = this.errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertThat(payload, instanceOf(MessageHandlingException.class));

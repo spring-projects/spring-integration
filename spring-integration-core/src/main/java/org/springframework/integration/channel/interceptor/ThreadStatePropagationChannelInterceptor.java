@@ -129,7 +129,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 
 	public static final class MessageWithThreadState<S> implements Message<Object> {
 
-		private Message<?> message;
+		private final Message<?> message;
 
 		private final S state;
 
@@ -155,10 +155,12 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 			return this.message;
 		}
 
-		public void pushSequenceDetails(UUID sequenceId, int sequenceNumber, int sequenceSize) {
-			this.message = this.messageBuilderFactory.fromMessage(this.message)
+		public MessageWithThreadState<S> cloneWithSequenceDetails(UUID sequenceId, int sequenceNumber,
+				int sequenceSize) {
+			Message<?> message = this.messageBuilderFactory.fromMessage(this.message)
 					.pushSequenceDetails(sequenceId, sequenceNumber, sequenceSize)
 					.build();
+			return new MessageWithThreadState<S>(message, this.state, this.messageBuilderFactory);
 		}
 
 		@Override
