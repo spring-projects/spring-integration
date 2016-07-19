@@ -139,6 +139,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	}
 
 	/**
+	 * Specify a reconnect interval in milliseconds in case of lost connection.
 	 * @param recoveryInterval the reconnect interval in milliseconds in case of lost connection.
 	 * @since 4.2.2
 	 */
@@ -189,7 +190,13 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		}
 		catch (Exception e) {
-			logger.error("doConnect() error for " + this, e);
+			if (epoch == this.epoch.get()) {
+				scheduleReconnect(e);
+			}
+			else {
+				this.logger.error("STOMP doConnect() error for " + this, e);
+			}
+			return;
 		}
 		final CountDownLatch latch = new CountDownLatch(1);
 		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
@@ -239,7 +246,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 	private void scheduleReconnect(Throwable e) {
 		this.epoch.incrementAndGet();
 		this.connecting = this.connected = false;
-		logger.error("STOMP connect error for " + this, e);
+		if (e != null) {
+			this.logger.error("STOMP connect error for " + this, e);
+		}
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(
 					new StompConnectionFailedEvent(this, e));
@@ -250,15 +259,20 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.reconnectFuture = null;
 		}
 
-		this.reconnectFuture = this.stompClient.getTaskScheduler()
-				.schedule(new Runnable() {
+		if (this.stompClient.getTaskScheduler() != null) {
+			this.reconnectFuture = this.stompClient.getTaskScheduler()
+					.schedule(new Runnable() {
 
-					@Override
-					public void run() {
-						connect();
-					}
+						@Override
+						public void run() {
+							connect();
+						}
 
-				}, new Date(System.currentTimeMillis() + this.recoveryInterval));
+					}, new Date(System.currentTimeMillis() + this.recoveryInterval));
+		}
+		else {
+			this.logger.info("For automatic reconnection the 'stompClient' should be configured with a TaskScheduler.");
+		}
 	}
 
 	@Override
@@ -395,7 +409,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleTransportError(StompSession session, Throwable exception) {
-			logger.error("STOMP transport error for session: [" + session + "]", exception);
+			AbstractStompSessionManager.this.logger.error("STOMP transport error for session: [" + session + "]",
+					exception);
 			this.session = null;
 			scheduleReconnect(exception);
 			synchronized (this.delegates) {
