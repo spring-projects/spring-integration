@@ -24,7 +24,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.channel.interceptor.ThreadStatePropagationChannelInterceptor;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -167,16 +166,10 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 		}
 		for (MessageHandler handler : handlers) {
 			if (this.applySequence) {
-				if (message instanceof ThreadStatePropagationChannelInterceptor.MessageWithThreadState) {
-					messageToSend = ((ThreadStatePropagationChannelInterceptor.MessageWithThreadState) message)
-							.cloneWithSequenceDetails(sequenceId, sequenceNumber++, sequenceSize);
-				}
-				else {
-					messageToSend = getMessageBuilderFactory()
-							.fromMessage(message)
-							.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize)
-							.build();
-				}
+				messageToSend = getMessageBuilderFactory()
+						.fromMessage(message)
+						.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize)
+						.build();
 			}
 
 			if (this.executor != null) {

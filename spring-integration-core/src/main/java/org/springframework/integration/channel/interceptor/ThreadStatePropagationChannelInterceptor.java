@@ -16,14 +16,9 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import java.util.UUID;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.support.CloneableMessage;
+import org.springframework.integration.support.DelegatingMessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -58,41 +53,13 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @since 4.2
  */
 public abstract class ThreadStatePropagationChannelInterceptor<S>
-		extends ChannelInterceptorAdapter implements BeanFactoryAware, ExecutorChannelInterceptor {
-
-	private volatile MessageBuilderFactory messageBuilderFactory;
-
-	private BeanFactory beanFactory;
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (this.messageBuilderFactory == null) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			else {
-				this.messageBuilderFactory = new DefaultMessageBuilderFactory();
-			}
-		}
-		return this.messageBuilderFactory;
-	}
-
-	protected BeanFactory getBeanFactory() {
-		return this.beanFactory;
-	}
+		extends ChannelInterceptorAdapter implements ExecutorChannelInterceptor {
 
 	@Override
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {
 		S threadContext = obtainPropagatingContext(message, channel);
 		if (threadContext != null) {
-			if (this.messageBuilderFactory == null) {
-				getMessageBuilderFactory();
-			}
-			return new MessageWithThreadState<S>(message, threadContext, this.messageBuilderFactory);
+			return new MessageWithThreadState<S>(message, threadContext);
 		}
 		else {
 			return message;
@@ -127,18 +94,16 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	public static final class MessageWithThreadState<S> implements Message<Object> {
+	private static final class MessageWithThreadState<S> implements Message<Object>, CloneableMessage<Object> {
 
-		private final Message<?> message;
+		private final Message<Object> message;
 
 		private final S state;
 
-		private final MessageBuilderFactory messageBuilderFactory;
-
-		private MessageWithThreadState(Message<?> message, S state, MessageBuilderFactory messageBuilderFactory) {
-			this.message = message;
+		@SuppressWarnings("unchecked")
+		private MessageWithThreadState(Message<?> message, S state) {
+			this.message = (Message<Object>) message;
 			this.state = state;
-			this.messageBuilderFactory = messageBuilderFactory;
 		}
 
 		@Override
@@ -151,16 +116,18 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 			return this.message.getHeaders();
 		}
 
-		public Message<?> getMessage() {
-			return this.message;
-		}
+		@Override
+		public MessageBuilder<Object> cloneMessage() {
+			MessageBuilder<Object> messageBuilder = MessageBuilder.fromMessage(this.message);
+			return new DelegatingMessageBuilder<Object>(messageBuilder) {
 
-		public MessageWithThreadState<S> cloneWithSequenceDetails(UUID sequenceId, int sequenceNumber,
-				int sequenceSize) {
-			Message<?> message = this.messageBuilderFactory.fromMessage(this.message)
-					.pushSequenceDetails(sequenceId, sequenceNumber, sequenceSize)
-					.build();
-			return new MessageWithThreadState<S>(message, this.state, this.messageBuilderFactory);
+				@Override
+				public Message<Object> build() {
+					Message<Object> newMessage = super.build();
+					return new MessageWithThreadState<S>(newMessage, MessageWithThreadState.this.state);
+				}
+
+			};
 		}
 
 		@Override

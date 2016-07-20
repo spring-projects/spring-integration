@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
+public class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
 
 	private final T payload;
 
@@ -51,9 +51,9 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	private volatile boolean modified;
 
 	/**
-	 * Private constructor to be invoked from the static factory methods only.
+	 * Package protected constructor to be invoked from the static factory methods or inheritors only.
 	 */
-	private MessageBuilder(T payload, Message<T> originalMessage) {
+	MessageBuilder(T payload, Message<T> originalMessage) {
 		Assert.notNull(payload, "payload must not be null");
 		this.payload = payload;
 		this.originalMessage = originalMessage;
@@ -81,9 +81,15 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @param <T> The type of the payload.
 	 * @return A MessageBuilder.
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
-		return new MessageBuilder<T>(message.getPayload(), message);
+		if (message instanceof CloneableMessage) {
+			return ((CloneableMessage<T>) message).cloneMessage();
+		}
+		else {
+			return new MessageBuilder<T>(message.getPayload(), message);
+		}
 	}
 
 	/**

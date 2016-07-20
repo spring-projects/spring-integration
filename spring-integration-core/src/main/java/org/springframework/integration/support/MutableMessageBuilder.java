@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -35,6 +38,8 @@ import org.springframework.util.StringUtils;
  *
  */
 public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
+
+	private static final Log logger = LogFactory.getLog(MutableMessageBuilder.class);
 
 	private final MutableMessage<T> mutableMessage;
 
@@ -73,6 +78,10 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	 */
 	public static <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
 		Assert.notNull(message, "message must not be null");
+		if (message instanceof CloneableMessage) {
+			logger.warn("For CloneableMessages consider to use regular MessageBuilder. " +
+					"Otherwise custom Message context may be lost.");
+		}
 		return new MutableMessageBuilder<T>(message);
 	}
 
