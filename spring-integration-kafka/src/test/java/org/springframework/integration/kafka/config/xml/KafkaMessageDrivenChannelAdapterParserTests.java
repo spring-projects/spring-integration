@@ -17,6 +17,9 @@
 package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+import java.util.Collections;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,9 +27,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -58,6 +68,61 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
 		assertThat(container).isNotNull();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testKafkaMessageDrivenChannelAdapterOptions() {
+		DefaultKafkaConsumerFactory<Integer, String> cf =
+				new DefaultKafkaConsumerFactory<>(Collections.<String, Object>emptyMap());
+		ContainerProperties containerProps = new ContainerProperties("foo");
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		adapter.setOutputChannel(new QueueChannel());
+
+		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
+		adapter.afterPropertiesSet();
+
+		containerProps = TestUtils.getPropertyValue(container, "containerProperties", ContainerProperties.class);
+
+		Object messageListener = containerProps.getMessageListener();
+		assertThat(messageListener).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
+
+		Object delegate = TestUtils.getPropertyValue(messageListener, "delegate");
+
+		assertThat(delegate.getClass().getName()).contains("$IntegrationMessageListener");
+
+		adapter.setRecordFilterStrategy(null);
+		adapter.setRetryTemplate(new RetryTemplate());
+		adapter.afterPropertiesSet();
+
+		messageListener = containerProps.getMessageListener();
+		assertThat(messageListener).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+
+		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
+
+		assertThat(delegate.getClass().getName()).contains("$IntegrationMessageListener");
+
+		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
+		adapter.afterPropertiesSet();
+
+		messageListener = containerProps.getMessageListener();
+		assertThat(messageListener).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
+
+		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
+
+		assertThat(delegate).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+
+		adapter.setFilterInRetry(true);
+		adapter.afterPropertiesSet();
+
+		messageListener = containerProps.getMessageListener();
+		assertThat(messageListener).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+
+		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
+
+		assertThat(delegate).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
 	}
 
 }
