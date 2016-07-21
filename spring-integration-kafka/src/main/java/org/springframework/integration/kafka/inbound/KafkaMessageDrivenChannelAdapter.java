@@ -21,10 +21,16 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -44,17 +50,113 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private final MessagingMessageListenerAdapter<K, V> listener = new IntegrationMessageListener();
 
+	private RecordFilterStrategy<K, V> recordFilterStrategy;
+
+	private boolean ackDiscarded;
+
+	private RetryTemplate retryTemplate;
+
+	private RecoveryCallback<Void> recoveryCallback;
+
+	private boolean filterInRetry;
+
 	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
 		Assert.notNull(messageListenerContainer, "messageListenerContainer is required");
 		Assert.isNull(messageListenerContainer.getContainerProperties().getMessageListener(),
 				"Container must not already have a listener");
 		this.messageListenerContainer = messageListenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
-		this.messageListenerContainer.getContainerProperties().setMessageListener(this.listener);
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.listener.setMessageConverter(messageConverter);
+	}
+
+	/**
+	 * Specify a {@link RecordFilterStrategy} to wrap
+	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationMessageListener} into
+	 * {@link FilteringAcknowledgingMessageListenerAdapter}.
+	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
+	 * @since 2.0.1
+	 */
+	public void setRecordFilterStrategy(RecordFilterStrategy<K, V> recordFilterStrategy) {
+		this.recordFilterStrategy = recordFilterStrategy;
+	}
+
+	/**
+	 * A {@code boolean} flag to indicate if {@link FilteringAcknowledgingMessageListenerAdapter}
+	 * should acknowledge discarded records or not.
+	 * Does not make sense if {@link #setRecordFilterStrategy(RecordFilterStrategy)} isn't specified.
+	 * @param ackDiscarded true to ack (commit offset for) discarded messages.
+	 * @since 2.0.1
+	 */
+	public void setAckDiscarded(boolean ackDiscarded) {
+		this.ackDiscarded = ackDiscarded;
+	}
+
+	/**
+	 * Specify a {@link RetryTemplate} instance to wrap
+	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationMessageListener} into
+	 * {@link RetryingAcknowledgingMessageListenerAdapter}.
+	 * @param retryTemplate the {@link RetryTemplate} to use.
+	 * @since 2.0.1
+	 */
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		this.retryTemplate = retryTemplate;
+	}
+
+	/**
+	 * A {@link RecoveryCallback} instance for retry operation;
+	 * if null, the exception will be thrown to the container after retries are exhausted.
+	 * Does not make sense if {@link #setRetryTemplate(RetryTemplate)} isn't specified.
+	 * @param recoveryCallback the recovery callback.
+	 * @since 2.0.1
+	 */
+	public void setRecoveryCallback(RecoveryCallback<Void> recoveryCallback) {
+		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * The {@code boolean} flag to specify the order how
+	 * {@link RetryingAcknowledgingMessageListenerAdapter} and
+	 * {@link FilteringAcknowledgingMessageListenerAdapter} are wrapped to each other,
+	 * if both of them are present.
+	 * Does not make sense if only one of {@link RetryTemplate} or
+	 * {@link RecordFilterStrategy} is present, or any.
+	 * @param filterInRetry the order for {@link RetryingAcknowledgingMessageListenerAdapter} and
+	 * {@link FilteringAcknowledgingMessageListenerAdapter} wrapping. Defaults to {@code false}.
+	 * @since 2.0.1
+	 */
+	public void setFilterInRetry(boolean filterInRetry) {
+		this.filterInRetry = filterInRetry;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+
+		AcknowledgingMessageListener<K, V> listener = this.listener;
+
+		boolean filterInRetry = this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
+
+		if (filterInRetry) {
+			listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+					this.ackDiscarded);
+			listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
+					this.recoveryCallback);
+		}
+		else {
+			if (this.retryTemplate != null) {
+				listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
+						this.recoveryCallback);
+			}
+			if (this.recordFilterStrategy != null) {
+				listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+						this.ackDiscarded);
+			}
+		}
+
+		this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
 	}
 
 	@Override
