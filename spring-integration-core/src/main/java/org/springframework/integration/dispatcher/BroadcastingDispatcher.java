@@ -26,6 +26,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MessageDecorator;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -170,6 +171,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 						.fromMessage(message)
 						.pushSequenceDetails(sequenceId, sequenceNumber++, sequenceSize)
 						.build();
+				if (message instanceof MessageDecorator) {
+					messageToSend = ((MessageDecorator) message).decorateMessage(messageToSend);
+				}
 			}
 
 			if (this.executor != null) {

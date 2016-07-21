@@ -19,15 +19,15 @@ package org.springframework.integration.support;
 import org.springframework.messaging.Message;
 
 /**
- * An aspect to mark a {@link Message} as a clone-aware producer.
- * The {@link #cloneMessage()} implementation should return a new {@link Message},
- * typically based on the current instance.
+ * The {@link Message} decoration contract.
+ * An implementation may decide to return any new {@link Message} instance
+ * and even different {@link Message} implementation.
  *
  * @author Artem Bilan
  * @since 4.2.9
  */
-public interface CloneableMessage<T> {
+public interface MessageDecorator {
 
-	MessageBuilder<T> cloneMessage();
+	Message<?> decorateMessage(Message<?> message);
 
 }

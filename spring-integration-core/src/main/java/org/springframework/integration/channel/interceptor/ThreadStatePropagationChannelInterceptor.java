@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import org.springframework.integration.support.CloneableMessage;
-import org.springframework.integration.support.DelegatingMessageBuilder;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MessageDecorator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -94,7 +92,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 	protected abstract void populatePropagatedContext(S state, Message<?> message, MessageChannel channel);
 
 
-	private static final class MessageWithThreadState<S> implements Message<Object>, CloneableMessage<Object> {
+	private static final class MessageWithThreadState<S> implements Message<Object>, MessageDecorator {
 
 		private final Message<Object> message;
 
@@ -117,17 +115,8 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		}
 
 		@Override
-		public MessageBuilder<Object> cloneMessage() {
-			MessageBuilder<Object> messageBuilder = MessageBuilder.fromMessage(this.message);
-			return new DelegatingMessageBuilder<Object>(messageBuilder) {
-
-				@Override
-				public Message<Object> build() {
-					Message<Object> newMessage = super.build();
-					return new MessageWithThreadState<S>(newMessage, MessageWithThreadState.this.state);
-				}
-
-			};
+		public Message<?> decorateMessage(Message<?> message) {
+			return new MessageWithThreadState<S>(message, this.state);
 		}
 
 		@Override
