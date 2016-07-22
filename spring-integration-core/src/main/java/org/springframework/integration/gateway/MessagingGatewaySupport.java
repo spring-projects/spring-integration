@@ -393,6 +393,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receiveAndConvert(replyChannel, null);
 	}
 
+	protected Message<?> receiveMessage() {
+		initializeIfNecessary();
+		MessageChannel replyChannel = getReplyChannel();
+		Assert.state(replyChannel instanceof PollableChannel,
+				"receive is not supported, because no pollable reply channel has been configured");
+		return this.messagingTemplate.receive(replyChannel);
+	}
+
 	protected Object sendAndReceive(Object object) {
 		return this.doSendAndReceive(object, true);
 	}
