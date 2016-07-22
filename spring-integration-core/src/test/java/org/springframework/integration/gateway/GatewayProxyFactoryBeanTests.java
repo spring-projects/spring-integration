@@ -152,20 +152,8 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultReplyChannel(replyChannel);
-		BeanFactory beanFactory = mock(BeanFactory.class);
 
-		given(beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME))
-				.willReturn(true);
-
-		willAnswer(invocation -> {
-			Properties properties = new Properties();
-			properties.setProperty(IntegrationProperties.GATEWAY_CONVERT_RECEIVE_MESSAGE, "false");
-			return properties;
-		})
-				.given(beanFactory)
-				.getBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
-
-		proxyFactory.setBeanFactory(beanFactory);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<String> message = service.getMessage();
@@ -180,7 +168,21 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultReplyChannel(replyChannel);
-		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+
+		BeanFactory beanFactory = mock(BeanFactory.class);
+
+		given(beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME))
+				.willReturn(true);
+
+		willAnswer(invocation -> {
+			Properties properties = new Properties();
+			properties.setProperty(IntegrationProperties.GATEWAY_CONVERT_RECEIVE_MESSAGE, "true");
+			return properties;
+		})
+				.given(beanFactory)
+				.getBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+
+		proxyFactory.setBeanFactory(beanFactory);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		try {
