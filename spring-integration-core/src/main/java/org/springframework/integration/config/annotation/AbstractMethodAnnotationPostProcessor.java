@@ -32,6 +32,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
+import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
@@ -55,6 +56,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -70,6 +72,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -134,8 +137,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				return null;
 			}
 		}
+
+		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
+
 		MessageHandler handler = createHandler(bean, method, annotations);
-		setAdviceChainIfPresent(beanName, annotations, handler);
+
+		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
+		}
+
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -189,6 +199,23 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 
+		if (!CollectionUtils.isEmpty(adviceChain)) {
+			for (Advice advice : adviceChain) {
+				if (advice instanceof HandleMessageAdvice) {
+					NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
+					handlerAdvice.addMethodName("handleMessage");
+					if (handler instanceof Advised) {
+						((Advised) handler).addAdvisor(handlerAdvice);
+					}
+					else {
+						ProxyFactory proxyFactory = new ProxyFactory(handler);
+						proxyFactory.addAdvisor(handlerAdvice);
+						handler = (MessageHandler) proxyFactory.getProxy(this.beanFactory.getBeanClassLoader());
+					}
+				}
+			}
+		}
+
 		AbstractEndpoint endpoint = createEndpoint(handler, method, annotations);
 		if (endpoint != null) {
 			return endpoint;
@@ -217,7 +244,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return true;
 	}
 
-	protected final void setAdviceChainIfPresent(String beanName, List<Annotation> annotations, MessageHandler handler) {
+	private List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
+		List<Advice> adviceChain = null;
 		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
 				String[].class);
 		/*
@@ -226,10 +254,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		 * by setting an empty array on the custom annotation.
 		 */
 		if (adviceChainNames != null && adviceChainNames.length > 0) {
-			if (!(handler instanceof AbstractReplyProducingMessageHandler)) {
-				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
-			}
-			List<Advice> adviceChain = new ArrayList<Advice>();
+			adviceChain = new ArrayList<Advice>();
 			for (String adviceChainName : adviceChainNames) {
 				Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
 				if (adviceChainBean instanceof Advice) {
@@ -247,11 +272,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 				else {
 					throw new IllegalArgumentException("Invalid advice chain type:" +
-						adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
+							adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
 				}
 			}
-			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
 		}
+		return adviceChain;
 	}
 
 	protected AbstractEndpoint createEndpoint(MessageHandler handler, Method method, List<Annotation> annotations) {

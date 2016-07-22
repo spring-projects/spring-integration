@@ -40,6 +40,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -185,30 +186,30 @@ public class ConsumerEndpointFactoryBean
 				}
 			}
 		}
+
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			/*
 			 *  ARPMHs advise the handleRequestMessage method internally and already have the advice chain injected.
-			 *  So we only advise handlers that are not reply-producing. If the handler is already advised,
+			 *  So we only advise handlers that are not reply-producing.
+			 *  Or if one (or more) of advices is IdempotentReceiverInterceptor.
+			 *  If the handler is already advised,
 			 *  add the configured advices to its chain, otherwise create a proxy.
 			 */
 			Class<?> targetClass = AopUtils.getTargetClass(this.handler);
+			boolean replyMessageHandler = AbstractReplyProducingMessageHandler.class.isAssignableFrom(targetClass);
 
-			if (!(AbstractReplyProducingMessageHandler.class.isAssignableFrom(targetClass))) {
-				if (AopUtils.isAopProxy(this.handler)) {
-					for (Advice advice : this.adviceChain) {
-						NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
-						handlerAdvice.addMethodName("handleMessage");
-						if (AopUtils.canApply(handlerAdvice.getPointcut(), targetClass)) {
-							((Advised) this.handler).addAdvice(advice);
-						}
+			for (Advice advice : this.adviceChain) {
+				if (!replyMessageHandler || advice instanceof HandleMessageAdvice) {
+					NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
+					handlerAdvice.addMethodName("handleMessage");
+					if (this.handler instanceof Advised) {
+						((Advised) this.handler).addAdvisor(handlerAdvice);
 					}
-				}
-				else {
-					ProxyFactory proxyFactory = new ProxyFactory(this.handler);
-					for (Advice advice : this.adviceChain) {
-						proxyFactory.addAdvice(advice);
+					else {
+						ProxyFactory proxyFactory = new ProxyFactory(this.handler);
+						proxyFactory.addAdvisor(handlerAdvice);
+						this.handler = (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
 					}
-					this.handler = (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
 				}
 			}
 		}

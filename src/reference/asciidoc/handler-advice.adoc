@@ -452,6 +452,28 @@ For more information, see the http://docs.spring.io/spring-framework/docs/curren
 
 While the abstract class mentioned above is provided as a convenience, you can add any `Advice` to the chain, including a transaction advice.
 
+[[handle-message-advice]]
+=== Handle Message Advice
+
+Starting with _version 4.3.1_ a new `HandleMessageAdvice` with the `AbstractHandleMessageAdvice` base implementation have been introduced.
+Its purpose to develop `Advice` s which should be applied exactly to the `MessageHandler.handlerMessage()` method, but not to the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`.
+The premise of such an abstraction has been dictated with the fact that we still configure and get applied `Advice` s for the `MessageHandler.handlerMessage()` as is with the `<request-handler-advice-chain>`, when the target `MessageHandler` isn't `AbstractReplyProducingMessageHandler`.
+But otherwise they are just ignored because advices are applied for the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()` method.
+
+Now `HandleMessageAdvice` implementations (such an <<idempotent-receiver, Idempotent Receiver>>) are dissociated from the `adviceChain` and properly applied for `MessageHandler.handlerMessage()` independently of the `MessageHandler` implementation.
+But you should bare in mind that advices order is not complied and with the configuration like:
+
+[source,xml]
+----
+<int:request-handler-advice-chain>
+    <tx:advice ... />
+    <bean ref="myHandleMessageAdvice" />
+</request-handler-advice-chain>
+----
+
+The `<tx:advice>` is applied for the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage()`, but `myHandleMessageAdvice` is popped and applied for the `MessageHandler.handlerMessage()` and, therefore, invoked before the `<tx:advice>`.
+To retain the order you should follow with standard http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use endpoint `id` together with the `.handler` suffix to obtain target `MessageHandler` bean.
+
 [[advising-filters]]
 ==== Advising Filters
 
@@ -620,3 +642,6 @@ public MessageHandler myService() {
     ....
 }
 ----
+
+NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method and starting with _version 4.3.1_ it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
+See <<handle-message-advice>> for more information.

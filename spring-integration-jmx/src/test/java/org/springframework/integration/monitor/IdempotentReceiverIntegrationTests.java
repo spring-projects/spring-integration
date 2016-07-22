@@ -232,8 +232,7 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		@org.springframework.integration.annotation.Transformer(inputChannel = "input",
-				outputChannel = "output", adviceChain = "fooAdvice")
-		@IdempotentReceiver("idempotentReceiverInterceptor")
+				outputChannel = "output", adviceChain = {"fooAdvice", "idempotentReceiverInterceptor"})
 		public Transformer transformer() {
 			return new Transformer() {
 
