@@ -23,7 +23,7 @@ Furthermore, the Spring Integration JDBC Module also provides a _<<jdbc-message-
 The main function of an inbound Channel Adapter is to execute a SQL `SELECT` query and turn the result set as a message.
 The message payload is the whole result set, expressed as a `List`, and the types of the items in the list depend on the row-mapping strategy that is used.
 The default strategy is a generic mapper that just returns a `Map` for each row in the query result.
-Optionally, this can be changed by adding a reference to a `RowMapper` instance (see the http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html[Spring JDBC] documentation for more detailed information about row mapping).
+Optionally, this can be changed by adding a reference to a `RowMapper` instance (see the https://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html[Spring JDBC] documentation for more detailed information about row mapping).
 
 NOTE: If you want to convert rows in the SELECT query result to individual messages you can use a downstream splitter.
 
@@ -46,7 +46,7 @@ The underlying Spring JDBC features limit the available expressions (e.g.
 most special characters other than period are disallowed), but since the target is usually a list of or an individual object addressable by simple bean paths this isn't unduly restrictive.
 
 To change the parameter generation strategy you can inject a `SqlParameterSourceFactory` into the adapter to override the default behavior (the adapter has a `sql-parameter-source-factory` attribute).
-Spring Integration provides a `ExpressionEvaluatingSqlParameterSourceFactory` which will create a SpEL-based parameter source, with the results of the query as the`#root` object.
+Spring Integration provides a `ExpressionEvaluatingSqlParameterSourceFactory` which will create a SpEL-based parameter source, with the results of the query as the `#root` object.
 (If `update-per-row` is true, the root object is the row).
 If the same parameter name appears multiple times in the update query, it is evaluated only one time, and its result is cached.
 
@@ -109,20 +109,19 @@ Then if any of them fail, the transaction rolls back and the input data is rever
 [[jdbc-max-rows-per-poll-versus-max-messages-per-poll]]
 ==== Max-rows-per-poll versus Max-messages-per-poll
 
-The _JDBC Inbound Channel Adapter_ defines an attribute _max-rows-per-poll_.
-When you specify the adapter's _Poller_, you can also define a property called _max-messages-per-poll_.
+The _JDBC Inbound Channel Adapter_ defines an attribute `max-rows-per-poll`.
+When you specify the adapter's _Poller_, you can also define a property called `max-messages-per-poll`.
 While these two attributes look similar, their meaning is quite different.
 
-_max-messages-per-poll_ specifies the number of times the query is executed per polling interval, whereas _max-rows-per-poll_ specifies the number of rows returned for each execution.
+`max-messages-per-poll` specifies the number of times the query is executed per polling interval, whereas `max-rows-per-poll` specifies the number of rows returned for each execution.
 
-Under normal circumstances, you would likely not want to set the Poller's _max-messages-per-poll_ property when using the _JDBC Inbound Channel Adapter_.
-Its default value is _1_, which means that the _JDBC
-			Inbound Channel Adapter's http://static.springsource.org/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[receive()]_ method is executed exactly once for each poll interval.
+Under normal circumstances, you would likely not want to set the Poller's `max-messages-per-poll` property when using the _JDBC Inbound Channel Adapter_.
+Its default value is _1_, which means that the _JDBC Inbound Channel Adapter_'s https://static.springsource.org/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[`receive`] method is executed exactly once for each poll interval.
 
-Setting the _max-messages-per-poll_ attribute to a larger value means that the query is executed that many times back to back.
-For more information regarding the _max-messages-per-poll_ attribute, please see <<channel-adapter-namespace-inbound>>.
+Setting the `max-messages-per-poll` attribute to a larger value means that the query is executed that many times back to back.
+For more information regarding the `max-messages-per-poll` attribute, please see <<channel-adapter-namespace-inbound>>.
 
-In contrast, the _max-rows-per-poll_ attribute, if greater than _0_, specifies the maximum number of rows that will be used from the query result set, per execution of the _receive()_ method.
+In contrast, the `max-rows-per-poll` attribute, if greater than _0_, specifies the maximum number of rows that will be used from the query result set, per execution of the `receive` method.
 If the attribute is set to _0_, then all rows will be included in the resulting message.
 If not explicitly set, the attribute defaults to _0_.
 
@@ -277,7 +276,7 @@ The reply message is then generated from the result, like the inbound adapter, a
 
 As with the channel adapters, there is also the option to provide `SqlParameterSourceFactory` instances for request and reply.
 The default is the same as for the outbound adapter, so the request message is available as the root of an expression.
-If keys-generated="true" then the root of the expression is the generated keys (a map if there is only one or a list of maps if multi-valued).
+If `keys-generated="true"` then the root of the expression is the generated keys (a map if there is only one or a list of maps if multi-valued).
 
 The outbound gateway requires a reference to either a DataSource or a JdbcTemplate.
 It can also have a `SqlParameterSourceFactory` injected to control the binding of the incoming message to the query.
@@ -322,7 +321,7 @@ Other optional attributes are show in the next example:
 
 Here we have specified a `LobHandler` for dealing with messages as large objects (e.g.
 often necessary if using Oracle) and a prefix for the table names in the queries generated by the store.
-The table name prefix defaults to "INT_".
+The table name prefix defaults to `INT_`.
 
 [NOTE]
 =====
@@ -330,15 +329,15 @@ If you plan on using *MySQL*, please use MySQL version _5.6.4_ or higher, if pos
 Prior versions do not support _fractional seconds_ for temporal data types.
 Because of that, messages may not arrive in the precise FIFO order when polling from such a MySQL Message Store.
 
-Therefore, starting with _Spring Integration 3.0_, we provide an additional set of DDL scripts for MySQL version_5.6.4_ or higher:
+Therefore, starting with _Spring Integration 3.0_, we provide an additional set of DDL scripts for MySQL version _5.6.4_ or higher:
 
 * schema-drop-mysql-5_6_4.sql
 * schema-mysql-5_6_4.sql
 
-For more information, please see: http://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html[Fractional Seconds in Time Values].
+For more information, please see: https://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html[Fractional Seconds in Time Values].
 
 Also important, please ensure that you use an up-to-date version of the JDBC driver for MySQL (Connector/J), e.g.
-version_5.1.24_ or higher.
+version _5.1.24_ or higher.
 =====
 
 [[jdbc-message-store-channels]]
@@ -373,7 +372,7 @@ For further reference please see the following resources:
 
 
 * https://www.engineyard.com/blog/2011/5-subtle-ways-youre-using-mysql-as-a-queue-and-why-itll-bite-you/[5 subtle ways you’re using MySQL as a queue, and why it’ll bite you].
-* http://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
+* https://mikehadlow.blogspot.com/2012/04/database-as-queue-anti-pattern.html[The Database As Queue Anti-Pattern].
 =====
 
 *Concurrent Polling*
@@ -382,7 +381,7 @@ When polling a _Message Channel_, you have the option to configure the associate
 
 [IMPORTANT]
 =====
-Keep in mind, though, that if you use a JDBC backed _Message Channel_ and you are planning on polling the channel and consequently the message store transactionally with multiple threads, you should ensure that you use a relational database that supportshttp://en.wikipedia.org/wiki/Multiversion_concurrency_control[Multiversion Concurrency Control] (MVCC).
+Keep in mind, though, that if you use a JDBC backed _Message Channel_ and you are planning on polling the channel and consequently the message store transactionally with multiple threads, you should ensure that you use a relational database that supports https://en.wikipedia.org/wiki/Multiversion_concurrency_control[Multiversion Concurrency Control] (MVCC).
 Otherwise, locking may be an issue and the performance, when using multiple threads, may not materialize as expected.
 For example Apache Derby is problematic in that regard.
 
@@ -462,7 +461,7 @@ To configure that scenario, simply extend one message store bean from the other:
 
 Spring Integration ships with some sample scripts that can be used to initialize a database.
 In the spring-integration-jdbc JAR file you will find scripts in the `org.springframework.integration.jdbc` and in the `org.springframework.integration.jdbc.store.channel` package: there is a create and a drop script example for a range of common database platforms.
-A common way to use these scripts is to reference them in a http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
+A common way to use these scripts is to reference them in a https://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
 Note that the scripts are provided as samples or specifications of the the required table and column names.
 You may find that you need to enhance them for production use (e.g.
 with index declarations).
@@ -480,7 +479,7 @@ To avoid this, the message store _region_ can be used to keep data separate for 
 === Stored Procedures
 
 In certain situations plain JDBC support is not sufficient.
-Maybe you deal with legacy relational database schemas or you have complex data processing needs, but ultimately you have to use http://en.wikipedia.org/wiki/Stored_procedure[Stored Procedures] or Stored Functions.
+Maybe you deal with legacy relational database schemas or you have complex data processing needs, but ultimately you have to use https://en.wikipedia.org/wiki/Stored_procedure[Stored Procedures] or Stored Functions.
 Since Spring Integration 2.1, we provide three components in order to execute Stored Procedures or Stored Functions:
 
 * Stored Procedures Inbound Channel Adapter
@@ -492,7 +491,7 @@ Since Spring Integration 2.1, we provide three components in order to execute St
 [[sp-supported-databases]]
 ==== Supported Databases
 
-In order to enable calls to _Stored Procedures_ and _Stored Functions_, the Stored Procedure components use the http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
+In order to enable calls to _Stored Procedures_ and _Stored Functions_, the Stored Procedure components use the https://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`org.springframework.jdbc.core.simple.SimpleJdbcCall`] class.
 Consequently, the following databases are fully supported for executing Stored Procedures:
 
 * Apache Derby
@@ -539,7 +538,7 @@ _Optional_.
 
 *data-source*
 
-Reference to a `javax.sql.DataSource`, which is used to access the database._Required_.
+Reference to a `javax.sql.DataSource`, which is used to access the database. _Required_.
 
 *id*
 
@@ -548,7 +547,7 @@ _Optional_.
 
 *ignore-column-meta-data*
 
-For fully supported databases, the underlying http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class can automatically retrieve the parameter information for the to be invoked Stored Procedure or Function from the JDBC Meta-data.
+For fully supported databases, the underlying https://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCall.html[`SimpleJdbcCall`] class can automatically retrieve the parameter information for the to be invoked Stored Procedure or Function from the JDBC Meta-data.
 
 However, if the used database does not support meta data lookups or if you like to provide customized parameter definitions, this flag can be set to `true`.
 It defaults to `false`.
@@ -565,7 +564,7 @@ _Optional_.
 
 The attribute specifies the name of the stored procedure.
 If the `is-function` attribute is set to `true`, this attribute specifies the function name instead.
-Either this property or _stored-procedure-name-expression_ must be specified.
+Either this property or `stored-procedure-name-expression` must be specified.
 
 *stored-procedure-name-expression*
 
@@ -581,16 +580,15 @@ Either this property or _stored-procedure-name_ must be specified.
 *jdbc-call-operations-cache-size*
 
 Defines the maximum number of cached `SimpleJdbcCallOperations` instances.
-Basically, for each Stored Procedure Name a newhttp://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html[`SimpleJdbcCallOperations`] instance is created that in return is being cached.
+Basically, for each Stored Procedure Name a new https://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/simple/SimpleJdbcCallOperations.html[`SimpleJdbcCallOperations`] instance is created that in return is being cached.
 
-NOTE: The _stored-procedure-name-expression_ attribute and the _jdbc-call-operations-cache-size_ were added with Spring Integration 2.2.
+NOTE: The `stored-procedure-name-expression` attribute and the `jdbc-call-operations-cache-size` were added with Spring Integration 2.2.
 
 The default cache size is _10_.
 A value of _0_ disables caching.
 Negative values are not permitted.
 
-If you enable JMX, statistical information about the _
-				jdbc-call-operations-cache_ is exposed as MBean.
+If you enable JMX, statistical information about the `jdbc-call-operations-cache` is exposed as MBean.
 Please see <<jmx-mbean-exporter>> for more information.
 
 *sql-parameter-source-factory* (Not available for the Stored Procedure Inbound Channel Adapter.)
@@ -622,17 +620,17 @@ _Optional_.
 The Stored Procedure components share a common set of sub-elements to define and pass parameters to Stored Procedures or Functions.
 The following elements are available:
 
-* parameter
-* returning-resultset
-* sql-parameter-definition
-* poller
+* `parameter`
+* `returning-resultset`
+* `sql-parameter-definition`
+* `poller`
 
 
 
 *parameter*
 
 Provides a mechanism to provide Stored Procedure parameters.
-Parameters can be either static or provided using a SpEL Expressions._Optional_.
+Parameters can be either static or provided using a SpEL Expressions. _Optional_.
 
 [source,xml]
 ----
@@ -644,16 +642,16 @@ Parameters can be either static or provided using a SpEL Expressions._Optional_.
                     expression=""/> <4>
 ----
 
-<1> The name of the parameter to be passed into the Stored Procedure or Stored Function._Required_.
+<1> The name of the parameter to be passed into the Stored Procedure or Stored Function. _Required_.
 
 
 <2> This attribute specifies the type of the value.
 If nothing is provided this attribute will default to `java.lang.String`.
-This attribute is only used when the `value` attribute is used._Optional_.
+This attribute is only used when the `value` attribute is used. _Optional_.
 
 
 <3> The value of the parameter.
-You have to provider either this attribute or the `expression` attribute must be provided instead._Optional_.
+You have to provider either this attribute or the `expression` attribute must be provided instead. _Optional_.
 
 
 <4> Instead of the `value` attribute, you can also specify a SpEL expression for passing the value of the parameter.
@@ -704,11 +702,11 @@ _Optional_.
 <3> The SQL type used for this SQL parameter definition.
 Will translate into the integer value as defined by java.sql.Types.
 Alternatively you can provide the integer value as well.
-If this attribute is not explicitly set, then it will default to 'VARCHAR'._Optional_.
+If this attribute is not explicitly set, then it will default to 'VARCHAR'. _Optional_.
 
 
 <4> The scale of the SQL parameter.
-Only used for numeric and decimal parameters._Optional_.
+Only used for numeric and decimal parameters. _Optional_.
 
 
 <5> The typeName for types that are user-named like: STRUCT, DISTINCT, JAVA_OBJECT, named array types.
@@ -717,8 +715,8 @@ _Optional_.
 
 
 <6> The reference to a custom value handler for complex types.
-An implementation of http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[SqlReturnType].
-This attribute is mutually exclusive with the _scale_ attribute and is applicable for OUT(INOUT)-parameters only._Optional_.
+An implementation of https://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html[SqlReturnType].
+This attribute is mutually exclusive with the _scale_ attribute and is applicable for OUT(INOUT)-parameters only. _Optional_.
 
 *poller*
 
@@ -737,7 +735,7 @@ This may be sufficient for basic use cases.
 The following example illustrates that default behavior.
 
 IMPORTANT: Please be aware that for the "automatic" lookup of bean properties using the `BeanPropertySqlParameterSourceFactory` to work, your bean properties must be defined in lower case.
-This is due to the fact that in `org.springframework.jdbc.core.metadata.CallMetaDataContext` (method matchInParameterValuesWithCallParameters()), the retrieved Stored Procedure parameter declarations are converted to lower case.
+This is due to the fact that in `org.springframework.jdbc.core.metadata.CallMetaDataContext` (method `matchInParameterValuesWithCallParameters`), the retrieved Stored Procedure parameter declarations are converted to lower case.
 As a result, if you have camel-case bean properties such as "lastName", the lookup will fail.
 In that case, please provide an explicit `ProcedureParameter`.
 
@@ -791,7 +789,7 @@ _Required_.
 
 
 <2> Limits the number of rows extracted per query.
-Otherwise all rows are extracted into the outgoing message._Optional_.
+Otherwise all rows are extracted into the outgoing message. _Optional_.
 
 
 <3> If this attribute is set to `true`, then all results from a stored procedure call that don't have a corresponding `SqlOutParameter` declaration will be bypassed.
@@ -803,10 +801,10 @@ _Optional_.
 
 
 <4> Indicates whether this procedure's return value should be included.
-Since _Spring Integration 3.0.__Optional_.
+Since _Spring Integration 3.0_. _Optional_.
 
-NOTE: When you declare a Poller, you may notice the Poller's _max-messages-per-poll_ attribute.
-For information about how it relates to the _max-rows-per-poll_ attribute of the _Stored Procedure Inbound Channel Adapter_, please see <<jdbc-max-rows-per-poll-versus-max-messages-per-poll>> for a thourough discussion.
+NOTE: When you declare a Poller, you may notice the Poller's `max-messages-per-poll` attribute.
+For information about how it relates to the `max-rows-per-poll` attribute of the _Stored Procedure Inbound Channel Adapter_, please see <<jdbc-max-rows-per-poll-versus-max-messages-per-poll>> for a thourough discussion.
 The meaning of the attributes is the same as for the _JDBC Inbound Channel Adapter_.
 
 [[stored-procedure-outbound-channel-adapter]]
@@ -871,16 +869,16 @@ _Optional_.
 _Required_.
 
 
-<2> Message Channel to which replies should be sent, after receiving the database response._Optional_.
+<2> Message Channel to which replies should be sent, after receiving the database response. _Optional_.
 
 
 <3> Allows you to specify how long this gateway will wait for the reply message to be sent successfully before throwing an exception.
 Keep in mind that when sending to a `DirectChannel`, the invocation will occur in the sender's thread so the failing of the send operation may be caused by other components further downstream.
 By default the Gateway will wait indefinitely.
-The value is specified in milliseconds._Optional_.
+The value is specified in milliseconds. _Optional_.
 
 
-<4> Indicates whether this procedure's return value should be included._Optional_.
+<4> Indicates whether this procedure's return value should be included. _Optional_.
 
 
 <5> If the `skip-undeclared-results` attribute is set to `true`, then all results from a stored procedure call that don't have a corresponding `SqlOutParameter` declaration will be bypassed.
@@ -893,7 +891,7 @@ _Optional_.
 [[sp-examples]]
 ==== Examples
 
-In the following two examples we call http://db.apache.org/derby/[Apache Derby] Stored Procedures.
+In the following two examples we call https://db.apache.org/derby/[Apache Derby] Stored Procedures.
 The first procedure will call a Stored Procedure that returns a `ResultSet`, and using a `RowMapper` the data is converted into a domain object, which then becomes the Spring Integration message payload.
 
 In the second sample we call a Stored Procedure that uses Output Parameters instead, in order to return data.
@@ -903,7 +901,7 @@ In the second sample we call a Stored Procedure that uses Output Parameters inst
 Please have a look at the _Spring Integration Samples_ project, located at null
 
 The project contains the Apache Derby example referenced here, as well as instruction on how to run it.
-The_Spring Integration Samples_ project also provides anhttps://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/stored-procedures-oracle[example] using Oracle Stored Procedures.
+The _Spring Integration Samples_ project also provides an https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/stored-procedures-oracle[example] using Oracle Stored Procedures.
 =====
 
 In the first example, we call a Stored Procedure named _FIND_ALL_COFFEE_BEVERAGES_ that does not define any input parameters but which returns a `ResultSet`.
