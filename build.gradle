@@ -10,8 +10,6 @@ buildscript {
 }
 
 plugins {
-	id 'java'
-	id 'base'
 	id 'org.sonarqube' version '1.2'
 }
 
