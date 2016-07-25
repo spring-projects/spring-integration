@@ -16,7 +16,8 @@
 	</int:channel>
 
 	<int-jms:outbound-gateway request-channel="outGatewayInChannel"
-	    connection-factory="connectionFactory"
+		receive-timeout="20000"
+		connection-factory="connectionFactory"
 		request-destination-name="multiOutGatewayTempQueue"
 		correlation-key="JMSCorrelationID"/>
 
@@ -24,7 +25,7 @@
 						     request-destination-name="multiOutGatewayTempQueue"
 							 connection-factory="connectionFactory"
 							 concurrent-consumers="10"
-							 reply-timeout="10000"/>
+							 reply-timeout="20000"/>
 
 	<int:channel id="jmsInChannel">
 		<int:dispatcher task-executor="executor"/>
