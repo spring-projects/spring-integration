@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.aggregator.integration;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author David Liu
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -59,9 +62,17 @@ public class ResequencerIntegrationTests {
 		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
 
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
-		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2).build();
+		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2)
+				.setCorrelationId("A")
+				.setSequenceNumber(2)
+				.setHeader("foo", "foo")
+				.build();
 		Message<?> message3 = MessageBuilder.withPayload("3").setCorrelationId("A").setSequenceNumber(3).build();
-		Message<?> message4 = MessageBuilder.withPayload("4").setCorrelationId("A").setSequenceNumber(4).build();
+		Message<?> message4 = MessageBuilder.withPayload("4")
+				.setCorrelationId("A")
+				.setSequenceNumber(4)
+				.setHeader("foo", "foo")
+				.build();
 		Message<?> message5 = MessageBuilder.withPayload("5").setCorrelationId("A").setSequenceNumber(5).build();
 		Message<?> message6 = MessageBuilder.withPayload("6").setCorrelationId("A").setSequenceNumber(6).build();
 
@@ -72,6 +83,7 @@ public class ResequencerIntegrationTests {
 		message1 = outputChannel.receive(0);
 		assertNotNull(message1);
 		assertEquals((Integer) 1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertFalse(message1.getHeaders().containsKey("foo"));
 
 		inputChannel.send(message2);
 		message2 = outputChannel.receive(0);
@@ -79,7 +91,9 @@ public class ResequencerIntegrationTests {
 		assertNotNull(message2);
 		assertNotNull(message3);
 		assertEquals((Integer) 2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertTrue(message2.getHeaders().containsKey("foo"));
 		assertEquals((Integer) 3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertFalse(message3.getHeaders().containsKey("foo"));
 
 		inputChannel.send(message5);
 		assertNull(outputChannel.receive(0));
@@ -95,9 +109,11 @@ public class ResequencerIntegrationTests {
 		assertNotNull(message5);
 		assertNotNull(message6);
 		assertEquals((Integer) 4, new IntegrationMessageHeaderAccessor(message4).getSequenceNumber());
+		assertTrue(message4.getHeaders().containsKey("foo"));
 		assertEquals((Integer) 5, new IntegrationMessageHeaderAccessor(message5).getSequenceNumber());
+		assertFalse(message5.getHeaders().containsKey("foo"));
 		assertEquals((Integer) 6, new IntegrationMessageHeaderAccessor(message6).getSequenceNumber());
-
+		assertFalse(message6.getHeaders().containsKey("foo"));
 
 		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 	}

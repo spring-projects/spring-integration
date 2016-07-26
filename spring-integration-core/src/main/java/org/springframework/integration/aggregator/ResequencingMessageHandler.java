@@ -65,6 +65,10 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		super.setExpireGroupsUponTimeout(expireGroupsUponTimeout);
 	}
 
+	@Override
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
+	}
 
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
