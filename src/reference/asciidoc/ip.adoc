@@ -464,6 +464,9 @@ connect to the socket.
 IMPORTANT: To avoid delaying the listening thread from accepting connections, the event is published on a separate
 thread.
 
+Starting with _version 4.3.2_, a `TcpConnectionFailedEvent` is emitted whenever a client connection can't be created.
+The source of the event is the connection factory which can be used to determine the host and port to which the connection could not be established.
+
 [[tcp-adapters]]
 === TCP Adapters
 
