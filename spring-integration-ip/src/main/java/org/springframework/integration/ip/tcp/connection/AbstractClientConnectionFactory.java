@@ -20,6 +20,8 @@ import java.net.Socket;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 /**
  * Abstract class for client connection factories; client connection factories
  * establish outgoing connections.
@@ -64,7 +66,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	@Override
 	public TcpConnectionSupport getConnection() throws Exception {
 		this.checkActive();
-		return this.obtainConnection();
+		return obtainConnection();
 	}
 
 	protected TcpConnectionSupport obtainConnection() throws Exception {
@@ -74,7 +76,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 				return connection;
 			}
 		}
-		return this.obtainNewConnection();
+		return obtainNewConnection();
 	}
 
 	protected final TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
@@ -117,6 +119,13 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			}
 			connection.publishConnectionOpenEvent();
 			return connection;
+		}
+		catch (Exception e) {
+			ApplicationEventPublisher applicationEventPublisher = getApplicationEventPublisher();
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new TcpConnectionFailedEvent(this, e));
+			}
+			throw e;
 		}
 		finally {
 			if (!singleUse) {

@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -323,6 +324,34 @@ public class ConnectionEventTests {
 		assertThat(reasonCaptor.getValue(), endsWith("; port = " + port));
 		assertThat(throwableCaptor.getValue(), instanceOf(BindException.class));
 		ss.close();
+	}
+
+	@Test
+	public void testFailConnect() {
+		TcpNetClientConnectionFactory ccf = new TcpNetClientConnectionFactory("junkjunk", 1234);
+		final AtomicReference<ApplicationEvent> failEvent = new AtomicReference<ApplicationEvent>();
+		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(Object event) {
+			}
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				failEvent.set(event);
+			}
+
+		});
+		ccf.start();
+		try {
+			ccf.getConnection();
+			fail("expected exception");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(UnknownHostException.class));
+			TcpConnectionFailedEvent event = (TcpConnectionFailedEvent) failEvent.get();
+			assertSame(e, event.getCause());
+		}
 	}
 
 }
