@@ -169,7 +169,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.applicationContext != null) {
-			this.template.setApplicationContext(this.applicationContext);
 			this.converter.setApplicationContext(this.applicationContext);
 		}
 		this.converter.afterPropertiesSet();
