@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.CompletionListener;
 import javax.jms.Destination;
 import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
@@ -30,6 +31,8 @@ public class StubProducer implements MessageProducer {
 	private Message lastMessageSent;
 
 	private Destination staticDestination;
+
+	private long deliveryDelay;
 
 
 	public StubProducer(Destination destination) {
@@ -116,6 +119,39 @@ public class StubProducer implements MessageProducer {
 	}
 
 	public void setTimeToLive(long timeToLive) throws JMSException {
+	}
+
+	@Override
+	public void setDeliveryDelay(long deliveryDelay) throws JMSException {
+		this.deliveryDelay = deliveryDelay;
+	}
+
+	@Override
+	public long getDeliveryDelay() throws JMSException {
+		return this.deliveryDelay;
+	}
+
+	@Override
+	public void send(Message message, CompletionListener completionListener) throws JMSException {
+		send(message);
+	}
+
+	@Override
+	public void send(Message message, int deliveryMode, int priority, long timeToLive,
+			CompletionListener completionListener) throws JMSException {
+		send(message);
+	}
+
+	@Override
+	public void send(Destination destination, Message message, CompletionListener completionListener)
+			throws JMSException {
+		send(destination, message);
+	}
+
+	@Override
+	public void send(Destination destination, Message message, int deliveryMode, int priority, long timeToLive,
+			CompletionListener completionListener) throws JMSException {
+		send(destination, message);
 	}
 
 }

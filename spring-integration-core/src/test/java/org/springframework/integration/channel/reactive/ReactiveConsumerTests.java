@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel.reactive;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -32,9 +33,11 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ReactiveChannel;
-import org.springframework.integration.endpoint.ReactiveEndpoint;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -43,18 +46,17 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.publisher.EmitterProcessor;
-import reactor.core.test.TestSubscriber;
+import reactor.test.TestSubscriber;
 
 /**
  * @author Artem Bilan
  * @since 5.0
  */
-public class ReactiveEndpointTests {
+public class ReactiveConsumerTests {
 
 	@Test
-	public void testReactiveEndpointReactiveChannel() throws InterruptedException {
-		ReactiveChannel testChannel =
-				new ReactiveChannel(EmitterProcessor.create(false));
+	public void testReactiveConsumerReactiveChannel() throws InterruptedException {
+		ReactiveChannel testChannel = new ReactiveChannel(EmitterProcessor.create(false));
 
 		List<Message<?>> result = new LinkedList<>();
 		CountDownLatch stopLatch = new CountDownLatch(2);
@@ -66,19 +68,19 @@ public class ReactiveEndpointTests {
 
 		MethodInvokingMessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
 
-		ReactiveEndpoint reactiveEndpoint = new ReactiveEndpoint(testChannel, testSubscriber);
-		reactiveEndpoint.setBeanFactory(mock(BeanFactory.class));
-		reactiveEndpoint.afterPropertiesSet();
-		reactiveEndpoint.start();
+		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
 
-		reactiveEndpoint.stop();
+		reactiveConsumer.stop();
 
 		testChannel.send(testMessage);
 
-		reactiveEndpoint.start();
+		reactiveConsumer.start();
 
 		Message<?> testMessage2 = new GenericMessage<>("test2");
 		testChannel.send(testMessage2);
@@ -89,15 +91,15 @@ public class ReactiveEndpointTests {
 
 
 	@Test
-	public void testReactiveEndpointDirectChannel() {
+	public void testReactiveConsumerDirectChannel() {
 		DirectChannel testChannel = new DirectChannel();
 
-		TestSubscriber<Message<?>> testSubscriber = new TestSubscriber<>();
+		TestSubscriber<Message<?>> testSubscriber = TestSubscriber.create();
 
-		ReactiveEndpoint reactiveEndpoint = new ReactiveEndpoint(testChannel, testSubscriber);
-		reactiveEndpoint.setBeanFactory(mock(BeanFactory.class));
-		reactiveEndpoint.afterPropertiesSet();
-		reactiveEndpoint.start();
+		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
 
 		Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
@@ -108,7 +110,7 @@ public class ReactiveEndpointTests {
 
 		testSubscriber.assertValues(testMessage);
 
-		reactiveEndpoint.stop();
+		reactiveConsumer.stop();
 
 		try {
 			testChannel.send(testMessage);
@@ -121,7 +123,7 @@ public class ReactiveEndpointTests {
 		new DirectFieldAccessor(testSubscriber).setPropertyValue("s", null);
 		TestUtils.getPropertyValue(testSubscriber, "values", List.class).clear();
 
-		reactiveEndpoint.start();
+		reactiveConsumer.start();
 
 		testSubscriber.request(1);
 
@@ -130,12 +132,45 @@ public class ReactiveEndpointTests {
 		testChannel.send(testMessage);
 
 		testSubscriber.assertValues(testMessage);
+	}
+
+	@Test
+	public void testReactiveConsumerViaConsumerEndpointFactoryBean() throws Exception {
+		ReactiveChannel testChannel = new ReactiveChannel();
+
+		List<Message<?>> result = new LinkedList<>();
+		CountDownLatch stopLatch = new CountDownLatch(3);
+
+		MessageHandler messageHandler = m -> {
+			result.add(m);
+			stopLatch.countDown();
+		};
+
+		ConsumerEndpointFactoryBean endpointFactoryBean = new ConsumerEndpointFactoryBean();
+		endpointFactoryBean.setBeanFactory(mock(ConfigurableBeanFactory.class));
+		endpointFactoryBean.setInputChannel(testChannel);
+		endpointFactoryBean.setHandler(messageHandler);
+		endpointFactoryBean.setBeanName("reactiveConsumer");
+		endpointFactoryBean.afterPropertiesSet();
+		endpointFactoryBean.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		endpointFactoryBean.stop();
 
 		testChannel.send(testMessage);
 
-		testSubscriber.assertError(IllegalStateException.class);
-		testSubscriber.assertErrorMessage("Can't deliver value due to lack of requests");
+		endpointFactoryBean.start();
 
+		Message<?> testMessage2 = new GenericMessage<>("test2");
+
+		testChannel.send(testMessage2);
+		testChannel.send(testMessage2);
+
+		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
+		assertThat(result.size(), equalTo(3));
+		assertThat(result, Matchers.<Message<?>>contains(testMessage, testMessage2, testMessage2));
 	}
 
 }

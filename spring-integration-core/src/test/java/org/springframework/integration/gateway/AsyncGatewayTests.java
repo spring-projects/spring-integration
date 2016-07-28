@@ -238,7 +238,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<Message<?>> promise = service.returnMessagePromise("foo");
-		Object result = promise.get(Duration.ofSeconds(10));
+		Object result = promise.block(Duration.ofSeconds(10));
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
@@ -254,7 +254,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<String> promise = service.returnStringPromise("foo");
-		Object result = promise.get(Duration.ofSeconds(10));
+		Object result = promise.block(Duration.ofSeconds(10));
 		assertEquals("foobar", result);
 	}
 
@@ -270,7 +270,7 @@ public class AsyncGatewayTests {
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Mono<?> promise = service.returnSomethingPromise("foo");
-		Object result = promise.get(Duration.ofSeconds(10));
+		Object result = promise.block(Duration.ofSeconds(10));
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}

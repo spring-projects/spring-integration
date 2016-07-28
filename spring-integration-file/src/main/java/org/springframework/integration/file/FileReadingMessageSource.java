@@ -49,7 +49,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
-import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -406,7 +405,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 	}
 
-	@UsesJava7
 	public enum WatchEventType {
 
 		CREATE(StandardWatchEventKinds.ENTRY_CREATE),
@@ -423,7 +421,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	}
 
-	@UsesJava7
 	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<Path, WatchKey>();

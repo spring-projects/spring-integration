@@ -78,7 +78,7 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?, ?>
 	@Override
 	protected Object transformPayload(Map<?, ?> payload) throws Exception {
 		Object target = (this.targetClass != null)
-				? BeanUtils.instantiate(this.targetClass)
+				? BeanUtils.instantiateClass(this.targetClass)
 				: this.getBeanFactory().getBean(this.targetBeanName);
 
 		DataBinder binder = new DataBinder(target);

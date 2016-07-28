@@ -175,7 +175,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("promise", TestService.class);
 		Mono<Message<?>> result = service.promise("foo");
-		Message<?> reply = result.get(Duration.ofSeconds(1));
+		Message<?> reply = result.block(Duration.ofSeconds(1));
 		assertEquals("foo", reply.getPayload());
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&promise"), "asyncExecutor"));
 	}

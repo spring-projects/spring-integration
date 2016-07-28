@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import javax.jms.TopicSubscriber;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class StubSession implements Session {
 
@@ -49,120 +50,181 @@ public class StubSession implements Session {
 		this.messageText = messageText;
 	}
 
-
+	@Override
 	public void close() throws JMSException {
 	}
 
+	@Override
 	public void commit() throws JMSException {
 	}
 
+	@Override
 	public QueueBrowser createBrowser(Queue queue) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public QueueBrowser createBrowser(Queue queue, String messageSelector) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public BytesMessage createBytesMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public MessageConsumer createConsumer(Destination destination) throws JMSException {
 		return new StubConsumer(this.messageText, null);
 	}
 
+	@Override
 	public MessageConsumer createConsumer(Destination destination, String messageSelector) throws JMSException {
 		return new StubConsumer(this.messageText, messageSelector);
 	}
 
+	@Override
 	public MessageConsumer createConsumer(Destination destination, String messageSelector, boolean NoLocal)
 			throws JMSException {
 		return new StubConsumer(this.messageText, messageSelector);
 	}
 
+	@Override
 	public TopicSubscriber createDurableSubscriber(Topic topic, String name) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public TopicSubscriber createDurableSubscriber(Topic topic, String name, String messageSelector, boolean noLocal)
 			throws JMSException {
 		return null;
 	}
 
+	@Override
 	public MapMessage createMapMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public Message createMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public ObjectMessage createObjectMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public ObjectMessage createObjectMessage(Serializable object) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public MessageProducer createProducer(Destination destination) throws JMSException {
 		return new StubProducer(destination);
 	}
 
+	@Override
 	public Queue createQueue(String queueName) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public StreamMessage createStreamMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public TemporaryQueue createTemporaryQueue() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public TemporaryTopic createTemporaryTopic() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public TextMessage createTextMessage() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public TextMessage createTextMessage(String text) throws JMSException {
 		return new StubTextMessage(text);
 	}
 
+	@Override
 	public Topic createTopic(String topicName) throws JMSException {
 		return null;
 	}
 
+	@Override
 	public int getAcknowledgeMode() throws JMSException {
 		return 0;
 	}
 
+	@Override
 	public MessageListener getMessageListener() throws JMSException {
 		return null;
 	}
 
+	@Override
 	public boolean getTransacted() throws JMSException {
 		return false;
 	}
 
+	@Override
 	public void recover() throws JMSException {
 	}
 
+	@Override
 	public void rollback() throws JMSException {
 	}
 
+	@Override
 	public void run() {
 	}
 
+	@Override
 	public void setMessageListener(MessageListener listener) throws JMSException {
 	}
 
+	@Override
 	public void unsubscribe(String name) throws JMSException {
+	}
+
+	@Override
+	public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName) throws JMSException {
+		return new StubConsumer(this.messageText, null);
+	}
+
+	@Override
+	public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName, String messageSelector) throws JMSException {
+		return new StubConsumer(this.messageText, messageSelector);
+	}
+
+	@Override
+	public MessageConsumer createDurableConsumer(Topic topic, String name) throws JMSException {
+		return new StubConsumer(this.messageText, null);
+	}
+
+	@Override
+	public MessageConsumer createDurableConsumer(Topic topic, String name, String messageSelector, boolean noLocal)
+			throws JMSException {
+		return new StubConsumer(this.messageText, messageSelector);
+	}
+
+	@Override
+	public MessageConsumer createSharedDurableConsumer(Topic topic, String name) throws JMSException {
+		return new StubConsumer(this.messageText, null);
+	}
+
+	@Override
+	public MessageConsumer createSharedDurableConsumer(Topic topic, String name, String messageSelector)
+			throws JMSException {
+		return new StubConsumer(this.messageText, messageSelector);
 	}
 
 }

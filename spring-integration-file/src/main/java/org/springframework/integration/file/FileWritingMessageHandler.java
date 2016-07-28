@@ -53,7 +53,6 @@ import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
 import org.springframework.integration.util.WhileLockedProcessor;
-import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -871,7 +870,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return (nioFilesPresent && filesMove(source, target)) || source.renameTo(target);
 	}
 
-	@UsesJava7
 	private static boolean filesMove(File source, File target) throws IOException {
 		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		return true;

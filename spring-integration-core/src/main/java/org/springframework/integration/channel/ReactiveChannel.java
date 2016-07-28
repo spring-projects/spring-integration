@@ -19,15 +19,13 @@ package org.springframework.integration.channel;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
+import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.DirectProcessor;
-import reactor.core.subscriber.BaseSubscriber;
-import reactor.core.subscriber.SubmissionEmitter;
 
 /**
  * @author Artem Bilan
@@ -37,7 +35,7 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 
 	private final Processor<Message<?>, Message<?>> processor;
 
-	private final SubmissionEmitter<Message<?>> emitter;
+	private final BlockingSink<Message<?>> sink;
 
 	public ReactiveChannel() {
 		this(DirectProcessor.create());
@@ -46,24 +44,7 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
-		this.emitter = SubmissionEmitter.create(processor);
-	}
-
-	public Subscriber<Message<?>> asSubscriber() {
-		return new BaseSubscriber<Message<?>>() {
-
-			@Override
-			public void onSubscribe(Subscription subscription) {
-				Assert.notNull(subscription, "'subscription' must not be null");
-				subscription.request(Long.MAX_VALUE);
-			}
-
-			@Override
-			public void onNext(Message<?> message) {
-				send(message);
-			}
-
-		};
+		this.sink = BlockingSink.create(this.processor);
 	}
 
 	@Override
@@ -73,7 +54,7 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 
 	@Override
 	public boolean send(Message<?> message, long timeout) {
-		return this.emitter.submit(message, timeout) > -1;
+		return this.sink.submit(message, timeout) > -1;
 	}
 
 	@Override

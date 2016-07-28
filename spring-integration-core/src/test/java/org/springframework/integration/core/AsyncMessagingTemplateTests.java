@@ -391,7 +391,7 @@ public class AsyncMessagingTemplateTests {
 	@Test(expected = TimeoutException.class)
 	public void timeoutException() throws Exception {
 		DirectChannel channel = new DirectChannel();
-		channel.subscribe(new EchoHandler(200));
+		channel.subscribe(new EchoHandler(10000));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
 		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());

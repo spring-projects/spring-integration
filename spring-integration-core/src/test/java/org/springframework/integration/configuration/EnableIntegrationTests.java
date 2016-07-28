@@ -128,6 +128,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.MultiValueMap;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Artem Bilan
@@ -620,7 +621,7 @@ public class EnableIntegrationTests {
 		Flux.just("1", "2", "3", "4", "5")
 				.map(Integer::parseInt)
 				.flatMap(this.testGateway::multiply)
-				.toList()
+				.collectList()
 				.subscribe(integers -> {
 					ref.set(integers);
 					consumeLatch.countDown();
@@ -1334,7 +1335,7 @@ public class EnableIntegrationTests {
 		void sendAsync(String payload);
 
 		@Gateway(requestChannel = "promiseChannel")
-		org.reactivestreams.Publisher<Integer> multiply(Integer value);
+		Mono<Integer> multiply(Integer value);
 
 	}
 

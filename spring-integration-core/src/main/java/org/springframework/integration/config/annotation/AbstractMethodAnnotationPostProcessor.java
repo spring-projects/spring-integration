@@ -55,7 +55,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.endpoint.ReactiveEndpoint;
+import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -80,7 +80,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.subscriber.Subscribers;
+import reactor.core.publisher.DirectProcessor;
 
 /**
  * Base class for Method-level annotation post-processors.
@@ -326,9 +326,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 				else {
 					//TODO errorConsumer, completeConsumer
-					subscriber = Subscribers.consumer(handler::handleMessage);
+					DirectProcessor<Message<?>> directProcessor = DirectProcessor.create();
+					directProcessor.doOnNext(handler::handleMessage);
+					subscriber = directProcessor;
 				}
-				endpoint = new ReactiveEndpoint(inputChannel, subscriber);
+				endpoint = new ReactiveConsumer(inputChannel, subscriber);
 			}
 			else {
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);

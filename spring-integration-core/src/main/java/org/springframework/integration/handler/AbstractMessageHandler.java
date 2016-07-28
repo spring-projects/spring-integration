@@ -37,7 +37,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
-import reactor.core.util.Exceptions;
+import reactor.core.Exceptions;
 
 /**
  * Base class for MessageHandler implementations that provides basic validation
@@ -168,7 +168,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	@Override
 	public void onComplete() {
-
+		System.out.println("onComplete()");
 	}
 
 	protected abstract void handleMessageInternal(Message<?> message) throws Exception;
