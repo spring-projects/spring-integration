@@ -12,6 +12,8 @@
 
 	<mongo:db-factory dbname="test"/>
 
+	<mongo:auditing/>
+
 	<beans:bean id="abstractMessageStore" class="org.springframework.integration.mongodb.store.MongoDbChannelMessageStore"
 				abstract="true">
 		<beans:constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>

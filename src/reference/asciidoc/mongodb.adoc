@@ -13,7 +13,7 @@ To download, install, and run MongoDB please refer to the http://www.mongodb.org
 === Connecting to MongoDb
 
 To begin interacting with MongoDB you first need to connect to it.
-Spring Integration builds on the support provided by another Spring project, http://www.springsource.org/spring-data/mongodb[Spring Data MongoDB], which provides a factory class called `MongoDbFactory` that simplifies integration with the MongoDB Client API.
+Spring Integration builds on the support provided by another Spring project, http://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB], which provides a factory class called `MongoDbFactory` that simplifies integration with the MongoDB Client API.
 
 _MongoDbFactory_
 
@@ -63,16 +63,16 @@ Or in Spring's XML configuration:
 
 As you can see `SimpleMongoDbFactory` takes two arguments: 1) a `Mongo` instance and 2) a String specifying the name of the database.
 If you need to configure properties such as `host`, `port`, etc, you can pass those using one of the constructors provided by the underlying `Mongo` class.
-For more information on how to configure MongoDB, please refer to thehttp://static.springsource.org/spring-data/data-document/docs/current/reference/html/[Spring-Data-Document] reference.
+For more information on how to configure MongoDB, please refer to the http://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/[Spring-Data-MongoDB] reference.
 
 [[mongodb-message-store]]
 === MongoDB Message Store
 
 As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_QueueChannel, Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the MessageStore strategy also provides the foundation for thehttp://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
-Spring Integration's MongoDB module provides the `MongoDbMessageStore` which is an implementation of both the `MessageStore` strategy (mainly used by the _ClaimCheck_pattern) and the `MessageGroupStore` strategy (mainly used by the _Aggregator_ and _Resequencer_ patterns).
+Spring Integration's MongoDB module provides the `MongoDbMessageStore` which is an implementation of both the `MessageStore` strategy (mainly used by the _ClaimCheck_ pattern) and the `MessageGroupStore` strategy (mainly used by the _Aggregator_ and _Resequencer_ patterns).
 
 [source,xml]
 ----
@@ -102,7 +102,7 @@ To achieve these capabilities, an alternative MongoDB `MessageStore` implementat
 _Spring Integration 3.0_ introduced the `ConfigurableMongoDbMessageStore` - `MessageStore` and `MessageGroupStore` implementation.
 This class can receive, as a constructor argument, a `MongoTemplate`, with which you can configure with a custom `WriteConcern`, for example.
 Another constructor requires a `MappingMongoConverter`, and a `MongoDbFactory`, which allows you to provide some custom conversions for `Message` s and their properties.
-Note, by default, the `ConfigurableMongoDbMessageStore` uses standard Java serialization to write/read `Message` s to/from MongoDB and relies on default values for other properties from `MongoTemplate`, which is built from the provided `MongoDbFactory` and `MappingMongoConverter`.
+Note, by default, the `ConfigurableMongoDbMessageStore` uses standard Java serialization to write/read `Message` s to/from MongoDB (see `MongoDbMessageBytesConverter`) and relies on default values for other properties from `MongoTemplate`, which is built from the provided `MongoDbFactory` and `MappingMongoConverter`.
 The default name for the collection stored by the `ConfigurableMongoDbMessageStore` is `configurableStoreMessages`.
 It is recommended to use this implementation for robust and flexible solutions when messages contain complex data types.
 
@@ -213,17 +213,19 @@ You can do this using Transaction Synchronization feature that was added with Sp
 [source,xml]
 ----
 <int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
-	   channel="replyChannel"
-	   query="{'name' : 'Bob'}"
-	   entity-class="java.lang.Object"
-	   auto-startup="false">
-				<int:poller fixed-rate="200" max-messages-per-poll="1">
-				    <int:transactional synchronization-factory="syncFactory"/>
-				</int:poller>
+    channel="replyChannel"
+    query="{'name' : 'Bob'}"
+    entity-class="java.lang.Object"
+    auto-startup="false">
+        <int:poller fixed-rate="200" max-messages-per-poll="1">
+            <int:transactional synchronization-factory="syncFactory"/>
+        </int:poller>
 </int-mongodb:inbound-channel-adapter>
 
 <int:transaction-synchronization-factory id="syncFactory">
-	<int:after-commit expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)" channe="someChannel"/>
+    <int:after-commit
+        expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)"
+        channe="someChannel"/>
 </int:transaction-synchronization-factory>
 
 <bean id="documentCleaner" class="foo.bar.DocumentCleaner"/>
@@ -234,14 +236,14 @@ You can do this using Transaction Synchronization feature that was added with Sp
 [source,java]
 ----
 public class DocumentCleaner {
-		public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
-			if (target instanceof List<?>){
-				List<?> documents = (List<?>) target;
-				for (Object document : documents) {
-					mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
-				}
-			}
-		}
+    public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
+        if (target instanceof List<?>){
+            List<?> documents = (List<?>) target;
+            for (Object document : documents) {
+                mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
+            }
+        }
+    }
 }
 ----
 
@@ -252,7 +254,7 @@ If you don't have a 'real' transaction, you can use a `org.springframework.integ
 IMPORTANT: This does NOT make MongoDB itself transactional, it simply allows the synchronization of actions to be taken before/after success (commit) or after failure (rollback).
 
 Once your poller is transactional all you need to do is set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
-`TransactionSynchronizationFactory` will create an instance of the `TransactioinSynchronization`.
+`TransactionSynchronizationFactory` will create an instance of the `TransactionSynchronization`.
 For your convenience, we've exposed a default SpEL-based `TransactionSynchronizationFactory` which allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
 Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the evaluation result (if any) will be sent.
 For each sub-element you can specify `expression` and/or `channel` attributes.

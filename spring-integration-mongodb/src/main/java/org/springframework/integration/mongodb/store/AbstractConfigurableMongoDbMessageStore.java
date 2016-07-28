@@ -18,11 +18,9 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
@@ -33,11 +31,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.serializer.support.DeserializingConverter;
-import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -51,6 +44,7 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.integration.mongodb.support.MongoDbMessageBytesConverter;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -138,9 +132,6 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				this.mappingMongoConverter.afterPropertiesSet();
 			}
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mappingMongoConverter);
-			if (this.applicationContext != null) {
-				this.mongoTemplate.setApplicationContext(this.applicationContext);
-			}
 		}
 
 		this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.applicationContext);
@@ -261,37 +252,6 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		throw new UnsupportedOperationException("The operation isn't implemented for this class.");
-	}
-
-	/**
-	 * A {@link GenericConverter} implementation to convert {@link Message} to
-	 * serialized {@link byte[]} to store {@link Message} to the MongoDB.
-	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
-	 */
-	private static class MongoDbMessageBytesConverter implements GenericConverter {
-
-		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
-
-		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
-
-		@Override
-		public Set<ConvertiblePair> getConvertibleTypes() {
-			Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>();
-			convertiblePairs.add(new ConvertiblePair(Message.class, byte[].class));
-			convertiblePairs.add(new ConvertiblePair(byte[].class, Message.class));
-			return convertiblePairs;
-		}
-
-		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-			if (Message.class.isAssignableFrom(sourceType.getObjectType())) {
-				return this.serializingConverter.convert(source);
-			}
-			else {
-				return this.deserializingConverter.convert((byte[]) source);
-			}
-		}
-
 	}
 
 }
