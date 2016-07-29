@@ -59,7 +59,6 @@ import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -75,6 +74,19 @@ import org.springframework.messaging.support.GenericMessage;
  *
  */
 public class FailoverClientConnectionFactoryTests {
+
+	private static final ApplicationEventPublisher NULL_PUBLISHER = new ApplicationEventPublisher() {
+
+		@Override
+		public void publishEvent(ApplicationEvent event) {
+		}
+
+		@Override
+		public void publishEvent(Object event) {
+
+		}
+
+	};
 
 	@Rule
 	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
@@ -249,65 +261,57 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNet() throws Exception {
+		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
+		Holder holder = setupAndStartServers(server1, server2);
 
-		int port1 = openPorts.get(0);
-		int port2 = openPorts.get(1);
-		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", port1);
-		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", port2);
-		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
-		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
-		testRealGuts(client1, client2, server1, server2);
+		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", server2.getPort());
+		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
 	public void testRealNio() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
+		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(0);
 
-		int port1 = openPorts.get(0);
-		int port2 = openPorts.get(1);
+		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", port1);
-		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", port2);
-		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(port1);
-		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(port2);
-		testRealGuts(client1, client2, server1, server2);
+		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", server2.getPort());
+		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
 	public void testRealNetSingleUse() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
+		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 
-		int port1 = openPorts.get(0);
-		int port2 = openPorts.get(1);
+		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", port1);
-		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", port2);
-		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
-		AbstractServerConnectionFactory server2 = new TcpNetServerConnectionFactory(port2);
+		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", server2.getPort());
 		client1.setSingleUse(true);
 		client2.setSingleUse(true);
-		testRealGuts(client1, client2, server1, server2);
+		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
 	public void testRealNioSingleUse() throws Exception {
 
-		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(0, 2);
+		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(0);
+		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(0);
 
-		int port1 = openPorts.get(0);
-		int port2 = openPorts.get(1);
+		Holder holder = setupAndStartServers(server1, server2);
 
-		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", port1);
-		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", port2);
-		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(port1);
-		AbstractServerConnectionFactory server2 = new TcpNioServerConnectionFactory(port2);
+		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", server1.getPort());
+		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", server2.getPort());
 		client1.setSingleUse(true);
 		client2.setSingleUse(true);
-		testRealGuts(client1, client2, server1, server2);
+		testRealGuts(client1, client2, holder);
 	}
 
 	@Test
@@ -550,34 +554,64 @@ public class FailoverClientConnectionFactoryTests {
 	}
 
 	private void testRealGuts(AbstractClientConnectionFactory client1, AbstractClientConnectionFactory client2,
-			AbstractServerConnectionFactory server1, AbstractServerConnectionFactory server2) throws Exception {
+			Holder holder) throws Exception {
 		int port1 = 0;
 		int port2 = 0;
-		Executor exec = Executors.newCachedThreadPool();
-		client1.setTaskExecutor(exec);
-		client2.setTaskExecutor(exec);
-		server1.setTaskExecutor(exec);
-		server2.setTaskExecutor(exec);
+
+		client1.setTaskExecutor(holder.exec);
+		client2.setTaskExecutor(holder.exec);
 		client1.setBeanName("client1");
 		client2.setBeanName("client2");
+		client1.setApplicationEventPublisher(NULL_PUBLISHER);
+		client2.setApplicationEventPublisher(NULL_PUBLISHER);
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(client1);
+		factories.add(client2);
+		FailoverClientConnectionFactory failFactory = new FailoverClientConnectionFactory(factories);
+		boolean singleUse = client1.isSingleUse();
+		failFactory.setSingleUse(singleUse);
+		failFactory.setBeanFactory(mock(BeanFactory.class));
+		failFactory.afterPropertiesSet();
+		TcpOutboundGateway outGateway = new TcpOutboundGateway();
+		outGateway.setConnectionFactory(failFactory);
+		outGateway.start();
+		QueueChannel replyChannel = new QueueChannel();
+		outGateway.setReplyChannel(replyChannel);
+		Message<String> message = new GenericMessage<String>("foo");
+		outGateway.setRemoteTimeout(120000);
+		outGateway.handleMessage(message);
+		Socket socket = null;
+		if (!singleUse) {
+			socket = getSocket(client1);
+			port1 = socket.getLocalPort();
+		}
+		assertTrue(singleUse | holder.connectionId.get().contains(Integer.toString(port1)));
+		Message<?> replyMessage = replyChannel.receive(10000);
+		assertNotNull(replyMessage);
+		holder.server1.stop();
+		TestingUtilities.waitStopListening(holder.server1, 10000L);
+		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
+		outGateway.handleMessage(message);
+		if (!singleUse) {
+			socket = getSocket(client2);
+			port2 = socket.getLocalPort();
+		}
+		assertTrue(singleUse | holder.connectionId.get().contains(Integer.toString(port2)));
+		replyMessage = replyChannel.receive(10000);
+		assertNotNull(replyMessage);
+		holder.gateway2.stop();
+		outGateway.stop();
+	}
+
+	private Holder setupAndStartServers(AbstractServerConnectionFactory server1,
+			AbstractServerConnectionFactory server2) throws Exception {
+		Executor exec = Executors.newCachedThreadPool();
+		server1.setTaskExecutor(exec);
+		server2.setTaskExecutor(exec);
 		server1.setBeanName("server1");
 		server2.setBeanName("server2");
-		ApplicationEventPublisher pub = new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
-		};
-		client1.setApplicationEventPublisher(pub);
-		client2.setApplicationEventPublisher(pub);
-		server1.setApplicationEventPublisher(pub);
-		server2.setApplicationEventPublisher(pub);
+		server1.setApplicationEventPublisher(NULL_PUBLISHER);
+		server2.setApplicationEventPublisher(NULL_PUBLISHER);
 		TcpInboundGateway gateway1 = new TcpInboundGateway();
 		gateway1.setConnectionFactory(server1);
 		SubscribableChannel channel = new DirectChannel();
@@ -601,43 +635,12 @@ public class FailoverClientConnectionFactoryTests {
 		gateway2.start();
 		TestingUtilities.waitListening(server1, null);
 		TestingUtilities.waitListening(server2, null);
-		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
-		factories.add(client1);
-		factories.add(client2);
-		FailoverClientConnectionFactory failFactory = new FailoverClientConnectionFactory(factories);
-		boolean singleUse = client1.isSingleUse();
-		failFactory.setSingleUse(singleUse);
-		failFactory.setBeanFactory(mock(BeanFactory.class));
-		failFactory.afterPropertiesSet();
-		TcpOutboundGateway outGateway = new TcpOutboundGateway();
-		outGateway.setConnectionFactory(failFactory);
-		outGateway.start();
-		QueueChannel replyChannel = new QueueChannel();
-		outGateway.setReplyChannel(replyChannel);
-		Message<String> message = new GenericMessage<String>("foo");
-		outGateway.setRemoteTimeout(120000);
-		outGateway.handleMessage(message);
-		Socket socket = null;
-		if (!singleUse) {
-			socket = getSocket(client1);
-			port1 = socket.getLocalPort();
-		}
-		assertTrue(singleUse | connectionId.get().contains(Integer.toString(port1)));
-		Message<?> replyMessage = replyChannel.receive(10000);
-		assertNotNull(replyMessage);
-		server1.stop();
-		TestingUtilities.waitStopListening(server1, 10000L);
-		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
-		outGateway.handleMessage(message);
-		if (!singleUse) {
-			socket = getSocket(client2);
-			port2 = socket.getLocalPort();
-		}
-		assertTrue(singleUse | connectionId.get().contains(Integer.toString(port2)));
-		replyMessage = replyChannel.receive(10000);
-		assertNotNull(replyMessage);
-		gateway2.stop();
-		outGateway.stop();
+		Holder holder =  new Holder();
+		holder.exec = exec;
+		holder.connectionId = connectionId;
+		holder.server1 = server1;
+		holder.gateway2 = gateway2;
+		return holder;
 	}
 
 	private Socket getSocket(AbstractClientConnectionFactory client) throws Exception {
@@ -647,6 +650,18 @@ public class FailoverClientConnectionFactoryTests {
 		else {
 			return TestUtils.getPropertyValue(client.getConnection(), "socketChannel", SocketChannel.class).socket();
 		}
+	}
+
+	private static class Holder {
+
+		private AtomicReference<String> connectionId;
+
+		private Executor exec;
+
+		private TcpInboundGateway gateway2;
+
+		private AbstractServerConnectionFactory server1;
+
 	}
 
 }

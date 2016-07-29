@@ -48,7 +48,6 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -151,7 +150,7 @@ public class UdpChannelAdapterTests {
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		DatagramSocket datagramSocket = new DatagramSocket(SocketUtils.findAvailableUdpSocket());
+		DatagramSocket datagramSocket = new DatagramSocket(0);
 		datagramSocket.send(packet);
 		datagramSocket.close();
 		@SuppressWarnings("unchecked")
@@ -180,7 +179,7 @@ public class UdpChannelAdapterTests {
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		final DatagramSocket socket = new DatagramSocket(SocketUtils.findAvailableUdpSocket());
+		final DatagramSocket socket = new DatagramSocket(0);
 		socket.send(packet);
 		final AtomicReference<DatagramPacket> theAnswer = new AtomicReference<DatagramPacket>();
 		final CountDownLatch receiverReadyLatch = new CountDownLatch(1);
@@ -238,7 +237,7 @@ public class UdpChannelAdapterTests {
 				"localhost", port, false, true,
 				"localhost",
 //				whichNic,
-				SocketUtils.findAvailableUdpSocket(), 5000);
+				0, 5000);
 //		handler.setLocalAddress(whichNic);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -282,9 +281,8 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testMulticastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter =
-				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), port);
+				new MulticastReceivingChannelAdapter(this.multicastRule.getGroup(), 0);
 		adapter.setOutputChannel(channel);
 		String nic = this.multicastRule.getNic();
 		adapter.setLocalAddress(nic);
@@ -292,7 +290,7 @@ public class UdpChannelAdapterTests {
 		SocketTestUtils.waitListening(adapter);
 
 		MulticastSendingMessageHandler handler =
-				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), port);
+				new MulticastSendingMessageHandler(this.multicastRule.getGroup(), adapter.getPort());
 		handler.setLocalAddress(nic);
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
@@ -322,7 +320,7 @@ public class UdpChannelAdapterTests {
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		DatagramSocket datagramSocket = new DatagramSocket(SocketUtils.findAvailableUdpSocket());
+		DatagramSocket datagramSocket = new DatagramSocket(0);
 		datagramSocket.send(packet);
 		datagramSocket.close();
 		Message<?> receivedMessage = errorChannel.receive(2000);
