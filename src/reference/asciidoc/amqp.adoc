@@ -214,7 +214,7 @@ For this reason, you must define the container using a normal Spring `<bean/>` d
 =====
 
 IMPORTANT: Even though the Spring Integration JMS and AMQP support is very similar, important differences exist.
-The JMS Inbound Channel Adapter is using a JmsDestinationPollingSource under the covers and expects a configured Poller.
+The JMS Inbound Channel Adapter is using a `JmsDestinationPollingSource` under the covers and expects a configured Poller.
 The AMQP Inbound Channel Adapter on the other side uses a`SimpleMessageListenerContainer` and is message driven.
 In that regard it is more similar to the JMS Message Driven Channel Adapter.
 

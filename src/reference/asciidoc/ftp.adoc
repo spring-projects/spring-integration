@@ -538,6 +538,110 @@ However, there may be situations where you don't want to use this technique (for
 For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (default is `true`).
 When this attribute is `false`, the file is written with its final name and the consuming application will need some other mechanism to detect that the file is completely uploaded before accessing it.
 
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the Outbound Adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                    new SpringApplicationBuilder(FtpJavaApplication.class)
+                        .web(false)
+                        .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToFtp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "ftpChannel")
+    public MessageHandler handler() {
+        FtpMessageHandler handler = new FtpMessageHandler(ftpSessionFactory());
+        handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+        handler.setFileNameGenerator(new FileNameGenerator() {
+
+            @Override
+            public String generateFileName(Message<?> message) {
+                 return "handlerContent.test";
+            }
+
+        });
+        return handler;
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toFtpChannel")
+         void sendToFtp(File file);
+
+    }
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the Outbound Adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+            new SpringApplicationBuilder(FtpJavaApplication.class)
+                .web(false)
+                .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToFtp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    public IntegrationFlow ftpOutboundFlow() {
+        return IntegrationFlows.from("toFtpChannel")
+                .handle(Ftp.outboundAdapter(ftpSessionFactory(), FileExistsMode.FAIL)
+                        .useTemporaryFileName(false)
+                        .fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+                        .remoteDirectory(this.ftpServer.getTargetFtpDirectory().getName())
+                ).get();
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toFtpChannel")
+         void sendToFtp(File file);
+
+    }
+
+}
+----
+
 [[ftp-outbound-gateway]]
 === FTP Outbound Gateway
 
@@ -752,6 +856,86 @@ when using the namespace support). This affects the behavior when the local file
 file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
 operations, the default is `FAIL`.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the Outbound Gateway using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(FtpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "ftpChannel")
+    public MessageHandler handler() {
+        FtpOutboundGateway ftpOutboundGateway = new FtpOutboundGateway(ftpSessionFactory(), "ls");
+        ftpOutboundGateway.setOutputChannelName("lsReplyChannel");
+        return ftpOutboundGateway;
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the Outbound Gateway using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class FtpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(FtpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    public FtpOutboundGatewaySpec ftpOutboundGateway() {
+        return Ftp.outboundGateway(ftpSessionFactory(),
+            AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
+            .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+            .regexFileNameFilter("(subFtpSource|.*1.txt)")
+            .localDirectoryExpression("'localDirectory/' + #remoteDirectory")
+            .localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')");
+    }
+
+    @Bean
+    public IntegrationFlow ftpMGetFlow(AbstractRemoteFileOutboundGateway<FTPFile> ftpOutboundGateway) {
+        return f -> f
+            .handle(ftpOutboundGateway)
+            .channel(c -> c.queue("remoteFileOutputChannel"));
+    }
+
+}
+----
 
 [[ftp-partial]]
 ==== Outbound Gateway Partial Success (mget and mput)

@@ -655,6 +655,88 @@ _Version 4.3_ introduced the `chmod` attribute which changes the remote file per
 Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the Outbound Adapter using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+@IntegrationComponentScan
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+                    new SpringApplicationBuilder(SftpJavaApplication.class)
+                        .web(false)
+                        .run(args);
+        MyGateway gateway = context.getBean(MyGateway.class);
+        gateway.sendToSftp(new File("/foo/bar.txt"));
+    }
+
+    @Bean
+    public SessionFactory<LsEntry> sftpSessionFactory() {
+        DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+        factory.setHost("localhost");
+        factory.setPort(port);
+        factory.setUser("foo");
+        factory.setPassword("foo");
+        factory.setAllowUnknownKeys(true);
+        return new CachingSessionFactory<LsEntry>(factory);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "toSftpChannel")
+    public MessageHandler handler() {
+        SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
+        handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+        handler.setFileNameGenerator(new FileNameGenerator() {
+
+            @Override
+            public String generateFileName(Message<?> message) {
+                 return "handlerContent.test";
+            }
+
+        });
+        return handler;
+    }
+
+    @MessagingGateway
+    public interface MyGateway {
+
+         @Gateway(requestChannel = "toSftpChannel")
+         void sendToSftp(File file);
+
+    }
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the Outbound Adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow sftpOutboundFlow() {
+        return IntegrationFlows.from("toSftpChannel")
+            .handle(Sftp.outboundAdapter(this.sftpSessionFactory, FileExistsMode.FAIL)
+                         .useTemporaryFileName(false)
+                         .remoteDirectory("/foo")
+            ).get();
+    }
+
+}
+----
+
 [[sftp-outbound-gateway]]
 === SFTP Outbound Gateway
 
@@ -872,6 +954,76 @@ when using the namespace support). This affects the behavior when the local file
 file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
 operations, the default is `FAIL`.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the Outbound Gateway using Java configuration:
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "sftpChannel")
+    public MessageHandler handler() {
+        return new SftpOutboundGateway(ftpSessionFactory(), "ls");
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the Outbound Gateway using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class SftpJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SftpJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public SessionFactory<FTPFile> ftpSessionFactory() {
+        DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
+        sf.setHost("localhost");
+        sf.setPort(port);
+        sf.setUsername("foo");
+        sf.setPassword("foo");
+        return new CachingSessionFactory<FTPFile>(sf);
+    }
+
+    @Bean
+    public QueueChannelSpec remoteFileOutputChannel() {
+        return MessageChannels.queue();
+    }
+
+    @Bean
+    public IntegrationFlow sftpMGetFlow() {
+        return IntegrationFlows.from("sftpMgetInputChannel")
+            .handleWithAdapter(h ->
+                h.sftpGateway(this.sftpSessionFactory, AbstractRemoteFileOutboundGateway.Command.MGET,
+                    "payload")
+                    .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+                    .regexFileNameFilter("(subSftpSource|.*1.txt)")
+                    .localDirectoryExpression("'myDir/' + #remoteDirectory")
+                    .localFilenameExpression("#remoteFileName.replaceFirst('sftpSource', 'localTarget')"))
+            .channel("remoteFileOutputChannel")
+            .get();
+    }
+
+}
+----
 
 [[sftp-partial]]
 ==== Outbound Gateway Partial Success (mget and mput)
