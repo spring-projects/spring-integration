@@ -38,8 +38,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -47,6 +51,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -56,6 +61,11 @@ import org.springframework.integration.test.util.TestUtils;
  *
  */
 public class RedisLockRegistryTests extends RedisAvailableTests {
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration.redis");
 
 	@Before
 	@After
@@ -282,10 +292,16 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
+					logger.error("Interrupted while locking: " + lock2, e);
 				}
 				finally {
-					lock2.unlock();
-					latch3.countDown();
+					try {
+						lock2.unlock();
+						latch3.countDown();
+					}
+					catch (IllegalStateException e) {
+						logger.error("Failed to unlock: " + lock2, e);
+					}
 				}
 			}
 		});

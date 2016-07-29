@@ -16,9 +16,12 @@
 
 package org.springframework.integration.test.rule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,7 +61,9 @@ public class Log4jLevelAdjuster implements MethodRule {
 	public Log4jLevelAdjuster(Level level, String... categories) {
 		this.level = level;
 		this.classes = new Class<?>[0];
-		this.categories = categories;
+		Set<String> cats = new LinkedHashSet<String>(Arrays.asList(categories));
+		cats.add(getClass().getPackage().getName());
+		this.categories = new ArrayList<String>(cats).toArray(new String[cats.size()]);
 	}
 
 	@Override
@@ -66,9 +71,6 @@ public class Log4jLevelAdjuster implements MethodRule {
 		return new Statement() {
 			@Override
 			public void evaluate() throws Throwable {
-				logger.debug("++++++++++++++++++++++++++++ "
-						+ "Overriding log level setting for: " + Arrays.asList(classes) + " for test "
-						+ method.getName());
 				Map<Class<?>, Level> oldLevels = new HashMap<Class<?>, Level>();
 				for (Class<?> cls : classes) {
 					oldLevels.put(cls, LogManager.getLogger(cls).getEffectiveLevel());
@@ -79,6 +81,9 @@ public class Log4jLevelAdjuster implements MethodRule {
 					oldCatLevels.put(category, LogManager.getLogger(category).getEffectiveLevel());
 					LogManager.getLogger(category).setLevel(level);
 				}
+				logger.debug("++++++++++++++++++++++++++++ "
+						+ "Overridden log level setting for: " + Arrays.asList(classes) + " and "
+						+ Arrays.asList(categories) + " for test " + method.getName());
 				try {
 					base.evaluate();
 				}

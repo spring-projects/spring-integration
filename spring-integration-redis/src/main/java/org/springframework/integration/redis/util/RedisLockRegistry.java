@@ -87,7 +87,7 @@ import org.springframework.util.Assert;
  */
 public final class RedisLockRegistry implements LockRegistry {
 
-	private static final Log logger = LogFactory.getLog(LockRegistry.class);
+	private static final Log logger = LogFactory.getLog(RedisLockRegistry.class);
 
 	private static final byte[] hostName;
 
@@ -444,7 +444,7 @@ public final class RedisLockRegistry implements LockRegistry {
 				else {
 					this.thread = currentThread;
 					if (logger.isDebugEnabled()) {
-						logger.debug("New lock; " + this.toString());
+						logger.debug("New lock; " + this);
 					}
 				}
 
@@ -481,9 +481,9 @@ public final class RedisLockRegistry implements LockRegistry {
 		public void unlock() {
 			if (!Thread.currentThread().equals(this.thread)) {
 				if (this.thread == null) {
-					throw new IllegalStateException("Lock is not locked; " + this.toString());
+					throw new IllegalStateException("Lock is not locked; " + this);
 				}
-				throw new IllegalStateException("Lock is owned by " + this.thread.getName() + "; " + this.toString());
+				throw new IllegalStateException("Lock is owned by " + this.thread.getName() + "; " + this);
 			}
 
 			try {
@@ -492,7 +492,7 @@ public final class RedisLockRegistry implements LockRegistry {
 						this.assertLockInRedisIsUnchanged();
 						RedisLockRegistry.this.redisTemplate.delete(constructLockKey());
 						if (logger.isDebugEnabled()) {
-							logger.debug("Released lock; " + this.toString());
+							logger.debug("Released lock; " + this);
 						}
 					}
 					finally {
@@ -512,8 +512,8 @@ public final class RedisLockRegistry implements LockRegistry {
 			RedisLock lockInStore = RedisLockRegistry.this.redisTemplate.boundValueOps(
 					constructLockKey()).get();
 			if (lockInStore == null || !this.equals(lockInStore)) {
-				throw new IllegalStateException("Lock was released due to expiration; " + this.toString()
-						+ (lockInStore == null ? "" : "; lock in store: " + lockInStore.toString()));
+				throw new IllegalStateException("Lock was released due to expiration; " + this
+						+ (lockInStore == null ? "" : "; lock in store: " + lockInStore));
 			}
 		}
 
