@@ -149,7 +149,7 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="mbeanServerIdentifyerType">
-				<xsd:attribute name="channel" type="xsd:string" use="required" />
+				<xsd:attribute name="channel" type="xsd:string" />
 				<xsd:attribute name="object-name" type="xsd:string" use="required" />
 			</xsd:extension>
 		</xsd:complexContent>

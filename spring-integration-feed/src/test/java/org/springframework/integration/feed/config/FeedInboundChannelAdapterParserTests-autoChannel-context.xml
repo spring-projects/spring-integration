@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:feed="http://www.springframework.org/schema/integration/feed"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd">
+
+	<feed:inbound-channel-adapter id="autoChannel"
+						auto-startup="false" 
+						url="file:dummy.rss">
+		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
+	</feed:inbound-channel-adapter>
+
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
+</beans>

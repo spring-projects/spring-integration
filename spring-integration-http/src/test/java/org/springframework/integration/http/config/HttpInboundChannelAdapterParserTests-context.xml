@@ -27,4 +27,8 @@
 	<inbound-channel-adapter id="withMappedHeaders" channel="requests"
 								mapped-request-headers="foo,bar"/>
 
+	<inbound-channel-adapter id="autoChannel" />
+
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans:beans>

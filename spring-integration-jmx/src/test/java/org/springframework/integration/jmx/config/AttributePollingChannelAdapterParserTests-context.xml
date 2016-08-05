@@ -30,4 +30,13 @@
 
 	<bean id="testBean1" class="org.springframework.integration.jmx.config.TestBean"/>
 
+	<jmx:attribute-polling-channel-adapter id="autoChannel"
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBean1"
+			attribute-name="FirstMessage"
+			auto-startup="false">
+		<si:poller max-messages-per-poll="1" fixed-rate="2000"/>
+	</jmx:attribute-polling-channel-adapter>
+
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans>

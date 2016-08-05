@@ -26,4 +26,9 @@
 
 	<bean id="testPublisher" class="org.springframework.integration.jmx.config.TestPublisher"/>
 
+	<jmx:notification-listening-channel-adapter id="autoChannel"
+			object-name="org.springframework.integration.jmx.config:type=TestPublisher,name=testPublisher"/>
+
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans>
