@@ -395,7 +395,7 @@ If you wish to suppress throwing the exception, set the `trapException` property
 ==== Custom Advice Classes
 
 In addition to the provided Advice classes above, you can implement your own Advice classes.
-While you can provide any implementation of `org.aopalliance.aop.Advice`, it is generally recommended that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
+While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), it is generally recommended that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
 This has the benefit of avoiding writing low-level _Aspect Oriented Programming_ code as well as providing a starting point that is specifically tailored for use in this environment.
 
 Subclasses need to implement the `doInvoke()`` method:
@@ -529,6 +529,42 @@ For example, let's say you want to add a retry advice and a transaction advice.
 You may want to place the retry advice advice first, followed by the transaction advice.
 Then, each retry will be performed in a new transaction.
 On the other hand, if you want all the attempts, and any recovery operations (in the retry `RecoveryCallback`), to be scoped within the transaction, you would put the transaction advice first.
+
+[[advised-handler-properties]]
+==== Advised Handler Properties
+
+Sometimes, it is useful to access handler properties from within the advice.
+For example, most handlers implement `NamedComponent` and you can access the component name.
+
+The target object can be accessed via the `target` argument when subclassing `AbstractRequestHandlerAdvice` or
+`invocation.getThis()` when implementing `org.aopalliance.intercept.MethodInterceptor`.
+
+When the entire handler is advised (such as when the handler does not produce replies, or the advice implements `HandleMessageAdvice`), you can simply cast the target object to the desired implemented interface, such as `NamedComponent`.
+
+[source, java]
+----
+String componentName = ((NamedComponent) target).getComponentName();
+----
+
+or
+
+[source, java]
+----
+String componentName = ((NamedComponent) invocation.getThis()).getComponentName();
+----
+
+when implementing `MethodInterceptor` directly.
+
+When only the `handleRequestMessage()` method is advised (in a reply-producing handler), you need to access the
+full handler, which is an `AbstractReplyProducingMessageHandler`...
+
+[source, java]
+----
+AbstractReplyProducingMessageHandler handler =
+    ((AbstractReplyProducingMessageHandler.RequestHandler) target).getAdvisedHandler();
+
+String componentName = handler.getComponentName();
+----
 
 [[idempotent-receiver]]
 ==== Idempotent Receiver Enterprise Integration Pattern

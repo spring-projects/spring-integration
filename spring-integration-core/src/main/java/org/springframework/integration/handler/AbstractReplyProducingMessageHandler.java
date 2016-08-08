@@ -138,12 +138,36 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected abstract Object handleRequestMessage(Message<?> requestMessage);
 
 
+	/**
+	 * An implementation of this interface is used to wrap the
+	 * {@link AbstractReplyProducingMessageHandler#handleRequestMessage(Message)}
+	 * method. Also allows access to the underlying
+	 * {@link AbstractReplyProducingMessageHandler} to obtain properties.
+	 *
+	 * @author Gary Russell
+	 * @since 2.2
+	 *
+	 * @see #getAdvisedHandler()
+	 *
+	 */
 	public interface RequestHandler {
 
 		Object handleRequestMessage(Message<?> requestMessage);
 
 		@Override
 		String toString();
+
+		/**
+		 * Utility method, intended for use in message handler advice classes to get
+		 * information about the advised object. For example:
+		 * <p>
+		 * {@code ((AbstractReplyProducingMessageHandler.RequestHandler)
+		 * invocation.getThis()).getAdvisedHandler().getComponentName()}
+		 * @return the outer class instance.
+		 *
+		 * @since 4.3.2
+		 */
+		AbstractReplyProducingMessageHandler getAdvisedHandler();
 
 	}
 
@@ -157,6 +181,11 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		@Override
 		public String toString() {
 			return AbstractReplyProducingMessageHandler.this.toString();
+		}
+
+		@Override
+		public AbstractReplyProducingMessageHandler getAdvisedHandler() {
+			return AbstractReplyProducingMessageHandler.this;
 		}
 
 	}

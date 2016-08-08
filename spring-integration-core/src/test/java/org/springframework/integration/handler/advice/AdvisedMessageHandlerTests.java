@@ -132,6 +132,8 @@ public class AdvisedMessageHandlerTests {
 				return "baz";
 			}
 		};
+		String componentName = "testComponentName";
+		handler.setComponentName(componentName);
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 		Message<String> message = new GenericMessage<String>("Hello, world!");
@@ -153,6 +155,17 @@ public class AdvisedMessageHandlerTests {
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
+		final AtomicReference<String> compName = new AtomicReference<String>();
+		adviceChain.add(new AbstractRequestHandlerAdvice() {
+
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				compName.set(((AbstractReplyProducingMessageHandler.RequestHandler) target).getAdvisedHandler()
+						.getComponentName());
+				return callback.execute();
+			}
+
+		});
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -162,6 +175,8 @@ public class AdvisedMessageHandlerTests {
 		reply = replies.receive(1000);
 		assertNotNull(reply);
 		assertEquals("baz", reply.getPayload());
+
+		assertEquals(componentName, compName.get());
 
 		Message<?> success = successChannel.receive(1000);
 		assertNotNull(success);
