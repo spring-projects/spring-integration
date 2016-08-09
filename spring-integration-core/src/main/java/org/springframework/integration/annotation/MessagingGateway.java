@@ -73,7 +73,7 @@ public @interface MessagingGateway {
 	 * reference to the {@code nullChannel} here.
 	 * @return the suggested channel name, if any
 	 */
-	String errorChannel() default "";
+	String errorChannel() default "errorChannel";
 
 	/**
 	 * Provides the amount of time dispatcher would wait to send a {@code Message}.
