@@ -561,7 +561,7 @@ full handler, which is an `AbstractReplyProducingMessageHandler`...
 [source, java]
 ----
 AbstractReplyProducingMessageHandler handler =
-    ((AbstractReplyProducingMessageHandler.AdvisedRequestHandler) target).getAdvisedHandler();
+    ((AbstractReplyProducingMessageHandler.RequestHandler) target).getAdvisedHandler();
 
 String componentName = handler.getComponentName();
 ----

@@ -138,6 +138,18 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected abstract Object handleRequestMessage(Message<?> requestMessage);
 
 
+	/**
+	 * An implementation of this interface is used to wrap the
+	 * {@link AbstractReplyProducingMessageHandler#handleRequestMessage(Message)}
+	 * method. Also allows access to the underlying
+	 * {@link AbstractReplyProducingMessageHandler} to obtain properties.
+	 *
+	 * @author Gary Russell
+	 * @since 2.2
+	 *
+	 * @see #getAdvisedHandler()
+	 *
+	 */
 	public interface RequestHandler {
 
 		Object handleRequestMessage(Message<?> requestMessage);
@@ -145,21 +157,21 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		@Override
 		String toString();
 
+		/**
+		 * Utility method, intended for use in message handler advice classes to get
+		 * information about the advised object. For example:
+		 * <p>
+		 * {@code ((AbstractReplyProducingMessageHandler.RequestHandler)
+		 * invocation.getThis()).getAdvisedHandler().getComponentName()}
+		 * @return the outer class instance.
+		 *
+		 * @since 4.3.2
+		 */
+		AbstractReplyProducingMessageHandler getAdvisedHandler();
+
 	}
 
-	/**
-	 * Used to wrap the
-	 * {@link AbstractReplyProducingMessageHandler#handleRequestMessage(Message)}
-	 * method. Also allows access to the underlying
-	 * {@link AbstractReplyProducingMessageHandler} to obtain properties.
-	 *
-	 * @author Gary Russell
-	 * @since 4.3.2
-	 *
-	 * @see #getAdvisedHandler()
-	 *
-	 */
-	public class AdvisedRequestHandler implements RequestHandler {
+	private class AdvisedRequestHandler implements RequestHandler {
 
 		@Override
 		public Object handleRequestMessage(Message<?> requestMessage) {
@@ -171,14 +183,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			return AbstractReplyProducingMessageHandler.this.toString();
 		}
 
-		/**
-		 * Utility method, intended for use in message handler advice classes to get
-		 * information about the advised object. For example:
-		 * <p>
-		 * {@code ((AbstractReplyProducingMessageHandler.RequestHandler)
-		 * invocation.getThis()).getAdvisedHandler().getComponentName()}
-		 * @return the outer class instance.
-		 */
+		@Override
 		public AbstractReplyProducingMessageHandler getAdvisedHandler() {
 			return AbstractReplyProducingMessageHandler.this;
 		}

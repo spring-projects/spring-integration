@@ -160,7 +160,7 @@ public class AdvisedMessageHandlerTests {
 
 			@Override
 			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
-				compName.set(((AbstractReplyProducingMessageHandler.AdvisedRequestHandler) target).getAdvisedHandler()
+				compName.set(((AbstractReplyProducingMessageHandler.RequestHandler) target).getAdvisedHandler()
 						.getComponentName());
 				return callback.execute();
 			}
