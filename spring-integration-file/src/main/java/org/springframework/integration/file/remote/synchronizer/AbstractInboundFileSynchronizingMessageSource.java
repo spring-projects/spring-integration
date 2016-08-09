@@ -144,6 +144,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 					throw new FileNotFoundException(this.localDirectory.getName());
 				}
 			}
+			this.fileSource.setUseWatchService(true);
+			this.fileSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+					FileReadingMessageSource.WatchEventType.MODIFY,
+					FileReadingMessageSource.WatchEventType.DELETE);
 			this.fileSource.setDirectory(this.localDirectory);
 			if (this.localFileListFilter == null) {
 				this.localFileListFilter = new FileSystemPersistentAcceptOnceFileListFilter(
@@ -168,12 +172,14 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	@Override
 	public void start() {
 		this.running = true;
+		this.fileSource.start();
 	}
 
 	@Override
 	public void stop() {
 		this.running = false;
 		try {
+			this.fileSource.stop();
 			this.synchronizer.close();
 		}
 		catch (IOException e) {

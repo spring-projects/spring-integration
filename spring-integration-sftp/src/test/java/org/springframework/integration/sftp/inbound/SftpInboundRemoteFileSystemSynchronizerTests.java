@@ -121,6 +121,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		localFileListFilter.addFilter(localAcceptOnceFilter);
 		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
+		ms.start();
+
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("a.test", atestFile.getPayload().getName());

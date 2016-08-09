@@ -114,6 +114,8 @@ The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outb
 
 See <<ftp>> and <<sftp>> for more information.
 
+The inbound channel adapters now can build file tree locally and use `WatchService` for local directory.
+
 ==== Integration Properties
 
 Since _version 4.3.2_ a new `spring.integration.readOnly.headers` global property has been added to customize the list of headers which should not be copied to a newly created `Message` by the `MessageBuilder`.

@@ -109,7 +109,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setFilter(filter);
 
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
-		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");
+		Expression expression = expressionParser.parseExpression("'subdir/' + #this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
 		synchronizer.setBeanFactory(mock(BeanFactory.class));
 		synchronizer.afterPropertiesSet();
@@ -126,7 +126,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		localFileListFilter.addFilter(localAcceptOnceFilter);
 		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
-		Message<File> atestFile = ms.receive();
+		ms.start();
+
+		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("A.TEST.a", atestFile.getPayload().getName());
 		// The test remote files are created with the current timestamp + 1 day.
@@ -146,13 +148,13 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory, Integer.MIN_VALUE);
 
-		assertTrue(new File("test/A.TEST.a").exists());
-		assertTrue(new File("test/B.TEST.a").exists());
+		assertTrue(new File("test/subdir/A.TEST.a").exists());
+		assertTrue(new File("test/subdir/B.TEST.a").exists());
 
 		TestUtils.getPropertyValue(localAcceptOnceFilter, "seenSet", Collection.class).clear();
 
-		new File("test/A.TEST.a").delete();
-		new File("test/B.TEST.a").delete();
+		new File("test/subdir/A.TEST.a").delete();
+		new File("test/subdir/B.TEST.a").delete();
 		// the remote filter should prevent a re-fetch
 		nothing = ms.receive();
 		assertNull(nothing);
