@@ -70,7 +70,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	}
 
 	@Override
-	protected boolean accept(F file) {
+	public boolean accept(F file) {
 		String key = buildKey(file);
 		synchronized (this.monitor) {
 			String newValue = value(file);

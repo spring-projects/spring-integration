@@ -273,6 +273,10 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.useWatchService = useWatchService;
 	}
 
+	public boolean isUseWatchService() {
+		return this.useWatchService;
+	}
+
 	/**
 	 * The {@link WatchService} event types.
 	 * If {@link #setUseWatchService} isn't {@code true}, this option is ignored.

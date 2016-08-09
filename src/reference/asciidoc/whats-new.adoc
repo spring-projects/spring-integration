@@ -125,7 +125,11 @@ The (S)FTP streaming inbound channel adapters now add remote file information in
 
 The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
 
+The inbound channel adapters now can build file tree locally and use a new `RecursiveDirectoryScanner` by default for local directory.
+Also these adapters can now be switched to the `WatchService` instead.
+
 See <<ftp>> and <<sftp>> for more information.
+
 
 ==== Integration Properties
 

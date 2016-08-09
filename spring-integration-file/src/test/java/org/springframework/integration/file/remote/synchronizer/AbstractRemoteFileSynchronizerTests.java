@@ -131,6 +131,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.setMaxFetchSize(1);
 		source.setBeanName("maxFetchSizeSource");
 		source.afterPropertiesSet();
+		source.start();
 
 		source.receive();
 		assertEquals(1, count.get());
@@ -138,7 +139,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.receive();
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
 		source.receive();
-		sync.close();
+		source.stop();
 	}
 
 	private AbstractInboundFileSynchronizer<String> createLimitingSynchronizer(final AtomicInteger count) {

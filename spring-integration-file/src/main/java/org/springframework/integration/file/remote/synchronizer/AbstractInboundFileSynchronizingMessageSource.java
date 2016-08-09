@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -128,6 +129,22 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		this.localFileListFilter = localFileListFilter;
 	}
 
+	/**
+	 * Switch the local {@link FileReadingMessageSource} to use its internal
+	 * {@code FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * @param useWatchService the {@code boolean} flag to switch to
+	 * {@code FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @since 5.0
+	 */
+	public void setUseWatchService(boolean useWatchService) {
+		this.fileSource.setUseWatchService(useWatchService);
+		if (useWatchService) {
+			this.fileSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+					FileReadingMessageSource.WatchEventType.MODIFY,
+					FileReadingMessageSource.WatchEventType.DELETE);
+		}
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
@@ -149,7 +166,15 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 				this.localFileListFilter = new FileSystemPersistentAcceptOnceFileListFilter(
 						new SimpleMetadataStore(), getComponentName());
 			}
-			this.fileSource.setFilter(this.buildFilter());
+			FileListFilter<File> filter = buildFilter();
+			if (!this.fileSource.isUseWatchService()) {
+				RecursiveDirectoryScanner directoryScanner = new RecursiveDirectoryScanner();
+				directoryScanner.setFilter(filter);
+				this.fileSource.setScanner(directoryScanner);
+			}
+			else {
+				this.fileSource.setFilter(filter);
+			}
 			if (this.getBeanFactory() != null) {
 				this.fileSource.setBeanFactory(this.getBeanFactory());
 			}
@@ -168,12 +193,14 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	@Override
 	public void start() {
 		this.running = true;
+		this.fileSource.start();
 	}
 
 	@Override
 	public void stop() {
 		this.running = false;
 		try {
+			this.fileSource.stop();
 			this.synchronizer.close();
 		}
 		catch (IOException e) {

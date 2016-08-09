@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.messaging.MessagingException;
  * @author Iwein Fuld
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
@@ -80,12 +81,12 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	 * @param file the file to try to claim.
 	 */
 	@Override
-	public final boolean tryClaim(File file) {
+	public boolean tryClaim(File file) {
 		return (this.locker == null) || this.locker.lock(file);
 	}
 
 	@Override
-	public final List<File> listFiles(File directory) throws IllegalArgumentException {
+	public List<File> listFiles(File directory) throws IllegalArgumentException {
 		File[] files = listEligibleFiles(directory);
 		if (files == null) {
 			throw new MessagingException("The path [" + directory

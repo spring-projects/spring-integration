@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -100,7 +101,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * Should we <em>transfer</em> the remote file <b>timestamp</b>
 	 * to the local file? By default this is false.
 	 */
-	private volatile boolean  preserveTimestamp;
+	private volatile boolean preserveTimestamp;
 
 	private BeanFactory beanFactory;
 
@@ -313,7 +314,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		long modified = getModified(remoteFile);
 
 		File localFile = new File(localDirectory, localFileName);
-		if (!localFile.exists() || (this.preserveTimestamp && modified != localFile.lastModified())) {
+		boolean exists = localFile.exists();
+		if (!exists || (this.preserveTimestamp && modified != localFile.lastModified())) {
+			if (!exists &&
+					localFileName.replaceAll("/", Matcher.quoteReplacement(File.separator)).contains(File.separator)) {
+				localFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
+			}
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
 			OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
