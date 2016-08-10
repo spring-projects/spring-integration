@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -63,6 +64,8 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 	private final SmartLifecycleRoleController controller = new SmartLifecycleRoleController(
 			Collections.singletonList("sitest"), Collections.<SmartLifecycle>singletonList(this.adapter));
 
+	private final CountDownLatch yieldBarrier = new CountDownLatch(1);
+
 	@Test
 	public void testLeader() throws Exception {
 		assertFalse(this.adapter.isRunning());
@@ -88,6 +91,8 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 
 		assertFalse(this.adapter.isRunning());
 
+		this.yieldBarrier.countDown();
+
 		event = this.events.poll(30, TimeUnit.SECONDS);
 		assertNotNull(event);
 		assertThat(event, instanceOf(OnGrantedEvent.class));
@@ -106,6 +111,8 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 	private LeaderEventPublisher publisher() {
 		return new DefaultLeaderEventPublisher(new ApplicationEventPublisher() {
 
+			volatile boolean onRevokedEventHappened;
+
 			@Override
 			public void publishEvent(Object event) {
 			}
@@ -113,6 +120,16 @@ public class ZookeeperLeaderTests extends ZookeeperTestSupport {
 			@Override
 			public void publishEvent(ApplicationEvent event) {
 				AbstractLeaderEvent leadershipEvent = (AbstractLeaderEvent) event;
+				if (this.onRevokedEventHappened) {
+					try {
+						yieldBarrier.await(10, TimeUnit.SECONDS);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						throw new RuntimeException(e);
+					}
+				}
+				onRevokedEventHappened = event instanceof OnRevokedEvent;
 				controller.onApplicationEvent((AbstractLeaderEvent) event);
 				events.add(leadershipEvent);
 			}
