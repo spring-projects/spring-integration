@@ -6,11 +6,11 @@
 
 Starting with _version 4.1_, Spring Integration provides an implementation of the http://www.eaipatterns.com/BroadcastAggregate.html[Scatter-Gather] Enterprise Integration Pattern.
 It is a compound endpoint, where the goal is to send a message to the recipients and aggregate the results.
-Quoting the EIP Book, it is a component for scenarios like_best quote_, when we need to request information from several suppliers and decide which one provides us with the best term for the requested item.
+Quoting the EIP Book, it is a component for scenarios like _best quote_, when we need to request information from several suppliers and decide which one provides us with the best term for the requested item.
 
 Previously, the pattern could be configured using discrete components, this enhancement brings more convenient configuration.
 
-The `ScatterGatherHandler` is a _request-reply_ endpoint that combines a`PublishSubscribeChannel` (or `RecipientListRouter`) and an `AggregatingMessageHandler`.
+The `ScatterGatherHandler` is a _request-reply_ endpoint that combines a `PublishSubscribeChannel` (or `RecipientListRouter`) and an `AggregatingMessageHandler`.
 The request message is sent to the `scatter` channel and the `ScatterGatherHandler` waits for the reply from the aggregator to sends to the `outputChannel`.
 
 [[scatter-gather-functionality]]
@@ -23,7 +23,7 @@ See <<aggregator>> for more information.
 
 _Auction_
 
-The _Auction_`Scatter-Gather` variant uses `publish-subscribe` logic for the request message, where the `scatter` channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
+The _Auction_ `Scatter-Gather` variant uses `publish-subscribe` logic for the request message, where the `scatter` channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
 However, this channel can be any `MessageChannel` implementation as is the case with the `request-channel` in the `ContentEnricher` (see <<content-enricher>>) but, in this case, the end-user should support his own custom `correlationStrategy` for the `aggregation` function.
 
 _Distribution_
@@ -138,13 +138,15 @@ By default the `FixedSubscriberChannel` is created.
 
 
 
-<7> Order of this component when more than one handler is subscribed to the same DirectChannel (use for load balancing purposes)._Optional_.
+<7> Order of this component when more than one handler is subscribed to the same DirectChannel (use for load balancing purposes).
+_Optional_.
 
 
 
 <8> Specify the phase in which the endpoint should be started and stopped.
 The startup order proceeds from lowest to highest, and the shutdown order is the reverse of that.
-By default this value is Integer.MAX_VALUE meaning that this container starts as late as possible and stops as soon as possible._Optional_.
+By default this value is Integer.MAX_VALUE meaning that this container starts as late as possible and stops as soon as possible.
+_Optional_.
 
 
 
