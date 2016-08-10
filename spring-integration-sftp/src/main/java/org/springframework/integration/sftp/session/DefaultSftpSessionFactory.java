@@ -49,12 +49,17 @@ import com.jcraft.jsch.UserInfo;
  * @author Gary Russell
  * @author David Liu
  * @author Pat Turner
+ * @author Artem Bilan
  *
  * @since 2.0
  */
 public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, SharedSessionCapable {
 
 	private static final Log logger = LogFactory.getLog(DefaultSftpSessionFactory.class);
+
+	static {
+		JSch.setLogger(new JschLogger());
+	}
 
 	private final ReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
 
@@ -343,7 +348,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	public SftpSession getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
-		Assert.isTrue(this.port >= 0, "port must be a positive number");
 		Assert.isTrue(StringUtils.hasText(this.userInfoWrapper.getPassword()) || this.privateKey != null,
 				"either a password or a private key is required");
 		try {
@@ -384,8 +388,6 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	}
 
 	private com.jcraft.jsch.Session initJschSession() throws Exception {
-		JSch.setLogger(new JschLogger());
-
 		if (this.port <= 0) {
 			this.port = 22;
 		}

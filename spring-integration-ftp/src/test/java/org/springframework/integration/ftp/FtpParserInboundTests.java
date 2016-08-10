@@ -31,8 +31,8 @@ import org.junit.Test;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.MessagingException;
 
 /**
  * @author Oleg Zhurakousky
@@ -63,7 +63,7 @@ public class FtpParserInboundTests {
 		catch (BeansException e) {
 			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
 			Throwable cause = e.getCause();
-			assertThat(cause, Matchers.instanceOf(MessagingException.class));
+			assertThat(cause, Matchers.instanceOf(BeanInitializationException.class));
 			cause = cause.getCause();
 			assertThat(cause, Matchers.instanceOf(FileNotFoundException.class));
 			assertEquals("bar", cause.getMessage());

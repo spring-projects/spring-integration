@@ -94,6 +94,7 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	 */
 	@Override
 	public void rollback(F file, List<F> files) {
+		// If file must be removed all subsequent files should be removed as well
 		boolean rollingBack = false;
 		for (F fileToRollback : files) {
 			if (fileToRollback.equals(file)) {

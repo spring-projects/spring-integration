@@ -99,7 +99,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		MessageListenerAdapter listener = channelMapping.entrySet().iterator().next().getValue().iterator().next();
 		Object delegate = TestUtils.getPropertyValue(listener, "delegate");
 		try {
-			ReflectionUtils.findMethod(delegate.getClass(), "handleMessage", String.class).invoke(delegate,
+			ReflectionUtils.findMethod(delegate.getClass(), "handleMessage", Object.class).invoke(delegate,
 					"Hello, world!");
 			fail("Exception expected");
 		}
