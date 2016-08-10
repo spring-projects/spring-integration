@@ -64,7 +64,7 @@ public class JschProxyFactoryBean extends AbstractFactoryBean<Proxy> {
 		case HTTP:
 			return ProxyHTTP.class;
 		default:
-			throw new UnsupportedOperationException("Invalid type:" + this.type);
+			throw new IllegalArgumentException("Invalid type:" + this.type);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class JschProxyFactoryBean extends AbstractFactoryBean<Proxy> {
 			httpProxy.setUserPasswd(this.user, this.password);
 			return httpProxy;
 		default:
-			throw new UnsupportedOperationException("Invalid type:" + this.type);
+			throw new IllegalArgumentException("Invalid type:" + this.type);
 		}
 	}
 

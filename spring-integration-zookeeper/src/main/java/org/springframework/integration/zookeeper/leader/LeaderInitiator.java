@@ -208,7 +208,7 @@ public class LeaderInitiator implements SmartLifecycle {
 		if (!ns.endsWith("/")) {
 			ns = ns + "/";
 		}
-		return String.format(ns + "%s", this.candidate.getRole());
+		return ns + this.candidate.getRole();
 	}
 
 	/**

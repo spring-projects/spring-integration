@@ -50,14 +50,19 @@ import org.springframework.util.StringUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public class SubscribableRedisChannel extends AbstractMessageChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
+public class SubscribableRedisChannel extends AbstractMessageChannel
+		implements SubscribableChannel, SmartLifecycle, DisposableBean {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+
 	private final RedisConnectionFactory connectionFactory;
+
 	private final RedisTemplate redisTemplate;
+
 	private final String topicName;
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher(true);
@@ -68,7 +73,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	// defaults
 	private volatile Executor taskExecutor = new SimpleAsyncTaskExecutor();
+
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
+
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	public SubscribableRedisChannel(RedisConnectionFactory connectionFactory, String topicName) {
@@ -130,7 +137,8 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		}
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
+			Integer maxSubscribers =
+					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
 			this.setMaxSubscribers(maxSubscribers);
 		}
 		if (this.messageConverter == null) {
@@ -161,7 +169,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) ? this.container.isAutoStartup() : false;
+		return (this.container != null) && this.container.isAutoStartup();
 	}
 
 	@Override
@@ -171,7 +179,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) ? this.container.isRunning() : false;
+		return (this.container != null) && this.container.isRunning();
 	}
 
 	@Override
@@ -205,8 +213,8 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private class MessageListenerDelegate {
 
 		@SuppressWarnings({ "unused", "unchecked" })
-		public void handleMessage(String s) {
-			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(s, null);
+		public void handleMessage(Object payload) {
+			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(payload, null);
 			try {
 				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}
@@ -215,9 +223,10 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 				topicName = StringUtils.hasText(topicName) ? topicName : "unknown";
 				throw new MessageDeliveryException(siMessage, e.getMessage()
 						+ " for redis-channel '"
-						+ topicName + "' (" + SubscribableRedisChannel.this.getFullChannelName()
-						+ ").", e);
+						+ topicName
+						+ "' (" + SubscribableRedisChannel.this.getFullChannelName() + ").", e);
 			}
 		}
 	}
+
 }

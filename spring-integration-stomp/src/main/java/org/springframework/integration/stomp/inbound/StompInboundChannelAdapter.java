@@ -206,7 +206,7 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			}
 		}
 		catch (Exception e) {
-			logger.warn("The exception during unsubscribtion.", e);
+			logger.warn("The exception during unsubscription.", e);
 		}
 		this.subscriptions.clear();
 	}

@@ -196,7 +196,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 		catch (BeanCreationException e) {
 			e.printStackTrace();
 
-			assertEquals("Cannot specifiy 'udp-attributes' when the protocol is 'tcp'", e.getCause().getMessage());
+			assertEquals("Cannot specify 'udp-attributes' when the protocol is 'tcp'", e.getCause().getMessage());
 		}
 	}
 
@@ -208,7 +208,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertEquals("Cannot specifiy 'connection-factory' unless the protocol is 'tcp'",
+			assertEquals("Cannot specify 'connection-factory' unless the protocol is 'tcp'",
 					e.getCause().getMessage());
 		}
 	}

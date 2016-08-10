@@ -28,6 +28,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
+import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.zookeeper.leader.LeaderInitiator;
 
 /**
@@ -36,7 +37,6 @@ import org.springframework.integration.zookeeper.leader.LeaderInitiator;
  * @author Gary Russell
  * @author Artem Bilan
  * @since 4.2
- *
  */
 public class LeaderInitiatorFactoryBean
 		implements FactoryBean<LeaderInitiator>, SmartLifecycle, InitializingBean, ApplicationEventPublisherAware {
@@ -55,14 +55,16 @@ public class LeaderInitiatorFactoryBean
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	private LeaderEventPublisher leaderEventPublisher;
+
 	public LeaderInitiatorFactoryBean() {
 	}
 
 	/**
 	 * Construct the instance.
 	 * @param client the {@link CuratorFramework}.
-	 * @param path the path in zookeeper.
-	 * @param role the role of the leader.
+	 * @param path   the path in zookeeper.
+	 * @param role   the role of the leader.
 	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
 	 * to avoid {@code BeanCurrentlyInCreationException}
 	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
@@ -89,6 +91,33 @@ public class LeaderInitiatorFactoryBean
 		return this;
 	}
 
+	/**
+	 * A {@link LeaderEventPublisher} option for events from the {@link LeaderInitiator}.
+	 * @param leaderEventPublisher the {@link LeaderEventPublisher} to use.
+	 * @since 4.3.2
+	 */
+	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
+		this.leaderEventPublisher = leaderEventPublisher;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.leaderInitiator != null && this.leaderInitiator.isAutoStartup();
+	}
+
 	@Override
 	public void start() {
 		if (this.leaderInitiator != null) {
@@ -100,6 +129,16 @@ public class LeaderInitiatorFactoryBean
 	public void stop() {
 		if (this.leaderInitiator != null) {
 			this.leaderInitiator.stop();
+		}
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		if (this.leaderInitiator != null) {
+			this.leaderInitiator.stop(callback);
+		}
+		else {
+			callback.run();
 		}
 	}
 
@@ -116,37 +155,16 @@ public class LeaderInitiatorFactoryBean
 		return 0;
 	}
 
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.leaderInitiator != null && this.leaderInitiator.isAutoStartup();
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		stop();
-		callback.run();
-	}
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.leaderInitiator == null) {
 			this.leaderInitiator = new LeaderInitiator(this.client, this.candidate, this.path);
 			this.leaderInitiator.setPhase(this.phase);
 			this.leaderInitiator.setAutoStartup(this.autoStartup);
-			if (this.applicationEventPublisher != null) {
+			if (this.leaderEventPublisher != null) {
+				this.leaderInitiator.setLeaderEventPublisher(this.leaderEventPublisher);
+			}
+			else if (this.applicationEventPublisher != null) {
 				this.leaderInitiator.setLeaderEventPublisher(
 						new DefaultLeaderEventPublisher(this.applicationEventPublisher));
 			}

@@ -19,7 +19,6 @@ package org.springframework.integration.zookeeper.config;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 
@@ -31,7 +30,8 @@ import org.springframework.util.Assert;
  * A spring-friendly way to build a {@link CuratorFramework} and implementing {@link SmartLifecycle}.
  *
  * @author Gary Russell
- *
+ * @author Artem Bilan
+ * @since 4.2
  */
 public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework>, SmartLifecycle {
 
@@ -67,7 +67,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	/**
 	 * Construct an instance using the supplied connection string and retry policy.
 	 * @param connectionString list of servers to connect to
-	 * @param retryPolicy the retry policy
+	 * @param retryPolicy      the retry policy
 	 */
 	public CuratorFrameworkFactoryBean(String connectionString, RetryPolicy retryPolicy) {
 		Assert.notNull(connectionString, "'connectionString' cannot be null");
@@ -122,9 +122,8 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	public void stop() {
 		synchronized (this.lifecycleLock) {
 			if (this.running) {
-				if (this.client.getState().equals(CuratorFrameworkState.STARTED)) {
-					CloseableUtils.closeQuietly(this.client);
-				}
+				CloseableUtils.closeQuietly(this.client);
+				this.running = false;
 			}
 		}
 	}

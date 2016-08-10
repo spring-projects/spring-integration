@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -31,7 +32,6 @@ import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -153,8 +153,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessagingException(
-					"Failure during initialization of MessageSource for: " + this.getClass(), e);
+			throw new BeanInitializationException("Failure during initialization of MessageSource for: "
+					+ this.getClass(), e);
 		}
 	}
 

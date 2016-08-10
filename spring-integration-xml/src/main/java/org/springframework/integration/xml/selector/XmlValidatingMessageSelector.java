@@ -133,9 +133,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 						new AggregatedXmlMessageValidationException(
 								Arrays.<Throwable>asList(validationExceptions)));
 			}
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Message was rejected due to XML Validation errors");
-			}
+			this.logger.debug("Message was rejected due to XML Validation errors");
 		}
 		return validationSuccess;
 	}
