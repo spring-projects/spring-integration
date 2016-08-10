@@ -242,7 +242,7 @@ public class AggregatorIntegrationTests {
 			this.zeroGroupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 2, 1)));
 			ErrorMessage em = (ErrorMessage) this.errors.receive(10000);
 			assertNotNull(em);
-			assertThat(em.getPayload().getMessage(),
+			assertThat(em.getPayload().getMessage().toLowerCase(),
 					containsString("failed to send message to channel 'output' within timeout: 10"));
 		}
 		finally {

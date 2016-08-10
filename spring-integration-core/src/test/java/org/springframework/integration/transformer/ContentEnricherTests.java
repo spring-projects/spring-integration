@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
@@ -180,8 +181,8 @@ public class ContentEnricherTests {
 			enricher.handleMessage(requestMessage);
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("failed to send message to channel '" + requestChannelName
-					+ "' within timeout: " + requestTimeout, e.getMessage());
+			assertThat(e.getMessage(), equalToIgnoringCase("failed to send message to channel '" + requestChannelName
+					+ "' within timeout: " + requestTimeout));
 		}
 
 	}
