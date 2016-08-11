@@ -26,6 +26,7 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaNull;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -127,20 +128,24 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
 		ListenableFuture<?> future;
 
+		V payload = (V) message.getPayload();
+		if (payload instanceof KafkaNull) {
+			payload = null;
+		}
 		if (partitionId == null) {
 			if (messageKey == null) {
-				future = this.kafkaTemplate.send(topic, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, payload);
 			}
 			else {
-				future = this.kafkaTemplate.send(topic, (K) messageKey, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, (K) messageKey, payload);
 			}
 		}
 		else {
 			if (messageKey == null) {
-				future = this.kafkaTemplate.send(topic, partitionId, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, partitionId, payload);
 			}
 			else {
-				future = this.kafkaTemplate.send(topic, partitionId, (K) messageKey, (V) message.getPayload());
+				future = this.kafkaTemplate.send(topic, partitionId, (K) messageKey, payload);
 			}
 		}
 		if (this.sync) {
