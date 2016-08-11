@@ -36,6 +36,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -102,6 +103,18 @@ public class KafkaProducerMessageHandlerTests {
 		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
 		assertThat(record).has(key((Integer) null));
 		assertThat(record).has(value("baz"));
+
+		message = MessageBuilder.withPayload(KafkaNull.INSTANCE)
+				.setHeader(KafkaHeaders.TOPIC, topic1)
+				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.build();
+		handler.handleMessage(message);
+
+		record = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record).has(key(2));
+		assertThat(record).has(partition(1));
+		assertThat(record.value()).isNull();
 	}
 
 }
