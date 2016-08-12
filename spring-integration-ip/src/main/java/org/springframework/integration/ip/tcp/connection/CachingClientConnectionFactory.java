@@ -420,7 +420,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 			}
 			else {
-				/**
+				/*
 				 * If the delegate is stopped, actually close the connection, but still release
 				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
 				 */

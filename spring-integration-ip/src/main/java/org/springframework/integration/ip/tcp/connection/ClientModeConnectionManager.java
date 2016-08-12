@@ -72,7 +72,7 @@ public class ClientModeConnectionManager implements Runnable {
 	}
 
 	public boolean isConnected() {
-		return this.lastConnection == null ? false : this.lastConnection.isOpen();
+		return this.lastConnection != null && this.lastConnection.isOpen();
 	}
 
 }

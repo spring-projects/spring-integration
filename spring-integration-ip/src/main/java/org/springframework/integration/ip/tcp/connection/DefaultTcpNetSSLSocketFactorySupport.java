@@ -53,7 +53,7 @@ public class DefaultTcpNetSSLSocketFactorySupport implements TcpSocketFactorySup
 
 	public void afterPropertiesSet() throws Exception {
 		this.sslContext = this.sslContextSupport.getSSLContext();
-		Assert.notNull(this.sslContext, "SSLContex must not be null");
+		Assert.notNull(this.sslContext, "SSLContext must not be null");
 	}
 
 }

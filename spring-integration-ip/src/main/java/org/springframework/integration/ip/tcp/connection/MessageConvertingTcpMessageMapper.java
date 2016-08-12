@@ -31,7 +31,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	private final MessageConverter messageConverter;
 
 	public MessageConvertingTcpMessageMapper(MessageConverter messageConverter) {
-		Assert.notNull(messageConverter, "'messasgeConverter' must not be null");
+		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
 

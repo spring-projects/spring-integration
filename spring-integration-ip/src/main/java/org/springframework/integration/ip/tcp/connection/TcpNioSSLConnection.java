@@ -166,7 +166,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 		switch (result.getHandshakeStatus()) {
 		case FINISHED:
-			resumeWriterIfNeeded(); //NOSONAR - fall-through inteded
+			resumeWriterIfNeeded(); //NOSONAR - fall-through intended
 			// switch fall-through intended
 		case NOT_HANDSHAKING:
 		case NEED_UNWRAP:

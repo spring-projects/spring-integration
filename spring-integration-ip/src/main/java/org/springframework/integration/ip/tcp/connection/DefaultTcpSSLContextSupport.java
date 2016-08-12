@@ -53,7 +53,7 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 	 * key/trust stores and passwords.
 	 * @param keyStore A {@link Resource} pattern pointing to the keyStore.
 	 * @param trustStore A {@link Resource} pattern pointing to the trustStore.
-	 * @param keyStorePassword The passowrd for the keyStore.
+	 * @param keyStorePassword The password for the keyStore.
 	 * @param trustStorePassword The password for the trustStore.
 	 */
 	public DefaultTcpSSLContextSupport(String keyStore, String trustStore,
