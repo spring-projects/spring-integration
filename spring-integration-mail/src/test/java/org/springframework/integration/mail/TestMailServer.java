@@ -38,7 +38,7 @@ import org.springframework.util.Base64Utils;
  * @author Gary Russell
  *
  */
-public class PoorMansMailServer {
+public class TestMailServer {
 
 	public static SmtpServer smtp(int port) {
 		try {
@@ -282,10 +282,10 @@ public class PoorMansMailServer {
 							write("* 1 FETCH (RFC822.SIZE 6909 INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
 									+ "FLAGS (\\Seen) "
 									+ "ENVELOPE (\"Mon, 27 May 2013 15:14:49 +0530\" "
-									+ "\"Test Email\" ((\"Foo\" NIL \"foo\" \"bar.tv\")) "
+									+ "\"Test Email\" ((\"Bar\" NIL \"bar\" \"baz\")) "
 									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
 									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
-									+ "((\"Bar\" NIL \"bar\" \"baz.net\")) NIL NIL "
+									+ "((\"Foo\" NIL \"foo\" \"bar\")) NIL NIL "
 									+ "\"<4DA0A7E4.3010506@baz.net>\" "
 									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") "
 									+ "BODYSTRUCTURE (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
@@ -433,7 +433,8 @@ public class PoorMansMailServer {
 
 		public abstract class MailHandler implements Runnable {
 
-			protected static final String MESSAGE = "To: foo@bar\r\nFrom: bar@baz\r\nSubject: Test Email\r\n\r\nfoo";
+			protected static final String MESSAGE =
+					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\nfoo";
 
 			protected final Socket socket;
 
@@ -471,7 +472,7 @@ public class PoorMansMailServer {
 
 	}
 
-	private PoorMansMailServer() {
+	private TestMailServer() {
 	}
 
 }
