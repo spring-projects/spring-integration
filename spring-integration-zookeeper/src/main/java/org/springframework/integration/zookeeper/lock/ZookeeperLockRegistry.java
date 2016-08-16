@@ -19,15 +19,23 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.zookeeper.CreateMode;
 
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -35,10 +43,11 @@ import org.springframework.util.Assert;
  * Curator {@link InterProcessMutex}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
-public class ZookeeperLockRegistry implements ExpirableLockRegistry {
+public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableBean {
 
 	private static final String DEFAULT_ROOT = "/SpringIntegration-LockRegistry";
 
@@ -49,6 +58,17 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 	private final Map<String, ZkLock> locks = new HashMap<String, ZkLock>();
 
 	private final boolean trackingTime;
+
+	private AsyncTaskExecutor mutexTaskExecutor = new ThreadPoolTaskExecutor();
+
+	{
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) this.mutexTaskExecutor;
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setBeanName("ZookeeperLockRegistryExecutor");
+		threadPoolTaskExecutor.initialize();
+	}
+
+	private boolean mutexTaskExecutorExplicitlySet;
 
 	/**
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
@@ -82,6 +102,23 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 		this.trackingTime = !keyToPath.bounded();
 	}
 
+	/**
+	 * Set an {@link AsyncTaskExecutor} to use when establishing (and testing) the
+	 * connection with Zookeeper. This must be performed asynchronously so the
+	 * {@link Lock#tryLock(long, TimeUnit)} contract can be honored. While an executor is
+	 * used internally, an external executor may be required in some environments, for
+	 * example those that require the use of a {@code WorkManagerTaskExecutor}.
+	 * @param mutexTaskExecutor the executor.
+	 *
+	 * @since 4.2.10
+	 */
+	public void setMutexTaskExecutor(AsyncTaskExecutor mutexTaskExecutor) {
+		Assert.notNull(mutexTaskExecutor, "'mutexTaskExecutor' cannot be null");
+		((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
+		this.mutexTaskExecutor = mutexTaskExecutor;
+		this.mutexTaskExecutorExplicitlySet = true;
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
@@ -91,7 +128,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 			synchronized (this.locks) {
 				lock = this.locks.get(path);
 				if (lock == null) {
-					lock = new ZkLock(this.client, path);
+					lock = new ZkLock(this.client, this.mutexTaskExecutor, path);
 					this.locks.put(path, lock);
 				}
 				if (this.trackingTime) {
@@ -125,6 +162,13 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 					iterator.remove();
 				}
 			}
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (!this.mutexTaskExecutorExplicitlySet) {
+			((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
 		}
 	}
 
@@ -178,14 +222,20 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 	private static class ZkLock implements Lock {
 
+		private final CuratorFramework client;
+
 		private final InterProcessMutex mutex;
+
+		private final AsyncTaskExecutor mutexTaskExecutor;
 
 		private final String path;
 
 		private long lastUsed;
 
-		public ZkLock(CuratorFramework client, String path) {
+		private ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path) {
+			this.client = client;
 			this.mutex = new InterProcessMutex(client, path);
+			this.mutexTaskExecutor = mutexTaskExecutor;
 			this.path = path;
 		}
 
@@ -203,7 +253,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 				this.mutex.acquire();
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Failed to aquire mutex at " + this.path, e);
+				throw new RuntimeException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 
@@ -230,11 +280,42 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry {
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+			Future<String> future = null;
 			try {
-				return this.mutex.acquire(time, unit);
+				long startTime = System.currentTimeMillis();
+
+				future = this.mutexTaskExecutor.submit(new Callable<String>() {
+
+					@Override
+					public String call() throws Exception {
+						return ZkLock.this.client.create()
+								.creatingParentsIfNeeded()
+								.withProtection()
+								.withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+								.forPath(ZkLock.this.path);
+					}
+
+				});
+
+				long waitTime = unit.toMillis(time);
+
+				String ourPath = future.get(waitTime, TimeUnit.MILLISECONDS);
+
+				if (ourPath == null) {
+					future.cancel(true);
+					return false;
+				}
+				else {
+					waitTime = waitTime - (System.currentTimeMillis() - startTime);
+					return this.mutex.acquire(waitTime, TimeUnit.MILLISECONDS);
+				}
+			}
+			catch (TimeoutException e) {
+				future.cancel(true);
+				return false;
 			}
 			catch (Exception e) {
-				throw new MessagingException("Failed to aquire mutex at " + this.path, e);
+				throw new MessagingException("Failed to acquire mutex at " + this.path, e);
 			}
 		}
 

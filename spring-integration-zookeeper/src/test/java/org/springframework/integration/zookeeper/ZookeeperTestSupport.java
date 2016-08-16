@@ -16,7 +16,6 @@
 package org.springframework.integration.zookeeper;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,7 +75,6 @@ public class ZookeeperTestSupport {
 		CuratorFramework client = CuratorFrameworkFactory.newClient(testingServer.getConnectString(),
 				new BoundedExponentialBackoffRetry(100, 1000, 3));
 		client.start();
-		client.blockUntilConnected(10000, TimeUnit.SECONDS);
 		return client;
 	}
 
