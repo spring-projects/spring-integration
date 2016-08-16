@@ -75,3 +75,42 @@ The following code snippet shows the different configuration for an outbound rmi
     remote-channel="testChannel"
     host="localhost"/>
 ----
+
+=== Configuring with Java Configuration
+
+[source, java]
+----
+@Bean
+public RmiInboundGateway inbound() {
+    RmiInboundGateway gateway = new RmiInboundGateway();
+    gateway.setRequestChannel(requestChannel());
+    gateway.setRegistryHost("host");
+    gateway.setRegistryPort(port);
+    return gateway;
+}
+
+@Bean
+@ServiceActivator(inputChannel="inChannel")
+public RmiOutboundGateway outbound() {
+    RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://host:port/"
+        + RmiInboundGateway.SERVICE_NAME_PREFIX + "remoteChannelName");
+    return gateway;
+}
+----
+
+Starting with _version 4.3_, the outbound gateway has a second constructor that takes a RmiProxyFactoryBeanConfigurer instance along with the service url argument.
+This allows further configuration before the proxy is created; for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel="inChannel")
+public RmiOutboundGateway outbound() {
+    RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://host:port/"
+                + RmiInboundGateway.SERVICE_NAME_PREFIX + "remoteChannelName",
+        pfb -> {
+            pfb.setRemoteInvocationFactory(new ContextPropagatingRemoteInvocationFactory());
+        });
+    return gateway;
+}
+----
