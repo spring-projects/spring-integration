@@ -184,7 +184,11 @@ If no output channel has been configured, then the reply will be sent to the cha
 
 A request-reply "Service Activator" endpoint connects a target object's method to input and output Message Channels.
 
+.Service Activator
+
 image::images/handler-endpoint.jpg[align="center", scaledwidth=100%]
+
+NOTE: As discussed in <<overview-components-channel, Message Channel>> above, channels can be _Pollable_ or _Subscribable_; in this diagram, this is depicted by the "clock" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
 
 [[overview-endpoints-channeladapter]]
 ==== Channel Adapter
@@ -199,9 +203,13 @@ Spring Integration provides a number of Channel Adapters, and they will be descr
 
 image::images/source-endpoint.jpg[align="center", scaledwidth=100%]
 
+NOTE: Message sources can be _Pollable_ (e.g. POP3) or _Message-Driven_ (e.g. IMAP Idle); in this diagram, this is depicted by the "clock" symbol and the solid arrow (poll) and the dotted arrow (message-driven).
+
 .An outbound "Channel Adapter" endpoint connects a MessageChannel to a target system.
 
 image::images/target-endpoint.jpg[align="center", scaledwidth=100%]
+
+NOTE: As discussed in <<overview-components-channel, Message Channel>> above, channels can be _Pollable_ or _Subscribable_; in this diagram, this is depicted by the "clock" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
 
 [[configuration-enable-integration]]
 === Configuration and @EnableIntegration
