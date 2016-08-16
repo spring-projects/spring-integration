@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,14 +37,33 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RequestReplyExchanger proxy;
 
+	private final RmiProxyFactoryBeanConfigurer configurer;
 
+	/**
+	 * Construct an instance with a `RequestReplyExchanger` built from the
+	 * default {@link RmiProxyFactoryBean}.
+	 * @param url the url.
+	 */
 	public RmiOutboundGateway(String url) {
-		this.proxy = this.createProxy(url);
+		this(url, null);
+	}
+
+	/**
+	 * Construct an instance with a `RequestReplyExchanger` built from the
+	 * default {@link RmiProxyFactoryBean} which can be modified by the
+	 * configurer.
+	 * @param url the url.
+	 * @param configurer the {@link RmiProxyFactoryBeanConfigurer}.
+	 * @since 4.3.2
+	 */
+	public RmiOutboundGateway(String url, RmiProxyFactoryBeanConfigurer configurer) {
+		this.configurer = configurer;
+		this.proxy = createProxy(url);
 	}
 
 
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
+		setOutputChannel(replyChannel);
 	}
 
 	@Override
@@ -64,7 +83,10 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		try {
 			Message<?> reply = this.proxy.exchange(requestMessage);
 			if (reply != null) {
-				reply = this.getMessageBuilderFactory().fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
+				reply = getMessageBuilderFactory()
+						.fromMessage(reply)
+						.copyHeadersIfAbsent(message.getHeaders())
+						.build();
 			}
 			return reply;
 		}
@@ -72,7 +94,8 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 			throw new MessageHandlingException(message, e);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(message, "Remote failure in RmiOutboundGateway: " + this.getComponentName(), e);
+			throw new MessageHandlingException(message, "Remote failure in RmiOutboundGateway: " +
+					this.getComponentName(), e);
 		}
 	}
 
@@ -82,8 +105,26 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
 		proxyFactory.setRefreshStubOnConnectFailure(true);
+		if (this.configurer != null) {
+			this.configurer.configure(proxyFactory);
+		}
 		proxyFactory.afterPropertiesSet();
 		return (RequestReplyExchanger) proxyFactory.getObject();
+	}
+
+	/**
+	 * Allows configuration of the proxy factory bean before the RMI proxy is created.
+	 * @since 4.3.2
+	 */
+	public interface RmiProxyFactoryBeanConfigurer {
+
+		/**
+		 * Perform additional configuration of the factory bean before the
+		 * {@code RequestReplyExchanger} is created.
+		 * @param factoryBean the factory bean.
+		 */
+		void configure(RmiProxyFactoryBean factoryBean);
+
 	}
 
 }

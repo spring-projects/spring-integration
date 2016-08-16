@@ -114,6 +114,20 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="configurer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify a 'RmiProxyFactoryBeanConfigurer' to further configure the RmiProxyFactoryBean
+								before it creates the proxy - use this, for example,
+								to customize the RemoteInvocationFactory.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.rmi.RmiOutboundGateway$RmiProxyFactoryBeanConfigurer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
