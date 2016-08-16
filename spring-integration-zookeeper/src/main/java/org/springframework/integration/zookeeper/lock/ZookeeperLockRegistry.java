@@ -35,6 +35,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
@@ -59,7 +60,16 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	private final boolean trackingTime;
 
-	private final ThreadPoolTaskExecutor mutexTaskExecutor = new ThreadPoolTaskExecutor();
+	private AsyncTaskExecutor mutexTaskExecutor = new ThreadPoolTaskExecutor();
+
+	{
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) this.mutexTaskExecutor;
+		threadPoolTaskExecutor.setAllowCoreThreadTimeOut(true);
+		threadPoolTaskExecutor.setBeanName("ZookeeperLockRegistryExecutor");
+		threadPoolTaskExecutor.initialize();
+	}
+
+	private boolean mutexTaskExecutorExplicitlySet;
 
 	/**
 	 * Construct a lock registry using the default {@link KeyToPathStrategy} which
@@ -91,9 +101,13 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		this.client = client;
 		this.keyToPath = keyToPath;
 		this.trackingTime = !keyToPath.bounded();
-		this.mutexTaskExecutor.setAllowCoreThreadTimeOut(true);
-		this.mutexTaskExecutor.setBeanName("ZookeeperLockRegistryExecutor");
-		this.mutexTaskExecutor.initialize();
+	}
+
+	public void setMutexTaskExecutor(AsyncTaskExecutor mutexTaskExecutor) {
+		Assert.notNull(mutexTaskExecutor, "'mutexTaskExecutor' cannot be null");
+		((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
+		this.mutexTaskExecutor = mutexTaskExecutor;
+		this.mutexTaskExecutorExplicitlySet = true;
 	}
 
 	@Override
@@ -105,7 +119,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 			synchronized (this.locks) {
 				lock = this.locks.get(path);
 				if (lock == null) {
-					lock = new ZkLock(this.client, mutexTaskExecutor, path);
+					lock = new ZkLock(this.client, this.mutexTaskExecutor, path);
 					this.locks.put(path, lock);
 				}
 				if (this.trackingTime) {
@@ -144,7 +158,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	@Override
 	public void destroy() throws Exception {
-		this.mutexTaskExecutor.shutdown();
+		if (!this.mutexTaskExecutorExplicitlySet) {
+			((ExecutorConfigurationSupport) this.mutexTaskExecutor).shutdown();
+		}
 	}
 
 	/**
