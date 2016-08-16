@@ -19,8 +19,11 @@ package org.springframework.integration.rmi.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.rmi.ProxyFactoryPostProcessor;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
@@ -39,6 +43,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -71,6 +76,9 @@ public class RmiOutboundGatewayParserTests {
 	private PollableChannel replyChannel;
 
 	@Autowired
+	private ProxyFactoryPostProcessor postProcessor;
+
+	@Autowired
 	@Qualifier("gateway.handler")
 	RmiOutboundGateway gateway;
 
@@ -89,9 +97,11 @@ public class RmiOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testOrder() {
+	public void testProperties() {
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+		assertSame(this.postProcessor, TestUtils.getPropertyValue(this.gateway, "postProcessor"));
+		verify(this.postProcessor).postProcess(any(RmiProxyFactoryBean.class));
 	}
 
 	@Test

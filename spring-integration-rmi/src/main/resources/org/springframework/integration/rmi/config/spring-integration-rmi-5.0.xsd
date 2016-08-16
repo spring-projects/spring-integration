@@ -114,6 +114,19 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="post-processor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify a post processor for the RmiProxyFactoryBean - use this, for example,
+								to customize the RemoteInvocationFactory.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.rmi.ProxyFactoryPostProcessor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

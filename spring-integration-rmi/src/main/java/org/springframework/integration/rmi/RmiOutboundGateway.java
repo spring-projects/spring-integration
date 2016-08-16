@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,14 +37,33 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RequestReplyExchanger proxy;
 
+	private final ProxyFactoryPostProcessor postProcessor;
 
+	/**
+	 * Construct an instance with a `RequestReplyExchanger` built from the
+	 * default {@link RmiProxyFactoryBean}.
+	 * @param url the url.
+	 */
 	public RmiOutboundGateway(String url) {
-		this.proxy = this.createProxy(url);
+		this.proxy = createProxy(url);
+		this.postProcessor = null;
+	}
+
+	/**
+	 * Construct an instance with a `RequestReplyExchanger` built from the
+	 * default {@link RmiProxyFactoryBean} which can be modified by the
+	 * post processor.
+	 * @param url the url.
+	 * @param postProcessor the post processor.
+	 */
+	public RmiOutboundGateway(String url, ProxyFactoryPostProcessor postProcessor) {
+		this.postProcessor = postProcessor;
+		this.proxy = createProxy(url);
 	}
 
 
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
+		setOutputChannel(replyChannel);
 	}
 
 	@Override
@@ -82,6 +101,9 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
 		proxyFactory.setRefreshStubOnConnectFailure(true);
+		if (this.postProcessor != null) {
+			this.postProcessor.postProcess(proxyFactory);
+		}
 		proxyFactory.afterPropertiesSet();
 		return (RequestReplyExchanger) proxyFactory.getObject();
 	}

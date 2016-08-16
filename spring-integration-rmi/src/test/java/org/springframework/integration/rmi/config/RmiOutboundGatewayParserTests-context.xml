@@ -16,6 +16,7 @@
 						  order="23"
 						  request-channel="localChannel"
 						  remote-channel="testChannel"
+						  post-processor="postProcessor"
 						  host="localhost"/>
 
 	<channel id="advisedChannel"/>
@@ -29,6 +30,10 @@
 			<beans:ref bean="advice" />
 		</rmi:request-handler-advice-chain>
 	</rmi:outbound-gateway>
+
+	<beans:bean id="postProcessor" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.integration.rmi.ProxyFactoryPostProcessor" />
+	</beans:bean>
 
 	<beans:bean id="advice"
 			class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
