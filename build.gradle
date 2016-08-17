@@ -40,7 +40,7 @@ allprojects {
 		'http://docs.oracle.com/javase/7/docs/api/',
 		'http://docs.oracle.com/javaee/6/api/',
 		'http://docs.spring.io/spring/docs/current/javadoc-api/',
-		'http://docs.spring.io/spring-amqp/docs/latest-ga/api/',
+		'http://docs.spring.io/spring-amqp/docs/current/api/',
 		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
