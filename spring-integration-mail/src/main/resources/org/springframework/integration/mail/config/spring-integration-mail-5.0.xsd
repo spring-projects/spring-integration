@@ -269,6 +269,22 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="simple-content">
+			<xsd:annotation>
+				<xsd:documentation>
+	When 'true', messages produced by the source will be rendered by 'MimeMessage.getContent()'
+	which is usually just the body for a simple text email. When false (default) the content
+	is rendered by the 'getContent()' method on the actual message returned by the underlying
+	javamail implementation.
+	For example, an IMAP message is rendered with some message headers.
+	This attribute is provided so that users can enable the previous behavior, which just
+	rendered the body.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="inboundMappingGroup" />
 	</xsd:complexType>
 

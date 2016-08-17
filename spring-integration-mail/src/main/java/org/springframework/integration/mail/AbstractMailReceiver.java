@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.LinkedList;
@@ -103,6 +104,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
 
 	private volatile boolean embeddedPartsAsBytes = true;
+
+	private volatile boolean simpleContent;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -244,6 +247,38 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
 	}
 
+	/**
+	 * {@link MimeMessage#getContent()} returns just the email body.
+	 *
+	 * <pre class="code">
+	 * foo
+	 * </pre>
+	 *
+	 * Some subclasses, such as {@code IMAPMessage} return some headers with the body.
+	 *
+	 * <pre class="code">
+	 * To: foo@bar
+	 * From: bar@baz
+	 * Subject: Test Email
+	 *
+	 *  foo
+	 * </pre>
+	 *
+	 * Starting with version 5.0, messages emitted by mail receivers will render the
+	 * content in the same way as the {@link MimeMessage} implementation returned by
+	 * javamail. In versions 2.2 through 4.3, the content was always just the body,
+	 * regardless of the underlying message type (unless a header mapper was provided,
+	 * in which case the payload was rendered by the underlying {@link MimeMessage}.
+	 * <p>To revert to the previous behavior, set this flag to true. In addition, even
+	 * if a header mapper is provided, the payload will just be the email body.
+	 * @param simpleContent true to render simple content.
+	 *
+	 * @since 5.0
+	 */
+	public void setSimpleContent(boolean simpleContent) {
+		this.simpleContent = simpleContent;
+	}
+
 	protected Folder getFolder() {
 		return this.folder;
 	}
@@ -366,7 +401,14 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private Object extractContent(MimeMessage message, Map<String, Object> headers) {
 		Object content;
 		try {
-			content = message.getContent();
+			MimeMessage theMessage;
+			if (this.simpleContent) {
+				theMessage = new IntegrationMimeMessage(message);
+			}
+			else {
+				theMessage = message;
+			}
+			content = theMessage.getContent();
 			if (content instanceof String) {
 				String mailContentType = (String) headers.get(MailHeaders.CONTENT_TYPE);
 				if (mailContentType != null && mailContentType.toLowerCase().startsWith("text")) {
@@ -553,9 +595,25 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		private final MimeMessage source;
 
+		private final Object content;
+
 		private IntegrationMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
 			this.source = source;
+			if (AbstractMailReceiver.this.simpleContent) {
+				this.content = null;
+			}
+			else {
+				Object complexContent;
+				try {
+					complexContent = source.getContent();
+				}
+				catch (IOException e) {
+					complexContent = "Unable to extract content; see logs: " + e.getMessage();
+					AbstractMailReceiver.this.logger.error("Failed to extract content from " + source, e);
+				}
+				this.content = complexContent;
+			}
 		}
 
 		@Override
@@ -582,6 +640,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			 * Basic MimeMessage always returns '-1'; delegate to the original.
 			 */
 			return this.source.getLineCount();
+		}
+
+		@Override
+		public Object getContent() throws IOException, MessagingException {
+			if (AbstractMailReceiver.this.simpleContent) {
+				return super.getContent();
+			}
+			else {
+				return this.content;
+			}
 		}
 
 	}

@@ -105,16 +105,20 @@ public class InboundChannelAdapterParserTests {
 	public void imapShouldDeleteTrue() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteTrue");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("simpleContent"));
 	}
 
 	@Test
 	public void imapShouldDeleteFalse() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldDeleteFalse");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Boolean value = (Boolean) receiverAccessor.getPropertyValue("shouldDeleteMessages");
 		assertFalse(value);
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("simpleContent"));
 	}
 
 

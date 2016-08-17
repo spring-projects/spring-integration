@@ -36,6 +36,7 @@
 			channel="channel"
 			auto-startup="false"
 			header-mapper="mapper"
+			simple-content="true"
 			embedded-parts-as-bytes="false"
 			should-delete-messages="true"/>
 
