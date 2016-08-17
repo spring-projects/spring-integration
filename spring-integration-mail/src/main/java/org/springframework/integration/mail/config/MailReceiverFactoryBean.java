@@ -85,6 +85,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	private Boolean embeddedPartsAsBytes;
 
+	private Boolean simpleContent;
+
 	public void setStoreUri(String storeUri) {
 		this.storeUri = storeUri;
 	}
@@ -139,6 +141,10 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	public void setEmbeddedPartsAsBytes(Boolean embeddedPartsAsBytes) {
 		this.embeddedPartsAsBytes = embeddedPartsAsBytes;
+	}
+
+	public void setSimpleContent(Boolean simpleContent) {
+		this.simpleContent = simpleContent;
 	}
 
 	@Override
@@ -229,6 +235,9 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 		if (this.embeddedPartsAsBytes != null) {
 			receiver.setEmbeddedPartsAsBytes(this.embeddedPartsAsBytes);
+		}
+		if (this.simpleContent != null) {
+			receiver.setSimpleContent(this.simpleContent);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;

@@ -24,6 +24,7 @@
 
 	<mail:inbound-channel-adapter id="imapShouldDeleteTrue"
 		store-uri="imap:test" channel="testChannel" should-delete-messages="true"
+		simple-content="true"
 		auto-startup="false" />
 
 	<mail:inbound-channel-adapter id="imapShouldDeleteFalse"

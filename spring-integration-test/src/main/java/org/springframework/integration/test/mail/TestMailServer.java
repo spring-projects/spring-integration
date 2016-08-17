@@ -440,8 +440,10 @@ public class TestMailServer {
 
 		public abstract class MailHandler implements Runnable {
 
-			protected static final String MESSAGE =
-					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\nfoo";
+			public static final String BODY = "foo\r\n";
+
+			public static final String MESSAGE =
+					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\n" + BODY;
 
 			protected final Socket socket;
 

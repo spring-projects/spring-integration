@@ -55,6 +55,30 @@ Spring Integration provides the `ImapIdleChannelAdapter` which is itself a Messa
 It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of Mail Messages.
 There are examples in the next section of configuring both types of inbound Channel Adapter with Spring Integration's namespace support in the 'mail' schema.
 
+[IMPORTANT]
+====
+Normally, when `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email):
+
+[source]
+----
+To: foo@bar
+From: bar@baz
+Subject: Test Email
+
+foo
+----
+
+With a simple `MimeMessage`, `getContent()` just returns the mail body (`foo` in this case).
+
+Starting with _version 2.2_, the framework eagerly fetches IMAP messages and exposes them as an internal subclass of `MimeMessage`.
+This had the undesired side effect of changing the `getContent()` behavior.
+This inconsistency was further exacerbated by the <<mail-mapping, Mail Mapping>> enhancement in _version 4.3_ in that, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
+This meant that IMAP content differed depending on whether or not a header mapper was provided.
+Starting with _version 5.0_, messages originating from an IMAP source will now render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
+If you are not using a header mapper, and you wish to revert to the previous behavior of just rendering the body, set the `simpleContent` boolean property on the mail receiver to `true`.
+This property now controls the rendering regardless of whether a header mapper is used; it now allows the simple body-only rendering when a header mapper is provided.
+====
+
 [[mail-mapping]]
 === Inbound Mail Message Mapping
 

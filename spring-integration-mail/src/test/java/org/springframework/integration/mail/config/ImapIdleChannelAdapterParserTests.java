@@ -86,6 +86,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertNull(adapterAccessor.getPropertyValue("adviceChain"));
 		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
 		assertNotNull(receiverAccessor.getPropertyValue("headerMapper"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("simpleContent"));
 	}
 
 	@Test
@@ -109,6 +110,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertSame(context.getBean("errorChannel"), adapterAccessor.getPropertyValue("errorChannel"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("embeddedPartsAsBytes"));
 		assertNull(receiverAccessor.getPropertyValue("headerMapper"));
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("simpleContent"));
 	}
 
 	@Test

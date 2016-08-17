@@ -105,6 +105,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="simpleContentGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -171,6 +172,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="simpleContentGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -390,6 +392,25 @@
 	boolean to 'false' for the payload to be a decoded 'Part' object. Note that 'Part's are not
 	'Serializable', nor are they suitable for serialization using other technologies such as Kryo.
 	Default 'true' (payload is 'byte[]').
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="simpleContentGroup">
+		<xsd:attribute name="simple-content">
+			<xsd:annotation>
+				<xsd:documentation>
+					When 'true', messages produced by the source will be rendered by 'MimeMessage.getContent()'
+					which is usually just the body for a simple text email. When false (default) the content
+					is rendered by the 'getContent()' method on the actual message returned by the underlying
+					javamail implementation.
+					For example, an IMAP message is rendered with some message headers.
+					This attribute is provided so that users can enable the previous behavior, which just
+					rendered the body.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
