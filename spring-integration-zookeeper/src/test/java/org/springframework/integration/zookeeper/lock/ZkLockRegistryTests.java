@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,9 @@ import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry.KeyToPathStrategy;
 import org.springframework.messaging.MessagingException;
 
-
-
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -68,6 +67,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		Thread.sleep(10);
 		registry.expireUnusedOlderThan(0);
 		assertEquals(0, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		registry.destroy();
 	}
 
 	@Test
@@ -83,6 +83,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				lock.unlock();
 			}
 		}
+		registry.destroy();
 	}
 
 	@Test
@@ -101,6 +102,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				lock1.unlock();
 			}
 		}
+		registry.destroy();
 	}
 
 	@Test
@@ -119,6 +121,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				lock1.unlock();
 			}
 		}
+		registry.destroy();
 	}
 
 	@Test
@@ -137,6 +140,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 				lock1.unlock();
 			}
 		}
+		registry.destroy();
 	}
 
 	@Test
@@ -168,6 +172,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		Object ise = result.get(10, TimeUnit.SECONDS);
 		assertThat(ise, instanceOf(IllegalMonitorStateException.class));
 		assertThat(((Exception) ise).getMessage(), containsString("You do not own"));
+		registry.destroy();
 	}
 
 	@Test
@@ -205,6 +210,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		latch2.countDown();
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
 		assertTrue(locked.get());
+		registry.destroy();
 	}
 
 	@Test
@@ -243,6 +249,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		latch2.countDown();
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
 		assertTrue(locked.get());
+		registry1.destroy();
+		registry2.destroy();
 	}
 
 	@Test
@@ -272,6 +280,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		Object imse = result.get(10, TimeUnit.SECONDS);
 		assertThat(imse, instanceOf(IllegalMonitorStateException.class));
 		assertThat(((Exception) imse).getMessage(), containsString("You do not own"));
+		registry.destroy();
 	}
 
 	@Test
@@ -308,6 +317,39 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 			assertThat(e.getMessage(), containsString("expiry is not supported"));
 		}
 		assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
+		registry.destroy();
+	}
+
+	@Test
+	public void voidLockFailsWhenServerDown() throws Exception {
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+
+		Lock lock1 = registry.obtain("foo");
+		lock1.lock();
+
+		testingServer.stop();
+
+		Lock lock2 = registry.obtain("bar");
+
+		assertFalse("Should not have been able to lock with zookeeper server stopped!",
+					lock2.tryLock(1, TimeUnit.SECONDS));
+
+		testingServer.restart();
+
+		assertTrue("Should have been able to lock with zookeeper server restarted!",
+				lock2.tryLock(1, TimeUnit.SECONDS));
+
+		assertTrue("Should have still held lock1", lock1.tryLock(1, TimeUnit.SECONDS));
+
+		Lock lock3 = registry.obtain("foobar");
+
+		assertTrue("Should have been able to a obtain new lock!", lock3.tryLock(1, TimeUnit.SECONDS));
+
+		lock1.unlock();
+		lock1.unlock();
+		lock2.unlock();
+		lock3.unlock();
+		registry.destroy();
 	}
 
 }
