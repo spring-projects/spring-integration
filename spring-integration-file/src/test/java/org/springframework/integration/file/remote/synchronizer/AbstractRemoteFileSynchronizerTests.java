@@ -26,11 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -92,6 +94,80 @@ public class AbstractRemoteFileSynchronizerTests {
 		sync.synchronizeToLocalDirectory(mock(File.class));
 		assertEquals(3, count.get());
 		sync.close();
+	}
+
+	@Test
+	public void testMaxFetchSizeSynchronizer() throws Exception {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
+
+		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		assertEquals(1, count.get());
+		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		assertEquals(2, count.get());
+		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		assertEquals(3, count.get());
+		sync.close();
+	}
+
+	@Test
+	public void testMaxFetchSizeSource() throws Exception {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
+
+		AbstractInboundFileSynchronizingMessageSource<String> source =
+				new AbstractInboundFileSynchronizingMessageSource<String>(sync) {
+
+			@Override
+			public String getComponentType() {
+				return "foo";
+			}
+
+		};
+		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
+		source.setAutoCreateLocalDirectory(true);
+		source.setBeanFactory(mock(BeanFactory.class));
+		source.afterPropertiesSet();
+
+		source.receive(1);
+		assertEquals(1, count.get());
+		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		source.receive(1);
+		sync.synchronizeToLocalDirectory(mock(File.class), 1);
+		source.receive(1);
+		sync.close();
+	}
+
+	private AbstractInboundFileSynchronizer<String> createLimitingSynchronizer(final AtomicInteger count) {
+		SessionFactory<String> sf = new StringSessionFactory();
+		AbstractInboundFileSynchronizer<String> sync = new AbstractInboundFileSynchronizer<String>(sf) {
+
+			@Override
+			protected boolean isFile(String file) {
+				return true;
+			}
+
+			@Override
+			protected String getFilename(String file) {
+				return file;
+			}
+
+			@Override
+			protected long getModified(String file) {
+				return 0;
+			}
+
+			@Override
+			protected void copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile, File localDirectory,
+					Session<String> session) throws IOException {
+				count.incrementAndGet();
+			}
+
+		};
+		sync.setFilter(new AcceptOnceFileListFilter<String>());
+		sync.setRemoteDirectory("foo");
+		sync.setBeanFactory(mock(BeanFactory.class));
+		return sync;
 	}
 
 	private class StringSessionFactory implements SessionFactory<String> {

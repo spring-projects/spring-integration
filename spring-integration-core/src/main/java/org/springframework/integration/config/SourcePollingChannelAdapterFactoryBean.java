@@ -24,6 +24,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.core.LimitingMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -70,6 +71,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
+	private volatile int maxFetchSize = Integer.MIN_VALUE;
+
 	private final Object initializationMonitor = new Object();
 
 	public void setSource(MessageSource<?> source) {
@@ -109,6 +112,17 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
+	}
+
+	/**
+	 * Set the maximum number of objects the source should fetch if it is necessary
+	 * to fetch objects. The source must be a {@link LimitingMessageSource}.
+	 * @param maxFetchSize the max fetch size; a negative value means unlimited.
+	 *
+	 * @since 5.0
+	 */
+	public void setMaxFetchSize(int maxFetchSize) {
+		this.maxFetchSize = maxFetchSize;
 	}
 
 	@Override
@@ -194,6 +208,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
+			spca.setMaxFetchSize(this.maxFetchSize);
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;

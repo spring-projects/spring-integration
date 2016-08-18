@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,23 @@ import java.io.File;
  * Strategy for synchronizing from a remote File system to a local directory.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public interface InboundFileSynchronizer {
 
+	/**
+	 * Synchronize all available files to the local directory;
+	 * @param localDirectory the directory.
+	 */
 	void synchronizeToLocalDirectory(File localDirectory);
+
+	/**
+	 * Synchronize up to maxFetchSize files to the local directory;
+	 * @param localDirectory the directory.
+	 */
+	default void synchronizeToLocalDirectory(File localDirectory, int maxFetchSize) {
+		synchronizeToLocalDirectory(localDirectory);
+	}
 
 }

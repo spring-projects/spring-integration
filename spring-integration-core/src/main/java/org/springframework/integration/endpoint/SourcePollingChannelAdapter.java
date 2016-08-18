@@ -27,6 +27,7 @@ import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.context.ExpressionCapable;
+import org.springframework.integration.core.LimitingMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -52,11 +53,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private volatile MessageSource<?> source;
 
+	private volatile LimitingMessageSource<?> limitingSource;
+
 	private volatile MessageChannel outputChannel;
 
 	private volatile String outputChannelName;
 
 	private volatile boolean shouldTrack;
+
+	private volatile int maxFetchSize = Integer.MIN_VALUE;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -69,6 +74,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		this.source = source;
 		if (source instanceof ExpressionCapable) {
 			setPrimaryExpression(((ExpressionCapable) source).getExpression());
+		}
+		if (source instanceof LimitingMessageSource) {
+			this.limitingSource = (LimitingMessageSource<?>) source;
 		}
 	}
 
@@ -113,6 +121,17 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
+	}
+
+	/**
+	 * Set the maximum number of objects the source should fetch if it is necessary
+	 * to fetch objects. The source must be a {@link LimitingMessageSource}.
+	 * @param maxFetchSize the max fetch size; a negative value means unlimited.
+	 *
+	 * @since 5.0
+	 */
+	public void setMaxFetchSize(int maxFetchSize) {
+		this.maxFetchSize = maxFetchSize;
 	}
 
 	@Override
@@ -165,6 +184,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
+		Assert.state(this.maxFetchSize < 0 || this.limitingSource != null,
+				"A maxFetchSize can only be specified when the source is a LimitingMessageSource");
 		Assert.state((this.outputChannelName == null && this.outputChannel != null)
 				|| (this.outputChannelName != null && this.outputChannel == null),
 				"One and only one of 'outputChannelName' or 'outputChannel' is required.");
@@ -206,7 +227,12 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected Message<?> receiveMessage() {
-		return this.source.receive();
+		if (this.limitingSource != null) {
+			return this.limitingSource.receive(this.maxFetchSize);
+		}
+		else {
+			return this.source.receive();
+		}
 	}
 
 	@Override

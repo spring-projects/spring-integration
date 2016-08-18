@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -227,6 +228,11 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	@Override
 	public void synchronizeToLocalDirectory(final File localDirectory) {
+		synchronizeToLocalDirectory(localDirectory, Integer.MIN_VALUE);
+	}
+
+	@Override
+	public void synchronizeToLocalDirectory(final File localDirectory, final int maxFetchSize) {
 		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
 		try {
 			int transferred = this.remoteFileTemplate.execute(new SessionCallback<F, Integer>() {
@@ -236,6 +242,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					F[] files = session.list(remoteDirectory);
 					if (!ObjectUtils.isEmpty(files)) {
 						List<F> filteredFiles = filterFiles(files);
+						if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
+							rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+							List<F> newList = new ArrayList<>(maxFetchSize);
+							for (int i = 0; i < maxFetchSize; i++) {
+								newList.add(filteredFiles.get(0));
+							}
+							filteredFiles = newList;
+						}
 						for (F file : filteredFiles) {
 							try {
 								if (file != null) {
@@ -245,17 +259,11 @@ public abstract class AbstractInboundFileSynchronizer<F>
 								}
 							}
 							catch (RuntimeException e) {
-								if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
-									((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
-											.rollback(file, filteredFiles);
-								}
+								rollbackFromFileToListEnd(filteredFiles, file);
 								throw e;
 							}
 							catch (IOException e) {
-								if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
-									((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
-											.rollback(file, filteredFiles);
-								}
+								rollbackFromFileToListEnd(filteredFiles, file);
 								throw e;
 							}
 						}
@@ -265,6 +273,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 						return 0;
 					}
 				}
+
+				public void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
+					if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
+						((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
+								.rollback(file, filteredFiles);
+					}
+				}
+
 			});
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug(transferred + " files transferred");
