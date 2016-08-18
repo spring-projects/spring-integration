@@ -55,6 +55,7 @@ Spring Integration provides the `ImapIdleChannelAdapter` which is itself a Messa
 It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of Mail Messages.
 There are examples in the next section of configuring both types of inbound Channel Adapter with Spring Integration's namespace support in the 'mail' schema.
 
+[[imap-format-important]]
 [IMPORTANT]
 ====
 Normally, when `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email):
