@@ -24,6 +24,7 @@ import org.springframework.integration.dispatcher.MessageHandlingTaskDecorator;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.support.MessageHandlingRunnable;
+import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -135,6 +136,9 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	public final void onInit() throws Exception {
 		super.onInit();
 		if (this.executor != null) {
+			Assert.state(getDispatcher().getHandlerCount() == 0,
+					"When providing an Executor, you cannot subscribe() until the channel "
+							+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = new MessagePublishingErrorHandler(
@@ -167,7 +171,6 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 			}
 
 		});
-
 	}
 
 	@Override
