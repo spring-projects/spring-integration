@@ -9,7 +9,7 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.3.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-5.0.xsd" />
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>

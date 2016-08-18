@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire-4.3.xsd=org/springframework/integration/gemfire/config/xml/spring-integration-gemfire-4.3.xsd
-http\://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd=org/springframework/integration/gemfire/config/xml/spring-integration-gemfire-4.3.xsd
+http\://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire-5.0.xsd=org/springframework/integration/gemfire/config/xml/spring-integration-gemfire-5.0.xsd
+http\://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd=org/springframework/integration/gemfire/config/xml/spring-integration-gemfire-5.0.xsd
