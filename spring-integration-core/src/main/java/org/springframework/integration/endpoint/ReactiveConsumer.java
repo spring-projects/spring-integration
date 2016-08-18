@@ -78,10 +78,9 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		}
 
 		this.publisher = Flux.from(publisher)
-				.log()
-				.retry()
 				.doOnError(t -> this.errorHandler.handleError(t)) // NPE if method reference
-				.doOnSubscribe(s -> this.subscription = s);
+				.doOnSubscribe(s -> this.subscription = s)
+				.retry();
 
 		this.subscriber = subscriber;
 		this.consumer = consumer;

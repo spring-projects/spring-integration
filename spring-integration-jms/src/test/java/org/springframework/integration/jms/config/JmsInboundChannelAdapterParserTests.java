@@ -42,7 +42,7 @@ import org.springframework.messaging.PollableChannel;
  */
 public class JmsInboundChannelAdapterParserTests {
 
-	private final long timeoutOnReceive = 3000;
+	private final long timeoutOnReceive = 20000;
 
 	@Test
 	public void adapterWithJmsTemplate() {

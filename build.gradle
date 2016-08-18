@@ -101,7 +101,7 @@ subprojects { subproject ->
 		jackson2Version = '2.7.3'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.5.5'
-		jedisVersion = '2.7.3'
+		jedisVersion = '2.9.0'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.1.1'
@@ -118,19 +118,19 @@ subprojects { subproject ->
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
 		reactorVersion = '3.0.0.BUILD-SNAPSHOT'
-		romeToolsVersion = '1.6.0'
+		romeToolsVersion = '1.7.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.1.RELEASE'
-		springDataJpaVersion = '1.10.1.RELEASE'
-		springDataMongoVersion = '1.9.1.RELEASE'
-		springDataRedisVersion = '1.7.1.RELEASE'
-		springGemfireVersion = '1.8.1.RELEASE'
-		springSecurityVersion = '4.1.0.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
+		springDataJpaVersion = '1.11.0.BUILD-SNAPSHOT'
+		springDataMongoVersion = '1.10.0.BUILD-SNAPSHOT'
+		springDataRedisVersion = '1.8.0.BUILD-SNAPSHOT'
+		springGemfireVersion = '1.9.0.BUILD-SNAPSHOT'
+		springSecurityVersion = '4.1.2.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
-		springRetryVersion = '1.1.2.RELEASE'
+		springRetryVersion = '1.1.3.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
@@ -261,6 +261,7 @@ project('spring-integration-test') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
+		compile ("io.projectreactor:reactor-core:$reactorVersion", optional)
 		compile ("log4j:log4j:$log4jVersion", optional)
 	}
 }
@@ -292,7 +293,6 @@ project('spring-integration-core') {
 		compile ("org.springframework.retry:spring-retry:$springRetryVersion") {
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
-//		compile ("org.springframework.cloud:spring-cloud-cluster-core:$springCloudClusterVersion", optional)
 		compile "io.projectreactor:reactor-core:$reactorVersion"
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion") {
@@ -303,8 +303,6 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
-//		testCompile ("net.openhft:chronicle:$chronicleVersion")
-//		testCompile ("io.projectreactor:reactor-chronicle:$reactorVersion")
 	}
 }
 

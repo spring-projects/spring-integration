@@ -124,7 +124,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	}
 
 	@SuppressWarnings("serial")
-	private static class Beverage implements Serializable {
+	static class Beverage implements Serializable {
 
 		private String name;
 		private int shots;

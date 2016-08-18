@@ -39,6 +39,7 @@ import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.test.reactive.TestSubscriber;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -46,7 +47,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 import reactor.core.publisher.EmitterProcessor;
-import reactor.test.TestSubscriber;
 
 /**
  * @author Artem Bilan

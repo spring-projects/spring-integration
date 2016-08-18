@@ -286,7 +286,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			wrapper.set_Group_update_timestamp(messageDocument == null ? createdTime : System.currentTimeMillis());
 			wrapper.set_Group_complete(complete);
 			wrapper.set_LastReleasedSequenceNumber(lastReleasedSequence);
-			wrapper.setSequence(getNextId());
+			wrapper.set_Sequence(getNextId());
 
 			addMessageDocument(wrapper);
 		}
@@ -848,7 +848,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._group_complete = completedGroup;
 		}
 
-		public void setSequence(int sequence) {
+		public void set_Sequence(int sequence) {
 			this.sequence = sequence;
 		}
 
