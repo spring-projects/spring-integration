@@ -9,8 +9,8 @@ include::./preface.adoc[]
 = What's new?
 
 [[spring-integration-intro-new]]
-For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 4.2.
-If you are interested in the changes and features, that were introduced in earlier versions, please see chapter:<<history>>
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 4.3.
+If you are interested in the changes and features, that were introduced in earlier versions, please see chapter: <<history>>
 
 include::./whats-new.adoc[]
 [[spring-integration-introduction]]
