@@ -172,6 +172,7 @@ The _FTP Inbound Channel Adapter_ is a special listener that will connect to the
     local-filename-generator-expression="#this.toUpperCase() + '.a'"
     local-filter="myFilter"
     temporary-file-suffix=".writing"
+    max-fetch-size="-1"
     local-directory=".">
     <int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>
@@ -183,6 +184,11 @@ By default the transferred file will carry the same name as the original file.
 If you want to override this behavior you can set the `local-filename-generator-expression` attribute which allows you to provide a SpEL Expression to generate the name of the local file.
 Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context is a `Message`, this inbound adapter does not yet have the Message at the time of evaluation since that's what it ultimately generates with the transferred file as its payload.
 So, the root object of the SpEL Evaluation Context is the original name of the remote file (String).
+
+The inbound channel adapter first retrieves the file to a local directory and then emits each file according to the poller configuration.
+Starting with _version 5.0_ you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
+This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
+Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved.
 
 Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
 
@@ -209,7 +215,7 @@ When used with a shared data store (such as `Redis` with the `RedisMetadataStore
 
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
-By default, this is an`AcceptOnceFileListFilter` which, as discussed, retains state in memory and does not consider the file's modified time.
+By default, this is an `AcceptOnceFileListFilter` which, as discussed, retains state in memory and does not consider the file's modified time.
 Unless your application removes files after processing, the adapter will re-process the files on disk by default after an application restart.
 
 Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter`, and the remote file timestamp changes (causing it to be re-fetched), the default local filter will not allow this new file to be processed.
@@ -367,6 +373,7 @@ public class FtpJavaApplication {
         source.setLocalDirectory(new File("ftp-inbound"));
         source.setAutoCreateLocalDirectory(true);
         source.setLocalFilter(new AcceptOnceFileListFilter<File>());
+        source.setMaxFetchSize(1);
         return source;
     }
 

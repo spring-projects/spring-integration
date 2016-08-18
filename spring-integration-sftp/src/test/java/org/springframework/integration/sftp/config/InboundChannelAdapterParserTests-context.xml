@@ -42,6 +42,7 @@
 								  temporary-file-suffix=".bar"
 								  comparator="comparator"
 								  local-filter="acceptAllFilter"
+								  max-fetch-size="42"
 								  delete-remote-files="${delete.remote.files}"
 								  preserve-timestamp="true">
 		<poller fixed-rate="1000">

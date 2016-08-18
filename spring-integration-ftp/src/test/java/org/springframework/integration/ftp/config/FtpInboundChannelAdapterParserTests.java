@@ -122,6 +122,7 @@ public class FtpInboundChannelAdapterParserTests {
 			}
 		});
 		assertEquals("FOO.afoo", genMethod.get().invoke(fisync, "foo"));
+		assertEquals(42, inbound.getMaxFetchSize());
 	}
 
 	@Test
@@ -135,6 +136,7 @@ public class FtpInboundChannelAdapterParserTests {
 		assertEquals("/", remoteFileSeparator);
 		assertEquals("foo/bar", TestUtils.getPropertyValue(fisync, "remoteDirectoryExpression", Expression.class)
 				.getExpressionString());
+		assertEquals(Integer.MIN_VALUE, TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.maxFetchSize"));
 	}
 
 	@Test

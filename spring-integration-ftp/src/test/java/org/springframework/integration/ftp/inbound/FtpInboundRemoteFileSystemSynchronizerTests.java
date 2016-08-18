@@ -35,6 +35,14 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -50,14 +58,6 @@ import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * @author Oleg Zhurakousky
@@ -142,7 +142,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertNull(nothing);
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
-		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
+		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy, Integer.MIN_VALUE);
 
 		assertTrue(new File("test/A.TEST.a").exists());
 		assertTrue(new File("test/B.TEST.a").exists());

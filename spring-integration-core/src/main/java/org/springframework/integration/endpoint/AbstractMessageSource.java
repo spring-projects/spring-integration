@@ -128,10 +128,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public final Message<T> receive() {
+		return buildMessage(doReceive());
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Message<T> buildMessage(Object result) {
 		Message<T> message = null;
-		Object result = this.doReceive();
 		Map<String, Object> headers = this.evaluateHeaders();
 		if (result instanceof Message<?>) {
 			try {

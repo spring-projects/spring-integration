@@ -164,6 +164,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="tempSuffixGroup" />
+					<xsd:attributeGroup ref="integration:maxFetchGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

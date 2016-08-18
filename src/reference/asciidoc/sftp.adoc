@@ -306,6 +306,7 @@ The _SFTP Inbound Channel Adapter_ is a special listener that will connect to th
             local-filename-generator-expression="#this.toUpperCase() + '.a'"
             local-filter="myFilter"
             temporary-file-suffix=".writing"
+            max-fetch-size="-1"
             delete-remote-files="false">
         <int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>
@@ -317,6 +318,11 @@ By default the transferred file will carry the same name as the original file.
 If you want to override this behavior you can set the `local-filename-generator-expression` attribute which allows you to provide a SpEL Expression to generate the name of the local file.
 Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context is a `Message`, this inbound adapter does not yet have the Message at the time of evaluation since that's what it ultimately generates with the transferred file as its payload.
 So, the root object of the SpEL Evaluation Context is the original name of the remote file (String).
+
+The inbound channel adapter first retrieves the file to a local directory and then emits each file according to the poller configuration.
+Starting with _version 5.0_ you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
+This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
+Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved.
 
 Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
 
@@ -476,6 +482,7 @@ public class SftpJavaApplication {
         source.setLocalDirectory(new File("ftp-inbound"));
         source.setAutoCreateLocalDirectory(true);
         source.setLocalFilter(new AcceptOnceFileListFilter<File>());
+        source.setMaxFetchSize(1);
         return source;
     }
 

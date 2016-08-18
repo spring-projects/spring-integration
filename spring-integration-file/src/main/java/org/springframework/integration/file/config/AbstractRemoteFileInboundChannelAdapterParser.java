@@ -82,6 +82,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression",
 					localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "max-fetch-size");
 		return messageSourceBuilder.getBeanDefinition();
 	}
 

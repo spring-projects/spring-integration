@@ -48,14 +48,17 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageSourceManagement;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.integration.support.management.LifecycleMessageHandlerMetrics;
+import org.springframework.integration.support.management.LifecycleMessageSourceManagement;
 import org.springframework.integration.support.management.LifecycleMessageSourceMetrics;
 import org.springframework.integration.support.management.LifecycleTrackableMessageHandlerMetrics;
+import org.springframework.integration.support.management.LifecycleTrackableMessageSourceManagement;
 import org.springframework.integration.support.management.LifecycleTrackableMessageSourceMetrics;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
 import org.springframework.integration.support.management.MessageChannelMetrics;
@@ -993,6 +996,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 				break;
 			}
 		}
+		if (endpointName == null) {
+			endpoint = null;
+		}
 		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
 			name = getInternalComponentName(name);
 			source = "internal";
@@ -1040,16 +1046,28 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
 			if (endpoint instanceof TrackableComponent) {
-				result = new LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
+				if (monitor instanceof MessageSourceManagement) {
+					result = new LifecycleTrackableMessageSourceManagement((Lifecycle) endpoint,
+							(MessageSourceManagement) monitor);
+				}
+				else {
+					result = new LifecycleTrackableMessageSourceMetrics((Lifecycle) endpoint, monitor);
+				}
 			}
 			else {
-				result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+				if (monitor instanceof MessageSourceManagement) {
+					result = new LifecycleMessageSourceManagement((Lifecycle) endpoint,
+							(MessageSourceManagement) monitor);
+				}
+				else {
+					result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+				}
 			}
 		}
 
 		if (name == null) {
 			name = monitor.toString();
-			source = "handler";
+			source = "source";
 		}
 
 		if (endpointName != null) {
