@@ -100,13 +100,10 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 	}
 
 	@Override
-	public final void onInit() {
-		try {
-			super.onInit(); // TODO add throws clause in 5.0
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
+	public final void onInit() throws Exception {
+		Assert.state(getDispatcher().getHandlerCount() == 0, "You cannot subscribe() until the channel "
+				+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
+		super.onInit();
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
 					new BeanFactoryChannelResolver(this.getBeanFactory()));

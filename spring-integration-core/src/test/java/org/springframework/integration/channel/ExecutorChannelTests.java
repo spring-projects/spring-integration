@@ -16,17 +16,21 @@
 
 package org.springframework.integration.channel;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -210,6 +214,20 @@ public class ExecutorChannelTests {
 		assertTrue(interceptor.wasAfterHandledInvoked());
 	}
 
+	@Test
+	public void testEarlySubscribe() {
+		ExecutorChannel channel = new ExecutorChannel(mock(Executor.class));
+		try {
+			channel.subscribe(m -> {});
+			channel.setBeanFactory(mock(BeanFactory.class));
+			channel.afterPropertiesSet();
+			fail("expected Exception");
+		}
+		catch (IllegalStateException e) {
+			assertThat(e.getMessage(), equalTo("You cannot subscribe() until the channel "
+					+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition"));
+		}
+	}
 
 
 	private static class TestHandler implements MessageHandler {
