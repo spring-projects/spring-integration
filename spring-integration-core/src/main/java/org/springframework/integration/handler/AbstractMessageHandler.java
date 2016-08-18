@@ -168,7 +168,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	@Override
 	public void onComplete() {
-		System.out.println("onComplete()");
+
 	}
 
 	protected abstract void handleMessageInternal(Message<?> message) throws Exception;

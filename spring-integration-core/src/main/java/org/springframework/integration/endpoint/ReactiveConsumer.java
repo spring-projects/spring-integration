@@ -139,7 +139,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 	}
 
 
-	private static class SubscribableChannelPublisherAdapter
+	private final static class SubscribableChannelPublisherAdapter
 			implements Publisher<Message<?>>, Subscriber<Message<?>>, Subscription {
 
 		private final DirectProcessor<Message<?>> delegate = DirectProcessor.create();

@@ -156,8 +156,6 @@ public class TestSubscriber<T>
 	 * @param timeout the timeout duration
 	 * @param errorMessageSupplier the error message supplier
 	 * @param conditionSupplier condition to break out of the wait loop
-	 *
-	 * @throws AssertionError
 	 */
 	public static void await(Duration timeout, Supplier<String> errorMessageSupplier,
 			BooleanSupplier conditionSupplier) {
@@ -192,8 +190,6 @@ public class TestSubscriber<T>
 	 * @param timeout the timeout duration
 	 * @param errorMessage the error message
 	 * @param conditionSupplier condition to break out of the wait loop
-	 *
-	 * @throws AssertionError
 	 */
 	public static void await(Duration timeout,
 			final String errorMessage,
@@ -351,7 +347,7 @@ public class TestSubscriber<T>
 
 		Iterator<? extends T> expected = expectedValues.iterator();
 
-		for (; ; ) {
+		while (true) {
 			boolean n2 = expected.hasNext();
 			if (n2) {
 				T t2 = expected.next();
@@ -638,7 +634,7 @@ public class TestSubscriber<T>
 		Iterator<T> actual = values.iterator();
 		Iterator<? extends T> expected = expectedSequence.iterator();
 		int i = 0;
-		for (; ; ) {
+		while (true) {
 			boolean n1 = actual.hasNext();
 			boolean n2 = expected.hasNext();
 			if (n1 && n2) {
@@ -834,7 +830,7 @@ public class TestSubscriber<T>
 		}, () -> valueCount >= (nextValueAssertedCount + expectedValueCount));
 		List<T> nextValuesSnapshot;
 		List<T> empty = new ArrayList<>();
-		for (; ; ) {
+		while (true) {
 			nextValuesSnapshot = values;
 			if (NEXT_VALUES.compareAndSet(this, values, empty)) {
 				break;
@@ -899,7 +895,7 @@ public class TestSubscriber<T>
 	@Override
 	public void onNext(T t) {
 		if (establishedFusionMode == Fuseable.ASYNC) {
-			for (; ; ) {
+			while (true) {
 				t = qs.poll();
 				if (t == null) {
 					break;
@@ -907,7 +903,7 @@ public class TestSubscriber<T>
 				valueCount++;
 				if (valuesStorage) {
 					List<T> nextValuesSnapshot;
-					for (; ; ) {
+					while (true) {
 						nextValuesSnapshot = values;
 						nextValuesSnapshot.add(t);
 						if (NEXT_VALUES.compareAndSet(this,
@@ -923,7 +919,7 @@ public class TestSubscriber<T>
 			valueCount++;
 			if (valuesStorage) {
 				List<T> nextValuesSnapshot;
-				for (; ; ) {
+				while (true) {
 					nextValuesSnapshot = values;
 					nextValuesSnapshot.add(t);
 					if (NEXT_VALUES.compareAndSet(this,
@@ -956,7 +952,7 @@ public class TestSubscriber<T>
 					establishedFusionMode = m;
 
 					if (m == Fuseable.SYNC) {
-						for (; ; ) {
+						while (true) {
 							T v = qs.poll();
 							if (v == null) {
 								onComplete();
@@ -1054,7 +1050,7 @@ public class TestSubscriber<T>
 	/**
 	 * Atomically sets the single subscription and requests the missed amount from it.
 	 *
-	 * @param s
+	 * @param s the Subscription to set.
 	 * @return false if this arbiter is cancelled or there was a subscription already set
 	 */
 	protected final boolean set(Subscription s) {
@@ -1099,7 +1095,7 @@ public class TestSubscriber<T>
 	 */
 	protected final boolean setWithoutRequesting(Subscription s) {
 		Objects.requireNonNull(s, "s");
-		for (; ; ) {
+		while (true) {
 			Subscription a = this.s;
 			if (a == Operators.cancelledSubscription()) {
 				s.cancel();
