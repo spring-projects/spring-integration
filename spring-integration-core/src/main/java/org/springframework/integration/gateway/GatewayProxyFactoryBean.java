@@ -552,10 +552,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		Map<String, Object> headers = null;
 		// We don't want to eagerly resolve the error channel here
-		Object ec = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
-		if (ec != null && method.getReturnType().equals(void.class)) {
+		Object errorChannel = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
+		if (errorChannel != null && method.getReturnType().equals(void.class)) {
 			headers = new HashMap<>();
-			headers.put(MessageHeaders.ERROR_CHANNEL, ec);
+			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannel);
 		}
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
 				headerExpressions,
