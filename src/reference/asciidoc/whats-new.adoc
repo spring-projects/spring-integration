@@ -18,6 +18,6 @@ development process.
 ==== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.
-Now it has been renamed to the `jmsConnectionFactory` value, which is used by Spring Boot to auto-configure JMS Connection Factory bean.
+It has now been renamed to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS Connection Factory bean.
 
 If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
