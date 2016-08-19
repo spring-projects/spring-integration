@@ -90,6 +90,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Map<String, Expression> globalHeaderExpressions;
 
+	private final Map<String, Object> headers;
+
 	private final List<MethodParameter> parameterList;
 
 	private final MethodArgsMessageMapper argsMapper;
@@ -115,9 +117,17 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
 			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper,
 			MessageBuilderFactory messageBuilderFactory) {
+		this(method, headerExpressions, globalHeaderExpressions, null, mapper, messageBuilderFactory);
+	}
+
+	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
+			Map<String, Expression> globalHeaderExpressions, Map<String, Object> headers,
+			MethodArgsMessageMapper mapper,
+			MessageBuilderFactory messageBuilderFactory) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;
+		this.headers = headers;
 		this.globalHeaderExpressions = globalHeaderExpressions;
 		this.parameterList = getMethodParameterList(method);
 		this.payloadExpression = parsePayloadExpression(method);
@@ -353,6 +363,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				Map<String, Object> evaluatedHeaders = evaluateHeaders(methodInvocationEvaluationContext,
 						GatewayMethodInboundMessageMapper.this.globalHeaderExpressions);
 				builder.copyHeadersIfAbsent(evaluatedHeaders);
+			}
+			if (GatewayMethodInboundMessageMapper.this.headers != null) {
+				builder.copyHeadersIfAbsent(GatewayMethodInboundMessageMapper.this.headers);
 			}
 			return builder.build();
 		}

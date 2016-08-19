@@ -54,6 +54,7 @@ import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -549,10 +550,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				}
 			}
 		}
+		Map<String, Object> headers = null;
+		// We don't want to eagerly resolve the error channel here
+		Object errorChannel = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
+		if (errorChannel != null && method.getReturnType().equals(void.class)) {
+			headers = new HashMap<>();
+			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannel);
+		}
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
-				this.argsMapper, this.getMessageBuilderFactory());
+				headers, this.argsMapper, this.getMessageBuilderFactory());
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
