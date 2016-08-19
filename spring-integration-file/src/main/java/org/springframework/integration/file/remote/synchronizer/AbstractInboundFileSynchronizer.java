@@ -246,7 +246,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 							rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
 							List<F> newList = new ArrayList<>(maxFetchSize);
 							for (int i = 0; i < maxFetchSize; i++) {
-								newList.add(filteredFiles.get(0));
+								newList.add(filteredFiles.get(i));
 							}
 							filteredFiles = newList;
 						}

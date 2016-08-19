@@ -137,7 +137,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertNull(nothing);
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
-		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory);
+		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory, Integer.MIN_VALUE);
 
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());

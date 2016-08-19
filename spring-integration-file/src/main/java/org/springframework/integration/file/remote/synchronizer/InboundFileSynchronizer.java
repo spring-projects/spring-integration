@@ -25,6 +25,7 @@ import java.io.File;
  * @author Gary Russell
  * @since 2.0
  */
+@FunctionalInterface
 public interface InboundFileSynchronizer {
 
 	/**
