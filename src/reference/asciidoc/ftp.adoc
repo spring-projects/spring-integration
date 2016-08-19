@@ -714,7 +714,7 @@ if (closeable != null) {
 ----
 
 Note: In previous releases the session was in the `file_remoteSession` header, but this is deprecated - use
-`closableResource` instead.
+`closeableResource` instead.
 
 Framework components such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>> will
 automatically close the session after the data is transferred.
