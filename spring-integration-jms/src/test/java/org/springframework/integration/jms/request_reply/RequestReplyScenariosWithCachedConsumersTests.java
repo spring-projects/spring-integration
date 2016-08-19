@@ -216,7 +216,7 @@ public class RequestReplyScenariosWithCachedConsumersTests extends ActiveMQMulti
 		try {
 			RequestReplyExchanger gateway =
 					context.getBean("correlationPropagatingConsumerWithOptimizationDelayFirstReply", RequestReplyExchanger.class);
-			final ConnectionFactory connectionFactory = context.getBean("connectionFactory", ConnectionFactory.class);
+			final ConnectionFactory connectionFactory = context.getBean("jmsConnectionFactory", ConnectionFactory.class);
 
 			final Destination requestDestination = context.getBean("siOutQueueE", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueE", Destination.class);

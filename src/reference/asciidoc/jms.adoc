@@ -37,7 +37,7 @@ That means that it invokes `receive()` when triggered.
 This should only be used in situations where polling is done relatively infrequently and timeliness is not important.
 For all other situations (a vast majority of JMS-based use-cases), the _message-driven-channel-adapter_ described below is a better option.
 
-NOTE: All of the JMS adapters that require a reference to the `ConnectionFactory` will automatically look for a bean named "connectionFactory" by default.
+NOTE: All of the JMS adapters that require a reference to the `ConnectionFactory` will automatically look for a bean named `jmsConnectionFactory` by default.
 That is why you don't see a "connection-factory" attribute in many of the examples.
 However, if your JMS `ConnectionFactory` has a different bean name, then you will need to provide that attribute.
 
@@ -135,7 +135,7 @@ If no 'error-channel' is defined, the exception is thrown back to the container,
 === Outbound Channel Adapter
 
 The `JmsSendingMessageHandler` implements the `MessageHandler` interface and is capable of converting Spring Integration `Messages` to JMS messages and then sending to a JMS destination.
-It requires either a 'jmsTemplate' reference or both 'connectionFactory' and 'destination' references (again, the 'destinationName' may be provided in place of the 'destination').
+It requires either a `jmsTemplate` reference or both `jmsConnectionFactory` and `destination` references (again, the `destinationName` may be provided in place of the `destination`).
 As with the inbound Channel Adapter, the easiest way to configure this adapter is with the namespace support.
 The following configuration will produce an adapter that receives Spring Integration Messages from the "exampleChannel" and then converts those into JMS Messages and sends them to the JMS Destination reference whose bean name is "outQueue".
 [source,xml]
@@ -450,7 +450,7 @@ If either of these conditions are not met, `async` is ignored.
 </int-jms:outbound-gateway>
 ----
 
-<1> Reference to a `javax.jms.ConnectionFactory`; default `connectionFactory`.
+<1> Reference to a `javax.jms.ConnectionFactory`; default `jmsConnectionFactory`.
 
 
 <2> The name of a property that will contain correlation data to correlate responses with replies.
@@ -663,7 +663,7 @@ For either type of JMS-backed channel, the name of the destination may be provid
 ----
 
 In the examples above, the Destination names would be resolved by Spring's default `DynamicDestinationResolver` implementation, but any implementation of the `DestinationResolver` interface could be provided.
-Also, the JMS `ConnectionFactory` is a required property of the channel, but by default the expected bean name would be "connectionFactory".
+Also, the JMS `ConnectionFactory` is a required property of the channel, but by default the expected bean name would be `jmsConnectionFactory`.
 The example below provides both a custom instance for resolution of the JMS Destination names and a different name for the ConnectionFactory.
 [source,xml]
 ----

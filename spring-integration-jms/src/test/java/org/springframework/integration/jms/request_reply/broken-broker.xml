@@ -12,14 +12,14 @@
 	<int:gateway id="brkenBrokerGateway" default-request-channel="outGatewayInChannel"/>
 
 	<int-jms:outbound-gateway id="jog" request-channel="outGatewayInChannel"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination-name="brokenBrokerRequestQueue"
 		correlation-key="JMSCorrelationID"
 		receive-timeout="1000"/>
 
 	<int-jms:inbound-gateway request-channel="jmsInChannel"
 						     request-destination-name="brokenBrokerRequestQueue"
-							 connection-factory="connectionFactory"
+							 connection-factory="jmsConnectionFactory"
 							 concurrent-consumers="10"
 							 reply-timeout="10000"/>
 
@@ -29,7 +29,7 @@
 
 	<int:service-activator input-channel="jmsInChannel" expression="payload"/>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="tcp://localhost:61623"/>

@@ -45,7 +45,8 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.class);
-		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
+		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+				JmsParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		parseDestination(element, parserContext, builder, "request-destination", "request-destination-name",
 				"request-destination-expression", "requestDestination", "requestDestinationName",
 				"requestDestinationExpression", true);

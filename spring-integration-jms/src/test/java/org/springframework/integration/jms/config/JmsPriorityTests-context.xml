@@ -21,7 +21,7 @@
 		<int:queue capacity="2"/>
 	</int:channel>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
@@ -31,7 +31,7 @@
 		<property name="cacheProducers" value="false"/>
 	</bean>
 
-	<jms:listener-container>
+	<jms:listener-container connection-factory="jmsConnectionFactory">
 		<jms:listener destination="queue.test.priority.gateway" ref="priorityReader"/>
 	</jms:listener-container>
 

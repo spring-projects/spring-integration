@@ -51,19 +51,19 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		if (StringUtils.hasText(componentName)) {
 			builder.addPropertyValue("componentName", componentName);
 		}
-		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
-		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
-		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		String jmsTemplate = element.getAttribute(JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE);
+		String destination = element.getAttribute(JmsParserUtils.DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(JmsParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String headerMapper = element.getAttribute(JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (hasJmsTemplate) {
-			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
+			JmsParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else {
-			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
+			builder.addConstructorArgValue(JmsParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
 		if (hasDestinationRef || hasDestinationName) {
@@ -72,20 +72,20 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 					parserContext.getReaderContext().error("The 'destination-name' " +
 							"and 'destination' attributes are mutually exclusive.", parserContext.extractSource(element));
 				}
-				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
+				builder.addPropertyReference(JmsParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else if (hasDestinationName) {
-				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
+				builder.addPropertyValue(JmsParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 		}
 		else if (!hasJmsTemplate) {
-			parserContext.getReaderContext().error("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
-					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
-					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
+			parserContext.getReaderContext().error("either a '" + JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' or one of '" + JmsParserUtils.DESTINATION_ATTRIBUTE + "' or '"
+					+ JmsParserUtils.DESTINATION_NAME_ATTRIBUTE +
 					"' attributes must be provided for a polling JMS adapter", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
-			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
+			builder.addPropertyReference(JmsParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");

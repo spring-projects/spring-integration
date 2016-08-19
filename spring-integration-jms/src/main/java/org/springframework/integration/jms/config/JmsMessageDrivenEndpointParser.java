@@ -59,9 +59,9 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 
 	private static String[] containerAttributes = new String[] {
-		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-		JmsAdapterParserUtils.DESTINATION_ATTRIBUTE,
-		JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE,
+		JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+		JmsParserUtils.DESTINATION_ATTRIBUTE,
+		JmsParserUtils.DESTINATION_NAME_ATTRIBUTE,
 		"destination-resolver", "transaction-manager",
 		"concurrent-consumers", "max-concurrent-consumers",
 		"acknowledge",
@@ -168,8 +168,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 					"Exactly one of '" + destinationAttribute +
 					"' or '" + destinationNameAttribute + "' is required.", element);
 		}
-		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
+		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+				JmsParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		if (hasDestination) {
 			builder.addPropertyReference("destination", destination);
 		}

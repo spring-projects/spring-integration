@@ -17,13 +17,13 @@
 
 	<int-jms:outbound-gateway request-channel="outGatewayInChannel"
 		receive-timeout="20000"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination-name="multiOutGatewayTempQueue"
 		correlation-key="JMSCorrelationID"/>
 
 	<int-jms:inbound-gateway request-channel="jmsInChannel"
 						     request-destination-name="multiOutGatewayTempQueue"
-							 connection-factory="connectionFactory"
+							 connection-factory="jmsConnectionFactory"
 							 concurrent-consumers="10"
 							 reply-timeout="20000"/>
 
@@ -35,7 +35,7 @@
 		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithTempReplyQueuesTests.MyRandomlySlowService"/>
 	</int:service-activator>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>

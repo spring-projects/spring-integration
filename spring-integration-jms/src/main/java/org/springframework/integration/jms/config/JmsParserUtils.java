@@ -17,6 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -31,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  */
-abstract class JmsAdapterParserUtils {
+abstract class JmsParserUtils {
 
 	static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
 
@@ -68,7 +69,7 @@ abstract class JmsAdapterParserUtils {
 	};
 
 	static String determineConnectionFactoryBeanName(Element element, ParserContext parserContext) {
-		String connectionFactoryBeanName = "connectionFactory";
+		String connectionFactoryBeanName = "jmsConnectionFactory";
 		if (element.hasAttribute(CONNECTION_FACTORY_ATTRIBUTE)) {
 			connectionFactoryBeanName = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
 			if (!StringUtils.hasText(connectionFactoryBeanName)) {
@@ -81,8 +82,8 @@ abstract class JmsAdapterParserUtils {
 
 	static BeanDefinition parseJmsTemplateBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DynamicJmsTemplate.class);
-		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
+		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+				determineConnectionFactoryBeanName(element, parserContext));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");

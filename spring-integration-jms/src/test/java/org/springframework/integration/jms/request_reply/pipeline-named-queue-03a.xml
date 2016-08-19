@@ -11,7 +11,7 @@
 
 	<int-jms:outbound-gateway request-channel="pipeline03"
 		reply-channel="reply1"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline03a-01"
 		correlation-key="JMSCorrelationID"
 		receive-timeout="30000"
@@ -28,7 +28,7 @@
 
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue03a"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
@@ -43,7 +43,7 @@
 
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 		reply-channel="reply2"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline03a-01"
 		correlation-key="corr03a"
 		receive-timeout="30000"
@@ -59,7 +59,7 @@
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue03a"
 		correlation-key="corr03a"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
@@ -71,7 +71,7 @@
 	<int-jms:outbound-gateway request-channel="toThird"
 		reply-channel="add10kOnTheWayBack"
 		correlation-key="corr03a"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline03a-01"
 		receive-timeout="30000"
 		request-destination-name="thirdGatewayQueue03a">
@@ -86,7 +86,7 @@
 	<int-jms:inbound-gateway request-channel="thirdIn"
 		request-destination-name="thirdGatewayQueue03a"
 		correlation-key="corr03a"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
@@ -95,7 +95,7 @@
 		<int:service-activator ref="capture" />
 	</int:chain>
 
-	<bean id="connectionFactory"
+	<bean id="jmsConnectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">

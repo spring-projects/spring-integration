@@ -10,13 +10,13 @@
 	<int:gateway default-request-channel="in" default-request-timeout="20000" default-reply-timeout="20000"/>
 
 	<int-jms:outbound-gateway request-channel="in"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination-name="honorTimeoutQueue"
 		receive-timeout="15000"/>
 
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="honorTimeoutQueue"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="1"
 		reply-timeout="15000"/>
 
@@ -28,7 +28,7 @@
 		<int:transformer expression="payload"/>
 	</int:chain>
 
-	<bean id="connectionFactory"
+	<bean id="jmsConnectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">

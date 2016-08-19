@@ -52,11 +52,8 @@ public class JmsChannelParser extends AbstractChannelParser {
 		if (StringUtils.hasText(messageDriven)) {
 			builder.addConstructorArgValue(messageDriven);
 		}
-		String connectionFactory = element.getAttribute("connection-factory");
-		if (!StringUtils.hasText(connectionFactory)) {
-			connectionFactory = "connectionFactory";
-		}
-		builder.addPropertyReference("connectionFactory", connectionFactory);
+		builder.addPropertyReference(JmsParserUtils.CONNECTION_FACTORY_PROPERTY,
+				JmsParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		if ("channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "queue");
 		}

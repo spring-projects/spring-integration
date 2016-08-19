@@ -8,14 +8,14 @@
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<int-jms:message-driven-channel-adapter channel="toOut"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		acknowledge="transacted"
 		destination-name="outcatQ1"/>
 
 	<int:publish-subscribe-channel id="toOut" />
 
 	<int-jms:outbound-channel-adapter channel="toOut" order="1"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		destination-name="outcatQ2"
 		session-transacted="true" />
 

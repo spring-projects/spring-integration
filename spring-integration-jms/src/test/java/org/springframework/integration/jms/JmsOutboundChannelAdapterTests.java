@@ -69,7 +69,7 @@ public class JmsOutboundChannelAdapterTests extends ActiveMQMultiContextTests {
 	public static class CFConfig {
 
 		@Bean
-		public ConnectionFactory connectionFactory() {
+		public ConnectionFactory jmsConnectionFactory() {
 			return connectionFactory;
 		}
 	}

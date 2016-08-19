@@ -9,7 +9,7 @@
 	<int:gateway id="optimized" default-request-channel="jmsInOptimized"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInOptimized"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueA"
 		reply-destination="siInQueueA"
 		receive-timeout="10000"
@@ -30,7 +30,7 @@
 	<int:gateway id="nonoptimized" default-request-channel="jmsInNonOptimized"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimized"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		receive-timeout="10000"
 		request-destination="siOutQueueB"
 		reply-destination="siInQueueB">
@@ -50,7 +50,7 @@
 	<int:gateway id="optimizedMessageId" default-request-channel="jmsInOptimizedC"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInOptimizedC"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueC"
 		receive-timeout="10000"
 		reply-destination="siInQueueC"
@@ -71,7 +71,7 @@
 	<int:gateway id="nonoptimizedMessageId" default-request-channel="jmsInNonOptimizedD"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueD"
 		receive-timeout="10000"
 		reply-destination="siInQueueD">
@@ -86,7 +86,7 @@
 		<constructor-arg value="siInQueueD.not.cached"/>
 	</bean>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>

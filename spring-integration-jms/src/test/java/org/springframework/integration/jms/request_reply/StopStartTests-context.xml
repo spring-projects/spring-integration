@@ -12,7 +12,7 @@
 	<int-jms:outbound-gateway id="out"
 			auto-startup="false"
 			request-channel="test"
-			connection-factory="connectionFactory"
+			connection-factory="jmsConnectionFactory"
 			request-destination-name="testout"
 			correlation-key="JMSCorrelationID"
 			reply-destination-name="testreply">
@@ -20,13 +20,13 @@
 	</int-jms:outbound-gateway>
 
 	<int-jms:inbound-gateway
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-channel="upcase"
 		request-destination-name="testout"/>
 
 	<int:transformer input-channel="upcase" expression="payload.toUpperCase()" />
 
-	<bean id="connectionFactory"
+	<bean id="jmsConnectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">

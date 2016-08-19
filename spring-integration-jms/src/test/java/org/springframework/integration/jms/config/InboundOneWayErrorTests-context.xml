@@ -32,14 +32,14 @@
 	</bean>
 
 	<bean id="container" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
-		<property name="connectionFactory" ref="connectionFactory"/>
+		<property name="connectionFactory" ref="jmsConnectionFactory"/>
 		<property name="destination" ref="queueA"/>
 		<property name="errorHandler" ref="testErrorHandler"/>
 	</bean>
 
 	<bean id="testErrorHandler" class="org.springframework.integration.jms.config.InboundOneWayErrorTests$TestErrorHandler"/>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
