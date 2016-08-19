@@ -425,7 +425,7 @@ This adapter produces message with payloads of type `InputStream`, allowing file
 local file system.
 Since the session remains open, the consuming application is responsible for closing the session when the file has been
 consumed.
-The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
+The session is provided in the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header.
 Standard framework components, such as the `FileSplitter` and `StreamTransformer` will automatically close the session.
 See <<file-splitter>> and <<stream-transformer>> for more information about these components.
 
@@ -702,7 +702,7 @@ For text files, a common use case is to combine this operation with a <<file-spl
 <<stream-transformer,Stream Transformer>>.
 When consuming remote files as streams, the user is responsible for closing the `Session` after the stream is
 consumed.
-For convenience, the `Session` is provided in the `closeableResource` header, a convenience method is provided on the
+For convenience, the `Session` is provided in the `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` header, a convenience method is provided on the
 `IntegrationMessageHeaderAccessor`:
 
 [source, java]
@@ -714,7 +714,7 @@ if (closeable != null) {
 ----
 
 Note: In previous releases the session was in the `file_remoteSession` header, but this is deprecated - use
-`closableResource` instead.
+`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE` instead.
 
 Framework components such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>> will
 automatically close the session after the data is transferred.
@@ -740,7 +740,7 @@ You can either do that in your custom code, or route a copy of the message to a 
 [source, xml]
 ----
 <int:service-activator input-channel="closeSession"
-    expression="headers['closeableResource'].close()" />
+    expression="headers[T(org.springframework.integration.IntegrationMessageHeaderAccessor).CLOSEABLE_RESOURCE].close()" />
 ----
 
 *mget*
