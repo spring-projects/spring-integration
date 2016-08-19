@@ -98,7 +98,7 @@ public RmiOutboundGateway outbound() {
 }
 ----
 
-Starting with _version 4.3_, the outbound gateway has a second constructor that takes a `ProxyFactoryPostProcessor` bean as a second argument.
+Starting with _version 4.3_, the outbound gateway has a second constructor that takes a `RmiProxyFactoryBeanConfigurer` bean as a second argument.
 This allows further configuration before the proxy is created; for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`.
 
-Starting with _version 5.0_, this can be set using the XML namespace, using the `post-processor` attribute.
+Starting with _version 5.0_, this can be set using the XML namespace, using the `configurer` attribute.

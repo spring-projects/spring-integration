@@ -34,9 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.rmi.ProxyFactoryPostProcessor;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
+import org.springframework.integration.rmi.RmiProxyFactoryBeanConfigurer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -76,7 +76,7 @@ public class RmiOutboundGatewayParserTests {
 	private PollableChannel replyChannel;
 
 	@Autowired
-	private ProxyFactoryPostProcessor postProcessor;
+	private RmiProxyFactoryBeanConfigurer configurer;
 
 	@Autowired
 	@Qualifier("gateway.handler")
@@ -100,8 +100,8 @@ public class RmiOutboundGatewayParserTests {
 	public void testProperties() {
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
-		assertSame(this.postProcessor, TestUtils.getPropertyValue(this.gateway, "postProcessor"));
-		verify(this.postProcessor).postProcess(any(RmiProxyFactoryBean.class));
+		assertSame(this.configurer, TestUtils.getPropertyValue(this.gateway, "configurer"));
+		verify(this.configurer).configure(any(RmiProxyFactoryBean.class));
 	}
 
 	@Test

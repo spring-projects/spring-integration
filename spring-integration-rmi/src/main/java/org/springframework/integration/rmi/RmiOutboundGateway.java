@@ -37,7 +37,7 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RequestReplyExchanger proxy;
 
-	private final ProxyFactoryPostProcessor postProcessor;
+	private final RmiProxyFactoryBeanConfigurer configurer;
 
 	/**
 	 * Construct an instance with a `RequestReplyExchanger` built from the
@@ -45,19 +45,18 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * @param url the url.
 	 */
 	public RmiOutboundGateway(String url) {
-		this.proxy = createProxy(url);
-		this.postProcessor = null;
+		this(url, null);
 	}
 
 	/**
 	 * Construct an instance with a `RequestReplyExchanger` built from the
 	 * default {@link RmiProxyFactoryBean} which can be modified by the
-	 * post processor.
+	 * configurer.
 	 * @param url the url.
-	 * @param postProcessor the post processor.
+	 * @param configurer the {@link RmiProxyFactoryBeanConfigurer}.
 	 */
-	public RmiOutboundGateway(String url, ProxyFactoryPostProcessor postProcessor) {
-		this.postProcessor = postProcessor;
+	public RmiOutboundGateway(String url, RmiProxyFactoryBeanConfigurer configurer) {
+		this.configurer = configurer;
 		this.proxy = createProxy(url);
 	}
 
@@ -101,8 +100,8 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
 		proxyFactory.setRefreshStubOnConnectFailure(true);
-		if (this.postProcessor != null) {
-			this.postProcessor.postProcess(proxyFactory);
+		if (this.configurer != null) {
+			this.configurer.configure(proxyFactory);
 		}
 		proxyFactory.afterPropertiesSet();
 		return (RequestReplyExchanger) proxyFactory.getObject();

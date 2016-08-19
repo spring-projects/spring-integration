@@ -23,13 +23,13 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  * @since 4.3.2
  *
  */
-public interface ProxyFactoryPostProcessor {
+public interface RmiProxyFactoryBeanConfigurer {
 
 	/**
-	 * Post process the factory bean before the {@code RequestReplyExchanger}
-	 * is created.
+	 * Perform additional configuration of the factory bean before the
+	 * {@code RequestReplyExchanger} is created.
 	 * @param factoryBean the factory bean.
 	 */
-	void postProcess(RmiProxyFactoryBean factoryBean);
+	void configure(RmiProxyFactoryBean factoryBean);
 
 }

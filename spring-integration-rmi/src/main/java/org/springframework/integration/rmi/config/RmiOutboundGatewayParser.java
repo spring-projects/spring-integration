@@ -54,8 +54,8 @@ public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {
 
 	@Override
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		if (StringUtils.hasText(element.getAttribute("post-processor"))) {
-			builder.addConstructorArgReference(element.getAttribute("post-processor"));
+		if (StringUtils.hasText(element.getAttribute("configurer"))) {
+			builder.addConstructorArgReference(element.getAttribute("configurer"));
 		}
 	}
 
