@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.test.mail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,7 +35,14 @@ import javax.net.ServerSocketFactory;
 import org.springframework.util.Base64Utils;
 
 /**
+ * A basic test mail server for pop3, imap,
+ * Serves up a canned email message with each protocol.
+ * For smtp, it handles the basic handshaking and captures
+ * the pertinent data so it can be verified by a test case.
+ *
  * @author Gary Russell
+ *
+ * @since 5.0
  *
  */
 public class TestMailServer {
