@@ -51,7 +51,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String DUPLICATE_MESSAGE = "duplicateMessage";
 
-	public static final String CLOSEABLE_RESOURCE = "closableResource";
+	public static final String CLOSEABLE_RESOURCE = "closeableResource";
 
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
