@@ -21,3 +21,9 @@ Previously, Spring Integration JMS XML configuration used a default bean name `c
 It has now been renamed to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS Connection Factory bean.
 
 If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
+
+===== Gateway Changes
+
+The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
+Previously, the header was not populated.
+This had the effect that synchronous downstream flows (running on the calling thread) would send the exception to the configured channel but an exception on an async downstream flow would be sent to the default `errorChannel` instead.

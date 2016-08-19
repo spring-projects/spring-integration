@@ -74,6 +74,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
@@ -133,6 +134,7 @@ public class GatewayInterfaceTests {
 						equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
 				assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
 				assertThat((String) message.getPayload(), equalTo("hello"));
+				assertThat(new MessageHeaderAccessor(message).getErrorChannel(), equalTo("errorChannel"));
 				called.set(true);
 			}
 		};
