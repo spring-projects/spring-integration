@@ -63,13 +63,13 @@
 	<bean id="destinationResolver"
 		  class="org.springframework.integration.jms.config.JmsChannelParserTests$TestDestinationResolver"/>
 
-	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
 		<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
 	</bean>
 
-	<alias name="connectionFactory" alias="connFact"/>
+	<alias name="jmsConnectionFactory" alias="connFact"/>
 
-	<jms:channel id="withPlaceholders" queue="${queue}" 
+	<jms:channel id="withPlaceholders" queue="${queue}"
 									   concurrency="${concurrency}"/>
 
 	<jms:channel id="withDefaultContainer" queue-name="default.container.queue" />

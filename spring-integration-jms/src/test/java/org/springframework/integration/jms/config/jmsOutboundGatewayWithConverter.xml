@@ -21,7 +21,7 @@
 		<si:poller fixed-delay="1000"/>
 	</jms:outbound-gateway>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.jms.StubConnection">
 				<constructor-arg value="test-message"/>

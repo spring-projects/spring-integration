@@ -23,7 +23,7 @@
 	<int:chain input-channel="requests">
 		<int-jms:outbound-gateway request-destination="requestQueueA"
 	                              reply-destination="replyQueueB"
-	                              connection-factory="connectionFactory"
+	                              connection-factory="jmsConnectionFactory"
 	                              receive-timeout="100000"
 	                              reply-timeout="200000"/>
 	</int:chain>
@@ -32,7 +32,7 @@
 		<int-jms:outbound-gateway id="gateway"
 		                          request-destination="requestQueueA"
 	                              reply-destination="replyQueueB"
-	                              connection-factory="connectionFactory"
+	                              connection-factory="jmsConnectionFactory"
 	                              receive-timeout="100000"
 	                              reply-timeout="200000"/>
 	</int:chain>
@@ -41,7 +41,7 @@
 		<int-jms:outbound-gateway id="gateway"
 	                              request-destination="requestQueueA"
 	                              reply-destination="replyQueueB"
-	                              connection-factory="connectionFactory"
+	                              connection-factory="jmsConnectionFactory"
 	                              receive-timeout="100000"
 	                              reply-timeout="200000"/>
 		<int:transformer expression="payload"/>
@@ -52,7 +52,7 @@
 		<int-jms:outbound-gateway id="badChainGateway"
 		                          request-destination="requestQueueA"
 	                              reply-destination="replyQueueB"
-	                              connection-factory="connectionFactory"
+	                              connection-factory="jmsConnectionFactory"
 	                              receive-timeout="100000"
 	                              reply-channel="badOutputChannel"
 	                              reply-timeout="200000"/>
@@ -69,7 +69,7 @@
 	</bean>
 
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>

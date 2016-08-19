@@ -22,7 +22,7 @@
 		<integration:queue capacity="1"/>
 	</integration:channel>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.jms.StubConnection">
 				<constructor-arg value="test"/>

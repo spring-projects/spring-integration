@@ -18,7 +18,7 @@
  	</util:properties>
  	
 	<int-jms:inbound-channel-adapter channel="out" session-transacted="true"
-			connection-factory="connectionFactory" destination-name="incatQ"
+			connection-factory="jmsConnectionFactory" destination-name="incatQ"
 			receive-timeout="500" acknowledge="${jmsAcknowledgeModeTransacted}">
 		<int:poller fixed-delay="500"/>
 	</int-jms:inbound-channel-adapter>

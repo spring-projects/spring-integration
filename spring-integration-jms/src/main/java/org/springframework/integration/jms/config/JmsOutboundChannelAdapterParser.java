@@ -38,21 +38,21 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsSendingMessageHandler.class);
-		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
-		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
-		String destinationExpression = element.getAttribute(JmsAdapterParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE);
-		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		String jmsTemplate = element.getAttribute(JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE);
+		String destination = element.getAttribute(JmsParserUtils.DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(JmsParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String destinationExpression = element.getAttribute(JmsParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE);
+		String headerMapper = element.getAttribute(JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		boolean hasDestinationExpression = StringUtils.hasText(destinationExpression);
 		if (hasJmsTemplate) {
-			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
+			JmsParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else {
-			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
+			builder.addConstructorArgValue(JmsParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 		}
 
 		if (hasDestinationRef || hasDestinationName || hasDestinationExpression) {
@@ -61,26 +61,26 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 						"'destination-expression' attributes are mutually exclusive.", parserContext.extractSource(element));
 			}
 			if (hasDestinationRef) {
-				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
+				builder.addPropertyReference(JmsParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else if (hasDestinationName) {
-				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
+				builder.addPropertyValue(JmsParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 			else if (hasDestinationExpression) {
 				BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 				expressionBuilder.addConstructorArgValue(destinationExpression);
-				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_EXPRESSION_PROPERTY, expressionBuilder.getBeanDefinition());
+				builder.addPropertyValue(JmsParserUtils.DESTINATION_EXPRESSION_PROPERTY, expressionBuilder.getBeanDefinition());
 			}
 		}
 		else if (!hasJmsTemplate) {
-			parserContext.getReaderContext().error("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
-					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', '"
-					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "', or '" +
-					JmsAdapterParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE +
+			parserContext.getReaderContext().error("either a '" + JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' or one of '" + JmsParserUtils.DESTINATION_ATTRIBUTE + "', '"
+					+ JmsParserUtils.DESTINATION_NAME_ATTRIBUTE + "', or '" +
+					JmsParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE +
 					"' attributes must be provided", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
-			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
+			builder.addPropertyReference(JmsParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		return builder.getBeanDefinition();

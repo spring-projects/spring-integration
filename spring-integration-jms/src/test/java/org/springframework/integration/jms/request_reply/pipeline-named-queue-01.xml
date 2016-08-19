@@ -10,7 +10,7 @@
 	<int:gateway default-request-channel="pipeline01" default-request-timeout="10000" default-reply-timeout="10000"/>
 
 	<int-jms:outbound-gateway request-channel="pipeline01"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline01-01"
 		receive-timeout="10000"
 		request-destination-name="siOutQueue01-01">
@@ -19,7 +19,7 @@
 
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue01-01"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
@@ -32,20 +32,20 @@
 	</int:chain>
 
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination-name="anotherGatewayQueue01-01">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue01-01"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
 	<int:transformer input-channel="anotherIn" expression="payload"/>
 
-	<bean id="connectionFactory"
+	<bean id="jmsConnectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">

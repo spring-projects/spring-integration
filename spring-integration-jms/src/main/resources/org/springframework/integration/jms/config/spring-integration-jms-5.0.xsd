@@ -151,7 +151,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 	Reference to a JMS ConnectionFactory. If none is provided, the default
-	bean name for the reference will be "connectionFactory".
+	bean name for the reference will be "jmsConnectionFactory".
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1009,7 +1009,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory">
+			<xsd:attribute name="connection-factory" type="xsd:string" default="jmsConnectionFactory">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 	The name of a ConnectionFactory bean. Default is 'connectionFactory'.

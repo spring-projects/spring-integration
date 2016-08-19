@@ -9,7 +9,7 @@
 	<int:gateway id="explicitCorrelationKeyGateway" default-request-channel="explicitCorrelationIn"/>
 
 	<int-jms:outbound-gateway request-channel="explicitCorrelationIn"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination="explicitCorrelationJmsOut"
 		correlation-key="bar"/>
 
@@ -20,7 +20,7 @@
 	<int-jms:inbound-gateway request-channel="requestIn"
 	    request-destination="explicitCorrelationJmsOut"
 	    correlation-key="bar"
-		connection-factory="connectionFactory"/>
+		connection-factory="jmsConnectionFactory"/>
 
 	<int:transformer input-channel="requestIn" expression="payload"/>
 
@@ -29,7 +29,7 @@
 	<int:gateway id="explicitCorrelationKeyGatewayB" default-request-channel="explicitCorrelationInB"/>
 
 	<int-jms:outbound-gateway request-channel="explicitCorrelationInB"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination="explicitCorrelationJmsOutB"
 		correlation-key="JMSCorrelationID"/>
 
@@ -40,7 +40,7 @@
 	<int-jms:inbound-gateway request-channel="requestInB"
 							 request-destination="explicitCorrelationJmsOutB"
 							 correlation-key="JMSCorrelationID"
-							 connection-factory="connectionFactory"/>
+							 connection-factory="jmsConnectionFactory"/>
 
 	<int:transformer input-channel="requestInB" expression="payload"/>
 
@@ -49,7 +49,7 @@
 	<int:gateway id="existingCorrelationKeyGatewayB" default-request-channel="existingCorrelationInB"/>
 
 	<int-jms:outbound-gateway request-channel="existingCorrelationInB"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination="existingCorrelationJmsOutB"
 		correlation-key="JMSCorrelationID*"/>
 
@@ -60,7 +60,7 @@
 	<int-jms:inbound-gateway request-channel="requestExistingCorrelationInB"
 							 request-destination="existingCorrelationJmsOutB"
 							 correlation-key="JMSCorrelationID"
-							 connection-factory="connectionFactory"/>
+							 connection-factory="jmsConnectionFactory"/>
 
 	<int:chain input-channel="requestExistingCorrelationInB" >
 		<int:header-enricher>
@@ -74,7 +74,7 @@
 	<int:gateway id="explicitCorrelationKeyGatewayC" default-request-channel="explicitCorrelationInC"/>
 
 	<int-jms:outbound-gateway id="outGateway" request-channel="explicitCorrelationInC"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination="explicitCorrelationJmsOutC"
 		reply-destination-name="explicitCorrelationJmsInC"
 		correlation-key="foo"
@@ -87,13 +87,13 @@
 	<int-jms:inbound-gateway id="inGateway" request-channel="requestInC"
 	    request-destination="explicitCorrelationJmsOutC"
 	    correlation-key="foo"
-		connection-factory="connectionFactory"/>
+		connection-factory="jmsConnectionFactory"/>
 
 	<int:transformer input-channel="requestInC">
 		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithCorrelationKeyProvidedTests.DelayedService"/>
 	</int:transformer>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>

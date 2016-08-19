@@ -28,7 +28,7 @@
 	
 	<bean id="headerMapper" class="org.springframework.integration.jms.config.JmsMessageHistoryTests$SampleHeaderMapper"/>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>

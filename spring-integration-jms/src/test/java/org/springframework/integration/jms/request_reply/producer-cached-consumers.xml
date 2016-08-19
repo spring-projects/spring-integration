@@ -9,7 +9,7 @@
 	<int:gateway id="standardMessageIdCopyingConsumerWithOptimization" default-request-channel="jmsInOptimizedA"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInOptimizedA"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueOptimizedA"
 		reply-destination="siInQueueOptimizedA"
 		receive-timeout="10000"
@@ -31,7 +31,7 @@
 	<int:gateway id="standardMessageIdCopyingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedB"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedB"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueNonOptimizedB"
 		receive-timeout="10000"
 		reply-destination="siInQueueNonOptimizedB">
@@ -51,7 +51,7 @@
 	<int:gateway id="correlationPropagatingConsumerWithOptimization" default-request-channel="jmsInOptimizedC"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInOptimizedC"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueOptimizedC"
 		reply-destination="siInQueueOptimizedC"
 		correlation-key="JMSCorrelationID">
@@ -71,7 +71,7 @@
 	<int:gateway id="correlationPropagatingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedD"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueNonOptimizedD"
 		reply-destination="siInQueueNonOptimizedD">
 		<int-jms:reply-listener />
@@ -90,7 +90,7 @@
 	<int:gateway id="correlationPropagatingConsumerWithOptimizationDelayFirstReply" default-request-channel="jmsInE"/>
 
 	<int-jms:outbound-gateway id="fastGateway" request-channel="jmsInE"
-	    connection-factory="connectionFactory"
+	    connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueE"
 		reply-destination="siInQueueE"
 		receive-timeout="500"
@@ -106,7 +106,7 @@
 		<constructor-arg value="siInQueueE"/>
 	</bean>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost?broker.persistent=false" />

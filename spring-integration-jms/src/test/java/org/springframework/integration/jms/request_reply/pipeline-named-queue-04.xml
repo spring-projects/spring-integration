@@ -11,7 +11,7 @@
 
 	<int-jms:outbound-gateway request-channel="pipeline04"
 		reply-channel="reply1"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline04-01"
 		correlation-key="foo"
 		receive-timeout="30000"
@@ -28,7 +28,7 @@
 
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue04"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		correlation-key="foo"
 		reply-timeout="10000"/>
@@ -44,7 +44,7 @@
 
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 		reply-channel="reply2"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		reply-destination-name="pipeline04-02"
 		receive-timeout="30000"
 		request-destination-name="anotherGatewayQueue04">
@@ -58,7 +58,7 @@
 
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue04"
-		connection-factory="connectionFactory"
+		connection-factory="jmsConnectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
@@ -67,7 +67,7 @@
 		<int:service-activator ref="capture" />
 	</int:chain>
 
-	<bean id="connectionFactory"
+	<bean id="jmsConnectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
