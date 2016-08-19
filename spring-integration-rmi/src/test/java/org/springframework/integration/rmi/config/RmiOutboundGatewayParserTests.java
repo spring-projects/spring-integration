@@ -36,7 +36,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
-import org.springframework.integration.rmi.RmiProxyFactoryBeanConfigurer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -76,7 +75,7 @@ public class RmiOutboundGatewayParserTests {
 	private PollableChannel replyChannel;
 
 	@Autowired
-	private RmiProxyFactoryBeanConfigurer configurer;
+	private RmiOutboundGateway.RmiProxyFactoryBeanConfigurer configurer;
 
 	@Autowired
 	@Qualifier("gateway.handler")

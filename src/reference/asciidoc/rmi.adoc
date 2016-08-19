@@ -99,6 +99,20 @@ public RmiOutboundGateway outbound() {
 ----
 
 Starting with _version 4.3_, the outbound gateway has a second constructor that takes a `RmiProxyFactoryBeanConfigurer` bean as a second argument.
-This allows further configuration before the proxy is created; for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`.
+This allows further configuration before the proxy is created; for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel="inChannel")
+public RmiOutboundGateway outbound() {
+    RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://host:port/"
+                + RmiInboundGateway.SERVICE_NAME_PREFIX + "remoteChannelName",
+        fb -> {
+            fb.setRemoteInvocationFactory(new ContextPropagatingRemoteInvocationFactory());
+        });
+    return gateway;
+}
+----
 
 Starting with _version 5.0_, this can be set using the XML namespace, using the `configurer` attribute.

@@ -107,4 +107,22 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return (RequestReplyExchanger) proxyFactory.getObject();
 	}
 
+	/**
+	 * Allows configuration of the proxy factory bean before the RMI proxy is
+	 * created.
+	 *
+	 * @since 4.3.2
+	 *
+	 */
+	public interface RmiProxyFactoryBeanConfigurer {
+
+		/**
+		 * Perform additional configuration of the factory bean before the
+		 * {@code RequestReplyExchanger} is created.
+		 * @param factoryBean the factory bean.
+		 */
+		void configure(RmiProxyFactoryBean factoryBean);
+
+	}
+
 }
