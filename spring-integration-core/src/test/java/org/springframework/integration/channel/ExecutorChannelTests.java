@@ -218,7 +218,7 @@ public class ExecutorChannelTests {
 	public void testEarlySubscribe() {
 		ExecutorChannel channel = new ExecutorChannel(mock(Executor.class));
 		try {
-			channel.subscribe(m -> {});
+			channel.subscribe(m -> { });
 			channel.setBeanFactory(mock(BeanFactory.class));
 			channel.afterPropertiesSet();
 			fail("expected Exception");

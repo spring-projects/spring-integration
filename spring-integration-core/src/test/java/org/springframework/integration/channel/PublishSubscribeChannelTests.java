@@ -38,7 +38,7 @@ public class PublishSubscribeChannelTests {
 	public void testEarlySubscribe() {
 		PublishSubscribeChannel channel = new PublishSubscribeChannel(mock(Executor.class));
 		try {
-			channel.subscribe(m -> {});
+			channel.subscribe(m -> { });
 			channel.setBeanFactory(mock(BeanFactory.class));
 			channel.afterPropertiesSet();
 			fail("expected Exception");
