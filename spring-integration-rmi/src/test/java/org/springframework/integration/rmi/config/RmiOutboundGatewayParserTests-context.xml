@@ -32,7 +32,8 @@
 	</rmi:outbound-gateway>
 
 	<beans:bean id="configurer" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.rmi.RmiProxyFactoryBeanConfigurer" />
+		<beans:constructor-arg
+				value="org.springframework.integration.rmi.RmiOutboundGateway$RmiProxyFactoryBeanConfigurer" />
 	</beans:bean>
 
 	<beans:bean id="advice"

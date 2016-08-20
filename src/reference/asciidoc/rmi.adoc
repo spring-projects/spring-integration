@@ -108,8 +108,8 @@ This allows further configuration before the proxy is created; for example, to i
 public RmiOutboundGateway outbound() {
     RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://host:port/"
                 + RmiInboundGateway.SERVICE_NAME_PREFIX + "remoteChannelName",
-        fb -> {
-            fb.setRemoteInvocationFactory(new ContextPropagatingRemoteInvocationFactory());
+        pfb -> {
+            pfb.setRemoteInvocationFactory(new ContextPropagatingRemoteInvocationFactory());
         });
     return gateway;
 }
