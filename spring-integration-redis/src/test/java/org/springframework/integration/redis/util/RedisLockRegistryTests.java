@@ -289,6 +289,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 					assertNotNull(TestUtils.getPropertyValue(registry2, "hardThreadLocks", ThreadLocal.class).get());
 					latch2.await(10, TimeUnit.SECONDS);
 					locked.set(true);
+					logger.debug("Locks in store: " + registry2.listLocks());
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
