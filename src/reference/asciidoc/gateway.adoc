@@ -353,9 +353,10 @@ If you provide a one-way flow, then nothing would be sent back to the caller.
 In the case that you want to completely suppress Exceptions, you can provide a reference to the global "nullChannel" (essentially a /dev/null approach).
 Finally, as mentioned above, if no "error-channel" is defined at all, then the Exceptions will propagate as usual.
 
-Starting with _version 5.0_, in case of `void` gateway method (one-way flow), the `error-channel` reference is populated to the standard `errorChannel` header of each messages to send.
-This allows the downstream async flow, based on the standard `ExecutorChannel` configuration, to override a default global `errorChannel` exceptions sending behaviour.
-Previously you had to specify `errorChannel` header manually via `@GatewayHeader` annotation or `<header>` sub-element, which made `error-channel` property useless.
+Starting with _version 5.0_, when using a gateway method with a `void` return type (one-way flow), the `error-channel` reference (if provided) is populated in the standard `errorChannel` header of each message sent.
+This allows a downstream async flow, based on the standard `ExecutorChannel` configuration (or a `QueueChannel`), to override a default global `errorChannel` exceptions sending behavior.
+Previously you had to specify an `errorChannel` header manually via `@GatewayHeader` annotation or `<header>` sub-element.
+The `error-channel` property was ignored for `void` methods with an asynchronous flow; error messages were sent to the default `errorChannel` instead.
 
 
 IMPORTANT: Exposing the messaging system via simple POJI Gateways obviously provides benefits, but "hiding" the reality of the underlying messaging system does come at a price so there are certain things you should consider.
