@@ -41,10 +41,10 @@ NOTE: All of the JMS adapters that require a reference to the `ConnectionFactory
 That is why you don't see a "connection-factory" attribute in many of the examples.
 However, if your JMS `ConnectionFactory` has a different bean name, then you will need to provide that attribute.
 
-If 'extract-payload' is set to true (which is the default), the received JMS Message will be passed through the `MessageConverter`.
+If `extract-payload` is set to true (which is the default), the received JMS Message will be passed through the `MessageConverter`.
 When relying on the default `SimpleMessageConverter`, this means that the resulting Spring Integration Message will have the JMS Message's body as its payload.
-A JMS `TextMessage` will produce a String-based payload, a JMS `BytesMessage` will produce a byte array payload, and a JMS `ObjectMessage`'s Serializable instance will become the Spring Integration Message's payload.
-If instead you prefer to have the raw JMS Message as the Spring Integration Message's payload, then set 'extract-payload' to `false`.
+A JMS `TextMessage` will produce a String-based payload, a JMS `BytesMessage` will produce a byte array payload, and a JMS `ObjectMessage` 's Serializable instance will become the Spring Integration Message's payload.
+If instead you prefer to have the raw JMS Message as the Spring Integration Message's payload, then set `extract-payload` to `false`.
 [source,xml]
 ----
 <int-jms:inbound-channel-adapter id="jmsIn"
