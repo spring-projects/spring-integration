@@ -19,8 +19,11 @@ package org.springframework.integration.rmi.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,6 +42,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -71,6 +75,9 @@ public class RmiOutboundGatewayParserTests {
 	private PollableChannel replyChannel;
 
 	@Autowired
+	private RmiOutboundGateway.RmiProxyFactoryBeanConfigurer configurer;
+
+	@Autowired
 	@Qualifier("gateway.handler")
 	RmiOutboundGateway gateway;
 
@@ -89,9 +96,11 @@ public class RmiOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testOrder() {
+	public void testProperties() {
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+		assertSame(this.configurer, TestUtils.getPropertyValue(this.gateway, "configurer"));
+		verify(this.configurer).configure(any(RmiProxyFactoryBean.class));
 	}
 
 	@Test

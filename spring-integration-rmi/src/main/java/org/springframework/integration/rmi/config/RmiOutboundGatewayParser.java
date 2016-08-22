@@ -20,9 +20,11 @@ import java.rmi.registry.Registry;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
 import org.springframework.integration.rmi.RmiInboundGateway;
+import org.springframework.integration.rmi.RmiOutboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,7 +36,7 @@ public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {
 
 	@Override
 	protected String getGatewayClassName(Element element) {
-		return "org.springframework.integration.rmi.RmiOutboundGateway";
+		return RmiOutboundGateway.class.getName();
 	}
 
 	@Override
@@ -48,6 +50,13 @@ public class RmiOutboundGatewayParser extends AbstractOutboundGatewayParser {
 		String portAttribute = element.getAttribute("port");
 		String port = StringUtils.hasText(portAttribute) ? portAttribute : "" + Registry.REGISTRY_PORT;
 		return "rmi://" + host + ":" + port + "/" + RmiInboundGateway.SERVICE_NAME_PREFIX + remoteChannel;
+	}
+
+	@Override
+	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		if (StringUtils.hasText(element.getAttribute("configurer"))) {
+			builder.addConstructorArgReference(element.getAttribute("configurer"));
+		}
 	}
 
 }
