@@ -16,9 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.core.LimitingMessageSource;
-import org.springframework.messaging.Message;
-
 /**
  * A message source that can limit the number of remote objects it fetches.
  *
@@ -26,12 +23,17 @@ import org.springframework.messaging.Message;
  * @since 5.0
  *
  */
-public abstract class AbstractLimitingMessageSource<T> extends AbstractMessageSource<T>
-		implements LimitingMessageSource<T> {
+public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMessageSource<T> {
 
-	@Override
-	public Message<T> receive(int maxFetchSize) {
-		return buildMessage(doReceive(maxFetchSize));
+	private volatile int maxFetchSize = Integer.MIN_VALUE;
+
+	/**
+	 * Set the maximum number of objects the source should fetch if it is necessary
+	 * to fetch objects. The source must be a {@link LimitingMessageSource}.
+	 * @param maxFetchSize the max fetch size; a negative value means unlimited.
+	 */
+	public void setMaxFetchSize(int maxFetchSize) {
+		this.maxFetchSize = maxFetchSize;
 	}
 
 	/**
@@ -44,7 +46,7 @@ public abstract class AbstractLimitingMessageSource<T> extends AbstractMessageSo
 
 	@Override
 	protected Object doReceive() {
-		return doReceive(Integer.MIN_VALUE);
+		return doReceive(this.maxFetchSize);
 	}
 
 }

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.endpoint.AbstractLimitingMessageSource;
+import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -57,7 +57,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F>
-		extends AbstractLimitingMessageSource<File> implements Lifecycle {
+		extends AbstractFetchLimitingMessageSource<File> implements Lifecycle {
 
 	private volatile boolean running;
 

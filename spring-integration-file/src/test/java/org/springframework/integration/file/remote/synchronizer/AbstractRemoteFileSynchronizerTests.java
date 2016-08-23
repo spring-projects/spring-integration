@@ -127,14 +127,15 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
 		source.setAutoCreateLocalDirectory(true);
 		source.setBeanFactory(mock(BeanFactory.class));
+		source.setMaxFetchSize(1);
 		source.afterPropertiesSet();
 
-		source.receive(1);
+		source.receive();
 		assertEquals(1, count.get());
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
-		source.receive(1);
+		source.receive();
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
-		source.receive(1);
+		source.receive();
 		sync.close();
 	}
 
