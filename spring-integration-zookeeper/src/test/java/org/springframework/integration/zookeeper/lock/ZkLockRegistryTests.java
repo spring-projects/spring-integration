@@ -337,7 +337,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		testingServer.restart();
 
 		assertTrue("Should have been able to lock with zookeeper server restarted!",
-				lock2.tryLock(1, TimeUnit.SECONDS));
+				lock2.tryLock(10, TimeUnit.SECONDS));
 
 		assertTrue("Should have still held lock1", lock1.tryLock(1, TimeUnit.SECONDS));
 
