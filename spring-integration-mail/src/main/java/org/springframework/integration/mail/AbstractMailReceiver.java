@@ -609,8 +609,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					complexContent = source.getContent();
 				}
 				catch (IOException e) {
-					complexContent = "Unable to extract content; see logs: " + e.getMessage();
-					AbstractMailReceiver.this.logger.error("Failed to extract content from " + source, e);
+					throw new MessagingException("IOException while extracting content", e);
 				}
 				this.content = complexContent;
 			}

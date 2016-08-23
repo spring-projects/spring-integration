@@ -99,8 +99,7 @@ subprojects { subproject ->
 		hsqldbVersion = '2.3.3'
 		h2Version = '1.4.180'
 		jackson2Version = '2.7.3'
-		javaxActivationVersion = '1.1.1'
-		javaxMailVersion = '1.5.5'
+		javaxMailVersion = '1.5.6'
 		jedisVersion = '2.9.0'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
@@ -339,7 +338,6 @@ project('spring-integration-ftp') {
 		compile project(":spring-integration-file")
 		compile "commons-net:commons-net:$commonsNetVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
@@ -468,13 +466,9 @@ project('spring-integration-mail') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.mail:javax.mail-api:$javaxMailVersion", provided)
-		compile("com.sun.mail:imap:$javaxMailVersion", provided)
 		compile("com.sun.mail:javax.mail:$javaxMailVersion", provided);
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 	}
 
-	// suppress javax.activation path warnings
-	[compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-mongodb') {
@@ -550,7 +544,6 @@ project('spring-integration-sftp') {
 		compile project(":spring-integration-stream")
 		compile "com.jcraft:jsch:$jschVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
@@ -606,7 +599,6 @@ project('spring-integration-twitter') {
 			exclude group: 'org.springframework', module: 'spring-webmvc'
 
 		}
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
 		testCompile "redis.clients:jedis:$jedisVersion"
