@@ -504,8 +504,8 @@ The _FTP Outbound Channel Adapter_ supports the following payloads: 1) `java.io.
     charset="UTF-8"
     remote-file-separator="/"
     auto-create-directory="true"
-    remote-directory-expression="headers.['remote_dir']"
-    temporary-remote-directory-expression="headers.['temp_remote_dir']"
+    remote-directory-expression="headers['remote_dir']"
+    temporary-remote-directory-expression="headers['temp_remote_dir']"
     filename-generator="fileNameGenerator"
     use-temporary-filename="true"
     mode="REPLACE"/>
