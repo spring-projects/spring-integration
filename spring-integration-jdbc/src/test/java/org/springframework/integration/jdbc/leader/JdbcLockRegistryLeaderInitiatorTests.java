@@ -107,7 +107,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			public void publishOnRevoked(Object source, Context context, String role) {
 				try {
 					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
+					assertThat(granted2.await(20, TimeUnit.SECONDS), is(true));
 				}
 				catch (InterruptedException e) {
 					// No op
@@ -123,7 +123,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			public void publishOnRevoked(Object source, Context context, String role) {
 				try {
 					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
+					assertThat(granted1.await(20, TimeUnit.SECONDS), is(true));
 				}
 				catch (InterruptedException e) {
 					// No op
@@ -135,14 +135,14 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked1.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(revoked1.await(20, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator2.getContext().isLeader(), is(true));
 		assertThat(initiator1.getContext().isLeader(), is(false));
 
 		initiator2.getContext().yield();
 
-		assertThat(revoked2.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(revoked2.await(20, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator1.getContext().isLeader(), is(true));
 		assertThat(initiator2.getContext().isLeader(), is(false));
@@ -154,7 +154,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked11.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(revoked11.await(20, TimeUnit.SECONDS), is(true));
 		assertThat(initiator1.getContext().isLeader(), is(false));
 
 		initiator1.stop();
