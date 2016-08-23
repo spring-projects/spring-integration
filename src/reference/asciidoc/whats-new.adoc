@@ -28,3 +28,8 @@ The gateway now correctly sets the `errorChannel` header when the gateway method
 Previously, the header was not populated.
 This had the effect that synchronous downstream flows (running on the calling thread) would send the exception to the configured channel but an exception on an async downstream flow would be sent to the default `errorChannel` instead.
 See <<gateway-error-handling>> for more information.
+
+==== Mail Changes
+
+Some inconsistencies with rendering IMAP mail content have been resolved.
+See <<imap-format-important, the note in the Mail-Receiving Channel Adapter Section>> for more information.

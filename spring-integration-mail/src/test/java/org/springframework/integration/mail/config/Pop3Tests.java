@@ -67,7 +67,7 @@ public class Pop3Tests {
 		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
-		assertEquals("foo\r\n", message.getPayload());
+		assertEquals("foo\r\n\r\n", message.getPayload());
 	}
 
 }

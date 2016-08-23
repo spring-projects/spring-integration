@@ -159,7 +159,29 @@ public class ImapMailReceiverTests {
 		testIdleWithServerGuts(receiver, true);
 	}
 
-	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws MessagingException {
+	@Test
+	public void testIdleWithServerDefaultSearchSimple() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
+		receiver.setSimpleContent(true);
+		testIdleWithServerGuts(receiver, false, true);
+		assertTrue(imapIdleServer.assertReceived("searchWithUserFlag"));
+	}
+
+	@Test
+	public void testIdleWithMessageMappingSimple() throws Exception {
+		ImapMailReceiver receiver = new ImapMailReceiver("imap://user:pw@localhost:" + imapIdleServer.getPort()
+				+ "/INBOX");
+		receiver.setSimpleContent(true);
+		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
+		testIdleWithServerGuts(receiver, true, true);
+	}
+
+	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped) throws Exception {
+		testIdleWithServerGuts(receiver, mapped, false);
+	}
+
+	public void testIdleWithServerGuts(ImapMailReceiver receiver, boolean mapped, boolean simple) throws Exception {
 		imapIdleServer.resetServer();
 		Properties mailProps = new Properties();
 		mailProps.put("mail.debug", "true");
@@ -187,6 +209,14 @@ public class ImapMailReceiverTests {
 			assertNotNull(received);
 			assertNotNull(received.getPayload().getReceivedDate());
 			assertTrue(received.getPayload().getLineCount() > -1);
+			if (simple) {
+				assertThat(received.getPayload().getContent(),
+						equalTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n"));
+			}
+			else {
+				assertThat(received.getPayload().getContent(),
+						equalTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n"));
+			}
 		}
 		else {
 			org.springframework.messaging.Message<?> received = channel.receive(10000);
@@ -199,6 +229,12 @@ public class ImapMailReceiverTests {
 			assertThat((String) received.getHeaders().get(MailHeaders.FROM), equalTo("Bar <bar@baz>"));
 			assertThat(((String[]) received.getHeaders().get(MailHeaders.TO))[0], equalTo("Foo <foo@bar>"));
 			assertThat((String) received.getHeaders().get(MailHeaders.SUBJECT), equalTo("Test Email"));
+			if (simple) {
+				assertThat(received.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n"));
+			}
+			else {
+				assertThat(received.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n"));
+			}
 		}
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(10000)); // no new message after second and third idle
