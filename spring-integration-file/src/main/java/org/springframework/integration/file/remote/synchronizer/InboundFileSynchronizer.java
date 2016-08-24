@@ -37,6 +37,7 @@ public interface InboundFileSynchronizer {
 	/**
 	 * Synchronize up to maxFetchSize files to the local directory;
 	 * @param localDirectory the directory.
+	 * @param maxFetchSize the maximum files to fetch.
 	 */
 	default void synchronizeToLocalDirectory(File localDirectory, int maxFetchSize) {
 		synchronizeToLocalDirectory(localDirectory);

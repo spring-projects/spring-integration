@@ -14,43 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.support.management;
+
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.endpoint.MessageSourceManagement;
 
 /**
- * A message source that can limit the number of remote objects it fetches.
+ * An extension to {@link LifecycleTrackableMessageSourceMetrics} for sources that support
+ * max fetch size.
  *
  * @author Gary Russell
  * @since 5.0
  *
  */
-public abstract class AbstractFetchLimitingMessageSource<T> extends AbstractMessageSource<T>
+public class LifecycleTrackableMessageSourceManagement extends LifecycleTrackableMessageSourceMetrics
 		implements MessageSourceManagement {
 
-	private volatile int maxFetchSize = Integer.MIN_VALUE;
+	public LifecycleTrackableMessageSourceManagement(Lifecycle lifecycle, MessageSourceManagement delegate) {
+		super(lifecycle, delegate);
+	}
 
 	@Override
 	public void setMaxFetchSize(int maxFetchSize) {
-		this.maxFetchSize = maxFetchSize;
+		((MessageSourceManagement) this.delegate).setMaxFetchSize(maxFetchSize);
 	}
 
 	@Override
 	public int getMaxFetchSize() {
-		return this.maxFetchSize;
+		return ((MessageSourceManagement) this.delegate).getMaxFetchSize();
 	}
 
-	/**
-	 * Subclasses must implement this method. Typically the returned value will be the
-	 * payload of type T, but the returned value may also be a Message instance whose
-	 * payload is of type T.
-	 * @param maxFetchSize the maximum number of messages to fetch if a fetch is
-	 * necessary.
-	 * @return The value returned.
-	 */
-	protected abstract Object doReceive(int maxFetchSize);
-
-	@Override
-	protected Object doReceive() {
-		return doReceive(this.maxFetchSize);
-	}
 
 }
