@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -322,6 +323,10 @@ public class JmsInboundGatewayParserTests {
 				"inboundGatewayWithContainerReference.xml", this.getClass());
 		JmsMessageDrivenEndpoint gateway =
 				context.getBean("gatewayWithContainerReference", JmsMessageDrivenEndpoint.class);
+		AbstractMessageListenerContainer messageListenerContainer = context.getBean("messageListenerContainer",
+				AbstractMessageListenerContainer.class);
+		assertFalse(gateway.isRunning());
+		assertFalse(messageListenerContainer.isRunning());
 		SmartLifecycleRoleController roleController = context.getBean(SmartLifecycleRoleController.class);
 		@SuppressWarnings("unchecked")
 		MultiValueMap<String, SmartLifecycle> lifecycles =
@@ -331,7 +336,9 @@ public class JmsInboundGatewayParserTests {
 		gateway.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
-		assertEquals(context.getBean("messageListenerContainer"), container);
+		assertEquals(messageListenerContainer, container);
+		assertTrue(gateway.isRunning());
+		assertTrue(messageListenerContainer.isRunning());
 		gateway.stop();
 		context.close();
 	}
