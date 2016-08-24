@@ -31,7 +31,6 @@
 	<bean id="messageListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
 		<property name="connectionFactory" ref="testConnectionFactory"/>
 		<property name="destinationName" value="testDestination"/>
-		<property name="autoStartup" value="false"/>
 	</bean>
 
 </beans>

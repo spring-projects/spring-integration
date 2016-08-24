@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements DisposableBean, OrderlyShutdownCapable {
 
@@ -72,6 +73,7 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 		listenerContainer.setMessageListener(listener);
 		this.listener = listener;
 		this.listenerContainer = listenerContainer;
+		this.listenerContainer.setAutoStartup(false);
 		setPhase(Integer.MAX_VALUE / 2);
 		this.externalContainer = externalContainer;
 	}
