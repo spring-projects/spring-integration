@@ -27,6 +27,7 @@
 				local-filename-generator-expression="#this.toUpperCase() + '.a' + @fooString"
 				comparator="comparator"
 				temporary-file-suffix=".foo"
+				max-fetch-size="42"
 				local-filter="acceptAllFilter"
 				remote-directory-expression="'foo/bar'">
 			<int:poller fixed-rate="1000">

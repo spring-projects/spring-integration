@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -57,7 +57,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F>
-		extends AbstractMessageSource<File> implements Lifecycle {
+		extends AbstractFetchLimitingMessageSource<File> implements Lifecycle {
 
 	private volatile boolean running;
 
@@ -182,21 +182,22 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	/**
 	 * Polls from the file source. If the result is not null, it will be returned.
 	 * If the result is null, it attempts to sync up with the remote directory to populate the file source.
+	 * At most, maxFetchSize files will be fetched.
 	 * Then, it polls the file source again and returns the result, whether or not it is null.
+	 * @param maxFetchSize the maximum files to fetch.
 	 */
 	@Override
-	public final Message<File> doReceive() {
+	public final Message<File> doReceive(int maxFetchSize) {
 		Assert.state(this.fileSource != null, "fileSource must not be null");
 		Assert.state(this.synchronizer != null, "synchronizer must not be null");
 		Message<File> message = this.fileSource.receive();
 		if (message == null) {
-			this.synchronizer.synchronizeToLocalDirectory(this.localDirectory);
+			this.synchronizer.synchronizeToLocalDirectory(this.localDirectory, maxFetchSize);
 			message = this.fileSource.receive();
 		}
 		return message;
 	}
 
-	@SuppressWarnings("unchecked")
 	private FileListFilter<File> buildFilter() {
 		Pattern completePattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
