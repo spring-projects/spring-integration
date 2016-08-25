@@ -235,7 +235,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	public void synchronizeToLocalDirectory(final File localDirectory, final int maxFetchSize) {
 		if (maxFetchSize == 0) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Max Fetch Size is zero - fetch ignored");
+				logger.debug("Max Fetch Size is zero - fetch to " + localDirectory.getAbsolutePath() + " ignored");
 			}
 			return;
 		}
