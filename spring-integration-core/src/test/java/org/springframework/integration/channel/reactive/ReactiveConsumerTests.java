@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -35,6 +36,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveConsumer;
@@ -132,6 +134,47 @@ public class ReactiveConsumerTests {
 		testChannel.send(testMessage);
 
 		testSubscriber.assertValues(testMessage);
+	}
+
+	@Test
+	public void testReactiveConsumerPollableChannel() throws InterruptedException {
+		QueueChannel testChannel = new QueueChannel();
+
+		TestSubscriber<Message<?>> testSubscriber = TestSubscriber.create();
+
+		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		testSubscriber.assertSubscribed();
+		testSubscriber.assertNoError();
+		testSubscriber.assertNotComplete();
+
+		testSubscriber.configureValuesTimeout(Duration.ofSeconds(10));
+
+		testSubscriber.awaitAndAssertNextValues(testMessage);
+
+		reactiveConsumer.stop();
+
+
+		testChannel.send(testMessage);
+
+		new DirectFieldAccessor(testSubscriber).setPropertyValue("s", null);
+		TestUtils.getPropertyValue(testSubscriber, "values", List.class).clear();
+
+		reactiveConsumer.start();
+
+		testSubscriber.request(2);
+
+		Message<?> testMessage2 = new GenericMessage<>("test2");
+
+		testChannel.send(testMessage2);
+
+		testSubscriber.awaitAndAssertNextValues(testMessage, testMessage2);
 	}
 
 	@Test

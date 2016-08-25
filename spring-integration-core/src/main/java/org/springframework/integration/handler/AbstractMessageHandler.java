@@ -37,7 +37,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
-import reactor.core.Exceptions;
+import reactor.core.publisher.Operators;
 
 /**
  * Base class for MessageHandler implementations that provides basic validation
@@ -159,11 +159,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	@Override
 	public void onError(Throwable throwable) {
-		Exceptions.throwIfFatal(throwable);
-		if (throwable instanceof MessagingException) {
-			throw (MessagingException) throwable;
-		}
-		throw new MessagingException("Error occurred in message handler [" + this + "]", throwable);
+		Operators.onErrorDropped(throwable);
 	}
 
 	@Override

@@ -32,8 +32,14 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
-import reactor.core.publisher.DirectProcessor;
+import reactor.core.Cancellation;
+import reactor.core.Exceptions;
+import reactor.core.Receiver;
+import reactor.core.Trackable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Operators;
 
 
 /**
@@ -42,48 +48,43 @@ import reactor.core.publisher.Flux;
  */
 public class ReactiveConsumer extends AbstractEndpoint {
 
-	private final Subscriber<Message<?>> subscriber;
+	private final Operators.SubscriberAdapter<Message<?>, Message<?>> subscriber;
 
-	private final Consumer<Message<?>> consumer;
-
-	private volatile Flux<Message<?>> publisher;
-
-	private volatile Subscription subscription;
+	private volatile Publisher<Message<?>> publisher;
 
 	private ErrorHandler errorHandler;
 
 
-	public ReactiveConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
-		this(inputChannel, subscriber, null);
-		Assert.notNull(subscriber);
-
-	}
-
 	public ReactiveConsumer(MessageChannel inputChannel, Consumer<Message<?>> consumer) {
-		this(inputChannel, null, consumer);
-		Assert.notNull(consumer);
+		this(inputChannel, new ConsumerSubscriber(consumer));
 	}
 
 	@SuppressWarnings("unchecked")
-	private ReactiveConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber,
-			Consumer<Message<?>> consumer) {
+	public ReactiveConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
 		Assert.notNull(inputChannel);
+		Assert.notNull(subscriber);
 
-		Publisher<Message<?>> publisher;
 		if (inputChannel instanceof Publisher) {
-			publisher = (Publisher<Message<?>>) inputChannel;
+			this.publisher = (Publisher<Message<?>>) inputChannel;
 		}
 		else {
-			publisher = adaptToPublisher(inputChannel);
+			this.publisher = adaptToPublisher(inputChannel);
 		}
 
-		this.publisher = Flux.from(publisher)
-				.doOnError(t -> this.errorHandler.handleError(t)) // NPE if method reference
-				.doOnSubscribe(s -> this.subscription = s)
-				.retry();
+		this.subscriber = new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
 
-		this.subscriber = subscriber;
-		this.consumer = consumer;
+			@Override
+			protected void doNext(Message<?> message) {
+				try {
+					super.doNext(message);
+				}
+				catch (Exception e) {
+					ReactiveConsumer.this.errorHandler.handleError(e);
+					doOnSubscriberError(e);
+				}
+			}
+
+		};
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -95,26 +96,18 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		super.onInit();
 		if (this.errorHandler == null) {
 			Assert.notNull(getBeanFactory(), "BeanFactory is required");
-			this.errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryChannelResolver(getBeanFactory()));
+			this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
 		}
 	}
 
 	@Override
 	protected void doStart() {
-		if (this.subscriber != null) {
-			this.publisher.subscribe(this.subscriber);
-		}
-		else {
-			this.publisher.subscribe(this.consumer);
-		}
+		this.publisher.subscribe(this.subscriber);
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.subscription != null) {
-			this.subscription.cancel();
-		}
+		this.subscriber.cancel();
 	}
 
 	private Publisher<Message<?>> adaptToPublisher(MessageChannel inputChannel) {
@@ -135,23 +128,13 @@ public class ReactiveConsumer extends AbstractEndpoint {
 	}
 
 	private Publisher<Message<?>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
-		return null;
+		return new PollableChannelPublisherAdapter(inputChannel);
 	}
 
 
-	private final static class SubscribableChannelPublisherAdapter
-			implements Publisher<Message<?>>, Subscriber<Message<?>>, Subscription {
-
-		private final DirectProcessor<Message<?>> delegate = DirectProcessor.create();
-
-		private final MessageHandler subscriberAdapter = this.delegate.connectSink()::accept;
+	private final static class SubscribableChannelPublisherAdapter implements Publisher<Message<?>> {
 
 		private final SubscribableChannel channel;
-
-		private Subscriber<? super Message<?>> actualSubscriber;
-
-		private Subscription actualSubscription;
-
 
 		SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
 			this.channel = channel;
@@ -159,41 +142,101 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 		@Override
 		public void subscribe(Subscriber<? super Message<?>> subscriber) {
-			this.actualSubscriber = subscriber;
-			this.delegate.subscribe(this);
-			this.channel.subscribe(this.subscriberAdapter);
+			Flux.<Message<?>>create(emitter -> {
+				MessageHandler messageHandler = emitter::next;
+				SubscribableChannelPublisherAdapter.this.channel.subscribe(messageHandler);
+				emitter.setCancellation(() ->
+						SubscribableChannelPublisherAdapter.this.channel.unsubscribe(messageHandler));
+			}, FluxSink.OverflowStrategy.IGNORE)
+					.subscribe(subscriber);
+		}
+
+	}
+
+	private final static class PollableChannelPublisherAdapter implements Publisher<Message<?>> {
+
+		private final PollableChannel channel;
+
+		SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
+			this.channel = channel;
 		}
 
 		@Override
-		public void onSubscribe(Subscription subscription) {
-			this.actualSubscription = subscription;
-			this.actualSubscriber.onSubscribe(this);
+		public void subscribe(Subscriber<? super Message<?>> subscriber) {
+			Mono.<Message<?>>delayMillis(100)
+					.repeat()
+					.flatMap(v -> Mono.<Message<?>>justOrEmpty(this.channel.receive(100)))
+					.subscribe(subscriber);
+
+		}
+
+	}
+
+	private static final class ConsumerSubscriber implements Subscriber<Message<?>>, Receiver, Cancellation, Trackable {
+
+		private final Consumer<Message<?>> consumer;
+
+		private Subscription subscription;
+
+		ConsumerSubscriber(Consumer<Message<?>> consumer) {
+			Assert.notNull(consumer);
+			this.consumer = consumer;
+		}
+
+		@Override
+		public void onSubscribe(Subscription s) {
+			this.subscription = s;
+			s.request(Long.MAX_VALUE);
 		}
 
 		@Override
 		public void onNext(Message<?> message) {
-			this.actualSubscriber.onNext(message);
+			this.consumer.accept(message);
 		}
 
 		@Override
 		public void onError(Throwable t) {
-			this.actualSubscriber.onError(t);
+			if (t == null) {
+				throw Exceptions.argumentIsNullException();
+			}
+			onComplete();
+			Operators.onErrorDropped(t);
 		}
 
 		@Override
 		public void onComplete() {
-			this.actualSubscriber.onComplete();
+			if (this.subscription != null) {
+				this.subscription = null;
+			}
 		}
 
 		@Override
-		public void request(long n) {
-			this.actualSubscription.request(n);
+		public Object upstream() {
+			return this.subscription;
 		}
 
 		@Override
-		public void cancel() {
-			this.channel.unsubscribe(this.subscriberAdapter);
-			this.actualSubscription.cancel();
+		public void dispose() {
+			Subscription s = this.subscription;
+			if (s != null) {
+				this.subscription = null;
+				s.cancel();
+			}
+		}
+
+		@Override
+		public long getCapacity() {
+			return Long.MAX_VALUE;
+		}
+
+		@Override
+		public boolean isStarted() {
+			return this.subscription != null;
+		}
+
+		@Override
+		public boolean isTerminated() {
+			return false;
 		}
 
 	}
