@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
@@ -165,9 +166,32 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		public void subscribe(Subscriber<? super Message<?>> subscriber) {
 			Mono.<Message<?>>delayMillis(100)
 					.repeat()
-					.flatMap(v -> Mono.<Message<?>>justOrEmpty(this.channel.receive(100)))
+					.concatMap(this::pollChannelForData)
 					.subscribe(subscriber);
+		}
 
+
+		private Flux<Message<?>> pollChannelForData(long event) {
+			return Flux.fromIterable(() -> new Iterator<Message<?>>() {
+
+				private Message<?> next = null;
+
+				@Override
+				public Message<?> next() {
+					Message<?> message = this.next;
+					this.next = null;
+					return message;
+				}
+
+				@Override
+				public boolean hasNext() {
+					if (this.next == null) {
+						this.next = PollableChannelPublisherAdapter.this.channel.receive(0);
+					}
+					return this.next != null;
+				}
+
+			});
 		}
 
 	}
