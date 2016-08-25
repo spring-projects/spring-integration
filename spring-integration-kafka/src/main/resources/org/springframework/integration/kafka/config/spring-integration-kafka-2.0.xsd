@@ -79,7 +79,7 @@
 							]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="partition-id" type="xsd:integer">
+			<xsd:attribute name="partition-id" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 								Specifies the target partition for the Kafka message.

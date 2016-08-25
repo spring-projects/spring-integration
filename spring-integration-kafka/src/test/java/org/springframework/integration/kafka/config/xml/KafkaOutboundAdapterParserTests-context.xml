@@ -3,9 +3,10 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int:channel id="inputToKafka" />
 
@@ -33,5 +34,11 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+
+	<int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter2"
+										kafka-template="template"
+										auto-startup="false"
+										channel="inputToKafka"
+										partition-id="#{0}" />
 
 </beans>
