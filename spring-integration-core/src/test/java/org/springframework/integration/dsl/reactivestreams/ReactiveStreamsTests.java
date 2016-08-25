@@ -33,9 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -100,7 +98,6 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	@Ignore("Until Reactor 3.0.x solution")
 	public void testPollableReactiveFlow() throws InterruptedException, TimeoutException, ExecutionException {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
@@ -109,19 +106,20 @@ public class ReactiveStreamsTests {
 		Flux.from(this.pollablePublisher)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 				.doOnNext(p -> latch.countDown())
-				.subscribe(6);
+				.take(6)
+				.subscribe();
 
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
-						Flux.fromArray(new String[] { "11,12,13" })
+						Flux.just("11,12,13")
 								.map(v -> v.split(","))
-								.map(Arrays::asList)
-								.flatMapIterable(data -> data)
+								.flatMapIterable(Arrays::asList)
 								.map(Integer::parseInt)
 								.<Message<Integer>>map(GenericMessage<Integer>::new)
 								.concatWith(this.pollablePublisher)
 								.map(Message::getPayload)
-								.collect(Collectors.toList())
+								.take(7)
+								.collectList()
 								.block(Duration.ofSeconds(5)));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));

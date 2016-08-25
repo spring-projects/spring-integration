@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel.reactive;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -32,6 +34,7 @@ import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -53,13 +56,20 @@ public class ReactiveChannelTests {
 		QueueChannel replyChannel = new QueueChannel();
 
 		for (int i = 0; i < 10; i++) {
-			this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
+			try {
+				this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
+			}
+			catch (Exception e) {
+				assertThat(e.getCause(), instanceOf(MessageHandlingException.class));
+				assertThat(e.getCause().getCause(), instanceOf(IllegalStateException.class));
+				assertThat(e.getMessage(), containsString("intentional"));
+			}
 		}
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 9; i++) {
 			Message<?> receive = replyChannel.receive(10000);
 			assertNotNull(receive);
-			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"));
+			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
 		}
 	}
 
@@ -74,10 +84,9 @@ public class ReactiveChannelTests {
 
 		@ServiceActivator(inputChannel = "reactiveChannel")
 		public String handle(int payload) {
-			/* TODO doesn't work yet
 			if (payload == 5) {
 				throw new IllegalStateException("intentional");
-			}*/
+			}
 			return "" + payload;
 		}
 

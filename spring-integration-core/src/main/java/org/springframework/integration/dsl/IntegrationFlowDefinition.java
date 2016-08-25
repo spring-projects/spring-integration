@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -39,7 +38,7 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
@@ -49,6 +48,7 @@ import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
+import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.expression.ControlBusMethodFilter;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
@@ -89,7 +89,6 @@ import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -2762,32 +2761,36 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
-	 * @param <T> the {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> Publisher<Message<T>> toReactivePublisher() {
-		return toReactivePublisher(Executors.newSingleThreadExecutor());
-	}
-
-	/**
-	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
-	 * @param executor the managed {@link Executor} to be used for the background task to
-	 *                 poll messages from the {@link PollableChannel}.
-	 *                 Defaults to {@link Executors#newSingleThreadExecutor()}.
-	 * @param <T> the {@code payload} type
-	 * @return the Reactive Streams {@link Publisher}
-	 */
-	public <T> Publisher<Message<T>> toReactivePublisher(Executor executor) {
-		Assert.notNull(executor);
 		MessageChannel channelForPublisher = this.currentMessageChannel;
-		if (channelForPublisher == null) {
-			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
-			publishSubscribeChannel.setMinSubscribers(1);
-			channelForPublisher = publishSubscribeChannel;
-			channel(channelForPublisher);
+		Publisher<Message<T>> publisher;
+		if (channelForPublisher instanceof Publisher) {
+			publisher = (Publisher<Message<T>>) channelForPublisher;
 		}
+		else {
+			MessageChannel reactiveChannel = new ReactiveChannel();
+			publisher = (Publisher<Message<T>>) reactiveChannel;
+
+			if (channelForPublisher != null) {
+				BridgeHandler bridge = new BridgeHandler();
+				bridge.setOutputChannel(reactiveChannel);
+
+				addComponent(bridge)
+						.addComponent(new ReactiveConsumer(channelForPublisher, bridge))
+						.addComponent(reactiveChannel);
+			}
+			else {
+				channel(reactiveChannel);
+			}
+
+		}
+
 		get();
-		return new PublisherIntegrationFlow<T>(this.integrationComponents, channelForPublisher, executor);
+
+		return new PublisherIntegrationFlow<T>(this.integrationComponents, publisher);
 	}
 
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,

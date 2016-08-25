@@ -18,29 +18,38 @@ package org.springframework.integration.channel.reactive;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.integration.test.reactive.TestSubscriber;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -91,10 +100,20 @@ public class ReactiveConsumerTests {
 
 
 	@Test
-	public void testReactiveConsumerDirectChannel() {
+	@SuppressWarnings("unchecked")
+	public void testReactiveConsumerDirectChannel() throws InterruptedException {
 		DirectChannel testChannel = new DirectChannel();
 
-		TestSubscriber<Message<?>> testSubscriber = TestSubscriber.create();
+		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
+
+		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
+
+		willAnswer(i -> {
+			messages.put(i.getArgumentAt(0, Message.class));
+			return null;
+		})
+				.given(testSubscriber)
+				.onNext(any(Message.class));
 
 		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
@@ -104,11 +123,14 @@ public class ReactiveConsumerTests {
 		Message<?> testMessage = new GenericMessage<>("test");
 		testChannel.send(testMessage);
 
-		testSubscriber.assertSubscribed();
-		testSubscriber.assertNoError();
-		testSubscriber.assertNotComplete();
+		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
+		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
+		Subscription subscription = subscriptionArgumentCaptor.getValue();
 
-		testSubscriber.assertValues(testMessage);
+		subscription.request(1);
+
+		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
+		assertSame(testMessage, message);
 
 		reactiveConsumer.stop();
 
@@ -120,18 +142,79 @@ public class ReactiveConsumerTests {
 			assertThat(e, instanceOf(MessageDeliveryException.class));
 		}
 
-		new DirectFieldAccessor(testSubscriber).setPropertyValue("s", null);
-		TestUtils.getPropertyValue(testSubscriber, "values", List.class).clear();
-
 		reactiveConsumer.start();
 
-		testSubscriber.request(1);
+		subscription.request(1);
 
 		testMessage = new GenericMessage<>("test2");
 
 		testChannel.send(testMessage);
 
-		testSubscriber.assertValues(testMessage);
+		message = messages.poll(10, TimeUnit.SECONDS);
+		assertSame(testMessage, message);
+
+		verify(testSubscriber, never()).onError(any(Throwable.class));
+		verify(testSubscriber, never()).onComplete();
+
+		assertTrue(messages.isEmpty());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testReactiveConsumerPollableChannel() throws InterruptedException {
+		QueueChannel testChannel = new QueueChannel();
+
+		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
+
+		BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<>();
+
+		willAnswer(i -> {
+			messages.put(i.getArgumentAt(0, Message.class));
+			return null;
+		})
+				.given(testSubscriber)
+				.onNext(any(Message.class));
+
+		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
+		reactiveConsumer.afterPropertiesSet();
+		reactiveConsumer.start();
+
+		Message<?> testMessage = new GenericMessage<>("test");
+		testChannel.send(testMessage);
+
+		ArgumentCaptor<Subscription> subscriptionArgumentCaptor = ArgumentCaptor.forClass(Subscription.class);
+		verify(testSubscriber).onSubscribe(subscriptionArgumentCaptor.capture());
+		Subscription subscription = subscriptionArgumentCaptor.getValue();
+
+		subscription.request(1);
+
+		Message<?> message = messages.poll(10, TimeUnit.SECONDS);
+		assertSame(testMessage, message);
+
+		reactiveConsumer.stop();
+
+
+		testChannel.send(testMessage);
+
+		reactiveConsumer.start();
+
+		subscription.request(2);
+
+		Message<?> testMessage2 = new GenericMessage<>("test2");
+
+		testChannel.send(testMessage2);
+
+		message = messages.poll(10, TimeUnit.SECONDS);
+		assertSame(testMessage, message);
+
+		message = messages.poll(10, TimeUnit.SECONDS);
+		assertSame(testMessage2, message);
+
+		verify(testSubscriber, never()).onError(any(Throwable.class));
+		verify(testSubscriber, never()).onComplete();
+
+		assertTrue(messages.isEmpty());
 	}
 
 	@Test
