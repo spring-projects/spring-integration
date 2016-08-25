@@ -29,6 +29,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -104,10 +105,12 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record).has(key((Integer) null));
 		assertThat(record).has(value("baz"));
 
+		handler.setPartitionIdExpression(new SpelExpressionParser().parseExpression("headers['kafka_partitionId']"));
+
 		message = MessageBuilder.withPayload(KafkaNull.INSTANCE)
 				.setHeader(KafkaHeaders.TOPIC, topic1)
 				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
-				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.PARTITION_ID, "1")
 				.build();
 		handler.handleMessage(message);
 
