@@ -102,6 +102,7 @@ public class InboundChannelAdapterParserTests {
 		Collection<FileListFilter<?>> filters =
 				TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class);
 		assertThat(filters, hasItem(acceptAllFilter));
+		assertEquals(42, source.getMaxFetchSize());
 		context.close();
 	}
 
@@ -117,6 +118,7 @@ public class InboundChannelAdapterParserTests {
 				.getPropertyValue(autoChannelAdapter, "source.synchronizer.remoteDirectoryExpression", Expression.class)
 				.getExpressionString());
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertEquals(Integer.MIN_VALUE, TestUtils.getPropertyValue(autoChannelAdapter, "source.maxFetchSize"));
 		context.close();
 	}
 

@@ -5009,6 +5009,18 @@ See 'SmartLifecycleRoleController'.
 		</xsd:attribute>
 	</xsd:attributeGroup>
 
+	<xsd:attributeGroup name="maxFetchGroup">
+		<xsd:attribute name="max-fetch-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+When fetching objects from some external resource, limit the number of such objects that
+will be retrieved on each fetch. A negative value (default) indicates no limit; a value
+of zero effectively disables fetching remote objects.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
 	<xsd:simpleType name="loggingLevel">
 		<xsd:restriction base="xsd:token">
 			<xsd:enumeration value="FATAL" />

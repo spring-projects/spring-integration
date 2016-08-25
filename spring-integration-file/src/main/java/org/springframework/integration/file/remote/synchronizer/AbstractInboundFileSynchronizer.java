@@ -233,6 +233,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	@Override
 	public void synchronizeToLocalDirectory(final File localDirectory, final int maxFetchSize) {
+		if (maxFetchSize == 0) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Max Fetch Size is zero - fetch ignored");
+			}
+			return;
+		}
 		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
 		try {
 			int transferred = this.remoteFileTemplate.execute(new SessionCallback<F, Integer>() {
