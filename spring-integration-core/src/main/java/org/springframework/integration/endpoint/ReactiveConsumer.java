@@ -156,43 +156,38 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	private final static class PollableChannelPublisherAdapter implements Publisher<Message<?>> {
 
-		private final Iterable<Message<?>> channelIterable;
+		private final PollableChannel channel;
+
 
 		PollableChannelPublisherAdapter(final PollableChannel channel) {
-			this.channelIterable = new Iterable<Message<?>>() {
-
-				@Override
-				public Iterator<Message<?>> iterator() {
-					return new Iterator<Message<?>>() {
-
-						private Message<?> next = null;
-
-						@Override
-						public Message<?> next() {
-							Message<?> message = this.next;
-							this.next = null;
-							return message;
-						}
-
-						@Override
-						public boolean hasNext() {
-							if (this.next == null) {
-								this.next = channel.receive(0);
-							}
-							return this.next != null;
-						}
-
-					};
-				}
-
-			};
+			this.channel = channel;
 		}
 
 		@Override
 		public void subscribe(Subscriber<? super Message<?>> subscriber) {
+			Iterator<Message<?>> channelIterator = new Iterator<Message<?>>() {
+
+				private Message<?> next = null;
+
+				@Override
+				public Message<?> next() {
+					Message<?> message = this.next;
+					this.next = null;
+					return message;
+				}
+
+				@Override
+				public boolean hasNext() {
+					if (this.next == null) {
+						this.next = PollableChannelPublisherAdapter.this.channel.receive(0);
+					}
+					return this.next != null;
+				}
+
+			};
 			Mono.<Message<?>>delayMillis(100)
 					.repeat()
-					.concatMap(value -> Flux.fromIterable(this.channelIterable))
+					.concatMap(value -> Flux.fromIterable(() -> channelIterator))
 					.subscribe(subscriber);
 		}
 
