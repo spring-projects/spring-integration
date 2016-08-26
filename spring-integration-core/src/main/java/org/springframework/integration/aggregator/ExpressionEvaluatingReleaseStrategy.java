@@ -27,7 +27,7 @@ public class ExpressionEvaluatingReleaseStrategy extends ExpressionEvaluatingMes
 		ReleaseStrategy {
 
 	public ExpressionEvaluatingReleaseStrategy(String expression) {
-		super(expression);
+		super(expression, Boolean.class);
 	}
 
 	/**
