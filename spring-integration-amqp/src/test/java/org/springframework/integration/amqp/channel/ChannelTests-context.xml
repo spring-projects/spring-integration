@@ -15,7 +15,8 @@
 
 	<int-amqp:channel id="withEP" extract-payload="true" message-converter="jackson" />
 
-	<int-amqp:channel id="pollableWithEP" extract-payload="true" message-driven="false" message-converter="jackson" />
+	<int-amqp:channel id="pollableWithEP" extract-payload="true" message-driven="false" message-converter="jackson"
+		inbound-header-mapper="mapperIn" outbound-header-mapper="mapperOut" />
 
 	<int-amqp:publish-subscribe-channel id="pubSubWithEP" extract-payload="true" message-converter="jackson" />
 
@@ -28,5 +29,11 @@
 	</int:channel>
 
 	<bean id="jackson" class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter" />
+
+	<bean id="mapperIn" class="org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper"
+		factory-method="inboundMapper" />
+
+	<bean id="mapperOut" class="org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper"
+		factory-method="outboundMapper" />
 
 </beans>

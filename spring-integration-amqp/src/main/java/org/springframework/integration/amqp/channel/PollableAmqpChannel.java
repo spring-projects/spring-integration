@@ -80,7 +80,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	 */
 	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper,
 			AmqpHeaderMapper inboundMapper) {
-		super(amqpTemplate, inboundMapper, outboundMapper);
+		super(amqpTemplate, outboundMapper, inboundMapper);
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 	}
