@@ -113,7 +113,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		CONSUMER_METADATA_PRESENT = consumerTagHeader.get();
 	}
 
-	private DefaultAmqpHeaderMapper(String[] requestHeaderNames, String[] replyHeaderNames) {
+	protected DefaultAmqpHeaderMapper(String[] requestHeaderNames, String[] replyHeaderNames) {
 		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 		if (requestHeaderNames != null) {
 			setRequestHeaderNames(requestHeaderNames);

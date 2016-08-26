@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -42,8 +41,6 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -57,7 +54,6 @@ import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketF
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
