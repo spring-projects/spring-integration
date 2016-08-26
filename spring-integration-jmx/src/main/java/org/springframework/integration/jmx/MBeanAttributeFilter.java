@@ -23,6 +23,7 @@ import javax.management.ObjectName;
  * @since 3.0
  *
  */
+@FunctionalInterface
 public interface MBeanAttributeFilter {
 
 	/**

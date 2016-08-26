@@ -24,6 +24,7 @@ import org.springframework.integration.store.MessageGroup;
  * @author Iwein Fuld
  * @see org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler
  */
+@FunctionalInterface
 public interface MessageGroupProcessor {
 
 	/**

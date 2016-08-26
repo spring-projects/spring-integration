@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @since 2.0
  */
+@FunctionalInterface
 public interface RequestReplyExchanger {
 
 	Message<?> exchange(Message<?> request);

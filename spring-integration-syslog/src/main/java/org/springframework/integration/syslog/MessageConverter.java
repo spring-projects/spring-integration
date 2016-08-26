@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  * @since 3.0
  *
  */
+@FunctionalInterface
 public interface MessageConverter {
 
 	Message<?> fromSyslog(Message<?> syslog) throws Exception;

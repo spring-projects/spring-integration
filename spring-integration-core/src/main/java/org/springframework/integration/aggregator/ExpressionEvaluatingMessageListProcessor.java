@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,29 +22,41 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * A base class for aggregators that evaluates a SpEL expression with the message list as the root object within the
  * evaluation context.
  *
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageListProcessor extends AbstractExpressionEvaluator implements MessageListProcessor {
+public class ExpressionEvaluatingMessageListProcessor extends AbstractExpressionEvaluator
+		implements MessageListProcessor {
 
 	private final Expression expression;
 
 	private volatile Class<?> expectedType = null;
 
 	/**
-	 * Set the result type expected from evaluation of the expression.
-	 *
-	 * @param expectedType The expected type.
+	 * Construct {@link ExpressionEvaluatingMessageListProcessor} for the provided
+	 * SpEL expression and expected result type.
+	 * @param expression a SpEL expression to evaluate in {@link #process(Collection)}.
+	 * @param expectedType an expected result type.
+	 * @since 5.0
 	 */
-	public void setExpectedType(Class<?> expectedType) {
+	public ExpressionEvaluatingMessageListProcessor(String expression, Class<?> expectedType) {
+		this(expression);
 		this.expectedType = expectedType;
 	}
 
+	/**
+	 * Construct {@link ExpressionEvaluatingMessageListProcessor} for the provided
+	 * SpEL expression and expected result type.
+	 * @param expression a SpEL expression to evaluate in {@link #process(Collection)}.
+	 * @since 5.0
+	 */
 	public ExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
 			this.expression = EXPRESSION_PARSER.parseExpression(expression);
@@ -52,6 +64,36 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);
 		}
+	}
+
+	/**
+	 * Construct {@link ExpressionEvaluatingMessageListProcessor} for the provided
+	 * expression and expected result type.
+	 * @param expression an expression to evaluate in {@link #process(Collection)}.
+	 * @param expectedType an expected result type.
+	 * @since 5.0
+	 */
+	public ExpressionEvaluatingMessageListProcessor(Expression expression, Class<?> expectedType) {
+		this(expression);
+		this.expectedType = expectedType;
+	}
+
+	/**
+	 * Construct {@link ExpressionEvaluatingMessageListProcessor} for the provided expression.
+	 * @param expression an expression to evaluate in {@link #process(Collection)}.
+	 * @since 5.0
+	 */
+	public ExpressionEvaluatingMessageListProcessor(Expression expression) {
+		Assert.notNull(expression, "'expression' must not be null.");
+		this.expression = expression;
+	}
+
+	/**
+	 * Set the result type expected from evaluation of the expression.
+	 * @param expectedType The expected type.
+	 */
+	public void setExpectedType(Class<?> expectedType) {
+		this.expectedType = expectedType;
 	}
 
 	/**

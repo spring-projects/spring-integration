@@ -28,6 +28,7 @@ import org.springframework.integration.file.remote.session.Session;
  * @since 3.0
  *
  */
+@FunctionalInterface
 public interface SessionCallback<F, T> {
 
 	/**

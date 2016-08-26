@@ -17,6 +17,7 @@
 package org.springframework.integration.util;
 
 import java.util.Iterator;
+import java.util.function.Function;
 
 /**
  * An {@link Iterator} implementation to convert each item from the target

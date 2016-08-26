@@ -62,7 +62,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 
 	/**
-	 * @param autoCreateDirectory true to automatically create the direcotory.
+	 * @param autoCreateDirectory true to automatically create the directory.
 	 * @see RemoteFileTemplate#setAutoCreateDirectory(boolean)
 	 */
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {

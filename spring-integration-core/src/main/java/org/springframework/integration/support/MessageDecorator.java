@@ -27,6 +27,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 4.2.9
  */
+@FunctionalInterface
 public interface MessageDecorator {
 
 	Message<?> decorateMessage(Message<?> message);

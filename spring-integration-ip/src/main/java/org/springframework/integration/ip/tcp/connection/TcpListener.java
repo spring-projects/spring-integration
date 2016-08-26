@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  * @since 2.0
  *
  */
+@FunctionalInterface
 public interface TcpListener {
 
 	/**

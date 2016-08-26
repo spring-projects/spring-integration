@@ -22,15 +22,19 @@ import org.springframework.scripting.ScriptSource;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
+@FunctionalInterface
 public interface ScriptExecutor {
 
 	/**
 	 * @param scriptSource The script source.
 	 * @return The result of the execution.
 	 */
-	Object executeScript(ScriptSource scriptSource);
+	default Object executeScript(ScriptSource scriptSource) {
+		return executeScript(scriptSource, null);
+	}
 
 	/**
 	 * @param scriptSource The script source.

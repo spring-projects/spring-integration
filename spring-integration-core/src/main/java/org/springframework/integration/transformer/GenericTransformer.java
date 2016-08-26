@@ -25,6 +25,7 @@ package org.springframework.integration.transformer;
  * @author Artem Bilan
  * @since 4.0
  */
+@FunctionalInterface
 public interface GenericTransformer<S, T> {
 
 	T transform(S source);

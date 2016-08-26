@@ -22,15 +22,17 @@ package org.springframework.integration.file.remote;
  * access to lower level methods where no result is returned.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @param <C> The type of the underlying client object.
  * @since 4.1
  *
  */
-public abstract class ClientCallbackWithoutResult<C> implements ClientCallback<C, Object> {
+@FunctionalInterface
+public interface ClientCallbackWithoutResult<C> extends ClientCallback<C, Object> {
 
 	@Override
-	public Object doWithClient(C client) {
+	default Object doWithClient(C client) {
 		doWithClientWithoutResult(client);
 		return null;
 	}
@@ -43,6 +45,6 @@ public abstract class ClientCallbackWithoutResult<C> implements ClientCallback<C
 	 * operations.
 	 * @param client The client.
 	 */
-	protected abstract void doWithClientWithoutResult(C client);
+	void doWithClientWithoutResult(C client);
 
 }

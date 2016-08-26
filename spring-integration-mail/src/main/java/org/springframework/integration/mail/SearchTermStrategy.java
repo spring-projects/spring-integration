@@ -29,6 +29,7 @@ import javax.mail.search.SearchTerm;
  * @since 2.2
  *
  */
+@FunctionalInterface
 public interface SearchTermStrategy {
 
 	/**
