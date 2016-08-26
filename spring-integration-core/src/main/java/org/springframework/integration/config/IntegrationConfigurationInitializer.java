@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  * @author Artem Bilan
  * @since 4.0
  */
+@FunctionalInterface
 public interface IntegrationConfigurationInitializer {
 
 	void initialize(ConfigurableListableBeanFactory beanFactory) throws BeansException;

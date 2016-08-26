@@ -23,6 +23,7 @@ import org.springframework.messaging.Message;
  *
  * @author Mark Fisher
  */
+@FunctionalInterface
 public interface Transformer extends GenericTransformer<Message<?>, Message<?>> {
 
 	Message<?> transform(Message<?> message);

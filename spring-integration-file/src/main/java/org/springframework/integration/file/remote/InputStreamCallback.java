@@ -26,13 +26,13 @@ import java.io.InputStream;
  * @since 3.0
  *
  */
+@FunctionalInterface
 public interface InputStreamCallback {
 
 	/**
 	 * Called with the InputStream for the remote file. The caller will
 	 * take care of closing the stream and finalizing the file retrieval operation after
 	 * this method exits.
-	 *
 	 * @param stream The InputStream.
 	 * @throws IOException Any IOException.
 	 */

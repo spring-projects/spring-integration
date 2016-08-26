@@ -29,10 +29,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.CustomizableThreadCreator;
@@ -51,7 +49,8 @@ import groovy.lang.MissingPropertyException;
  * @author Gary Russell
  * @since 2.0
  */
-public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements BeanClassLoaderAware {
+public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler>
+		implements BeanClassLoaderAware {
 
 	private volatile Long sendTimeout;
 
@@ -75,15 +74,11 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	@Override
 	protected MessageHandler createHandler() {
 		Binding binding = new ManagedBeansBinding(this.getBeanFactory());
-		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding, new ScriptVariableGenerator() {
-
-			@Override
-			public Map<String, Object> generateScriptVariables(Message<?> message) {
-				Map<String, Object> variables = new HashMap<String, Object>();
-				variables.put("headers", message.getHeaders());
-				return variables;
-			}
-
+		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding,
+				message -> {
+					Map<String, Object> variables = new HashMap<>();
+					variables.put("headers", message.getHeaders());
+					return variables;
 		});
 		if (this.customizer != null) {
 			processor.setCustomizer(this.customizer);
@@ -147,7 +142,8 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 					(AnnotationUtils.findAnnotation(bean.getClass(), IntegrationManagedResource.class) != null)) {
 				return bean;
 			}
-			throw new BeanCreationNotAllowedException(name, "Only beans with @ManagedResource or beans which implement " +
+			throw new BeanCreationNotAllowedException(name,
+					"Only beans with @ManagedResource or beans which implement " +
 					"org.springframework.context.Lifecycle or org.springframework.util.CustomizableThreadCreator " +
 					"are allowed to use as ControlBus components.");
 		}

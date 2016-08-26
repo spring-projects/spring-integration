@@ -116,7 +116,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 
 		@Override
 		public Message<?> decorateMessage(Message<?> message) {
-			return new MessageWithThreadState<S>(message, this.state);
+			return new MessageWithThreadState<>(message, this.state);
 		}
 
 		@Override

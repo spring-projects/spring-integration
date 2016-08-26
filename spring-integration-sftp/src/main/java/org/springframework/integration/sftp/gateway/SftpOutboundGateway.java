@@ -141,18 +141,13 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 
 	@Override
 	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, final String path, final int chmod) {
-		remoteFileTemplate.executeWithClient(new ClientCallbackWithoutResult<ChannelSftp>() {
-
-			@Override
-			protected void doWithClientWithoutResult(ChannelSftp client) {
+		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
 				try {
 					client.chmod(chmod, path);
 				}
 				catch (SftpException e) {
 					throw new GeneralSftpException("Failed to execute chmod", e);
 				}
-			}
-
 		});
 	}
 

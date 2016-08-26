@@ -24,6 +24,7 @@ import org.springframework.messaging.Message;
  * @author Dave Syer
  *
  */
+@FunctionalInterface
 public interface MessageListProcessor {
 
 	Object process(Collection<? extends Message<?>> messages);

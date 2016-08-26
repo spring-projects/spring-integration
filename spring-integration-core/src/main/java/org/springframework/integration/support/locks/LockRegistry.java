@@ -25,6 +25,7 @@ import java.util.concurrent.locks.Lock;
  * @author Gary Russell
  * @since 2.1.1
  */
+@FunctionalInterface
 public interface LockRegistry {
 
 	/**

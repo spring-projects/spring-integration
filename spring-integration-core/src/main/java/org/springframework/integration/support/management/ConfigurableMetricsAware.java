@@ -23,6 +23,7 @@ package org.springframework.integration.support.management;
  * @since 4.2
  *
  */
+@FunctionalInterface
 public interface ConfigurableMetricsAware<M extends ConfigurableMetrics> {
 
 	void configureMetrics(M metrics);

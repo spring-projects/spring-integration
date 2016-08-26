@@ -16,12 +16,8 @@
 
 package org.springframework.integration.sftp.session;
 
-import java.io.IOException;
-
 import org.springframework.integration.file.remote.ClientCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.SessionCallback;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -48,13 +44,7 @@ public class SftpRemoteFileTemplate extends RemoteFileTemplate<LsEntry> {
 	}
 
 	protected <T> T doExecuteWithClient(final ClientCallback<ChannelSftp, T> callback) {
-		return execute(new SessionCallback<LsEntry, T>() {
-
-			@Override
-			public T doInSession(Session<LsEntry> session) throws IOException {
-				return callback.doWithClient((ChannelSftp) session.getClientInstance());
-			}
-		});
+		return execute(session -> callback.doWithClient((ChannelSftp) session.getClientInstance()));
 	}
 
 }

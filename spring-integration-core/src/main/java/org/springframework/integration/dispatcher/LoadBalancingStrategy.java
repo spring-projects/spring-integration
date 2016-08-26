@@ -29,6 +29,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
+@FunctionalInterface
 public interface LoadBalancingStrategy {
 
 	Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers);
