@@ -25,6 +25,7 @@ import javax.management.ObjectInstance;
  * @since 3.0
  *
  */
+@FunctionalInterface
 public interface MBeanObjectConverter {
 
 	/**

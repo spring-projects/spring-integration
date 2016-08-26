@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * @author Jonas Partner
  * @since 2.0
  */
+@FunctionalInterface
 public interface SqlParameterSourceFactory {
 
 	/**

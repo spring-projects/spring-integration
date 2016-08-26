@@ -27,6 +27,7 @@ import org.springframework.messaging.support.MessageHandlingRunnable;
  * @see UnicastingDispatcher
  * @see BroadcastingDispatcher
  */
+@FunctionalInterface
 public interface MessageHandlingTaskDecorator {
 
 	Runnable decorate(MessageHandlingRunnable task);

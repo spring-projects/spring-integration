@@ -23,8 +23,6 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.ClientCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.SessionCallback;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -67,13 +65,7 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	}
 
 	protected <T> T doExecuteWithClient(final ClientCallback<FTPClient, T> callback) {
-		return execute(new SessionCallback<FTPFile, T>() {
-
-			@Override
-			public T doInSession(Session<FTPFile> session) throws IOException {
-				return callback.doWithClient((FTPClient) session.getClientInstance());
-			}
-		});
+		return execute(session -> callback.doWithClient((FTPClient) session.getClientInstance()));
 	}
 
 	/**

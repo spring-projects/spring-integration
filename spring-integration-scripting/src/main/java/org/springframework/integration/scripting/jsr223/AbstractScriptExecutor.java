@@ -61,11 +61,6 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
 	}
 
 	@Override
-	public Object executeScript(ScriptSource scriptSource) {
-		return this.executeScript(scriptSource, null);
-	}
-
-	@Override
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Object result;
 

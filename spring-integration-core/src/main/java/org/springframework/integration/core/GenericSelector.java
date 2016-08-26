@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ package org.springframework.integration.core;
  * @author Artem Bilan
  * @since 4.0
  */
+@FunctionalInterface
 public interface GenericSelector<S> {
 
 	boolean accept(S source);

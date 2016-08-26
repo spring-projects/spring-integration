@@ -41,7 +41,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import org.springframework.integration.splitter.AbstractMessageSplitter;
-import org.springframework.integration.util.Function;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
@@ -210,20 +209,15 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			return splitStrings;
 		}
 		else {
-			return new FunctionIterator<Node, String>((Iterator<Node>) nodes, new Function<Node, String>() {
-
-				@Override
-				public String apply(Node node) {
-					StringResult result = new StringResult();
-					try {
-						transformer.transform(new DOMSource(node), result);
-					}
-					catch (TransformerException e) {
-						throw new IllegalStateException("failed to create DocumentBuilder", e);
-					}
-					return result.toString();
+			return new FunctionIterator<>((Iterator<Node>) nodes, node -> {
+				StringResult result = new StringResult();
+				try {
+					transformer.transform(new DOMSource(node), result);
 				}
-
+				catch (TransformerException e) {
+					throw new IllegalStateException("failed to create DocumentBuilder", e);
+				}
+				return result.toString();
 			});
 		}
 	}

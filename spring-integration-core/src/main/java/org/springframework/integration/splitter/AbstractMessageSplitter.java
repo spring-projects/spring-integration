@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.util.Function;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 
@@ -89,7 +88,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 		Map<String, Object> messageHeaders = message.getHeaders();
 		if (willAddHeaders(message)) {
-			messageHeaders = new HashMap<String, Object>(messageHeaders);
+			messageHeaders = new HashMap<>(messageHeaders);
 			addHeaders(message, messageHeaders);
 		}
 		final Map<String, Object> headers = messageHeaders;
@@ -97,15 +96,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
 		return new FunctionIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
-				new Function<Object, AbstractIntegrationMessageBuilder<?>>() {
-
-					@Override
-					public AbstractIntegrationMessageBuilder<?> apply(Object object) {
-						return createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(),
-								sequenceSize);
-					}
-
-				});
+				object ->
+						createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize));
 	}
 
 	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,

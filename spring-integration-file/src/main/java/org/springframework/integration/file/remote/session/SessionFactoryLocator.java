@@ -24,6 +24,7 @@ package org.springframework.integration.file.remote.session;
  * @since 4.2
  *
  */
+@FunctionalInterface
 public interface SessionFactoryLocator<F> {
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Collection;
  * @author Mark Fisher
  * @since 2.1
  */
+@FunctionalInterface
 public interface CollectionFilter<T> {
 
 	Collection<T> filter(Collection<T> unfilteredElements);

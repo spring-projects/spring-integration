@@ -59,7 +59,7 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
-	static final boolean CONSUMER_METADATA_PRESENT;
+	private static final boolean CONSUMER_METADATA_PRESENT;
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
