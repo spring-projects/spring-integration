@@ -469,29 +469,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
-	@Deprecated
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		final String groupKey = getKey(groupId);
-		final String messageId = getKey(messageToRemove.getHeaders().getId());
-
-		this.jdbcTemplate.update(getQuery(Query.REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
-
-			@Override
-			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Removing message from group with group key=" + groupKey);
-				}
-				ps.setString(1, groupKey);
-				ps.setString(2, messageId);
-				ps.setString(3, JdbcMessageStore.this.region);
-			}
-		});
-		removeMessage(messageToRemove.getHeaders().getId());
-		updateMessageGroup(groupKey);
-		return getMessageGroup(groupId);
-	}
-
-	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messages' must not be null");

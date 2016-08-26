@@ -79,7 +79,7 @@
 
 	<channel id="timeoutRouterChannel"/>
 
-	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" timeout="1234" input-channel="timeoutRouterChannel"/>
+	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" send-timeout="1234" input-channel="timeoutRouterChannel"/>
 
 	<router input-channel="routerNestedBeanChannel" method="route">
 		<beans:bean class="org.springframework.integration.router.config.TestRouter"/>

@@ -392,18 +392,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.toBeReceived.offer(failedMessage.getPayload());
 	}
 
-	/**
-	 * The message is just logged. It was already removed from the queue during
-	 * the call to <code>receive()</code>
-	 * @param sentMessage the message that was successfully delivered
-	 * @deprecated with no replacement. Redundant method.
-	 */
-	@Deprecated
-	public void onSend(Message<File> sentMessage) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sent: " + sentMessage);
-		}
-	}
 
 	public enum WatchEventType {
 

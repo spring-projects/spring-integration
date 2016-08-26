@@ -272,13 +272,6 @@ public class ParserUnitTests {
 	@Autowired
 	TcpMessageMapper mapper;
 
-	@SuppressWarnings("deprecation")
-	@Autowired
-	org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer eventAdapter;
-
-	@Autowired
-	QueueChannel eventChannel;
-
 	private static CountDownLatch adviceCalled = new CountDownLatch(1);
 
 	@Test
@@ -667,31 +660,6 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
 		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
-	}
-
-	@SuppressWarnings({ "unchecked", "deprecation" })
-	@Test
-	public void testEventAdapter() {
-		Set<?> eventTypes = TestUtils.getPropertyValue(this.eventAdapter, "eventTypes", Set.class);
-		assertEquals(2, eventTypes.size());
-		assertTrue(eventTypes.contains(EventSubclass1.class));
-		assertTrue(eventTypes.contains(EventSubclass2.class));
-		assertFalse(TestUtils.getPropertyValue(this.eventAdapter, "autoStartup", Boolean.class));
-		assertEquals(23, TestUtils.getPropertyValue(this.eventAdapter, "phase"));
-		assertEquals("eventErrors", TestUtils.getPropertyValue(this.eventAdapter, "errorChannel",
-				DirectChannel.class).getComponentName());
-
-		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
-		TcpConnectionEvent event = new TcpConnectionOpenEvent(connection, "foo");
-		Class<TcpConnectionEvent>[] types = (Class<TcpConnectionEvent>[]) new Class<?>[]{TcpConnectionEvent.class};
-		this.eventAdapter.setEventTypes(types);
-		this.eventAdapter.onApplicationEvent(event);
-		assertNull(this.eventChannel.receive(0));
-		this.eventAdapter.start();
-		this.eventAdapter.onApplicationEvent(event);
-		Message<?> eventMessage = this.eventChannel.receive(0);
-		assertNotNull(eventMessage);
-		assertSame(event, eventMessage.getPayload());
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

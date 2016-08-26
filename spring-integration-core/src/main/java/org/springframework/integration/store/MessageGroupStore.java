@@ -55,17 +55,6 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	int getMessageGroupCount();
 
 	/**
-	 * Persist the deletion of a single message from the group.
-	 * The group is modified to reflect that 'messageToRemove' is no longer present in the group.
-	 * @param key The groupId for the group containing the message.
-	 * @param messageToRemove The message to be removed.
-	 * @return The message Group.
-	 * @deprecated in favor of {@link #removeMessagesFromGroup}
-	 */
-	@Deprecated
-	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
-
-	/**
 	 * Persist the deletion of messages from the group.
 	 * @param key The groupId for the group containing the message(s).
 	 * @param messages The messages to be removed.

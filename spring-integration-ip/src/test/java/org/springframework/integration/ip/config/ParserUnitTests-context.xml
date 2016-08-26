@@ -4,14 +4,12 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:ip="http://www.springframework.org/schema/integration/ip"
 	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
@@ -432,13 +430,4 @@
 		</constructor-arg>
 	</bean>
 
-	<ip:tcp-connection-event-inbound-channel-adapter id="eventAdapter" channel="eventChannel"
-		auto-startup="false" phase="23" error-channel="eventErrors"
-		event-types="org.springframework.integration.ip.config.ParserUnitTests$EventSubclass1, org.springframework.integration.ip.config.ParserUnitTests$EventSubclass2"/>
-
-	<int:channel id="eventChannel">
-		<int:queue />
-	</int:channel>
-
-	<int:channel id="eventErrors" />
 </beans>

@@ -814,7 +814,7 @@ If you need to extend beyond the capabilities of that default implementation, th
 [[xml-xpath-header-enricher]]
 === XPath Header Enricher
 
-The XPath Header Enricher defines a Header Enricher Message Transformer that evaluates XPath expressions against the message payload and inserts the result of the evaluation into a messsage header.
+The XPath Header Enricher defines a Header Enricher Message Transformer that evaluates XPath expressions against the message payload and inserts the result of the evaluation into a message header.
 
 Please see below for an overview of all available configuration parameters:
 

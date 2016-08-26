@@ -18,7 +18,7 @@
 			destination-name="testDestination"
 			pub-sub-domain="true"
 			subscription-durable="false"
-			durable-subscription-name="foo"
+			subscription-name="foo"
 			channel="output"/>
 	 <!-- adding a sub name should not make it durable INT-3680 -->
 

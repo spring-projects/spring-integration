@@ -60,22 +60,6 @@ public class LeaderInitiatorFactoryBean
 	public LeaderInitiatorFactoryBean() {
 	}
 
-	/**
-	 * Construct the instance.
-	 * @param client the {@link CuratorFramework}.
-	 * @param path   the path in zookeeper.
-	 * @param role   the role of the leader.
-	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
-	 * to avoid {@code BeanCurrentlyInCreationException}
-	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
-	 */
-	@Deprecated
-	public LeaderInitiatorFactoryBean(CuratorFramework client, String path, String role) {
-		this.client = client;
-		this.path = path;
-		this.candidate = new DefaultCandidate(UUID.randomUUID().toString(), role);
-	}
-
 	public LeaderInitiatorFactoryBean setClient(CuratorFramework client) {
 		this.client = client;
 		return this;

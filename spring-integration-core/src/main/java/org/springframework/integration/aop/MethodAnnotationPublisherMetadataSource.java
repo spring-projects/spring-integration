@@ -74,14 +74,9 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		return (StringUtils.hasText(channelName) ? channelName : null);
 	}
 
-	@SuppressWarnings("deprecation")
 	public String getPayloadExpression(Method method) {
 		String payloadExpression = null;
-		Annotation methodPayloadAnnotation =
-				AnnotationUtils.findAnnotation(method, org.springframework.integration.annotation.Payload.class);
-		if (methodPayloadAnnotation == null) {
-			methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
-		}
+		Annotation methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
 
 		if (methodPayloadAnnotation != null) {
 			payloadExpression = getAnnotationValue(methodPayloadAnnotation, null, String.class);
@@ -94,8 +89,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		for (int i = 0; i < annotationArray.length; i++) {
 			Annotation[] parameterAnnotations = annotationArray[i];
 			for (Annotation currentAnnotation : parameterAnnotations) {
-				if (org.springframework.integration.annotation.Payload.class.equals(currentAnnotation.annotationType())
-						|| Payload.class.equals(currentAnnotation.annotationType())) {
+				if (Payload.class.equals(currentAnnotation.annotationType())) {
 					Assert.state(payloadExpression == null,
 							"@Payload can be used at most once on a @Publisher method, " +
 									"either at method-level or on a single parameter");
@@ -114,7 +108,6 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		return payloadExpression;
 	}
 
-	@SuppressWarnings("deprecation")
 	public Map<String, String> getHeaderExpressions(Method method) {
 		Map<String, String> headerExpressions = new HashMap<String, String>();
 		String[] parameterNames = this.parameterNameDiscoverer.getParameterNames(method);
@@ -122,8 +115,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 		for (int i = 0; i < annotationArray.length; i++) {
 			Annotation[] parameterAnnotations = annotationArray[i];
 			for (Annotation currentAnnotation : parameterAnnotations) {
-				if (org.springframework.integration.annotation.Header.class.equals(currentAnnotation.annotationType())
-						|| Header.class.equals(currentAnnotation.annotationType())) {
+				if (Header.class.equals(currentAnnotation.annotationType())) {
 					String name = getAnnotationValue(currentAnnotation, null, String.class);
 					if (!StringUtils.hasText(name)) {
 						name = parameterNames[i];

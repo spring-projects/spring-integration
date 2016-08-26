@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class ChatMessageListeningEndpointTests {
 
 
 	@Test
-	/**
+	/*
 	 * Should add/remove StanzaListener when endpoint started/stopped
 	 */
 	public void testLifecycle() {
@@ -172,14 +172,14 @@ public class ChatMessageListeningEndpointTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testExpression() throws Exception {
 		TestXMPPConnection testXMPPConnection = new TestXMPPConnection();
 
 		QueueChannel inputChannel = new QueueChannel();
 
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(testXMPPConnection);
-		endpoint.setExtractPayload(false);
+		SpelExpressionParser parser = new SpelExpressionParser();
+		endpoint.setPayloadExpression(parser.parseExpression("#root"));
 		endpoint.setOutputChannel(inputChannel);
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.afterPropertiesSet();
@@ -223,7 +223,7 @@ public class ChatMessageListeningEndpointTests {
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
-		ArgumentCaptor<String> argumentCaptor = new ArgumentCaptor<String>();
+		ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 
 		assertTrue(logLatch.await(10, TimeUnit.SECONDS));
 

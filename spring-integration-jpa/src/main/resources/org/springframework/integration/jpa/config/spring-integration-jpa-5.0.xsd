@@ -423,7 +423,7 @@
 		<xsd:attribute name="persist-mode" use="optional" default="MERGE">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					Defines the persistence mode which is used when soley using
+					Defines the persistence mode which is used when solely using
 					the entity-class. This attribute instructs to either Merge
 					entities, to Persist them. Furthermore and entity can also
 					be deleted. By Default 'MERGE' is used.
@@ -571,7 +571,7 @@
 					<![CDATA[
 					The reference to the JPA Entity Manager Factory
 					that will be used by the adapter to create the EntityManager.
-					Either this attribute or the 'enity-manager' attribute or the
+					Either this attribute or the 'entity-manager' attribute or the
 					'jpa-operations' attribute must be provided.
 					]]>
 				</xsd:documentation>
@@ -587,7 +587,7 @@
 				<xsd:documentation>
 				<![CDATA[
 					The reference to the JPA Entity Manager that will be used by
-					the adapter. Either this attribute or the 'enity-manager-factory'
+					the adapter. Either this attribute or the 'entity-manager-factory'
 					attribute or the 'jpa-operations' attribute must be provided.
 					]]>
 				</xsd:documentation>
@@ -606,7 +606,7 @@
 
 					In rare cases it might be advisable to provide your own implementation
 					of the JpaOperations interface, instead of relying on the
-					default implementation. As JpaOperations wraps the necessay
+					default implementation. As JpaOperations wraps the necessary
 					datasource; the JPA Entity Manager or JPA Entity Manager Factory
 					must not be provided if the 'jpa-operations' attribute is used.
 					]]>
@@ -624,11 +624,11 @@
 					<![CDATA[
 					The reference to the JPA Persistence Entity. If not specified the
 					entity class will be retrieved from the Message's payload (for
-					operation that involve an enityClass).
+					operation that involve an entityClass).
 					]]>
 				</xsd:documentation>
 				<xsd:appinfo>
-					<tool:annotation kind="value">
+					<tool:annotation>
 						<tool:expected-type type="java.lang.Class" />
 					</tool:annotation>
 				</xsd:appinfo>

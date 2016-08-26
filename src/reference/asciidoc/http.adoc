@@ -632,8 +632,6 @@ http://static.springsource.org/spring/docs/current/javadoc-api/org/springframewo
 
 http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html[HttpComponentsClientHttpRequestFactory] - Uses http://hc.apache.org/httpcomponents-client-ga/[Apache HttpComponents HttpClient] (Since Spring 3.1)
 
-http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html[ClientHttpRequestFactory] - Uses http://hc.apache.org/httpclient-3.x/[Jakarta Commons HttpClient] (Deprecated as of Spring 3.1)
-
 If you don't explicitly configure the _request-factory_ or _rest-template_ attribute respectively, then a default RestTemplate which uses a `SimpleClientHttpRequestFactory` will be instantiated.
 
 [NOTE]

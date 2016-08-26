@@ -105,7 +105,6 @@ public final class MessagingAnnotationUtils {
 	 * @throws MessagingException if more than one of {@link Payload}, {@link Header}
 	 * or {@link Headers} annotations are presented.
 	 */
-	@SuppressWarnings("deprecation")
 	public static Annotation findMessagePartAnnotation(Annotation[] annotations, boolean payloads) {
 		if (annotations == null || annotations.length == 0) {
 			return null;
@@ -113,11 +112,8 @@ public final class MessagingAnnotationUtils {
 		Annotation match = null;
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> type = annotation.annotationType();
-			if (type.equals(org.springframework.integration.annotation.Payload.class)
-					|| type.equals(Payload.class)
-					|| type.equals(org.springframework.integration.annotation.Header.class)
+			if (type.equals(Payload.class)
 					|| type.equals(Header.class)
-					|| type.equals(org.springframework.integration.annotation.Headers.class)
 					|| type.equals(Headers.class)
 					|| (payloads && type.equals(Payloads.class))) {
 				if (match != null) {

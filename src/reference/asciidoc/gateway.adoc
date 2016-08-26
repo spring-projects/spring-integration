@@ -145,9 +145,6 @@ For example, if you wish to route on the simple method name, you might add a hea
 NOTE: The `java.reflect.Method` is not serializable; a header with expression `#gatewayMethod` will be lost if you later serialize the message.
 So, you may wish to use `#gatewayMethod.name` or `#gatewayMethod.toString()` in those cases; the `toString()` method provides a String representation of the method, including parameter and return types.
 
-NOTE: Prior to 3.0, the `#method` variable was available, representing the method name only.
-This is still available, but deprecated; use `#gatewayMethod.name` instead.
-
 Since 3.0, `<default-header/>` s can be defined to add headers to all messages produced by the gateway, regardless of the method invoked.
 Specific headers defined for a method take precedence over default headers.
 Specific headers defined for a method here will override any `@Header` annotations in the service interface.

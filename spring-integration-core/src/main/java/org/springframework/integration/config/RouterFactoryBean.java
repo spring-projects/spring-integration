@@ -63,15 +63,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
-	/**
-	 * @param timeout the timeout.
-	 * @deprecated in favor of {@link #setSendTimeout(Long)}.
-	 */
-	@Deprecated
-	public void setTimeout(Long timeout) {
-		this.sendTimeout = timeout;
-	}
-
 	public void setSendTimeout(Long timeout) {
 		this.sendTimeout = timeout;
 	}

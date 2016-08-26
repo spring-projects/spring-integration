@@ -697,7 +697,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return this.method.toString();
 		}
 
-		@SuppressWarnings("deprecation")
 		private Expression generateExpression(Method method) {
 			StringBuilder sb = new StringBuilder("#target." + method.getName() + "(");
 			Class<?>[] parameterTypes = method.getParameterTypes();
@@ -714,8 +713,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						MessagingAnnotationUtils.findMessagePartAnnotation(parameterAnnotations[i], true);
 				if (mappingAnnotation != null) {
 					Class<? extends Annotation> annotationType = mappingAnnotation.annotationType();
-					if (annotationType.equals(org.springframework.integration.annotation.Payload.class)
-							|| annotationType.equals(Payload.class)) {
+					if (annotationType.equals(Payload.class)) {
 						sb.append("payload");
 						String qualifierExpression = (String) AnnotationUtils.getValue(mappingAnnotation);
 						if (StringUtils.hasText(qualifierExpression)) {
@@ -736,14 +734,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 							this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 						}
 					}
-					else if (annotationType.equals(org.springframework.integration.annotation.Headers.class)
-							|| annotationType.equals(Headers.class)) {
+					else if (annotationType.equals(Headers.class)) {
 						Assert.isTrue(Map.class.isAssignableFrom(parameterType),
 								"The @Headers annotation can only be applied to a Map-typed parameter.");
 						sb.append("headers");
 					}
-					else if (annotationType.equals(org.springframework.integration.annotation.Header.class)
-							|| annotationType.equals(Header.class)) {
+					else if (annotationType.equals(Header.class)) {
 						sb.append(this.determineHeaderExpression(mappingAnnotation, methodParameter));
 					}
 				}

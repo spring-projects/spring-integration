@@ -34,7 +34,7 @@
 								  stanza-filter="stanzaFilter"/>
 
 	<xmpp:inbound-channel-adapter id="autoChannel"
-								  xmpp-connection="testConnection" extract-payload="false"
+								  xmpp-connection="testConnection" payload-expression="#root"
 								  auto-startup="false" error-channel="errorChannel"
 								  mapped-request-headers="foo*, xmpp*"/>
 

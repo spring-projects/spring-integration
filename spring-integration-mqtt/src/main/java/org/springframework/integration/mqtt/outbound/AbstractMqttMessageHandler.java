@@ -133,9 +133,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		connectIfNeeded();
 		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
 		if (topic == null && this.defaultTopic == null) {
@@ -143,15 +141,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 					"No '" + MqttHeaders.TOPIC + "' header and no default topic defined");
 		}
 		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
-	}
-
-	/**
-	 * Invoked before {@link #publish(String, Object, Message)}.
-	 * @deprecated subclasses should check the connection in
-	 * {@link #publish(String, Object, Message)}.
-	 */
-	@Deprecated
-	protected void connectIfNeeded() {
 	}
 
 	protected abstract void publish(String topic, Object mqttMessage, Message<?> message) throws Exception;

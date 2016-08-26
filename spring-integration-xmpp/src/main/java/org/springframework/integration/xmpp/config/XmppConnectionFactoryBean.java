@@ -75,17 +75,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	/**
 	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
-	 * @deprecated since {@literal 4.2.5} in favor of {@link #setConnectionConfiguration(XMPPTCPConnectionConfiguration)}
-	 * to avoid {@code BeanCurrentlyInCreationException}
-	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
-	 */
-	@Deprecated
-	public XmppConnectionFactoryBean(XMPPTCPConnectionConfiguration connectionConfiguration) {
-		this.connectionConfiguration = connectionConfiguration;
-	}
-
-	/**
-	 * @param connectionConfiguration the {@link XMPPTCPConnectionConfiguration} to use.
 	 * @since 4.2.5
 	 */
 	public void setConnectionConfiguration(XMPPTCPConnectionConfiguration connectionConfiguration) {

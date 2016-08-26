@@ -24,7 +24,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.Lifecycle;
-import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -53,36 +52,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		}
 	}
 
-	/**
-	 * @param exchangeNameExpression the expression to set.
-	 * @deprecated in favor of {@link #setExchangeNameExpression}.
-	 */
-	@Deprecated
-	public void setExpressionExchangeName(Expression exchangeNameExpression) {
-		setExchangeNameExpression(exchangeNameExpression);
-	}
-
-	/**
-	 * @param routingKeyExpression the expression to set.
-	 * @deprecated in favor of {@link #setRoutingKeyExpression}.
-	 */
-	@Deprecated
-	public void setExpressionRoutingKey(Expression routingKeyExpression) {
-		setRoutingKeyExpression(routingKeyExpression);
-	}
-
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
 	}
 
-	/**
-	 * @param confirmCorrelationExpression the expression to set.
-	 * @deprecated in favor of {@link #setConfirmCorrelationExpression}.
-	 */
-	@Deprecated
-	public void setExpressionConfirmCorrelation(Expression confirmCorrelationExpression) {
-		setConfirmCorrelationExpression(confirmCorrelationExpression);
-	}
 
 	@Override
 	public String getComponentType() {

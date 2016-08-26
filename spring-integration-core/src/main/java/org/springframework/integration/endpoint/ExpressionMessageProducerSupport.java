@@ -54,15 +54,6 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 		this.payloadExpression = EXPRESSION_PARSER.parseExpression(payloadExpression);
 	}
 
-	/**
-	 * @param payloadExpression the expression to set.
-	 * @deprecated in favor of {@link #setPayloadExpression}.
-	 */
-	@Deprecated
-	public void setExpressionPayload(Expression payloadExpression) {
-		setPayloadExpression(payloadExpression);
-	}
-
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
 	}

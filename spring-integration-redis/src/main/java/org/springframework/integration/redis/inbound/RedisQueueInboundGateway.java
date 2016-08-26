@@ -130,16 +130,6 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	/**
-	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message
-	 * will be processed or this timeout is reached. Should be less than or equal to {@link #receiveTimeout}
-	 * @deprecated since {@literal 4.3} with no-op in favor of delayer call {@code callback.run()}
-	 * in the {@link #stop(Runnable)}.
-	 */
-	@Deprecated
-	public void setStopTimeout(long stopTimeout) {
-	}
-
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}

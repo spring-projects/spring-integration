@@ -92,16 +92,6 @@ public class LoggingHandler extends AbstractMessageHandler {
 	/**
 	 * Set a SpEL expression string to use.
 	 * @param expressionString the SpEL expression string to use.
-	 * @deprecated in favor of {@link #setLogExpressionString(String)}
-	 */
-	@Deprecated
-	public void setExpression(String expressionString) {
-		setLogExpressionString(expressionString);
-	}
-
-	/**
-	 * Set a SpEL expression string to use.
-	 * @param expressionString the SpEL expression string to use.
 	 * @since 4.3
 	 * @see #setLogExpression(Expression)
 	 */

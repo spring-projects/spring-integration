@@ -136,17 +136,6 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	/**
-	 * @param stopTimeout the timeout to block {@link #doStop()} until the last message will be processed
-	 * or this timeout is reached. Should be less than or equal to {@link #receiveTimeout}
-	 * @since 4.0.3
-	 * @deprecated since {@literal 4.3} with no-op in favor of delayer call {@code callback.run()}
-	 * in the {@link #stop(Runnable)}.
-	 */
-	@Deprecated
-	public void setStopTimeout(long stopTimeout) {
-	}
-
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}

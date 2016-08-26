@@ -200,19 +200,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	@Deprecated
-	public MessageGroup removeMessageFromGroup(final Object groupId, final Message<?> messageToRemove) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-
-		Query query = groupIdQuery(groupId)
-				.addCriteria(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
-		this.mongoTemplate.remove(query, this.collectionName);
-		updateGroup(groupId, lastModifiedUpdate());
-		return getMessageGroup(groupId);
-	}
-
-	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messageToRemove' must not be null");
