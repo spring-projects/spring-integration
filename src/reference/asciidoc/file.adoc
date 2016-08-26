@@ -234,11 +234,7 @@ To prevent their use, you should configure your own filter (e.g. `AcceptAllFileL
 [[watch-service-directory-scanner]]
 ==== WatchServiceDirectoryScanner
 
-This scanner was added in _version 4.2_. It replaces the existing `RecursiveLeafOnlyDirectoryScanner` which is
-inefficient for large directory trees.
-The `FileReadingMessageSource.WatchServiceDirectoryScanner` requires Java 7 or above.
-
-This scanner relies on file system events when new files are added to the directory.
+The `FileReadingMessageSource.WatchServiceDirectoryScanner` relies on file system events when new files are added to the directory.
 During initialization, the directory is registered to generate events; the initial file list is also built.
 While walking the directory tree, any subdirectories encountered are also registered to generate events.
 On the first poll, the initial file list from walking the directory is returned.
@@ -254,9 +250,7 @@ In this case, the root directory is re-scanned completely.
 To avoid duplicates consider using an appropriate `FileListFilter` such as the `AcceptOnceFileListFilter` and/or
 remove files when processing is completed.
 
-Since _version 4.3_, the top level `WatchServiceDirectoryScanner` has been deprecated in favor of
-`FileReadingMessageSource` internal logic for the `WatchService`.
-Now this can be enable via `use-watch-service` option, which is mutually exclusive with the `scanner` option.
+The `WatchServiceDirectoryScanner` can be enable via `FileReadingMessageSource.use-watch-service` option, which is mutually exclusive with the `scanner` option.
 An internal `FileReadingMessageSource.WatchServiceDirectoryScanner` instance is populated for the provided `directory`.
 
 In addition, now the `WatchService` polling logic can track the `StandardWatchEventKinds.ENTRY_MODIFY` and

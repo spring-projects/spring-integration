@@ -389,6 +389,7 @@ project('spring-integration-ip') {
 	dependencies {
 		compile project(":spring-integration-core")
 		testCompile project(":spring-integration-stream")
+		testCompile project(":spring-integration-event")
 	}
 }
 

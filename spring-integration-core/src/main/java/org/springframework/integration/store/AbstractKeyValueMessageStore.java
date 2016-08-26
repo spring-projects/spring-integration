@@ -156,29 +156,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, metadata);
 	}
 
-	/**
-	 * Remove a Message from the group with the provided group ID.
-	 */
-	@Override
-	@Deprecated
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-
-		UUID id = messageToRemove.getHeaders().getId();
-		removeMessage(id);
-
-		MessageGroupMetadata metadata = getGroupMetadata(groupId);
-		if (metadata != null) {
-			metadata.remove(id);
-			metadata.setLastModified(System.currentTimeMillis());
-			doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, metadata);
-		}
-
-		return getMessageGroup(groupId);
-	}
-
-
 	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Assert.notNull(groupId, "'groupId' must not be null");

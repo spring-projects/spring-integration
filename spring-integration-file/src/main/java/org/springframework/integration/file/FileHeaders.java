@@ -35,12 +35,6 @@ public abstract class FileHeaders {
 
 	public static final String REMOTE_FILE = PREFIX + "remoteFile";
 
-	/**
-	 * @deprecated - use {@code IntegrationMessageHeaderAccessor#CLOSEABLE_RESOURCE}.
-	 */
-	@Deprecated
-	public static final String REMOTE_SESSION = PREFIX + "remoteSession";
-
 	public static final String RENAME_TO = PREFIX + "renameTo";
 
 	public static final String SET_MODIFIED = PREFIX + "setModified";

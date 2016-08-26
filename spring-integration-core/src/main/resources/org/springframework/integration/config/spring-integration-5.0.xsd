@@ -785,19 +785,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="reactor-environment" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-					DEPRECATED with no-op in favor of global JVM-wide Reactor configuration.
-					Provide a reference to 'reactor.core.Environment'
-					to use for any of the interface methods that have a 'reactor.core.composable.Promise' return type.
-					The Reactor's Environment will only be used for those async methods; the sync methods
-					will be invoked in the caller's thread.
-					This attribute is required if any 'service-interface' methods
-					have a 'reactor.core.composable.Promise' return type.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -3488,17 +3475,6 @@
                 </xsd:appinfo>
             </xsd:annotation>
         </xsd:attribute>
-		<xsd:attribute name="timeout" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Specify the maximum amount of time in milliseconds to wait
-					when sending Messages to the target MessageChannels if blocking
-					is possible (e.g. a bounded queue channel that is currently full).
-					By default the send will block indefinitely.
-					DEPRECATED in favor of 'send-timeout' for consistency with other elements.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="send-timeout" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

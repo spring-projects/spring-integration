@@ -93,17 +93,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	}
 
 	/**
-	 * Set the timeout for sending a message to the resolved channel. By default, there is no timeout, meaning the send
-	 * will block indefinitely.
-	 * @param timeout The timeout.
-	 * @deprecated in favor of {@link #setSendTimeout(long)}.
-	 */
-	@Deprecated
-	public void setTimeout(long timeout) {
-		this.messagingTemplate.setSendTimeout(timeout);
-	}
-
-	/**
 	 * Set the timeout for sending a message to the resolved channel.
 	 * By default, there is no timeout, meaning the send will block indefinitely.
 	 * @param timeout The timeout.

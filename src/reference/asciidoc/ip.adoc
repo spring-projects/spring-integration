@@ -420,21 +420,7 @@ Configuring a connection interceptor factory chain.
 === TCP Connection Events
 
 Beginning with version 3.0, changes to `TcpConnection` s are reported by `TcpConnectionEvent` s.
-`TcpConnectionEvent` is a subclass of `ApplicationEvent` and thus can be received by any `ApplicationListener` defined in the `ApplicationContext`.
-
-[NOTE]
-=====
-The following is deprecated as of _version 4.2_; use the generic Event Inbound Channel Adapter instead.
-See <<appevent-inbound>>.
-
-For convenience, a `<int-ip:tcp-connection-event-inbound-channel-adapter/>` is provided.
-This adapter will receive all `TcpConnectionEvent` s (by default), and send them to its `channel`.
-The adapter accepts an `event-type` attribute, which is a list of class names for events that should be sent.
-This can be used if an application subclasses `TcpConnectionEvent` for some reason, and wishes to only receive those events.
-Omitting this attribute will mean that all `TcpConnectionEvent` s will be sent.
-You can also use this to limit which `TcpConnectionEvent` s you are interested in ( `TcpConnectionOpenEvent`, `TcpConnectionCloseEvent`, or `TcpConnectionExceptionEvent`).
-=====
-
+`TcpConnectionEvent` is a subclass of `ApplicationEvent` and thus can be received by any `ApplicationListener` defined in the `ApplicationContext`, for example <<appevent-inbound,Event Inbound Channel Adapter>>.
 
 `TcpConnectionEvents` have the following properties:
 

@@ -36,7 +36,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -187,12 +186,6 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 							IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, registry);
-
-			//TODO Remove this registration in 5.0
-			RootBeanDefinition integrationEvalContextBPP =
-					new RootBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE +
-							".expression.IntegrationEvaluationContextAwareBeanPostProcessor");
-			BeanDefinitionReaderUtils.registerWithGeneratedName(integrationEvalContextBPP, registry);
 		}
 	}
 

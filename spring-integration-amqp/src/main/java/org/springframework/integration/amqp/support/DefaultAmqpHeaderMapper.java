@@ -113,15 +113,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		CONSUMER_METADATA_PRESENT = consumerTagHeader.get();
 	}
 
-	/**
-	 * @deprecated - use {@link #inboundMapper()} and {@link #outboundMapper()} depending
-	 * on the context in which the mapper is to be used.
-	 */
-	@Deprecated
-	public DefaultAmqpHeaderMapper() {
-		this(null, null);
-	}
-
 	private DefaultAmqpHeaderMapper(String[] requestHeaderNames, String[] replyHeaderNames) {
 		super(AmqpHeaders.PREFIX, STANDARD_HEADER_NAMES, STANDARD_HEADER_NAMES);
 		if (requestHeaderNames != null) {

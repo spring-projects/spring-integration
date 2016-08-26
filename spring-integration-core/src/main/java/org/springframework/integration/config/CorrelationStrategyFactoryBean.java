@@ -47,32 +47,6 @@ public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationSt
 	public CorrelationStrategyFactoryBean() {
 	}
 
-	/**
-	 * Create a factory and set up the strategy which clients of the factory will see as its product.
-	 * @param target the target object (null if default strategy is acceptable)
-	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
-	 * to avoid {@code BeanCurrentlyInCreationException}
-	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
-	 */
-	@Deprecated
-	public CorrelationStrategyFactoryBean(Object target) {
-		this.target = target;
-	}
-
-	/**
-	 * Create a factory and set up the strategy which clients of the factory will see as its product.
-	 * @param target the target object (null if default strategy is acceptable)
-	 * @param methodName the method name to invoke in the target (null if it can be inferred)
-	 * @deprecated since {@literal 4.2.5} in favor of appropriate setters
-	 * to avoid {@code BeanCurrentlyInCreationException}
-	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
-	 */
-	@Deprecated
-	public CorrelationStrategyFactoryBean(Object target, String methodName) {
-		this.target = target;
-		this.methodName = methodName;
-	}
-
 	public void setTarget(Object target) {
 		this.target = target;
 	}

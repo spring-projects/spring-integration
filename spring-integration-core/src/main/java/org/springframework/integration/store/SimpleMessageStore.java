@@ -325,34 +325,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
-	@Deprecated
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		Lock lock = this.lockRegistry.obtain(groupId);
-		try {
-			lock.lockInterruptibly();
-			try {
-				MessageGroup group = this.groupIdToMessageGroup.get(groupId);
-				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
-						"can not be located while attempting to remove Message from the MessageGroup");
-				if (group.remove(messageToRemove)) {
-					UpperBound upperBound = this.groupToUpperBound.get(groupId);
-					Assert.state(upperBound != null, "'upperBound' must not be null.");
-					upperBound.release();
-					group.setLastModified(System.currentTimeMillis());
-				}
-				return group;
-			}
-			finally {
-				lock.unlock();
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while obtaining lock", e);
-		}
-	}
-
-	@Override
 	public void removeMessagesFromGroup(Object groupId, Collection<Message<?>> messages) {
 		Lock lock = this.lockRegistry.obtain(groupId);
 		try {

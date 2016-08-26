@@ -209,7 +209,7 @@
 		<xsd:attribute name="receive-timeout" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Timeout for the container's consumers if messsage-driven is TRUE, or
+	Timeout for the container's consumers if message-driven is TRUE, or
 	timeout for receive calls on the template if message-driven is FALSE.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -405,17 +405,6 @@
 	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
 	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
 	subscription name). Only makes sense when listening to a topic (pub-sub domain).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="durable-subscription-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-	[DEPRECATED: Use 'subscription-durable="true"' together with 'subscription-name'].
-	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
-	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
-	specified message listener. Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed
-	for each durable subscription.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -725,17 +714,6 @@
 	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
 	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
 	subscription name). Only makes sense when listening to a topic (pub-sub domain).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="durable-subscription-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-	[DEPRECATED: Use 'subscription-durable="true"' together with 'subscription-name'].
-	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
-	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
-	specified message listener. Note: Only 1 concurrent consumer (which is the default of the message listener container) is allowed
-	for each durable subscription.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

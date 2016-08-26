@@ -134,16 +134,7 @@ public abstract class IpAdapterParserUtils {
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
-	 * @param trueFalse not used
-	 * used to populate the property
-	 * @deprecated in favor of {@link #addConstructorValueIfAttributeDefined}.
 	 */
-	@Deprecated
-	public static void addConstuctorValueIfAttributeDefined(BeanDefinitionBuilder builder,
-			Element element, String attributeName, boolean trueFalse) {
-		addConstructorValueIfAttributeDefined(builder, element, attributeName);
-	}
-
 	public static void addConstructorValueIfAttributeDefined(BeanDefinitionBuilder builder,
 			Element element, String attributeName) {
 		String attributeValue = element.getAttribute(attributeName);

@@ -67,21 +67,6 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 		this.headerMapper = headerMapper;
 	}
 
-
-	/**
-	 * Specify whether the text message body should be extracted when mapping to a
-	 * Spring Integration Message payload. Otherwise, the full XMPP Message will be
-	 * passed within the payload. This value is <em>true</em> by default.
-	 * @param extractPayload true if the payload should be extracted.
-	 * @deprecated since version 4.3 in favor of {@link #setPayloadExpression(Expression)}
-	 */
-	@Deprecated
-	public void setExtractPayload(boolean extractPayload) {
-		if (this.payloadExpression == null) {
-			setPayloadExpression(extractPayload ? null : EXPRESSION_PARSER.parseExpression("#this"));
-		}
-	}
-
 	/**
 	 * Specify a {@link StanzaFilter} to use for the incoming packets.
 	 * @param stanzaFilter the {@link StanzaFilter} to use

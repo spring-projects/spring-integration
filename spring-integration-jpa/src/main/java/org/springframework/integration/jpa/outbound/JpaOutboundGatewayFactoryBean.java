@@ -77,18 +77,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public JpaOutboundGatewayFactoryBean() {
 	}
 
-	/**
-	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
-	 * @param jpaExecutor Must not be null
-	 * @deprecated since {@literal 4.2.5} in favor of {@link #setJpaExecutor(JpaExecutor)}
-	 * to avoid {@code BeanCurrentlyInCreationException}
-	 * during {@code AbstractAutowireCapableBeanFactory.getSingletonFactoryBeanForTypeCheck()}
-	 */
-	@Deprecated
-	public JpaOutboundGatewayFactoryBean(JpaExecutor jpaExecutor) {
-		this.jpaExecutor = jpaExecutor;
-	}
-
 	public void setJpaExecutor(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
 	}

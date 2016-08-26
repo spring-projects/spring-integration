@@ -9,7 +9,7 @@
 
 	<service-activator id="serviceActivator" input-channel="input" ref="mock" method="test" send-timeout="123"/>
 
-	<router id="router" input-channel="routerInput" expression="'someChannel'" timeout="123"/>
+	<router id="router" input-channel="routerInput" expression="'someChannel'" send-timeout="123"/>
 
 	<filter id="filter" input-channel="filterInput" expression="'true'" send-timeout="123"/>
 

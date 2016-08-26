@@ -254,13 +254,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return parameterList;
 	}
 
-	@SuppressWarnings("deprecation")
 	private static Expression parsePayloadExpression(Method method) {
 		Expression expression = null;
-		Annotation payload = method.getAnnotation(org.springframework.integration.annotation.Payload.class);
-		if (payload == null) {
-			payload = method.getAnnotation(Payload.class);
-		}
+		Annotation payload = method.getAnnotation(Payload.class);
 		if (payload != null) {
 			String expressionString = (String) AnnotationUtils.getValue(payload);
 			Assert.hasText(expressionString,
@@ -273,7 +269,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
 		@Override
-		@SuppressWarnings("deprecation")
 		public Message<?> toMessage(MethodArgsHolder holder) throws Exception {
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
@@ -290,23 +285,20 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				Annotation annotation =
 						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(), false);
 				if (annotation != null) {
-					if (annotation.annotationType().equals(org.springframework.integration.annotation.Payload.class)
-							|| annotation.annotationType().equals(Payload.class)) {
+					if (annotation.annotationType().equals(Payload.class)) {
 						if (messageOrPayload != null) {
-							GatewayMethodInboundMessageMapper.this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
+							throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 						}
 						String expression = (String) AnnotationUtils.getValue(annotation);
 						if (!StringUtils.hasText(expression)) {
 							messageOrPayload = argumentValue;
 						}
 						else {
-							messageOrPayload =
-									GatewayMethodInboundMessageMapper.this.evaluatePayloadExpression(expression, argumentValue);
+							messageOrPayload = evaluatePayloadExpression(expression, argumentValue);
 						}
 						foundPayloadAnnotation = true;
 					}
-					else if (annotation.annotationType().equals(org.springframework.integration.annotation.Header.class)
-							|| annotation.annotationType().equals(Header.class)) {
+					else if (annotation.annotationType().equals(Header.class)) {
 						String headerName =
 								GatewayMethodInboundMessageMapper.this.determineHeaderName(annotation, methodParameter);
 						if ((Boolean) AnnotationUtils.getValue(annotation, "required") && argumentValue == null) {
@@ -315,8 +307,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						}
 						headers.put(headerName, argumentValue);
 					}
-					else if (annotation.annotationType().equals(org.springframework.integration.annotation.Headers.class)
-							|| annotation.annotationType().equals(Headers.class)) {
+					else if (annotation.annotationType().equals(Headers.class)) {
 						if (argumentValue != null) {
 							if (!(argumentValue instanceof Map)) {
 								throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");

@@ -26,7 +26,6 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  */
 public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
-	@SuppressWarnings("deprecation")
 	public void init() {
 		this.registerBeanDefinitionParser("udp-inbound-channel-adapter", new UdpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("udp-outbound-channel-adapter", new UdpOutboundChannelAdapterParser());
@@ -35,7 +34,6 @@ public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("tcp-connection-factory", new TcpConnectionFactoryParser());
 		this.registerBeanDefinitionParser("tcp-inbound-channel-adapter", new TcpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("tcp-outbound-channel-adapter", new TcpOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("tcp-connection-event-inbound-channel-adapter", new TcpConnectionEventInboundChannelAdapterParser());
 	}
 
 }

@@ -62,9 +62,9 @@ import junit.framework.AssertionFailedError;
  */
 public class GemfireGroupStoreTests {
 
-	public static CacheFactoryBean cacheFactoryBean;
+	private static CacheFactoryBean cacheFactoryBean;
 
-	private static Region<Object, Object> region;
+	public static Region<Object, Object> region;
 
 	@Test
 	public void testNonExistingEmptyMessageGroup() throws Exception {

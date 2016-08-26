@@ -120,9 +120,6 @@ The samples above with the `namespace` manipulations can be simplified to someth
  payload-expression="#extension.bodies[0]"
  ----
 
-
-NOTE: The `extract-payload` option has been deprecated in favor of the new `payload-expression` one.
-
 [[xmpp-message-outbound-channel-adapter]]
 ==== Outbound Message Channel Adapter
 

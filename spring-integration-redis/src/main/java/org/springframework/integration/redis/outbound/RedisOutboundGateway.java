@@ -88,15 +88,6 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.commandExpression = EXPRESSION_PARSER.parseExpression(commandExpression);
 	}
 
-	/**
-	 * @param commandExpression the expression to set.
-	 * @deprecated in favor of {@link #setCommandExpression}.
-	 */
-	@Deprecated
-	public void setExpressionCommand(Expression commandExpression) {
-		setCommandExpression(commandExpression);
-	}
-
 	public void setArgumentsStrategy(ArgumentsStrategy argumentsStrategy) {
 		this.argumentsStrategy = argumentsStrategy;
 	}

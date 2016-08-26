@@ -376,7 +376,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		final Class<?> returnType = invocation.getMethod().getReturnType();
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
@@ -426,10 +425,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
-		@SuppressWarnings("deprecation")
-		boolean hasPayloadExpression =
-				method.isAnnotationPresent(org.springframework.integration.annotation.Payload.class)
-						|| method.isAnnotationPresent(Payload.class);
+		boolean hasPayloadExpression = method.isAnnotationPresent(Payload.class);
 		if (!hasPayloadExpression && this.methodMetadataMap != null) {
 			// check for the method metadata next
 			GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
@@ -702,7 +698,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				if (t instanceof RuntimeException) {
 					throw (RuntimeException) t;
 				}
-				throw new MessagingException("asynchronous gateway invocation failed", t);
+				throw new MessagingException("Asynchronous gateway invocation failed", t);
 			}
 		}
 

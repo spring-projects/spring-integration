@@ -395,15 +395,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
-	 * @param expression the expression to set.
-	 * @deprecated in favor of {@link #setRenameExpression}.
-	 */
-	@Deprecated
-	public void setExpressionRename(Expression expression) {
-		setRenameExpression(expression);
-	}
-
-	/**
 	 * @param localFilenameGeneratorExpression the expression to use.
 	 * @since 3.0
 	 */

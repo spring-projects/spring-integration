@@ -80,8 +80,7 @@ public class SftpSession implements Session<LsEntry> {
 			return true;
 		}
 		catch (SftpException e) {
-			// TODO: in 5.0 remove e.toString() INT-3913
-			throw new NestedIOException("Failed to remove file: " + e.toString(), e);
+			throw new NestedIOException("Failed to remove file.", e);
 		}
 	}
 

@@ -29,9 +29,9 @@
 		<recipient channel="channel1"/>
 		<recipient channel="channel2"/>
 	</recipient-list-router>
-	
+
 	<recipient-list-router id="customRouter" input-channel="routingChannelB"
-			timeout="1234"
+			send-timeout="1234"
 			ignore-send-failures="true"
 			apply-sequence="true">
 		<recipient channel="channel1"/>

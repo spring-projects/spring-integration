@@ -144,7 +144,7 @@ Either this attribute or the _entity-manager_ attribute or the _jpa-operations_ 
 *entity-manager*
 
 The reference to the JPA Entity Manager that will be used by the component.
-Either this attribute or the _enity-manager-factory_ attribute or the _jpa-operations_ attribute must be provided.
+Either this attribute or the _entity-manager-factory_ attribute or the _jpa-operations_ attribute must be provided.
 
 NOTE: Usually your Spring Application Context only defines a JPA Entity Manager Factory and the EntityManager is injected using the @PersistenceContext annotation.
 This, however, is not applicable for the Spring Integration JPA components.

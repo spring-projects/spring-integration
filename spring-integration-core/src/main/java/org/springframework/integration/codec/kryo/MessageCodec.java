@@ -25,7 +25,7 @@ package org.springframework.integration.codec.kryo;
 public class MessageCodec extends PojoCodec {
 
 	/**
-	 * Construct an instance using the default registration ids for messsage
+	 * Construct an instance using the default registration ids for message
 	 * headers.
 	 */
 	public MessageCodec() {

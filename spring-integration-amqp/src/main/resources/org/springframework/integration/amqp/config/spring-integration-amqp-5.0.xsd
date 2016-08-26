@@ -819,7 +819,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	Attributes for a SimpleMessageListenerContainer's properties other than queues, queueNames, messageListener, and
 	autoStartup which may or may not be exposed for configuration depending on what type of component uses this attribute group.
 	This group also does not include any of the properties that are shared with RabbitTemplate, such as channelTransacted,
-	connectionFactory, and messsagePropertiesConverter.
+	connectionFactory, and messagePropertiesConverter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="channel-transacted" type="xsd:string">
