@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
@@ -89,6 +91,12 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 	@Autowired
 	private CachingConnectionFactory factory;
+
+	@Autowired
+	private AmqpHeaderMapper mapperIn;
+
+	@Autowired
+	private AmqpHeaderMapper mapperOut;
 
 	public ChannelTests() {
 		super("org.springframework.integration", "org.springframework.integration.amqp", "org.springframework.amqp");
@@ -224,6 +232,9 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		assertNotNull(received);
 		assertThat((Foo) received.getPayload(), equalTo(foo));
 		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+
+		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"));
+		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper"));
 	}
 
 	public static class Foo {
