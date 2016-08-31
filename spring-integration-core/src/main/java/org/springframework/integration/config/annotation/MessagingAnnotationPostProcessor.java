@@ -55,7 +55,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -90,17 +89,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
 				"a ConfigurableListableBeanFactory is required");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
-	}
-
-	/**
-	 *
-	 * @param requireComponentAnnotation the {@code boolean} flag to indicate requirements for the
-	 * {@link Component} annotation presentation for the messaging annotations.
-	 * @since 4.3
-	 * @deprecated since 5.0 with no-op.
-	 */
-	@Deprecated
-	public void setRequireComponentAnnotation(boolean requireComponentAnnotation) {
 	}
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {

@@ -1368,6 +1368,12 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 
 * amqp_returnRoutingKey
 
+* amqp_channel
+
+* amqp_consumerTag
+
+* amqp_consumerQueue
+
 CAUTION: As mentioned above, using a header mapping pattern `*` is a common way to copy all headers.
 However, this can have some unexpected side-effects because certain RabbitMQ proprietary properties/headers will be
 copied as well.
@@ -1401,7 +1407,7 @@ IMPORTANT: If you have a user defined header that begins with `!` that you *do* 
 
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration Samples Git repository at:
 
-* https://github.com/SpringSource/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
+* https://github.com/spring-projects/spring-integration-samples[https://github.com/SpringSource/spring-integration-samples]
 
 
 

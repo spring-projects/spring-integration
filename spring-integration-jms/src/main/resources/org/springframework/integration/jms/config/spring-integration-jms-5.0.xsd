@@ -1525,7 +1525,7 @@
 		<xsd:attribute name="recovery-interval" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-				Interval in miliseconds between the recovery attempts
+				Interval in milliseconds between the recovery attempts
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
