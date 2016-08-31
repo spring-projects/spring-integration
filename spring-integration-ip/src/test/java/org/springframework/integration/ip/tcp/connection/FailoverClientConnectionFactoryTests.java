@@ -45,8 +45,6 @@ import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
@@ -63,8 +61,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -106,12 +102,7 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		doThrow(new IOException("fail")).when(conn1).send(Mockito.any(Message.class));
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(conn2).send(Mockito.any(Message.class));
+		doAnswer(invocation -> null).when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
@@ -155,15 +146,12 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		final AtomicBoolean failedOnce = new AtomicBoolean();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (!failedOnce.get()) {
-					failedOnce.set(true);
-					throw new IOException("fail");
-				}
-				return null;
+		doAnswer(invocation -> {
+			if (!failedOnce.get()) {
+				failedOnce.set(true);
+				throw new IOException("fail");
 			}
+			return null;
 		}).when(conn1).send(Mockito.any(Message.class));
 		doThrow(new IOException("fail")).when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -199,12 +187,7 @@ public class FailoverClientConnectionFactoryTests {
 		factories.add(factory1);
 		factories.add(factory2);
 		TcpConnectionSupport conn1 = makeMockConnection();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(conn1).send(Mockito.any(Message.class));
+		doAnswer(invocation -> null).when(conn1).send(Mockito.any(Message.class));
 		when(factory1.getConnection()).thenThrow(new IOException("fail")).thenReturn(conn1);
 		when(factory2.getConnection()).thenThrow(new IOException("fail"));
 		when(factory1.isActive()).thenReturn(true);
@@ -230,14 +213,11 @@ public class FailoverClientConnectionFactoryTests {
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		final AtomicInteger failCount = new AtomicInteger();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (failCount.incrementAndGet() < 3) {
-					throw new IOException("fail");
-				}
-				return null;
+		doAnswer(invocation -> {
+			if (failCount.incrementAndGet() < 3) {
+				throw new IOException("fail");
 			}
+			return null;
 		}).when(conn1).send(Mockito.any(Message.class));
 		doThrow(new IOException("fail")).when(conn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
@@ -319,13 +299,9 @@ public class FailoverClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch1.countDown();
-				return false;
-			}
+		server1.registerListener(message -> {
+			latch1.countDown();
+			return false;
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -333,35 +309,19 @@ public class FailoverClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch2.countDown();
-				return false;
-			}
+		server2.registerListener(message -> {
+			latch2.countDown();
+			return false;
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
 		int port2 = server2.getPort();
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory1.registerListener(message -> false);
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory2.registerListener(message -> false);
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
 		cachingFactory1.setBeanName("cache1");
@@ -470,13 +430,9 @@ public class FailoverClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch1.countDown();
-				return false;
-			}
+		server1.registerListener(message -> {
+			latch1.countDown();
+			return false;
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -484,13 +440,9 @@ public class FailoverClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server2.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch2.countDown();
-				return false;
-			}
+		server2.registerListener(message -> {
+			latch2.countDown();
+			return false;
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
@@ -498,22 +450,10 @@ public class FailoverClientConnectionFactoryTests {
 
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory1.registerListener(message -> false);
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory2.registerListener(message -> false);
 
 		// Cache
 		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 2);
@@ -616,12 +556,9 @@ public class FailoverClientConnectionFactoryTests {
 		gateway1.setConnectionFactory(server1);
 		SubscribableChannel channel = new DirectChannel();
 		final AtomicReference<String> connectionId = new AtomicReference<String>();
-		channel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				connectionId.set((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
-				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
-			}
+		channel.subscribe(message -> {
+			connectionId.set((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
 		});
 		gateway1.setRequestChannel(channel);
 		gateway1.setBeanFactory(mock(BeanFactory.class));

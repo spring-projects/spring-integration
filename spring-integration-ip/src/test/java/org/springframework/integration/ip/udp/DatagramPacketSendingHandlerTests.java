@@ -50,20 +50,17 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch received = new CountDownLatch(1);
 		final AtomicInteger testPort = new AtomicInteger();
 		final CountDownLatch listening = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					DatagramSocket socket = new DatagramSocket();
-					testPort.set(socket.getLocalPort());
-					listening.countDown();
-					socket.receive(receivedPacket);
-					received.countDown();
-					socket.close();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				DatagramSocket socket = new DatagramSocket();
+				testPort.set(socket.getLocalPort());
+				listening.countDown();
+				socket.receive(receivedPacket);
+				received.countDown();
+				socket.close();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		assertTrue(listening.await(10, TimeUnit.SECONDS));
@@ -92,32 +89,29 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch listening = new CountDownLatch(1);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					DatagramSocket socket = new DatagramSocket();
-					testPort.set(socket.getLocalPort());
-					listening.countDown();
-					assertTrue(ackListening.await(10, TimeUnit.SECONDS));
-					socket.receive(receivedPacket);
-					socket.close();
-					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
-					mapper.setAcknowledge(true);
-					mapper.setLengthCheck(true);
-					Message<byte[]> message = mapper.toMessage(receivedPacket);
-					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
-					byte[] ack = id.toString().getBytes();
-					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
-							                        new InetSocketAddress("localHost", ackPort.get()));
-					DatagramSocket out = new DatagramSocket();
-					out.send(ackPack);
-					out.close();
-					ackSent.countDown();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				DatagramSocket socket = new DatagramSocket();
+				testPort.set(socket.getLocalPort());
+				listening.countDown();
+				assertTrue(ackListening.await(10, TimeUnit.SECONDS));
+				socket.receive(receivedPacket);
+				socket.close();
+				DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+				mapper.setAcknowledge(true);
+				mapper.setLengthCheck(true);
+				Message<byte[]> message = mapper.toMessage(receivedPacket);
+				Object id = message.getHeaders().get(IpHeaders.ACK_ID);
+				byte[] ack = id.toString().getBytes();
+				DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
+						                        new InetSocketAddress("localHost", ackPort.get()));
+				DatagramSocket out = new DatagramSocket();
+				out.send(ackPack);
+				out.close();
+				ackSent.countDown();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		listening.await(10000, TimeUnit.MILLISECONDS);

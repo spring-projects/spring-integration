@@ -34,7 +34,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
@@ -248,14 +247,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	public void enableManualListenerRegistration() {
 		this.manualListenerRegistration = true;
-		this.listener = new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return getListener().onMessage(message);
-			}
-
-		};
+		this.listener = message -> getListener().onMessage(message);
 	}
 
 	/**

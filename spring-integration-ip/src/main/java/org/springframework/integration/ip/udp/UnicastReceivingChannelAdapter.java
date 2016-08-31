@@ -161,14 +161,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		Executor taskExecutor = getTaskExecutor();
 		if (taskExecutor != null) {
 			try {
-				taskExecutor.execute(new Runnable() {
-
-					@Override
-					public void run() {
-						doSend(packet);
-
-					}
-				});
+				taskExecutor.execute(() -> doSend(packet));
 			}
 			catch (RejectedExecutionException e) {
 				if (logger.isDebugEnabled()) {

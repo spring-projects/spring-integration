@@ -33,8 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
@@ -78,11 +76,9 @@ public class TcpNetConnectionTests {
 		connection.setDeserializer(new ByteArrayStxEtxSerializer());
 		final AtomicReference<Object> log = new AtomicReference<Object>();
 		Log logger = mock(Log.class);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				log.set(invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			log.set(invocation.getArguments()[0]);
+			return null;
 		}).when(logger).error(Mockito.anyString());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(connection);
 		accessor.setPropertyValue("logger", logger);
@@ -140,14 +136,11 @@ public class TcpNetConnectionTests {
 		out.close();
 
 		final AtomicReference<Message<?>> inboundMessage = new AtomicReference<Message<?>>();
-		TcpListener listener = new TcpListener() {
-
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					inboundMessage.set(message);
-				}
-				return false;
+		TcpListener listener = message1 -> {
+			if (!(message1 instanceof ErrorMessage)) {
+				inboundMessage.set(message1);
 			}
+			return false;
 		};
 		inboundConnection.registerListener(listener);
 		inboundConnection.run();

@@ -42,8 +42,6 @@ import javax.net.ssl.SSLEngine;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
@@ -97,15 +95,10 @@ public class SocketSupportTests {
 		when(factory.createServerSocket(0, 5)).thenReturn(serverSocket);
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		when(serverSocket.accept()).thenReturn(socket).then(new Answer<Socket>() {
-
-			@Override
-			public Socket answer(InvocationOnMock invocation) throws Throwable {
-				latch1.countDown();
-				latch2.await(10, TimeUnit.SECONDS);
-				return null;
-			}
-
+		when(serverSocket.accept()).thenReturn(socket).then(invocation -> {
+			latch1.countDown();
+			latch2.await(10, TimeUnit.SECONDS);
+			return null;
 		});
 		TcpSocketSupport socketSupport = mock(TcpSocketSupport.class);
 
@@ -125,14 +118,7 @@ public class SocketSupportTests {
 	@Test
 	public void testNioClientAndServer() throws Exception {
 		TcpNioServerConnectionFactory serverConnectionFactory = new TcpNioServerConnectionFactory(0);
-		serverConnectionFactory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-
-		});
+		serverConnectionFactory.registerListener(message -> false);
 		final AtomicInteger ppSocketCountServer = new AtomicInteger();
 		final AtomicInteger ppServerSocketCountServer = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -292,15 +278,10 @@ Certificate fingerprints:
 		server.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		server.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				messages.add(message);
-				latch.countDown();
-				return false;
-			}
-
+		server.registerListener(message -> {
+			messages.add(message);
+			latch.countDown();
+			return false;
 		});
 		server.setMapper(new SSLMapper());
 		server.start();
@@ -330,15 +311,10 @@ Certificate fingerprints:
 		server.setTcpSocketFactorySupport(serverTcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		server.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				messages.add(message);
-				latch.countDown();
-				return false;
-			}
-
+		server.registerListener(message -> {
+			messages.add(message);
+			latch.countDown();
+			return false;
 		});
 		server.start();
 		TestingUtilities.waitListening(server, null);
@@ -371,15 +347,10 @@ Certificate fingerprints:
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		server.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				messages.add(message);
-				latch.countDown();
-				return false;
-			}
-
+		server.registerListener(message -> {
+			messages.add(message);
+			latch.countDown();
+			return false;
 		});
 		server.setMapper(new SSLMapper());
 		server.start();
@@ -387,14 +358,7 @@ Certificate fingerprints:
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
-		client.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-
-		});
+		client.registerListener(message -> false);
 		client.start();
 
 		TcpConnection connection = client.getConnection();
@@ -418,21 +382,16 @@ Certificate fingerprints:
 		final CountDownLatch latch = new CountDownLatch(2);
 		final Replier replier = new Replier();
 		server.registerSender(replier);
-		server.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				messages.add(message);
-				try {
-					replier.send(message);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				latch.countDown();
-				return false;
+		server.registerListener(message -> {
+			messages.add(message);
+			try {
+				replier.send(message);
 			}
-
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			latch.countDown();
+			return false;
 		});
 		ByteArrayCrLfSerializer deserializer = new ByteArrayCrLfSerializer();
 		deserializer.setMaxMessageSize(120000);
@@ -447,15 +406,10 @@ Certificate fingerprints:
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
 		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
-		client.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				messages.add(message);
-				latch.countDown();
-				return false;
-			}
-
+		client.registerListener(message -> {
+			messages.add(message);
+			latch.countDown();
+			return false;
 		});
 		client.setDeserializer(deserializer);
 		client.start();

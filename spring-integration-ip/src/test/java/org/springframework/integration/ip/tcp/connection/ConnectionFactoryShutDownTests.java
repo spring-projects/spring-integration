@@ -48,24 +48,20 @@ public class ConnectionFactoryShutDownTests {
 		Executor executor = factory.getTaskExecutor();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		executor.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					while (true) {
-						factory.getTaskExecutor();
-						Thread.sleep(100);
-					}
+		executor.execute(() -> {
+			latch1.countDown();
+			try {
+				while (true) {
+					factory.getTaskExecutor();
+					Thread.sleep(100);
 				}
-				catch (MessagingException e) {
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				latch2.countDown();
 			}
+			catch (MessagingException e1) {
+			}
+			catch (InterruptedException e2) {
+				Thread.currentThread().interrupt();
+			}
+			latch2.countDown();
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		StopWatch watch = new StopWatch();

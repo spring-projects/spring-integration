@@ -65,21 +65,18 @@ public class MultiClientTests {
 		final AtomicBoolean done = new AtomicBoolean();
 
 		for (int i = 0; i < drivers; i++) {
-			Thread t = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
-							"localhost", adapter.getPort());
-					sender.start();
-					while (true) {
-						Message<?> message = queueIn.receive();
-						sender.handleMessage(message);
-						if (done.get()) {
-							break;
-						}
+			Thread t = new Thread(() -> {
+				UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
+						"localhost", adapter.getPort());
+				sender.start();
+				while (true) {
+					Message<?> message = queueIn.receive();
+					sender.handleMessage(message);
+					if (done.get()) {
+						break;
 					}
-					sender.stop();
 				}
+				sender.stop();
 			});
 			t.setDaemon(true);
 			t.start();
@@ -114,23 +111,20 @@ public class MultiClientTests {
 		final AtomicBoolean done = new AtomicBoolean();
 
 		for (int i = 0; i < drivers; i++) {
-			Thread t = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
-							"localhost", adapter.getPort(),
-							false, true, "localhost", 0,
-							10000);
-					sender.start();
-					while (true) {
-						Message<?> message = queueIn.receive();
-						sender.handleMessage(message);
-						if (done.get()) {
-							break;
-						}
+			Thread t = new Thread(() -> {
+				UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
+						"localhost", adapter.getPort(),
+						false, true, "localhost", 0,
+						10000);
+				sender.start();
+				while (true) {
+					Message<?> message = queueIn.receive();
+					sender.handleMessage(message);
+					if (done.get()) {
+						break;
 					}
-					sender.stop();
 				}
+				sender.stop();
 			});
 			t.setDaemon(true);
 			t.start();
@@ -165,24 +159,20 @@ public class MultiClientTests {
 		final AtomicBoolean done = new AtomicBoolean();
 
 		for (int i = 0; i < drivers; i++) {
-			final int j = i;
-			Thread t = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
-							"localhost", adapter.getPort(),
-							true, true, "localhost", 0,
-							10000);
-					sender.start();
-					while (true) {
-						Message<?> message = queueIn.receive();
-						sender.handleMessage(message);
-						if (done.get()) {
-							break;
-						}
+			Thread t = new Thread(() -> {
+				UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
+						"localhost", adapter.getPort(),
+						true, true, "localhost", 0,
+						10000);
+				sender.start();
+				while (true) {
+					Message<?> message = queueIn.receive();
+					sender.handleMessage(message);
+					if (done.get()) {
+						break;
 					}
-					sender.stop();
 				}
+				sender.stop();
 			});
 			t.setDaemon(true);
 			t.start();

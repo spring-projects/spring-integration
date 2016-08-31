@@ -57,38 +57,35 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendLength(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					for (int i = 0; i < 2; i++) {
-						byte[] len = new byte[4];
-						ByteBuffer.wrap(len).putInt(TEST_STRING.length() * 2);
-						socket.getOutputStream().write(len);
-						socket.getOutputStream().write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote first part");
-						if (latch != null) {
-							latch.await();
-						}
-						Thread.sleep(500);
-						// send the second chunk
-						socket.getOutputStream().write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote second part");
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				for (int i = 0; i < 2; i++) {
+					byte[] len = new byte[4];
+					ByteBuffer.wrap(len).putInt(TEST_STRING.length() * 2);
+					socket.getOutputStream().write(len);
+					socket.getOutputStream().write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote first part");
+					if (latch != null) {
+						latch.await();
 					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
+					Thread.sleep(500);
+					// send the second chunk
+					socket.getOutputStream().write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote second part");
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -102,28 +99,25 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendLengthOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					byte[] len = new byte[4];
-					ByteBuffer.wrap(len).putInt(Integer.MAX_VALUE);
-					socket.getOutputStream().write(len);
-					socket.getOutputStream().write(TEST_STRING.getBytes());
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				byte[] len = new byte[4];
+				ByteBuffer.wrap(len).putInt(Integer.MAX_VALUE);
+				socket.getOutputStream().write(len);
+				socket.getOutputStream().write(TEST_STRING.getBytes());
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -138,34 +132,31 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendFragmented(final int port, final int howMany, final boolean noDelay) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					logger.debug("Connecting to " + port);
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream os = socket.getOutputStream();
-					for (int i = 0; i < howMany; i++) {
-						writeByte(os, 0, noDelay);
-						writeByte(os, 0, noDelay);
-						writeByte(os, 0, noDelay);
-						writeByte(os, 2, noDelay);
-						writeByte(os, 'x', noDelay);
-						writeByte(os, 'x', noDelay);
-					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				logger.debug("Connecting to " + port);
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream os = socket.getOutputStream();
+				for (int i = 0; i < howMany; i++) {
+					writeByte(os, 0, noDelay);
+					writeByte(os, 0, noDelay);
+					writeByte(os, 0, noDelay);
+					writeByte(os, 2, noDelay);
+					writeByte(os, 'x', noDelay);
+					writeByte(os, 'x', noDelay);
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -189,38 +180,35 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendStxEtx(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					for (int i = 0; i < 2; i++) {
-						writeByte(outputStream, 0x02, true);
-						outputStream.write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote first part");
-						if (latch != null) {
-							latch.await();
-						}
-						Thread.sleep(500);
-						// send the second chunk
-						outputStream.write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote second part");
-						writeByte(outputStream, 0x03, true);
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				for (int i = 0; i < 2; i++) {
+					writeByte(outputStream, 0x02, true);
+					outputStream.write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote first part");
+					if (latch != null) {
+						latch.await();
 					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
+					Thread.sleep(500);
+					// send the second chunk
+					outputStream.write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote second part");
+					writeByte(outputStream, 0x03, true);
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -234,29 +222,26 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendStxEtxOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					writeByte(outputStream, 0x02, true);
-					for (int i = 0; i < 1500; i++) {
-						writeByte(outputStream, 'x', true);
-					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				writeByte(outputStream, 0x02, true);
+				for (int i = 0; i < 1500; i++) {
+					writeByte(outputStream, 'x', true);
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -271,38 +256,35 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendCrLf(final int port, final CountDownLatch latch) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					for (int i = 0; i < 2; i++) {
-						outputStream.write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote first part");
-						if (latch != null) {
-							latch.await();
-						}
-						Thread.sleep(500);
-						// send the second chunk
-						outputStream.write(TEST_STRING.getBytes());
-						logger.debug(i + " Wrote second part");
-						writeByte(outputStream, '\r', true);
-						writeByte(outputStream, '\n', true);
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				for (int i = 0; i < 2; i++) {
+					outputStream.write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote first part");
+					if (latch != null) {
+						latch.await();
 					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
+					Thread.sleep(500);
+					// send the second chunk
+					outputStream.write(TEST_STRING.getBytes());
+					logger.debug(i + " Wrote second part");
+					writeByte(outputStream, '\r', true);
+					writeByte(outputStream, '\n', true);
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -316,24 +298,21 @@ public class SocketTestUtils {
 	 * @param latch Waits for latch to count down before closing the socket.
 	 */
 	public static void testSendCrLfSingle(final int port, final CountDownLatch latch) {
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					outputStream.write(TEST_STRING.getBytes());
-					outputStream.write(TEST_STRING.getBytes());
-					writeByte(outputStream, '\r', true);
-					writeByte(outputStream, '\n', true);
-					if (latch != null) {
-						latch.await();
-					}
-					socket.close();
+		Thread thread = new Thread(() -> {
+			try {
+				Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				outputStream.write(TEST_STRING.getBytes());
+				outputStream.write(TEST_STRING.getBytes());
+				writeByte(outputStream, '\r', true);
+				writeByte(outputStream, '\n', true);
+				if (latch != null) {
+					latch.await();
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+				socket.close();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		thread.setDaemon(true);
@@ -344,19 +323,16 @@ public class SocketTestUtils {
 	 * Sends a single message in two chunks and then closes the socket.
 	 */
 	public static void testSendRaw(final int port) {
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					outputStream.write(TEST_STRING.getBytes());
-					outputStream.write(TEST_STRING.getBytes());
-					socket.close();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread thread = new Thread(() -> {
+			try {
+				Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				outputStream.write(TEST_STRING.getBytes());
+				outputStream.write(TEST_STRING.getBytes());
+				socket.close();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		thread.setDaemon(true);
@@ -368,31 +344,28 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendSerialized(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Socket socket = null;
-				try {
-					socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-					oos.writeObject(TEST_STRING);
-					oos.flush();
-					oos = new ObjectOutputStream(outputStream);
-					oos.writeObject(TEST_STRING);
-					oos.flush();
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				finally {
-					if (socket != null) {
-						try {
-							socket.close();
-						}
-						catch (IOException e) { }
+		Thread thread = new Thread(() -> {
+			Socket socket = null;
+			try {
+				socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				ObjectOutputStream oos = new ObjectOutputStream(outputStream);
+				oos.writeObject(TEST_STRING);
+				oos.flush();
+				oos = new ObjectOutputStream(outputStream);
+				oos.writeObject(TEST_STRING);
+				oos.flush();
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
 					}
+					catch (IOException e2) { }
 				}
 			}
 		});
@@ -406,20 +379,17 @@ public class SocketTestUtils {
 	 */
 	public static CountDownLatch testSendCrLfOverflow(final int port) {
 		final CountDownLatch testCompleteLatch = new CountDownLatch(1);
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
-					OutputStream outputStream = socket.getOutputStream();
-					for (int i = 0; i < 1500; i++) {
-						writeByte(outputStream, 'x', true);
-					}
-					testCompleteLatch.await(10, TimeUnit.SECONDS);
-					socket.close();
+		Thread thread = new Thread(() -> {
+			try {
+				Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+				OutputStream outputStream = socket.getOutputStream();
+				for (int i = 0; i < 1500; i++) {
+					writeByte(outputStream, 'x', true);
 				}
-				catch (Exception e) { }
+				testCompleteLatch.await(10, TimeUnit.SECONDS);
+				socket.close();
 			}
+			catch (Exception e) { }
 		});
 		thread.setDaemon(true);
 		thread.start();

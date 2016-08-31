@@ -463,21 +463,16 @@ public class CachingClientConnectionFactoryTests {
 	public void gatewayIntegrationTest() throws Exception {
 		final List<String> connectionIds = new ArrayList<String>();
 		final AtomicBoolean okToRun = new AtomicBoolean(true);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				while (okToRun.get()) {
-					Message<?> m = inbound.receive(1000);
-					if (m != null) {
-						connectionIds.add((String) m.getHeaders().get(IpHeaders.CONNECTION_ID));
-						replies.send(MessageBuilder.withPayload("foo:" + new String((byte[]) m.getPayload()))
-								.copyHeaders(m.getHeaders())
-								.build());
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			while (okToRun.get()) {
+				Message<?> m = inbound.receive(1000);
+				if (m != null) {
+					connectionIds.add((String) m.getHeaders().get(IpHeaders.CONNECTION_ID));
+					replies.send(MessageBuilder.withPayload("foo:" + new String((byte[]) m.getPayload()))
+							.copyHeaders(m.getHeaders())
+							.build());
 				}
 			}
-
 		});
 		TestingUtilities.waitListening(serverCf, null);
 		toGateway.send(new GenericMessage<String>("Hello, world!"));
@@ -546,14 +541,7 @@ public class CachingClientConnectionFactoryTests {
 		when(factory1.isActive()).thenReturn(true);
 		when(factory2.isActive()).thenReturn(true);
 		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-
-		}).when(mockConn2).send(Mockito.any(Message.class));
+		doAnswer(invocation -> null).when(mockConn2).send(Mockito.any(Message.class));
 		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
 		failoverFactory.start();
 
@@ -572,13 +560,9 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch1.countDown();
-				return false;
-			}
+		server1.registerListener(message -> {
+			latch1.countDown();
+			return false;
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -586,13 +570,9 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch2.countDown();
-				return false;
-			}
+		server2.registerListener(message -> {
+			latch2.countDown();
+			return false;
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
@@ -600,22 +580,10 @@ public class CachingClientConnectionFactoryTests {
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("localhost", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory1.registerListener(message -> false);
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory2.registerListener(message -> false);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
@@ -659,13 +627,9 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server1 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server1");
 		final CountDownLatch latch1 = new CountDownLatch(3);
-		server1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch1.countDown();
-				return false;
-			}
+		server1.registerListener(message -> {
+			latch1.countDown();
+			return false;
 		});
 		server1.start();
 		TestingUtilities.waitListening(server1, 10000L);
@@ -673,13 +637,9 @@ public class CachingClientConnectionFactoryTests {
 		TcpNetServerConnectionFactory server2 = new TcpNetServerConnectionFactory(0);
 		server1.setBeanName("server2");
 		final CountDownLatch latch2 = new CountDownLatch(2);
-		server2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				latch2.countDown();
-				return false;
-			}
+		server2.registerListener(message -> {
+			latch2.countDown();
+			return false;
 		});
 		server2.start();
 		TestingUtilities.waitListening(server2, 10000L);
@@ -687,22 +647,10 @@ public class CachingClientConnectionFactoryTests {
 		// Failover
 		AbstractClientConnectionFactory factory1 = new TcpNetClientConnectionFactory("junkjunk", port1);
 		factory1.setBeanName("client1");
-		factory1.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory1.registerListener(message -> false);
 		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port2);
 		factory2.setBeanName("client2");
-		factory2.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory2.registerListener(message -> false);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
@@ -737,16 +685,11 @@ public class CachingClientConnectionFactoryTests {
 		final CountDownLatch latch1 = new CountDownLatch(2);
 		final CountDownLatch latch2 = new CountDownLatch(102);
 		final List<String> connectionIds = new ArrayList<String>();
-		in.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				connectionIds.add((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
-				latch1.countDown();
-				latch2.countDown();
-				return false;
-			}
-
+		in.registerListener(message -> {
+			connectionIds.add((String) message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			latch1.countDown();
+			latch2.countDown();
+			return false;
 		});
 		in.start();
 		TestingUtilities.waitListening(in, null);
@@ -783,24 +726,19 @@ public class CachingClientConnectionFactoryTests {
 		final TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(in);
 		final AtomicInteger count = new AtomicInteger(2);
-		in.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					if (count.decrementAndGet() < 1) {
-						try {
-							Thread.sleep(1000);
-						}
-						catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
+		in.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				if (count.decrementAndGet() < 1) {
+					try {
+						Thread.sleep(1000);
 					}
-					handler.handleMessage(message);
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				}
-				return false;
+				handler.handleMessage(message);
 			}
-
+			return false;
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -878,16 +816,12 @@ public class CachingClientConnectionFactoryTests {
 		factory.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		final CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 1);
 		final AtomicReference<Message<?>> received = new AtomicReference<Message<?>>();
-		cachingFactory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					received.set(message);
-					latch.countDown();
-				}
-				return false;
+		cachingFactory.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				received.set(message);
+				latch.countDown();
 			}
+			return false;
 		});
 		cachingFactory.start();
 

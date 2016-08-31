@@ -244,13 +244,7 @@ public class ConnectionEventTests {
 		});
 		gw.setConnectionFactory(ccf);
 		DirectChannel requestChannel = new DirectChannel();
-		requestChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
-			}
-		});
+		requestChannel.subscribe(message -> ((MessageChannel) message.getHeaders().getReplyChannel()).send(message));
 		gw.start();
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader(IpHeaders.CONNECTION_ID, "bar")
@@ -299,13 +293,7 @@ public class ConnectionEventTests {
 
 		});
 		factory.setBeanName("sf");
-		factory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		factory.registerListener(message -> false);
 		Log logger = spy(TestUtils.getPropertyValue(factory, "logger", Log.class));
 		doAnswer(new DoesNothing()).when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);

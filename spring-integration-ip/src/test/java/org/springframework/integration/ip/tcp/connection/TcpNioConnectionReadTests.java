@@ -71,15 +71,10 @@ public class TcpNioConnectionReadTests {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				responses.add(message);
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			responses.add(message);
+			semaphore.release();
+			return false;
 		});
 
 		// Fire up the sender.
@@ -105,21 +100,16 @@ public class TcpNioConnectionReadTests {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				responses.add(message);
-				try {
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				semaphore.release();
-				return false;
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			responses.add(message);
+			try {
+				Thread.sleep(1000);
 			}
-
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			semaphore.release();
+			return false;
 		});
 
 		int howMany = 2;
@@ -142,15 +132,10 @@ public class TcpNioConnectionReadTests {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				responses.add(message);
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			responses.add(message);
+			semaphore.release();
+			return false;
 		});
 
 		// Fire up the sender.
@@ -174,15 +159,10 @@ public class TcpNioConnectionReadTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				responses.add(message);
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			responses.add(message);
+			semaphore.release();
+			return false;
 		});
 
 		// Fire up the sender.
@@ -206,14 +186,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			semaphore.release();
+			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -248,14 +223,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			semaphore.release();
+			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -290,14 +260,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			semaphore.release();
+			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -337,14 +302,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			semaphore.release();
+			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -381,14 +341,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				semaphore.release();
-				return false;
-			}
-
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			semaphore.release();
+			return false;
 		}, new TcpSender() {
 
 			@Override
@@ -455,12 +410,9 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				responses.add(message);
-				return false;
-			}
+		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
+			responses.add(message);
+			return false;
 		}, new TcpSender() {
 			@Override
 			public void addNewConnection(TcpConnection connection) {

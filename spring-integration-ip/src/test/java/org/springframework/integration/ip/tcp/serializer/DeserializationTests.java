@@ -389,18 +389,13 @@ public class DeserializationTests {
 		out.setBeanFactory(mock(BeanFactory.class));
 		out.afterPropertiesSet();
 		out.start();
-		Runnable command = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					out.handleMessage(MessageBuilder.withPayload("\u0004Test").build());
-				}
-				catch (Exception e) {
-					// eat SocketTimeoutException. Doesn't matter for this test
-				}
+		Runnable command = () -> {
+			try {
+				out.handleMessage(MessageBuilder.withPayload("\u0004Test").build());
 			}
-
+			catch (Exception e) {
+				// eat SocketTimeoutException. Doesn't matter for this test
+			}
 		};
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 

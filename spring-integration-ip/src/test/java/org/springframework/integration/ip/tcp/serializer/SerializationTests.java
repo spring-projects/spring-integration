@@ -47,20 +47,17 @@ public class SerializationTests {
 		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-					serializer.serialize(buffer.array(), socket.getOutputStream());
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+				ByteBuffer buffer = ByteBuffer.allocate(testString.length());
+				buffer.put(testString.getBytes());
+				ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+				serializer.serialize(buffer.array(), socket.getOutputStream());
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		t.setDaemon(true);
@@ -84,20 +81,17 @@ public class SerializationTests {
 		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
-					serializer.serialize(buffer.array(), socket.getOutputStream());
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+				ByteBuffer buffer = ByteBuffer.allocate(testString.length());
+				buffer.put(testString.getBytes());
+				ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+				serializer.serialize(buffer.array(), socket.getOutputStream());
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		t.setDaemon(true);
@@ -121,20 +115,17 @@ public class SerializationTests {
 		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-					serializer.serialize(buffer.array(), socket.getOutputStream());
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+				ByteBuffer buffer = ByteBuffer.allocate(testString.length());
+				buffer.put(testString.getBytes());
+				ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+				serializer.serialize(buffer.array(), socket.getOutputStream());
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		t.setDaemon(true);
@@ -158,21 +149,18 @@ public class SerializationTests {
 		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
-					serializer.serialize(buffer.array(), socket.getOutputStream());
-					socket.close();
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+				ByteBuffer buffer = ByteBuffer.allocate(testString.length());
+				buffer.put(testString.getBytes());
+				ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+				serializer.serialize(buffer.array(), socket.getOutputStream());
+				socket.close();
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		t.setDaemon(true);
@@ -195,19 +183,16 @@ public class SerializationTests {
 		final int port = server.getLocalPort();
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					DefaultSerializer serializer = new DefaultSerializer();
-					serializer.serialize(testString, socket.getOutputStream());
-					serializer.serialize(testString, socket.getOutputStream());
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+				DefaultSerializer serializer = new DefaultSerializer();
+				serializer.serialize(testString, socket.getOutputStream());
+				serializer.serialize(testString, socket.getOutputStream());
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 		t.setDaemon(true);

@@ -33,7 +33,7 @@ import org.junit.Test;
  * @since 2.0.4
  *
  */
-public class LenghtHeaderSerializationTests {
+public class LengthHeaderSerializationTests {
 
 	private static final String TEST = "Test";
 	private String test255;

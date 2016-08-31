@@ -46,8 +46,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -60,7 +58,6 @@ import org.springframework.integration.ip.event.IpIntegrationEvent;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -124,13 +121,10 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 		serverFactory.setApplicationEventPublisher(publisher);
 		serverFactory = spy(serverFactory);
 		final CountDownLatch serverConnectionInitLatch = new CountDownLatch(1);
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object result = invocation.callRealMethod();
-				serverConnectionInitLatch.countDown();
-				return result;
-			}
+		doAnswer(invocation -> {
+			Object result = invocation.callRealMethod();
+			serverConnectionInitLatch.countDown();
+			return result;
 		}).when(serverFactory).wrapConnection(any(TcpConnectionSupport.class));
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(10);
@@ -148,12 +142,7 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 		assertThat(((TcpConnectionServerListeningEvent) events.get(0)).getPort(), equalTo(serverFactory.getPort()));
 		int port = serverFactory.getPort();
 		TcpNetClientConnectionFactory clientFactory = new TcpNetClientConnectionFactory("localhost", port);
-		clientFactory.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		clientFactory.registerListener(message -> false);
 		clientFactory.setBeanName("clientFactory");
 		clientFactory.setApplicationEventPublisher(publisher);
 		clientFactory.start();
@@ -226,34 +215,20 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		when(logger.isDebugEnabled()).thenReturn(true);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				latch1.countDown();
-				// wait until the stop nulls the channel
-				latch2.await(10, TimeUnit.SECONDS);
-				return null;
-			}
+		doAnswer(invocation -> {
+			latch1.countDown();
+			// wait until the stop nulls the channel
+			latch2.await(10, TimeUnit.SECONDS);
+			return null;
 		}).when(logger).info(contains("Listening"));
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				latch3.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			latch3.countDown();
+			return null;
 		}).when(logger).debug(contains(message));
 		factory.start();
 		assertTrue("missing info log", latch1.await(10, TimeUnit.SECONDS));
 		// stop on a different thread because it waits for the executor
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				factory.stop();
-			}
-		});
+		Executors.newSingleThreadExecutor().execute(() -> factory.stop());
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
 		while (n++ < 200 && accessor.getPropertyValue(property) != null) {

@@ -209,14 +209,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 			TaskScheduler taskScheduler = this.getTaskScheduler();
 			if (taskScheduler != null) {
 				try {
-					taskScheduler.schedule(new Runnable() {
-
-						@Override
-						public void run() {
-							eventPublisher.publishEvent(event);
-						}
-
-					}, new Date());
+					taskScheduler.schedule((Runnable) () -> eventPublisher.publishEvent(event), new Date());
 				}
 				catch (TaskRejectedException e) {
 					eventPublisher.publishEvent(event);

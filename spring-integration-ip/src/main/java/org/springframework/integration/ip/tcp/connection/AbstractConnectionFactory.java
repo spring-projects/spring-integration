@@ -630,36 +630,33 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						connection = (TcpNioConnection) key.attachment();
 						connection.setLastRead(System.currentTimeMillis());
 						try {
-							this.taskExecutor.execute(new Runnable() {
-								@Override
-								public void run() {
-									boolean delayed = false;
-									try {
-										connection.readPacket();
+							this.taskExecutor.execute(() -> {
+								boolean delayed = false;
+								try {
+									connection.readPacket();
+								}
+								catch (RejectedExecutionException e1) {
+									delayRead(selector, now, key);
+									delayed = true;
+								}
+								catch (Exception e2) {
+									if (connection.isOpen()) {
+										logger.error("Exception on read " +
+												connection.getConnectionId() + " " +
+												e2.getMessage());
+										connection.close();
 									}
-									catch (RejectedExecutionException e) {
-										delayRead(selector, now, key);
-										delayed = true;
+									else {
+										logger.debug("Connection closed");
 									}
-									catch (Exception e) {
-										if (connection.isOpen()) {
-											logger.error("Exception on read " +
-													connection.getConnectionId() + " " +
-													e.getMessage());
-											connection.close();
-										}
-										else {
-											logger.debug("Connection closed");
-										}
+								}
+								if (!delayed) {
+									if (key.channel().isOpen()) {
+										key.interestOps(SelectionKey.OP_READ);
+										selector.wakeup();
 									}
-									if (!delayed) {
-										if (key.channel().isOpen()) {
-											key.interestOps(SelectionKey.OP_READ);
-											selector.wakeup();
-										}
-										else {
-											connection.sendExceptionToListener(new EOFException("Connection is closed"));
-										}
+									else {
+										connection.sendExceptionToListener(new EOFException("Connection is closed"));
 									}
 								}
 							});

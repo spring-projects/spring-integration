@@ -41,7 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -93,32 +92,27 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
-					serverSocket.set(server);
-					latch.countDown();
-					List<Socket> sockets = new ArrayList<Socket>();
-					int i = 0;
-					while (true) {
-						Socket socket = server.accept();
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						ois.readObject();
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						oos.writeObject("Reply" + (i++));
-						sockets.add(socket);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
+				serverSocket.set(server);
+				latch.countDown();
+				List<Socket> sockets = new ArrayList<Socket>();
+				int i = 0;
+				while (true) {
+					Socket socket = server.accept();
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ois.readObject();
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject("Reply" + (i++));
+					sockets.add(socket);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -162,30 +156,25 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
-					serverSocket.set(server);
-					latch.countDown();
-					int i = 0;
-					Socket socket = server.accept();
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						ois.readObject();
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						oos.writeObject("Reply" + (i++));
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+				serverSocket.set(server);
+				latch.countDown();
+				int i = 0;
+				Socket socket = server.accept();
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ois.readObject();
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject("Reply" + (i++));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -222,31 +211,26 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					int i = 0;
-					Socket socket = server.accept();
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						ois.readObject();
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						Thread.sleep(1000);
-						oos.writeObject("Reply" + (i++));
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				int i = 0;
+				Socket socket = server.accept();
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ois.readObject();
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					Thread.sleep(1000);
+					oos.writeObject("Reply" + (i++));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -266,14 +250,9 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
-
-				@Override
-				public Integer call() throws Exception {
-					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
-					return 0;
-				}
-
+			results[j] = (Executors.newSingleThreadExecutor().submit(() -> {
+				gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
+				return 0;
 			}));
 		}
 		Set<String> replies = new HashSet<String>();
@@ -355,44 +334,39 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
 		final CountDownLatch serverLatch = new CountDownLatch(2);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					latch.countDown();
-					int i = 0;
-					while (!done.get()) {
-						Socket socket = server.accept();
-						i++;
-						while (!socket.isClosed()) {
-							try {
-								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-								String request = (String) ois.readObject();
-								logger.debug("Read " + request);
-								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-								if (i < 2) {
-									Thread.sleep(2000);
-								}
-								oos.writeObject(request.replace("Test", "Reply"));
-								logger.debug("Replied to " + request);
-								lastReceived.set(request);
-								serverLatch.countDown();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				latch.countDown();
+				int i = 0;
+				while (!done.get()) {
+					Socket socket = server.accept();
+					i++;
+					while (!socket.isClosed()) {
+						try {
+							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+							String request = (String) ois.readObject();
+							logger.debug("Read " + request);
+							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+							if (i < 2) {
+								Thread.sleep(2000);
 							}
-							catch (IOException e) {
-								logger.debug("error on write " + e.getClass().getSimpleName());
-								socket.close();
-							}
+							oos.writeObject(request.replace("Test", "Reply"));
+							logger.debug("Replied to " + request);
+							lastReceived.set(request);
+							serverLatch.countDown();
+						}
+						catch (IOException e1) {
+							logger.debug("error on write " + e1.getClass().getSimpleName());
+							socket.close();
 						}
 					}
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+			}
+			catch (Exception e2) {
+				if (!done.get()) {
+					e2.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -414,14 +388,9 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
-
-				@Override
-				public Integer call() throws Exception {
-					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
-					return j;
-				}
-
+			results[j] = (Executors.newSingleThreadExecutor().submit(() -> {
+				gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
+				return j;
 			}));
 
 		}
@@ -463,40 +432,35 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					while (!done.get()) {
-						Socket socket = server.accept();
-						while (!socket.isClosed()) {
-							try {
-								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-								String request = (String) ois.readObject();
-								logger.debug("Read " + request);
-								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-								oos.writeObject("bar");
-								logger.debug("Replied to " + request);
-								serverLatch.countDown();
-							}
-							catch (IOException e) {
-								logger.debug("error on write " + e.getClass().getSimpleName());
-								socket.close();
-							}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				while (!done.get()) {
+					Socket socket = server.accept();
+					while (!socket.isClosed()) {
+						try {
+							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+							String request = (String) ois.readObject();
+							logger.debug("Read " + request);
+							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+							oos.writeObject("bar");
+							logger.debug("Replied to " + request);
+							serverLatch.countDown();
+						}
+						catch (IOException e1) {
+							logger.debug("error on write " + e1.getClass().getSimpleName());
+							socket.close();
 						}
 					}
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+			}
+			catch (Exception e2) {
+				if (!done.get()) {
+					e2.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 
@@ -548,40 +512,35 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					while (!done.get()) {
-						Socket socket = server.accept();
-						while (!socket.isClosed()) {
-							try {
-								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-								String request = (String) ois.readObject();
-								logger.debug("Read " + request);
-								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-								oos.writeObject("bar");
-								logger.debug("Replied to " + request);
-								serverLatch.countDown();
-							}
-							catch (IOException e) {
-								logger.debug("error on write " + e.getClass().getSimpleName());
-								socket.close();
-							}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				while (!done.get()) {
+					Socket socket = server.accept();
+					while (!socket.isClosed()) {
+						try {
+							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+							String request = (String) ois.readObject();
+							logger.debug("Read " + request);
+							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+							oos.writeObject("bar");
+							logger.debug("Replied to " + request);
+							serverLatch.countDown();
+						}
+						catch (IOException e1) {
+							logger.debug("error on write " + e1.getClass().getSimpleName());
+							socket.close();
 						}
 					}
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+			}
+			catch (Exception e2) {
+				if (!done.get()) {
+					e2.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 
@@ -701,45 +660,40 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				List<Socket> sockets = new ArrayList<Socket>();
-				try {
-					latch.countDown();
-					while (!done.get()) {
-						Socket socket = server.accept();
-						sockets.add(socket);
-						while (!socket.isClosed()) {
-							try {
-								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-								String request = (String) ois.readObject();
-								logger.debug("Read " + request + " closing socket");
-								socket.close();
-								lastReceived.set(request);
-								serverLatch.countDown();
-							}
-							catch (IOException e) {
-								socket.close();
-							}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			List<Socket> sockets = new ArrayList<Socket>();
+			try {
+				latch.countDown();
+				while (!done.get()) {
+					Socket socket1 = server.accept();
+					sockets.add(socket1);
+					while (!socket1.isClosed()) {
+						try {
+							ObjectInputStream ois = new ObjectInputStream(socket1.getInputStream());
+							String request = (String) ois.readObject();
+							logger.debug("Read " + request + " closing socket");
+							socket1.close();
+							lastReceived.set(request);
+							serverLatch.countDown();
+						}
+						catch (IOException e1) {
+							socket1.close();
 						}
 					}
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
-				}
-				for (Socket socket : sockets) {
-					try {
-						socket.close();
-					}
-					catch (IOException e) {
-					}
+			}
+			catch (Exception e2) {
+				if (!done.get()) {
+					e2.printStackTrace();
 				}
 			}
-
+			for (Socket socket2 : sockets) {
+				try {
+					socket2.close();
+				}
+				catch (IOException e3) {
+				}
+			}
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -829,31 +783,26 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				List<Socket> sockets = new ArrayList<Socket>();
-				try {
-					latch.countDown();
-					while (!done.get()) {
-						sockets.add(server.accept());
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
-				}
-				for (Socket socket : sockets) {
-					try {
-						socket.close();
-					}
-					catch (IOException e) {
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			List<Socket> sockets = new ArrayList<Socket>();
+			try {
+				latch.countDown();
+				while (!done.get()) {
+					sockets.add(server.accept());
 				}
 			}
-
+			catch (Exception e1) {
+				if (!done.get()) {
+					e1.printStackTrace();
+				}
+			}
+			for (Socket socket : sockets) {
+				try {
+					socket.close();
+				}
+				catch (IOException e2) {
+				}
+			}
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();

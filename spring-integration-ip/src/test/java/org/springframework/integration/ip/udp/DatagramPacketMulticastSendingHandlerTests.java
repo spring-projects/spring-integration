@@ -64,35 +64,32 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		final String payload = "foo";
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch received = new CountDownLatch(2);
-		Runnable catcher = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					byte[] buffer = new byte[8];
-					DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-					MulticastSocket socket = new MulticastSocket(testPort);
-					socket.setInterface(InetAddress.getByName(multicastRule.getNic()));
-					InetAddress group = InetAddress.getByName(multicastAddress);
-					socket.joinGroup(group);
-					listening.countDown();
-					LogFactory.getLog(getClass())
-						.debug(Thread.currentThread().getName() + " waiting for packet");
-					socket.receive(receivedPacket);
-					socket.close();
-					byte[] src = receivedPacket.getData();
-					int length = receivedPacket.getLength();
-					int offset = receivedPacket.getOffset();
-					byte[] dest = new byte[length];
-					System.arraycopy(src, offset, dest, 0, length);
-					assertEquals(payload, new String(dest));
-					LogFactory.getLog(getClass())
-						.debug(Thread.currentThread().getName() + " received packet");
-					received.countDown();
-				}
-				catch (Exception e) {
-					listening.countDown();
-					e.printStackTrace();
-				}
+		Runnable catcher = () -> {
+			try {
+				byte[] buffer = new byte[8];
+				DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
+				MulticastSocket socket1 = new MulticastSocket(testPort);
+				socket1.setInterface(InetAddress.getByName(multicastRule.getNic()));
+				InetAddress group = InetAddress.getByName(multicastAddress);
+				socket1.joinGroup(group);
+				listening.countDown();
+				LogFactory.getLog(getClass())
+					.debug(Thread.currentThread().getName() + " waiting for packet");
+				socket1.receive(receivedPacket);
+				socket1.close();
+				byte[] src = receivedPacket.getData();
+				int length = receivedPacket.getLength();
+				int offset = receivedPacket.getOffset();
+				byte[] dest = new byte[length];
+				System.arraycopy(src, offset, dest, 0, length);
+				assertEquals(payload, new String(dest));
+				LogFactory.getLog(getClass())
+					.debug(Thread.currentThread().getName() + " received packet");
+				received.countDown();
+			}
+			catch (Exception e) {
+				listening.countDown();
+				e.printStackTrace();
 			}
 		};
 		Executor executor = Executors.newFixedThreadPool(2);
@@ -127,49 +124,46 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		final CountDownLatch listening = new CountDownLatch(2);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(2);
-		Runnable catcher = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					byte[] buffer = new byte[1000];
-					DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-					MulticastSocket socket = new MulticastSocket(testPort);
-					socket.setInterface(InetAddress.getByName(multicastRule.getNic()));
-					socket.setSoTimeout(8000);
-					InetAddress group = InetAddress.getByName(multicastAddress);
-					socket.joinGroup(group);
-					listening.countDown();
-					assertTrue(ackListening.await(10, TimeUnit.SECONDS));
-					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " waiting for packet");
-					socket.receive(receivedPacket);
-					socket.close();
-					byte[] src = receivedPacket.getData();
-					int length = receivedPacket.getLength();
-					int offset = receivedPacket.getOffset();
-					byte[] dest = new byte[6];
-					System.arraycopy(src, offset + length - 6, dest, 0, 6);
-					assertEquals(payload, new String(dest));
-					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " received packet");
-					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
-					mapper.setAcknowledge(true);
-					mapper.setLengthCheck(true);
-					Message<byte[]> message = mapper.toMessage(receivedPacket);
-					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
-					byte[] ack = id.toString().getBytes();
-					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
-												new InetSocketAddress(multicastRule.getNic(), ackPort.get()));
-					DatagramSocket out = new DatagramSocket();
-					out.send(ackPack);
-					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " sent ack to "
-							+ ackPack.getSocketAddress());
-					out.close();
-					ackSent.countDown();
-					socket.close();
-				}
-				catch (Exception e) {
-					listening.countDown();
-					e.printStackTrace();
-				}
+		Runnable catcher = () -> {
+			try {
+				byte[] buffer = new byte[1000];
+				DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
+				MulticastSocket socket1 = new MulticastSocket(testPort);
+				socket1.setInterface(InetAddress.getByName(multicastRule.getNic()));
+				socket1.setSoTimeout(8000);
+				InetAddress group = InetAddress.getByName(multicastAddress);
+				socket1.joinGroup(group);
+				listening.countDown();
+				assertTrue(ackListening.await(10, TimeUnit.SECONDS));
+				LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " waiting for packet");
+				socket1.receive(receivedPacket);
+				socket1.close();
+				byte[] src = receivedPacket.getData();
+				int length = receivedPacket.getLength();
+				int offset = receivedPacket.getOffset();
+				byte[] dest = new byte[6];
+				System.arraycopy(src, offset + length - 6, dest, 0, 6);
+				assertEquals(payload, new String(dest));
+				LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " received packet");
+				DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+				mapper.setAcknowledge(true);
+				mapper.setLengthCheck(true);
+				Message<byte[]> message = mapper.toMessage(receivedPacket);
+				Object id = message.getHeaders().get(IpHeaders.ACK_ID);
+				byte[] ack = id.toString().getBytes();
+				DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
+											new InetSocketAddress(multicastRule.getNic(), ackPort.get()));
+				DatagramSocket out = new DatagramSocket();
+				out.send(ackPack);
+				LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " sent ack to "
+						+ ackPack.getSocketAddress());
+				out.close();
+				ackSent.countDown();
+				socket1.close();
+			}
+			catch (Exception e) {
+				listening.countDown();
+				e.printStackTrace();
 			}
 		};
 		Executor executor = Executors.newFixedThreadPool(2);

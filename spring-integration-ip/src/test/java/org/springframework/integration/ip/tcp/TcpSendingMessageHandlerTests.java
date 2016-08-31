@@ -48,8 +48,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -98,30 +96,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (++i) + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("Reply" + (++i) + "\r\n").getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -156,30 +149,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (++i) + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("Reply" + (++i) + "\r\n").getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -226,30 +214,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (++i) + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("Reply" + (++i) + "\r\n").getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -287,30 +270,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
-						socket.getOutputStream().write(b);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -345,30 +323,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
-						socket.getOutputStream().write(b);
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("\u0002Reply" + (++i) + "\u0003").getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -406,33 +379,28 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[8];
-						readFully(socket.getInputStream(), b);
-						if (!"\u0000\u0000\u0000\u0004Test".equals(new String(b))) {
-							throw new RuntimeException("Bad Data");
-						}
-						b = ("\u0000\u0000\u0000\u0006Reply" + (++i)).getBytes();
-						socket.getOutputStream().write(b);
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[8];
+					readFully(socket.getInputStream(), b);
+					if (!"\u0000\u0000\u0000\u0004Test".equals(new String(b))) {
+						throw new RuntimeException("Bad Data");
 					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+					b = ("\u0000\u0000\u0000\u0006Reply" + (++i)).getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -467,33 +435,28 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						byte[] b = new byte[8];
-						readFully(socket.getInputStream(), b);
-						if (!"\u0000\u0000\u0000\u0004Test".equals(new String(b))) {
-							throw new RuntimeException("Bad Data");
-						}
-						b = ("\u0000\u0000\u0000\u0006Reply" + (++i)).getBytes();
-						socket.getOutputStream().write(b);
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					byte[] b = new byte[8];
+					readFully(socket.getInputStream(), b);
+					if (!"\u0000\u0000\u0000\u0004Test".equals(new String(b))) {
+						throw new RuntimeException("Bad Data");
 					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+					b = ("\u0000\u0000\u0000\u0006Reply" + (++i)).getBytes();
+					socket.getOutputStream().write(b);
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -531,30 +494,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						ois.readObject();
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						oos.writeObject("Reply" + (++i));
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ois.readObject();
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject("Reply" + (++i));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -588,30 +546,25 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						ois.readObject();
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						oos.writeObject("Reply" + (++i));
-					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ois.readObject();
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject("Reply" + (++i));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -649,31 +602,26 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					for (int i = 0; i < 2; i++) {
-						Socket socket = server.accept();
-						semaphore.release();
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						semaphore.release();
-						socket.close();
-					}
-					server.close();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				for (int i = 0; i < 2; i++) {
+					Socket socket = server.accept();
+					semaphore.release();
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					semaphore.release();
+					socket.close();
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -701,31 +649,26 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					for (int i = 0; i < 2; i++) {
-						Socket socket = server.accept();
-						semaphore.release();
-						byte[] b = new byte[8];
-						readFully(socket.getInputStream(), b);
-						semaphore.release();
-						socket.close();
-					}
-					server.close();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				for (int i = 0; i < 2; i++) {
+					Socket socket = server.accept();
+					semaphore.release();
+					byte[] b = new byte[8];
+					readFully(socket.getInputStream(), b);
+					semaphore.release();
+					socket.close();
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -753,32 +696,27 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					for (int i = 1; i < 3; i++) {
-						Socket socket = server.accept();
-						semaphore.release();
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + i + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-						socket.close();
-					}
-					server.close();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				for (int i = 1; i < 3; i++) {
+					Socket socket = server.accept();
+					semaphore.release();
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("Reply" + i + "\r\n").getBytes();
+					socket.getOutputStream().write(b);
+					socket.close();
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -818,32 +756,27 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					for (int i = 1; i < 3; i++) {
-						Socket socket = server.accept();
-						semaphore.release();
-						byte[] b = new byte[6];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + i + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-						socket.close();
-					}
-					server.close();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				for (int i = 1; i < 3; i++) {
+					Socket socket = server.accept();
+					semaphore.release();
+					byte[] b = new byte[6];
+					readFully(socket.getInputStream(), b);
+					b = ("Reply" + i + "\r\n").getBytes();
+					socket.getOutputStream().write(b);
+					socket.close();
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -885,50 +818,41 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicBoolean done = new AtomicBoolean();
 		final List<Socket> serverSockets = new ArrayList<Socket>();
 		final ExecutorService exec = Executors.newCachedThreadPool();
-		exec.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
-					serverSocket.set(server);
-					latch.countDown();
-					for (int i = 0; i < 100; i++) {
-						final Socket socket = server.accept();
-						serverSockets.add(socket);
-						final int j = i;
-						exec.execute(new Runnable() {
-
-							@Override
-							public void run() {
-								semaphore.release();
-								byte[] b = new byte[9];
-								try {
-									readFully(socket.getInputStream(), b);
-									b = ("Reply" + j + "\r\n").getBytes();
-									socket.getOutputStream().write(b);
-								}
-								catch (IOException e) {
-									e.printStackTrace();
-								}
-								finally {
-									try {
-										socket.close();
-									}
-									catch (IOException e) { }
-								}
+		exec.execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
+				serverSocket.set(server);
+				latch.countDown();
+				for (int i = 0; i < 100; i++) {
+					final Socket socket = server.accept();
+					serverSockets.add(socket);
+					final int j = i;
+					exec.execute(() -> {
+						semaphore.release();
+						byte[] b = new byte[9];
+						try {
+							readFully(socket.getInputStream(), b);
+							b = ("Reply" + j + "\r\n").getBytes();
+							socket.getOutputStream().write(b);
+						}
+						catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						finally {
+							try {
+								socket.close();
 							}
-						});
-					}
-					server.close();
+							catch (IOException e2) { }
+						}
+					});
 				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -977,43 +901,38 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 0;
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in = null;
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						if (i == 0) {
-							in = ois.readObject();
-							logger.debug("read object: " + in);
-							oos.writeObject("world!");
-							ois = new ObjectInputStream(socket.getInputStream());
-							oos = new ObjectOutputStream(socket.getOutputStream());
-							in = ois.readObject();
-							logger.debug("read object: " + in);
-							oos.writeObject("world!");
-							ois = new ObjectInputStream(socket.getInputStream());
-							oos = new ObjectOutputStream(socket.getOutputStream());
-						}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 0;
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					Object in = null;
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					if (i == 0) {
 						in = ois.readObject();
-						oos.writeObject("Reply" + (++i));
+						logger.debug("read object: " + in);
+						oos.writeObject("world!");
+						ois = new ObjectInputStream(socket.getInputStream());
+						oos = new ObjectOutputStream(socket.getOutputStream());
+						in = ois.readObject();
+						logger.debug("read object: " + in);
+						oos.writeObject("world!");
+						ois = new ObjectInputStream(socket.getInputStream());
+						oos = new ObjectOutputStream(socket.getOutputStream());
 					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+					in = ois.readObject();
+					oos.writeObject("Reply" + (++i));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -1053,39 +972,34 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					int i = 100;
-					while (true) {
-						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in;
-						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						if (i == 100) {
-							in = ois.readObject();
-							logger.debug("read object: " + in);
-							oos.writeObject("world!");
-							ois = new ObjectInputStream(socket.getInputStream());
-							oos = new ObjectOutputStream(socket.getOutputStream());
-							Thread.sleep(500);
-						}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				int i = 100;
+				while (true) {
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					Object in;
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					if (i == 100) {
 						in = ois.readObject();
-						oos.writeObject("Reply" + (i++));
+						logger.debug("read object: " + in);
+						oos.writeObject("world!");
+						ois = new ObjectInputStream(socket.getInputStream());
+						oos = new ObjectOutputStream(socket.getOutputStream());
+						Thread.sleep(500);
 					}
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+					in = ois.readObject();
+					oos.writeObject("Reply" + (i++));
 				}
 			}
-
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
+				}
+			}
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -1127,39 +1041,34 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-					Object in = ois.readObject();
-					logger.debug("read object: " + in);
-					oos.writeObject("world!");
-					ois = new ObjectInputStream(socket.getInputStream());
-					oos = new ObjectOutputStream(socket.getOutputStream());
-					in = ois.readObject();
-					logger.debug("read object: " + in);
-					oos.writeObject("world!");
-					ois = new ObjectInputStream(socket.getInputStream());
-					oos = new ObjectOutputStream(socket.getOutputStream());
-					in = ois.readObject();
-					oos.writeObject("Reply");
-					socket.close();
-					server.close();
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+				Object in = ois.readObject();
+				logger.debug("read object: " + in);
+				oos.writeObject("world!");
+				ois = new ObjectInputStream(socket.getInputStream());
+				oos = new ObjectOutputStream(socket.getOutputStream());
+				in = ois.readObject();
+				logger.debug("read object: " + in);
+				oos.writeObject("world!");
+				ois = new ObjectInputStream(socket.getInputStream());
+				oos = new ObjectOutputStream(socket.getOutputStream());
+				in = ois.readObject();
+				oos.writeObject("Reply");
+				socket.close();
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost",
@@ -1189,39 +1098,34 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				int i = 0;
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-					serverSocket.set(server);
-					latch.countDown();
-					Socket socket = server.accept();
-					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-					Object in = ois.readObject();
-					logger.debug("read object: " + in);
-					oos.writeObject("world!");
-					ois = new ObjectInputStream(socket.getInputStream());
-					oos = new ObjectOutputStream(socket.getOutputStream());
-					in = ois.readObject();
-					logger.debug("read object: " + in);
-					oos.writeObject("world!");
-					ois = new ObjectInputStream(socket.getInputStream());
-					oos = new ObjectOutputStream(socket.getOutputStream());
-					oos.writeObject("Reply" + (++i));
-					socket.close();
-					server.close();
-				}
-				catch (Exception e) {
-					if (i == 0) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			int i = 0;
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+				serverSocket.set(server);
+				latch.countDown();
+				Socket socket = server.accept();
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+				Object in = ois.readObject();
+				logger.debug("read object: " + in);
+				oos.writeObject("world!");
+				ois = new ObjectInputStream(socket.getInputStream());
+				oos = new ObjectOutputStream(socket.getOutputStream());
+				in = ois.readObject();
+				logger.debug("read object: " + in);
+				oos.writeObject("world!");
+				ois = new ObjectInputStream(socket.getInputStream());
+				oos = new ObjectOutputStream(socket.getOutputStream());
+				oos.writeObject("Reply" + (++i));
+				socket.close();
+				server.close();
+			}
+			catch (Exception e) {
+				if (i == 0) {
+					e.printStackTrace();
 				}
 			}
-
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost",
@@ -1266,13 +1170,8 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 	public void testConnectionException() throws Exception {
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		AbstractConnectionFactory mockCcf = mock(AbstractClientConnectionFactory.class);
-		Mockito.doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				throw new SocketException("Failed to connect");
-			}
-
+		Mockito.doAnswer(invocation -> {
+			throw new SocketException("Failed to connect");
 		}).when(mockCcf).getConnection();
 		handler.setConnectionFactory(mockCcf);
 		try {

@@ -50,10 +50,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -76,12 +73,7 @@ public class TcpInboundGatewayTests {
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
-			@Override
-			public MessageChannel resolveDestination(String channelName) {
-				return channel;
-			}
-		});
+		handler.setChannelResolver(channelName -> channel);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -127,30 +119,27 @@ public class TcpInboundGatewayTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
-					port.set(server.getLocalPort());
-					latch1.countDown();
-					Socket socket = server.accept();
-					socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
-					byte[] bytes = new byte[12];
-					readFully(socket.getInputStream(), bytes);
-					assertEquals("Echo:Test1\r\n", new String(bytes));
-					readFully(socket.getInputStream(), bytes);
-					assertEquals("Echo:Test2\r\n", new String(bytes));
-					latch2.await();
-					socket.close();
-					server.close();
-					done.set(true);
-					latch3.countDown();
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+				port.set(server.getLocalPort());
+				latch1.countDown();
+				Socket socket = server.accept();
+				socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
+				byte[] bytes = new byte[12];
+				readFully(socket.getInputStream(), bytes);
+				assertEquals("Echo:Test1\r\n", new String(bytes));
+				readFully(socket.getInputStream(), bytes);
+				assertEquals("Echo:Test2\r\n", new String(bytes));
+				latch2.await();
+				socket.close();
+				server.close();
+				done.set(true);
+				latch3.countDown();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
 		});
@@ -196,12 +185,7 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
-			@Override
-			public MessageChannel resolveDestination(String channelName) {
-				return channel;
-			}
-		});
+		handler.setChannelResolver(channelName -> channel);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
 		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -251,12 +235,9 @@ public class TcpInboundGatewayTests {
 		gateway.setConnectionFactory(scf);
 		SubscribableChannel errorChannel = new DirectChannel();
 		final String errorMessage = "An error occurred";
-		errorChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(new GenericMessage<String>(errorMessage));
-			}
+		errorChannel.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(new GenericMessage<String>(errorMessage));
 		});
 		gateway.setErrorChannel(errorChannel);
 		scf.start();

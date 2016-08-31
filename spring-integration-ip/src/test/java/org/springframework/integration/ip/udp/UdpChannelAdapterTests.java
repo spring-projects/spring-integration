@@ -185,19 +185,16 @@ public class UdpChannelAdapterTests {
 		final CountDownLatch receiverReadyLatch = new CountDownLatch(1);
 		final CountDownLatch replyReceivedLatch = new CountDownLatch(1);
 		//main thread sends the reply using the headers, this thread will receive it
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				DatagramPacket answer = new DatagramPacket(new byte[2000], 2000);
-				try {
-					receiverReadyLatch.countDown();
-					socket.receive(answer);
-					theAnswer.set(answer);
-					replyReceivedLatch.countDown();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			DatagramPacket answer = new DatagramPacket(new byte[2000], 2000);
+			try {
+				receiverReadyLatch.countDown();
+				socket.receive(answer);
+				theAnswer.set(answer);
+				replyReceivedLatch.countDown();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
 			}
 		});
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);

@@ -73,12 +73,7 @@ public class ConnectionTimeoutTests {
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		client.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				return false;
-			}
-		});
+		client.registerListener(message -> false);
 		client.setSoTimeout(1000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
 		setupClientCallback(client);
@@ -122,15 +117,12 @@ public class ConnectionTimeoutTests {
 			throws Exception, InterruptedException {
 		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
 		final CountDownLatch replyLatch = new CountDownLatch(1);
-		client.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					reply.set(message);
-					replyLatch.countDown();
-				}
-				return false;
+		client.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				reply.set(message);
+				replyLatch.countDown();
 			}
+			return false;
 		});
 		client.setSoTimeout(2000);
 		CountDownLatch clientClosedLatch = getCloseLatch(client);
@@ -166,14 +158,11 @@ public class ConnectionTimeoutTests {
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		client.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					reply.set(message);
-				}
-				return false;
+		client.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				reply.set(message);
 			}
+			return false;
 		});
 		client.setSoTimeout(2000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
@@ -206,14 +195,11 @@ public class ConnectionTimeoutTests {
 		server.start();
 		TestingUtilities.waitListening(server, null);
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
-		client.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					reply.set(message);
-				}
-				return false;
+		client.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				reply.set(message);
 			}
+			return false;
 		});
 		client.setSoTimeout(1000);
 		CountDownLatch clientCloseLatch = getCloseLatch(client);
@@ -234,18 +220,15 @@ public class ConnectionTimeoutTests {
 	private void setupServerCallbacks(AbstractServerConnectionFactory server, final int serverDelay) {
 		server.setComponentName("serverFactory");
 		final AtomicReference<TcpConnection> serverConnection = new AtomicReference<TcpConnection>();
-		server.registerListener(new TcpListener() {
-			@Override
-			public boolean onMessage(Message<?> message) {
-				try {
-					Thread.sleep(serverDelay);
-					serverConnection.get().send(message);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-				return false;
+		server.registerListener(message -> {
+			try {
+				Thread.sleep(serverDelay);
+				serverConnection.get().send(message);
 			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			return false;
 		});
 		server.registerSender(new TcpSender() {
 			@Override
