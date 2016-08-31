@@ -17,7 +17,6 @@
 package org.springframework.integration.config.annotation;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -80,7 +79,7 @@ public class AnnotatedEndpointActivationTests {
 		assertEquals(1, count);
 
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator"));
-		assertFalse(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
+		assertTrue(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
 	}
 
 	@Test

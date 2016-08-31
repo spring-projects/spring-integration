@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		"max-messages-per-task", "selector",
 		"receive-timeout", "recovery-interval",
 		"idle-consumer-limit", "idle-task-execution-limit",
-		"cache-level", "subscription-durable", "durable-subscription-name",
+		"cache-level", "subscription-durable",
 		"subscription-shared", "subscription-name",
 		"client-id", "task-executor"
 	};
@@ -101,11 +101,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 
 		return id;
-	}
-
-	@Override
-	protected boolean shouldGenerateId() {
-		return false;
 	}
 
 	@Override
@@ -163,7 +158,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		String destinationName = element.getAttribute(destinationNameAttribute);
 		boolean hasDestination = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
-		if (!(hasDestination ^ hasDestinationName)) {
+		if (hasDestination == hasDestinationName) {
 			parserContext.getReaderContext().error(
 					"Exactly one of '" + destinationAttribute +
 					"' or '" + destinationNameAttribute + "' is required.", element);
@@ -178,11 +173,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
 
-		if (StringUtils.hasText(element.getAttribute("subscription-name"))
-				&& StringUtils.hasText(element.getAttribute("durable-subscription-name"))) {
-			parserContext.getReaderContext().error(
-					"Only one of 'subscription-name' or 'durable-subscription-name' is allowed.", element);
-		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
@@ -196,12 +186,9 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "cache-level");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-durable");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable-subscription-name",
-				"subscriptionName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-shared");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
-		builder.addPropertyValue("autoStartup", false);
 		String beanName = adapterBeanNameRoot(element, parserContext, adapterBeanDefinition)
 				+ ".container";
 		parserContext.getRegistry().registerBeanDefinition(beanName, builder.getBeanDefinition());
