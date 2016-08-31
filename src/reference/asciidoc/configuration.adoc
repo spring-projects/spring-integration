@@ -102,7 +102,7 @@ This is also defined as a constant:
 IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ----
 
-By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
+By default Spring Integration relies on an instance of `ThreadPoolTaskScheduler` as described in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
 That default TaskScheduler will startup automatically with a pool of 10 threads, but see <<global-properties>>.
 If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property to _false_, and/or you can provide your own pool size value.
 
@@ -205,7 +205,6 @@ spring.integration.channels.maxUnicastSubscribers=0x7fffffff <2>
 spring.integration.channels.maxBroadcastSubscribers=0x7fffffff <3>
 spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
-spring.integration.messagingAnnotations.require.componentAnnotation=false <6>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -224,14 +223,8 @@ This can be overridden on individual channels with the `max-subscribers` attribu
 <5> When `true`, messages that arrive at a gateway reply channel will throw an exception, when the gateway is not
 expecting a reply - because the sending thread has timed out, or already received a reply.
 
-<6> When `true`, Messaging Annotation Support (<<annotations>>) requires a declaration of the
-`@MessageEndpoint` (or any other `@Component`) annotation on the class level.
-
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.
-
-NOTE: In versions prior to _4.3_, these property names had a typographical error (`...integraton...`); they have now been
-corrected (`...integration...`).
 
 [[annotations]]
 === Annotation Support
@@ -304,7 +297,7 @@ public class FooService {
 }
 ----
 
-There is also a @Headers annotation that provides all of the Message headers as a Map:
+There is also a `@Headers` annotation that provides all of the Message headers as a Map:
 [source,java]
 ----
 public class FooService {
@@ -365,18 +358,17 @@ Starting with _version 4.0_, the `@Poller` annotation has been introduced to all
 ----
 public class AnnotationService {
 
-	@Transformer(inputChannel = "input", outputChannel = "output",
-		poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.fixedDelay}"))
-	public String handle(String payload) {
-		...
-	}
+    @Transformer(inputChannel = "input", outputChannel = "output",
+        poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.fixedDelay}"))
+    public String handle(String payload) {
+        ...
+    }
 }
 ----
 
 This annotation provides only simple `PollerMetadata` options.
-The `@Poller`'s attributes `maxMessagesPerPoll`, `fixedDelay`, `fixedRate` and `cron` can be configured with _property-placeholder_s.
-If it is necessary to provide more polling options (e.g.
-transaction, advice-chain, error-handler), the`PollerMetadata` should be configured as a generic bean with its bean name used for `@Poller`'s `value` attribute.
+The `@Poller`'s attributes `maxMessagesPerPoll`, `fixedDelay`, `fixedRate` and `cron` can be configured with _property-placeholders_.
+If it is necessary to provide more polling options (e.g. transaction, advice-chain, error-handler), the `PollerMetadata` should be configured as a generic bean with its bean name used for `@Poller`'s `value` attribute.
 In this case, no other attributes are allowed (they would be specified on the `PollerMetadata` bean).
 Note, if `inputChannel` is `PollableChannel` and no `@Poller` is configured, the default `PollerMetadata` will be used, if it is present in the application context.
 To declare the default poller using `@Configuration`, use:
@@ -384,9 +376,9 @@ To declare the default poller using `@Configuration`, use:
 ----
 @Bean(name = PollerMetadata.DEFAULT_POLLER)
 public PollerMetadata defaultPoller() {
-	PollerMetadata pollerMetadata = new PollerMetadata();
-	pollerMetadata.setTrigger(new PeriodicTrigger(10));
-	return pollerMetadata;
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setTrigger(new PeriodicTrigger(10));
+    return pollerMetadata;
 }
 ----
 
@@ -395,10 +387,10 @@ With this endpoint using the default poller:
 ----
 public class AnnotationService {
 
-	@Transformer(inputChannel = "aPollableChannel", outputChannel = "output")
-	public String handle(String payload) {
-		...
-	}
+    @Transformer(inputChannel = "aPollableChannel", outputChannel = "output")
+    public String handle(String payload) {
+        ...
+    }
 }
 ----
 
@@ -407,9 +399,9 @@ To use a named poller, use:
 ----
 @Bean
 public PollerMetadata myPoller() {
-	PollerMetadata pollerMetadata = new PollerMetadata();
-	pollerMetadata.setTrigger(new PeriodicTrigger(1000));
-	return pollerMetadata;
+    PollerMetadata pollerMetadata = new PollerMetadata();
+    pollerMetadata.setTrigger(new PeriodicTrigger(1000));
+    return pollerMetadata;
 }
 ----
 
@@ -418,11 +410,11 @@ With this endpoint using the default poller:
 ----
 public class AnnotationService {
 
-	@Transformer(inputChannel = "aPollableChannel", outputChannel = "output"
-						poller = @Poller("myPoller")
-	public String handle(String payload) {
-		...
-	}
+    @Transformer(inputChannel = "aPollableChannel", outputChannel = "output"
+                           poller = @Poller("myPoller")
+    public String handle(String payload) {
+         ...
+    }
 }
 ----
 
@@ -438,12 +430,12 @@ If there is need to provide some `MessageHeaders`, use a `Message<?>` return typ
 ----
 @InboundChannelAdapter("counterChannel")
 public Integer count() {
-	return this.counter.incrementAndGet();
+    return this.counter.incrementAndGet();
 }
 
 @InboundChannelAdapter(value = "fooChannel", poller = @Poller(fixed-rate = "5000"))
 public String foo() {
-	return "foo";
+    return "foo";
 }
 ----
 
@@ -487,7 +479,7 @@ In addition, meta-annotations can be configured hierarchically:
 @ServiceActivator(inputChannel = "annInput", outputChannel = "annOutput")
 public @interface MyServiceActivator {
 
-	String[] adviceChain = { "annAdvice" };
+    String[] adviceChain = { "annAdvice" };
 }
 
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -495,9 +487,9 @@ public @interface MyServiceActivator {
 @MyServiceActivator
 public @interface MyServiceActivator1 {
 
-	String inputChannel();
+    String inputChannel();
 
-	String outputChannel();
+    String outputChannel();
 }
 ...
 
@@ -521,32 +513,32 @@ It is useful when `@Bean` definitions are "out of the box" `MessageHandler` s (`
 @EnableIntegration
 public class MyFlowConfiguration {
 
-	@Bean
-	@InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
-	public MessageSource<String> consoleSource() {
-		return CharacterStreamReadingMessageSource.stdin();
-	}
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public MessageSource<String> consoleSource() {
+        return CharacterStreamReadingMessageSource.stdin();
+    }
 
-	@Bean
-	@Transformer(inputChannel = "inputChannel", outputChannel = "httpChannel")
-	public ObjectToMapTransformer toMapTransformer() {
-		return new ObjectToMapTransformer();
-	}
+    @Bean
+    @Transformer(inputChannel = "inputChannel", outputChannel = "httpChannel")
+    public ObjectToMapTransformer toMapTransformer() {
+        return new ObjectToMapTransformer();
+    }
 
-	@Bean
-	@ServiceActivator(inputChannel = "httpChannel")
-	public MessageHandler httpHandler() {
-		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://foo/service");
-		handler.setExpectedResponseType(String.class);
-		handler.setOutputChannelName("outputChannel");
-		return handler;
-	}
+    @Bean
+    @ServiceActivator(inputChannel = "httpChannel")
+    public MessageHandler httpHandler() {
+    HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://foo/service");
+        handler.setExpectedResponseType(String.class);
+        handler.setOutputChannelName("outputChannel");
+        return handler;
+    }
 
-	@Bean
-	@ServiceActivator(inputChannel = "outputChannel")
-	public LoggingHandler loggingHandler() {
-		return new LoggingHandler("info");
-	}
+    @Bean
+    @ServiceActivator(inputChannel = "outputChannel")
+    public LoggingHandler loggingHandler() {
+        return new LoggingHandler("info");
+    }
 
 }
 ----
@@ -578,7 +570,7 @@ method level, meaning to skip the bean registration by some condition reason:
 @ServiceActivator(inputChannel = "skippedChannel")
 @Profile("foo")
 public MessageHandler skipped() {
-	return System.out::println;
+    return System.out::println;
 }
 ----
 Together with the existing Spring Container logic, the Messaging Endpoint bean, based on the `@ServiceActivator`
@@ -592,23 +584,23 @@ This is just for completeness, providing a convenient mechanism to declare a`Bri
 ----
 @Bean
 public PollableChannel bridgeFromInput() {
-	return new QueueChannel();
+    return new QueueChannel();
 }
 
 @Bean
 @BridgeFrom(value = "bridgeFromInput", poller = @Poller(fixedDelay = "1000"))
 public MessageChannel bridgeFromOutput() {
-	return new DirectChannel();
+    return new DirectChannel();
 }
 @Bean
 public QueueChannel bridgeToOutput() {
-	return new QueueChannel();
+    return new QueueChannel();
 }
 
 @Bean
 @BridgeTo("bridgeToOutput")
 public MessageChannel bridgeToInput() {
-	return new DirectChannel();
+    return new DirectChannel();
 }
 ----
 
@@ -770,7 +762,8 @@ The payload is not being mapped to any argument.
 _Multiple parameters:_
 
 Multiple parameters could create a lot of ambiguity with regards to determining the appropriate mappings.
-The general advice is to annotate your method parameters with @Payload and/or @Header/@Headers Below are some of the examples of ambiguous conditions which result in an Exception being raised.
+The general advice is to annotate your method parameters with `@Payload` and/or `@Header`/`@Headers`.
+Below are some of the examples of ambiguous conditions which result in an Exception being raised.
 
 [source,java]
 ----
@@ -805,9 +798,9 @@ _Multiple methods (same or different name) with legal (mappable) signatures:_
 [source,java]
 ----
 public class Foo {
-  public String foo(String str, Map m);
+    public String foo(String str, Map m);
 
-  public String foo(Map m);
+    public String foo(Map m);
 }
 ----
 
@@ -819,7 +812,7 @@ To make meters worse both methods have the same name which at first might look v
 [source,xml]
 ----
 <int:service-activator input-channel="input" output-channel="output" method="foo">
-  <bean class="org.bar.Foo"/>
+    <bean class="org.bar.Foo"/>
 </int:service-activator>
 ----
 
@@ -831,9 +824,9 @@ On the other hand let's look at slightly different example:
 [source,java]
 ----
 public class Foo {
-  public String foo(String str, Map m);
+    public String foo(String str, Map m);
 
-  public String foo(String str);
+    public String foo(String str);
 }
 ----
 
@@ -846,16 +839,16 @@ However if the method names were different you could influence the mapping with 
 [source,java]
 ----
 public class Foo {
-  public String foo(String str, Map m);
+    public String foo(String str, Map m);
 
-  public String bar(String str);
+    public String bar(String str);
 }
 ----
 
 [source,xml]
 ----
 <int:service-activator input-channel="input" output-channel="output" method="bar">
-  <bean class="org.bar.Foo"/>
+    <bean class="org.bar.Foo"/>
 </int:service-activator>
 ----
 

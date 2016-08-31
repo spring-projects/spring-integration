@@ -69,11 +69,6 @@ public final class IntegrationProperties {
 	/**
 	 * Specifies the value of {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor#requireComponentAnnotation}.
 	 */
-	public static final String REQUIRE_COMPONENT_ANNOTATION = INTEGRATION_PROPERTIES_PREFIX + "messagingAnnotations.require.componentAnnotation";
-
-	/**
-	 * Specifies the value of {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor#requireComponentAnnotation}.
-	 */
 	public static final String GATEWAY_CONVERT_RECEIVE_MESSAGE = INTEGRATION_PROPERTIES_PREFIX + "messagingGateway.convertReceiveMessage";
 
 	private static Properties defaults;

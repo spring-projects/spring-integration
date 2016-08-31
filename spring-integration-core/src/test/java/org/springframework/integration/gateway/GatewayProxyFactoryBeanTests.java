@@ -16,20 +16,14 @@
 
 package org.springframework.integration.gateway;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -50,8 +44,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -159,41 +151,6 @@ public class GatewayProxyFactoryBeanTests {
 		Message<String> message = service.getMessage();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
-	}
-
-	@Test
-	public void testReceiveMessageConvert() throws Exception {
-		QueueChannel replyChannel = new QueueChannel();
-		replyChannel.send(new GenericMessage<>("foo"));
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setDefaultReplyChannel(replyChannel);
-
-		BeanFactory beanFactory = mock(BeanFactory.class);
-
-		given(beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME))
-				.willReturn(true);
-
-		willAnswer(invocation -> {
-			Properties properties = new Properties();
-			properties.setProperty(IntegrationProperties.GATEWAY_CONVERT_RECEIVE_MESSAGE, "true");
-			return properties;
-		})
-				.given(beanFactory)
-				.getBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
-
-		proxyFactory.setBeanFactory(beanFactory);
-		proxyFactory.afterPropertiesSet();
-		TestService service = (TestService) proxyFactory.getObject();
-		try {
-			service.getMessage();
-			fail("ClassCastException expected");
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(ClassCastException.class));
-			assertThat(e.getMessage(),
-					containsString("java.lang.String cannot be cast to org.springframework.messaging.Message"));
-		}
 	}
 
 	@Test
