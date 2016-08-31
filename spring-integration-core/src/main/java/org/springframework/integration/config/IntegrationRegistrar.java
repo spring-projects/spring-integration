@@ -356,11 +356,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 */
 	private void registerMessagingAnnotationPostProcessors(AnnotationMetadata meta, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)) {
-			String requireComponentAnnotationExpression =
-					IntegrationProperties.getExpressionFor(IntegrationProperties.REQUIRE_COMPONENT_ANNOTATION);
 			BeanDefinitionBuilder builder =
 					BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class)
-							.addPropertyValue("requireComponentAnnotation", requireComponentAnnotationExpression)
 							.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
 			registry.registerBeanDefinition(IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME,

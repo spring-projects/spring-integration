@@ -13,10 +13,6 @@
 
 	<annotation-config/>    <!-- Second declaration should not be a problem - see INT-3445 -->
 
-	<util:properties id="integrationGlobalProperties">
-		<beans:prop key="spring.integration.messagingAnnotations.require.componentAnnotation">true</beans:prop>
-	</util:properties>
-
 	<beans:bean id="annotatedEndpoint"
 			class="org.springframework.integration.config.annotation.AnnotatedEndpointActivationTests.AnnotatedEndpoint"/>
 

@@ -66,16 +66,6 @@ public final class IntegrationProperties {
 	 */
 	public static final String THROW_EXCEPTION_ON_LATE_REPLY = INTEGRATION_PROPERTIES_PREFIX + "messagingTemplate.throwExceptionOnLateReply";
 
-	/**
-	 * Specifies the value of {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor#requireComponentAnnotation}.
-	 */
-	public static final String REQUIRE_COMPONENT_ANNOTATION = INTEGRATION_PROPERTIES_PREFIX + "messagingAnnotations.require.componentAnnotation";
-
-	/**
-	 * Specifies the value of {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor#requireComponentAnnotation}.
-	 */
-	public static final String GATEWAY_CONVERT_RECEIVE_MESSAGE = INTEGRATION_PROPERTIES_PREFIX + "messagingGateway.convertReceiveMessage";
-
 	private static Properties defaults;
 
 	static {
