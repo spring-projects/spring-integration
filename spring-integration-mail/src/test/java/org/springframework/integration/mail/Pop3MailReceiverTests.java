@@ -32,8 +32,6 @@ import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -44,10 +42,11 @@ import org.springframework.beans.factory.BeanFactory;
  *
  */
 public class Pop3MailReceiverTests {
+
 	@Test
 	public void receiveAndDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
-		((Pop3MailReceiver) receiver).setShouldDeleteMessages(true);
+		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -60,38 +59,29 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE) {
-					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-				}
-				return null;
+		final Message[] messages = new Message[] { msg1, msg2 };
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
+
 	@Test
 	public void receiveAndDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
-		((Pop3MailReceiver) receiver).setShouldDeleteMessages(false);
+		receiver.setShouldDeleteMessages(false);
 		receiver = spy(receiver);
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
@@ -104,29 +94,18 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
+		final Message[] messages = new Message[] { msg1, msg2 };
+		doAnswer(invocation -> null).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
+
 	@Test
 	public void receiveAndDontSetDeleteWithUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
@@ -142,29 +121,18 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
+		final Message[] messages = new Message[] { msg1, msg2 };
+		doAnswer(invocation -> null).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
+
 	@Test
 	public void receiveAndDontSetDeleteWithoutUrl() throws Exception {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
@@ -180,27 +148,16 @@ public class Pop3MailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
+		final Message[] messages = new Message[] { msg1, msg2 };
+		doAnswer(invocation -> null).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
+
 }

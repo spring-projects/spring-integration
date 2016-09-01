@@ -143,7 +143,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			}
 			Assert.notNull(this.amqpAdmin,
 					"If no queueName is configured explicitly, an AmqpAdmin instance must be provided, " +
-					"or the AmqpTemplate must be a RabbitTemplate since the Queue needs to be declared.");
+							"or the AmqpTemplate must be a RabbitTemplate since the Queue needs to be declared.");
 			this.queueName = this.channelName;
 			this.amqpAdmin.declareQueue(new Queue(this.queueName));
 		}
@@ -163,7 +163,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				interceptorStack = new ArrayDeque<ChannelInterceptor>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {
-					 return null;
+					return null;
 				}
 			}
 			Object object = doReceive();

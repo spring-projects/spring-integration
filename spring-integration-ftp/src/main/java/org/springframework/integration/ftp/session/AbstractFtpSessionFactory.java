@@ -114,6 +114,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		Assert.notNull(pass, "password should not be null");
 		this.password = pass;
 	}
+
 	/**
 	 * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0 <br>
 	 * A constant indicating the FTP session is expecting all transfers
@@ -131,7 +132,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 */
 	public void setClientMode(int clientMode) {
 		Assert.isTrue(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE ||
-				clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE,
+						clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE,
 				"Only local modes are supported. Was: " + clientMode);
 		this.clientMode = clientMode;
 	}
@@ -141,7 +142,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 * @param connectTimeout the timeout
 	 */
 	public void setConnectTimeout(int connectTimeout) {
-		 this.connectTimeout = connectTimeout;
+		this.connectTimeout = connectTimeout;
 	}
 
 	/**
@@ -239,6 +240,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	protected void postProcessClientAfterConnect(T t) throws IOException {
 		// NOOP
 	}
+
 	/**
 	 * Will handle additional initialization before client.connect() method was invoked.
 	 *

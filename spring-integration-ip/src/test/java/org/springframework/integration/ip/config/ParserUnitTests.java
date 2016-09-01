@@ -93,62 +93,62 @@ public class ParserUnitTests {
 	ApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value = "testInUdp")
+	@Qualifier("testInUdp")
 	UnicastReceivingChannelAdapter udpIn;
 
 	@Autowired
-	@Qualifier(value = "testInUdpMulticast")
+	@Qualifier("testInUdpMulticast")
 	MulticastReceivingChannelAdapter udpInMulticast;
 
 	@Autowired
-	@Qualifier(value = "testInTcp")
+	@Qualifier("testInTcp")
 	TcpReceivingChannelAdapter tcpIn;
 
 	@Autowired
-	@Qualifier(value = "testOutUdp.handler")
+	@Qualifier("testOutUdp.handler")
 	UnicastSendingMessageHandler udpOut;
 
 	@Autowired
-	@Qualifier(value = "testOutUdpiMulticast.handler")
+	@Qualifier("testOutUdpiMulticast.handler")
 	MulticastSendingMessageHandler udpOutMulticast;
 
 	@Autowired
-	@Qualifier(value = "testOutTcpNio")
+	@Qualifier("testOutTcpNio")
 	AbstractEndpoint tcpOutEndpoint;
 
 	@Autowired
-	@Qualifier(value = "testOutTcpNio.handler")
+	@Qualifier("testOutTcpNio.handler")
 	TcpSendingMessageHandler tcpOut;
 
 	@Autowired
 	EventDrivenConsumer testOutTcpNio;
 
 	@Autowired
-	@Qualifier(value = "inGateway1")
+	@Qualifier("inGateway1")
 	TcpInboundGateway tcpInboundGateway1;
 
 	@Autowired
-	@Qualifier(value = "inGateway2")
+	@Qualifier("inGateway2")
 	TcpInboundGateway tcpInboundGateway2;
 
 	@Autowired
-	@Qualifier(value = "outGateway.handler")
+	@Qualifier("outGateway.handler")
 	TcpOutboundGateway tcpOutboundGateway;
 
 	@Autowired
-	@Qualifier(value = "outAdviceGateway.handler")
+	@Qualifier("outAdviceGateway.handler")
 	TcpOutboundGateway outAdviceGateway;
 
 	// verify we can still inject by generated name
 	@Autowired
-	@Qualifier(value = "org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
+	@Qualifier("org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
 	TcpOutboundGateway tcpOutboundGatewayByGeneratedName;
 
 	@Autowired
 	EventDrivenConsumer outGateway;
 
 	@Autowired
-	@Qualifier(value = "externalTE")
+	@Qualifier("externalTE")
 	TaskExecutor taskExecutor;
 
 	@Autowired
@@ -197,11 +197,11 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfS3;
 
 	@Autowired
-	@Qualifier(value = "tcpNewOut1.handler")
+	@Qualifier("tcpNewOut1.handler")
 	TcpSendingMessageHandler tcpNewOut1;
 
 	@Autowired
-	@Qualifier(value = "tcpNewOut2.handler")
+	@Qualifier("tcpNewOut2.handler")
 	TcpSendingMessageHandler tcpNewOut2;
 
 	@Autowired
@@ -238,7 +238,7 @@ public class ParserUnitTests {
 	TaskScheduler sched;
 
 	@Autowired
-	@Qualifier(value = "tcpOutClientMode.handler")
+	@Qualifier("tcpOutClientMode.handler")
 	TcpSendingMessageHandler tcpOutClientMode;
 
 	@Autowired

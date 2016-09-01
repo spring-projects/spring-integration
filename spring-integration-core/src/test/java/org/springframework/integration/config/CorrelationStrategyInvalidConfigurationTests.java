@@ -30,23 +30,23 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class CorrelationStrategyInvalidConfigurationTests {
 
-    @Test
-    public void testCorrelationStrategyWithVoidReturningMethods() throws Exception {
+	@Test
+	public void testCorrelationStrategyWithVoidReturningMethods() throws Exception {
 		try {
 			new ClassPathXmlApplicationContext("correlationStrategyWithVoidMethods.xml",
-				CorrelationStrategyInvalidConfigurationTests.class).close();
+					CorrelationStrategyInvalidConfigurationTests.class).close();
 		}
 		catch (BeanCreationException e) {
 			assertThat(e.getMessage(), containsString("MessageCountReleaseStrategy] has no eligible methods"));
 		}
-    }
+	}
 
-    public static class VoidReturningCorrelationStrategy {
+	public static class VoidReturningCorrelationStrategy {
 
-        public void invalidCorrelationMethod(String string) {
-            //do nothing
-        }
+		public void invalidCorrelationMethod(String string) {
+			//do nothing
+		}
 
-    }
+	}
 
 }

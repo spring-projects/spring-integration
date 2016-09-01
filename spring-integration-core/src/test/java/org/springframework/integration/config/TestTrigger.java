@@ -16,18 +16,18 @@
 
 package org.springframework.integration.config;
 
+import java.util.Date;
+
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
-
-import java.util.Date;
 
 /**
  * @author Marius Bogoevici
  */
 public class TestTrigger implements Trigger {
 
-    public Date nextExecutionTime(TriggerContext triggerContext) {
-        throw new UnsupportedOperationException();
-    }
+	public Date nextExecutionTime(TriggerContext triggerContext) {
+		throw new UnsupportedOperationException();
+	}
 
 }

@@ -18,25 +18,24 @@ package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 
-import org.springframework.messaging.Message;
-import org.springframework.integration.support.MessageBuilder;
-
 import org.junit.Test;
+
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * @author Marius Bogoevici
  */
 public class HeaderAttributeCorrelationStrategyTests {
 
-    @Test
-    public void testHeaderAttributeCorrelationStrategy() {
-        String testedHeaderValue = "@!arbitraryTestValue!@";
-        String testHeaderName = "header.for.test";
-        Message<?> message = MessageBuilder.withPayload("irrelevantData").setHeader(testHeaderName, testedHeaderValue).build();
-        HeaderAttributeCorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(testHeaderName);
-        assertEquals(testedHeaderValue, correlationStrategy.getCorrelationKey(message));
-    }
-
+	@Test
+	public void testHeaderAttributeCorrelationStrategy() {
+		String testedHeaderValue = "@!arbitraryTestValue!@";
+		String testHeaderName = "header.for.test";
+		Message<?> message = MessageBuilder.withPayload("irrelevantData").setHeader(testHeaderName, testedHeaderValue).build();
+		HeaderAttributeCorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(testHeaderName);
+		assertEquals(testedHeaderValue, correlationStrategy.getCorrelationKey(message));
+	}
 
 
 }

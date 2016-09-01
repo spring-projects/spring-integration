@@ -73,8 +73,8 @@ public class StoredProcOutboundGatewayParserTests {
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Expression  storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
-		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName.getValue());
+		Expression storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
+		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS", storedProcedureName.getValue());
 	}
 
 	@Test
@@ -90,8 +90,8 @@ public class StoredProcOutboundGatewayParserTests {
 
 		accessor = new DirectFieldAccessor(messagingTemplate);
 
-		Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
-		assertEquals("Wrong sendTimeout", Long.valueOf(555L),  sendTimeout);
+		Long sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
+		assertEquals("Wrong sendTimeout", Long.valueOf(555L), sendTimeout);
 
 	}
 
@@ -104,7 +104,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
+		boolean skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
 		assertFalse(skipUndeclaredResults);
 	}
 
@@ -179,7 +179,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  procedureParameters = accessor.getPropertyValue("procedureParameters");
+		Object procedureParameters = accessor.getPropertyValue("procedureParameters");
 		assertNotNull(procedureParameters);
 		assertTrue(procedureParameters instanceof List);
 
@@ -192,15 +192,15 @@ public class StoredProcOutboundGatewayParserTests {
 		ProcedureParameter parameter3 = procedureParametersAsList.get(2);
 		ProcedureParameter parameter4 = procedureParametersAsList.get(3);
 
-		assertEquals("username",    parameter1.getName());
+		assertEquals("username", parameter1.getName());
 		assertEquals("description", parameter2.getName());
-		assertEquals("password",    parameter3.getName());
-		assertEquals("age",         parameter4.getName());
+		assertEquals("password", parameter3.getName());
+		assertEquals("age", parameter4.getName());
 
-		assertEquals("kenny",              parameter1.getValue());
-		assertEquals("Who killed Kenny?",  parameter2.getValue());
+		assertEquals("kenny", parameter1.getValue());
+		assertEquals("Who killed Kenny?", parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  parameter4.getValue());
+		assertEquals(Integer.valueOf(30), parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());
@@ -219,7 +219,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  returningResultSetRowMappers = accessor.getPropertyValue("returningResultSetRowMappers");
+		Object returningResultSetRowMappers = accessor.getPropertyValue("returningResultSetRowMappers");
 		assertNotNull(returningResultSetRowMappers);
 		assertTrue(returningResultSetRowMappers instanceof Map);
 
@@ -229,7 +229,7 @@ public class StoredProcOutboundGatewayParserTests {
 
 		Entry<String, ?> mapEntry1 = returningResultSetRowMappersAsMap.entrySet().iterator().next();
 
-		assertEquals("out",    mapEntry1.getKey());
+		assertEquals("out", mapEntry1.getKey());
 		assertTrue(mapEntry1.getValue() instanceof PrimeMapper);
 
 	}
@@ -245,7 +245,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  sqlParameters = accessor.getPropertyValue("sqlParameters");
+		Object sqlParameters = accessor.getPropertyValue("sqlParameters");
 		assertNotNull(sqlParameters);
 		assertTrue(sqlParameters instanceof List);
 
@@ -258,14 +258,14 @@ public class StoredProcOutboundGatewayParserTests {
 		SqlParameter parameter3 = sqlParametersAsList.get(2);
 		SqlParameter parameter4 = sqlParametersAsList.get(3);
 
-		assertEquals("username",    parameter1.getName());
-		assertEquals("password",    parameter2.getName());
-		assertEquals("age",         parameter3.getName());
+		assertEquals("username", parameter1.getName());
+		assertEquals("password", parameter2.getName());
+		assertEquals("age", parameter3.getName());
 		assertEquals("description", parameter4.getName());
 
 		assertNull("Expect that the scale is null.", parameter1.getScale());
 		assertNull("Expect that the scale is null.", parameter2.getScale());
-		assertEquals("Expect that the scale is 5.", Integer.valueOf(5),  parameter3.getScale());
+		assertEquals("Expect that the scale is 5.", Integer.valueOf(5), parameter3.getScale());
 		assertNull("Expect that the scale is null.", parameter4.getScale());
 
 		assertEquals("SqlType is ", Types.VARCHAR, parameter1.getSqlType());
@@ -297,8 +297,8 @@ public class StoredProcOutboundGatewayParserTests {
 	}
 
 	public void setUp(String name, Class<?> cls) {
-		 this.context    = new ClassPathXmlApplicationContext(name, cls);
-		 this.outboundGateway   = this.context.getBean("storedProcedureOutboundGateway", EventDrivenConsumer.class);
+		this.context = new ClassPathXmlApplicationContext(name, cls);
+		this.outboundGateway = this.context.getBean("storedProcedureOutboundGateway", EventDrivenConsumer.class);
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

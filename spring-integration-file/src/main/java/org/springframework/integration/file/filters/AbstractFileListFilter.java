@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,28 +29,24 @@ import java.util.List;
  */
 public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
+	@Override
 	public final List<F> filterFiles(F[] files) {
-        List<F> accepted = new ArrayList<F>();
-        if (files != null) {
-            for (F file : files) {
-                if (this.accept(file)) {
-                    accepted.add(file);
-                }
-            }
-        }
-        return accepted;
-    }
+		List<F> accepted = new ArrayList<F>();
+		if (files != null) {
+			for (F file : files) {
+				if (this.accept(file)) {
+					accepted.add(file);
+				}
+			}
+		}
+		return accepted;
+	}
 
-    /**
-     * Subclasses must implement this method.
-     *
-     * @param file The file.
-     * @return true if the file passes the filter.
-     */
-    protected abstract boolean accept(F file);
+	/**
+	 * Subclasses must implement this method.
+	 * @param file The file.
+	 * @return true if the file passes the filter.
+	 */
+	protected abstract boolean accept(F file);
 
 }

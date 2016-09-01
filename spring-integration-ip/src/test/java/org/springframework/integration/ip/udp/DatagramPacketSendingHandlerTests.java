@@ -104,7 +104,7 @@ public class DatagramPacketSendingHandlerTests {
 				Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 				byte[] ack = id.toString().getBytes();
 				DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
-						                        new InetSocketAddress("localHost", ackPort.get()));
+						new InetSocketAddress("localHost", ackPort.get()));
 				DatagramSocket out = new DatagramSocket();
 				out.send(ackPack);
 				out.close();

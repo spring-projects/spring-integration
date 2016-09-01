@@ -64,11 +64,13 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 	private static final String EXPIRE_GROUPS_UPON_TIMEOUT = "expire-groups-upon-timeout";
 
 	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
-	                       ParserContext parserContext) {
-		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
+			ParserContext parserContext) {
+		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE,
+				CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
 				element, builder, processor, parserContext);
-		IntegrationNamespaceUtils.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
+		IntegrationNamespaceUtils.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE,
+				RELEASE_STRATEGY_METHOD_ATTRIBUTE,
 				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy",
 				element, builder, processor, parserContext);
 

@@ -190,7 +190,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		Assert.notNull(mapper, this.getClass().getName() + " Mapper may not be null");
 		this.mapper = mapper;
 		if (this.serializer != null &&
-			 !(this.serializer instanceof AbstractByteArraySerializer)) {
+				!(this.serializer instanceof AbstractByteArraySerializer)) {
 			mapper.setStringToBytes(false);
 		}
 	}

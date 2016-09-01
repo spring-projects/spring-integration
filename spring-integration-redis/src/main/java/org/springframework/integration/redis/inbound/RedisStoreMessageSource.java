@@ -34,6 +34,7 @@ import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+
 /**
  * Inbound channel adapter which returns a Message representing a view into
  * a Redis store. The type of store depends on the {@link #collectionType} attribute.
@@ -67,7 +68,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * @param keyExpression The key expression.
 	 */
 	public RedisStoreMessageSource(RedisTemplate<String, ?> redisTemplate,
-		       Expression keyExpression) {
+			Expression keyExpression) {
 
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
@@ -88,7 +89,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * @param keyExpression The key expression.
 	 */
 	public RedisStoreMessageSource(RedisConnectionFactory connectionFactory,
-									       Expression keyExpression) {
+			Expression keyExpression) {
 
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
@@ -148,7 +149,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	@Override
 	protected void onInit() throws Exception {
 		this.evaluationContext =
-					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 
 	public RedisStore getResource() {

@@ -173,7 +173,7 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	}
 
 	private void triggerAfterMessageHandled(Message<?> message, Exception ex,
-	                                        Deque<ExecutorChannelInterceptor> interceptorStack) {
+			Deque<ExecutorChannelInterceptor> interceptorStack) {
 		Iterator<ExecutorChannelInterceptor> iterator = interceptorStack.descendingIterator();
 		while (iterator.hasNext()) {
 			ExecutorChannelInterceptor interceptor = iterator.next();

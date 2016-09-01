@@ -53,17 +53,17 @@ public class FileMessageHistoryTests {
 		TemporaryFolder input = context.getBean(TemporaryFolder.class);
 		File file = input.newFile("FileMessageHistoryTest.txt");
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
-	    out.write("hello");
-	    out.close();
+		out.write("hello");
+		out.close();
 
-	    PollableChannel outChannel =  context.getBean("outChannel", PollableChannel.class);
-	    Message<?> message = outChannel.receive(10000);
+		PollableChannel outChannel = context.getBean("outChannel", PollableChannel.class);
+		Message<?> message = outChannel.receive(10000);
 		assertThat(message, is(notNullValue()));
-	    MessageHistory history = MessageHistory.read(message);
-	    assertThat(history, is(notNullValue()));
-	    Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "fileAdapter", 0);
-	    assertNotNull(componentHistoryRecord);
-	    assertEquals("file:inbound-channel-adapter", componentHistoryRecord.get("type"));
+		MessageHistory history = MessageHistory.read(message);
+		assertThat(history, is(notNullValue()));
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "fileAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("file:inbound-channel-adapter", componentHistoryRecord.get("type"));
 
 		context.close();
 	}

@@ -357,13 +357,13 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.hasText(toPath, "New filename cannot be null or empty");
 
 		this.execute((SessionCallbackWithoutResult<F>) session -> {
-				int lastSeparator = toPath.lastIndexOf(RemoteFileTemplate.this.remoteFileSeparator);
-				if (lastSeparator > 0) {
-					String remoteFileDirectory = toPath.substring(0, lastSeparator + 1);
-					RemoteFileUtils.makeDirectories(remoteFileDirectory, session,
-							RemoteFileTemplate.this.remoteFileSeparator, RemoteFileTemplate.this.logger);
-				}
-				session.rename(fromPath, toPath);
+			int lastSeparator = toPath.lastIndexOf(RemoteFileTemplate.this.remoteFileSeparator);
+			if (lastSeparator > 0) {
+				String remoteFileDirectory = toPath.substring(0, lastSeparator + 1);
+				RemoteFileUtils.makeDirectories(remoteFileDirectory, session,
+						RemoteFileTemplate.this.remoteFileSeparator, RemoteFileTemplate.this.logger);
+			}
+			session.rename(fromPath, toPath);
 		});
 	}
 
@@ -461,7 +461,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
-							"java.io.File, java.lang.String, and byte[]");
+						"java.io.File, java.lang.String, and byte[]");
 			}
 			if (dataInputStream == null) {
 				return null;
@@ -524,7 +524,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			// then rename it to its final name if necessary
 			if (rename) {
-			   session.rename(tempFilePath, remoteFilePath);
+				session.rename(tempFilePath, remoteFilePath);
 			}
 		}
 		catch (Exception e) {

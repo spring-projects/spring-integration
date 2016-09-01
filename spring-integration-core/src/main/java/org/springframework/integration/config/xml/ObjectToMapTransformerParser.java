@@ -16,10 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.ObjectToMapTransformer;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -35,6 +36,6 @@ public class ObjectToMapTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "flatten", "shouldFlattenKeys");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "flatten", "shouldFlattenKeys");
 	}
 }

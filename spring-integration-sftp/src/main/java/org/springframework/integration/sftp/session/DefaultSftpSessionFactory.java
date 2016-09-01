@@ -562,7 +562,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		@Override
 		public String[] promptKeyboardInteractive(String destination, String name, String instruction, String[] prompt,
-		                                          boolean[] echo) {
+				boolean[] echo) {
 			if (hasDelegate() && getDelegate() instanceof UIKeyboardInteractive) {
 				return ((UIKeyboardInteractive) getDelegate()).promptKeyboardInteractive(destination, name,
 						instruction, prompt, echo);

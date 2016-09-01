@@ -16,6 +16,9 @@
 
 package org.springframework.integration.ws.config;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,9 +36,6 @@ import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.pox.dom.DomPoxMessage;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 /**
  * @author Mark Fisher
  */
@@ -52,10 +52,10 @@ public class StubMessageFactory implements WebServiceMessageFactory {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-	        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	        InputSource is = new InputSource(new InputStreamReader(inputStream));
-	        Document document = builder.parse(is);
-	        return new DomPoxMessage(document, transformer, "text/xml");
+			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			InputSource is = new InputSource(new InputStreamReader(inputStream));
+			Document document = builder.parse(is);
+			return new DomPoxMessage(document, transformer, "text/xml");
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException(e);

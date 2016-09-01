@@ -31,7 +31,7 @@ public final class DerbyFunctions {
 	}
 
 	public static String convertStringToUpperCase(String invalue) {
-				return invalue.toUpperCase(Locale.ENGLISH);
-	  }
+		return invalue.toUpperCase(Locale.ENGLISH);
+	}
 
 }

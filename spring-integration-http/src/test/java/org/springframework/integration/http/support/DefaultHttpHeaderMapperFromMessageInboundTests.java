@@ -57,7 +57,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	// Allow tests
 	@Test(expected = IllegalArgumentException.class)
 	public void validateAllowWithWrongMethodName() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "bar");
 		HttpHeaders headers = new HttpHeaders();
@@ -67,7 +67,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsString() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "GET");
 		HttpHeaders headers = new HttpHeaders();
@@ -79,7 +79,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsStringCaseInsensitive() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("allow", "GET");
 		HttpHeaders headers = new HttpHeaders();
@@ -91,7 +91,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsHttpMethod() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", HttpMethod.GET);
 		HttpHeaders headers = new HttpHeaders();
@@ -103,7 +103,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsDelimitedString() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "GET, POST");
 		HttpHeaders headers = new HttpHeaders();
@@ -116,9 +116,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsStringArray() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Allow", new String[]{"GET", "POST"});
+		messageHeaders.put("Allow", new String[] { "GET", "POST" });
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -129,9 +129,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsHttpMethodArray() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Allow", new HttpMethod[]{HttpMethod.GET, HttpMethod.POST});
+		messageHeaders.put("Allow", new HttpMethod[] { HttpMethod.GET, HttpMethod.POST });
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -142,9 +142,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsCollectionOfString() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Allow", CollectionUtils.arrayToList(new String[]{"GET", "POST"}));
+		messageHeaders.put("Allow", CollectionUtils.arrayToList(new String[] { "GET", "POST" }));
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -155,9 +155,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateAllowAsCollectionOfHttpMethods() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("Allow", CollectionUtils.arrayToList(new HttpMethod[]{HttpMethod.GET, HttpMethod.POST}));
+		messageHeaders.put("Allow", CollectionUtils.arrayToList(new HttpMethod[] { HttpMethod.GET, HttpMethod.POST }));
 		HttpHeaders headers = new HttpHeaders();
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
@@ -175,7 +175,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateETag() {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("ETag", "\"1234\"");
 		HttpHeaders headers = new HttpHeaders();
@@ -188,7 +188,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateExpiresAsNumber() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Expires", 12345678);
 		HttpHeaders headers = new HttpHeaders();
@@ -201,7 +201,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateExpiresAsString() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Expires", "12345678");
 		HttpHeaders headers = new HttpHeaders();
@@ -211,9 +211,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
 	}
+
 	@Test
 	public void validateExpiresAsDate() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Expires", new Date(12345678));
 		HttpHeaders headers = new HttpHeaders();
@@ -228,7 +229,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateLastModifiedAsNumber() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Last-Modified", 12345678);
 		HttpHeaders headers = new HttpHeaders();
@@ -241,7 +242,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateLastModifiedAsString() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Last-Modified", "12345678");
 		HttpHeaders headers = new HttpHeaders();
@@ -251,9 +252,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
 	}
+
 	@Test
 	public void validateLastModifiedAsDate() throws ParseException {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Last-Modified", new Date(12345678));
 		HttpHeaders headers = new HttpHeaders();
@@ -268,7 +270,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateLocation() throws Exception {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Location", "http://foo.com");
 		HttpHeaders headers = new HttpHeaders();
@@ -281,7 +283,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void validateTransferEncodingNotMappedFromMessageHeaders() throws Exception {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Transfer-Encoding", "chunked");
 		HttpHeaders headers = new HttpHeaders();
@@ -294,7 +296,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateTransferEncodingMappedFromHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] {"Transfer-Encoding"});
+		mapper.setInboundHeaderNames(new String[] { "Transfer-Encoding" });
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Transfer-Encoding", "chunked");
 
@@ -322,7 +324,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamesMappedToHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"foo", "bar"});
+		mapper.setOutboundHeaderNames(new String[] { "foo", "bar" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foo", "abc");
 		messageHeaders.put("bar", "123");
@@ -338,7 +340,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsMappedToHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"x*", "*z", "a*f"});
+		mapper.setOutboundHeaderNames(new String[] { "x*", "*z", "a*f" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("x1", "x1-value");
 		messageHeaders.put("1x", "1x-value");
@@ -365,7 +367,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -383,7 +385,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefix() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix("Z-");
-		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -401,7 +403,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix("");
-		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -419,7 +421,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixNull() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setUserDefinedHeaderPrefix(null);
-		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -436,7 +438,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamesMappedFromHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] {"foo", "bar"});
+		mapper.setInboundHeaderNames(new String[] { "foo", "bar" });
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "abc");
 		headers.set("bar", "123");
@@ -449,7 +451,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsMappedFromHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] {"x*", "*z", "a*f"});
+		mapper.setInboundHeaderNames(new String[] { "x*", "*z", "a*f" });
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("x1", "x1-value");
 		headers.set("1x", "1x-value");
@@ -472,7 +474,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardRequestHeadersMappedFromHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[] {"foo*", "HTTP_REQUEST_HEADERS"});
+		mapper.setInboundHeaderNames(new String[] { "foo*", "HTTP_REQUEST_HEADERS" });
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foobar", "abc");
 		headers.setAccept(Collections.singletonList(MediaType.TEXT_XML));
@@ -487,7 +489,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndNoConverter() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
 
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -503,7 +505,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
 		ConversionService cs = new DefaultConversionService();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
@@ -524,7 +526,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
 		GenericConversionService cs = new DefaultConversionService();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -544,21 +546,21 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals("TestClass.class", headers.get("X-customHeaderB").get(0));
 	}
 
-    @Test
-    public void dontPropagateContentLength() {
-        HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
-        HttpHeaders headers = new HttpHeaders();
-        // suppressed in response on inbound, by default
-        headers.put("Content-Length", Collections.singletonList("3"));
-        Map<String, Object> messageHeaders = mapper.toHeaders(headers);
-        headers = new HttpHeaders();
-        mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-        assertNull(headers.get("Content-Length"));
-    }
+	@Test
+	public void dontPropagateContentLength() {
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
+		HttpHeaders headers = new HttpHeaders();
+		// suppressed in response on inbound, by default
+		headers.put("Content-Length", Collections.singletonList("3"));
+		Map<String, Object> messageHeaders = mapper.toHeaders(headers);
+		headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNull(headers.get("Content-Length"));
+	}
 
 	@Test
 	public void testInt2995IfModifiedSince() throws Exception {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Date ifModifiedSince = new Date();
 		long ifModifiedSinceTime = ifModifiedSince.getTime();
 		HttpHeaders headers = new HttpHeaders();
@@ -572,7 +574,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	@Test
 	public void testContentTypeHeader() throws Exception {
-		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(MessageHeaders.CONTENT_TYPE, "text/plain");
 		MessageHeaders messageHeaders = new MessageHeaders(map);

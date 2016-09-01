@@ -38,13 +38,13 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 
 
 	public void setEntityManager(EntityManager entityManager) {
-		Assert.notNull(entityManager, "The provided entitymanager must not be null.");
+		Assert.notNull(entityManager, "The provided entityManager must not be null.");
 		this.entityManager = entityManager;
 	}
 
 
 	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-		Assert.notNull(entityManagerFactory, "The provided entitymanagerFactory must not be null.");
+		Assert.notNull(entityManagerFactory, "The provided entityManagerFactory must not be null.");
 		this.entityManagerFactory = entityManagerFactory;
 	}
 
@@ -62,8 +62,8 @@ abstract class AbstractJpaOperations implements JpaOperations, InitializingBean 
 			this.entityManager = SharedEntityManagerCreator.createSharedEntityManager(this.entityManagerFactory);
 		}
 
-		Assert.notNull(this.entityManager, "The entitymanager is null. Please set " +
-					   "either the entityManager or the entityManagerFactory.");
+		Assert.notNull(this.entityManager, "The entityManager is null. Please set " +
+				"either the entityManager or the entityManagerFactory.");
 
 	}
 

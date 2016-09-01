@@ -139,7 +139,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		// initialize the last status ID from the metadataStore
 		if (StringUtils.hasText(lastId)) {
 			this.lastProcessedId = Long.parseLong(lastId);
-		    this.lastEnqueuedId = this.lastProcessedId;
+			this.lastEnqueuedId = this.lastProcessedId;
 		}
 
 	}

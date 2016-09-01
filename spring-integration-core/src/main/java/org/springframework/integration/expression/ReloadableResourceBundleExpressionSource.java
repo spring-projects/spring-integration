@@ -111,7 +111,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * @see java.util.ResourceBundle
 	 */
 	public void setBasename(String basename) {
-		setBasenames(new String[] {basename});
+		setBasenames(new String[] { basename });
 	}
 
 	/**
@@ -393,7 +393,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			PropertiesHolder propHolder = this.cachedProperties.get(filename);
 			if (propHolder != null &&
 					(propHolder.getRefreshTimestamp() < 0 ||
-					 propHolder.getRefreshTimestamp() > System.currentTimeMillis() - this.cacheMillis)) {
+							propHolder.getRefreshTimestamp() > System.currentTimeMillis() - this.cacheMillis)) {
 				return propHolder;
 			}
 			return refreshProperties(filename, propHolder);

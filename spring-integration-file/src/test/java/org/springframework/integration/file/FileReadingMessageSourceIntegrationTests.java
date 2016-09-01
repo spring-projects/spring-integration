@@ -54,9 +54,9 @@ public class FileReadingMessageSourceIntegrationTests {
 
 	@AfterClass
 	public static void cleanUp() throws Throwable {
-	  if (inputDir.exists()) {
-		  inputDir.delete();
-	  }
+		if (inputDir.exists()) {
+			inputDir.delete();
+		}
 	}
 
 	@BeforeClass
@@ -184,8 +184,8 @@ public class FileReadingMessageSourceIntegrationTests {
 	 * Convenience method to run part of a test concurrently in multiple threads
 	 *
 	 * @param numberOfThreads how many threads to spawn
-	 * @param runnable		the runnable that should be run by all the threads
-	 * @param start		   the {@link java.util.concurrent.CountDownLatch} instance
+	 * @param runnable        the runnable that should be run by all the threads
+	 * @param start           the {@link java.util.concurrent.CountDownLatch} instance
 	 *                        telling it when to assume everything works
 	 * @return a latch that will be counted down once all threads have run their
 	 *		 runnable.

@@ -16,24 +16,24 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -50,14 +50,14 @@ public class HeaderEnricherParserTests {
 	@Test // INT-1154
 	public void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
-		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class).longValue();
+		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
 		assertEquals(-1L, sendTimeout);
 	}
 
 	@Test // INT-1154
 	public void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
-		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class).longValue();
+		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class);
 		assertEquals(1234L, sendTimeout);
 	}
 
@@ -89,18 +89,19 @@ public class HeaderEnricherParserTests {
 		Message<?> message = new GenericMessage<String>("hello");
 		messageHandler.handleMessage(message);
 	}
+
 	@Test
 	public void testStringPriorityHeaderWithType() {
-        MessageHandler messageHandler =
-                        TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"), "handler", MessageHandler.class);
-        QueueChannel replyChannel = new QueueChannel();
-        Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
-        messageHandler.handleMessage(message);
-        Message<?> transformed = replyChannel.receive(1000);
-        assertNotNull(transformed);
-        Object priority = transformed.getHeaders().get("priority");
-        assertNotNull(priority);
-        assertTrue(priority instanceof Integer);
+		MessageHandler messageHandler =
+				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"), "handler", MessageHandler.class);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
+		messageHandler.handleMessage(message);
+		Message<?> transformed = replyChannel.receive(1000);
+		assertNotNull(transformed);
+		Object priority = transformed.getHeaders().get("priority");
+		assertNotNull(priority);
+		assertTrue(priority instanceof Integer);
 	}
 
 }

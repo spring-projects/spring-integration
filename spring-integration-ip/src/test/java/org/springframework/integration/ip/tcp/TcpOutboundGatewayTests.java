@@ -324,7 +324,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 	 * @throws Exception
 	 */
 	private void testGoodNetGWTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
-	                                      final ServerSocket server) throws InterruptedException {
+			final ServerSocket server) throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*
@@ -654,7 +654,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 	}
 
 	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf,
-	                                             final ServerSocket server) throws Exception {
+			final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
@@ -779,7 +779,7 @@ public class TcpOutboundGatewayTests extends LogAdjustingTestSupport {
 	}
 
 	private void testGWPropagatesSocketTimeoutGuts(final int port, AbstractClientConnectionFactory ccf,
-	                                               final ServerSocket server) throws Exception {
+			final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 

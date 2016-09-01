@@ -36,27 +36,27 @@ import org.springframework.util.StringUtils;
  */
 public abstract class MailTransportUtils {
 
-    private static final Log logger = LogFactory.getLog(MailTransportUtils.class);
+	private static final Log logger = LogFactory.getLog(MailTransportUtils.class);
 
 
-    /**
-     * Close the given JavaMail Service and ignore any thrown exception. This is useful for typical <code>finally</code>
-     * blocks in manual JavaMail code.
-     *
-     * @param service the JavaMail Service to close (may be <code>null</code>)
-     * @see Transport
-     * @see Store
-     */
-    public static void closeService(Service service) {
-        if (service != null) {
-            try {
-                service.close();
-            }
-            catch (MessagingException ex) {
-                logger.debug("Could not close JavaMail Service", ex);
-            }
-        }
-    }
+	/**
+	 * Close the given JavaMail Service and ignore any thrown exception. This is useful for typical <code>finally</code>
+	 * blocks in manual JavaMail code.
+	 *
+	 * @param service the JavaMail Service to close (may be <code>null</code>)
+	 * @see Transport
+	 * @see Store
+	 */
+	public static void closeService(Service service) {
+		if (service != null) {
+			try {
+				service.close();
+			}
+			catch (MessagingException ex) {
+				logger.debug("Could not close JavaMail Service", ex);
+			}
+		}
+	}
 
 //    /**
 //     * Close the given JavaMail Folder and ignore any thrown exception. This is
@@ -69,73 +69,73 @@ public abstract class MailTransportUtils {
 //        closeFolder(folder, false);
 //    }
 
-    /**
-     * Close the given JavaMail Folder and ignore any thrown exception. This is
-     * useful for typical <code>finally</code> blocks in manual JavaMail code.
-     *
-     * @param folder  the JavaMail Folder to close (may be <code>null</code>)
-     * @param expunge whether all deleted messages should be expunged from the folder
-     */
-    public static void closeFolder(Folder folder, boolean expunge) {
-        if (folder != null && folder.isOpen()) {
-            try {
-            	folder.close(expunge);
-            }
-            catch (MessagingException ex) {
-                logger.debug("Could not close JavaMail Folder", ex);
-            }
-            catch (NullPointerException ex) {
-                // JavaMail prior to 1.4.1 may throw this
-                logger.debug("Could not close JavaMail Folder", ex);
-            }
-        }
-    }
+	/**
+	 * Close the given JavaMail Folder and ignore any thrown exception. This is
+	 * useful for typical <code>finally</code> blocks in manual JavaMail code.
+	 *
+	 * @param folder  the JavaMail Folder to close (may be <code>null</code>)
+	 * @param expunge whether all deleted messages should be expunged from the folder
+	 */
+	public static void closeFolder(Folder folder, boolean expunge) {
+		if (folder != null && folder.isOpen()) {
+			try {
+				folder.close(expunge);
+			}
+			catch (MessagingException ex) {
+				logger.debug("Could not close JavaMail Folder", ex);
+			}
+			catch (NullPointerException ex) {
+				// JavaMail prior to 1.4.1 may throw this
+				logger.debug("Could not close JavaMail Folder", ex);
+			}
+		}
+	}
 
-    /**
-     * Returns a string representation of the given {@link URLName}, where the
-     * password has been protected.
-     *
-     * @param name The URL name.
-     * @return The result with password protection.
-     */
-    public static String toPasswordProtectedString(URLName name) {
-        String protocol = name.getProtocol();
-        String username = name.getUsername();
-        String password = name.getPassword();
-        String host = name.getHost();
-        int port = name.getPort();
-        String file = name.getFile();
-        String ref = name.getRef();
-        StringBuffer tempURL = new StringBuffer();
-        if (protocol != null) {
-            tempURL.append(protocol).append(':');
-        }
-        if (StringUtils.hasLength(username) || StringUtils.hasLength(host)) {
-            tempURL.append("//");
-            if (StringUtils.hasLength(username)) {
-                tempURL.append(username);
-                if (StringUtils.hasLength(password)) {
-                    tempURL.append(":*****");
-                }
-                tempURL.append("@");
-            }
-            if (StringUtils.hasLength(host)) {
-                tempURL.append(host);
-            }
-            if (port != -1) {
-                tempURL.append(':').append(Integer.toString(port));
-            }
-            if (StringUtils.hasLength(file)) {
-                tempURL.append('/');
-            }
-        }
-        if (StringUtils.hasLength(file)) {
-            tempURL.append(file);
-        }
-        if (StringUtils.hasLength(ref)) {
-            tempURL.append('#').append(ref);
-        }
-        return tempURL.toString();
-    }
+	/**
+	 * Returns a string representation of the given {@link URLName}, where the
+	 * password has been protected.
+	 *
+	 * @param name The URL name.
+	 * @return The result with password protection.
+	 */
+	public static String toPasswordProtectedString(URLName name) {
+		String protocol = name.getProtocol();
+		String username = name.getUsername();
+		String password = name.getPassword();
+		String host = name.getHost();
+		int port = name.getPort();
+		String file = name.getFile();
+		String ref = name.getRef();
+		StringBuffer tempURL = new StringBuffer();
+		if (protocol != null) {
+			tempURL.append(protocol).append(':');
+		}
+		if (StringUtils.hasLength(username) || StringUtils.hasLength(host)) {
+			tempURL.append("//");
+			if (StringUtils.hasLength(username)) {
+				tempURL.append(username);
+				if (StringUtils.hasLength(password)) {
+					tempURL.append(":*****");
+				}
+				tempURL.append("@");
+			}
+			if (StringUtils.hasLength(host)) {
+				tempURL.append(host);
+			}
+			if (port != -1) {
+				tempURL.append(':').append(Integer.toString(port));
+			}
+			if (StringUtils.hasLength(file)) {
+				tempURL.append('/');
+			}
+		}
+		if (StringUtils.hasLength(file)) {
+			tempURL.append(file);
+		}
+		if (StringUtils.hasLength(ref)) {
+			tempURL.append('#').append(ref);
+		}
+		return tempURL.toString();
+	}
 
 }

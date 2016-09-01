@@ -531,8 +531,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
 			Assert.isTrue(this.requestDestination != null
-					^ this.requestDestinationName != null
-					^ this.requestDestinationExpressionProcessor != null,
+							^ this.requestDestinationName != null
+							^ this.requestDestinationExpressionProcessor != null,
 					"Exactly one of 'requestDestination', 'requestDestinationName', " +
 							"or 'requestDestinationExpression' is required.");
 			if (this.requestDestinationExpressionProcessor != null) {
@@ -549,7 +549,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			 */
 			if (this.useReplyContainer && (this.correlationKey == null &&
 					(this.replyDestination != null || this.replyDestinationName != null) ||
-					 this.replyDestinationExpressionProcessor != null)) {
+					this.replyDestinationExpressionProcessor != null)) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("The gateway cannot use a reply listener container with a specified " +
 							"destination(Name/Expression) " +
@@ -643,7 +643,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					}
 				}
 			}
-			else if	(this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
+			else if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
 				Integer sessionAcknowledgeMode = this.replyContainerProperties.getSessionAcknowledgeMode();
 				if (Session.SESSION_TRANSACTED == sessionAcknowledgeMode) {
 					container.setSessionTransacted(true);
@@ -986,8 +986,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		long replyTimeout = isTemporaryReplyTo
 				? Long.MIN_VALUE
 				: this.receiveTimeout < 0
-					? Long.MAX_VALUE
-					: System.currentTimeMillis() + this.receiveTimeout;
+				? Long.MAX_VALUE
+				: System.currentTimeMillis() + this.receiveTimeout;
 		try {
 			do {
 				try {

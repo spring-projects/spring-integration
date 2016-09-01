@@ -73,9 +73,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	private volatile List<JpaParameter> jpaParameters;
 
 	private volatile Class<?> entityClass;
-	private volatile String   jpaQuery;
-	private volatile String   nativeQuery;
-	private volatile String   namedQuery;
+
+	private volatile String jpaQuery;
+
+	private volatile String nativeQuery;
+
+	private volatile String namedQuery;
 
 	private volatile Expression maxResultsExpression;
 
@@ -86,19 +89,20 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	private volatile PersistMode persistMode = PersistMode.MERGE;
 
 	private volatile ParameterSourceFactory parameterSourceFactory = null;
+
 	private volatile ParameterSource parameterSource;
 
-	private volatile boolean  flush = false;
+	private volatile boolean flush = false;
 
 	private volatile int flushSize = 0;
 
-	private volatile boolean  clearOnFlush = false;
+	private volatile boolean clearOnFlush = false;
 
-	private volatile boolean  deleteAfterPoll = false;
+	private volatile boolean deleteAfterPoll = false;
 
-	private volatile boolean  deleteInBatch = false;
+	private volatile boolean deleteInBatch = false;
 
-	private volatile boolean  expectSingleResult = false;
+	private volatile boolean expectSingleResult = false;
 
 	/**
 	 * Indicates that whether only the payload of the passed in {@link Message}
@@ -172,7 +176,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 			if (this.parameterSourceFactory == null) {
 				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
-							  new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
+						new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
 				expressionSourceFactory.setParameters(this.jpaParameters);
 				this.parameterSourceFactory = expressionSourceFactory;
 
@@ -181,9 +185,9 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 				if (!(this.parameterSourceFactory instanceof ExpressionEvaluatingParameterSourceFactory)) {
 					throw new IllegalStateException("You are providing 'JpaParameters'. "
-						+ "Was expecting the the provided jpaParameterSourceFactory "
-						+ "to be an instance of 'ExpressionEvaluatingJpaParameterSourceFactory', "
-						+ "however the provided one is of type '" + this.parameterSourceFactory.getClass().getName() + "'");
+							+ "Was expecting the the provided jpaParameterSourceFactory "
+							+ "to be an instance of 'ExpressionEvaluatingJpaParameterSourceFactory', "
+							+ "however the provided one is of type '" + this.parameterSourceFactory.getClass().getName() + "'");
 				}
 
 			}
@@ -373,7 +377,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				}
 				else {
 					throw new IllegalArgumentException("Expected the value to be a Number" +
-							     " got " + evaluationResult.getClass().getName());
+							" got " + evaluationResult.getClass().getName());
 				}
 			}
 		}
@@ -403,23 +407,23 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		List<?> payload = null;
 		if (this.jpaQuery != null) {
 			payload = this.jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource,
-							firstResult, maxNumberOfResults);
+					firstResult, maxNumberOfResults);
 		}
 		else if (this.nativeQuery != null) {
 			payload = this.jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass, jpaQLParameterSource,
-							firstResult, maxNumberOfResults);
+					firstResult, maxNumberOfResults);
 		}
 		else if (this.namedQuery != null) {
 			payload = this.jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource,
-							firstResult, maxNumberOfResults);
+					firstResult, maxNumberOfResults);
 		}
 		else if (this.entityClass != null) {
 			payload = this.jpaOperations.getResultListForClass(this.entityClass, firstResult, maxNumberOfResults);
 		}
 		else {
 			throw new IllegalStateException("For the polling operation, one of "
-								+ "the following properties must be specified: "
-								+ "query, namedQuery or entityClass.");
+					+ "the following properties must be specified: "
+					+ "query, namedQuery or entityClass.");
 		}
 		return payload;
 	}
@@ -439,7 +443,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 */
 	public void setJpaQuery(String jpaQuery) {
 		Assert.isTrue(this.nativeQuery == null && this.namedQuery == null, "You can define only one of the "
-							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		Assert.hasText(jpaQuery, "jpaQuery must neither be null nor empty.");
 		this.jpaQuery = jpaQuery;
 	}
@@ -605,7 +609,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 
-
 	/**
 	 * Set the expression for maximum number of results expression. It has be a non null value
 	 * Not setting one will default to the behavior of fetching all the records
@@ -623,7 +626,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @see Query#setMaxResults(int)
 	 */
 	public void setMaxNumberOfResults(int maxNumberOfResults) {
-		 this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
+		this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
 	}
 
 }

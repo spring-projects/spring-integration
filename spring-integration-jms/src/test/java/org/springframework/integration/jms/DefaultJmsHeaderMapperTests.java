@@ -54,7 +54,9 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testJmsReplyToMappedFromHeader() throws JMSException {
-		Destination replyTo = new Destination() { };
+		Destination replyTo = new Destination() {
+
+		};
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(JmsHeaders.REPLY_TO, replyTo).build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
@@ -172,7 +174,9 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testUserDefinedPropertyWithUnsupportedType() throws JMSException {
-		Destination destination = new Destination() { };
+		Destination destination = new Destination() {
+
+		};
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("destination", destination)
 				.build();
@@ -185,7 +189,9 @@ public class DefaultJmsHeaderMapperTests {
 
 	@Test
 	public void testJmsReplyToMappedToHeader() throws JMSException {
-		Destination replyTo = new Destination() { };
+		Destination replyTo = new Destination() {
+
+		};
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		jmsMessage.setJMSReplyTo(replyTo);
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
@@ -310,13 +316,14 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setObjectProperty(String name, Object value) throws JMSException {
-            	if (name.equals("bad")) {
-            		throw new JMSException("illegal property");
-            	}
-	            super.setObjectProperty(name, value);
-            }
+
+			@Override
+			public void setObjectProperty(String name, Object value) throws JMSException {
+				if (name.equals("bad")) {
+					throw new JMSException("illegal property");
+				}
+				super.setObjectProperty(name, value);
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		Object foo = jmsMessage.getObjectProperty("foo");
@@ -336,13 +343,14 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setObjectProperty(String name, Object value) throws JMSException {
-            	if (name.equals("bad")) {
-            		throw new IllegalArgumentException("illegal property");
-            	}
-	            super.setObjectProperty(name, value);
-            }
+
+			@Override
+			public void setObjectProperty(String name, Object value) throws JMSException {
+				if (name.equals("bad")) {
+					throw new IllegalArgumentException("illegal property");
+				}
+				super.setObjectProperty(name, value);
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		Object foo = jmsMessage.getObjectProperty("foo");
@@ -361,10 +369,11 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setJMSReplyTo(Destination replyTo) throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public void setJMSReplyTo(Destination replyTo) throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		assertNull(jmsMessage.getJMSReplyTo());
@@ -380,10 +389,11 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setJMSType(String type) throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public void setJMSType(String type) throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		assertNull(jmsMessage.getJMSType());
@@ -399,10 +409,11 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setJMSCorrelationID(String correlationId) throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public void setJMSCorrelationID(String correlationId) throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		assertNull(jmsMessage.getJMSCorrelationID());
@@ -418,10 +429,11 @@ public class DefaultJmsHeaderMapperTests {
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public void setJMSCorrelationID(String correlationId) throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public void setJMSCorrelationID(String correlationId) throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		assertNull(jmsMessage.getJMSCorrelationID());
@@ -433,10 +445,11 @@ public class DefaultJmsHeaderMapperTests {
 	public void attemptToReadDisallowedMessageIdPropertyIsNotFatal() throws JMSException {
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public String getJMSMessageID() throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public String getJMSMessageID() throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		jmsMessage.setStringProperty("foo", "bar");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
@@ -449,10 +462,11 @@ public class DefaultJmsHeaderMapperTests {
 	public void attemptToReadDisallowedCorrelationIdPropertyIsNotFatal() throws JMSException {
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public String getJMSCorrelationID() throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public String getJMSCorrelationID() throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		jmsMessage.setStringProperty("foo", "bar");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
@@ -465,10 +479,11 @@ public class DefaultJmsHeaderMapperTests {
 	public void attemptToReadDisallowedTypePropertyIsNotFatal() throws JMSException {
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public String getJMSType() throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public String getJMSType() throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		jmsMessage.setStringProperty("foo", "bar");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
@@ -481,10 +496,11 @@ public class DefaultJmsHeaderMapperTests {
 	public void attemptToReadDisallowedReplyToPropertyIsNotFatal() throws JMSException {
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public Destination getJMSReplyTo() throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public Destination getJMSReplyTo() throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		jmsMessage.setStringProperty("foo", "bar");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
@@ -497,10 +513,11 @@ public class DefaultJmsHeaderMapperTests {
 	public void attemptToReadDisallowedRedeliveredPropertyIsNotFatal() throws JMSException {
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
-            @Override
-            public boolean getJMSRedelivered() throws JMSException {
-            	throw new JMSException("illegal property");
-            }
+
+			@Override
+			public boolean getJMSRedelivered() throws JMSException {
+				throw new JMSException("illegal property");
+			}
 		};
 		jmsMessage.setStringProperty("foo", "bar");
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);

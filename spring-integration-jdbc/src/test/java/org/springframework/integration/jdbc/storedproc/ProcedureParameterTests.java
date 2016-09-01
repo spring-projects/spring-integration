@@ -48,7 +48,7 @@ public class ProcedureParameterTests {
 		Map<String, String> expressionParameters =
 				ProcedureParameter.convertExpressions(procedureParameters);
 
-        assertTrue("Expected 2 expression parameters.", expressionParameters.size() == 2);
+		assertTrue("Expected 2 expression parameters.", expressionParameters.size() == 2);
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class ProcedureParameterTests {
 		Map<String, Object> staticParameters =
 				ProcedureParameter.convertStaticParameters(procedureParameters);
 
-        assertTrue("Expected 3 static parameters.", staticParameters.size() == 3);
+		assertTrue("Expected 3 static parameters.", staticParameters.size() == 3);
 	}
 
 	@Test

@@ -235,7 +235,7 @@ public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTe
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
-		@MessageMapping(value = "/simple")
+		@MessageMapping("/simple")
 		public void handle() {
 			this.latch.countDown();
 		}

@@ -21,25 +21,26 @@ import org.springframework.messaging.Message;
 /**
  * Validate a message. Create an anonymous instance or subclass to
  * implement the validateMessage() method
+ *
  * @author David Turanski
  *
  */
 public abstract class MessageValidator extends AbstractResponseValidator<Message<?>> {
 
-    @Override
+	@Override
 	protected final boolean extractPayload() {
-        return false;
-    }
+		return false;
+	}
 
-    @Override
+	@Override
 	protected final void validateResponse(Message<?> response) {
-        validateMessage(response);
-    }
+		validateMessage(response);
+	}
 
-    /**
-     * Implement this method to validate the message
-     * @param message The message.
-     */
-    protected abstract void validateMessage(Message<?> message);
+	/**
+	 * Implement this method to validate the message
+	 * @param message The message.
+	 */
+	protected abstract void validateMessage(Message<?> message);
 
 }

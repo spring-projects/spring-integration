@@ -1268,7 +1268,7 @@ public class EnableIntegrationTests {
 		}
 
 		@Override
-		@MyServiceActivatorNoLocalAtts()
+		@MyServiceActivatorNoLocalAtts
 		public Integer annCount2() {
 			return 0;
 		}

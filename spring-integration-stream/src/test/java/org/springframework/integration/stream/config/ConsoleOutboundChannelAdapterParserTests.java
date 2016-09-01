@@ -162,7 +162,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		assertEquals(34, TestUtils.getPropertyValue(this.stderrAdapterHandler, "order"));
 	}
 
-    @Test
+	@Test
 	public void stdoutAdatperWithAppendNewLine() throws IOException {
 		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
 		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);

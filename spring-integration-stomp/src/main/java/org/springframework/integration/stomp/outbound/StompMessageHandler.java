@@ -253,7 +253,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 
 		@Override
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
-		                            Throwable exception) {
+				Throwable exception) {
 			Message<byte[]> message = MessageBuilder.createMessage(payload,
 					StompHeaderAccessor.create(command, headers).getMessageHeaders());
 			logger.error("The exception for session [" + session + "] on message [" + message + "]", exception);

@@ -81,7 +81,7 @@ public class StubJavaMailSender implements JavaMailSender {
 
 	@Override
 	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
-	    throw new UnsupportedOperationException("MimeMessagePreparator not supported");
+		throw new UnsupportedOperationException("MimeMessagePreparator not supported");
 	}
 
 	@Override

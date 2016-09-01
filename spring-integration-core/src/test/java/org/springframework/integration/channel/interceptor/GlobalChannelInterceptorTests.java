@@ -58,7 +58,7 @@ public class GlobalChannelInterceptorTests {
 
 	@Test
 	public void validateGlobalInterceptor() throws Exception {
- 		Map<String, ChannelInterceptorAware> channels = applicationContext.getBeansOfType(ChannelInterceptorAware.class);
+		Map<String, ChannelInterceptorAware> channels = applicationContext.getBeansOfType(ChannelInterceptorAware.class);
 		for (String channelName : channels.keySet()) {
 			ChannelInterceptorAware channel = channels.get(channelName);
 			if (channelName.equals("nullChannel")) {
@@ -114,6 +114,7 @@ public class GlobalChannelInterceptorTests {
 			}
 		}
 	}
+
 	@Test
 	public void testWildCardPatternMatch() {
 

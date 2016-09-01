@@ -20,12 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,48 +51,48 @@ public class AggregatorWithMessageStoreParserTests {
 	@Autowired
 	private MessageGroupStore messageGroupStore;
 
-    @Autowired
+	@Autowired
 	private MessageChannel controlBusChannel;
 
-    @Test
-    @DirtiesContext
-    public void testAggregation() {
-        input.send(createMessage("123", "id1", 3, 1, null));
-        assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
-        input.send(createMessage("789", "id1", 3, 3, null));
-        assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
-        input.send(createMessage("456", "id1", 3, 2, null));
-        assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
-                .getAggregatedMessages().size());
-        Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
-        assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage
-                .getPayload());
-    }
+	@Test
+	@DirtiesContext
+	public void testAggregation() {
+		input.send(createMessage("123", "id1", 3, 1, null));
+		assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
+		input.send(createMessage("789", "id1", 3, 3, null));
+		assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
+		input.send(createMessage("456", "id1", 3, 2, null));
+		assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
+				.getAggregatedMessages().size());
+		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
+		assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage
+				.getPayload());
+	}
 
 
-    @Test
-    @DirtiesContext
-    public void testExpiry() {
-        input.send(createMessage("123", "id1", 3, 1, null));
-        assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
-        input.send(createMessage("456", "id1", 3, 2, null));
-        assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
-	    this.controlBusChannel.send(new GenericMessage<Object>("@messageStore.expireMessageGroups(-10000)"));
-        assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
-                .getAggregatedMessages().size());
-        Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
-        assertEquals("The aggregated message payload is not correct", "123456", aggregatedMessage
-                .getPayload());
-    }
+	@Test
+	@DirtiesContext
+	public void testExpiry() {
+		input.send(createMessage("123", "id1", 3, 1, null));
+		assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
+		input.send(createMessage("456", "id1", 3, 2, null));
+		assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
+		this.controlBusChannel.send(new GenericMessage<Object>("@messageStore.expireMessageGroups(-10000)"));
+		assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
+				.getAggregatedMessages().size());
+		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
+		assertEquals("The aggregated message payload is not correct", "123456", aggregatedMessage
+				.getPayload());
+	}
 
 
-    private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-                                                MessageChannel outputChannel) {
-        return MessageBuilder.withPayload(payload)
-                .setCorrelationId(correlationId)
-                .setSequenceSize(sequenceSize)
-                .setSequenceNumber(sequenceNumber)
-                .setReplyChannel(outputChannel).build();
-    }
+	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
+			MessageChannel outputChannel) {
+		return MessageBuilder.withPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReplyChannel(outputChannel).build();
+	}
 
 }

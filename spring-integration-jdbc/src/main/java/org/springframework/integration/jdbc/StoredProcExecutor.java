@@ -59,7 +59,6 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 
 
-
 /**
  * This class is used by all Stored Procedure (Stored Function) components and
  * provides the core functionality to execute those.
@@ -100,7 +99,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * not support meta data lookups or if you like to provide customized
 	 * parameter definitions, this flag can be set to 'true'. It defaults to 'false'.
 	 */
-	private volatile boolean   ignoreColumnMetaData = false;
+	private volatile boolean ignoreColumnMetaData = false;
 
 	/**
 	 * If this variable is set to true then all results from a stored procedure call
@@ -110,7 +109,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 *
 	 * Value defaults to <code>true</code>.
 	 */
-	private volatile boolean  skipUndeclaredResults = true;
+	private volatile boolean skipUndeclaredResults = true;
 
 	/**
 	 * If your database system is not fully supported by Spring and thus obtaining
@@ -171,21 +170,20 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
 	 * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
 	 * when {@link ProcedureParameter} are passed in.
-	 * {@inheritDoc}
 	 */
 	@Override
 	public void afterPropertiesSet() {
 
 		if (this.storedProcedureNameExpression == null) {
 			throw new IllegalArgumentException("You must either provide a "
-				+ "Stored Procedure Name or a Stored Procedure Name Expression.");
+					+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 		}
 
 		if (this.procedureParameters != null) {
 
 			if (this.sqlParameterSourceFactory == null) {
 				ExpressionEvaluatingSqlParameterSourceFactory expressionSourceFactory =
-											  new ExpressionEvaluatingSqlParameterSourceFactory();
+						new ExpressionEvaluatingSqlParameterSourceFactory();
 
 				expressionSourceFactory.setBeanFactory(this.beanFactory);
 				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(this.procedureParameters));
@@ -198,9 +196,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 				if (!(this.sqlParameterSourceFactory instanceof ExpressionEvaluatingSqlParameterSourceFactory)) {
 					throw new IllegalStateException("You are providing 'ProcedureParameters'. "
-						+ "Was expecting the the provided sqlParameterSourceFactory "
-						+ "to be an instance of 'ExpressionEvaluatingSqlParameterSourceFactory', "
-						+ "however the provided one is of type '" + this.sqlParameterSourceFactory.getClass().getName() + "'");
+							+ "Was expecting the the provided sqlParameterSourceFactory "
+							+ "to be an instance of 'ExpressionEvaluatingSqlParameterSourceFactory', "
+							+ "however the provided one is of type '" + this.sqlParameterSourceFactory.getClass().getName() + "'");
 				}
 
 			}
@@ -298,7 +296,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		Assert.notNull(message, "The message parameter must not be null.");
 		Assert.notNull(this.usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
-												  + "was Null. Did you call afterPropertiesSet()?");
+				+ "was Null. Did you call afterPropertiesSet()?");
 
 		final Object input;
 
@@ -333,7 +331,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private Map<String, Object> executeStoredProcedureInternal(Object input, String storedProcedureName) {
 
 		Assert.notNull(this.sqlParameterSourceFactory, "Property sqlParameterSourceFactory "
-												+ "was Null. Did you call afterPropertiesSet()?");
+				+ "was Null. Did you call afterPropertiesSet()?");
 
 		SimpleJdbcCallOperations localSimpleJdbcCall = obtainSimpleJdbcCall(storedProcedureName);
 
@@ -615,7 +613,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 			throw new UnsupportedOperationException("The Google Guava library isn't present in the classpath.");
 		}
 		final CacheStats cacheStats = (CacheStats) getJdbcCallOperationsCacheStatistics();
-		final Map<String, Object> cacheStatistics  = new HashMap<String, Object>(11);
+		final Map<String, Object> cacheStatistics = new HashMap<String, Object>(11);
 		cacheStatistics.put("averageLoadPenalty", cacheStats.averageLoadPenalty());
 		cacheStatistics.put("evictionCount", cacheStats.evictionCount());
 		cacheStatistics.put("hitCount", cacheStats.hitCount());

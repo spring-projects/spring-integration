@@ -48,10 +48,10 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setMethodName("doRelease");
 		try {
 			factory.afterPropertiesSet();
-			fail("IllegalArgumentException expected");
+			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getMessage(), containsString("Target object of type " +
 							"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
 					"has no eligible methods for handling Messages."));

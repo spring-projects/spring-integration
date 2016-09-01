@@ -63,7 +63,7 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 	 * coerced when no sessionAcknowledgeMode was supplied.
 	 */
 	private JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer,
-	                                 ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
+			ChannelPublishingJmsMessageListener listener, boolean externalContainer) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
 		Assert.notNull(listener, "listener must not be null");
 		if (logger.isWarnEnabled() && listenerContainer.getMessageListener() != null) {

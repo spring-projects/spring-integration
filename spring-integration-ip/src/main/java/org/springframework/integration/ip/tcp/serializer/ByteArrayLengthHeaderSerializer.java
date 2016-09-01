@@ -15,6 +15,7 @@
  */
 
 package org.springframework.integration.ip.tcp.serializer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,8 +80,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 */
 	public ByteArrayLengthHeaderSerializer(int headerSize) {
 		if (headerSize != HEADER_SIZE_INT &&
-			headerSize != HEADER_SIZE_UNSIGNED_BYTE &&
-			headerSize != HEADER_SIZE_UNSIGNED_SHORT) {
+				headerSize != HEADER_SIZE_UNSIGNED_BYTE &&
+				headerSize != HEADER_SIZE_UNSIGNED_SHORT) {
 			throw new IllegalArgumentException("Illegal header size:" + headerSize);
 		}
 		this.headerSize = headerSize;
@@ -162,8 +163,8 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 			lengthRead += len;
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Read " + len + " bytes, buffer is now at " +
-							 lengthRead + " of " +
-							 needed);
+						lengthRead + " of " +
+						needed);
 			}
 		}
 		return 0;
@@ -178,27 +179,27 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	protected void writeHeader(OutputStream outputStream, int length) throws IOException {
 		ByteBuffer lengthPart = ByteBuffer.allocate(this.headerSize);
 		switch (this.headerSize) {
-		case HEADER_SIZE_INT:
-			lengthPart.putInt(length);
-			break;
-		case HEADER_SIZE_UNSIGNED_BYTE:
-			if (length > 0xff) {
-				throw new IllegalArgumentException("Length header:"
-						+ this.headerSize
-						+ " too short to accommodate message length:" + length);
-			}
-			lengthPart.put((byte) length);
-			break;
-		case HEADER_SIZE_UNSIGNED_SHORT:
-			if (length > 0xffff) {
-				throw new IllegalArgumentException("Length header:"
-						+ this.headerSize
-						+ " too short to accommodate message length:" + length);
-			}
-			lengthPart.putShort((short) length);
-			break;
-		default:
-			throw new IllegalArgumentException("Bad header size:" + this.headerSize);
+			case HEADER_SIZE_INT:
+				lengthPart.putInt(length);
+				break;
+			case HEADER_SIZE_UNSIGNED_BYTE:
+				if (length > 0xff) {
+					throw new IllegalArgumentException("Length header:"
+							+ this.headerSize
+							+ " too short to accommodate message length:" + length);
+				}
+				lengthPart.put((byte) length);
+				break;
+			case HEADER_SIZE_UNSIGNED_SHORT:
+				if (length > 0xffff) {
+					throw new IllegalArgumentException("Length header:"
+							+ this.headerSize
+							+ " too short to accommodate message length:" + length);
+				}
+				lengthPart.putShort((short) length);
+				break;
+			default:
+				throw new IllegalArgumentException("Bad header size:" + this.headerSize);
 		}
 		outputStream.write(lengthPart.array());
 	}
@@ -221,22 +222,22 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 			}
 			int messageLength;
 			switch (this.headerSize) {
-			case HEADER_SIZE_INT:
-				messageLength = ByteBuffer.wrap(lengthPart).getInt();
-				if (messageLength < 0) {
-					throw new IllegalArgumentException("Length header:"
-							+ messageLength
-							+ " is negative");
-				}
-				break;
-			case HEADER_SIZE_UNSIGNED_BYTE:
-				messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
-				break;
-			case HEADER_SIZE_UNSIGNED_SHORT:
-				messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
-				break;
-			default:
-				throw new IllegalArgumentException("Bad header size:" + this.headerSize);
+				case HEADER_SIZE_INT:
+					messageLength = ByteBuffer.wrap(lengthPart).getInt();
+					if (messageLength < 0) {
+						throw new IllegalArgumentException("Length header:"
+								+ messageLength
+								+ " is negative");
+					}
+					break;
+				case HEADER_SIZE_UNSIGNED_BYTE:
+					messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
+					break;
+				case HEADER_SIZE_UNSIGNED_SHORT:
+					messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
+					break;
+				default:
+					throw new IllegalArgumentException("Bad header size:" + this.headerSize);
 			}
 			return messageLength;
 		}

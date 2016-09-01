@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.sql.Types;
+
 import org.junit.Test;
 
 public class JdbcTypesEnumTests {
@@ -47,7 +48,7 @@ public class JdbcTypesEnumTests {
 	public void testConvertToJdbcTypesEnumWithNullParameter() {
 
 		try {
-		    JdbcTypesEnum.convertToJdbcTypesEnum(null);
+			JdbcTypesEnum.convertToJdbcTypesEnum(null);
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());
@@ -62,7 +63,7 @@ public class JdbcTypesEnumTests {
 	public void testConvertToJdbcTypesEnumWithEmptyParameter() {
 
 		try {
-		    JdbcTypesEnum.convertToJdbcTypesEnum("   ");
+			JdbcTypesEnum.convertToJdbcTypesEnum("   ");
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("Parameter sqlTypeAsString, must not be null nor empty", e.getMessage());

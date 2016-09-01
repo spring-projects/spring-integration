@@ -36,6 +36,6 @@ import org.springframework.context.annotation.Import;
 @Import(MessageHistoryRegistrar.class)
 public @interface EnableMessageHistory {
 
-	  String[] value() default "*";
+	String[] value() default "*";
 
 }

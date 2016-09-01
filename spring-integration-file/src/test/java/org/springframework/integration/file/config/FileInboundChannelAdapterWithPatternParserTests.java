@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,85 +49,85 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileInboundChannelAdapterWithPatternParserTests {
 
-    @Autowired(required = true)
-    private ApplicationContext context;
+	@Autowired
+	private ApplicationContext context;
 
-    @Autowired(required = true)
-    @Qualifier("adapterWithPattern.adapter")
-    private AbstractEndpoint endpoint;
+	@Autowired
+	@Qualifier("adapterWithPattern.adapter")
+	private AbstractEndpoint endpoint;
 
-    private DirectFieldAccessor accessor;
-
-
-    @Autowired(required = true)
-    public void setSource(FileReadingMessageSource source) {
-        this.accessor = new DirectFieldAccessor(source);
-    }
+	private DirectFieldAccessor accessor;
 
 
-    @Test
-    public void channelName() {
-        AbstractMessageChannel channel = context.getBean("adapterWithPattern", AbstractMessageChannel.class);
-        assertEquals("adapterWithPattern", channel.getComponentName());
-    }
+	@Autowired
+	public void setSource(FileReadingMessageSource source) {
+		this.accessor = new DirectFieldAccessor(source);
+	}
 
-    @Test
-    public void autoStartupDisabled() {
-        assertFalse(this.endpoint.isRunning());
-        assertEquals(Boolean.FALSE, new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup"));
-    }
 
-    @Test
-    public void inputDirectory() {
-        File expected = new File(System.getProperty("java.io.tmpdir"));
-        File actual = (File) accessor.getPropertyValue("directory");
-        assertEquals(expected, actual);
-    }
+	@Test
+	public void channelName() {
+		AbstractMessageChannel channel = context.getBean("adapterWithPattern", AbstractMessageChannel.class);
+		assertEquals("adapterWithPattern", channel.getComponentName());
+	}
 
-    @Test
-    public void compositeFilterType() {
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
-    }
+	@Test
+	public void autoStartupDisabled() {
+		assertFalse(this.endpoint.isRunning());
+		assertEquals(Boolean.FALSE, new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup"));
+	}
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void compositeFilterSetSize() {
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
-                scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
-        assertEquals(2, filters.size());
-    }
+	@Test
+	public void inputDirectory() {
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) accessor.getPropertyValue("directory");
+		assertEquals(expected, actual);
+	}
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void acceptOnceFilter() {
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
-                scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
-        boolean hasAcceptOnceFilter = false;
-        for (FileListFilter<File> filter : filters) {
-            if (filter instanceof AcceptOnceFileListFilter) {
-                hasAcceptOnceFilter = true;
-            }
-        }
-        assertTrue("expected AcceptOnceFileListFilter", hasAcceptOnceFilter);
-    }
+	@Test
+	public void compositeFilterType() {
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+		assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+	}
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void patternFilter() {
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
-                scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
-        String pattern = null;
-        for (FileListFilter<?> filter : filters) {
-            if (filter instanceof SimplePatternFileListFilter) {
-                pattern = (String) new DirectFieldAccessor(filter).getPropertyValue("path");
-            }
-        }
-        assertNotNull("expected SimplePatternFileListFilterTest", pattern);
-        assertEquals("*.txt", pattern.toString());
-    }
+	@Test
+	@SuppressWarnings("unchecked")
+	public void compositeFilterSetSize() {
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+		Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+		assertEquals(2, filters.size());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void acceptOnceFilter() {
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+		Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+		boolean hasAcceptOnceFilter = false;
+		for (FileListFilter<File> filter : filters) {
+			if (filter instanceof AcceptOnceFileListFilter) {
+				hasAcceptOnceFilter = true;
+			}
+		}
+		assertTrue("expected AcceptOnceFileListFilter", hasAcceptOnceFilter);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void patternFilter() {
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+		Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+		String pattern = null;
+		for (FileListFilter<?> filter : filters) {
+			if (filter instanceof SimplePatternFileListFilter) {
+				pattern = (String) new DirectFieldAccessor(filter).getPropertyValue("path");
+			}
+		}
+		assertNotNull("expected SimplePatternFileListFilterTest", pattern);
+		assertEquals("*.txt", pattern.toString());
+	}
 
 }

@@ -37,9 +37,11 @@ import org.springframework.util.Assert;
  *
  */
 public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBean<SyslogReceivingChannelAdapterSupport>
-		 implements SmartLifecycle, BeanNameAware, ApplicationEventPublisherAware {
+		implements SmartLifecycle, BeanNameAware, ApplicationEventPublisherAware {
 
-	public enum Protocol { udp, tcp };
+	public enum Protocol {
+		udp, tcp
+	}
 
 	private volatile SyslogReceivingChannelAdapterSupport adapter;
 
@@ -166,7 +168,7 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 	@Override
 	public Class<?> getObjectType() {
 		return this.adapter == null ? SyslogReceivingChannelAdapterSupport.class :
-			this.adapter.getClass();
+				this.adapter.getClass();
 	}
 
 	@Override

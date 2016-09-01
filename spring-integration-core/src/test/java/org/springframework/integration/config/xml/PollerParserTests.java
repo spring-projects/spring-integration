@@ -115,9 +115,9 @@ public class PollerParserTests {
 		context.close();
 	}
 
-    @Test
+	@Test
 	public void pollerWithTriggerReference() {
-    	ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithTriggerReference.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
 		assertNotNull(poller);
@@ -126,19 +126,19 @@ public class PollerParserTests {
 		context.close();
 	}
 
-    @Test(expected = BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class)
 	public void pollerWithCronTriggerAndTimeUnit() {
 		new ClassPathXmlApplicationContext(
 				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class).close();
 	}
 
-    @Test(expected = BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class)
 	public void topLevelPollerWithRef() {
 		new ClassPathXmlApplicationContext(
 				"defaultPollerWithRef.xml", PollerParserTests.class).close();
 	}
 
-    @Test(expected = BeanDefinitionParsingException.class)
+	@Test(expected = BeanDefinitionParsingException.class)
 	public void pollerWithCronAndFixedDelay() {
 		new ClassPathXmlApplicationContext(
 				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class).close();

@@ -166,11 +166,11 @@ public class UnicastSendingMessageHandler extends
 	 * @param ackTimeout How long we will wait (milliseconds) for the ack.
 	 */
 	public UnicastSendingMessageHandler(String host,
-	                                    int port,
-	                                    boolean acknowledge,
-	                                    String ackHost,
-	                                    int ackPort,
-	                                    int ackTimeout) {
+			int port,
+			boolean acknowledge,
+			String ackHost,
+			int ackPort,
+			int ackTimeout) {
 		super(host, port);
 		this.destinationExpression = null;
 		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
@@ -188,12 +188,12 @@ public class UnicastSendingMessageHandler extends
 	 * @param ackTimeout How long we will wait (milliseconds) for the ack.
 	 */
 	public UnicastSendingMessageHandler(String host,
-	                                    int port,
-	                                    boolean lengthCheck,
-	                                    boolean acknowledge,
-	                                    String ackHost,
-	                                    int ackPort,
-	                                    int ackTimeout) {
+			int port,
+			boolean lengthCheck,
+			boolean acknowledge,
+			String ackHost,
+			int ackPort,
+			int ackTimeout) {
 		super(host, port);
 		this.destinationExpression = null;
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
@@ -223,6 +223,7 @@ public class UnicastSendingMessageHandler extends
 			if (this.taskExecutor == null) {
 				Executor executor = Executors
 						.newSingleThreadExecutor(new ThreadFactory() {
+
 							private final AtomicInteger n = new AtomicInteger();
 
 							@Override
@@ -284,7 +285,8 @@ public class UnicastSendingMessageHandler extends
 			try {
 				this.socket.close();
 			}
-			catch (Exception e1) { }
+			catch (Exception e1) {
+			}
 			this.socket = null;
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
 		}
@@ -456,7 +458,7 @@ public class UnicastSendingMessageHandler extends
 		if (this.ackPort == 0 && socket != null) {
 			return socket.getLocalPort();
 		}
-		else  {
+		else {
 			return this.ackPort;
 		}
 	}

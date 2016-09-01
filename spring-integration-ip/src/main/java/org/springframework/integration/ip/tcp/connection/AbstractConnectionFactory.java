@@ -84,7 +84,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean soTcpNoDelay;
 
-	private volatile int soLinger  = -1; // don't set by default
+	private volatile int soLinger = -1; // don't set by default
 
 	private volatile boolean soKeepAlive;
 
@@ -526,7 +526,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				return connection;
 			}
 			TcpConnectionInterceptorFactory[] interceptorFactories =
-				this.interceptorFactoryChain.getInterceptorFactories();
+					this.interceptorFactoryChain.getInterceptorFactories();
 			if (interceptorFactories == null) {
 				return connection;
 			}
@@ -584,17 +584,16 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 						 * send was within the current timeout.
 						 */
 						if (!connection.isServer() &&
-							now - connection.getLastSend() < this.soTimeout &&
-							now - connection.getLastRead() < this.soTimeout * 2) {
+								now - connection.getLastSend() < this.soTimeout &&
+								now - connection.getLastRead() < this.soTimeout * 2) {
 							if (logger.isDebugEnabled()) {
-								logger.debug("Skipping a connection timeout because we have a recent send "
-										+ connection.getConnectionId());
+								logger.debug("Skipping a connection timeout because we have a recent send " +
+										connection.getConnectionId());
 							}
 						}
 						else {
 							if (logger.isWarnEnabled()) {
-								logger.warn("Timing out TcpNioConnection " +
-										    connection.getConnectionId());
+								logger.warn("Timing out TcpNioConnection " + connection.getConnectionId());
 							}
 							SocketTimeoutException exception = new SocketTimeoutException("Timing out connection");
 							connection.publishConnectionExceptionEvent(exception);
@@ -781,7 +780,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			}
 			this.connections.put(connection.getConnectionId(), connection);
 			if (logger.isDebugEnabled()) {
-				logger.debug(getComponentName() +  ": Added new connection: " + connection.getConnectionId());
+				logger.debug(getComponentName() + ": Added new connection: " + connection.getConnectionId());
 			}
 		}
 	}
@@ -800,13 +799,13 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				if (!connection.isOpen()) {
 					iterator.remove();
 					if (logger.isDebugEnabled()) {
-						logger.debug(getComponentName() +  ": Removed closed connection: " + connection.getConnectionId());
+						logger.debug(getComponentName() + ": Removed closed connection: " + connection.getConnectionId());
 					}
 				}
 				else {
 					openConnectionIds.add(entry.getKey());
 					if (logger.isTraceEnabled()) {
-						logger.trace(getComponentName() +  ": Connection is open: " + connection.getConnectionId());
+						logger.trace(getComponentName() + ": Connection is open: " + connection.getConnectionId());
 					}
 				}
 			}

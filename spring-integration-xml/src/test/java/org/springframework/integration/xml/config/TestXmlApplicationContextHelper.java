@@ -43,8 +43,8 @@ public class TestXmlApplicationContextHelper {
 			+ "http://www.springframework.org/schema/integration/xml "
 			+ "http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd "
 			+ "http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd " +
-			  "http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd' >" +
-			  "<context:annotation-config/>";
+			"http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd' >" +
+			"<context:annotation-config/>";
 
 	private final static String footer = "</beans>";
 

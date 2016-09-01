@@ -63,7 +63,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
@@ -202,7 +201,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
 		try {
-			this.handlerMethod =  new HandlerMethod(method, canProcessMessageList);
+			this.handlerMethod = new HandlerMethod(method, canProcessMessageList);
 		}
 		catch (IneligibleMethodException e) {
 			throw new IllegalArgumentException(e);
@@ -270,11 +269,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (this.expectedType != null) {
 				Assert.state(context.getTypeConverter()
 								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()),
-						TypeDescriptor.valueOf(this.expectedType)),
+										TypeDescriptor.valueOf(this.expectedType)),
 						"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
 			}
 		}
-		else  {
+		else {
 			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
 					this.requiresReply);
 			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
@@ -348,94 +347,91 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		final AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<Class<?>>();
 		final Class<?> targetClass = this.getTargetClass(targetObject);
 		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
-		ReflectionUtils.doWithMethods(targetClass, new MethodCallback() {
-			@Override
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				boolean matchesAnnotation = false;
-				if (method.isBridge()) {
-					return;
+		ReflectionUtils.doWithMethods(targetClass, method1 -> {
+			boolean matchesAnnotation = false;
+			if (method1.isBridge()) {
+				return;
+			}
+			if (isMethodDefinedOnObjectClass(method1)) {
+				return;
+			}
+			if (method1.getDeclaringClass().equals(Proxy.class)) {
+				return;
+			}
+			if (!Modifier.isPublic(method1.getModifiers())) {
+				return;
+			}
+			if (requiresReply && void.class.equals(method1.getReturnType())) {
+				return;
+			}
+			if (methodName != null && !methodName.equals(method1.getName())) {
+				return;
+			}
+			if (methodName == null
+					&& ObjectUtils.containsElement(new String[] { "start", "stop", "isRunning" }, method1.getName())) {
+				return;
+			}
+			if (annotationType != null && AnnotationUtils.findAnnotation(method1, annotationType) != null) {
+				matchesAnnotation = true;
+			}
+			HandlerMethod handlerMethod1 = null;
+			try {
+				handlerMethod1 = new HandlerMethod(method1, this.canProcessMessageList);
+			}
+			catch (IneligibleMethodException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Method [" + method1 + "] is not eligible for Message handling "
+							+ e.getMessage() + ".");
 				}
-				if (isMethodDefinedOnObjectClass(method)) {
-					return;
+				return;
+			}
+			catch (Exception e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Method [" + method1 + "] is not eligible for Message handling.", e);
 				}
-				if (method.getDeclaringClass().equals(Proxy.class)) {
-					return;
-				}
-				if (!Modifier.isPublic(method.getModifiers())) {
-					return;
-				}
-				if (requiresReply && void.class.equals(method.getReturnType())) {
-					return;
-				}
-				if (methodName != null && !methodName.equals(method.getName())) {
-					return;
-				}
-				if (methodName == null
-						&& ObjectUtils.containsElement(new String[] {"start", "stop", "isRunning"}, method.getName())) {
-					return;
-				}
-				if (annotationType != null && AnnotationUtils.findAnnotation(method, annotationType) != null) {
-					matchesAnnotation = true;
-				}
-				HandlerMethod handlerMethod = null;
-				try {
-					handlerMethod = new HandlerMethod(method, MessagingMethodInvokerHelper.this.canProcessMessageList);
-				}
-				catch (IneligibleMethodException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Method [" + method + "] is not eligible for Message handling "
-								+ e.getMessage() + ".");
+				return;
+			}
+			Class<?> targetParameterType = handlerMethod1.getTargetParameterType();
+			if (matchesAnnotation || annotationType == null) {
+				if (handlerMethod1.isMessageMethod()) {
+					if (candidateMessageMethods.containsKey(targetParameterType)) {
+						throw new IllegalArgumentException("Found more than one method match for type " +
+								"[Message<" + targetParameterType + ">]");
 					}
-					return;
-				}
-				catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Method [" + method + "] is not eligible for Message handling.", e);
-					}
-					return;
-				}
-				Class<?> targetParameterType = handlerMethod.getTargetParameterType();
-				if (matchesAnnotation || annotationType == null) {
-					if (handlerMethod.isMessageMethod()) {
-						if (candidateMessageMethods.containsKey(targetParameterType)) {
-							throw new IllegalArgumentException("Found more than one method match for type " +
-									"[Message<" + targetParameterType + ">]");
-						}
-						candidateMessageMethods.put(targetParameterType, handlerMethod);
-					}
-					else {
-						if (candidateMethods.containsKey(targetParameterType)) {
-							String exceptionMessage = "Found more than one method match for ";
-							if (Void.class.equals(targetParameterType)) {
-								exceptionMessage += "empty parameter for 'payload'";
-							}
-							else {
-								exceptionMessage += "type [" + targetParameterType + "]";
-							}
-							throw new IllegalArgumentException(exceptionMessage);
-						}
-						candidateMethods.put(targetParameterType, handlerMethod);
-					}
+					candidateMessageMethods.put(targetParameterType, handlerMethod1);
 				}
 				else {
-					if (handlerMethod.isMessageMethod()) {
-						if (fallbackMessageMethods.containsKey(targetParameterType)) {
-							// we need to check for duplicate type matches,
-							// but only if we end up falling back
-							// and we'll only keep track of the first one
-							ambiguousFallbackMessageGenericType.compareAndSet(null, targetParameterType);
+					if (candidateMethods.containsKey(targetParameterType)) {
+						String exceptionMessage = "Found more than one method match for ";
+						if (Void.class.equals(targetParameterType)) {
+							exceptionMessage += "empty parameter for 'payload'";
 						}
-						fallbackMessageMethods.put(targetParameterType, handlerMethod);
-					}
-					else {
-						if (fallbackMethods.containsKey(targetParameterType)) {
-							// we need to check for duplicate type matches,
-							// but only if we end up falling back
-							// and we'll only keep track of the first one
-							ambiguousFallbackType.compareAndSet(null, targetParameterType);
+						else {
+							exceptionMessage += "type [" + targetParameterType + "]";
 						}
-						fallbackMethods.put(targetParameterType, handlerMethod);
+						throw new IllegalArgumentException(exceptionMessage);
 					}
+					candidateMethods.put(targetParameterType, handlerMethod1);
+				}
+			}
+			else {
+				if (handlerMethod1.isMessageMethod()) {
+					if (fallbackMessageMethods.containsKey(targetParameterType)) {
+						// we need to check for duplicate type matches,
+						// but only if we end up falling back
+						// and we'll only keep track of the first one
+						ambiguousFallbackMessageGenericType.compareAndSet(null, targetParameterType);
+					}
+					fallbackMessageMethods.put(targetParameterType, handlerMethod1);
+				}
+				else {
+					if (fallbackMethods.containsKey(targetParameterType)) {
+						// we need to check for duplicate type matches,
+						// but only if we end up falling back
+						// and we'll only keep track of the first one
+						ambiguousFallbackType.compareAndSet(null, targetParameterType);
+					}
+					fallbackMethods.put(targetParameterType, handlerMethod1);
 				}
 			}
 		}, methodFilter);
@@ -452,7 +448,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return handlerMethods;
 		}
 		if ((ambiguousFallbackType.get() != null
-				 ||	ambiguousFallbackMessageGenericType.get() != null)
+				|| ambiguousFallbackMessageGenericType.get() != null)
 				&& ServiceActivator.class.equals(annotationType)) {
 			/*
 			 * When there are ambiguous fallback methods,
@@ -484,15 +480,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 		}
 
-		try {
-			Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
-					"Target object of type [" + this.targetObject.getClass() +
-							"] has no eligible methods for handling Messages.");
-		}
-		catch (Exception e) {
-			//TODO backward compatibility. Remove in 5.0
-			throw  new IllegalArgumentException(e.getMessage());
-		}
+		Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
+				"Target object of type [" + this.targetObject.getClass() +
+						"] has no eligible methods for handling Messages.");
 
 		Assert.isNull(ambiguousFallbackType.get(), "Found ambiguous parameter type [" + ambiguousFallbackType
 				+ "] for method match: " + fallbackMethods.values());
@@ -506,32 +496,20 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private void findSingleSpecifMethodOnInterfacesIfProxy(final Object targetObject, final String methodName,
-	                                                       Map<Class<?>, HandlerMethod> candidateMessageMethods,
-	                                                       Map<Class<?>, HandlerMethod> candidateMethods) {
+			Map<Class<?>, HandlerMethod> candidateMessageMethods,
+			Map<Class<?>, HandlerMethod> candidateMethods) {
 		if (AopUtils.isAopProxy(targetObject)) {
 			final AtomicReference<Method> targetMethod = new AtomicReference<Method>();
 			Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
 			for (Class<?> clazz : interfaces) {
-				ReflectionUtils.doWithMethods(clazz, new MethodCallback() {
-
-					@Override
-					public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-						if (targetMethod.get() != null) {
-							throw new IllegalStateException("Ambiguous method " + methodName + " on " + targetObject);
-						}
-						else {
-							targetMethod.set(method);
-						}
+				ReflectionUtils.doWithMethods(clazz, method1 -> {
+					if (targetMethod.get() != null) {
+						throw new IllegalStateException("Ambiguous method " + methodName + " on " + targetObject);
 					}
-
-				}, new MethodFilter() {
-
-					@Override
-					public boolean matches(Method method) {
-						return method.getName().equals(methodName);
+					else {
+						targetMethod.set(method1);
 					}
-
-				});
+				}, method12 -> method12.getName().equals(methodName));
 			}
 			Method method = targetMethod.get();
 			if (method != null) {
@@ -626,17 +604,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private static boolean isMethodDefinedOnObjectClass(Method method) {
-		if (method == null) {
-			return false;
-		}
-		if (method.getDeclaringClass().equals(Object.class)) {
-			return true;
-		}
-		if (ReflectionUtils.isEqualsMethod(method) || ReflectionUtils.isHashCodeMethod(method)
-				|| ReflectionUtils.isToStringMethod(method) || AopUtils.isFinalizeMethod(method)) {
-			return true;
-		}
-		return (method.getName().equals("clone") && method.getParameterTypes().length == 0);
+		return method != null &&
+				(method.getDeclaringClass().equals(Object.class) || ReflectionUtils.isEqualsMethod(method) ||
+						ReflectionUtils.isHashCodeMethod(method) || ReflectionUtils.isToStringMethod(method) ||
+						AopUtils.isFinalizeMethod(method) || (method.getName().equals("clone")
+						&& method.getParameterTypes().length == 0));
 	}
 
 	/**
@@ -764,7 +736,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 				else if (Iterator.class.isAssignableFrom(parameterType)) {
 					if (this.canProcessMessageList) {
-						Type type =  method.getGenericParameterTypes()[i];
+						Type type = method.getGenericParameterTypes()[i];
 						Type parameterizedType = null;
 						if (type instanceof ParameterizedType) {
 							parameterizedType = ((ParameterizedType) type).getActualTypeArguments()[0];
@@ -851,8 +823,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType,
 				MethodParameter methodParameter) {
 			if (this.targetParameterTypeDescriptor != null) {
-				throw new IneligibleMethodException("Found more than one parameter type candidate: ["
-					+ this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "]");
+				throw new IneligibleMethodException("Found more than one parameter type candidate: [" +
+						this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "]");
 			}
 			this.targetParameterTypeDescriptor = targetParameterType;
 			if (Message.class.isAssignableFrom(targetParameterType.getObjectType())) {

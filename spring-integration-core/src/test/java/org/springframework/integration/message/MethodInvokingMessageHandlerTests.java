@@ -66,7 +66,7 @@ public class MethodInvokingMessageHandlerTests {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void noMatchingMethodName() {
 		new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod");
 	}

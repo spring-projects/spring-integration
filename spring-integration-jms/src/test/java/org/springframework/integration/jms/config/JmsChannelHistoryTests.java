@@ -56,6 +56,7 @@ public class JmsChannelHistoryTests {
 		Message<String> message = new GenericMessage<String>("hello");
 
 		doAnswer(new Answer() {
+
 			@Override
 			@SuppressWarnings("unchecked")
 			public Object answer(InvocationOnMock invocation) {
@@ -80,7 +81,7 @@ public class JmsChannelHistoryTests {
 		channel.send(new GenericMessage<String>("hello"));
 		Message<?> resultMessage = resultChannel.receive(10000);
 		MessageHistory history = MessageHistory.read(resultMessage);
- 		assertTrue(history.get(0).contains("jmsChannel"));
+		assertTrue(history.get(0).contains("jmsChannel"));
 		ac.close();
 	}
 

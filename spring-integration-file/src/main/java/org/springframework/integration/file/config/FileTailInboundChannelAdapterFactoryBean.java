@@ -186,7 +186,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		}
 		else {
 			Assert.isTrue(this.nativeOptions == null,
-					 "'native-options' is not allowed with 'delay', 'end', or 'reopen'");
+					"'native-options' is not allowed with 'delay', 'end', or 'reopen'");
 			adapter = new ApacheCommonsFileTailingMessageProducer();
 			if (this.delay != null) {
 				((ApacheCommonsFileTailingMessageProducer) adapter).setPollingDelay(this.delay);

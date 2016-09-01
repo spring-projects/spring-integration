@@ -55,7 +55,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	@Override
 	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-							   boolean complete) {
+			boolean complete) {
 		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete);
 	}
 
@@ -84,7 +84,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	public enum GroupType {
 
 		BLOCKING_QUEUE {
-
 			@Override
 			Collection<Message<?>> get() {
 				return new LinkedBlockingQueue<Message<?>>();
@@ -92,7 +91,6 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 		},
 		HASH_SET {
-
 			@Override
 			Collection<Message<?>> get() {
 				return new LinkedHashSet<Message<?>>();
@@ -100,15 +98,13 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 		},
 		SYNCHRONISED_SET {
-
 			@Override
 			Collection<Message<?>> get() {
-				return Collections.<Message<?>>synchronizedSet(new LinkedHashSet<Message<?>>());
+				return Collections.synchronizedSet(new LinkedHashSet<>());
 			}
 
 		},
 		PERSISTENT {
-
 			@Override
 			Collection<Message<?>> get() {
 				return HASH_SET.get();

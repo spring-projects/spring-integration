@@ -80,7 +80,7 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 						}
 						else {
 							throw new MessagingException("Negotiation error, expected '" + hello +
-									     "' received '" + payload + "'");
+									"' received '" + payload + "'");
 						}
 					}
 					else {
@@ -90,7 +90,7 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 						}
 						else {
 							throw new MessagingException("Negotiation error - expected '" + world +
-										"' received " + payload);
+									"' received " + payload);
 						}
 						return true;
 					}

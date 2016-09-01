@@ -124,7 +124,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String MAPPER = "mapper";
 
-	private IpAdapterParserUtils() { }
+	private IpAdapterParserUtils() {
+	}
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder
@@ -151,7 +152,7 @@ public abstract class IpAdapterParserUtils {
 	 * @param parserContext The parser context.
 	 */
 	public static void addDestinationConfigToConstructor(Element element,
-	                                                     BeanDefinitionBuilder builder, ParserContext parserContext) {
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String destinationExpression = element.getAttribute("destination-expression");
 		if (StringUtils.hasText(destinationExpression)) {
 			addDestinationExpressionToConstructor(destinationExpression, element, builder, parserContext);
@@ -162,7 +163,7 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	private static void addDestinationExpressionToConstructor(String destinationExpression,
-			  Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
+			Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (StringUtils.hasText(host) || StringUtils.hasText(port)) {

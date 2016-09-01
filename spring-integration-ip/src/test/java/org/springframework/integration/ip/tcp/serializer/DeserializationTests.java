@@ -80,10 +80,10 @@ public class DeserializationTests {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-								 new String(out));
+				new String(out));
 		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				 new String(out));
+				new String(out));
 		server.close();
 		done.countDown();
 	}
@@ -99,10 +99,10 @@ public class DeserializationTests {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-								 new String(out));
+				new String(out));
 		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				 new String(out));
+				new String(out));
 		server.close();
 		done.countDown();
 	}
@@ -118,10 +118,10 @@ public class DeserializationTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-								 new String(out));
+				new String(out));
 		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-				 new String(out));
+				new String(out));
 		server.close();
 		done.countDown();
 	}
@@ -137,7 +137,7 @@ public class DeserializationTests {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-								 new String(out));
+				new String(out));
 		server.close();
 	}
 
@@ -169,7 +169,7 @@ public class DeserializationTests {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		try {
 			serializer.deserialize(socket.getInputStream());
-	    	fail("Expected message length exceeded exception");
+			fail("Expected message length exceeded exception");
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Message length")) {
@@ -192,7 +192,7 @@ public class DeserializationTests {
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		try {
 			serializer.deserialize(socket.getInputStream());
-	    	fail("Expected timeout exception");
+			fail("Expected timeout exception");
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
@@ -216,7 +216,7 @@ public class DeserializationTests {
 		serializer.setMaxMessageSize(1024);
 		try {
 			serializer.deserialize(socket.getInputStream());
-	    	fail("Expected message length exceeded exception");
+			fail("Expected message length exceeded exception");
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("ETX not found")) {
@@ -239,7 +239,7 @@ public class DeserializationTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		try {
 			serializer.deserialize(socket.getInputStream());
-	    	fail("Expected timout exception");
+			fail("Expected timout exception");
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
@@ -263,7 +263,7 @@ public class DeserializationTests {
 		serializer.setMaxMessageSize(1024);
 		try {
 			serializer.deserialize(socket.getInputStream());
-	    	fail("Expected message length exceeded exception");
+			fail("Expected message length exceeded exception");
 		}
 		catch (IOException e) {
 			if (!e.getMessage().startsWith("CRLF not found")) {

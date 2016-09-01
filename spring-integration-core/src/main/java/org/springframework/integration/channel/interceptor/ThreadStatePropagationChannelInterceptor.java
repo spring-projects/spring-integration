@@ -83,7 +83,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 
 	@Override
 	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler,
-										  Exception ex) {
+			Exception ex) {
 		// No-op
 	}
 

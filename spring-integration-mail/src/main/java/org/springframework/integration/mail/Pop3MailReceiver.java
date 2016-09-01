@@ -73,7 +73,7 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 	 * @throws MessagingException in case of JavaMail errors
 	 */
 	@Override
-    protected void deleteMessages(Message[] messages) throws MessagingException {
+	protected void deleteMessages(Message[] messages) throws MessagingException {
 		super.deleteMessages(messages);
 		// expunge deleted mails, and make sure we've retrieved them before closing the folder
 		for (int i = 0; i < messages.length; i++) {

@@ -96,7 +96,6 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 	}
 
 
-
 	@Test
 	@SuppressWarnings("unchecked")
 	//INT-1362
@@ -120,6 +119,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		RequestContextHolder.setRequestAttributes(attributes);
 
 		this.toLowerCaseChannel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageHeaders headers = message.getHeaders();
@@ -162,15 +162,15 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 	@Test
 	public void testParams() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/params");
-        Object handler = null;
-        try {
-            handler = this.handlerMapping.getHandler(request);
-        }
-        catch (Exception e) {
-            // There is no matching handlers and some default handler
-            //See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
-            assertTrue(e instanceof UnsatisfiedServletRequestParameterException);
-        }
+		Object handler = null;
+		try {
+			handler = this.handlerMapping.getHandler(request);
+		}
+		catch (Exception e) {
+			// There is no matching handlers and some default handler
+			//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
+			assertTrue(e instanceof UnsatisfiedServletRequestParameterException);
+		}
 
 		request = new MockHttpServletRequest("GET", "/params");
 		request.addParameter("param1", "1");

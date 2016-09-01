@@ -30,13 +30,12 @@ import java.util.List;
 @FunctionalInterface
 public interface FileListFilter<F> {
 
-    /**
-     * Filters out files and returns the files that are left in a list, or an
-     * empty list when a null is passed in.
-     *
-     * @param files The files.
-     * @return The filtered files.
-     */
-    List<F> filterFiles(F[] files);
+	/**
+	 * Filters out files and returns the files that are left in a list, or an
+	 * empty list when a null is passed in.
+	 * @param files The files.
+	 * @return The filtered files.
+	 */
+	List<F> filterFiles(F[] files);
 
 }

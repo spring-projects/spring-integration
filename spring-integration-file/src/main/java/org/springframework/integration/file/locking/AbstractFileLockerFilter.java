@@ -31,9 +31,9 @@ import org.springframework.integration.file.filters.AbstractFileListFilter;
  */
 public abstract class AbstractFileLockerFilter extends AbstractFileListFilter<File> implements FileLocker {
 
-    @Override
-    public boolean accept(File file) {
-        return this.isLockable(file);
-    }
+	@Override
+	public boolean accept(File file) {
+		return this.isLockable(file);
+	}
 
 }

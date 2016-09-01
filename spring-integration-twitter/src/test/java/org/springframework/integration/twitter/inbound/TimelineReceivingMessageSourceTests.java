@@ -39,16 +39,17 @@ public class TimelineReceivingMessageSourceTests {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void demoReceiveTimeline() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
-		Properties prop =  pf.getObject();
+		Properties prop = pf.getObject();
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
-										               prop.getProperty("z_oleg.oauth.consumerSecret"),
-										               prop.getProperty("z_oleg.oauth.accessToken"),
-										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
+				prop.getProperty("z_oleg.oauth.consumerSecret"),
+				prop.getProperty("z_oleg.oauth.accessToken"),
+				prop.getProperty("z_oleg.oauth.accessTokenSecret"));
 		TimelineReceivingMessageSource tSource = new TimelineReceivingMessageSource(template, "foo");
 		tSource.afterPropertiesSet();
 		for (int i = 0; i < 50; i++) {

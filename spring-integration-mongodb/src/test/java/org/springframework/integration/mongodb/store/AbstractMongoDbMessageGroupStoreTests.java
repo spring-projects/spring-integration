@@ -97,7 +97,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		this.cleanupCollections(new SimpleMongoDbFactory(new MongoClient(), "test"));
 		MessageGroupStore store = this.getMessageGroupStore();
 		MessageStore messageStore = this.getMessageStore();
-	    Object id = UUID.randomUUID();
+		Object id = UUID.randomUUID();
 		MessageGroup messageGroup = store.getMessageGroup(id);
 		UUID uuidA = UUID.randomUUID();
 		Message<?> messageA = MessageBuilder.withPayload("A").setHeader("foo", uuidA).build();

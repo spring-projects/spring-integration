@@ -143,7 +143,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (!this.listenerRegisteredOnStartup.getAndSet(true) && isAutoStartup()) {
-			 doStart();
+			doStart();
 		}
 	}
 
@@ -162,7 +162,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.size() < 1) {
 				this.logger.error("No MBeans found matching ObjectName pattern(s): " +
-							Arrays.asList(this.objectNames));
+						Arrays.asList(this.objectNames));
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);

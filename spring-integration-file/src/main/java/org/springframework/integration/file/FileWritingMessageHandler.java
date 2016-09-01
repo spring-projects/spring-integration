@@ -352,7 +352,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 
 		Assert.state(!(this.temporaryFileSuffixSet
-				&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
+						&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
 						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))),
 				"'temporaryFileSuffix' can not be set when appending to an existing file");
 
@@ -510,7 +510,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
-										  final File resultFile) throws IOException {
+			final File resultFile) throws IOException {
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
@@ -879,7 +879,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private final BufferedWriter writer;
 
-		private final BufferedOutputStream  stream;
+		private final BufferedOutputStream stream;
 
 		private volatile long lastWrite;
 

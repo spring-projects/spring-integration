@@ -60,16 +60,17 @@ public class SearchReceivingMessageSourceTests {
 	private static final String SEARCH_QUERY = "#springsource";
 
 	@SuppressWarnings("unchecked")
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void demoReceiveSearchResults() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
-		Properties prop =  pf.getObject();
+		Properties prop = pf.getObject();
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
-										               prop.getProperty("z_oleg.oauth.consumerSecret"),
-										               prop.getProperty("z_oleg.oauth.accessToken"),
-										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
+				prop.getProperty("z_oleg.oauth.consumerSecret"),
+				prop.getProperty("z_oleg.oauth.accessToken"),
+				prop.getProperty("z_oleg.oauth.accessTokenSecret"));
 		SearchReceivingMessageSource tSource = new SearchReceivingMessageSource(template, "foo");
 		tSource.setQuery(SEARCH_QUERY);
 		tSource.afterPropertiesSet();

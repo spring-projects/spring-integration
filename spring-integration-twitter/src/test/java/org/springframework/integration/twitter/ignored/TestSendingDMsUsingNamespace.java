@@ -21,9 +21,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.util.StringUtils;
@@ -40,12 +40,13 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 	@Qualifier("inputChannel")
 
 	private MessageChannel inputChannel;
+
 	@Autowired
 	@Qualifier("dmOutboundWithinChain")
 	private MessageChannel dmOutboundWithinChain;
 
 	@Test
- 	@Ignore
+	@Ignore
 	public void testSendigRealDirectMessage() throws Throwable {
 		String dmUsr = "z_oleg";
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter "

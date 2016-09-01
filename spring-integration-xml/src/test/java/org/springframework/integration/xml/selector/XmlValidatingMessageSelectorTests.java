@@ -51,7 +51,7 @@ public class XmlValidatingMessageSelectorTests {
 			context = new ClassPathXmlApplicationContext("XmlValidatingMessageSelectorTests-context.xml", this.getClass());
 		}
 		catch (Exception e) {
-		     assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: No enum constant"));
+			assertTrue(e.getMessage().contains("java.lang.IllegalArgumentException: No enum constant"));
 		}
 		finally {
 			if (context != null) {

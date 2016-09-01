@@ -21,10 +21,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
+import org.xml.sax.SAXParseException;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
-import org.xml.sax.SAXParseException;
 
 public class XPathExpressionParserTests {
 
@@ -56,8 +57,8 @@ public class XPathExpressionParserTests {
 	public void testStringExpressionWithNamespaceInnerBean() throws Exception {
 
 		StringBuilder xmlDoc = new StringBuilder("<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name'>")
-		                                 .append("    <map><entry key='ns1' value='www.example.org' /></map>")
-		                                 .append("</si-xml:xpath-expression>");
+				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
+				.append("</si-xml:xpath-expression>");
 
 		XPathExpression xPathExpression = getXPathExpression(xmlDoc.toString());
 		assertEquals("outputOne", xPathExpression.evaluateAsString(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>")));
@@ -68,10 +69,10 @@ public class XPathExpressionParserTests {
 	public void testStringExpressionWithMultipleNamespaceInnerBean() throws Exception {
 
 		StringBuilder xmlDoc = new StringBuilder(
-				      "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' >")
-		      .append("    <map><entry key='ns1' value='www.example.org'  /></map>")
-		      .append("    <map><entry key='ns2' value='www.example2.org' /></map>")
-		      .append("</si-xml:xpath-expression>");
+				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' >")
+				.append("    <map><entry key='ns1' value='www.example.org'  /></map>")
+				.append("    <map><entry key='ns2' value='www.example2.org' /></map>")
+				.append("</si-xml:xpath-expression>");
 
 		try {
 			getXPathExpression(xmlDoc.toString());
@@ -114,9 +115,9 @@ public class XPathExpressionParserTests {
 	@Test
 	public void testNamespacedStringExpressionWithNamespaceInnerBean() throws Exception {
 		StringBuilder xmlDoc = new StringBuilder(
-				      "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org'>")
-		      .append("    <map><entry key='ns1' value='www.example.org' /></map>")
-		      .append("</si-xml:xpath-expression>");
+				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' ns-prefix='ns1' ns-uri='www.example.org'>")
+				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
+				.append("</si-xml:xpath-expression>");
 		try {
 			getXPathExpression(xmlDoc.toString());
 		}
@@ -132,10 +133,10 @@ public class XPathExpressionParserTests {
 	@Test
 	public void testStringExpressionWithNamespaceInnerBeanAndWithNamespaceMapReference() throws Exception {
 		StringBuilder xmlDoc = new StringBuilder(
-				      "<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces'>")
-		      .append("    <map><entry key='ns1' value='www.example.org' /></map>")
-		      .append("</si-xml:xpath-expression>")
-		      .append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
+				"<si-xml:xpath-expression id='xpathExpression' expression='/ns1:name' namespace-map='myNamespaces'>")
+				.append("    <map><entry key='ns1' value='www.example.org' /></map>")
+				.append("</si-xml:xpath-expression>")
+				.append("<util:map id='myNamespaces'><entry key='ns1' value='www.example.org' /></util:map>");
 		try {
 			getXPathExpression(xmlDoc.toString());
 		}
@@ -152,8 +153,6 @@ public class XPathExpressionParserTests {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(contextXml);
 		return (XPathExpression) ctx.getBean("xpathExpression");
 	}
-
-
 
 
 }

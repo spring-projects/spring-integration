@@ -84,22 +84,22 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer, 
 			Assert.notNull(payload, "Message payload must not be null");
 			Assert.isInstanceOf(File.class, payload, "Message payload must be of type [java.io.File]");
 			File file = (File) payload;
-	        T result = this.transformFile(file);
-	        Message<?> transformedMessage = getMessageBuilderFactory().withPayload(result)
-	        		.copyHeaders(message.getHeaders())
-	        		.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
-	        		.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())
-	        		.build();
+			T result = this.transformFile(file);
+			Message<?> transformedMessage = getMessageBuilderFactory().withPayload(result)
+					.copyHeaders(message.getHeaders())
+					.setHeaderIfAbsent(FileHeaders.ORIGINAL_FILE, file)
+					.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())
+					.build();
 			if (this.deleteFiles) {
 				if (!file.delete() && this.logger.isWarnEnabled()) {
 					this.logger.warn("failed to delete File '" + file + "'");
 				}
 			}
 			return transformedMessage;
-        }
-catch (Exception e) {
-        	throw new MessagingException(message, "failed to transform File Message", e);
-        }
+		}
+		catch (Exception e) {
+			throw new MessagingException(message, "failed to transform File Message", e);
+		}
 	}
 
 	/**
