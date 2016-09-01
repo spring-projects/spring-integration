@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
 
 	<module name="SuppressionFilter">
@@ -67,7 +67,9 @@
 			<property name="max" value="3" />
 		</module>
 		<module name="MultipleVariableDeclarations" />
-		<module name="RequireThis"/>
+		<module name="RequireThis">
+			<property name="checkMethods" value="false" />
+		</module>
 		<module name="OneStatementPerLine" />
 
 		<!-- Imports -->

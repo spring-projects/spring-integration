@@ -231,7 +231,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = "7.1"
+		toolVersion = "6.16.1"
 	}
 
 	artifacts {
