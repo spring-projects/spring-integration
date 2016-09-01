@@ -90,13 +90,13 @@ public class ChannelSecurityMetadataSource implements SecurityMetadataSource {
 
 	public Collection<ConfigAttribute> getAllConfigAttributes() {
 		Set<ConfigAttribute> allAttributes = new HashSet<ConfigAttribute>();
-        for (ChannelAccessPolicy policy : this.patternMappings.values()) {
-        	Collection<ConfigAttribute> receiveAttributes = policy.getConfigAttributesForReceive();
-        	allAttributes.addAll(receiveAttributes);
-        	Collection<ConfigAttribute> sendAttributes = policy.getConfigAttributesForSend();
-        	allAttributes.addAll(sendAttributes);
-        }
-        return allAttributes;
+		for (ChannelAccessPolicy policy : this.patternMappings.values()) {
+			Collection<ConfigAttribute> receiveAttributes = policy.getConfigAttributesForReceive();
+			allAttributes.addAll(receiveAttributes);
+			Collection<ConfigAttribute> sendAttributes = policy.getConfigAttributesForSend();
+			allAttributes.addAll(sendAttributes);
+		}
+		return allAttributes;
 	}
 
 	public boolean supports(Class<?> clazz) {

@@ -150,7 +150,7 @@ public final class RedisLockRegistry implements LockRegistry {
 	 * {@link DefaultLockRegistry} is used by default.
 	 */
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey,
-							 long expireAfter, LockRegistry localRegistry) {
+			long expireAfter, LockRegistry localRegistry) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		Assert.notNull(localRegistry, "'localRegistry' cannot be null");
@@ -422,7 +422,7 @@ public final class RedisLockRegistry implements LockRegistry {
 			try {
 				success = RedisLockRegistry.this.redisTemplate.execute(new SessionCallback<Boolean>() {
 
-					@SuppressWarnings({"unchecked", "rawtypes"})
+					@SuppressWarnings({ "unchecked", "rawtypes" })
 					@Override
 					public Boolean execute(RedisOperations ops) throws DataAccessException {
 						String key = constructLockKey();
@@ -610,16 +610,16 @@ public final class RedisLockRegistry implements LockRegistry {
 			int keyLength = t.lockKey.length();
 			int threadNameLength = t.threadName.length();
 			byte[] value = new byte[1 + hostLength +
-									1 + keyLength +
-									1 + threadNameLength + 8];
+					1 + keyLength +
+					1 + threadNameLength + 8];
 			ByteBuffer buff = ByteBuffer.wrap(value);
 			buff.put((byte) hostLength)
-				.put(t.lockHost)
-				.put((byte) keyLength)
-				.put(t.lockKey.getBytes())
-				.put((byte) threadNameLength)
-				.put(t.threadName.getBytes())
-				.putLong(t.lockedAt);
+					.put(t.lockHost)
+					.put((byte) keyLength)
+					.put(t.lockKey.getBytes())
+					.put((byte) threadNameLength)
+					.put(t.threadName.getBytes())
+					.putLong(t.lockedAt);
 			return value;
 		}
 

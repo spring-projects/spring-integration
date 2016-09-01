@@ -53,99 +53,99 @@ public class TcpConfigInboundGatewayTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value = "crLfServer")
+	@Qualifier("crLfServer")
 	AbstractServerConnectionFactory crLfServer;
 
 	@Autowired
-	@Qualifier(value = "stxEtxServer")
+	@Qualifier("stxEtxServer")
 	AbstractServerConnectionFactory stxEtxServer;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderServer")
+	@Qualifier("lengthHeaderServer")
 	AbstractServerConnectionFactory lengthHeaderServer;
 
 	@Autowired
-	@Qualifier(value = "javaSerialServer")
+	@Qualifier("javaSerialServer")
 	AbstractServerConnectionFactory javaSerialServer;
 
 	@Autowired
-	@Qualifier(value = "crLfClient")
+	@Qualifier("crLfClient")
 	AbstractClientConnectionFactory crLfClient;
 
 	@Autowired
-	@Qualifier(value = "stxEtxClient")
+	@Qualifier("stxEtxClient")
 	AbstractClientConnectionFactory stxEtxClient;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderClient")
+	@Qualifier("lengthHeaderClient")
 	AbstractClientConnectionFactory lengthHeaderClient;
 
 	@Autowired
-	@Qualifier(value = "javaSerialClient")
+	@Qualifier("javaSerialClient")
 	AbstractClientConnectionFactory javaSerialClient;
 
 	@Autowired
-	@Qualifier(value = "crLfServerNio")
+	@Qualifier("crLfServerNio")
 	AbstractServerConnectionFactory crLfServerNio;
 
 	@Autowired
-	@Qualifier(value = "stxEtxServerNio")
+	@Qualifier("stxEtxServerNio")
 	AbstractServerConnectionFactory stxEtxServerNio;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderServerNio")
+	@Qualifier("lengthHeaderServerNio")
 	AbstractServerConnectionFactory lengthHeaderServerNio;
 
 	@Autowired
-	@Qualifier(value = "javaSerialServerNio")
+	@Qualifier("javaSerialServerNio")
 	AbstractServerConnectionFactory javaSerialServerNio;
 
 	@Autowired
-	@Qualifier(value = "crLfClientNio")
+	@Qualifier("crLfClientNio")
 	AbstractClientConnectionFactory crLfClientNio;
 
 	@Autowired
-	@Qualifier(value = "stxEtxClientNio")
+	@Qualifier("stxEtxClientNio")
 	AbstractClientConnectionFactory stxEtxClientNio;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderClientNio")
+	@Qualifier("lengthHeaderClientNio")
 	AbstractClientConnectionFactory lengthHeaderClientNio;
 
 	@Autowired
-	@Qualifier(value = "javaSerialClientNio")
+	@Qualifier("javaSerialClientNio")
 	AbstractClientConnectionFactory javaSerialClientNio;
 
 	@Autowired
-	@Qualifier(value = "gatewayCrLf")
+	@Qualifier("gatewayCrLf")
 	TcpInboundGateway gatewayCrLf;
 
 	@Autowired
-	@Qualifier(value = "gatewayStxEtx")
+	@Qualifier("gatewayStxEtx")
 	TcpInboundGateway gatewayStxEtx;
 
 	@Autowired
-	@Qualifier(value = "gatewayLength")
+	@Qualifier("gatewayLength")
 	TcpInboundGateway gatewayLength;
 
 	@Autowired
-	@Qualifier(value = "gatewaySerialized")
+	@Qualifier("gatewaySerialized")
 	TcpInboundGateway gatewaySerialized;
 
 	@Autowired
-	@Qualifier(value = "gatewayCrLfNio")
+	@Qualifier("gatewayCrLfNio")
 	TcpInboundGateway gatewayCrLfNio;
 
 	@Autowired
-	@Qualifier(value = "gatewayStxEtxNio")
+	@Qualifier("gatewayStxEtxNio")
 	TcpInboundGateway gatewayStxEtxNio;
 
 	@Autowired
-	@Qualifier(value = "gatewayLengthNio")
+	@Qualifier("gatewayLengthNio")
 	TcpInboundGateway gatewayLengthNio;
 
 	@Autowired
-	@Qualifier(value = "gatewaySerializedNio")
+	@Qualifier("gatewaySerializedNio")
 	TcpInboundGateway gatewaySerializedNio;
 
 	@Test

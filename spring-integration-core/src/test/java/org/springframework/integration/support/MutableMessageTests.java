@@ -34,42 +34,42 @@ import org.springframework.messaging.MessageHeaders;
  */
 public class MutableMessageTests {
 
-    @Test
-    public void testMessageIdTimestampRemains() {
+	@Test
+	public void testMessageIdTimestampRemains() {
 
-        UUID uuid = UUID.randomUUID();
-        long timestamp = System.currentTimeMillis();
+		UUID uuid = UUID.randomUUID();
+		long timestamp = System.currentTimeMillis();
 
-        Object payload = new Object();
-        Map<String, Object> headerMap = new HashMap<>();
+		Object payload = new Object();
+		Map<String, Object> headerMap = new HashMap<>();
 
-        headerMap.put(MessageHeaders.ID, uuid);
-        headerMap.put(MessageHeaders.TIMESTAMP, timestamp);
+		headerMap.put(MessageHeaders.ID, uuid);
+		headerMap.put(MessageHeaders.TIMESTAMP, timestamp);
 
-        MutableMessage<Object> mutableMessage = new MutableMessage<>(payload, headerMap);
-        MutableMessageHeaders headers = mutableMessage.getHeaders();
+		MutableMessage<Object> mutableMessage = new MutableMessage<>(payload, headerMap);
+		MutableMessageHeaders headers = mutableMessage.getHeaders();
 
-        assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.ID, (Object) uuid));
-        assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.TIMESTAMP, (Object) timestamp));
-    }
+		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.ID, (Object) uuid));
+		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.TIMESTAMP, (Object) timestamp));
+	}
 
-    @Test
-    public void testMessageHeaderIsSettable() {
+	@Test
+	public void testMessageHeaderIsSettable() {
 
-        Object payload = new Object();
-        Map<String, Object> headerMap = new HashMap<>();
-        Map<String, Object> additional = new HashMap<>();
+		Object payload = new Object();
+		Map<String, Object> headerMap = new HashMap<>();
+		Map<String, Object> additional = new HashMap<>();
 
-        MutableMessage<Object> mutableMessage = new MutableMessage<>(payload, headerMap);
-        MutableMessageHeaders headers = mutableMessage.getHeaders();
+		MutableMessage<Object> mutableMessage = new MutableMessage<>(payload, headerMap);
+		MutableMessageHeaders headers = mutableMessage.getHeaders();
 
-        // Should not throw an UnsupportedOperationException
-        headers.put("foo", "bar");
-        headers.put("eep", "bar");
-        headers.remove("eep");
-        headers.putAll(additional);
+		// Should not throw an UnsupportedOperationException
+		headers.put("foo", "bar");
+		headers.put("eep", "bar");
+		headers.remove("eep");
+		headers.putAll(additional);
 
-        assertThat(headers.getRawHeaders(), hasEntry("foo", (Object) "bar"));
-    }
+		assertThat(headers.getRawHeaders(), hasEntry("foo", (Object) "bar"));
+	}
 
 }

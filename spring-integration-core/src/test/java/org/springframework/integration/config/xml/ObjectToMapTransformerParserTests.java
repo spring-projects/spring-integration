@@ -16,6 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +28,7 @@ import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.expression.MapAccessor;
@@ -31,17 +36,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Oleg Zhurakousky
@@ -60,13 +61,13 @@ public class ObjectToMapTransformerParserTests {
 	@Qualifier("output")
 	private PollableChannel output;
 
-    @Autowired
-    @Qualifier("nestedInput")
-    private MessageChannel nestedInput;
+	@Autowired
+	@Qualifier("nestedInput")
+	private MessageChannel nestedInput;
 
-    @Autowired
-    @Qualifier("nestedOutput")
-    private PollableChannel nestedOutput;
+	@Autowired
+	@Qualifier("nestedOutput")
+	private PollableChannel nestedOutput;
 
 
 	@SuppressWarnings("unchecked")
@@ -90,6 +91,7 @@ public class ObjectToMapTransformerParserTests {
 			assertEquals(valueFromTheMap, valueFromExpression);
 		}
 	}
+
 	@Test(expected = MessageTransformationException.class)
 	public void testObjectToSpelMapTransformerWithCycle() {
 		Employee employee = this.buildEmployee();
@@ -126,8 +128,8 @@ public class ObjectToMapTransformerParserTests {
 		companyAddress.setZip("12345");
 
 		Map<String, Integer[]> coordinates = new HashMap<String, Integer[]>();
-		coordinates.put("latitude", new Integer[]{1, 5, 13});
-		coordinates.put("longitude", new Integer[]{156});
+		coordinates.put("latitude", new Integer[] { 1, 5, 13 });
+		coordinates.put("longitude", new Integer[] { 156 });
 		companyAddress.setCoordinates(coordinates);
 
 		Employee employee = new Employee();
@@ -180,128 +182,177 @@ public class ObjectToMapTransformerParserTests {
 	}
 
 	public static class Employee {
+
 		private List<String> departments;
+
 		private String companyName;
+
 		private Person person;
+
 		private Address companyAddress;
+
 		private Map<String, Map<String, Object>> testMapInMapData;
+
 		public Map<String, Map<String, Object>> getTestMapInMapData() {
 			return testMapInMapData;
 		}
+
 		public void setTestMapInMapData(
 				Map<String, Map<String, Object>> testMapInMapData) {
 			this.testMapInMapData = testMapInMapData;
 		}
+
 		public String getCompanyName() {
 			return companyName;
 		}
+
 		public void setCompanyName(String companyName) {
 			this.companyName = companyName;
 		}
+
 		public Person getPerson() {
 			return person;
 		}
+
 		public void setPerson(Person person) {
 			this.person = person;
 		}
+
 		public Address getCompanyAddress() {
 			return companyAddress;
 		}
+
 		public void setCompanyAddress(Address companyAddress) {
 			this.companyAddress = companyAddress;
 		}
+
 		public List<String> getDepartments() {
 			return departments;
 		}
+
 		public void setDepartments(List<String> departments) {
 			this.departments = departments;
 		}
 	}
 
 	public static class Person {
+
 		private String fname;
+
 		private String lname;
+
 		private String[] akaNames;
+
 		private List<Map<String, Object>> remarks;
+
 		private Child child;
+
 		public Child getChild() {
 			return child;
 		}
+
 		public void setChild(Child child) {
 			this.child = child;
 		}
+
 		public List<Map<String, Object>> getRemarks() {
 			return remarks;
 		}
+
 		public void setRemarks(List<Map<String, Object>> remarks) {
 			this.remarks = remarks;
 		}
+
 		private Address address;
+
 		public String[] getAkaNames() {
 			return akaNames;
 		}
+
 		public void setAkaNames(String... akaNames) {
 			this.akaNames = akaNames;
 		}
+
 		public String getFname() {
 			return fname;
 		}
+
 		public void setFname(String fname) {
 			this.fname = fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
+
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
+
 		public Address getAddress() {
 			return address;
 		}
+
 		public void setAddress(Address address) {
 			this.address = address;
 		}
 	}
 
 	public static class Address {
+
 		private String street;
+
 		private String city;
+
 		private String zip;
+
 		private Map<String, List<String>> mapWithListData;
+
 		private Map<String, Integer[]> coordinates;
+
 		public Map<String, List<String>> getMapWithListData() {
 			return mapWithListData;
 		}
+
 		public void setMapWithListData(Map<String, List<String>> mapWithListData) {
 			this.mapWithListData = mapWithListData;
 		}
+
 		public String getStreet() {
 			return street;
 		}
+
 		public void setStreet(String street) {
 			this.street = street;
 		}
+
 		public String getCity() {
 			return city;
 		}
+
 		public void setCity(String city) {
 			this.city = city;
 		}
+
 		public String getZip() {
 			return zip;
 		}
+
 		public void setZip(String zip) {
 			this.zip = zip;
 		}
+
 		public Map<String, Integer[]> getCoordinates() {
 			return coordinates;
 		}
+
 		public void setCoordinates(Map<String, Integer[]> coordinates) {
 			this.coordinates = coordinates;
 		}
 	}
 
 	public static class Child {
+
 		private Person parent;
 
 		public Person getParent() {

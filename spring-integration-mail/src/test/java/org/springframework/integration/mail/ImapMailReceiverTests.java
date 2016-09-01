@@ -266,9 +266,10 @@ public class ImapMailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		final Message[] messages = new Message[]{msg1, msg2};
+		final Message[] messages = new Message[] { msg1, msg2 };
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -282,6 +283,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -289,6 +291,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -344,8 +347,9 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
+		final Message[] messages = new Message[] { msg1, msg2 };
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -358,6 +362,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -365,6 +370,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -393,8 +399,9 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
+		final Message[] messages = new Message[] { msg1, msg2 };
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -402,6 +409,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -409,6 +417,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -419,6 +428,7 @@ public class ImapMailReceiverTests {
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
 	}
+
 	@Test
 	public void receiveAndDontMarkAsReadButDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -436,8 +446,9 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
+		final Message[] messages = new Message[] { msg1, msg2 };
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -450,6 +461,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -457,6 +469,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -469,6 +482,7 @@ public class ImapMailReceiverTests {
 		verify(msg1, times(1)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
+
 	@Test
 	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -484,8 +498,9 @@ public class ImapMailReceiverTests {
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		final Message[] messages = new Message[]{msg1, msg2};
+		final Message[] messages = new Message[] { msg1, msg2 };
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -498,6 +513,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -505,6 +521,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -515,11 +532,12 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
 	}
+
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception {
 		ConfigurableApplicationContext context =
-			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+				new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -533,13 +551,14 @@ public class ImapMailReceiverTests {
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
-		final Message[] messages = new Message[]{mailMessage};
+		final Message[] messages = new Message[] { mailMessage };
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
-                IMAPFolder folder = mock(IMAPFolder.class);
+				IMAPFolder folder = mock(IMAPFolder.class);
 				accessor.setPropertyValue("folder", folder);
 				when(folder.hasNewMessages()).thenReturn(true);
 				return null;
@@ -547,6 +566,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).openFolder();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -554,6 +574,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -576,15 +597,15 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testIdleChannelAdapterException() throws Exception {
 		ConfigurableApplicationContext context =
-			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+				new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
 
 
-
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(org.springframework.messaging.Message<?> requestMessage) {
 				throw new RuntimeException("Failed");
@@ -606,6 +627,7 @@ public class ImapMailReceiverTests {
 		folderField.set(receiver, folder);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return true;
@@ -613,6 +635,7 @@ public class ImapMailReceiverTests {
 		}).when(folder).isOpen();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -625,9 +648,10 @@ public class ImapMailReceiverTests {
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
-		final Message[] messages = new Message[]{mailMessage};
+		final Message[] messages = new Message[] { mailMessage };
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -635,6 +659,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -652,7 +677,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
 		ConfigurableApplicationContext context =
-			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+				new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		QueueChannel channel = new QueueChannel();
@@ -679,6 +704,7 @@ public class ImapMailReceiverTests {
 		storeField.set(receiver, store);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return folder;
@@ -688,10 +714,11 @@ public class ImapMailReceiverTests {
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
-		final Message[] messages = new Message[]{mailMessage};
+		final Message[] messages = new Message[] { mailMessage };
 
 		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				/*
@@ -710,6 +737,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -717,6 +745,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Thread.sleep(5000);
@@ -742,7 +771,7 @@ public class ImapMailReceiverTests {
 	@Test
 	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
 		ConfigurableApplicationContext context =
-			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+				new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		QueueChannel channel = new QueueChannel();
@@ -769,6 +798,7 @@ public class ImapMailReceiverTests {
 		storeField.set(receiver, store);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return folder;
@@ -778,9 +808,10 @@ public class ImapMailReceiverTests {
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
-		final Message[] messages = new Message[]{mailMessage};
+		final Message[] messages = new Message[] { mailMessage };
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
@@ -788,6 +819,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).searchForNewMessages();
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -796,6 +828,7 @@ public class ImapMailReceiverTests {
 
 		final CountDownLatch idles = new CountDownLatch(2);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				idles.countDown();
@@ -855,7 +888,7 @@ public class ImapMailReceiverTests {
 			Folder folder = mock(Folder.class);
 			when(folder.exists()).thenReturn(true);
 			when(folder.isOpen()).thenReturn(true);
-			when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{});
+			when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[] { });
 			when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 			when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 
@@ -866,6 +899,7 @@ public class ImapMailReceiverTests {
 			receiver.afterPropertiesSet();
 
 			new Thread(new Runnable() {
+
 				@Override
 				public void run() {
 					try {
@@ -882,6 +916,7 @@ public class ImapMailReceiverTests {
 			}).start();
 
 			new Thread(new Runnable() {
+
 				@Override
 				public void run() {
 					try {
@@ -946,7 +981,7 @@ public class ImapMailReceiverTests {
 		when(folder.isOpen()).thenReturn(true);
 
 		Message message = new MimeMessage(null, new ClassPathResource("test.mail").getInputStream());
-		when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{message});
+		when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[] { message });
 		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);

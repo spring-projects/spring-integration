@@ -112,9 +112,9 @@ public class XPathMessageSplitterParserTests {
 	public void testXPathExpressionRef() throws Exception {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
 				.getTestAppContext(
-						 channelDefinitions +
-						 "<si-xml:xpath-expression id='xpathOne' expression='//name'/>" +
-						"<si-xml:xpath-splitter id='splitter' xpath-expression-ref='xpathOne' input-channel='test-input' output-channel='test-output' />");
+						channelDefinitions +
+								"<si-xml:xpath-expression id='xpathOne' expression='//name'/>" +
+								"<si-xml:xpath-splitter id='splitter' xpath-expression-ref='xpathOne' input-channel='test-input' output-channel='test-output' />");
 		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
 		Object handler = fieldAccessor.getPropertyValue("handler");

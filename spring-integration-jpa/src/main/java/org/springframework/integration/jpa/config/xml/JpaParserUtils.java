@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -31,7 +33,6 @@ import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Contains various utility methods for parsing JPA Adapter specific namesspace
@@ -61,9 +62,9 @@ public final class JpaParserUtils {
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
 	 */
 	public static BeanDefinitionBuilder getJpaExecutorBuilder(final Element element,
-															final ParserContext parserContext) {
+			final ParserContext parserContext) {
 
-		Assert.notNull(element,       "The provided element must not be null.");
+		Assert.notNull(element, "The provided element must not be null.");
 		Assert.notNull(parserContext, "The provided parserContext must not be null.");
 
 		final Object source = parserContext.extractSource(element);
@@ -72,9 +73,9 @@ public final class JpaParserUtils {
 
 		int attributeCount = 0;
 
-		final String entityManagerRef        = element.getAttribute("entity-manager");
+		final String entityManagerRef = element.getAttribute("entity-manager");
 		final String entityManagerFactoryRef = element.getAttribute("entity-manager-factory");
-		final String jpaOperationsRef        = element.getAttribute("jpa-operations");
+		final String jpaOperationsRef = element.getAttribute("jpa-operations");
 
 		if (StringUtils.hasText(jpaOperationsRef)) {
 			attributeCount++;
@@ -159,7 +160,7 @@ public final class JpaParserUtils {
 	public static ManagedList<BeanDefinition> getJpaParameterBeanDefinitions(
 			Element jpaComponent, ParserContext parserContext) {
 
-		Assert.notNull(jpaComponent,  "The provided element must not be null.");
+		Assert.notNull(jpaComponent, "The provided element must not be null.");
 		Assert.notNull(parserContext, "The provided parserContext must not be null.");
 
 		final ManagedList<BeanDefinition> parameterList = new ManagedList<BeanDefinition>();
@@ -171,10 +172,10 @@ public final class JpaParserUtils {
 
 			final BeanDefinitionBuilder parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaParameter.class);
 
-			String name       = childElement.getAttribute("name");
+			String name = childElement.getAttribute("name");
 			String expression = childElement.getAttribute("expression");
-			String value      = childElement.getAttribute("value");
-			String type       = childElement.getAttribute("type");
+			String value = childElement.getAttribute("value");
+			String type = childElement.getAttribute("type");
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addPropertyValue("name", name);
@@ -191,7 +192,7 @@ public final class JpaParserUtils {
 					if (logger.isInfoEnabled()) {
 						logger.info(String
 								.format("Type attribute not set for parameter '%s'. Defaulting to "
-									  + "'java.lang.String'.", value));
+										+ "'java.lang.String'.", value));
 					}
 
 					parameterBuilder.addPropertyValue("value",

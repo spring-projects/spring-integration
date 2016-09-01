@@ -73,15 +73,15 @@ import org.springframework.xml.transform.StringResult;
 public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 	String responseSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
-			  "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
-			  "<SOAP-ENV:Header/>" +
-			  "<SOAP-ENV:Body> " +
-			  "<root><name>jane</name></root>" +
-			  "</SOAP-ENV:Body> " +
-			  "</SOAP-ENV:Envelope>";
+			"<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
+			"<SOAP-ENV:Header/>" +
+			"<SOAP-ENV:Body> " +
+			"<root><name>jane</name></root>" +
+			"</SOAP-ENV:Body> " +
+			"</SOAP-ENV:Envelope>";
 
 	String responseNonSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
-			  "<person><name>oleg</name></person>";
+			"<person><name>oleg</name></person>";
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -202,6 +202,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
 
 		Mockito.doAnswer(new Answer() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
@@ -226,6 +227,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		}).when(wsConnection).send(Mockito.any(WebServiceMessage.class));
 
 		Mockito.doAnswer(new Answer() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Exception {
 				Object[] args = invocation.getArguments();
@@ -257,8 +259,8 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		MessageChannel inputChannel = context.getBean(channelName, MessageChannel.class);
 		Message<?> message =
 				MessageBuilder.withPayload(payload).
-				setHeader("foo", "foo").setHeader("foobar", "foobar").setHeader("abaz", "abaz").setHeader("bar", "bar").
-				setHeader(WebServiceHeaders.SOAP_ACTION, "someAction").build();
+						setHeader("foo", "foo").setHeader("foobar", "foobar").setHeader("abaz", "abaz").setHeader("bar", "bar").
+						setHeader(WebServiceHeaders.SOAP_ACTION, "someAction").build();
 		inputChannel.send(message);
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		Message<?> replyMessage = outputChannel.receive(0);
@@ -267,6 +269,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	}
 
 	public static class Person {
+
 		private String name;
 
 		public String getName() {
@@ -297,18 +300,18 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	}
 
 	private String extractStringResult(Message<?> replyMessage) throws Exception {
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        StringResult result = new StringResult();
-        Object payload = replyMessage.getPayload();
-        if (payload instanceof DOMSource) {
-        	transformer.transform(((DOMSource) replyMessage.getPayload()), result);
-        }
-        else if (payload instanceof Document) {
-        	transformer.transform(new DOMSource((Document) replyMessage.getPayload()), result);
-        }
-        else {
-        	throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
-        }
-        return result.toString();
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		StringResult result = new StringResult();
+		Object payload = replyMessage.getPayload();
+		if (payload instanceof DOMSource) {
+			transformer.transform(((DOMSource) replyMessage.getPayload()), result);
+		}
+		else if (payload instanceof Document) {
+			transformer.transform(new DOMSource((Document) replyMessage.getPayload()), result);
+		}
+		else {
+			throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
+		}
+		return result.toString();
 	}
 }

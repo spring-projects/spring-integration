@@ -20,20 +20,23 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.messaging.Message;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-@MessageEndpoint(value = "outputAdapter")
+@MessageEndpoint("outputAdapter")
 public class AnnotatedAdapter implements ApplicationContextAware {
+
 	private volatile ApplicationContext applicationContext;
 
 	@SuppressWarnings("serial")
 	public void handle(Message<?> message) {
-        applicationContext.publishEvent(new ApplicationEvent(message) { });
+		applicationContext.publishEvent(new ApplicationEvent(message) {
+
+		});
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext)

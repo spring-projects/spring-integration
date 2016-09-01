@@ -106,6 +106,7 @@ public class ServiceActivatorEndpointTests {
 		final QueueChannel replyChannel2 = new QueueChannel();
 		replyChannel2.setBeanName("replyChannel2");
 		Object handler = new Object() {
+
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return new GenericMessage<String>("foo" + message.getPayload());
@@ -179,6 +180,7 @@ public class ServiceActivatorEndpointTests {
 	public void correlationIdNotSetIfMessageIsReturnedUnaltered() {
 		QueueChannel replyChannel = new QueueChannel(1);
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new Object() {
+
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -195,6 +197,7 @@ public class ServiceActivatorEndpointTests {
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(new Object() {
+
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
@@ -223,7 +226,7 @@ public class ServiceActivatorEndpointTests {
 
 
 	private ServiceActivatingHandler createEndpoint() {
-		 return new ServiceActivatingHandler(new TestBean(), "handle");
+		return new ServiceActivatingHandler(new TestBean(), "handle");
 	}
 
 

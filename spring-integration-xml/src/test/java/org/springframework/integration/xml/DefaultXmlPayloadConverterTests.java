@@ -120,12 +120,12 @@ public class DefaultXmlPayloadConverterTests {
 		converter.convertToSource(12);
 	}
 
-    @Test
-    public void testGetNodePassingDOMSource() {
-        Node element = testDocument.getElementsByTagName("test").item(0);
+	@Test
+	public void testGetNodePassingDOMSource() {
+		Node element = testDocument.getElementsByTagName("test").item(0);
 		Node n = converter.convertToNode(new DOMSource(element));
 		assertTrue("Wrong node returned", element == n);
-    }
+	}
 
 	@Test
 	public void testConvertNodeToDocument() {

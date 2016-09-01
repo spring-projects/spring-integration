@@ -41,6 +41,7 @@ import org.springframework.util.xml.DomUtils;
  *
  */
 public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionParser {
+
 	protected static final String LOCATION_ATTRIBUTE = "location";
 
 	protected static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
@@ -122,7 +123,7 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 	}
 
 	private ManagedMap<String, Object> buildVariablesMap(final Element element, final ParserContext parserContext,
-														 List<Element> variableElements) {
+			List<Element> variableElements) {
 		@SuppressWarnings("serial")
 		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>() {
 

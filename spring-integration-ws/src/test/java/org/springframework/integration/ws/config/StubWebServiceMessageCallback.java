@@ -28,7 +28,7 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
  */
 public class StubWebServiceMessageCallback implements WebServiceMessageCallback {
 
-    public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
-    }
+	public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
+	}
 
 }

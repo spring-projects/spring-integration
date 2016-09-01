@@ -211,7 +211,7 @@ public class WebServiceInboundGatewayParserTests {
 
 		@Override
 		public void fromHeadersToRequest(MessageHeaders headers,
-		                                 SoapMessage target) {
+				SoapMessage target) {
 		}
 
 		@Override

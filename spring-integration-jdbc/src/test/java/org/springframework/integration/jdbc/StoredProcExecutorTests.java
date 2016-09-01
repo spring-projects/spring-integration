@@ -58,7 +58,7 @@ public class StoredProcExecutorTests {
 	public void testStoredProcExecutorWithNullDataSource() {
 
 		try {
-		    new StoredProcExecutor(null);
+			new StoredProcExecutor(null);
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("dataSource must not be null.", e.getMessage());
@@ -80,7 +80,7 @@ public class StoredProcExecutorTests {
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("You must either provide a "
-						+ "Stored Procedure Name or a Stored Procedure Name Expression.", e.getMessage());
+					+ "Stored Procedure Name or a Stored Procedure Name Expression.", e.getMessage());
 			return;
 		}
 
@@ -182,7 +182,7 @@ public class StoredProcExecutorTests {
 
 		Map<String, RowMapper<?>> rowmappers = new HashMap<String, RowMapper<?>>();
 
-	    storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
+		storedProcExecutor.setReturningResultSetRowMappers(rowmappers);
 
 		//Should Successfully finish
 
@@ -344,17 +344,17 @@ public class StoredProcExecutorTests {
 		//This should work
 
 		storedProcExecutor.executeStoredProcedure(
-			MessageBuilder.withPayload("test")
-				.setHeader("stored_procedure_name", "123")
-				.build());
+				MessageBuilder.withPayload("test")
+						.setHeader("stored_procedure_name", "123")
+						.build());
 
 		//This should cause an exception
 
 		try {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-						.setHeader("some_other_header", "123")
-						.build());
+							.setHeader("some_other_header", "123")
+							.build());
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("Unable to resolve Stored Procedure/Function name for the provided Expression 'headers['stored_procedure_name']'.", e.getMessage());
@@ -386,8 +386,8 @@ public class StoredProcExecutorTests {
 		for (int i = 1; i <= 3; i++) {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
+							.setHeader("stored_procedure_name", "123")
+							.build());
 		}
 
 		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
@@ -423,8 +423,8 @@ public class StoredProcExecutorTests {
 		for (int i = 1; i <= 10; i++) {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-						.setHeader("stored_procedure_name", "123")
-						.build());
+							.setHeader("stored_procedure_name", "123")
+							.build());
 		}
 
 		final CacheStats stats = (CacheStats) storedProcExecutor.getJdbcCallOperationsCacheStatistics();
@@ -438,6 +438,7 @@ public class StoredProcExecutorTests {
 				"guavaCacheWrapper.jdbcCallOperationsCache.localCache");
 		new DirectFieldAccessor(cache)
 				.setPropertyValue("defaultLoader", new CacheLoader<String, SimpleJdbcCallOperations>() {
+
 					@Override
 					public SimpleJdbcCall load(String storedProcedureName) {
 						return mock(SimpleJdbcCall.class);

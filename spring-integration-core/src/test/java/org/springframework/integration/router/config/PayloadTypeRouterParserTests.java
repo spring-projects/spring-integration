@@ -53,8 +53,8 @@ public class PayloadTypeRouterParserTests {
 		context.start();
 		Message<?> message1 = MessageBuilder.withPayload("Hello").build();
 		Message<?> message2 = MessageBuilder.withPayload(25).build();
-		Message<?> message3 = MessageBuilder.withPayload(new Integer[]{23, 24, 34}).build();
-		Message<?> message4 = MessageBuilder.withPayload(new Long[]{23L, 24L, 34L}).build();
+		Message<?> message3 = MessageBuilder.withPayload(new Integer[] { 23, 24, 34 }).build();
+		Message<?> message4 = MessageBuilder.withPayload(new Long[] { 23L, 24L, 34L }).build();
 		testService.foo(message1);
 		testService.foo(message2);
 		testService.foo(message3);
@@ -80,33 +80,34 @@ public class PayloadTypeRouterParserTests {
 
 	@SuppressWarnings("unused")
 	private final String routerConfigFakeType =
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
-		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
-		"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-		"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
-		"		http://www.springframework.org/schema/integration" +
-		"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
-		"   <channel id=\"routingChannel\" />" +
-		"   <payload-type-router input-channel=\"routingChannel\">" +
-		"	   <mapping type=\"FAKE_TYPE\" channel=\"channel1\" />" +
-		"  </payload-type-router>" +
-	    "</beans:beans>";
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+					"<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
+					"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
+					"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
+					"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
+					"		http://www.springframework.org/schema/integration" +
+					"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
+					"   <channel id=\"routingChannel\" />" +
+					"   <payload-type-router input-channel=\"routingChannel\">" +
+					"	   <mapping type=\"FAKE_TYPE\" channel=\"channel1\" />" +
+					"  </payload-type-router>" +
+					"</beans:beans>";
 
 	private final String routerConfigNoMaping =
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
-		"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
-		"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
-		"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
-		"		http://www.springframework.org/schema/integration" +
-		"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
-		"   <channel id=\"routingChannel\" />" +
-		"   <payload-type-router input-channel=\"routingChannel\"/>" +
-	    "</beans:beans>";
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+					"<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +
+					"    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:beans=\"http://www.springframework.org/schema/beans\"" +
+					"    xsi:schemaLocation=\"http://www.springframework.org/schema/beans" +
+					"		http://www.springframework.org/schema/beans/spring-beans.xsd" +
+					"		http://www.springframework.org/schema/integration" +
+					"		http://www.springframework.org/schema/integration/spring-integration.xsd\">" +
+					"   <channel id=\"routingChannel\" />" +
+					"   <payload-type-router input-channel=\"routingChannel\"/>" +
+					"</beans:beans>";
 
 
 	public interface TestService {
+
 		void foo(Message<?> message);
 	}
 

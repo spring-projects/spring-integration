@@ -57,7 +57,7 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	}
 
 	public DefaultSoapHeaderMapper() {
-		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES,  Collections.<String>emptyList());
+		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.<String>emptyList());
 	}
 
 	@Override
@@ -106,8 +106,8 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	protected void populateStandardHeaders(Map<String, Object> headers, SoapMessage target) {
 		String soapAction = getHeaderIfAvailable(headers, WebServiceHeaders.SOAP_ACTION, String.class);
 		if (!StringUtils.hasText(soapAction)) {
-            soapAction = "\"\"";
-        }
+			soapAction = "\"\"";
+		}
 		target.setSoapAction(soapAction);
 	}
 

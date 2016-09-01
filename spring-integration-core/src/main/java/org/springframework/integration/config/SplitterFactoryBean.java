@@ -76,8 +76,9 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			this.configureSplitter(splitter);
 		}
 		else {
-			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
-					+ "object is an implementation of AbstractMessageSplitter");
+			Assert.isTrue(!StringUtils.hasText(targetMethodName),
+					"target method should not be provided when the target "
+							+ "object is an implementation of AbstractMessageSplitter");
 			this.configureSplitter(splitter);
 			if (targetObject instanceof MessageHandler) {
 				return (MessageHandler) targetObject;
@@ -123,9 +124,9 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
 			}
 			else if (this.requiresReply && logger.isDebugEnabled()) {
-			      logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
-			                     + handler.getComponentName() + " doesn't support it.");
-			 }
+				logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
+						+ handler.getComponentName() + " doesn't support it.");
+			}
 		}
 		if (!(handler instanceof AbstractMessageSplitter)) {
 			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "
@@ -136,8 +137,9 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		else {
 			AbstractMessageSplitter splitter = (AbstractMessageSplitter) handler;
 			if (this.delimiters != null) {
-				Assert.isTrue(splitter instanceof DefaultMessageSplitter, "The 'delimiters' property is only available" +
-						" for a Splitter definition where no 'ref', 'expression', or inner bean has been provided.");
+				Assert.isInstanceOf(DefaultMessageSplitter.class, splitter,
+						"The 'delimiters' property is only available for a Splitter definition where no 'ref', "
+								+ "'expression', or inner bean has been provided.");
 				((DefaultMessageSplitter) splitter).setDelimiters(this.delimiters);
 			}
 			if (this.applySequence != null) {

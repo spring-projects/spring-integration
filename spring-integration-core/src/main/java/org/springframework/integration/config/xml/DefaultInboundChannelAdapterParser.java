@@ -50,14 +50,15 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;
-		BeanComponentDefinition innnerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		BeanComponentDefinition innerBeanDef =
+				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String sourceRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
 		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
 		String expressionString = element.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
 		Element scriptElement = DomUtils.getChildElementByTagName(element, "script");
 		Element expressionElement = DomUtils.getChildElementByTagName(element, "expression");
 
-		boolean hasInnerDef = innnerBeanDef != null;
+		boolean hasInnerDef = innerBeanDef != null;
 		boolean hasRef = StringUtils.hasText(sourceRef);
 		boolean hasExpression = StringUtils.hasText(expressionString);
 		boolean hasScriptElement = scriptElement != null;
@@ -77,10 +78,10 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				return null;
 			}
 			if (hasMethod) {
-				result = this.parseMethodInvokingSource(innnerBeanDef, methodName, element, parserContext);
+				result = this.parseMethodInvokingSource(innerBeanDef, methodName, element, parserContext);
 			}
 			else {
-				result = innnerBeanDef.getBeanDefinition();
+				result = innerBeanDef.getBeanDefinition();
 			}
 		}
 		else if (hasScriptElement) {
@@ -124,7 +125,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element,
-														  ParserContext parserContext) {
+			ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class);
 		sourceBuilder.addPropertyValue("object", targetObject);
 		sourceBuilder.addPropertyValue("methodName", methodName);
@@ -133,7 +134,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 	private BeanMetadataElement parseExpression(String expressionString, Element expressionElement, Element element,
-												ParserContext parserContext) {
+			ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
 
 		BeanDefinition expressionDef = null;

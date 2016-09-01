@@ -71,7 +71,7 @@ public class DatagramPacketMessageMapperTests {
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
-					     message.getHeaders().getId().toString());
+					message.getHeaders().getId().toString());
 		}
 		assertTrue(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 		mapper.setLookupHost(false);
@@ -79,7 +79,7 @@ public class DatagramPacketMessageMapperTests {
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(),
-					     message.getHeaders().getId().toString());
+					message.getHeaders().getId().toString());
 		}
 		assertFalse(((String) messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
 	}

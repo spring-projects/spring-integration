@@ -178,7 +178,7 @@ public class JsonPathTests {
 
 	@Test
 	public void testInt3139JsonPathSplitter() {
-	  this.splitterInput.send(testMessage);
+		this.splitterInput.send(testMessage);
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = this.splitterOutput.receive(10000);
 			assertNotNull(receive);
@@ -214,7 +214,7 @@ public class JsonPathTests {
 
 		@Bean
 		public Predicate jsonPathFilter() {
-			return  Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
+			return Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
 		}
 
 	}

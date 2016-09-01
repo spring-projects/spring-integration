@@ -100,7 +100,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * @param scriptVariableGenerator The variable generator.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource,
-	                                             ScriptVariableGenerator scriptVariableGenerator) {
+			ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
 	}

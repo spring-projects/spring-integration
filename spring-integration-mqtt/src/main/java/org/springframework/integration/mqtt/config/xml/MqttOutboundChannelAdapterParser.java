@@ -54,7 +54,7 @@ public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-topic");
 		if (StringUtils.hasText(element.getAttribute("converter")) &&
 				(StringUtils.hasText(element.getAttribute("default-qos")) ||
-				 StringUtils.hasText(element.getAttribute("default-retained")))) {
+						StringUtils.hasText(element.getAttribute("default-retained")))) {
 			parserContext.getReaderContext().error("If a 'converter' is provided, you cannot provide " +
 					"'default-qos' or 'default-retained'", element);
 		}

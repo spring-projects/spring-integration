@@ -32,53 +32,53 @@ import org.hamcrest.BaseMatcher;
  */
 abstract class TypeSafeMatcher<T> extends BaseMatcher<T> {
 
-    private final Class<?> expectedType;
+	private final Class<?> expectedType;
 
-    /**
-     * Subclasses should implement this. The item will already have been checked for
-     * the specific type and will never be null.
-     *
-     * @param item The item.
-     * @return true if matches.
-     */
-    public abstract boolean matchesSafely(T item);
+	/**
+	 * Subclasses should implement this. The item will already have been checked for
+	 * the specific type and will never be null.
+	 *
+	 * @param item The item.
+	 * @return true if matches.
+	 */
+	public abstract boolean matchesSafely(T item);
 
-    protected TypeSafeMatcher() {
-        expectedType = findExpectedType(getClass());
-    }
+	protected TypeSafeMatcher() {
+		expectedType = findExpectedType(getClass());
+	}
 
-    private static Class<?> findExpectedType(Class<?> fromClass) {
-        for (Class<?> c = fromClass; c != Object.class; c = c.getSuperclass()) {
-            for (Method method : c.getDeclaredMethods()) {
-                if (isMatchesSafelyMethod(method)) {
-                    return method.getParameterTypes()[0];
-                }
-            }
-        }
+	private static Class<?> findExpectedType(Class<?> fromClass) {
+		for (Class<?> c = fromClass; c != Object.class; c = c.getSuperclass()) {
+			for (Method method : c.getDeclaredMethods()) {
+				if (isMatchesSafelyMethod(method)) {
+					return method.getParameterTypes()[0];
+				}
+			}
+		}
 
-        throw new Error("Cannot determine correct type for matchesSafely() method.");
-    }
+		throw new Error("Cannot determine correct type for matchesSafely() method.");
+	}
 
-    private static boolean isMatchesSafelyMethod(Method method) {
-        return method.getName().equals("matchesSafely")
-                && method.getParameterTypes().length == 1
-                && !method.isSynthetic();
-    }
+	private static boolean isMatchesSafelyMethod(Method method) {
+		return method.getName().equals("matchesSafely")
+				&& method.getParameterTypes().length == 1
+				&& !method.isSynthetic();
+	}
 
-    protected TypeSafeMatcher(Class<T> expectedType) {
-        this.expectedType = expectedType;
-    }
+	protected TypeSafeMatcher(Class<T> expectedType) {
+		this.expectedType = expectedType;
+	}
 
-    /**
-     * Method made final to prevent accidental override.
-     * If you need to override this, there's no point on extending TypeSafeMatcher.
-     * Instead, extend the {@link BaseMatcher}.
-     */
-    @Override
-	@SuppressWarnings({"unchecked"})
-    public final boolean matches(Object item) {
-        return item != null
-                && expectedType.isInstance(item)
-                && matchesSafely((T) item);
-    }
+	/**
+	 * Method made final to prevent accidental override.
+	 * If you need to override this, there's no point on extending TypeSafeMatcher.
+	 * Instead, extend the {@link BaseMatcher}.
+	 */
+	@Override
+	@SuppressWarnings({ "unchecked" })
+	public final boolean matches(Object item) {
+		return item != null
+				&& expectedType.isInstance(item)
+				&& matchesSafely((T) item);
+	}
 }

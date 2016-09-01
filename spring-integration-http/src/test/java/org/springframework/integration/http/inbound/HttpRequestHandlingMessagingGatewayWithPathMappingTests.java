@@ -16,8 +16,9 @@
 
 package org.springframework.integration.http.inbound;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Map;
@@ -31,8 +32,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.AntPathMatcher;
@@ -54,18 +53,13 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 	@Test
 	public void withoutExpression() throws Exception {
 		DirectChannel echoChannel = new DirectChannel();
-		echoChannel.subscribe(new MessageHandler() {
-
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-			}
+		echoChannel.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
-		//Instead do:
-		request.addHeader("Content-Type", "text/plain");
+		request.setContentType("text/plain");
 
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
@@ -74,18 +68,18 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
-        RequestMapping requestMapping = new RequestMapping();
+		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
 		gateway.setRequestMapping(requestMapping);
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-        gateway.setRequestChannel(echoChannel);
+		gateway.setRequestChannel(echoChannel);
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		Object result =  gateway.doHandleRequest(request, response);
-		assertTrue(result instanceof Message);
+		Object result = gateway.doHandleRequest(request, response);
+		assertThat(result, instanceOf(Message.class));
 		assertEquals("hello", ((Message<?>) result).getPayload());
 
 	}
@@ -93,11 +87,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 	@Test
 	public void withPayloadExpressionPointingToPathVariable() throws Exception {
 		DirectChannel echoChannel = new DirectChannel();
-		echoChannel.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-			}
+		echoChannel.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -119,17 +111,17 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
-        RequestMapping requestMapping = new RequestMapping();
+		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
 		gateway.setRequestMapping(requestMapping);
 
-        gateway.setRequestChannel(echoChannel);
+		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		Object result =  gateway.doHandleRequest(request, response);
-		assertTrue(result instanceof Message);
+		Object result = gateway.doHandleRequest(request, response);
+		assertThat(result, instanceOf(Message.class));
 		assertEquals("bill", ((Message<?>) result).getPayload());
 	}
 
@@ -138,12 +130,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 	public void withoutPayloadExpressionPointingToUriVariables() throws Exception {
 
 		DirectChannel echoChannel = new DirectChannel();
-		echoChannel.subscribe(new MessageHandler() {
-
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-			}
+		echoChannel.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -165,17 +154,17 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 
-        RequestMapping requestMapping = new RequestMapping();
+		RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
 		gateway.setRequestMapping(requestMapping);
 
-        gateway.setRequestChannel(echoChannel);
+		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		Object result =  gateway.doHandleRequest(request, response);
-		assertTrue(result instanceof Message);
+		Object result = gateway.doHandleRequest(request, response);
+		assertThat(result, instanceOf(Message.class));
 		assertEquals("bill", ((Map<String, Object>) ((Message<?>) result).getPayload()).get("f"));
 	}
 

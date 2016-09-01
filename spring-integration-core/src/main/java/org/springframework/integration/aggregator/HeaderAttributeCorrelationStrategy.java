@@ -26,16 +26,16 @@ import org.springframework.messaging.Message;
  */
 public class HeaderAttributeCorrelationStrategy implements CorrelationStrategy {
 
-    private String attributeName;
+	private String attributeName;
 
 
-    public HeaderAttributeCorrelationStrategy(String attributeName) {
-        this.attributeName = attributeName;
-    }
+	public HeaderAttributeCorrelationStrategy(String attributeName) {
+		this.attributeName = attributeName;
+	}
 
 
-    public Object getCorrelationKey(Message<?> message) {
-        return message.getHeaders().get(this.attributeName);
-    }
+	public Object getCorrelationKey(Message<?> message) {
+		return message.getHeaders().get(this.attributeName);
+	}
 
 }

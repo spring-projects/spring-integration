@@ -300,7 +300,7 @@ public class BarrierMessageHandlerTests {
 			return barrier;
 		}
 
-		@ServiceActivator (inputChannel = "release", poller = @Poller(fixedDelay = "0"))
+		@ServiceActivator(inputChannel = "release", poller = @Poller(fixedDelay = "0"))
 		@Bean
 		public MessageHandler releaser() {
 			return new MessageHandler() {
@@ -315,6 +315,6 @@ public class BarrierMessageHandlerTests {
 			};
 		}
 
- 	}
+	}
 
 }

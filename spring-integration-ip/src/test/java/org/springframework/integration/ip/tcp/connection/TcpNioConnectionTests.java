@@ -140,7 +140,7 @@ public class TcpNioConnectionTests {
 		}
 		catch (Exception e) {
 			assertTrue("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() +
-					   ":" + e.getMessage(), e instanceof SocketTimeoutException);
+					":" + e.getMessage(), e instanceof SocketTimeoutException);
 		}
 		done.countDown();
 		serverSocket.get().close();
@@ -352,6 +352,7 @@ public class TcpNioConnectionTests {
 			final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
 			connection.setTaskExecutor(exec);
 			connection.registerListener(new TcpListener() {
+
 				@Override
 				public boolean onMessage(Message<?> message) {
 					messageLatch.countDown();
@@ -441,12 +442,14 @@ public class TcpNioConnectionTests {
 			stream.read(out, 1, 5);
 			fail("Expected IndexOutOfBoundsException");
 		}
-		catch (IndexOutOfBoundsException e) { }
+		catch (IndexOutOfBoundsException e) {
+		}
 		try {
 			stream.read(null, 1, 5);
 			fail("Expected IllegalArgumentException");
 		}
-		catch (IllegalArgumentException e) { }
+		catch (IllegalArgumentException e) {
+		}
 		assertEquals(0, stream.read(out, 0, 0));
 		assertEquals(3, stream.read(out));
 	}
@@ -463,6 +466,7 @@ public class TcpNioConnectionTests {
 		final byte[] out = new byte[4];
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -494,6 +498,7 @@ public class TcpNioConnectionTests {
 		inboundConnection.setMapper(inMapper);
 		final ByteArrayOutputStream written = new ByteArrayOutputStream();
 		doAnswer(new Answer<Integer>() {
+
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
 				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
@@ -508,6 +513,7 @@ public class TcpNioConnectionTests {
 		when(outChannel.socket()).thenReturn(outSocket);
 		TcpNioConnection outboundConnection = new TcpNioConnection(outChannel, true, false, nullPublisher, null);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
@@ -582,7 +588,8 @@ public class TcpNioConnectionTests {
 				socket = SocketFactory.getDefault().createSocket("localhost", port);
 				break;
 			}
-			catch (ConnectException e) { }
+			catch (ConnectException e) {
+			}
 			Thread.sleep(100);
 		}
 		assertTrue("Could not open socket to localhost:" + port, n < 100);
@@ -629,7 +636,8 @@ public class TcpNioConnectionTests {
 					socket = SocketFactory.getDefault().createSocket("localhost", port);
 					break;
 				}
-				catch (ConnectException e) { }
+				catch (ConnectException e) {
+				}
 				Thread.sleep(100);
 			}
 			assertTrue("Could not open socket to localhost:" + port, n < 100);
@@ -728,7 +736,7 @@ public class TcpNioConnectionTests {
 		TestingUtilities.waitListening(factory, 10000L);
 		int port = factory.getPort();
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		assertTrue(connectionLatch.await(10,  TimeUnit.SECONDS));
+		assertTrue(connectionLatch.await(10, TimeUnit.SECONDS));
 
 		TcpNioConnection connection = (TcpNioConnection) TestUtils.getPropertyValue(factory, "connections", Map.class)
 				.values().iterator().next();

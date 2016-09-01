@@ -139,7 +139,7 @@ public class MethodInvokingReleaseStrategyTests {
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void testAdapterWithWrongMethodName() {
 		class TestReleaseStrategy {
 		}
@@ -159,7 +159,7 @@ public class MethodInvokingReleaseStrategyTests {
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void testTooManyParametersUsingMethodName() {
 		class TestReleaseStrategy {
 			@SuppressWarnings("unused")

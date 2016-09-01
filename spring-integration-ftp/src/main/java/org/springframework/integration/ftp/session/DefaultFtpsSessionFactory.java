@@ -127,8 +127,8 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 			 */
 
 			if (e instanceof RuntimeException) { //NOSONAR false positive
-		        throw (RuntimeException) e;
-		    }
+				throw (RuntimeException) e;
+			}
 
 			throw new RuntimeException("Failed to create FTPS client.", e);
 		}

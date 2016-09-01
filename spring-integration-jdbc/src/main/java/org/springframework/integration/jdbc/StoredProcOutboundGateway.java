@@ -73,7 +73,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
 				throw new MessageHandlingException(requestMessage,
 						"Stored Procedure/Function call returned more than "
-					  + "1 result object and expectSingleResult was 'true'. ");
+								+ "1 result object and expectSingleResult was 'true'. ");
 
 			}
 			else {

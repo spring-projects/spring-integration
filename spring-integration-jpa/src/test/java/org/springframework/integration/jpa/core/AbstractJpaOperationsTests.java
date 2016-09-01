@@ -60,9 +60,6 @@ public class AbstractJpaOperationsTests {
 	@Autowired
 	protected EntityManager entityManager;
 
-	/**
-	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#executeUpdate(java.lang.String, org.springframework.integration.jpa.core.JpaQLParameterSource)}.
-	 */
 	public void testGetAllStudents() {
 
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
@@ -72,22 +69,16 @@ public class AbstractJpaOperationsTests {
 
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#executeUpdate(java.lang.String, org.springframework.integration.jpa.core.JpaQLParameterSource)}.
-	 */
 	public void testGetAllStudentsWithMaxResults() {
 
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
 		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 2);
 		Assert.assertTrue(String.format("Was expecting 2 Students to be returned but got '%s'.", students.size()),
-						  students.size() == 2);
+				students.size() == 2);
 
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#executeUpdate(java.lang.String, org.springframework.integration.jpa.core.JpaQLParameterSource)}.
-	 */
 	public void testExecuteUpdate() {
 
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
@@ -101,8 +92,9 @@ public class AbstractJpaOperationsTests {
 				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
-		int updatedRecords = jpaOperations.executeUpdate("update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated "
-								+  "where s.rollNumber in (select max(a.rollNumber) from Student a)", source);
+		int updatedRecords = jpaOperations.executeUpdate("update Student s " +
+				"set s.lastName = :lastName, s.lastUpdated = :lastUpdated " +
+				"where s.rollNumber in (select max(a.rollNumber) from Student a)", source);
 
 		entityManager.flush();
 
@@ -111,9 +103,6 @@ public class AbstractJpaOperationsTests {
 
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#executeUpdateWithNamedQuery(java.lang.String, org.springframework.integration.jpa.core.JpaQLParameterSource)}.
-	 */
 	public void testExecuteUpdateWithNamedQuery() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
@@ -131,9 +120,6 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNull(student.getRollNumber());
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#executeUpdateWithNativeQuery(java.lang.String, org.springframework.integration.jpa.core.JpaQLParameterSource)}.
-	 */
 	public void testExecuteUpdateWithNativeQuery() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
@@ -143,8 +129,9 @@ public class AbstractJpaOperationsTests {
 				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
-		int updatedRecords = jpaOperations.executeUpdateWithNativeQuery("update Student set lastName = :lastName, lastUpdated = :lastUpdated "
-				+  "where rollNumber in (select max(a.rollNumber) from Student a)", source);
+		int updatedRecords = jpaOperations.executeUpdateWithNativeQuery("update Student " +
+				"set lastName = :lastName, lastUpdated = :lastUpdated " +
+				"where rollNumber in (select max(a.rollNumber) from Student a)", source);
 
 		entityManager.flush();
 
@@ -152,10 +139,6 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNull(student.getRollNumber());
 	}
 
-	/**
-	 * Test method for {@link DefaultJpaOperations#getResultListForNativeQuery(String, Class, JpaQLParameterSource, int, int)}.
-	 * @throws ParseException
-	 */
 	public void testExecuteSelectWithNativeQueryReturningEntityClass() throws ParseException {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
@@ -179,14 +162,11 @@ public class AbstractJpaOperationsTests {
 
 	}
 
-	/**
-	 * Test method for {@link DefaultJpaOperations#getResultListForNativeQuery(String, Class, JpaQLParameterSource, int, int)}.
-	 * @throws ParseException
-	 */
 	public void testExecuteSelectWithNativeQuery() throws ParseException {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		String selectSqlQuery = "select rollNumber, firstName, lastName, gender, dateOfBirth, lastUpdated from Student where lastName = 'Last One'";
+		String selectSqlQuery = "select rollNumber, firstName, lastName, gender, dateOfBirth, lastUpdated " +
+				"from Student where lastName = 'Last One'";
 
 		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, null, null, 0, 0);
 

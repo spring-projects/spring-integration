@@ -49,7 +49,7 @@ public class InterceptedSharedConnectionTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value = "inboundServer")
+	@Qualifier("inboundServer")
 	TcpReceivingChannelAdapter listener;
 
 	private static Level existingLogLevel;

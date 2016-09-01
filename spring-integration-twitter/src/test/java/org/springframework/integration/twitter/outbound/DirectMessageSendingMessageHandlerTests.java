@@ -35,16 +35,17 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  */
 public class DirectMessageSendingMessageHandlerTests {
 
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void validateSendDirectMessage() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
-		Properties prop =  pf.getObject();
+		Properties prop = pf.getObject();
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("spring_eip.oauth.consumerKey"),
-										               prop.getProperty("spring_eip.oauth.consumerSecret"),
-										               prop.getProperty("spring_eip.oauth.accessToken"),
-										               prop.getProperty("spring_eip.oauth.accessTokenSecret"));
+				prop.getProperty("spring_eip.oauth.consumerSecret"),
+				prop.getProperty("spring_eip.oauth.accessToken"),
+				prop.getProperty("spring_eip.oauth.accessTokenSecret"));
 		Message<?> message1 = MessageBuilder.withPayload("Polsihing SI Twitter migration")
 				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();
 		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(template);

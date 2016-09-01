@@ -316,7 +316,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				.initializeOrderedBulkOperation();
 		for (UUID id : ids) {
 			bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject())
-				  .remove();
+					.remove();
 		}
 		bulkOp.execute();
 	}
@@ -502,7 +502,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		@Override
-		@SuppressWarnings({"unchecked"})
+		@SuppressWarnings({ "unchecked" })
 		public <S> S read(Class<S> clazz, DBObject source) {
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
@@ -600,6 +600,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
+
 		@Override
 		public DBObject convert(UUID source) {
 			BasicDBObject dbObject = new BasicDBObject();
@@ -610,6 +611,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
+
 		@Override
 		public UUID convert(DBObject source) {
 			return UUID.fromString((String) source.get("_value"));

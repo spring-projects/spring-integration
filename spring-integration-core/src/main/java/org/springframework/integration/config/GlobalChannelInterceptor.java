@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * @author Artem Bilan
  * @since 4.0
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface GlobalChannelInterceptor {

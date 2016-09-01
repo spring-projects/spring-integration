@@ -16,16 +16,16 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.messaging.Message;
 
 /**
  * @author Marius Bogoevici
  */
 public class TestCorrelationStrategy implements CorrelationStrategy {
 
-    public Object getCorrelationKey(Message<?> message) {
-        throw new UnsupportedOperationException("for configuration test only");
-    }
+	public Object getCorrelationKey(Message<?> message) {
+		throw new UnsupportedOperationException("for configuration test only");
+	}
 
 }

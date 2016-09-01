@@ -20,15 +20,16 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.integration.annotation.Transformer;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -58,10 +59,10 @@ public class MessageHistoryParameterTests {
 
 		@Transformer
 		public Object transform(@Headers MessageHeaders headers,
-							    @Header("history") MessageHistory history, @Payload Object payload) {
+				@Header("history") MessageHistory history, @Payload Object payload) {
 
-	        return payload;
-	    }
+			return payload;
+		}
 	}
 
 }

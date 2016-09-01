@@ -62,12 +62,14 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	private ExecutorService executor;
 
-    private CountDownLatch allDone;
-    private CountDownLatch start;
-    private AtomicBoolean failed;
+	private CountDownLatch allDone;
+
+	private CountDownLatch start;
+
+	private AtomicBoolean failed;
 
 	@Mock
-	private  List<Exception> exceptionRegistry;
+	private List<Exception> exceptionRegistry;
 
 	private ApplicationContext ac;
 
@@ -92,7 +94,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Mockito.reset(handlerC);
 
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
-                MixedDispatcherConfigurationScenarioTests.class);
+				MixedDispatcherConfigurationScenarioTests.class);
 		executor = ac.getBean("taskExecutor", ExecutorService.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		start = new CountDownLatch(1);
@@ -129,6 +131,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);
 
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -174,6 +177,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				RuntimeException e = new RuntimeException();
@@ -185,6 +189,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerA).handleMessage(message);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
@@ -193,6 +198,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerB).handleMessage(message);
 
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -267,6 +273,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -317,6 +324,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				failed.set(true);
@@ -327,6 +335,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		}).when(handlerA).handleMessage(message);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
@@ -334,6 +343,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		}).when(handlerB).handleMessage(message);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
@@ -342,6 +352,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerC).handleMessage(message);
 
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -416,6 +427,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {
@@ -462,6 +474,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerC);
 
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				RuntimeException e = new RuntimeException();
@@ -470,6 +483,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		}).when(handlerA).handleMessage(message);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
@@ -477,6 +491,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		}).when(handlerB).handleMessage(message);
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) {
 				return null;
@@ -484,6 +499,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerC).handleMessage(message);
 
 		Runnable messageSenderTask = new Runnable() {
+
 			@Override
 			public void run() {
 				try {

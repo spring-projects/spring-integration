@@ -30,16 +30,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
+
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.MessagePostProcessor;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -436,7 +437,7 @@ public class AsyncMessagingTemplateTests {
 
 
 	private static void sendMessageAfterDelay(final MessageChannel channel, final GenericMessage<String> message,
-	                                          final int delay) {
+			final int delay) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 
 			public void run() {

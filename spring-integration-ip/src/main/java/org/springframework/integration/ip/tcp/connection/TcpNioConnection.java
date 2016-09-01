@@ -101,7 +101,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
 			String connectionFactoryName) throws Exception {
-			super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
+		super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socketChannel = socketChannel;
 		int receiveBufferSize = socketChannel.socket().getReceiveBufferSize();
 		if (receiveBufferSize <= 0) {
@@ -124,11 +124,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		try {
 			this.channelInputStream.close();
 		}
-		catch (IOException e) { }
+		catch (IOException e) {
+		}
 		try {
 			this.socketChannel.close();
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+		}
 		super.close();
 	}
 
@@ -247,20 +249,20 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				catch (Exception e) {
 					if (logger.isTraceEnabled()) {
 						logger.error("Read exception " +
-								 this.getConnectionId(), e);
+								this.getConnectionId(), e);
 					}
 					else if (!this.isNoReadErrorOnClose()) {
 						logger.error("Read exception " +
-									 this.getConnectionId() + " " +
-									 e.getClass().getSimpleName() +
-								     ":" + e.getCause() + ":" + e.getMessage());
+								this.getConnectionId() + " " +
+								e.getClass().getSimpleName() +
+								":" + e.getCause() + ":" + e.getMessage());
 					}
 					else {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Read exception " +
-										 this.getConnectionId() + " " +
-										 e.getClass().getSimpleName() +
-									     ":" + e.getCause() + ":" + e.getMessage());
+									this.getConnectionId() + " " +
+									e.getClass().getSimpleName() +
+									":" + e.getCause() + ":" + e.getMessage());
 						}
 					}
 					this.closeConnection(true);
@@ -375,9 +377,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (e instanceof NoListenerException) { // could also be thrown by an interceptor
 				if (logger.isWarnEnabled()) {
 					logger.warn("Unexpected message - no endpoint registered with connection: "
-									+ getConnectionId()
-									+ " - "
-									+ message);
+							+ getConnectionId()
+							+ " - "
+							+ message);
 				}
 			}
 			else {
@@ -490,8 +492,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 		catch (Exception e) {
 			logger.error("Exception on Read " +
-					     this.getConnectionId() + " " +
-					     e.getMessage(), e);
+					this.getConnectionId() + " " +
+					e.getMessage(), e);
 			this.closeConnection(true);
 		}
 	}
@@ -656,7 +658,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 			int n = 0;
 			while ((this.available.get() > 0 || n == 0) &&
-						n < len) {
+					n < len) {
 				int bite = read();
 				if (bite < 0) {
 					if (n == 0) {

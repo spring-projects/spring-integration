@@ -70,12 +70,19 @@ import org.springframework.util.xml.DomUtils;
 public abstract class IntegrationNamespaceUtils {
 
 	public static final String REF_ATTRIBUTE = "ref";
+
 	public static final String METHOD_ATTRIBUTE = "method";
+
 	public static final String ORDER = "order";
+
 	public static final String EXPRESSION_ATTRIBUTE = "expression";
+
 	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
+
 	public static final String AUTO_STARTUP = "auto-startup";
+
 	public static final String PHASE = "phase";
+
 	public static final String ROLE = "role";
 
 	/**
@@ -277,7 +284,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @return the text from the attribute or element or null
 	 */
 	public static String getTextFromAttributeOrNestedElement(Element element, String name,
-	                                                         ParserContext parserContext) {
+			ParserContext parserContext) {
 		String attr = element.getAttribute(name);
 		Element childElement = DomUtils.getChildElementByTagName(element, name);
 		if (StringUtils.hasText(attr) && childElement != null) {
@@ -306,9 +313,10 @@ public abstract class IntegrationNamespaceUtils {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (StringUtils.hasText(ref) && innerComponentDefinition != null) {
 			parserContext.getReaderContext().error(
-				"Ambiguous definition. Inner bean " + (innerComponentDefinition.getBeanDefinition().getBeanClassName())
-						+ " declaration and \"ref\" " + ref + " are not allowed together on element " +
-					IntegrationNamespaceUtils.createElementDescription(element) + ".",
+					"Ambiguous definition. Inner bean "
+							+ (innerComponentDefinition.getBeanDefinition().getBeanClassName())
+							+ " declaration and \"ref\" " + ref + " are not allowed together on element "
+							+ IntegrationNamespaceUtils.createElementDescription(element) + ".",
 					parserContext.extractSource(element));
 		}
 		return innerComponentDefinition;
@@ -324,7 +332,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param replyHeaderValue The reply header value.
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
-								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
+			ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
 		configureHeaderMapper(element, rootBuilder, parserContext,
 				BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass), replyHeaderValue);
 	}
@@ -339,7 +347,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param replyHeaderValue The reply header value.
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
-					ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder, String replyHeaderValue) {
+			ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder, String replyHeaderValue) {
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
 		if (!StringUtils.hasText(replyHeaderValue)) {
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
@@ -368,6 +376,7 @@ public abstract class IntegrationNamespaceUtils {
 			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 	}
+
 	/**
 	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
 	 * with "transactionManager" and other "transactionDefinition" properties.
@@ -380,9 +389,11 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
 		BeanDefinition txDefinition = configureTransactionDefinition(txElement);
-		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
+		BeanDefinitionBuilder attributeSourceBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
 		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinition);
-		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
+		BeanDefinitionBuilder txInterceptorBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
 		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
 		return txInterceptorBuilder.getBeanDefinition();
@@ -408,20 +419,22 @@ public abstract class IntegrationNamespaceUtils {
 		String[] handlerAlias = null;
 		String id = element.getAttribute(AbstractBeanDefinitionParser.ID_ATTRIBUTE);
 		if (StringUtils.hasText(id)) {
-			handlerAlias = new String[] {id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX};
+			handlerAlias = new String[] { id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX };
 		}
 		return handlerAlias;
 	}
 
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
-		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBeanDefinition, parserContext, "adviceChain");
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBeanDefinition, parserContext,
+				"adviceChain");
 	}
 
 	@SuppressWarnings({ "rawtypes" })
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext, String propertyName) {
-		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBeanDefinition, parserContext);
+		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBeanDefinition,
+				parserContext);
 		if (adviceChain != null) {
 			parentBeanDefinition.getPropertyValues().add(propertyName, adviceChain);
 		}
@@ -483,14 +496,14 @@ public abstract class IntegrationNamespaceUtils {
 
 		if (hasAttributeValue && hasAttributeExpression) {
 			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
-						+ expressionElementName + "' is allowed", element);
+					+ expressionElementName + "' is allowed", element);
 		}
 
 		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)) {
 			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
 					+ expressionElementName + "' is required", element);
 		}
-		BeanDefinition expressionDef = null;
+		BeanDefinition expressionDef;
 		if (hasAttributeValue) {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
@@ -540,8 +553,8 @@ public abstract class IntegrationNamespaceUtils {
 					constructorArgumentValues.addGenericArgumentValue(new RuntimeBeanReference(handlerBeanName));
 				}
 				else {
-					parserContext.getReaderContext().error("Only one subscriber is allowed for a FixedSubscriberChannel.",
-							element);
+					parserContext.getReaderContext()
+							.error("Only one subscriber is allowed for a FixedSubscriberChannel.", element);
 				}
 			}
 		}
@@ -634,7 +647,7 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	private static BeanMetadataElement createAdapter(BeanMetadataElement ref, String method,
-	                                                 String unqualifiedClassName) {
+			String unqualifiedClassName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
 						+ "FactoryBean");

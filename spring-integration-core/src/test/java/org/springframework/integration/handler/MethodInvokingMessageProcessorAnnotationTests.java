@@ -36,6 +36,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
+
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -44,7 +46,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -69,6 +70,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.processMessage(new GenericMessage<String>("foo"));
 		for (int i = 0; i < 100; i++) {
 			exec.execute(new Runnable() {
+
 				public void run() {
 					Object result = processor.processMessage(new GenericMessage<String>("foo"));
 					assertNotNull(result);
@@ -99,7 +101,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	public void requiredHeaderNotProvidedOnSecondMessage() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-				Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
+		Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build();
 		GenericMessage<String> messageWithoutHeader = new GenericMessage<String>("foo");
 
@@ -253,11 +255,11 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	public void multipleAnnotatedArgs() throws Exception {
 		Message<?> message = this.getMessage();
 		Method method = TestService.class.getMethod("multipleAnnotatedArguments",
-													String.class,
-													String.class,
-													Employee.class,
-													String.class,
-													Map.class);
+				String.class,
+				String.class,
+				Employee.class,
+				String.class,
+				Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Object[] parameters = (Object[]) processor.processMessage(message);
 		Assert.assertNotNull(parameters);
@@ -337,7 +339,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 	@SuppressWarnings("unused")
 	private static class MultipleMappingAnnotationTestBean {
-		public void test(@Payload("payload") @Header("foo")  String s) {
+
+		public void test(@Payload("payload") @Header("foo") String s) {
 		}
 	}
 
@@ -416,14 +419,14 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		}
 
 		public Object[] multipleAnnotatedArguments(@Header("day") String argA,
-											   @Header("month") String argB,
-											   @Payload Employee payloadArg,
-											   @Payload("fname") String value,
-											   @Headers Map<?, ?> headers) {
+				@Header("month") String argB,
+				@Payload Employee payloadArg,
+				@Payload("fname") String value,
+				@Headers Map<?, ?> headers) {
 			return new Object[] { argA, argB, payloadArg, value, headers };
 		}
 
-		public String irrelevantAnnotation(@BogusAnnotation() String value) {
+		public String irrelevantAnnotation(@BogusAnnotation String value) {
 			return value;
 		}
 

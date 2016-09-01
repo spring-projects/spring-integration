@@ -40,19 +40,19 @@ public class CronTriggerParserTests {
 	@Autowired
 	private ApplicationContext context;
 
-    @Test
-    public void checkConfigWithAttribute() {
-        Object poller = context.getBean("pollerWithAttribute");
-        assertEquals(PollerMetadata.class, poller.getClass());
-        PollerMetadata metadata = (PollerMetadata) poller;
-        Trigger trigger = metadata.getTrigger();
-        assertEquals(CronTrigger.class, trigger.getClass());
-        DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-        String expression = (String) new DirectFieldAccessor(
-                accessor.getPropertyValue("sequenceGenerator"))
-                .getPropertyValue("expression");
-        assertEquals("*/10 * 9-17 * * MON-FRI", expression);
-    }
+	@Test
+	public void checkConfigWithAttribute() {
+		Object poller = context.getBean("pollerWithAttribute");
+		assertEquals(PollerMetadata.class, poller.getClass());
+		PollerMetadata metadata = (PollerMetadata) poller;
+		Trigger trigger = metadata.getTrigger();
+		assertEquals(CronTrigger.class, trigger.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
+		String expression = (String) new DirectFieldAccessor(
+				accessor.getPropertyValue("sequenceGenerator"))
+				.getPropertyValue("expression");
+		assertEquals("*/10 * 9-17 * * MON-FRI", expression);
+	}
 
 }
 

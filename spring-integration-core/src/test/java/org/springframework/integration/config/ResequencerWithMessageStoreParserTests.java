@@ -21,14 +21,15 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,14 +51,14 @@ public class ResequencerWithMessageStoreParserTests {
 	@Autowired
 	private MessageGroupStore messageGroupStore;
 
-    @Test
-    public void testResequence() {
+	@Test
+	public void testResequence() {
 
-        input.send(createMessage("123", "id1", 3, 1, null));
-        assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
-        input.send(createMessage("789", "id1", 3, 3, null));
-        assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
-        input.send(createMessage("456", "id1", 3, 2, null));
+		input.send(createMessage("123", "id1", 3, 1, null));
+		assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
+		input.send(createMessage("789", "id1", 3, 3, null));
+		assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
+		input.send(createMessage("456", "id1", 3, 2, null));
 
 		Message<?> message1 = output.receive(500);
 		Message<?> message2 = output.receive(500);
@@ -70,16 +71,16 @@ public class ResequencerWithMessageStoreParserTests {
 		assertNotNull(message3);
 		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
 
-    }
+	}
 
 
-    private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-                                                MessageChannel outputChannel) {
-        return MessageBuilder.withPayload(payload)
-                .setCorrelationId(correlationId)
-                .setSequenceSize(sequenceSize)
-                .setSequenceNumber(sequenceNumber)
-                .setReplyChannel(outputChannel).build();
-    }
+	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
+			MessageChannel outputChannel) {
+		return MessageBuilder.withPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReplyChannel(outputChannel).build();
+	}
 
 }

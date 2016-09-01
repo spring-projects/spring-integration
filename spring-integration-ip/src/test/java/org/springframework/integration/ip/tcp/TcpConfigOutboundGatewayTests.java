@@ -51,39 +51,39 @@ public class TcpConfigOutboundGatewayTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value = "crLfServer")
+	@Qualifier("crLfServer")
 	AbstractServerConnectionFactory crLfServer;
 
 	@Autowired
-	@Qualifier(value = "stxEtxServer")
+	@Qualifier("stxEtxServer")
 	AbstractServerConnectionFactory stxEtxServer;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderServer")
+	@Qualifier("lengthHeaderServer")
 	AbstractServerConnectionFactory lengthHeaderServer;
 
 	@Autowired
-	@Qualifier(value = "javaSerialServer")
+	@Qualifier("javaSerialServer")
 	AbstractServerConnectionFactory javaSerialServer;
 
 	@Autowired
-	@Qualifier(value = "crLfClient")
+	@Qualifier("crLfClient")
 	AbstractClientConnectionFactory crLfClient;
 
 	@Autowired
-	@Qualifier(value = "stxEtxClient")
+	@Qualifier("stxEtxClient")
 	AbstractClientConnectionFactory stxEtxClient;
 
 	@Autowired
-	@Qualifier(value = "lengthHeaderClient")
+	@Qualifier("lengthHeaderClient")
 	AbstractClientConnectionFactory lengthHeaderClient;
 
 	@Autowired
-	@Qualifier(value = "javaSerialClient")
+	@Qualifier("javaSerialClient")
 	AbstractClientConnectionFactory javaSerialClient;
 
 	@Autowired
-	@Qualifier(value = "gatewayCrLf")
+	@Qualifier("gatewayCrLf")
 	TcpInboundGateway gatewayCrLf;
 
 //	@Autowired

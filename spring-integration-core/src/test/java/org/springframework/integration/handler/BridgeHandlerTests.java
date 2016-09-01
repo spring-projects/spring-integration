@@ -22,13 +22,14 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -39,9 +40,9 @@ public class BridgeHandlerTests {
 	private BridgeHandler handler = new BridgeHandler();
 
 	@Factory
-    public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-        return new MessageMatcher(expected);
-    }
+	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
+		return new MessageMatcher(expected);
+	}
 
 	@Test
 	public void simpleBridge() {

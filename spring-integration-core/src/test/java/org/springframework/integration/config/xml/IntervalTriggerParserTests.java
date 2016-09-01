@@ -37,34 +37,34 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class IntervalTriggerParserTests {
 
-    @Autowired
-    ApplicationContext context;
+	@Autowired
+	ApplicationContext context;
 
-    @Test
-    public void testFixedRateTrigger() {
-        Object poller = context.getBean("pollerWithFixedRateAttribute");
+	@Test
+	public void testFixedRateTrigger() {
+		Object poller = context.getBean("pollerWithFixedRateAttribute");
 		assertEquals(PollerMetadata.class, poller.getClass());
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
-        Long period = (Long) accessor.getPropertyValue("period");
-        assertEquals(fixedRate, true);
+		Long period = (Long) accessor.getPropertyValue("period");
+		assertEquals(fixedRate, true);
 		assertEquals(36L, period.longValue());
-    }
+	}
 
-    @Test
-    public void testFixedDelayTrigger() {
-        Object poller = context.getBean("pollerWithFixedDelayAttribute");
+	@Test
+	public void testFixedDelayTrigger() {
+		Object poller = context.getBean("pollerWithFixedDelayAttribute");
 		assertEquals(PollerMetadata.class, poller.getClass());
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
-        Long period = (Long) accessor.getPropertyValue("period");
-        assertEquals(fixedRate, false);
+		Long period = (Long) accessor.getPropertyValue("period");
+		assertEquals(fixedRate, false);
 		assertEquals(37L, period.longValue());
-    }
+	}
 }

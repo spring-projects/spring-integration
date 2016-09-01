@@ -405,12 +405,12 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
-		@MessageMapping(value = "/simple")
+		@MessageMapping("/simple")
 		public void handle() {
 			this.latch.countDown();
 		}
 
-		@MessageMapping(value = "/exception")
+		@MessageMapping("/exception")
 		public void handleWithError() {
 			throw new IllegalArgumentException("Bad input");
 		}
@@ -425,7 +425,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 	@IntegrationTestController
 	static class IncrementController {
 
-		@MessageMapping(value = "/increment")
+		@MessageMapping("/increment")
 		public int handle(int i) {
 			return i + 1;
 		}

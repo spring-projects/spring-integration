@@ -35,10 +35,11 @@ import org.springframework.integration.file.filters.FileListFilter;
  */
 public class NioFileLockerTests {
 
-    private File workdir;
+	private File workdir;
 
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder() {
+
 		@Override
 		public void create() throws IOException {
 			super.create();
@@ -46,25 +47,25 @@ public class NioFileLockerTests {
 		}
 	};
 
-    @Test
-    public void fileListedByFirstFilter() throws IOException {
-        NioFileLocker filter = new NioFileLocker();
-        File testFile = new File(workdir, "test0");
-        testFile.createNewFile();
-        assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
-        filter.lock(testFile);
-        assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
-    }
+	@Test
+	public void fileListedByFirstFilter() throws IOException {
+		NioFileLocker filter = new NioFileLocker();
+		File testFile = new File(workdir, "test0");
+		testFile.createNewFile();
+		assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+		filter.lock(testFile);
+		assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+	}
 
-    @Test
-    public void fileNotListedWhenLockedByOtherFilter() throws IOException {
-        NioFileLocker filter1 = new NioFileLocker();
-        FileListFilter<File> filter2 = new NioFileLocker();
-        File testFile = new File(workdir, "test1");
-        testFile.createNewFile();
-        assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
-        filter1.lock(testFile);
-        assertThat(filter2.filterFiles(workdir.listFiles()), is((List<File>) new ArrayList<File>()));
-    }
+	@Test
+	public void fileNotListedWhenLockedByOtherFilter() throws IOException {
+		NioFileLocker filter1 = new NioFileLocker();
+		FileListFilter<File> filter2 = new NioFileLocker();
+		File testFile = new File(workdir, "test1");
+		testFile.createNewFile();
+		assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
+		filter1.lock(testFile);
+		assertThat(filter2.filterFiles(workdir.listFiles()), is((List<File>) new ArrayList<File>()));
+	}
 
 }

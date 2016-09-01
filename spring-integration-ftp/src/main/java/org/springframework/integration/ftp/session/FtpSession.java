@@ -57,12 +57,12 @@ public class FtpSession implements Session<FTPFile> {
 	@Override
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
-	 	if (!this.client.deleteFile(path)) {
+		if (!this.client.deleteFile(path)) {
 			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + this.client.getReplyString());
 		}
 		else {
-		    return true;
-	    }
+			return true;
+		}
 	}
 
 	@Override

@@ -474,13 +474,13 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals(null, bean.lastHeaders.get("baz"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void twoStringsAmbiguousUsingMethodName() throws Exception {
 		SingleAmbiguousMethodTestBean bean = new SingleAmbiguousMethodTestBean();
 		new ServiceActivatingHandler(bean, "twoStrings");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void twoStringsAmbiguousWithoutMethodName() throws Exception {
 		SingleAmbiguousMethodTestBean bean = new SingleAmbiguousMethodTestBean();
 		new ServiceActivatingHandler(bean);

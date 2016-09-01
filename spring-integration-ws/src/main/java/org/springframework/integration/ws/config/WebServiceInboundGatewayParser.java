@@ -18,13 +18,14 @@ package org.springframework.integration.ws.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Iwein Fuld
@@ -32,7 +33,9 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  */
 public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser {
+
 	protected final Log logger = LogFactory.getLog(getClass());
+
 	@Override
 	protected String getBeanClassName(Element element) {
 		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
@@ -43,9 +46,9 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !(attributeName.endsWith("marshaller")) &&
-			   !(attributeName.equals("mapped-reply-headers")) &&
-			   !(attributeName.equals("mapped-request-headers")) &&
-			   super.isEligibleAttribute(attributeName);
+				!(attributeName.equals("mapped-reply-headers")) &&
+				!(attributeName.equals("mapped-request-headers")) &&
+				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override

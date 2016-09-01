@@ -127,7 +127,7 @@ public class ConcurrentAggregatorTests {
 				.getCount());
 		Message<?> reply = replyChannel.receive(1000);
 		assertNull("No message should have been sent normally", reply);
-        this.store.expireMessageGroups(-10000);
+		this.store.expireMessageGroups(-10000);
 		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
@@ -152,7 +152,7 @@ public class ConcurrentAggregatorTests {
 
 		assertEquals("handlers should have been invoked within time limit", 0,
 				latch.getCount());
-        this.store.expireMessageGroups(-10000);
+		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());
@@ -336,6 +336,7 @@ public class ConcurrentAggregatorTests {
 
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
+
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
@@ -349,6 +350,7 @@ public class ConcurrentAggregatorTests {
 
 	@SuppressWarnings("unused")
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
+
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			return null;

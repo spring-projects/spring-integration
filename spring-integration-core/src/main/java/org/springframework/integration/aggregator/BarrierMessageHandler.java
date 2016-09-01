@@ -98,7 +98,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 	 * @param correlationStrategy the correlation strategy.
 	 */
 	public BarrierMessageHandler(long timeout, MessageGroupProcessor outputProcessor,
-	                             CorrelationStrategy correlationStrategy) {
+			CorrelationStrategy correlationStrategy) {
 		Assert.notNull(outputProcessor, "'messageGroupProcessor' cannot be null");
 		Assert.notNull(correlationStrategy, "'correlationStrategy' cannot be null");
 		this.messageGroupProcessor = outputProcessor;

@@ -22,7 +22,6 @@ import java.util.Deque;
 import java.util.List;
 
 
-
 /**
  * Cumulative statistics for an event rate with higher weight given to recent data.
  * Clients call {@link #increment()} when a new event occurs, and then use convenience methods (e.g. {@link #getMean()})
@@ -64,7 +63,6 @@ public class ExponentialMovingAverageRate {
 	private final int window;
 
 	private final double factor;
-
 
 
 	/**
@@ -215,7 +213,7 @@ public class ExponentialMovingAverageRate {
 			return this.times.peekLast() / this.factor;
 		}
 		else {
-			 return this.t0;
+			return this.t0;
 		}
 	}
 

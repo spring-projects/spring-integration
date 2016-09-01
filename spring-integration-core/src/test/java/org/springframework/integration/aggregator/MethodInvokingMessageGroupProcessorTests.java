@@ -486,7 +486,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		new MethodInvokingMessageGroupProcessor(bean);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalStateException.class)
 	public void noPublicMethods() {
 
 		@SuppressWarnings("unused")

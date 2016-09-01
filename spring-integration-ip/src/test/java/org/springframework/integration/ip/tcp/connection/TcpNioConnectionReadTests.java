@@ -87,11 +87,10 @@ public class TcpNioConnectionReadTests {
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				new String((byte[]) responses.get(0).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-		         new String((byte[]) responses.get(1).getPayload()));
+				new String((byte[]) responses.get(1).getPayload()));
 		scf.stop();
 		done.countDown();
 	}
-
 
 
 	@SuppressWarnings("unchecked")
@@ -120,7 +119,7 @@ public class TcpNioConnectionReadTests {
 		assertEquals("Expected", howMany, responses.size());
 		for (int i = 0; i < howMany; i++) {
 			assertEquals("Data", "xx",
-				new String(((Message<byte[]>) responses.get(0)).getPayload()));
+					new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		}
 		scf.stop();
 		done.countDown();
@@ -146,9 +145,9 @@ public class TcpNioConnectionReadTests {
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
+				new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
+				new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.stop();
 		done.countDown();
 	}
@@ -173,9 +172,9 @@ public class TcpNioConnectionReadTests {
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
+				new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
-		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
+				new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.stop();
 		done.countDown();
 	}
@@ -414,11 +413,13 @@ public class TcpNioConnectionReadTests {
 			responses.add(message);
 			return false;
 		}, new TcpSender() {
+
 			@Override
 			public void addNewConnection(TcpConnection connection) {
 				added.add(connection);
 				semaphore.release();
 			}
+
 			@Override
 			public void removeDeadConnection(TcpConnection connection) {
 				removed.add(connection);

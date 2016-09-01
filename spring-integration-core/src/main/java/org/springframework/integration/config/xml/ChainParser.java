@@ -85,7 +85,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 					String handlerBeanName = ((RuntimeBeanReference) childBeanMetadata).getBeanName();
 					if (!handlerBeanNameSet.add(handlerBeanName)) {
 						parserContext.getReaderContext().error("A bean definition is already registered for " +
-								"beanName: '" + handlerBeanName + "' within the current <chain>.",
+										"beanName: '" + handlerBeanName + "' within the current <chain>.",
 								element);
 						return null;
 					}
@@ -121,7 +121,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	}
 
 	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
-										   BeanDefinition parentDefinition) {
+			BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
 

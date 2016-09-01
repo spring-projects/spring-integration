@@ -47,9 +47,9 @@ public class ActiveMqTestUtils {
 		if (directory.exists()) {
 			String[] children = directory.list();
 			if (children != null) {
-				 for (int i = 0; i < children.length; i++) {
-			         deleteDir(new File(directory, children[i]));
-			     }
+				for (int i = 0; i < children.length; i++) {
+					deleteDir(new File(directory, children[i]));
+				}
 			}
 		}
 		directory.delete();

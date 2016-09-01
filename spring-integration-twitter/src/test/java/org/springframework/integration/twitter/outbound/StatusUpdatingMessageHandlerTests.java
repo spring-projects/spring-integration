@@ -63,16 +63,17 @@ public class StatusUpdatingMessageHandlerTests {
 	@Autowired
 	Twitter twitter;
 
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void demoSendStatusMessage() throws Exception {
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
-		Properties prop =  pf.getObject();
+		Properties prop = pf.getObject();
 		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
-										               prop.getProperty("z_oleg.oauth.consumerSecret"),
-										               prop.getProperty("z_oleg.oauth.accessToken"),
-										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
+				prop.getProperty("z_oleg.oauth.consumerSecret"),
+				prop.getProperty("z_oleg.oauth.accessToken"),
+				prop.getProperty("z_oleg.oauth.accessTokenSecret"));
 		Message<?> message1 = MessageBuilder.withPayload("Polishing #springintegration migration to Spring Social. test").build();
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(template);
 		handler.afterPropertiesSet();

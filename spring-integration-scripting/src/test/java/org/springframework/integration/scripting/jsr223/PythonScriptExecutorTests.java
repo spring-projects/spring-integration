@@ -38,10 +38,12 @@ import org.springframework.scripting.support.StaticScriptSource;
  *
  */
 public class PythonScriptExecutorTests {
+
 	ScriptExecutor executor;
+
 	@Before
 	public void init() {
-		 executor = new PythonScriptExecutor();
+		executor = new PythonScriptExecutor();
 	}
 
 	@Test
@@ -49,8 +51,8 @@ public class PythonScriptExecutorTests {
 		Object obj = executor.executeScript(new StaticScriptSource("3+4"));
 		assertEquals(7, obj);
 
-		 obj = executor.executeScript(new StaticScriptSource("'hello,world'"));
-		 assertEquals("hello,world", obj);
+		obj = executor.executeScript(new StaticScriptSource("'hello,world'"));
+		assertEquals("hello,world", obj);
 	}
 
 	@Test
@@ -62,16 +64,16 @@ public class PythonScriptExecutorTests {
 
 	@Test
 	public void test2() {
-		Object obj =  executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
+		Object obj = executor.executeScript(new StaticScriptSource("def foo(y):\n\tx=y\n\treturn y\nz=foo(2)"));
 		assertEquals(2, obj);
 	}
 
 	@Test
 	public void test3() {
 		ScriptSource source =
-			new ResourceScriptSource(
-					new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
-		Object obj =  executor.executeScript(source);
+				new ResourceScriptSource(
+						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
+		Object obj = executor.executeScript(source);
 		PyTuple tuple = (PyTuple) obj;
 		assertEquals(1, tuple.get(0));
 	}
@@ -79,11 +81,11 @@ public class PythonScriptExecutorTests {
 	@Test
 	public void test3WithVariables() {
 		ScriptSource source =
-			new ResourceScriptSource(
-					new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
+				new ResourceScriptSource(
+						new ClassPathResource("/org/springframework/integration/scripting/jsr223/test3.py"));
 		HashMap<String, Object> variables = new HashMap<String, Object>();
 		variables.put("foo", "bar");
-		Object obj =  executor.executeScript(source, variables);
+		Object obj = executor.executeScript(source, variables);
 		PyTuple tuple = (PyTuple) obj;
 		assertNotNull(tuple);
 		assertEquals(1, tuple.get(0));

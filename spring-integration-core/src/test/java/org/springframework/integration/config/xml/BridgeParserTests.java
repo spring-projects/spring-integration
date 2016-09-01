@@ -22,20 +22,21 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -71,9 +72,9 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 
 
 	@Factory
-    public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-        return new MessageMatcher(expected);
-    }
+	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
+		return new MessageMatcher(expected);
+	}
 
 	@Test
 	public void pollableChannel() {

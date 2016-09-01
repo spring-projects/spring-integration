@@ -62,7 +62,7 @@ public class SecurityContextPropagationChannelInterceptor
 
 	@Override
 	protected void populatePropagatedContext(Authentication authentication, Message<?> message,
-	                                         MessageChannel channel) {
+			MessageChannel channel) {
 		if (authentication != null) {
 			SecurityContext currentContext = SecurityContextHolder.getContext();
 

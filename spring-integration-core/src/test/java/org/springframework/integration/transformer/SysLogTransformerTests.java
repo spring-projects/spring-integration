@@ -49,10 +49,10 @@ public class SysLogTransformerTests {
 		assertEquals("TESTING", transformed.get(SyslogToMapTransformer.TAG));
 		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
-		String[] fields = {SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
+		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
-		Object[] values = {19, 6, date, "WEBERN", "TESTING", "[70729]: TEST SYSLOG MESSAGE"};
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE };
+		Object[] values = { 19, 6, date, "WEBERN", "TESTING", "[70729]: TEST SYSLOG MESSAGE" };
 		assertIterationOrder(fields, values, transformed);
 	}
 
@@ -85,10 +85,10 @@ public class SysLogTransformerTests {
 		assertFalse(transformed.containsKey(SyslogToMapTransformer.TAG));
 		assertEquals("[70729]: TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
-		String[] fields = {SyslogToMapTransformer.FACILITY,	SyslogToMapTransformer.SEVERITY,
+		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.MESSAGE};
-		Object[] values = {19, 6, date, "WEBERN", "[70729]: TEST SYSLOG MESSAGE"};
+				SyslogToMapTransformer.MESSAGE };
+		Object[] values = { 19, 6, date, "WEBERN", "[70729]: TEST SYSLOG MESSAGE" };
 		assertIterationOrder(fields, values, transformed);
 	}
 
@@ -105,15 +105,15 @@ public class SysLogTransformerTests {
 		assertEquals("ABCDE1234567890ABCDE1234567890UV", transformed.get(SyslogToMapTransformer.TAG));
 		assertEquals("XYZ TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
 
-		String[] fields = {SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
+		String[] fields = { SyslogToMapTransformer.FACILITY, SyslogToMapTransformer.SEVERITY,
 				SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
-				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
-		Object[] values = {19, 6, date, "WEBERN", "ABCDE1234567890ABCDE1234567890UV", "XYZ TEST SYSLOG MESSAGE"};
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE };
+		Object[] values = { 19, 6, date, "WEBERN", "ABCDE1234567890ABCDE1234567890UV", "XYZ TEST SYSLOG MESSAGE" };
 		assertIterationOrder(fields, values, transformed);
 	}
 
 	private static void assertIterationOrder(String[] expectedFields, Object[] expectedValues,
-											 Map<String, ?> actualTransformed) {
+			Map<String, ?> actualTransformed) {
 		int n = 0;
 		for (Entry<String, ?> entry : actualTransformed.entrySet()) {
 			assertEquals(expectedFields[n++], entry.getKey());

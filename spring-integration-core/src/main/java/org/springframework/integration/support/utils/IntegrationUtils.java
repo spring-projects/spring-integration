@@ -71,22 +71,21 @@ public final class IntegrationUtils {
 		MessageBuilderFactory messageBuilderFactory = null;
 		if (beanFactory != null) {
 			try {
-				 messageBuilderFactory = beanFactory.getBean(
+				messageBuilderFactory = beanFactory.getBean(
 						INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME, MessageBuilderFactory.class);
 			}
 			catch (Exception e) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("No MessageBuilderFactory with name '"
-								+ INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
-								+ "' found: " + e.getMessage()
-								+ ", using default.");
+							+ INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
+							+ "' found: " + e.getMessage()
+							+ ", using default.");
 				}
 			}
 		}
 		else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory"
-							+ ", using default.");
+				logger.debug("No 'beanFactory' supplied; cannot find MessageBuilderFactory, using default.");
 			}
 			if (fatalWhenNoBeanFactory) {
 				throw new RuntimeException("All Message creators need a BeanFactory");
@@ -139,4 +138,5 @@ public final class IntegrationUtils {
 			throw new IllegalArgumentException(e);
 		}
 	}
+
 }

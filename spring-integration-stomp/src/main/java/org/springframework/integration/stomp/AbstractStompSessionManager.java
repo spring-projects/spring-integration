@@ -399,7 +399,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
-		                            Throwable exception) {
+				Throwable exception) {
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleException(session, command, headers, payload, exception);

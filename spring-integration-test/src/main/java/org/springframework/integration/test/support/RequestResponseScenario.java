@@ -27,117 +27,123 @@ import org.springframework.util.Assert;
  *
  */
 public class RequestResponseScenario {
-    private final String inputChannelName;
-    private final String outputChannelName;
-    private Object payload;
-    private Message<?> message;
-    private AbstractResponseValidator<?> responseValidator;
-    private String name;
 
-    protected Message<? extends Object> getMessage() {
-        if (message == null) {
-            return new GenericMessage<Object>(this.payload);
-        }
-else {
-            return message;
-        }
-    }
+	private final String inputChannelName;
 
-    /**
-     * Create an instance
-     * @param inputChannelName the input channel name
-     * @param outputChannelName the output channel name
-     */
-    public RequestResponseScenario(String inputChannelName, String outputChannelName) {
-        this.inputChannelName = inputChannelName;
-        this.outputChannelName = outputChannelName;
-    }
+	private final String outputChannelName;
 
-    /**
-     *
-     * @return the input channel name
-     */
-    public String getInputChannelName() {
-        return inputChannelName;
-    }
+	private Object payload;
 
-    /**
-     *
-     * @return the output channel name
-     */
-    public String getOutputChannelName() {
-        return outputChannelName;
-    }
+	private Message<?> message;
 
-    /**
-     *
-     * @return the request message payload
-     */
-    public Object getPayload() {
-        return payload;
-    }
+	private AbstractResponseValidator<?> responseValidator;
 
-    /**
-     * set the payload of the request message
-     * @param payload The payload.
-     * @return this
-     */
-    public RequestResponseScenario setPayload(Object payload) {
-        this.payload = payload;
-        return this;
-    }
+	private String name;
 
-    /**
-     *
-     * @return the scenario name
-     */
-    public String getName() {
-        return name;
-    }
+	protected Message<? extends Object> getMessage() {
+		if (message == null) {
+			return new GenericMessage<Object>(this.payload);
+		}
+		else {
+			return message;
+		}
+	}
 
-    /**
-     * Set the scenario name (optional)
-     * @param name the name
-     * @return this
-     */
-    public RequestResponseScenario setName(String name) {
-        this.name = name;
-        return this;
-    }
+	/**
+	 * Create an instance
+	 * @param inputChannelName the input channel name
+	 * @param outputChannelName the output channel name
+	 */
+	public RequestResponseScenario(String inputChannelName, String outputChannelName) {
+		this.inputChannelName = inputChannelName;
+		this.outputChannelName = outputChannelName;
+	}
 
-    /**
-     *
-     * @return the response validator
-     * @see AbstractResponseValidator
-     */
-    public AbstractResponseValidator<?> getResponseValidator() {
-        return responseValidator;
-    }
+	/**
+	 *
+	 * @return the input channel name
+	 */
+	public String getInputChannelName() {
+		return inputChannelName;
+	}
 
-    /**
-     * Set the response validator
-     * @see AbstractResponseValidator
-     * @param responseValidator The response validator.
-     * @return this
-     */
-    public RequestResponseScenario setResponseValidator(AbstractResponseValidator<?> responseValidator) {
-        this.responseValidator = responseValidator;
-        return this;
-    }
+	/**
+	 *
+	 * @return the output channel name
+	 */
+	public String getOutputChannelName() {
+		return outputChannelName;
+	}
+
+	/**
+	 *
+	 * @return the request message payload
+	 */
+	public Object getPayload() {
+		return payload;
+	}
+
+	/**
+	 * set the payload of the request message
+	 * @param payload The payload.
+	 * @return this
+	 */
+	public RequestResponseScenario setPayload(Object payload) {
+		this.payload = payload;
+		return this;
+	}
+
+	/**
+	 *
+	 * @return the scenario name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Set the scenario name (optional)
+	 * @param name the name
+	 * @return this
+	 */
+	public RequestResponseScenario setName(String name) {
+		this.name = name;
+		return this;
+	}
+
+	/**
+	 *
+	 * @return the response validator
+	 * @see AbstractResponseValidator
+	 */
+	public AbstractResponseValidator<?> getResponseValidator() {
+		return responseValidator;
+	}
+
+	/**
+	 * Set the response validator
+	 * @see AbstractResponseValidator
+	 * @param responseValidator The response validator.
+	 * @return this
+	 */
+	public RequestResponseScenario setResponseValidator(AbstractResponseValidator<?> responseValidator) {
+		this.responseValidator = responseValidator;
+		return this;
+	}
 
 
-    /**
-     * Set the request message (as an alternative to setPayload())
-     * @param message The message.
-     * @return this
-     */
-    public RequestResponseScenario setMessage(Message<?> message) {
-        this.message = message;
-        return this;
-    }
+	/**
+	 * Set the request message (as an alternative to setPayload())
+	 * @param message The message.
+	 * @return this
+	 */
+	public RequestResponseScenario setMessage(Message<?> message) {
+		this.message = message;
+		return this;
+	}
 
-    protected void init() {
-        Assert.state(message == null || payload == null, "cannot set both message and payload");
-    }
+	protected void init() {
+		Assert.state(message == null || payload == null, "cannot set both message and payload");
+	}
 
 }

@@ -151,7 +151,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.2.201409121644"
+		toolVersion = "0.7.7.201606060606"
 	}
 
 	// dependencies that are common across all java projects
@@ -229,7 +229,7 @@ subprojects { subproject ->
 	}
 
 	checkstyle {
-		configFile = file("${rootDir}/src/checkstyle/checkstyle.xml")
+		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
 		toolVersion = "6.16.1"
 	}
 
@@ -355,6 +355,7 @@ project('spring-integration-gemfire') {
 			exclude group: 'org.springframework', module: 'spring-context-support'
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
+			exclude group: 'org.springframework', module: 'spring-oxm'
 		}
 		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-stream")

@@ -169,6 +169,7 @@ public class RemoteFileOutboundGatewayTests {
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
 		when(sessionFactory.getSession()).thenReturn(new TestSession() {
+
 			int n;
 
 			@Override
@@ -187,7 +188,7 @@ public class RemoteFileOutboundGatewayTests {
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry(path1.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--"),
-						new TestLsEntry(path2.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--")};
+						new TestLsEntry(path2.replaceFirst("testremote/", ""), 123, false, false, 1234, "-r--r--r--") };
 			}
 
 		});
@@ -218,7 +219,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--")};
+				return new TestLsEntry[] { new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--") };
 			}
 
 		});
@@ -260,6 +261,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Object[] arguments = invocation.getArguments();
@@ -286,6 +288,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Object[] arguments = invocation.getArguments();
@@ -310,6 +313,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				Object[] arguments = invocation.getArguments();
@@ -319,6 +323,7 @@ public class RemoteFileOutboundGatewayTests {
 		}).when(session).rename(anyString(), anyString());
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				madeDirs.add((String) invocation.getArguments()[0]);
@@ -370,7 +375,7 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level1List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
 				new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
@@ -378,14 +383,14 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level2List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
 				new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
 	public TestLsEntry[] level3List() {
-		return new TestLsEntry[]{
+		return new TestLsEntry[] {
 				new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
@@ -585,7 +590,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -622,7 +627,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -689,7 +694,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -730,7 +735,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
@@ -767,7 +772,7 @@ public class RemoteFileOutboundGatewayTests {
 
 			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[]{
+				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
@@ -1070,18 +1075,17 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 
-
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
-		@SuppressWarnings({"rawtypes", "unchecked"})
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
-		                                     String command, String expression) {
+				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
 			this.setBeanFactory(mock(BeanFactory.class));
 		}
 
 		TestRemoteFileOutboundGateway(RemoteFileTemplate<TestLsEntry> remoteFileTemplate, String command,
-		                                     String expression) {
+				String expression) {
 			super(remoteFileTemplate, command, expression);
 			this.setBeanFactory(mock(BeanFactory.class));
 		}
@@ -1129,14 +1133,19 @@ public class RemoteFileOutboundGatewayTests {
 	static class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
 		private volatile String filename;
+
 		private final long size;
+
 		private final boolean dir;
+
 		private final boolean link;
+
 		private final long modified;
+
 		private final String permissions;
 
 		TestLsEntry(String filename, long size, boolean dir, boolean link,
-		                   long modified, String permissions) {
+				long modified, String permissions) {
 			this.filename = filename;
 			this.size = size;
 			this.dir = dir;

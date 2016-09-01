@@ -91,7 +91,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 
 				throw new MessagingException(
 						"Stored Procedure/Function call returned more than "
-					  + "1 result object and expectSingleResult was 'true'. ");
+								+ "1 result object and expectSingleResult was 'true'. ");
 
 			}
 			else {

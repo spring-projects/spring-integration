@@ -527,7 +527,7 @@ public class MethodInvokingMessageProcessorTests {
 
 			@SuppressWarnings("unused")
 			public void optionalHeaders(Optional<String> foo, @Header(value = "foo", required = false) String foo1,
-					@Header(value = "foo") Optional<String> foo2) {
+					@Header("foo") Optional<String> foo2) {
 				this.arguments.put("foo", (foo.isPresent() ? foo.get() : null));
 				this.arguments.put("foo1", foo1);
 				this.arguments.put("foo2", (foo2.isPresent() ? foo2.get() : null));

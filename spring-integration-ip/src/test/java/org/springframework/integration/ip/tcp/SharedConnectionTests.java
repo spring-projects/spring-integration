@@ -49,7 +49,7 @@ public class SharedConnectionTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier(value = "inboundServer")
+	@Qualifier("inboundServer")
 	TcpReceivingChannelAdapter listener;
 
 	/**
