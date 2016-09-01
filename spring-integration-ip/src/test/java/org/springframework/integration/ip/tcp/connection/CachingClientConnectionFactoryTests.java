@@ -515,18 +515,17 @@ public class CachingClientConnectionFactoryTests {
 
 	@Test
 	public void testCloseOnTimeoutNet() throws Exception {
-		TcpNetClientConnectionFactory cf = new TcpNetClientConnectionFactory("localhost", serverCf.getPort());
-		testCloseOnTimeoutGuts(cf);
+		TestingUtilities.waitListening(serverCf, null);
+		testCloseOnTimeoutGuts(new TcpNetClientConnectionFactory("localhost", serverCf.getPort()));
 	}
 
 	@Test
 	public void testCloseOnTimeoutNio() throws Exception {
-		TcpNioClientConnectionFactory cf = new TcpNioClientConnectionFactory("localhost", serverCf.getPort());
-		testCloseOnTimeoutGuts(cf);
+		TestingUtilities.waitListening(serverCf, null);
+		testCloseOnTimeoutGuts(new TcpNioClientConnectionFactory("localhost", serverCf.getPort()));
 	}
 
 	private void testCloseOnTimeoutGuts(AbstractClientConnectionFactory cf) throws Exception {
-		TestingUtilities.waitListening(serverCf, null);
 		cf.setSoTimeout(100);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(cf, 1);
 		cccf.start();
