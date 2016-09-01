@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -117,7 +118,15 @@ public class CachingClientConnectionFactoryTests {
 
 	@Autowired
 	@Qualifier("gateway.caching.ccf")
-	CachingClientConnectionFactory gatewayCF;
+	private CachingClientConnectionFactory gatewayCF;
+
+	@Autowired
+	@Qualifier("gateway.ccf")
+	private AbstractClientConnectionFactory clientGatewayCf;
+
+	@Autowired
+	@Qualifier("ccf")
+	private AbstractClientConnectionFactory clientAdapterCf;
 
 	@Test
 	public void testReuse() throws Exception {
@@ -446,7 +455,9 @@ public class CachingClientConnectionFactoryTests {
 	@Test
 	public void integrationTest() throws Exception {
 		TestingUtilities.waitListening(serverCf, null);
-		outbound.send(new GenericMessage<String>("Hello, world!"));
+		new DirectFieldAccessor(this.clientAdapterCf).setPropertyValue("port", this.serverCf.getPort());
+
+		this.outbound.send(new GenericMessage<>("Hello, world!"));
 		Message<?> m = inbound.receive(10000);
 		assertNotNull(m);
 		String connectionId = m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
@@ -475,7 +486,9 @@ public class CachingClientConnectionFactoryTests {
 			}
 		});
 		TestingUtilities.waitListening(serverCf, null);
-		toGateway.send(new GenericMessage<String>("Hello, world!"));
+		new DirectFieldAccessor(this.clientGatewayCf).setPropertyValue("port", this.serverCf.getPort());
+
+		this.toGateway.send(new GenericMessage<>("Hello, world!"));
 		Message<?> m = fromGateway.receive(1000);
 		assertNotNull(m);
 		assertEquals("foo:" + "Hello, world!", new String((byte[]) m.getPayload()));
