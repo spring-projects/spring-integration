@@ -888,7 +888,8 @@ public class FtpJavaApplication {
     @Bean
     @ServiceActivator(inputChannel = "ftpChannel")
     public MessageHandler handler() {
-        FtpOutboundGateway ftpOutboundGateway = new FtpOutboundGateway(ftpSessionFactory(), "ls");
+        FtpOutboundGateway ftpOutboundGateway =
+                          new FtpOutboundGateway(ftpSessionFactory(), "ls", "'my_remote_dir/'");
         ftpOutboundGateway.setOutputChannelName("lsReplyChannel");
         return ftpOutboundGateway;
     }

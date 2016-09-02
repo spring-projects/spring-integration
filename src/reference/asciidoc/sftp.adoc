@@ -976,7 +976,7 @@ public class SftpJavaApplication {
     @Bean
     @ServiceActivator(inputChannel = "sftpChannel")
     public MessageHandler handler() {
-        return new SftpOutboundGateway(ftpSessionFactory(), "ls");
+        return new SftpOutboundGateway(ftpSessionFactory(), "ls", "'my_remote_dir/'");
     }
 
 }
