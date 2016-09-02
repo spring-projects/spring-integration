@@ -260,6 +260,14 @@ public final class RedisLockRegistry implements LockRegistry {
 			RedisLock lockInStore = this.redisTemplate.boundValueOps(this.registryKey + ":" + lockKey).get();
 			if (lockInStore == null || !lock.equals(lockInStore)) {
 				getHardThreadLocks().remove(lock);
+				try {
+					lock.unlock();
+				}
+				catch (Exception e) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("Lock was released due to expiration. Will be obtained a new one...", e);
+					}
+				}
 				lock = null;
 			}
 		}

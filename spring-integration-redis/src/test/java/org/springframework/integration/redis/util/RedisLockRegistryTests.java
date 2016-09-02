@@ -57,6 +57,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Gary Russell
  * @author Konstantin Yakimov
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -380,6 +381,17 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 			assertThat(e.getMessage(), containsString("Lock was released due to expiration"));
 		}
 		assertNull(TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testExpireDuringSecondObtain() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1000);
+		Lock foo = registry.obtain("foo");
+		foo.lockInterruptibly();
+		waitForExpire("foo");
+		Lock foo1 = registry.obtain("foo");
+		assertNotSame(foo, foo1);
 	}
 
 	@Test
