@@ -387,6 +387,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testExpireDuringSecondObtain() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), "rlrTests", 1000);
+		registry.setUseWeakReferences(true);
 		Lock foo = registry.obtain("foo");
 		foo.lockInterruptibly();
 		waitForExpire("foo");
