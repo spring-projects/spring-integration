@@ -68,7 +68,7 @@ public class MessageDrivenAdapterTests {
 		QueueChannel out = new QueueChannel();
 		adapter.setOutputChannel(out);
 		adapter.afterPropertiesSet();
-		adapter.setMessageConverter(new MessagingMessageConverter() {
+		adapter.setRecordMessageConverter(new MessagingMessageConverter() {
 
 			@Override
 			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment, Type type) {

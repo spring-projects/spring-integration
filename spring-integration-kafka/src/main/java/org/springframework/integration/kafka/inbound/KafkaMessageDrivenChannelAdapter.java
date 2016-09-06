@@ -23,11 +23,12 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
+import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.converter.MessageConverter;
+import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
@@ -48,7 +49,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
-	private final MessagingMessageListenerAdapter<K, V> listener = new IntegrationMessageListener();
+	private final RecordMessagingMessageListenerAdapter<K, V> listener = new IntegrationMessageListener();
 
 	private RecordFilterStrategy<K, V> recordFilterStrategy;
 
@@ -68,7 +69,23 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		this.messageListenerContainer.setAutoStartup(false);
 	}
 
+	/**
+	 * Set the message converter; must be a {@link RecordMessageConverter}.
+	 * @param messageConverter the converter.
+	 * @deprecated in favor of {@link #setRecordMessageConverter(RecordMessageConverter)}.
+	 */
+	@Deprecated
 	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.isInstanceOf(RecordMessageConverter.class, messageConverter);
+		this.listener.setMessageConverter((RecordMessageConverter) messageConverter);
+	}
+
+	/**
+	 * Set the message converter to use with a record-based consumer.
+	 * @param messageConverter the converter.
+	 * @since 2.1
+	 */
+	public void setRecordMessageConverter(RecordMessageConverter messageConverter) {
 		this.listener.setMessageConverter(messageConverter);
 	}
 
@@ -185,10 +202,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		return getPhase();
 	}
 
-	private class IntegrationMessageListener extends MessagingMessageListenerAdapter<K, V> {
+	private class IntegrationMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
 
 		IntegrationMessageListener() {
-			super(null);
+			super(null, null);
 		}
 
 		@Override
