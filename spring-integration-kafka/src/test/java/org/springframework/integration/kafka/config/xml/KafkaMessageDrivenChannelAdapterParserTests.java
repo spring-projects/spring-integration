@@ -29,6 +29,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
@@ -57,6 +58,9 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	@Autowired
 	private KafkaMessageDrivenChannelAdapter<?, ?> kafkaListener;
 
+	@Autowired
+	private KafkaMessageDrivenChannelAdapter<?, ?> kafkaBatchListener;
+
 	@Test
 	public void testKafkaMessageDrivenChannelAdapterParser() throws Exception {
 		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
@@ -68,6 +72,23 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
 		assertThat(container).isNotNull();
+		assertThat(TestUtils.getPropertyValue(kafkaListener, "mode", ListenerMode.class))
+				.isEqualTo(ListenerMode.record);
+	}
+
+	@Test
+	public void testKafkaBatchMessageDrivenChannelAdapterParser() throws Exception {
+		assertThat(this.kafkaBatchListener.isAutoStartup()).isFalse();
+		assertThat(this.kafkaBatchListener.isRunning()).isFalse();
+		assertThat(this.kafkaBatchListener.getPhase()).isEqualTo(100);
+		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "outputChannel")).isSameAs(this.nullChannel);
+		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "errorChannel")).isSameAs(this.errorChannel);
+		KafkaMessageListenerContainer<?, ?> container =
+				TestUtils.getPropertyValue(this.kafkaBatchListener, "messageListenerContainer",
+						KafkaMessageListenerContainer.class);
+		assertThat(container).isNotNull();
+		assertThat(TestUtils.getPropertyValue(kafkaBatchListener, "mode", ListenerMode.class))
+				.isEqualTo(ListenerMode.batch);
 	}
 
 	@Test
@@ -91,7 +112,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 
 		Object delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate.getClass().getName()).contains("$IntegrationMessageListener");
+		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(null);
 		adapter.setRetryTemplate(new RetryTemplate());
@@ -102,7 +123,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate.getClass().getName()).contains("$IntegrationMessageListener");
+		assertThat(delegate.getClass().getName()).contains("$IntegrationRecordMessageListener");
 
 		adapter.setRecordFilterStrategy(mock(RecordFilterStrategy.class));
 		adapter.afterPropertiesSet();

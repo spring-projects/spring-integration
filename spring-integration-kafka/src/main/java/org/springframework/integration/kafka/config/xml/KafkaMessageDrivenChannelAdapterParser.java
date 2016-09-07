@@ -47,6 +47,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		else {
 			parserContext.getReaderContext().error("The 'listener-container' attribute is required.", element);
 		}
+		builder.addConstructorArgValue(element.getAttribute("mode"));
 
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
