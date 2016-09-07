@@ -16,17 +16,23 @@
 
 package org.springframework.integration.kafka.inbound;
 
+import java.util.List;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
+import org.springframework.kafka.listener.BatchAcknowledgingMessageListener;
+import org.springframework.kafka.listener.adapter.BatchMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.FilteringBatchAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
@@ -49,7 +55,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private final AbstractMessageListenerContainer<K, V> messageListenerContainer;
 
-	private final RecordMessagingMessageListenerAdapter<K, V> listener = new IntegrationMessageListener();
+	private final RecordMessagingMessageListenerAdapter<K, V> recordListener = new IntegrationRecordMessageListener();
+
+	private final BatchMessagingMessageListenerAdapter<K, V> batchListener = new IntegrationBatchMessageListener();
+
+	private final ListenerMode mode;
 
 	private RecordFilterStrategy<K, V> recordFilterStrategy;
 
@@ -61,23 +71,47 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private boolean filterInRetry;
 
+	/**
+	 * Construct an instance with mode {@link ListenerMode#record}.
+	 * @param messageListenerContainer the container.
+	 */
 	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer) {
+		this(messageListenerContainer, ListenerMode.record);
+	}
+
+	/**
+	 * Construct an instance with the provided mode.
+	 * @param messageListenerContainer the container.
+	 * @param mode the mode.
+	 * @since 1.2
+	 */
+	public KafkaMessageDrivenChannelAdapter(AbstractMessageListenerContainer<K, V> messageListenerContainer,
+			ListenerMode mode) {
 		Assert.notNull(messageListenerContainer, "messageListenerContainer is required");
 		Assert.isNull(messageListenerContainer.getContainerProperties().getMessageListener(),
 				"Container must not already have a listener");
 		this.messageListenerContainer = messageListenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
+		this.mode = mode;
 	}
 
 	/**
-	 * Set the message converter; must be a {@link RecordMessageConverter}.
+	 * Set the message converter; must be a {@link RecordMessageConverter} or
+	 * {@link BatchMessageConverter} depending on mode.
 	 * @param messageConverter the converter.
-	 * @deprecated in favor of {@link #setRecordMessageConverter(RecordMessageConverter)}.
 	 */
-	@Deprecated
 	public void setMessageConverter(MessageConverter messageConverter) {
-		Assert.isInstanceOf(RecordMessageConverter.class, messageConverter);
-		this.listener.setMessageConverter((RecordMessageConverter) messageConverter);
+		if (messageConverter instanceof RecordMessageConverter) {
+			this.recordListener.setMessageConverter((RecordMessageConverter) messageConverter);
+		}
+		else if (messageConverter instanceof BatchMessageConverter) {
+			this.batchListener.setBatchMessageConverter((BatchMessageConverter) messageConverter);
+		}
+		else {
+			throw new IllegalArgumentException(
+					"Message converter must be a 'RecordMessageConverter' or 'BatchMessageConverter'");
+		}
+
 	}
 
 	/**
@@ -86,12 +120,21 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @since 2.1
 	 */
 	public void setRecordMessageConverter(RecordMessageConverter messageConverter) {
-		this.listener.setMessageConverter(messageConverter);
+		this.recordListener.setMessageConverter(messageConverter);
+	}
+
+	/**
+	 * Set the message converter to use with a batch-based consumer.
+	 * @param messageConverter the converter.
+	 * @since 2.1
+	 */
+	public void setBatchMessageConverter(BatchMessageConverter messageConverter) {
+		this.batchListener.setBatchMessageConverter(messageConverter);
 	}
 
 	/**
 	 * Specify a {@link RecordFilterStrategy} to wrap
-	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationMessageListener} into
+	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
 	 * {@link FilteringAcknowledgingMessageListenerAdapter}.
 	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
 	 * @since 2.0.1
@@ -113,12 +156,14 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
-	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationMessageListener} into
+	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
 	 * {@link RetryingAcknowledgingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @since 2.0.1
 	 */
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		Assert.isTrue(retryTemplate == null || this.mode.equals(ListenerMode.record),
+				"Retry is not supported with mode=batch");
 		this.retryTemplate = retryTemplate;
 	}
 
@@ -152,28 +197,38 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	protected void onInit() {
 		super.onInit();
 
-		AcknowledgingMessageListener<K, V> listener = this.listener;
+		if (this.mode.equals(ListenerMode.record)) {
+			AcknowledgingMessageListener<K, V> listener = this.recordListener;
 
-		boolean filterInRetry = this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
+			boolean filterInRetry = this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
 
-		if (filterInRetry) {
-			listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
-					this.ackDiscarded);
-			listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
-					this.recoveryCallback);
-		}
-		else {
-			if (this.retryTemplate != null) {
-				listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
-						this.recoveryCallback);
-			}
-			if (this.recordFilterStrategy != null) {
+			if (filterInRetry) {
 				listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
+				listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
+							this.recoveryCallback);
 			}
+			else {
+				if (this.retryTemplate != null) {
+					listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
+							this.recoveryCallback);
+				}
+				if (this.recordFilterStrategy != null) {
+					listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+							this.ackDiscarded);
+				}
+			}
+			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
 		}
+		else {
+			BatchAcknowledgingMessageListener<K, V> listener = this.batchListener;
 
-		this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+			if (this.recordFilterStrategy != null) {
+				listener = new FilteringBatchAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+						this.ackDiscarded);
+			}
+			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
+		}
 	}
 
 	@Override
@@ -202,15 +257,48 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		return getPhase();
 	}
 
-	private class IntegrationMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
+	/**
+	 * The listener mode for the container, record or batch.
+	 * @since 1.2
+	 *
+	 */
+	public enum ListenerMode {
 
-		IntegrationMessageListener() {
+		/**
+		 * Each {@link Message} will be converted from a single {@code ConsumerRecord}.
+		 */
+		record,
+
+		/**
+		 * Each {@link Message} will be converted from the {@code ConsumerRecords}
+		 * returned by a poll.
+		 */
+		batch
+	}
+
+	private class IntegrationRecordMessageListener extends RecordMessagingMessageListenerAdapter<K, V> {
+
+		IntegrationRecordMessageListener() {
 			super(null, null);
 		}
 
 		@Override
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
 			Message<?> message = toMessagingMessage(record, acknowledgment);
+			sendMessage(message);
+		}
+
+	}
+
+	private class IntegrationBatchMessageListener extends BatchMessagingMessageListenerAdapter<K, V> {
+
+		IntegrationBatchMessageListener() {
+			super(null, null);
+		}
+
+		@Override
+		public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment) {
+			Message<?> message = toMessagingMessage(records, acknowledgment);
 			sendMessage(message);
 		}
 

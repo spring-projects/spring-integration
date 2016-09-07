@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.inbound;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -27,6 +28,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -37,8 +39,10 @@ import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
+import org.springframework.kafka.support.converter.BatchMessagingMessageConverter;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -53,11 +57,13 @@ public class MessageDrivenAdapterTests {
 
 	private static String topic1 = "testTopic1";
 
+	private static String topic2 = "testTopic2";
+
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1, topic2);
 
 	@Test
-	public void testInbound() throws Exception {
+	public void testInboundRecord() throws Exception {
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
@@ -78,11 +84,12 @@ public class MessageDrivenAdapterTests {
 
 		});
 		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 2);
 
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
-		template.setDefaultTopic("testTopic1");
+		template.setDefaultTopic(topic1);
 		template.sendDefault(1, "foo");
 
 		Message<?> received = out.receive(10000);
@@ -90,7 +97,7 @@ public class MessageDrivenAdapterTests {
 
 		MessageHeaders headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo("testTopic1");
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
@@ -103,9 +110,58 @@ public class MessageDrivenAdapterTests {
 
 		headers = received.getHeaders();
 		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
-		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo("testTopic1");
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic1);
 		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
 		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(1L);
+		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testInboundBatch() throws Exception {
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "true", embeddedKafka);
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic2);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container,
+				ListenerMode.batch);
+		QueueChannel out = new QueueChannel();
+		adapter.setOutputChannel(out);
+		adapter.afterPropertiesSet();
+		adapter.setBatchMessageConverter(new BatchMessagingMessageConverter() {
+
+			@Override
+			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment, Type type) {
+				Message<?> message = super.toMessage(records, acknowledgment, type);
+				return MessageBuilder.fromMessage(message).setHeader("testHeader", "testValue").build();
+			}
+
+		});
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 2);
+
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		template.setDefaultTopic(topic2);
+		template.sendDefault(1, "foo");
+		template.sendDefault(1, "bar");
+
+		Message<?> received = out.receive(10000);
+		assertThat(received).isNotNull();
+		Object payload = received.getPayload();
+		assertThat(payload).isInstanceOf(List.class);
+		List<?> list = (List<?>) payload;
+		assertThat(list.size()).isGreaterThan(0);
+
+		MessageHeaders headers = received.getHeaders();
+		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY).toString()).contains("[1");
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC).toString()).contains(topic2);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID).toString()).contains("0");
+		assertThat(headers.get(KafkaHeaders.OFFSET).toString()).contains("[0");
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
 
 		adapter.stop();
