@@ -76,10 +76,10 @@ public final class IntegrationUtils {
 			}
 			catch (Exception e) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("No MessageBuilderFactory with name '" +
-							INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME +
-							"' found: " + e.getMessage() +
-							", using default.");
+					logger.debug("No MessageBuilderFactory with name '"
+							+ INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME
+							+ "' found: " + e.getMessage()
+							+ ", using default.");
 				}
 			}
 		}

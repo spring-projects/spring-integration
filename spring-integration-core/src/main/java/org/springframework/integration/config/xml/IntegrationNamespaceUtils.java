@@ -313,9 +313,10 @@ public abstract class IntegrationNamespaceUtils {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (StringUtils.hasText(ref) && innerComponentDefinition != null) {
 			parserContext.getReaderContext().error(
-					"Ambiguous definition. Inner bean " + (innerComponentDefinition.getBeanDefinition().getBeanClassName())
-							+ " declaration and \"ref\" " + ref + " are not allowed together on element " +
-							IntegrationNamespaceUtils.createElementDescription(element) + ".",
+					"Ambiguous definition. Inner bean "
+							+ (innerComponentDefinition.getBeanDefinition().getBeanClassName())
+							+ " declaration and \"ref\" " + ref + " are not allowed together on element "
+							+ IntegrationNamespaceUtils.createElementDescription(element) + ".",
 					parserContext.extractSource(element));
 		}
 		return innerComponentDefinition;
@@ -494,15 +495,15 @@ public abstract class IntegrationNamespaceUtils {
 		boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
 
 		if (hasAttributeValue && hasAttributeExpression) {
-			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '" +
-					expressionElementName + "' is allowed", element);
+			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
+					+ expressionElementName + "' is allowed", element);
 		}
 
 		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)) {
 			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
 					+ expressionElementName + "' is required", element);
 		}
-		BeanDefinition expressionDef = null;
+		BeanDefinition expressionDef;
 		if (hasAttributeValue) {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
@@ -552,8 +553,8 @@ public abstract class IntegrationNamespaceUtils {
 					constructorArgumentValues.addGenericArgumentValue(new RuntimeBeanReference(handlerBeanName));
 				}
 				else {
-					parserContext.getReaderContext().error("Only one subscriber is allowed for a FixedSubscriberChannel.",
-							element);
+					parserContext.getReaderContext()
+							.error("Only one subscriber is allowed for a FixedSubscriberChannel.", element);
 				}
 			}
 		}
