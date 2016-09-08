@@ -22,7 +22,7 @@ It has now been renamed to `jmsConnectionFactory`, which is the bean name used b
 
 If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
 
-===== Gateway Changes
+==== Gateway Changes
 
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
 Previously, the header was not populated.
