@@ -274,6 +274,13 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		return this;
 	}
 
+	public MessageBuilder<T> readOnlyHeaders(String... readOnlyHeaders) {
+		this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
+		return this;
+	}
+
+
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public Message<T> build() {
