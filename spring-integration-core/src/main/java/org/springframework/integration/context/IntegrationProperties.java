@@ -66,6 +66,12 @@ public final class IntegrationProperties {
 	 */
 	public static final String THROW_EXCEPTION_ON_LATE_REPLY = INTEGRATION_PROPERTIES_PREFIX + "messagingTemplate.throwExceptionOnLateReply";
 
+	/**
+	 * Specifies the value of {@link org.springframework.integration.support.DefaultMessageBuilderFactory#readOnlyHeaders}.
+	 */
+	public static final String READ_ONLY_HEADERS = INTEGRATION_PROPERTIES_PREFIX + "readOnly.headers";
+
+
 	private static Properties defaults;
 
 	static {
