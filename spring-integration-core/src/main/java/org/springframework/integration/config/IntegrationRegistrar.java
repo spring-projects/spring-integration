@@ -417,7 +417,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder mbfBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultMessageBuilderFactory.class);
+					.genericBeanDefinition(DefaultMessageBuilderFactory.class)
+					.addPropertyValue("readOnlyHeaders",
+							IntegrationProperties.getExpressionFor(IntegrationProperties.READ_ONLY_HEADERS));
 			registry.registerBeanDefinition(
 					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
 					mbfBuilder.getBeanDefinition());

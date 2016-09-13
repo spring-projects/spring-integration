@@ -17,12 +17,17 @@
 package org.springframework.integration;
 
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  *
@@ -53,8 +58,25 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String CLOSEABLE_RESOURCE = "closeableResource";
 
+	private Set<String> readOnlyHeaders = new HashSet<String>();
+
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
+	}
+
+	/**
+	 * Specify a list of headers which should be considered as read only
+	 * and prohibited from being populated in the message.
+	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
+	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * @since 4.3.2
+	 * @see #isReadOnly(String)
+	 */
+	public void setReadOnlyHeaders(String... readOnlyHeaders) {
+		Assert.noNullElements(readOnlyHeaders, "'readOnlyHeaders' must not be contain null items.");
+		if (!ObjectUtils.isEmpty(readOnlyHeaders)) {
+			this.readOnlyHeaders = new HashSet<String>(Arrays.asList(readOnlyHeaders));
+		}
 	}
 
 	public Long getExpirationDate() {
@@ -128,6 +150,11 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 						+ "' header value must be an Boolean.");
 			}
 		}
+	}
+
+	@Override
+	protected boolean isReadOnly(String headerName) {
+		return super.isReadOnly(headerName) || this.readOnlyHeaders.contains(headerName);
 	}
 
 }

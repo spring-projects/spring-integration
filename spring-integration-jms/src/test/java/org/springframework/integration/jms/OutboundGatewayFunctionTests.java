@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(connectionFactory);
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
@@ -166,7 +166,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue2);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
@@ -220,7 +220,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue3);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
@@ -272,7 +272,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue4);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
@@ -326,7 +326,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue5);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
@@ -378,7 +378,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		JmsTemplate template = new JmsTemplate();
 		template.setConnectionFactory(getConnectionFactory());
-		template.setReceiveTimeout(5000);
+		template.setReceiveTimeout(10000);
 		javax.jms.Message request = template.receive(requestQueue6);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;

@@ -205,6 +205,7 @@ spring.integration.channels.maxUnicastSubscribers=0x7fffffff <2>
 spring.integration.channels.maxBroadcastSubscribers=0x7fffffff <3>
 spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
+spring.integration.readOnly.headers= <6>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -222,6 +223,11 @@ This can be overridden on individual channels with the `max-subscribers` attribu
 
 <5> When `true`, messages that arrive at a gateway reply channel will throw an exception, when the gateway is not
 expecting a reply - because the sending thread has timed out, or already received a reply.
+
+<6> A comma-separated list of message header names which should not be populated into `Message` s during a header copying operation.
+The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<message-header-accessor>>), used to build messages via `MessageBuilder` (see <<message-builder>>).
+By default only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copied during message building.
+_Since version 4.3.2_
 
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.

@@ -37,3 +37,8 @@ See <<imap-format-important, the note in the Mail-Receiving Channel Adapter Sect
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
+
+==== Integration Properties
+
+Since _version 4.3.2_ a new `spring.integration.readOnly.headers` global property has been added to customize the list of headers which should not be copied to a newly created `Message` by the `MessageBuilder`.
+See <<global-properties>> for more information.

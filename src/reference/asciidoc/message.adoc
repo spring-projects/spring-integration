@@ -461,3 +461,8 @@ assertEquals(2, lessImportantMessage.getHeaders().getPriority());
 
 The `priority` header is only considered when using a `PriorityChannel` (as described in the next chapter).
 It is defined as _java.lang.Integer_.
+
+Since _version 4.3.2_, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers which should not be copied from an upstream `Message`.
+Just the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
+The global `spring.integration.readOnly.headers` property (see <<global-properties>>) is provided to customize `DefaultMessageBuilderFactory` for Framework components.
+This can be useful when you would like do not populate some out-of-the-box headers, like `contentType` by the `ObjectToJsonTransformer` (see <<json-transformers>>).
