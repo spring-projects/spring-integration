@@ -72,9 +72,15 @@ public final class IntegrationProperties {
 	public static final String REQUIRE_COMPONENT_ANNOTATION = INTEGRATION_PROPERTIES_PREFIX + "messagingAnnotations.require.componentAnnotation";
 
 	/**
-	 * Specifies the value of {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor#requireComponentAnnotation}.
+	 * Specifies the value of {@link org.springframework.integration.gateway.GatewayProxyFactoryBean#convertReceiveMessage}.
 	 */
 	public static final String GATEWAY_CONVERT_RECEIVE_MESSAGE = INTEGRATION_PROPERTIES_PREFIX + "messagingGateway.convertReceiveMessage";
+
+	/**
+	 * Specifies the value of {@link org.springframework.integration.support.DefaultMessageBuilderFactory#readOnlyHeaders}.
+	 */
+	public static final String READ_ONLY_HEADERS = INTEGRATION_PROPERTIES_PREFIX + "readOnly.headers";
+
 
 	private static Properties defaults;
 

@@ -17,22 +17,39 @@
 package org.springframework.integration.support;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
 public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 
+	private String[] readOnlyHeaders;
+
+	/**
+	 * Specify a list of headers which should be considered as a read only
+	 * and prohibited from the population to the message.
+	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
+	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * @since 4.3.2
+	 */
+	public void setReadOnlyHeaders(String... readOnlyHeaders) {
+		this.readOnlyHeaders = readOnlyHeaders;
+	}
+
 	@Override
 	public <T> MessageBuilder<T> fromMessage(Message<T> message) {
-		return MessageBuilder.fromMessage(message);
+		return MessageBuilder.fromMessage(message)
+				.readOnlyHeaders(this.readOnlyHeaders);
 	}
 
 	@Override
 	public <T> MessageBuilder<T> withPayload(T payload) {
-		return MessageBuilder.withPayload(payload);
+		return MessageBuilder.withPayload(payload)
+				.readOnlyHeaders(this.readOnlyHeaders);
 	}
 
 }

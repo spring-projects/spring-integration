@@ -12,7 +12,8 @@
 	<context:property-placeholder/>
 
 	<int-file:inbound-channel-adapter id="pseudoTx"
-		channel="input" auto-startup="false" directory="${java.io.tmpdir}/si-test1"
+		channel="input" auto-startup="false"
+						directory="#{T (org.springframework.integration.file.FileInboundTransactionTests).tmpDir.root}/si-test1"
 						use-watch-service="true">
 		<int:poller fixed-rate="500">
 			<int:transactional synchronization-factory="syncFactoryA"/>
@@ -32,7 +33,7 @@
 	<int:channel id="txInput" />
 
 	<int-file:inbound-channel-adapter id="realTx" channel="txInput" auto-startup="false"
-							 directory="${java.io.tmpdir}/si-test2">
+							 directory="#{T (org.springframework.integration.file.FileInboundTransactionTests).tmpDir.root}/si-test2">
 		<int:poller fixed-rate="500">
 			<int:transactional transaction-manager="txManager" synchronization-factory="syncFactoryB"/>
 		</int:poller>
