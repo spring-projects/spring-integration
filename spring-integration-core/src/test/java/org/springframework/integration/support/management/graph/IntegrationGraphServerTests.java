@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Router;
@@ -67,6 +68,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.3
  *
  */
@@ -95,10 +97,10 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size(), is(equalTo(3)));
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(31)));
+		assertThat(nodes.size(), is(equalTo(32)));
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(32)));
+		assertThat(links.size(), is(equalTo(33)));
 
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
@@ -117,10 +119,10 @@ public class IntegrationGraphServerTests {
 		assertThat(map.size(), is(equalTo(3)));
 		nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(31)));
+		assertThat(nodes.size(), is(equalTo(32)));
 		links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(34)));
+		assertThat(links.size(), is(equalTo(35)));
 	}
 
 	@Configuration
@@ -268,6 +270,11 @@ public class IntegrationGraphServerTests {
 
 		@ServiceActivator(inputChannel = "polledChannel")
 		public void bar(String foo) {
+		}
+
+		@Filter(inputChannel = "filterChannel")
+		public boolean filter(String payload) {
+			return false;
 		}
 
 	}

@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  * Builds the runtime object model graph.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.3
  *
  */
@@ -364,11 +365,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
 				DiscardingMessageHandler handler, String output, String errors, boolean polled) {
+			String discards = handler.getDiscardChannel() != null ? handler.getDiscardChannel().toString() : null;
 			return polled
 					? new ErrorCapableDiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString(), errors)
+						consumer.getInputChannel().toString(), output, discards, errors)
 					: new DiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, handler.getDiscardChannel().toString());
+						consumer.getInputChannel().toString(), output, discards);
 		}
 
 		private MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
