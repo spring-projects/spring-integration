@@ -197,7 +197,7 @@ public class UdpChannelAdapterTests {
 				e.printStackTrace();
 			}
 		});
-		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
+		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 		String replyString = "reply:" + System.currentTimeMillis();
 		byte[] replyBytes = replyString.getBytes();
@@ -241,7 +241,7 @@ public class UdpChannelAdapterTests {
 		handler.start();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
-		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
+		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 		adapter.stop();
 		handler.stop();
@@ -268,7 +268,7 @@ public class UdpChannelAdapterTests {
 		datagramSocket.send(packet);
 		datagramSocket.close();
 
-		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
+		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(receivedMessage);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 		adapter.stop();
@@ -292,7 +292,7 @@ public class UdpChannelAdapterTests {
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
 
-		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
+		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(receivedMessage);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 		adapter.stop();
@@ -320,7 +320,7 @@ public class UdpChannelAdapterTests {
 		DatagramSocket datagramSocket = new DatagramSocket(0);
 		datagramSocket.send(packet);
 		datagramSocket.close();
-		Message<?> receivedMessage = errorChannel.receive(2000);
+		Message<?> receivedMessage = errorChannel.receive(10000);
 		assertNotNull(receivedMessage);
 		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
 		adapter.stop();

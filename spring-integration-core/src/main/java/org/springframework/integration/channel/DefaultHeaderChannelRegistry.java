@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * The actual average expiry time will be 1.5x the delay.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -135,6 +136,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		this.running = false;
 		if (this.reaperScheduledFuture != null) {
 			this.reaperScheduledFuture.cancel(true);
+			this.reaperScheduledFuture = null;
 		}
 		this.explicitlyStopped = true;
 	}
@@ -198,6 +200,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	public synchronized void runReaper() {
 		if (this.reaperScheduledFuture != null) {
 			this.reaperScheduledFuture.cancel(true);
+			this.reaperScheduledFuture = null;
 		}
 		this.run();
 	}

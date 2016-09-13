@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * Eclipse Paho implementation.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -144,9 +145,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void doStop() {
 		try {
-			if (this.client != null) {
-				this.client.disconnect().waitForCompletion(this.completionTimeout);
-				this.client.close();
+			IMqttAsyncClient client = this.client;
+			if (client != null) {
+				client.disconnect().waitForCompletion(this.completionTimeout);
+				client.close();
 				this.client = null;
 			}
 		}

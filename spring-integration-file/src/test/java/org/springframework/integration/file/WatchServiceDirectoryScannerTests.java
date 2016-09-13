@@ -105,6 +105,7 @@ public class WatchServiceDirectoryScannerTests {
 		assertTrue(files.contains(top1));
 		assertTrue(files.contains(foo1));
 		assertTrue(files.contains(bar1));
+		fileReadingMessageSource.start();
 		File top2 = this.folder.newFile();
 		File foo2 = File.createTempFile("foo", ".txt", this.foo);
 		File bar2 = File.createTempFile("bar", ".txt", this.bar);
@@ -130,6 +131,7 @@ public class WatchServiceDirectoryScannerTests {
 				var1 = StandardWatchEventKinds.OVERFLOW;
 			}
 		*/
+		fileReadingMessageSource.start();
 		List<File> filesForOverflow = new ArrayList<File>(600);
 
 		for (int i = 0; i < 600; i++) {
