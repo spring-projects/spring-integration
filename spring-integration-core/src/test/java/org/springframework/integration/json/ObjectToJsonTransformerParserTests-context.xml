@@ -11,7 +11,7 @@
 
 	<object-to-json-transformer id="emptyContentTypeTransformer" input-channel="customObjectMapperInput" content-type=""/>
 
-	<object-to-json-transformer id="overridenContentTypeTransformer" input-channel="customObjectMapperInput" content-type="text/xml"/>
+	<object-to-json-transformer id="overriddenContentTypeTransformer" input-channel="customObjectMapperInput" content-type="text/xml"/>
 
 	<object-to-json-transformer id="customJsonObjectMapperTransformer" input-channel="customJsonObjectMapperInput"
 								object-mapper="customJsonObjectMapper"/>
