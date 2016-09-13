@@ -27,7 +27,9 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.TransactionDefinition;
@@ -54,7 +57,11 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FileInboundTransactionTests {
+
+	@ClassRule
+	public static TemporaryFolder tmpDir = new TemporaryFolder();
 
 	@Autowired
 	private SourcePollingChannelAdapter pseudoTx;
@@ -77,9 +84,6 @@ public class FileInboundTransactionTests {
 	@Autowired
 	private DummyTxManager transactionManager;
 
-	@Value("${java.io.tmpdir}")
-	private String tmpDir;
-
 	@Test
 	public void testNoTx() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -95,17 +99,16 @@ public class FileInboundTransactionTests {
 			}
 		});
 		pseudoTx.start();
-		new File(tmpDir + "/si-test1").mkdir();
-		File file = new File(tmpDir + "/si-test1/foo");
+		File file = new File(tmpDir.getRoot(), "si-test1/foo");
 		file.createNewFile();
-		Message<?> result = successChannel.receive(40000);
+		Message<?> result = successChannel.receive(60000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertFalse(file.delete());
 		crash.set(true);
-		file = new File(tmpDir + "/si-test1/bar");
+		file = new File(tmpDir.getRoot(), "si-test1/bar");
 		file.createNewFile();
-		result = failureChannel.receive(10000);
+		result = failureChannel.receive(60000);
 		assertNotNull(result);
 		assertTrue(file.delete());
 		assertEquals("foo", result.getPayload());
@@ -132,18 +135,17 @@ public class FileInboundTransactionTests {
 			}
 		});
 		realTx.start();
-		new File(tmpDir + "/si-test2").mkdir();
-		File file = new File(tmpDir + "/si-test2/baz");
+		File file = new File(tmpDir.getRoot(), "si-test2/baz");
 		file.createNewFile();
-		Message<?> result = successChannel.receive(40000);
+		Message<?> result = successChannel.receive(60000);
 		assertNotNull(result);
 		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(file.delete());
 		assertTrue(transactionManager.getCommitted());
 		crash.set(true);
-		file = new File(tmpDir + "/si-test2/qux");
+		file = new File(tmpDir.getRoot(), "si-test2/qux");
 		file.createNewFile();
-		result = failureChannel.receive(10000);
+		result = failureChannel.receive(60000);
 		assertNotNull(result);
 		assertTrue(file.delete());
 		assertEquals(Boolean.TRUE, result.getPayload());
@@ -193,6 +195,7 @@ public class FileInboundTransactionTests {
 		public boolean getRolledBack() {
 			return rolledBack;
 		}
+
 	}
 
 }
