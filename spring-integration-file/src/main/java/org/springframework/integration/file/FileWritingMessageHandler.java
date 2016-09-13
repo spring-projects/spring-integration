@@ -365,7 +365,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public void start() {
-		if (FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
+		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			TaskScheduler taskScheduler = getTaskScheduler();
 			Assert.state(taskScheduler != null, "'taskScheduler' is required for FileExistsMode.APPEND_NO_FLUSH");
 			this.flushTask = taskScheduler.scheduleAtFixedRate(new Flusher(), this.flushInterval / 3);

@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,6 +89,8 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
+	private final AtomicBoolean running = new AtomicBoolean();
+
 	/*
 	 * {@link PriorityBlockingQueue#iterator()} throws
 	 * {@link java.util.ConcurrentModificationException} in Java 5.
@@ -104,8 +107,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	private volatile boolean autoCreateDirectory = true;
 
 	private volatile boolean scanEachPoll = false;
-
-	private volatile boolean running;
 
 	private FileListFilter<File> filter;
 
@@ -282,7 +283,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	public void setWatchEvents(WatchEventType... watchEvents) {
 		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
 		Assert.noNullElements(watchEvents, "'watchEvents' must not contain null elements.");
-		Assert.state(!this.running, "Cannot change watch events while running.");
+		Assert.state(!this.running.get(), "Cannot change watch events while running.");
 
 		this.watchEvents = Arrays.copyOf(watchEvents, watchEvents.length);
 	}
@@ -294,23 +295,21 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	@Override
 	public void start() {
-		if (this.scanner instanceof Lifecycle) {
+		if (!this.running.getAndSet(true) && this.scanner instanceof Lifecycle) {
 			((Lifecycle) this.scanner).start();
 		}
-		this.running = true;
 	}
 
 	@Override
 	public void stop() {
-		if (this.scanner instanceof Lifecycle) {
-			((Lifecycle) this.scanner).start();
+		if (this.running.getAndSet(false) && this.scanner instanceof Lifecycle) {
+			((Lifecycle) this.scanner).stop();
 		}
-		this.running = false;
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.running;
+		return this.running.get();
 	}
 
 	@Override
@@ -459,6 +458,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			try {
 				this.watcher.close();
 				this.watcher = null;
+				this.pathKeys.clear();
 			}
 			catch (IOException e) {
 				logger.error("Failed to close watcher for " + FileReadingMessageSource.this.directory, e);

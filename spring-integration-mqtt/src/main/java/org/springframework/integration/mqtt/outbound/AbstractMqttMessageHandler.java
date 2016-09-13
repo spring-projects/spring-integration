@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mqtt.outbound;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
@@ -29,10 +31,13 @@ import org.springframework.util.Assert;
  * Abstract class for MQTT outbound channel adapters.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
 public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements Lifecycle {
+
+	private final AtomicBoolean running = new AtomicBoolean();
 
 	private final String url;
 
@@ -45,8 +50,6 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	private volatile boolean defaultRetained = false;
 
 	private volatile MessageConverter converter;
-
-	private boolean running;
 
 	private volatile int clientInstance;
 
@@ -113,23 +116,25 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	@Override
 	public final void start() {
-		this.doStart();
-		this.running = true;
+		if (!this.running.getAndSet(true)) {
+			doStart();
+		}
 	}
 
 	protected abstract void doStart();
 
 	@Override
 	public final void stop() {
-		this.doStop();
-		this.running = false;
+		if (this.running.getAndSet(false)) {
+			doStop();
+		}
 	}
 
 	protected abstract void doStop();
 
 	@Override
 	public boolean isRunning() {
-		return this.running;
+		return this.running.get();
 	}
 
 	@Override

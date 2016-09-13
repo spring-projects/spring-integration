@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class PayloadDeserializingTransformerParserTests {
 	public void directChannelWithSerializedStringMessage() throws Exception {
 		byte[] bytes = serialize("foo");
 		directInput.send(new GenericMessage<byte[]>(bytes));
-		Message<?> result = output.receive(0);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof String);
 		assertEquals("foo", result.getPayload());
@@ -75,7 +75,7 @@ public class PayloadDeserializingTransformerParserTests {
 	public void queueChannelWithSerializedStringMessage() throws Exception {
 		byte[] bytes = serialize("foo");
 		queueInput.send(new GenericMessage<byte[]>(bytes));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof String);
 		assertEquals("foo", result.getPayload());
@@ -85,7 +85,7 @@ public class PayloadDeserializingTransformerParserTests {
 	public void directChannelWithSerializedObjectMessage() throws Exception {
 		byte[] bytes = serialize(new TestBean());
 		directInput.send(new GenericMessage<byte[]>(bytes));
-		Message<?> result = output.receive(0);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		assertEquals("test", ((TestBean) result.getPayload()).name);
@@ -95,7 +95,7 @@ public class PayloadDeserializingTransformerParserTests {
 	public void queueChannelWithSerializedObjectMessage() throws Exception {
 		byte[] bytes = serialize(new TestBean());
 		queueInput.send(new GenericMessage<byte[]>(bytes));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		assertEquals("test", ((TestBean) result.getPayload()).name);
@@ -110,7 +110,7 @@ public class PayloadDeserializingTransformerParserTests {
 	@Test
 	public void customDeserializer() throws Exception {
 		customDeserializerInput.send(new GenericMessage<byte[]>("test".getBytes("UTF-8")));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertEquals(String.class, result.getPayload().getClass());
 		assertEquals("TEST", result.getPayload());
@@ -138,6 +138,7 @@ public class PayloadDeserializingTransformerParserTests {
 		public Object deserialize(InputStream source) throws IOException {
 			return FileCopyUtils.copyToString(new InputStreamReader(source, "UTF-8")).toUpperCase();
 		}
+
 	}
 
 }

@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * be useful.
  *
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
@@ -277,7 +278,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
 				this.running = false;
-				this.future.cancel(true);
+				if (this.future != null) {
+					this.future.cancel(true);
+				}
+				this.future = null;
 				logger.debug("Stopped LeaderInitiator");
 			}
 		}
