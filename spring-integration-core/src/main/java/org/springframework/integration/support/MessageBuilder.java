@@ -274,6 +274,21 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		return this;
 	}
 
+	/**
+	 * Specify a list of headers which should be considered as read only
+	 * and prohibited from being populated in the message.
+	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
+	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * @since 4.3.2
+	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
+	 */
+	public MessageBuilder<T> readOnlyHeaders(String... readOnlyHeaders) {
+		this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
+		return this;
+	}
+
+
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public Message<T> build() {

@@ -241,6 +241,7 @@ public StreamTransformer streamToString() {
 }
 ----
 
+[[json-transformers]]
 ====== JSON Transformers
 
 _Object to JSON_ and _JSON to Object_ transformers are provided.
