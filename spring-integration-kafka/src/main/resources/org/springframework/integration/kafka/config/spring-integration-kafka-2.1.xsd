@@ -96,6 +96,18 @@
 							]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="sync">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies whether to block the sending thread until the producer
+								callback has been invoked, indicating the broker has accepted the
+								message (or an exception thrown if the send fails). Default: false.
+							]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:boolean"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attribute name="order">
 				<xsd:annotation>
 					<xsd:documentation>
