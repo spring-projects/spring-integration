@@ -37,7 +37,7 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 								Specifies the KafkaTemplate used to publish messages.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.kafka.core.KafkaTemplate" />
@@ -50,7 +50,7 @@
 					<xsd:documentation><![CDATA[
 								Specifies the name of the Kafka topic.
 								This attribute is mutually exclusive with 'topic-expression' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="topic-expression" type="xsd:string">
@@ -59,7 +59,7 @@
 								Specifies the expression to determine the name of the Kafka topic
 								against the Message at runtime.
 								This attribute is mutually exclusive with 'topic' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="message-key" type="xsd:string">
@@ -67,7 +67,7 @@
 					<xsd:documentation><![CDATA[
 								Specifies the Key for the Kafka message.
 								This attribute is mutually exclusive with 'message-key-expression' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="message-key-expression" type="xsd:string">
@@ -76,7 +76,7 @@
 								Specifies the expression to determine the Key for Kafka message
 								against the Message at runtime.
 								This attribute is mutually exclusive with 'message-key' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="partition-id" type="xsd:string">
@@ -84,7 +84,7 @@
 					<xsd:documentation><![CDATA[
 								Specifies the target partition for the Kafka message.
 								This attribute is mutually exclusive with 'partition-id-expression' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="partition-id-expression" type="xsd:string">
@@ -93,7 +93,7 @@
 								Specifies the expression to determine the partition for Kafka message
 								against the Message at runtime.
 								This attribute is mutually exclusive with 'partition-id' attribute.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="sync">
@@ -102,7 +102,7 @@
 								Specifies whether to block the sending thread until the producer
 								callback has been invoked, indicating the broker has accepted the
 								message (or an exception thrown if the send fails). Default: false.
-							]]></xsd:documentation>
+					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:union memberTypes="xsd:int xsd:boolean"/>
