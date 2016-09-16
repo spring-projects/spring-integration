@@ -66,7 +66,7 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 		if (partitionIdExpressionDef != null) {
 			kafkaProducerMessageHandlerBuilder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
 		}
-
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(kafkaProducerMessageHandlerBuilder, element, "sync");
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
 	}
 
