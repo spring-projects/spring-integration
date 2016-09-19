@@ -109,8 +109,8 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 		this.twitterSearchAdapter.start();
 
 		assertNotNull(this.tweets.receive(10000));
-		assertNotNull(this.tweets.receive(1000));
-		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(10000));
+		assertNotNull(this.tweets.receive(10000));
 
 		/* We received 3 messages so far. When invoking receive() again the search
 		 * will return again the 3 test Tweets but as we already processed them
@@ -129,8 +129,8 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 
 		this.twitterSearchAdapter.start();
 
-		assertNotNull(this.tweets.receive(1000));
-		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(10000));
+		assertNotNull(this.tweets.receive(10000));
 
 		assertNull(this.tweets.receive(0));
 

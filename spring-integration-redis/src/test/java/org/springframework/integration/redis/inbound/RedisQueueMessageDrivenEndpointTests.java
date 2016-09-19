@@ -121,15 +121,15 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10000);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		Message<Object> receive = (Message<Object>) channel.receive(2000);
+		Message<Object> receive = (Message<Object>) channel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 
-		receive = (Message<Object>) channel.receive(2000);
+		receive = (Message<Object>) channel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload2, receive.getPayload());
 
@@ -166,16 +166,16 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.setExpectMessage(true);
 		endpoint.setOutputChannel(channel);
 		endpoint.setErrorChannel(errorChannel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10000);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		Message<Object> receive = (Message<Object>) channel.receive(2000);
+		Message<Object> receive = (Message<Object>) channel.receive(10000);
 		assertNotNull(receive);
 
 		assertEquals(message, receive);
 
-		receive = (Message<Object>) errorChannel.receive(2000);
+		receive = (Message<Object>) errorChannel.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive, Matchers.instanceOf(ErrorMessage.class));
 		assertThat(receive.getPayload(), Matchers.instanceOf(MessagingException.class));
@@ -201,7 +201,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		redisTemplate.boundListOps("si.test.Int3017IntegrationInbound")
 				.leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
 
-		Message<?> receive = this.fromChannel.receive(2000);
+		Message<?> receive = this.fromChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 	}
@@ -216,7 +216,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		this.symmetricalInputChannel.send(message);
 
-		Message<?> receive = this.symmetricalOutputChannel.receive(2000);
+		Message<?> receive = this.symmetricalOutputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 	}
@@ -247,7 +247,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		dfa.setPropertyValue("boundListOperations", boundListOperations);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(new DirectChannel());
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10000);
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		endpoint.setTaskExecutor(executorService);
@@ -340,7 +340,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		redisTemplate.boundListOps(queueName).leftPush(payload);
 
-		Message<?> receive = channel.receive(1000);
+		Message<?> receive = channel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 
@@ -375,16 +375,16 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10000);
 		endpoint.setRightPop(false);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		Message<Object> receive = (Message<Object>) channel.receive(2000);
+		Message<Object> receive = (Message<Object>) channel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
 
-		receive = (Message<Object>) channel.receive(2000);
+		receive = (Message<Object>) channel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(payload2, receive.getPayload());
 
