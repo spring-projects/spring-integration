@@ -68,7 +68,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
+		this.applicationContext = applicationContext; //NOSONAR (sync)
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	 * @param applicationName the application name.
 	 */
 	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
+		this.applicationName = applicationName; //NOSONAR (sync)
 	}
 
 	/**

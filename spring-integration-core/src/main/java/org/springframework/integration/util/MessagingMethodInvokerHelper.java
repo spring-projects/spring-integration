@@ -104,7 +104,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private final Map<Class<?>, HandlerMethod> handlerMessageMethods;
 
-	private final LinkedList<Map<Class<?>, HandlerMethod>> handlerMethodsList;
+	private final List<Map<Class<?>, HandlerMethod>> handlerMethodsList;
 
 	private final HandlerMethod handlerMethod;
 
@@ -190,6 +190,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			Method method, Class<?> expectedType, boolean canProcessMessageList) {
+		this.annotationType = annotationType;
 		this.canProcessMessageList = canProcessMessageList;
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
@@ -254,10 +255,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private void setDisplayString(Object targetObject, Object targetMethod) {
 		StringBuilder sb = new StringBuilder(targetObject.getClass().getName());
 		if (targetMethod instanceof Method) {
-			sb.append("." + ((Method) targetMethod).getName());
+			sb.append(".")
+					.append(((Method) targetMethod).getName());
 		}
 		else if (targetMethod instanceof String) {
-			sb.append("." + targetMethod);
+			sb.append(".")
+					.append(targetMethod);
 		}
 		this.displayString = sb.toString() + "]";
 	}
@@ -717,7 +720,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						sb.append("payload");
 						String qualifierExpression = (String) AnnotationUtils.getValue(mappingAnnotation);
 						if (StringUtils.hasText(qualifierExpression)) {
-							sb.append("." + qualifierExpression);
+							sb.append(".")
+									.append(qualifierExpression);
 						}
 						if (!StringUtils.hasText(qualifierExpression)) {
 							this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
@@ -727,7 +731,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						sb.append("messages.![payload");
 						String qualifierExpression = ((Payloads) mappingAnnotation).value();
 						if (StringUtils.hasText(qualifierExpression)) {
-							sb.append("." + qualifierExpression);
+							sb.append(".")
+									.append(qualifierExpression);
 						}
 						sb.append("]");
 						if (!StringUtils.hasText(qualifierExpression)) {
