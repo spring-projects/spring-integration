@@ -358,7 +358,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 							count++;
 						}
 						catch (Exception e) {
-							if (e instanceof MessagingException){
+							if (e instanceof MessagingException) {
 								throw (MessagingException) e;
 							}
 							else {
