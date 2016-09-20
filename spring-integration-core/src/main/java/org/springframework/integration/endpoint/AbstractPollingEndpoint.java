@@ -54,8 +54,11 @@ import org.springframework.util.ErrorHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Andreas Baer
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
+
+	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	private volatile Executor taskExecutor = new SyncTaskExecutor();
 
@@ -269,6 +272,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (holder != null) {
 				holder.setMessage(message);
 			}
+			messageHolder.set(message);
 			this.handleMessage(message);
 			result = true;
 		}
@@ -354,14 +358,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 								break;
 							}
 							count++;
+						} catch (Exception e) {
+							if(e instanceof MessagingException){
+								throw (MessagingException) e;
+							} else {
+								throw new MessagingException(messageHolder.get(), e);
 						}
-						catch (Exception e) {
-							if (e instanceof RuntimeException) {
-								throw (RuntimeException) e;
-							}
-							else {
-								throw new MessageHandlingException(new ErrorMessage(e), e);
-							}
+						} finally {
+							messageHolder.remove();
 						}
 					}
 				}
