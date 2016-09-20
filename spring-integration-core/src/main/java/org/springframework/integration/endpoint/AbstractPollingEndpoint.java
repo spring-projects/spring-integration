@@ -37,9 +37,7 @@ import org.springframework.integration.transaction.TransactionSynchronizationFac
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -54,8 +52,11 @@ import org.springframework.util.ErrorHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Andreas Baer
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
+
+	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	private volatile Executor taskExecutor = new SyncTaskExecutor();
 
@@ -269,6 +270,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (holder != null) {
 				holder.setMessage(message);
 			}
+			messageHolder.set(message);
 			this.handleMessage(message);
 			result = true;
 		}
@@ -356,12 +358,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 							count++;
 						}
 						catch (Exception e) {
-							if (e instanceof RuntimeException) {
-								throw (RuntimeException) e;
+							if (e instanceof MessagingException) {
+								throw (MessagingException) e;
 							}
 							else {
-								throw new MessageHandlingException(new ErrorMessage(e), e);
+								throw new MessagingException(messageHolder.get(), e);
 							}
+						}
+						finally {
+							messageHolder.remove();
 						}
 					}
 				}
