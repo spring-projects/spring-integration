@@ -78,7 +78,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		}
 		int counter = 0;
 		for (int i = 0; i < numToTest; i++) {
-			Message<?> message = channel.receive(5000);
+			Message<?> message = channel.receive(10000);
 			if (message == null) {
 				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
 			}
@@ -96,7 +96,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
+		RedisTemplate<?, ?> template = new RedisTemplate<>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
@@ -111,7 +111,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 
 		counter = 0;
 		for (int i = 0; i < numToTest; i++) {
-			Message<?> message = channel.receive(5000);
+			Message<?> message = channel.receive(10000);
 			if (message == null) {
 				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
 			}

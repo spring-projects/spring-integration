@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
  * The resolution is done in seconds.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -40,6 +41,19 @@ public class LastModifiedFileListFilter implements FileListFilter<File> {
 
 	public long getAge() {
 		return this.age;
+	}
+
+	public LastModifiedFileListFilter() {
+	}
+
+	/**
+	 * Construct a {@link LastModifiedFileListFilter} instance with provided {@link #age}.
+	 * Defaults to 60 seconds.
+	 * @param age the age in seconds.
+	 * @since 5.0
+	 */
+	public LastModifiedFileListFilter(long age) {
+		this.age = age;
 	}
 
 	/**

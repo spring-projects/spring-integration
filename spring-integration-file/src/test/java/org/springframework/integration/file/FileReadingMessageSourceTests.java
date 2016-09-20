@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
 public class FileReadingMessageSourceTests {
@@ -66,6 +67,8 @@ public class FileReadingMessageSourceTests {
 		when(inputDirectoryMock.isDirectory()).thenReturn(true);
 		when(inputDirectoryMock.exists()).thenReturn(true);
 		when(inputDirectoryMock.canRead()).thenReturn(true);
+		when(inputDirectoryMock.getAbsolutePath()).thenReturn("foo/bar");
+		when(fileMock.getAbsolutePath()).thenReturn("foo/bar/fileMock");
 		when(locker.lock(isA(File.class))).thenReturn(true);
 	}
 
@@ -80,13 +83,13 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void straightProcess() throws Exception {
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		assertThat(source.receive().getPayload(), is(fileMock));
 	}
 
 	@Test
 	public void requeueOnFailure() throws Exception {
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertNotNull(received);
 		source.onFailure(received);
@@ -97,7 +100,8 @@ public class FileReadingMessageSourceTests {
 	@Test
 	public void scanEachPoll() throws Exception {
 		File anotherFileMock = mock(File.class);
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock, anotherFileMock});
+		when(anotherFileMock.getAbsolutePath()).thenReturn("foo/bar/anotherFileMock");
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock, anotherFileMock });
 		source.setScanEachPoll(true);
 		assertNotNull(source.receive());
 		assertNotNull(source.receive());
@@ -107,7 +111,7 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void noDuplication() throws Exception {
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertNotNull(received);
 		assertEquals(fileMock, received.getPayload());
@@ -122,7 +126,7 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void lockIsAcquired() throws IOException {
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		Message<File> received = source.receive();
 		assertNotNull(received);
 		assertEquals(fileMock, received.getPayload());
@@ -131,7 +135,7 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void lockedFilesAreIgnored() throws IOException {
-		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
+		when(inputDirectoryMock.listFiles()).thenReturn(new File[] { fileMock });
 		when(locker.lock(fileMock)).thenReturn(false);
 		Message<File> received = source.receive();
 		assertNull(received);
@@ -141,8 +145,11 @@ public class FileReadingMessageSourceTests {
 	@Test
 	public void orderedReception() throws Exception {
 		File file1 = mock(File.class);
+		when(file1.getAbsolutePath()).thenReturn("foo/bar/file1");
 		File file2 = mock(File.class);
+		when(file2.getAbsolutePath()).thenReturn("foo/bar/file2");
 		File file3 = mock(File.class);
+		when(file3.getAbsolutePath()).thenReturn("foo/bar/file3");
 
 		// record the comparator to reverse order the files
 		when(comparator.compare(file1, file2)).thenReturn(1);

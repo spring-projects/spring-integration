@@ -17,7 +17,9 @@
 package org.springframework.integration.file;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -39,6 +41,8 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -71,7 +75,7 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
-	public void testInitialAndAddMoreThenRemove() throws Exception {
+	public void testWatchServiceDirectoryScanner() throws Exception {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
 		fileReadingMessageSource.setDirectory(folder.getRoot());
 		fileReadingMessageSource.setUseWatchService(true);
@@ -187,6 +191,19 @@ public class WatchServiceDirectoryScannerTests {
 		}
 
 		assertTrue(removeFileLatch.await(10, TimeUnit.SECONDS));
+
+		File baz3 = File.createTempFile("baz3", ".txt", baz);
+
+		n = 0;
+		Message<File> fileMessage = null;
+		while (n++ < 300 && (fileMessage = fileReadingMessageSource.receive()) == null) {
+			Thread.sleep(100);
+		}
+
+		assertNotNull(fileMessage);
+		assertEquals(baz3, fileMessage.getPayload());
+		assertThat(fileMessage.getHeaders().get(FileHeaders.RELATIVE_PATH, String.class),
+				startsWith(TestUtils.applySystemFileSeparator("foo/baz/")));
 
 		fileReadingMessageSource.stop();
 	}
