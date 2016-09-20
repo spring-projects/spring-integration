@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -361,7 +362,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 
 		if (file != null) {
-			message = this.getMessageBuilderFactory().withPayload(file).build();
+			message = getMessageBuilderFactory().withPayload(file)
+					.setHeader(FileHeaders.FILENAME, file.getAbsolutePath()
+							.replaceFirst(Matcher.quoteReplacement(this.directory.getAbsolutePath() + File.separator),
+									""))
+					.build();
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}

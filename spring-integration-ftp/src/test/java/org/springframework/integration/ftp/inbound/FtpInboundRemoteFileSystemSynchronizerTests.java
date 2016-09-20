@@ -48,6 +48,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -85,8 +86,8 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 	@Test
 	public void testCopyFileToLocalDir() throws Exception {
-		File localDirectoy = new File("test");
-		assertFalse(localDirectoy.exists());
+		File localDirectory = new File("test");
+		assertFalse(localDirectory.exists());
 
 		TestFtpSessionFactory ftpSessionFactory = new TestFtpSessionFactory();
 		ftpSessionFactory.setUsername("kermit");
@@ -118,7 +119,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 		ms.setAutoCreateLocalDirectory(true);
 
-		ms.setLocalDirectory(localDirectoy);
+		ms.setLocalDirectory(localDirectory);
 		ms.setBeanFactory(mock(BeanFactory.class));
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
@@ -132,6 +133,8 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		// The test remote files are created with the current timestamp + 1 day.
 		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
 
+		assertEquals("A.TEST.a", atestFile.getHeaders().get(FileHeaders.FILENAME));
+
 		Message<File> btestFile =  ms.receive();
 		assertNotNull(btestFile);
 		assertEquals("B.TEST.a", btestFile.getPayload().getName());
@@ -142,7 +145,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertNull(nothing);
 
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
-		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy, Integer.MIN_VALUE);
+		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectory, Integer.MIN_VALUE);
 
 		assertTrue(new File("test/A.TEST.a").exists());
 		assertTrue(new File("test/B.TEST.a").exists());
