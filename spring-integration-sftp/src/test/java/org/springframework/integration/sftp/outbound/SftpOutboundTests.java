@@ -41,8 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -210,12 +208,9 @@ public class SftpOutboundTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<String>();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				madeDirs.add((String) invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			madeDirs.add((String) invocation.getArguments()[0]);
+			return null;
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<String>("qux"));
 		assertEquals(3, madeDirs.size());
@@ -227,7 +222,8 @@ public class SftpOutboundTests {
 	@Test
 	public void testSharedSession() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class,
+				String.class, String.class, int.class);
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
@@ -242,13 +238,7 @@ public class SftpOutboundTests {
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
 		// Can't use when(session.open()) with a spy
 		final AtomicInteger n = new AtomicInteger();
-		doAnswer(new Answer<ChannelSftp>() {
-
-			@Override
-			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
-				return n.getAndIncrement() == 0 ? channel1 : channel2;
-			}
-		}).when(jschSession1).openChannel("sftp");
+		doAnswer(invocation -> n.getAndIncrement() == 0 ? channel1 : channel2).when(jschSession1).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -313,20 +303,8 @@ public class SftpOutboundTests {
 		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
 		// Can't use when(session.open()) with a spy
 		final AtomicInteger n = new AtomicInteger();
-		doAnswer(new Answer<ChannelSftp>() {
-
-			@Override
-			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
-				return n.getAndIncrement() == 0 ? channel1 : channel2;
-			}
-		}).when(jschSession1).openChannel("sftp");
-		doAnswer(new Answer<ChannelSftp>() {
-
-			@Override
-			public ChannelSftp answer(InvocationOnMock invocation) throws Throwable {
-				return n.getAndIncrement() < 3 ? channel3 : channel4;
-			}
-		}).when(jschSession2).openChannel("sftp");
+		doAnswer(invocation -> n.getAndIncrement() == 0 ? channel1 : channel2).when(jschSession1).openChannel("sftp");
+		doAnswer(invocation -> n.getAndIncrement() < 3 ? channel3 : channel4).when(jschSession2).openChannel("sftp");
 		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
 		factory.setHost("host");
 		factory.setUser("foo");
@@ -367,13 +345,7 @@ public class SftpOutboundTests {
 	}
 
 	private void noopConnect(ChannelSftp channel1) throws JSchException {
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(channel1).connect();
+		doAnswer(invocation -> null).when(channel1).connect();
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
@@ -383,29 +355,19 @@ public class SftpOutboundTests {
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
-				doAnswer(new Answer<Object>() {
-					@Override
-					public Object answer(InvocationOnMock invocation)
-							throws Throwable {
-						File file = new File((String) invocation.getArguments()[1]);
-						assertTrue(file.getName().endsWith(".writing"));
-						FileCopyUtils.copy((InputStream) invocation.getArguments()[0], new FileOutputStream(file));
-						return null;
-					}
-
+				doAnswer(invocation -> {
+					File file = new File((String) invocation.getArguments()[1]);
+					assertTrue(file.getName().endsWith(".writing"));
+					FileCopyUtils.copy((InputStream) invocation.getArguments()[0], new FileOutputStream(file));
+					return null;
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 
-				doAnswer(new Answer<Object>() {
-					@Override
-					public Object answer(InvocationOnMock invocation)
-							throws Throwable {
-						File file = new File((String) invocation.getArguments()[0]);
-						assertTrue(file.getName().endsWith(".writing"));
-						File renameToFile = new File((String) invocation.getArguments()[1]);
-						file.renameTo(renameToFile);
-						return null;
-					}
-
+				doAnswer(invocation -> {
+					File file = new File((String) invocation.getArguments()[0]);
+					assertTrue(file.getName().endsWith(".writing"));
+					File renameToFile = new File((String) invocation.getArguments()[1]);
+					file.renameTo(renameToFile);
+					return null;
 				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());
 
 				String[] files = new File("remote-test-dir").list();

@@ -80,33 +80,28 @@ public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPFile> {
 	 */
 	@Override
 	public boolean exists(final String path) {
-		return doExecuteWithClient(new ClientCallback<FTPClient, Boolean>() {
+		return doExecuteWithClient(client -> {
+			try {
+				switch (FtpRemoteFileTemplate.this.existsMode) {
 
-			@Override
-			public Boolean doWithClient(FTPClient client) {
-				try {
-					switch (FtpRemoteFileTemplate.this.existsMode) {
+					case STAT:
+						return client.getStatus(path) != null;
 
-						case STAT:
-							return client.getStatus(path) != null;
+					case NLST:
+						String[] names = client.listNames(path);
+						return !ObjectUtils.isEmpty(names);
 
-						case NLST:
-							String[] names = client.listNames(path);
-							return !ObjectUtils.isEmpty(names);
+					case NLST_AND_DIRS:
+						return getSession().exists(path);
 
-						case NLST_AND_DIRS:
-							return getSession().exists(path);
-
-						default:
-							throw new IllegalStateException("Unsupported 'existsMode': " +
-									FtpRemoteFileTemplate.this.existsMode);
-					}
-				}
-				catch (IOException e) {
-					throw new MessagingException("Failed to check the remote path for " + path, e);
+					default:
+						throw new IllegalStateException("Unsupported 'existsMode': " +
+								FtpRemoteFileTemplate.this.existsMode);
 				}
 			}
-
+			catch (IOException e) {
+				throw new MessagingException("Failed to check the remote path for " + path, e);
+			}
 		});
 	}
 

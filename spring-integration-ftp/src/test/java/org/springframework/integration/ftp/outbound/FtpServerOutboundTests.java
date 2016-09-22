@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -55,8 +54,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +67,6 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
@@ -304,23 +300,13 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
 		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-		assertTrue(template.get(new GenericMessage<String>("ftpSource/ ftpSource1.txt"), new InputStreamCallback() {
-
-			@Override
-			public void doWithInputStream(InputStream stream) throws IOException {
-				FileCopyUtils.copy(stream, baos1);
-			}
-		}));
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ ftpSource1.txt"),
+				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos1)));
 		assertEquals("source1", new String(baos1.toByteArray()));
 
 		final ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
-		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"), new InputStreamCallback() {
-
-			@Override
-			public void doWithInputStream(InputStream stream) throws IOException {
-				FileCopyUtils.copy(stream, baos2);
-			}
-		}));
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"),
+				(InputStreamCallback) stream -> FileCopyUtils.copy(stream, baos2)));
 		assertEquals("source2", new String(baos2.toByteArray()));
 	}
 
@@ -438,18 +424,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Test
 	public void testMgetPartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		doAnswer(new Answer<FTPFile[]>() {
-
-			@Override
-			public FTPFile[] answer(InvocationOnMock invocation) throws Throwable {
-				FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
-				// add an extra file where the get will fail
-				files = Arrays.copyOf(files, files.length + 1);
-				FTPFile bogusFile = new FTPFile();
-				bogusFile.setName("bogus.txt");
-				files[files.length - 1] = bogusFile;
-				return files;
-			}
+		doAnswer(invocation -> {
+			FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
+			// add an extra file where the get will fail
+			files = Arrays.copyOf(files, files.length + 1);
+			FTPFile bogusFile = new FTPFile();
+			bogusFile.setName("bogus.txt");
+			files[files.length - 1] = bogusFile;
+			return files;
 		}).when(session).list("ftpSource/subFtpSource/*");
 		String dir = "ftpSource/subFtpSource/";
 		try {
@@ -468,19 +450,15 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Test
 	public void testMgetRecursivePartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		doAnswer(new Answer<FTPFile[]>() {
-
-			@Override
-			public FTPFile[] answer(InvocationOnMock invocation) throws Throwable {
-				FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
-				// add an extra file where the get will fail
-				files = Arrays.copyOf(files, files.length + 1);
-				FTPFile bogusFile = new FTPFile();
-				bogusFile.setName("bogus.txt");
-				bogusFile.setTimestamp(Calendar.getInstance());
-				files[files.length - 1] = bogusFile;
-				return files;
-			}
+		doAnswer(invocation -> {
+			FTPFile[] files = (FTPFile[]) invocation.callRealMethod();
+			// add an extra file where the get will fail
+			files = Arrays.copyOf(files, files.length + 1);
+			FTPFile bogusFile = new FTPFile();
+			bogusFile.setName("bogus.txt");
+			bogusFile.setTimestamp(Calendar.getInstance());
+			files[files.length - 1] = bogusFile;
+			return files;
 		}).when(session).list("ftpSource/subFtpSource/");
 		String dir = "ftpSource/";
 		try {
@@ -498,13 +476,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	@Test
 	public void testMputPartial() throws Exception {
 		Session<FTPFile> session = spyOnSession();
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				throw new IOException("Failed to send localSource2");
-			}
-
+		doAnswer(invocation -> {
+			throw new IOException("Failed to send localSource2");
 		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("localSource2"));
 		try {
 			this.inboundMPut.send(new GenericMessage<File>(getSourceLocalDirectory()));
@@ -528,13 +501,8 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		FileOutputStream writer = new FileOutputStream(extra);
 		writer.write("foo".getBytes());
 		writer.close();
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				throw new IOException("Failed to send subLocalSource2");
-			}
-
+		doAnswer(invocation -> {
+			throw new IOException("Failed to send subLocalSource2");
 		}).when(session).write(Mockito.any(InputStream.class), Mockito.contains("subLocalSource2"));
 		try {
 			this.inboundMPutRecursive.send(new GenericMessage<File>(getSourceLocalDirectory()));
@@ -569,13 +537,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	}
 
 	private void assertLength6(FtpRemoteFileTemplate template) {
-		FTPFile[] files = template.execute(new SessionCallback<FTPFile, FTPFile[]>() {
-
-			@Override
-			public FTPFile[] doInSession(Session<FTPFile> session) throws IOException {
-				return session.list("ftpTarget/appending.txt");
-			}
-		});
+		FTPFile[] files = template.execute(session -> session.list("ftpTarget/appending.txt"));
 		assertEquals(1, files.length);
 		assertEquals(6, files[0].getSize());
 	}
@@ -638,21 +600,16 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		@Override
 		public List<File> filterFiles(File[] files) {
 			File[] sorted = Arrays.copyOf(files, files.length);
-			Arrays.sort(sorted, new Comparator<File>() {
-
-				@Override
-				public int compare(File o1, File o2) {
-					if (o1.isDirectory() && !o2.isDirectory()) {
-						return 1;
-					}
-					else if (!o1.isDirectory() && o2.isDirectory()) {
-						return -1;
-					}
-					else {
-						return o1.getName().compareTo(o2.getName());
-					}
+			Arrays.sort(sorted, (o1, o2) -> {
+				if (o1.isDirectory() && !o2.isDirectory()) {
+					return 1;
 				}
-
+				else if (!o1.isDirectory() && o2.isDirectory()) {
+					return -1;
+				}
+				else {
+					return o1.getName().compareTo(o2.getName());
+				}
 			});
 			return Arrays.asList(sorted);
 		}

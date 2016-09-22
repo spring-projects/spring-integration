@@ -20,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,10 +29,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.messaging.support.GenericMessage;
@@ -68,41 +64,28 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.execute(new SessionCallback<LsEntry, Boolean>() {
-
-			@Override
-			public Boolean doInSession(Session<LsEntry> session) throws IOException {
-				session.mkdir("foo/");
-				return session.mkdir("foo/bar/");
-			}
-
+		template.execute(session -> {
+			session.mkdir("foo/");
+			return session.mkdir("foo/bar/");
 		});
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
 		assertTrue(template.exists("foo/foobar.txt"));
-		template.executeWithClient(new ClientCallbackWithoutResult<ChannelSftp>() {
-
-			@Override
-			public void doWithClientWithoutResult(ChannelSftp client) {
-				try {
-					SftpATTRS file = client.lstat("foo/foobar.txt");
-					assertEquals(6, file.getSize());
-				}
-				catch (SftpException e) {
-					throw new RuntimeException(e);
-				}
+		template.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
+			try {
+				SftpATTRS file = client.lstat("foo/foobar.txt");
+				assertEquals(6, file.getSize());
+			}
+			catch (SftpException e) {
+				throw new RuntimeException(e);
 			}
 		});
-		template.execute(new SessionCallbackWithoutResult<LsEntry>() {
-
-			@Override
-			public void doInSessionWithoutResult(Session<LsEntry> session) throws IOException {
-				assertTrue(session.remove("foo/foobar.txt"));
-				assertTrue(session.rmdir("foo/bar/"));
-				LsEntry[] files = session.list("foo/");
-				assertEquals(0, files.length);
-				assertTrue(session.rmdir("foo/"));
-			}
+		template.execute((SessionCallbackWithoutResult<LsEntry>) session -> {
+			assertTrue(session.remove("foo/foobar.txt"));
+			assertTrue(session.rmdir("foo/bar/"));
+			LsEntry[] files = session.list("foo/");
+			assertEquals(0, files.length);
+			assertTrue(session.rmdir("foo/"));
 		});
 		assertFalse(template.exists("foo"));
 	}

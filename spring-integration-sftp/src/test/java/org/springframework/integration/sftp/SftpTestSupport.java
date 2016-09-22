@@ -23,7 +23,6 @@ import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.junit.AfterClass;
@@ -59,14 +58,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 	@BeforeClass
 	public static void createServer() throws Exception {
 		server = SshServer.setUpDefaultServer();
-		server.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-			@Override
-			public boolean authenticate(String username, String password,
-					org.apache.sshd.server.session.ServerSession session) {
-				return true;
-			}
-		});
+		server.setPasswordAuthenticator((username, password, session) -> true);
 		server.setPort(0);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));

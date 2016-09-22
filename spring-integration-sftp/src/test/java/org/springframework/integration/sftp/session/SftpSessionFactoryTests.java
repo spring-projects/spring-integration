@@ -30,16 +30,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.security.PublicKey;
 import java.util.Collections;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.junit.Test;
 
@@ -65,13 +61,7 @@ public class SftpSessionFactoryTests {
 	public void testConnectFailSocketOpen() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
-			server.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-				@Override
-				public boolean authenticate(String arg0, String arg1, ServerSession arg2) {
-					return true;
-				}
-			});
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.start();
@@ -219,15 +209,8 @@ public class SftpSessionFactoryTests {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private DefaultSftpSessionFactory createServerAndClient(SshServer server) throws IOException {
-		server.setPublickeyAuthenticator(new PublickeyAuthenticator() {
-
-			@Override
-			public boolean authenticate(String username, PublicKey key, ServerSession session) {
-				return true;
-			}
-		});
+		server.setPublickeyAuthenticator((username, key, session) -> true);
 		server.setPort(0);
 		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));

@@ -136,16 +136,10 @@ public class FtpOutboundGatewayParserTests {
 		//INT-3129
 		assertNotNull(TestUtils.getPropertyValue(gateway, "localFilenameGeneratorExpression"));
 		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
-		ReflectionUtils.doWithMethods(FtpOutboundGateway.class, new ReflectionUtils.MethodCallback() {
-
-			@Override
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				if ("generateLocalFileName".equals(method.getName())) {
-					method.setAccessible(true);
-					genMethod.set(method);
-				}
-			}
-		});
+		ReflectionUtils.doWithMethods(FtpOutboundGateway.class, method -> {
+			method.setAccessible(true);
+			genMethod.set(method);
+		}, method -> "generateLocalFileName".equals(method.getName()));
 		assertEquals("FOO.afoo", genMethod.get().invoke(gateway, new GenericMessage<String>(""), "foo"));
 		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(SimplePatternFileListFilter.class));
 	}

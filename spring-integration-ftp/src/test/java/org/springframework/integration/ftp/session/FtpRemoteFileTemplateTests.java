@@ -39,9 +39,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.messaging.MessagingException;
@@ -69,41 +67,28 @@ public class FtpRemoteFileTemplateTests extends FtpTestSupport {
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.execute(new SessionCallback<FTPFile, Boolean>() {
-
-			@Override
-			public Boolean doInSession(Session<FTPFile> session) throws IOException {
-				session.mkdir("foo/");
-				return session.mkdir("foo/bar/");
-			}
-
+		template.execute(session -> {
+			session.mkdir("foo/");
+			return session.mkdir("foo/bar/");
 		});
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
 		assertTrue(template.exists("foo/foobar.txt"));
-		template.executeWithClient(new ClientCallbackWithoutResult<FTPClient>() {
-
-			@Override
-			public void doWithClientWithoutResult(FTPClient client) {
-				try {
-					FTPFile[] files = client.listFiles("foo/foobar.txt");
-					assertEquals(6, files[0].getSize());
-				}
-				catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+		template.executeWithClient((ClientCallbackWithoutResult<FTPClient>) client -> {
+			try {
+				FTPFile[] files = client.listFiles("foo/foobar.txt");
+				assertEquals(6, files[0].getSize());
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		});
-		template.execute(new SessionCallbackWithoutResult<FTPFile>() {
-
-			@Override
-			public void doInSessionWithoutResult(Session<FTPFile> session) throws IOException {
-				assertTrue(session.remove("foo/foobar.txt"));
-				assertTrue(session.rmdir("foo/bar/"));
-				FTPFile[] files = session.list("foo/");
-				assertEquals(0, files.length);
-				assertTrue(session.rmdir("foo/"));
-			}
+		template.execute((SessionCallbackWithoutResult<FTPFile>) session -> {
+			assertTrue(session.remove("foo/foobar.txt"));
+			assertTrue(session.rmdir("foo/bar/"));
+			FTPFile[] files = session.list("foo/");
+			assertEquals(0, files.length);
+			assertTrue(session.rmdir("foo/"));
 		});
 		assertFalse(template.getSession().exists("foo"));
 	}
