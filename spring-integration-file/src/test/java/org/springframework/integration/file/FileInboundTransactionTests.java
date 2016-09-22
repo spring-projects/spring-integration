@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -87,15 +86,11 @@ public class FileInboundTransactionTests {
 	public void testNoTx() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean crash = new AtomicBoolean();
-		input.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				if (crash.get()) {
-					throw new MessagingException("eek");
-				}
-				latch.countDown();
+		input.subscribe(message -> {
+			if (crash.get()) {
+				throw new MessagingException("eek");
 			}
+			latch.countDown();
 		});
 		pseudoTx.start();
 		File file = new File(tmpDir.getRoot(), "si-test1/foo");
@@ -123,15 +118,11 @@ public class FileInboundTransactionTests {
 	public void testTx() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean crash = new AtomicBoolean();
-		txInput.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				if (crash.get()) {
-					throw new MessagingException("eek");
-				}
-				latch.countDown();
+		txInput.subscribe(message -> {
+			if (crash.get()) {
+				throw new MessagingException("eek");
 			}
+			latch.countDown();
 		});
 		realTx.start();
 		File file = new File(tmpDir.getRoot(), "si-test2/baz");

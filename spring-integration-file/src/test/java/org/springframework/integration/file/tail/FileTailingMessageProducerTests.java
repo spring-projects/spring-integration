@@ -36,8 +36,6 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
 import org.springframework.messaging.Message;
@@ -128,20 +126,10 @@ public class FileTailingMessageProducerTests {
 			throws Exception {
 		this.adapter = adapter;
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
-		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				FileTailingEvent tailEvent = (FileTailingEvent) event;
-				logger.warn(event);
-				events.add(tailEvent);
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
+		adapter.setApplicationEventPublisher(event -> {
+			FileTailingEvent tailEvent = (FileTailingEvent) event;
+			logger.warn(event);
+			events.add(tailEvent);
 		});
 		adapter.setFile(new File(testDir, "foo"));
 		QueueChannel outputChannel = new QueueChannel();

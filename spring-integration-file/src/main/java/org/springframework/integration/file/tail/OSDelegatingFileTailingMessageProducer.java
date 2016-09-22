@@ -84,13 +84,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		super.doStart();
 		destroyProcess();
 		this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
-		this.getTaskExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				runExec();
-			}
-		});
+		this.getTaskExecutor().execute(() -> runExec());
 	}
 
 	@Override
@@ -145,48 +139,39 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * Runs a thread that waits for the Process result.
 	 */
 	private void startProcessMonitor() {
-		this.getTaskExecutor().execute(new Runnable() {
+		this.getTaskExecutor().execute(() -> {
+			Process process = OSDelegatingFileTailingMessageProducer.this.process;
+			if (process == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Process destroyed before starting process monitor");
+				}
+				return;
+			}
 
-			@Override
-			public void run() {
-				Process process = OSDelegatingFileTailingMessageProducer.this.process;
-				if (process == null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Process destroyed before starting process monitor");
-					}
-					return;
+			int result = Integer.MIN_VALUE;
+			try {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Monitoring process " + process);
 				}
-
-				int result = Integer.MIN_VALUE;
-				try {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Monitoring process " + process);
-					}
-					result = process.waitFor();
-					if (logger.isInfoEnabled()) {
-						logger.info("tail process terminated with value " + result);
-					}
+				result = process.waitFor();
+				if (logger.isInfoEnabled()) {
+					logger.info("tail process terminated with value " + result);
 				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					logger.error("Interrupted - stopping adapter", e);
-					stop();
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				logger.error("Interrupted - stopping adapter", e);
+				stop();
+			}
+			finally {
+				destroyProcess();
+			}
+			if (isRunning()) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
 				}
-				finally {
-					destroyProcess();
-				}
-				if (isRunning()) {
-					if (logger.isInfoEnabled()) {
-						logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
-					}
-					getRequiredTaskScheduler().schedule(new Runnable() {
-
-						@Override
-						public void run() {
-							runExec();
-						}
-					}, new Date(System.currentTimeMillis() + getMissingFileDelay()));
-				}
+				getRequiredTaskScheduler().schedule((Runnable) () -> runExec(),
+						new Date(System.currentTimeMillis() + getMissingFileDelay()));
 			}
 		});
 	}
@@ -204,35 +189,31 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			return;
 		}
 		final BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-		this.getTaskExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				String statusMessage;
+		this.getTaskExecutor().execute(() -> {
+			String statusMessage;
+			if (logger.isDebugEnabled()) {
+				logger.debug("Reading stderr");
+			}
+			try {
+				while ((statusMessage = errorReader.readLine()) != null) {
+					publish(statusMessage);
+					if (logger.isTraceEnabled()) {
+						logger.trace(statusMessage);
+					}
+				}
+			}
+			catch (IOException e1) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Reading stderr");
+					logger.debug("Exception on tail error reader", e1);
 				}
+			}
+			finally {
 				try {
-					while ((statusMessage = errorReader.readLine()) != null) {
-						publish(statusMessage);
-						if (logger.isTraceEnabled()) {
-							logger.trace(statusMessage);
-						}
-					}
+					errorReader.close();
 				}
-				catch (IOException e) {
+				catch (IOException e2) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Exception on tail error reader", e);
-					}
-				}
-				finally {
-					try {
-						errorReader.close();
-					}
-					catch (IOException e) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Exception while closing stderr", e);
-						}
+						logger.debug("Exception while closing stderr", e2);
 					}
 				}
 			}

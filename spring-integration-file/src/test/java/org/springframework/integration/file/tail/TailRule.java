@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -86,26 +85,18 @@ public class TailRule extends TestWatcher {
 			fos.close();
 			final AtomicReference<Integer> c = new AtomicReference<Integer>();
 			final CountDownLatch latch = new CountDownLatch(1);
-			Future<Process> future = Executors.newSingleThreadExecutor().submit(new Callable<Process>() {
-
-				@Override
-				public Process call() throws Exception {
-					final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
-					Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-						@Override
-						public void run() {
-							try {
-								c.set(process.getInputStream().read());
-								latch.countDown();
-							}
-							catch (IOException e) {
-								logger.error("Error reading test stream", e);
-							}
-						}
-					});
-					return process;
-				}
+			Future<Process> future = Executors.newSingleThreadExecutor().submit(() -> {
+				final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
+				Executors.newSingleThreadExecutor().execute(() -> {
+					try {
+						c.set(process.getInputStream().read());
+						latch.countDown();
+					}
+					catch (IOException e) {
+						logger.error("Error reading test stream", e);
+					}
+				});
+				return process;
 			});
 			try {
 				Process process = future.get(10, TimeUnit.SECONDS);

@@ -142,28 +142,18 @@ public class FileReadingMessageSourceIntegrationTests {
 	@Repeat(5)
 	public void concurrentProcessing() throws Exception {
 		CountDownLatch go = new CountDownLatch(1);
-		Runnable successfulConsumer = new Runnable() {
-
-			@Override
-			public void run() {
-				Message<File> received = pollableFileSource.receive();
-				while (received == null) {
-					Thread.yield();
-					received = pollableFileSource.receive();
-				}
+		Runnable successfulConsumer = () -> {
+			Message<File> received = pollableFileSource.receive();
+			while (received == null) {
+				Thread.yield();
+				received = pollableFileSource.receive();
 			}
-
 		};
-		Runnable failingConsumer = new Runnable() {
-
-			@Override
-			public void run() {
-				Message<File> received = pollableFileSource.receive();
-				if (received != null) {
-					pollableFileSource.onFailure(received);
-				}
+		Runnable failingConsumer = () -> {
+			Message<File> received = pollableFileSource.receive();
+			if (received != null) {
+				pollableFileSource.onFailure(received);
 			}
-
 		};
 		CountDownLatch successfulDone = doConcurrently(3, successfulConsumer, go);
 		CountDownLatch failingDone = doConcurrently(10, failingConsumer, go);

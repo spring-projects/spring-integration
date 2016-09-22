@@ -40,7 +40,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessagingException;
@@ -241,52 +240,40 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
 		try {
-			int transferred = this.remoteFileTemplate.execute(new SessionCallback<F, Integer>() {
-
-				@Override
-				public Integer doInSession(Session<F> session) throws IOException {
-					F[] files = session.list(remoteDirectory);
-					if (!ObjectUtils.isEmpty(files)) {
-						List<F> filteredFiles = filterFiles(files);
-						if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
-							rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-							List<F> newList = new ArrayList<>(maxFetchSize);
-							for (int i = 0; i < maxFetchSize; i++) {
-								newList.add(filteredFiles.get(i));
-							}
-							filteredFiles = newList;
+			int transferred = this.remoteFileTemplate.execute(session -> {
+				F[] files = session.list(remoteDirectory);
+				if (!ObjectUtils.isEmpty(files)) {
+					List<F> filteredFiles = filterFiles(files);
+					if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
+						rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+						List<F> newList = new ArrayList<>(maxFetchSize);
+						for (int i = 0; i < maxFetchSize; i++) {
+							newList.add(filteredFiles.get(i));
 						}
-						for (F file : filteredFiles) {
-							try {
-								if (file != null) {
-									copyFileToLocalDirectory(
-											remoteDirectory, file, localDirectory,
-											session);
-								}
-							}
-							catch (RuntimeException e) {
-								rollbackFromFileToListEnd(filteredFiles, file);
-								throw e;
-							}
-							catch (IOException e) {
-								rollbackFromFileToListEnd(filteredFiles, file);
-								throw e;
+						filteredFiles = newList;
+					}
+					for (F file : filteredFiles) {
+						try {
+							if (file != null) {
+								copyFileToLocalDirectory(
+										remoteDirectory, file, localDirectory,
+										session);
 							}
 						}
-						return filteredFiles.size();
+						catch (RuntimeException e1) {
+							rollbackFromFileToListEnd(filteredFiles, file);
+							throw e1;
+						}
+						catch (IOException e2) {
+							rollbackFromFileToListEnd(filteredFiles, file);
+							throw e2;
+						}
 					}
-					else {
-						return 0;
-					}
+					return filteredFiles.size();
 				}
-
-				public void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
-					if (AbstractInboundFileSynchronizer.this.filter instanceof ReversibleFileListFilter) {
-						((ReversibleFileListFilter<F>) AbstractInboundFileSynchronizer.this.filter)
-								.rollback(file, filteredFiles);
-					}
+				else {
+					return 0;
 				}
-
 			});
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug(transferred + " files transferred");
@@ -294,6 +281,13 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 		catch (Exception e) {
 			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
+		}
+	}
+
+	protected void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
+		if (this.filter instanceof ReversibleFileListFilter) {
+			((ReversibleFileListFilter<F>) this.filter)
+					.rollback(file, filteredFiles);
 		}
 	}
 

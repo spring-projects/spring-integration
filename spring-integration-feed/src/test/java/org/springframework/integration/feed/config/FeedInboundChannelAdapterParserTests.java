@@ -46,7 +46,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 
@@ -128,12 +127,7 @@ public class FeedInboundChannelAdapterParserTests {
 	@Ignore // goes against the real feed
 	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageHandler handler = spy(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				latch.countDown();
-			}
-		});
+		MessageHandler handler = spy((MessageHandler) message -> latch.countDown());
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);

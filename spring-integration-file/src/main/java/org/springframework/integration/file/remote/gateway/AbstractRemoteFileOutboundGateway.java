@@ -42,7 +42,6 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -520,15 +519,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					return doMput(requestMessage);
 			}
 		}
-		return this.remoteFileTemplate.execute(new SessionCallback<F, Object>() {
-
-			@Override
-			public Object doInSession(Session<F> session) throws IOException {
-				return AbstractRemoteFileOutboundGateway.this.messageSessionCallback.doInSession(session,
-						requestMessage);
-			}
-
-		});
+		return this.remoteFileTemplate.execute(session ->
+				AbstractRemoteFileOutboundGateway.this.messageSessionCallback.doInSession(session, requestMessage));
 	}
 
 	private Object doLs(Message<?> requestMessage) {
@@ -537,13 +529,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
-		List<?> payload = this.remoteFileTemplate.execute(new SessionCallback<F, List<?>>() {
-
-			@Override
-			public List<?> doInSession(Session<F> session) throws IOException {
-				return AbstractRemoteFileOutboundGateway.this.ls(session, fullDir);
-			}
-		});
+		List<?> payload = this.remoteFileTemplate.execute(session ->
+				AbstractRemoteFileOutboundGateway.this.ls(session, fullDir));
 		return this.getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 				.build();
@@ -567,14 +554,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 		}
 		else {
-			payload = this.remoteFileTemplate.execute(new SessionCallback<F, File>() {
-
-				@Override
-				public File doInSession(Session<F> session) throws IOException {
-					return get(requestMessage, session, remoteDir, remoteFilePath, remoteFilename, true);
-
-				}
-			});
+			payload = this.remoteFileTemplate.execute(session1 ->
+					get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, true));
 		}
 		return getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
@@ -588,13 +569,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		final String remoteFilePath = this.fileNameProcessor.processMessage(requestMessage);
 		final String remoteFilename = getRemoteFilename(remoteFilePath);
 		final String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
-		List<File> payload = this.remoteFileTemplate.execute(new SessionCallback<F, List<File>>() {
-
-			@Override
-			public List<File> doInSession(Session<F> session) throws IOException {
-				return mGet(requestMessage, session, remoteDir, remoteFilename);
-			}
-		});
+		List<File> payload = this.remoteFileTemplate.execute(session ->
+				mGet(requestMessage, session, remoteDir, remoteFilename));
 		return this.getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
