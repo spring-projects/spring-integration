@@ -51,6 +51,7 @@ import org.springframework.messaging.support.GenericMessage;
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.Scope;
+
 import junit.framework.AssertionFailedError;
 
 /**
@@ -291,25 +292,19 @@ public class GemfireGroupStoreTests {
 		for (int i = 0; i < 100; i++) {
 			executor = Executors.newCachedThreadPool();
 
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					MessageGroup group = store1.addMessageToGroup(1, message);
-					if (group.getMessages().size() != 1) {
-						failures.add("ADD");
-						throw new AssertionFailedError("Failed on ADD");
-					}
+			executor.execute(() -> {
+				MessageGroup group = store1.addMessageToGroup(1, message);
+				if (group.getMessages().size() != 1) {
+					failures.add("ADD");
+					throw new AssertionFailedError("Failed on ADD");
 				}
 			});
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					store2.removeMessagesFromGroup(1, message);
-					MessageGroup group = store2.getMessageGroup(1);
-					if (group.getMessages().size() != 0) {
-						failures.add("REMOVE");
-						throw new AssertionFailedError("Failed on Remove");
-					}
+			executor.execute(() -> {
+				store2.removeMessagesFromGroup(1, message);
+				MessageGroup group = store2.getMessageGroup(1);
+				if (group.getMessages().size() != 0) {
+					failures.add("REMOVE");
+					throw new AssertionFailedError("Failed on Remove");
 				}
 			});
 
