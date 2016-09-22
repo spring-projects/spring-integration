@@ -10,12 +10,17 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-	<integration:message-history/>
+	<integration:message-history />
 
-	<stdin-channel-adapter id="adapterWithDefaultCharset" auto-startup="false"/>
+	<stdin-channel-adapter id="adapterWithDefaultCharset" auto-startup="false" />
 
-	<stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8" auto-startup="false"/>
+	<stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8" auto-startup="false" />
 
-	<integration:poller id="poller" default="true" fixed-rate="3000"/>
+	<stdin-channel-adapter id="pipedAdapterNoCharset" auto-startup="false" close-context-on-eof="true" />
+
+	<stdin-channel-adapter id="pipedAdapterWithCharset" charset="UTF-8" auto-startup="false"
+			close-context-on-eof="true" />
+
+	<integration:poller id="poller" default="true" fixed-rate="3000" />
 
 </beans:beans>

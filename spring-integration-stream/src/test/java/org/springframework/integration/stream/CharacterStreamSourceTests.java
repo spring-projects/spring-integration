@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,19 @@ package org.springframework.integration.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.StringReader;
 
 import org.junit.Test;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class CharacterStreamSourceTests {
 
@@ -38,6 +42,19 @@ public class CharacterStreamSourceTests {
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = source.receive();
 		assertNull(message2);
+	}
+
+	@Test
+	public void testEOF() {
+		StringReader reader = new StringReader("test");
+		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
+		ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
+		source.setApplicationContext(applicationContext);
+		Message<?> message1 = source.receive();
+		assertEquals("test", message1.getPayload());
+		Message<?> message2 = source.receive();
+		assertNull(message2);
+		verify(applicationContext).close();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,28 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
+import org.springframework.integration.stream.CharacterStreamReadingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;stdin-channel-adapter&gt; element.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.stream.CharacterStreamReadingMessageSource");
-		builder.setFactoryMethod("stdin");
+				CharacterStreamReadingMessageSource.class);
+		String pipe = element.getAttribute("close-context-on-eof");
+		if (StringUtils.hasText(pipe)) {
+			builder.setFactoryMethod("stdinPipe");
+		}
+		else {
+			builder.setFactoryMethod("stdin");
+		}
 		String charsetName = element.getAttribute("charset");
 		if (StringUtils.hasText(charsetName)) {
 			builder.addConstructorArgValue(charsetName);
