@@ -39,12 +39,14 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
 import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
  * @author Gavin Gray
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -181,6 +183,8 @@ public class FileTailingMessageProducerTests {
 			Message<?> message = outputChannel.receive(10000);
 			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
+			assertEquals(file, message.getHeaders().get(FileHeaders.ORIGINAL_FILE));
+			assertEquals(file.getName(), message.getHeaders().get(FileHeaders.FILENAME));
 		}
 	}
 

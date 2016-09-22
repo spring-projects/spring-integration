@@ -363,9 +363,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 		if (file != null) {
 			message = getMessageBuilderFactory().withPayload(file)
-					.setHeader(FileHeaders.FILENAME, file.getAbsolutePath()
+					.setHeader(FileHeaders.RELATIVE_PATH, file.getAbsolutePath()
 							.replaceFirst(Matcher.quoteReplacement(this.directory.getAbsolutePath() + File.separator),
 									""))
+					.setHeader(FileHeaders.FILENAME, file.getName())
+					.setHeader(FileHeaders.ORIGINAL_FILE, file)
 					.build();
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");

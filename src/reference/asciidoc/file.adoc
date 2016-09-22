@@ -24,7 +24,8 @@ This is an implementation of `MessageSource` that creates messages from a file s
     p:directory="${input.directory}"/>
 ----
 
-To prevent creating messages for certain files, you may supply a `FileListFilter`. By default the following 2 filters are used:
+To prevent creating messages for certain files, you may supply a `FileListFilter`.
+By default the following 2 filters are used:
 
 * `IgnoreHiddenFileListFilter`
 * `AcceptOnceFileListFilter`
@@ -104,6 +105,19 @@ to, say, network glitches.
     <property name="age" value="120" />
 </bean>
 ----
+
+*Message Headers*
+
+Starting with _version 5.0_ the `FileReadingMessageSource`, in addition to the `payload` as a polled `File`, populates these headers to the outbound `Message`:
+
+- `FileHeaders.FILENAME` - the `File.getName()` of the file to send.
+Can be used for subsequent rename or copy logic;
+- `FileHeaders.ORIGINAL_FILE` - the `File` object itself.
+Typically this header is populated automatically by Framework components, like <<file-splitter>> or <<file-transforming>>, when we lose the original `File` object.
+But for consistency and convenience with any other custom use-cases this header can be useful to get access to the original file;
+- `FileHeaders.RELATIVE_PATH` - a new header introduced to represent the part of file path without the root directory for scan.
+This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
+For this purpose the `DefaultFileNameGenerator` (<<file-writing-file-names>>) can be configured to use this header.
 
 *Directory scanning and polling*
 
