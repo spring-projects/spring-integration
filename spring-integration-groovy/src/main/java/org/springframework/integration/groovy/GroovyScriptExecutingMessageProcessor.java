@@ -56,6 +56,7 @@ import groovy.transform.CompileStatic;
  * @author Oleg Zhurakousky
  * @author Stefan Reuter
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object>
@@ -69,13 +70,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	private volatile ScriptSource scriptSource;
 
 	private volatile GroovyClassLoader groovyClassLoader = AccessController.doPrivileged(
-			new PrivilegedAction<GroovyClassLoader>() {
-
-				public GroovyClassLoader run() {
-					return new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
-				}
-
-			});
+			(PrivilegedAction<GroovyClassLoader>) () -> new GroovyClassLoader(ClassUtils.getDefaultClassLoader()));
 
 	private volatile Class<?> scriptClass;
 

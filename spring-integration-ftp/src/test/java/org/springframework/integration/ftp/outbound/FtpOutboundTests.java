@@ -52,7 +52,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
@@ -95,12 +94,7 @@ public class FtpOutboundTests {
 		assertFalse(file.exists());
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setFileNameGenerator(new FileNameGenerator() {
-			@Override
-			public String generateFileName(Message<?> message) {
-				return "handlerContent.test";
-			}
-		});
+		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("String data"));
@@ -119,12 +113,7 @@ public class FtpOutboundTests {
 		assertFalse(file.exists());
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setFileNameGenerator(new FileNameGenerator() {
-			@Override
-			public String generateFileName(Message<?> message) {
-				return "handlerContent.test";
-			}
-		});
+		handler.setFileNameGenerator(message -> "handlerContent.test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<byte[]>("byte[] data".getBytes()));
@@ -141,12 +130,7 @@ public class FtpOutboundTests {
 
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
-		handler.setFileNameGenerator(new FileNameGenerator() {
-			@Override
-			public String generateFileName(Message<?> message) {
-				return ((File) message.getPayload()).getName() + ".test";
-			}
-		});
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
@@ -167,12 +151,7 @@ public class FtpOutboundTests {
 
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
-		handler.setFileNameGenerator(new FileNameGenerator() {
-			@Override
-			public String generateFileName(Message<?> message) {
-				return ((File) message.getPayload()).getName() + ".test";
-			}
-		});
+		handler.setFileNameGenerator(message -> ((File) message.getPayload()).getName() + ".test");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
@@ -181,14 +160,10 @@ public class FtpOutboundTests {
 		Log logger = spy(TestUtils.getPropertyValue(handler, "remoteFileTemplate.logger", Log.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		final AtomicReference<String> logged = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				logged.set((String) invocation.getArguments()[0]);
-				invocation.callRealMethod();
-				return null;
-			}
+		doAnswer(invocation -> {
+			logged.set((String) invocation.getArguments()[0]);
+			invocation.callRealMethod();
+			return null;
 		}).when(logger).warn(Mockito.anyString());
 		RemoteFileTemplate<?> template = TestUtils.getPropertyValue(handler, "remoteFileTemplate",
 				RemoteFileTemplate.class);

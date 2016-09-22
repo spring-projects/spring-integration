@@ -54,8 +54,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.common.LiteralExpression;
@@ -260,14 +258,10 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object[] arguments = invocation.getArguments();
-				args.set((String) arguments[0] + (String) arguments[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			Object[] arguments = invocation.getArguments();
+			args.set((String) arguments[0] + (String) arguments[1]);
+			return null;
 		}).when(session).rename(anyString(), anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
@@ -287,14 +281,10 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object[] arguments = invocation.getArguments();
-				args.set((String) arguments[0] + (String) arguments[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			Object[] arguments = invocation.getArguments();
+			args.set((String) arguments[0] + (String) arguments[1]);
+			return null;
 		}).when(session).rename(anyString(), anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
 		Message<?> out = (Message<?>) gw.handleRequestMessage(new GenericMessage<String>("foo"));
@@ -312,23 +302,15 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object[] arguments = invocation.getArguments();
-				args.set((String) arguments[0] + (String) arguments[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			Object[] arguments = invocation.getArguments();
+			args.set((String) arguments[0] + (String) arguments[1]);
+			return null;
 		}).when(session).rename(anyString(), anyString());
 		final List<String> madeDirs = new ArrayList<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				madeDirs.add((String) invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			madeDirs.add((String) invocation.getArguments()[0]);
+			return null;
 		}).when(session).mkdir(anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
@@ -926,13 +908,9 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				written.set((String) invocation.getArguments()[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			written.set((String) invocation.getArguments()[1]);
+			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");
 		tempFolder.newFile("qux.txt");
@@ -964,13 +942,9 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				written.set((String) invocation.getArguments()[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			written.set((String) invocation.getArguments()[1]);
+			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");
 		tempFolder.newFile("qux.txt");

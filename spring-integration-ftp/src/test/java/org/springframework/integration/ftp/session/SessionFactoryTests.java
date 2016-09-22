@@ -191,18 +191,15 @@ public class SessionFactoryTests {
 		final Random random = new Random();
 		final AtomicInteger failures = new AtomicInteger();
 		for (int i = 0; i < 30; i++) {
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Session session = factory.getSession();
-						Thread.sleep(random.nextInt(5000));
-						session.close();
-					}
-					catch (Exception e) {
-						e.printStackTrace();
-						failures.incrementAndGet();
-					}
+			executor.execute(() -> {
+				try {
+					Session session = factory.getSession();
+					Thread.sleep(random.nextInt(5000));
+					session.close();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					failures.incrementAndGet();
 				}
 			});
 		}

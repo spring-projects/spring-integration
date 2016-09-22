@@ -90,11 +90,8 @@ public class GemfireInboundChannelAdapterTests {
 
 	@Test
 	public void testErrorChannel() {
-		channel3.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new MessagingException("got an error");
-			}
+		channel3.subscribe(message -> {
+			throw new MessagingException("got an error");
 		});
 		ErrorHandler errorHandler = new ErrorHandler();
 		errorChannel.subscribe(errorHandler);

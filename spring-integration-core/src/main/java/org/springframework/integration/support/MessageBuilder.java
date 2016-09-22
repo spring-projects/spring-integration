@@ -279,6 +279,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * and prohibited from being populated in the message.
 	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
 	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * @return the current {@link MessageBuilder}
 	 * @since 4.3.2
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */

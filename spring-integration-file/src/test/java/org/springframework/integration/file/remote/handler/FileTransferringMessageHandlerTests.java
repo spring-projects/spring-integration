@@ -35,8 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
@@ -45,11 +43,11 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -65,12 +63,10 @@ public class FileTransferringMessageHandlerTests {
 		Session<F> session = mock(Session.class);
 
 		when(sf.getSession()).thenReturn(session);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				String path =  (String) invocation.getArguments()[1];
-				assertFalse(path.startsWith("/"));
-				return null;
-			}
+		doAnswer(invocation -> {
+			String path =  (String) invocation.getArguments()[1];
+			assertFalse(path.startsWith("/"));
+			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
@@ -90,12 +86,10 @@ public class FileTransferringMessageHandlerTests {
 		final AtomicReference<String> temporaryPath = new AtomicReference<String>();
 		final AtomicReference<String> finalPath = new AtomicReference<String>();
 		when(sf.getSession()).thenReturn(session);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				temporaryPath.set((String) invocation.getArguments()[0]);
-				finalPath.set((String) invocation.getArguments()[1]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			temporaryPath.set((String) invocation.getArguments()[0]);
+			finalPath.set((String) invocation.getArguments()[1]);
+			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
@@ -115,12 +109,10 @@ public class FileTransferringMessageHandlerTests {
 		Session<F> session = mock(Session.class);
 
 		when(sf.getSession()).thenReturn(session);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				String path =  (String) invocation.getArguments()[1];
-				assertFalse(path.startsWith("/"));
-				return null;
-			}
+		doAnswer(invocation -> {
+			String path =  (String) invocation.getArguments()[1];
+			assertFalse(path.startsWith("/"));
+			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);

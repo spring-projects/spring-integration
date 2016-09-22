@@ -244,6 +244,7 @@ subprojects { subproject ->
 		}
 	}
 
+	check.dependsOn javadoc
 	build.dependsOn jacocoTestReport
 }
 

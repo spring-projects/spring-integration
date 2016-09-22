@@ -28,8 +28,6 @@ import static org.mockito.Mockito.spy;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -54,13 +52,9 @@ public class OutboundEndpointTests {
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				amqpMessage.set((Message) invocation.getArguments()[2]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			amqpMessage.set((Message) invocation.getArguments()[2]);
+			return null;
 		}).when(amqpTemplate).send(anyString(), anyString(), any(Message.class),
 				any(CorrelationData.class));
 		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
@@ -82,13 +76,9 @@ public class OutboundEndpointTests {
 		endpoint.setHeaderMapper(mapper);
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				amqpMessage.set((Message) invocation.getArguments()[2]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			amqpMessage.set((Message) invocation.getArguments()[2]);
+			return null;
 		}).when(amqpTemplate)
 				.doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class), any(CorrelationData.class));
 		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")

@@ -50,7 +50,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.MessageSessionCallback;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.SftpTestSupport;
@@ -266,31 +265,23 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		PipedOutputStream out2 = new PipedOutputStream(pipe2);
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					session1.write(pipe1, "foo.txt");
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				latch1.countDown();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				session1.write(pipe1, "foo.txt");
 			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			latch1.countDown();
 		});
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					session2.write(pipe2, "bar.txt");
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				latch2.countDown();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				session2.write(pipe2, "bar.txt");
 			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			latch2.countDown();
 		});
 
 		out1.write('a');
@@ -444,13 +435,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 	}
 
 	private void assertLength6(SftpRemoteFileTemplate template) {
-		LsEntry[] files = template.execute(new SessionCallback<LsEntry, LsEntry[]>() {
-
-			@Override
-			public LsEntry[] doInSession(Session<LsEntry> session) throws IOException {
-				return session.list("sftpTarget/appending.txt");
-			}
-		});
+		LsEntry[] files = template.execute(session -> session.list("sftpTarget/appending.txt"));
 		assertEquals(1, files.length);
 		assertEquals(6, files[0].getAttrs().getSize());
 	}

@@ -92,12 +92,8 @@ public class CachingSessionFactoryTests {
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
 		try {
-			template.get(new GenericMessage<String>("foo"), new InputStreamCallback() {
-
-				@Override
-				public void doWithInputStream(InputStream stream) throws IOException {
-					throw new RuntimeException("bar");
-				}
+			template.get(new GenericMessage<String>("foo"), (InputStreamCallback) stream -> {
+				throw new RuntimeException("bar");
 			});
 			fail("Expected exception");
 		}

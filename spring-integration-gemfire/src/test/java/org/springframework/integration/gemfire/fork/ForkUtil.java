@@ -103,21 +103,17 @@ public class ForkUtil {
 
 	private static Thread copyStdXxx(final BufferedReader br,
 			final AtomicBoolean run, final PrintStream out) {
-		Thread reader = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					String line = null;
-					do {
-						while ((line = br.readLine()) != null) {
-							out.println("[FORK] " + line);
-						}
-					} while (run.get());
-				}
-				catch (Exception ex) {
-					// ignore and exit
-				}
+		Thread reader = new Thread(() -> {
+			try {
+				String line = null;
+				do {
+					while ((line = br.readLine()) != null) {
+						out.println("[FORK] " + line);
+					}
+				} while (run.get());
+			}
+			catch (Exception ex) {
+				// ignore and exit
 			}
 		});
 		return reader;

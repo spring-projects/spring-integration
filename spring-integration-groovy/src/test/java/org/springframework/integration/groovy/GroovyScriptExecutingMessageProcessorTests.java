@@ -83,6 +83,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
 		class CustomScriptVariableGenerator implements ScriptVariableGenerator {
+			@Override
 			public Map<String, Object> generateScriptVariables(Message<?> message) {
 				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("date", System.nanoTime());
@@ -197,24 +198,16 @@ public class GroovyScriptExecutingMessageProcessorTests {
 
 		ScriptSource scriptSource = new StaticScriptSource(script, Script.class.getName());
 		final MessageProcessor<Object> processor =
-				new GroovyScriptExecutingMessageProcessor(scriptSource, new ScriptVariableGenerator() {
-					@Override
-					public Map<String, Object> generateScriptVariables(Message<?> message) {
-						Map<String, Object> variables = new HashMap<String, Object>(2);
-						variables.put("var1", var1);
-						variables.put("var2", var2);
-						return variables;
-					}
+				new GroovyScriptExecutingMessageProcessor(scriptSource, message1 -> {
+					Map<String, Object> variables = new HashMap<String, Object>(2);
+					variables.put("var1", var1);
+					variables.put("var2", var2);
+					return variables;
 				});
 
 		ExecutorService executor = Executors.newFixedThreadPool(10);
 		for (int i = 0; i < 10; i++) {
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					processor.processMessage(message);
-				}
-			});
+			executor.execute(() -> processor.processMessage(message));
 		}
 		executor.shutdown();
 		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
@@ -246,6 +239,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			this.script = script;
 		}
 
+		@Override
 		public String getDescription() {
 			return "test";
 		}
@@ -255,6 +249,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			return this.filename;
 		}
 
+		@Override
 		public InputStream getInputStream() throws IOException {
 			return new ByteArrayInputStream(script.getBytes("UTF-8"));
 		}

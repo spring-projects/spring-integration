@@ -26,8 +26,6 @@ import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -84,12 +82,7 @@ public class OutboundGatewayTests {
 	@SuppressWarnings("unchecked")
 	public void testExpressionsBeanResolver() throws Exception {
 		ApplicationContext context = mock(ApplicationContext.class);
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return invocation.getArguments()[0] + "bar";
-			}
-		}).when(context).getBean(anyString());
+		doAnswer(invocation -> invocation.getArguments()[0] + "bar").when(context).getBean(anyString());
 		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
 		when(context.getBean(ClassUtils.forName("org.springframework.integration.config.SpelPropertyAccessorRegistrar",
 				context.getClassLoader())))

@@ -50,8 +50,6 @@ import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.file.FileWritingMessageHandler.FlushPredicate;
-import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -381,13 +379,7 @@ public class FileWritingMessageHandlerTests {
 		final String anyFilename = "fooBar.test";
 		QueueChannel output = new QueueChannel();
 		handler.setOutputChannel(output);
-		handler.setFileNameGenerator(new FileNameGenerator() {
-
-			@Override
-			public String generateFileName(Message<?> message) {
-				return anyFilename;
-			}
-		});
+		handler.setFileNameGenerator(message -> anyFilename);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		handler.handleMessage(message);
 		File result = (File) output.receive(0).getPayload();
@@ -449,13 +441,7 @@ public class FileWritingMessageHandlerTests {
 		File tempFolder = this.temp.newFolder();
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder);
 		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
-		handler.setFileNameGenerator(new FileNameGenerator() {
-
-			@Override
-			public String generateFileName(Message<?> message) {
-				return "foo.txt";
-			}
-		});
+		handler.setFileNameGenerator(message -> "foo.txt");
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
@@ -487,14 +473,9 @@ public class FileWritingMessageHandlerTests {
 
 		handler.setFlushInterval(30000);
 		final AtomicBoolean called = new AtomicBoolean();
-		handler.setFlushPredicate(new MessageFlushPredicate() {
-
-			@Override
-			public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
-				called.set(true);
-				return true;
-			}
-
+		handler.setFlushPredicate((fileAbsolutePath, lastWrite, triggerMessage) -> {
+			called.set(true);
+			return true;
 		});
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("box".getBytes())));
 		handler.trigger(new GenericMessage<String>("foo"));
@@ -503,14 +484,9 @@ public class FileWritingMessageHandlerTests {
 
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
 		called.set(false);
-		handler.flushIfNeeded(new FlushPredicate() {
-
-			@Override
-			public boolean shouldFlush(String fileAbsolutePath, long lastWrite) {
-				called.set(true);
-				return true;
-			}
-
+		handler.flushIfNeeded((fileAbsolutePath, lastWrite) -> {
+			called.set(true);
+			return true;
 		});
 		assertThat(file.length(), equalTo(24L));
 		assertTrue(called.get());

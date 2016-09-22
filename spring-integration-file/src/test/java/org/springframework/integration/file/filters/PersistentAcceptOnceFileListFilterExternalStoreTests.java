@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -29,8 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -81,21 +78,17 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 
 		store = Mockito.spy(store);
 
-		Mockito.doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (suspend.get()) {
-					latch2.countDown();
-					try {
-						latch1.await(10, TimeUnit.SECONDS);
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
+		Mockito.doAnswer(invocation -> {
+			if (suspend.get()) {
+				latch2.countDown();
+				try {
+					latch1.await(10, TimeUnit.SECONDS);
 				}
-				return invocation.callRealMethod();
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
+			return invocation.callRealMethod();
 		}).when(store).replace(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
@@ -114,13 +107,8 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);
 
-		Future<Integer> result = Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
-
-			@Override
-			public Integer call() throws Exception {
-				return filter.filterFiles(new File[] {file}).size();
-			}
-		});
+		Future<Integer> result = Executors.newSingleThreadExecutor()
+				.submit(() -> filter.filterFiles(new File[] { file }).size());
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		store.put("foo:" + file.getAbsolutePath(), "43");
 		latch1.countDown();

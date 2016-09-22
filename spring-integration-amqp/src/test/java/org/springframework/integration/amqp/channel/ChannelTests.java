@@ -50,8 +50,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -112,15 +110,11 @@ public class ChannelTests extends LogAdjustingTestSupport {
 	@DirtiesContext
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
-		channel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				try {
-					latch.await(10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-				}
+		channel.subscribe(message -> {
+			try {
+				latch.await(10, TimeUnit.SECONDS);
+			}
+			catch (Exception e) {
 			}
 		});
 		this.channel.send(new GenericMessage<String>("foo"));

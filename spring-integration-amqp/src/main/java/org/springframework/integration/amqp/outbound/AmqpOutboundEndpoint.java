@@ -16,9 +16,7 @@
 
 package org.springframework.integration.amqp.outbound;
 
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -107,14 +105,10 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		}
 		else {
 			this.amqpTemplate.convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
-					new MessagePostProcessor() {
-						@Override
-						public org.springframework.amqp.core.Message postProcessMessage(
-								org.springframework.amqp.core.Message message) throws AmqpException {
-							getHeaderMapper().fromHeadersToRequest(requestMessage.getHeaders(),
-									message.getMessageProperties());
-							return message;
-						}
+					message -> {
+						getHeaderMapper().fromHeadersToRequest(requestMessage.getHeaders(),
+								message.getMessageProperties());
+						return message;
 					});
 		}
 	}

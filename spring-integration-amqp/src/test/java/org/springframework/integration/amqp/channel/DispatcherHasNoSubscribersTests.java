@@ -34,8 +34,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -70,12 +68,7 @@ public class DispatcherHasNoSubscribersTests {
 		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), any(Map.class)))
 				.thenReturn(declareOk);
 		Connection connection = mock(Connection.class);
-		doAnswer(new Answer<Channel>() {
-			@Override
-			public Channel answer(InvocationOnMock invocation) throws Throwable {
-				return channel;
-			}
-		}).when(connection).createChannel(anyBoolean());
+		doAnswer(invocation -> channel).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -103,12 +96,7 @@ public class DispatcherHasNoSubscribersTests {
 	public void testPubSub() {
 		final Channel channel = mock(Channel.class);
 		Connection connection = mock(Connection.class);
-		doAnswer(new Answer<Channel>() {
-			@Override
-			public Channel answer(InvocationOnMock invocation) throws Throwable {
-				return channel;
-			}
-		}).when(connection).createChannel(anyBoolean());
+		doAnswer(invocation -> channel).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -139,16 +127,12 @@ public class DispatcherHasNoSubscribersTests {
 				channel, "container", SimpleMessageListenerContainer.class);
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation)
-					throws Throwable {
-				String message = (String) invocation.getArguments()[0];
-				if (message.startsWith("Dispatcher has no subscribers")) {
-					logList.add(message);
-				}
-				return null;
+		doAnswer(invocation -> {
+			String message = (String) invocation.getArguments()[0];
+			if (message.startsWith("Dispatcher has no subscribers")) {
+				logList.add(message);
 			}
+			return null;
 		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		Object listener = container.getMessageListener();

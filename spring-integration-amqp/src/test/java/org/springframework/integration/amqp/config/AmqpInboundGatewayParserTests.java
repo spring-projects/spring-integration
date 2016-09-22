@@ -26,8 +26,6 @@ import java.lang.reflect.Field;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.Message;
@@ -47,8 +45,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -104,14 +100,11 @@ public class AmqpInboundGatewayParserTests {
 	@Test
 	public void verifyUsageWithHeaderMapper() throws Exception {
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
-		requestChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> siMessage)
-					throws MessagingException {
-				org.springframework.messaging.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
-				MessageChannel replyChannel = (MessageChannel) siMessage.getHeaders().getReplyChannel();
-				replyChannel.send(replyMessage);
-			}
+		requestChannel.subscribe(siMessage -> {
+			org.springframework.messaging.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage)
+					.setHeader("bar", "bar").build();
+			MessageChannel replyChannel = (MessageChannel) siMessage.getHeaders().getReplyChannel();
+			replyChannel.send(replyMessage);
 		});
 
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
@@ -121,15 +114,12 @@ public class AmqpInboundGatewayParserTests {
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
-		Mockito.doAnswer(new Answer() {
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				Object[] args = invocation.getArguments();
-				Message amqpReplyMessage = (Message) args[2];
-				MessageProperties properties = amqpReplyMessage.getMessageProperties();
-				assertEquals("bar", properties.getHeaders().get("bar"));
-				return null;
-			}
+		Mockito.doAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			Message amqpReplyMessage = (Message) args[2];
+			MessageProperties properties = amqpReplyMessage.getMessageProperties();
+			assertEquals("bar", properties.getHeaders().get("bar"));
+			return null;
 		}).when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);

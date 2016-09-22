@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -36,7 +35,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
 
 /**
  * @author Gary Russell
@@ -73,14 +71,9 @@ public class JsonConverterCompatibilityTests {
 		DefaultAmqpHeaderMapper.outboundMapper().fromHeadersToRequest(out.getHeaders(), messageProperties);
 		final BasicProperties props = new DefaultMessagePropertiesConverter().fromMessageProperties(messageProperties,
 				"UTF-8");
-		this.rabbitTemplate.execute(new ChannelCallback<Void>() {
-
-			@Override
-			public Void doInRabbit(Channel channel) throws Exception {
-				channel.basicPublish("", JSON_TESTQ, props, out.getPayload().getBytes());
-				return null;
-			}
-
+		this.rabbitTemplate.execute(channel -> {
+			channel.basicPublish("", JSON_TESTQ, props, out.getPayload().getBytes());
+			return null;
 		});
 
 		Object received = this.rabbitTemplate.receiveAndConvert(JSON_TESTQ);

@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.PayloadApplicationEvent;
@@ -73,18 +72,13 @@ public class EventOutboundChannelAdapterParserTests {
 
 	@Test
 	public void validateUsage() {
-		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
-
-			@Override
-			public void onApplicationEvent(ApplicationEvent event) {
-				if (event instanceof PayloadApplicationEvent) {
-					String payload = (String) ((PayloadApplicationEvent<?>) event).getPayload();
-					if (payload.equals("hello")) {
-						receivedEvent = true;
-					}
+		ApplicationListener<?> listener = event -> {
+			if (event instanceof PayloadApplicationEvent) {
+				String payload = (String) ((PayloadApplicationEvent<?>) event).getPayload();
+				if (payload.equals("hello")) {
+					receivedEvent = true;
 				}
 			}
-
 		};
 		this.context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
@@ -95,19 +89,14 @@ public class EventOutboundChannelAdapterParserTests {
 	@Test
 	public void withAdvice() {
 		this.receivedEvent = false;
-		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
-
-			@Override
-			public void onApplicationEvent(ApplicationEvent event) {
-				Object source = event.getSource();
-				if (source instanceof Message) {
-					String payload = (String) ((Message<?>) source).getPayload();
-					if (payload.equals("hello")) {
-						receivedEvent = true;
-					}
+		ApplicationListener<?> listener = event -> {
+			Object source = event.getSource();
+			if (source instanceof Message) {
+				String payload = (String) ((Message<?>) source).getPayload();
+				if (payload.equals("hello")) {
+					receivedEvent = true;
 				}
 			}
-
 		};
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("inputAdvice", DirectChannel.class);
@@ -119,19 +108,14 @@ public class EventOutboundChannelAdapterParserTests {
 	@Test //INT-2275
 	public void testInsideChain() {
 		this.receivedEvent = false;
-		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
-
-			@Override
-			public void onApplicationEvent(ApplicationEvent event) {
-				Object source = event.getSource();
-				if (source instanceof Message) {
-					String payload = (String) ((Message<?>) source).getPayload();
-					if (payload.equals("foobar")) {
-						receivedEvent = true;
-					}
+		ApplicationListener<?> listener = event -> {
+			Object source = event.getSource();
+			if (source instanceof Message) {
+				String payload = (String) ((Message<?>) source).getPayload();
+				if (payload.equals("foobar")) {
+					receivedEvent = true;
 				}
 			}
-
 		};
 		this.context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("inputChain", DirectChannel.class);
@@ -146,28 +130,23 @@ public class EventOutboundChannelAdapterParserTests {
 				new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml",
 						EventOutboundChannelAdapterParserTests.class);
 		final CyclicBarrier barrier = new CyclicBarrier(2);
-		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
-
-			@Override
-			public void onApplicationEvent(ApplicationEvent event) {
-				Object source = event.getSource();
-				if (source instanceof Message) {
-					String payload = (String) ((Message<?>) source).getPayload();
-					if (payload.equals("hello")) {
-						receivedEvent = true;
-						try {
-							barrier.await();
-						}
-						catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-						}
-						catch (BrokenBarrierException e) {
-							throw new IllegalStateException("broken barrier", e);
-						}
+		ApplicationListener<?> listener = event -> {
+			Object source = event.getSource();
+			if (source instanceof Message) {
+				String payload = (String) ((Message<?>) source).getPayload();
+				if (payload.equals("hello")) {
+					receivedEvent = true;
+					try {
+						barrier.await();
+					}
+					catch (InterruptedException e1) {
+						Thread.currentThread().interrupt();
+					}
+					catch (BrokenBarrierException e2) {
+						throw new IllegalStateException("broken barrier", e2);
 					}
 				}
 			}
-
 		};
 		context.addApplicationListener(listener);
 		QueueChannel channel = context.getBean("input", QueueChannel.class);

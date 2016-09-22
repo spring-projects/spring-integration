@@ -53,7 +53,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
 
 /**
  * @author Oleg Zhurakousky
@@ -111,16 +110,10 @@ public class FtpInboundChannelAdapterParserTests {
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
 		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
 		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
-		ReflectionUtils.doWithMethods(AbstractInboundFileSynchronizer.class, new MethodCallback() {
-
-			@Override
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				if ("generateLocalFileName".equals(method.getName())) {
-					method.setAccessible(true);
-					genMethod.set(method);
-				}
-			}
-		});
+		ReflectionUtils.doWithMethods(AbstractInboundFileSynchronizer.class, method -> {
+			method.setAccessible(true);
+			genMethod.set(method);
+		}, method -> "generateLocalFileName".equals(method.getName()));
 		assertEquals("FOO.afoo", genMethod.get().invoke(fisync, "foo"));
 		assertEquals(42, inbound.getMaxFetchSize());
 	}

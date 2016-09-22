@@ -35,10 +35,7 @@ import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.common.util.Base64;
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.junit.Test;
 
@@ -63,13 +60,7 @@ public class SftpServerTests {
 	public void testUcPw() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
-			server.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-				@Override
-				public boolean authenticate(String arg0, String arg1, ServerSession arg2) {
-					return true;
-				}
-			});
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
@@ -107,14 +98,7 @@ public class SftpServerTests {
 		SshServer server = SshServer.setUpDefaultServer();
 		final PublicKey allowedKey = decodePublicKey(pubKey);
 		try {
-			server.setPublickeyAuthenticator(new PublickeyAuthenticator() {
-
-				@Override
-				public boolean authenticate(String username, PublicKey key, ServerSession session) {
-					return key.equals(allowedKey);
-				}
-
-			});
+			server.setPublickeyAuthenticator((username, key, session) -> key.equals(allowedKey));
 			server.setPort(0);
 			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
 			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
