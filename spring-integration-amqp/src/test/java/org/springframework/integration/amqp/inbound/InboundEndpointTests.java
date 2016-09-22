@@ -30,8 +30,6 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -70,12 +68,7 @@ public class InboundEndpointTests {
 	@Test
 	public void testInt2809JavaTypePropertiesToAmqp() throws Exception {
 		Connection connection = mock(Connection.class);
-		doAnswer(new Answer<Channel>() {
-			@Override
-			public Channel answer(InvocationOnMock invocation) throws Throwable {
-				return mock(Channel.class);
-			}
-		}).when(connection).createChannel(anyBoolean());
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -116,12 +109,7 @@ public class InboundEndpointTests {
 	@Test
 	public void testInt2809JavaTypePropertiesFromAmqp() throws Exception {
 		Connection connection = mock(Connection.class);
-		doAnswer(new Answer<Channel>() {
-			@Override
-			public Channel answer(InvocationOnMock invocation) throws Throwable {
-				return mock(Channel.class);
-			}
-		}).when(connection).createChannel(anyBoolean());
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -154,12 +142,7 @@ public class InboundEndpointTests {
 	@Test
 	public void testMessageConverterJsonHeadersHavePrecedenceOverMessageHeaders() throws Exception {
 		Connection connection = mock(Connection.class);
-		doAnswer(new Answer<Channel>() {
-			@Override
-			public Channel answer(InvocationOnMock invocation) throws Throwable {
-				return mock(Channel.class);
-			}
-		}).when(connection).createChannel(anyBoolean());
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		when(connectionFactory.createConnection()).thenReturn(connection);
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -170,38 +153,30 @@ public class InboundEndpointTests {
 
 		final Channel rabbitChannel = mock(Channel.class);
 
-		channel.subscribe(new MessageTransformingHandler(new Transformer() {
-
-			@Override
-			public Message<?> transform(Message<?> message) {
-				assertSame(rabbitChannel, message.getHeaders().get(AmqpHeaders.CHANNEL));
-				assertEquals(123L, message.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
-				return MessageBuilder.fromMessage(message)
-						.setHeader(JsonHeaders.TYPE_ID, "foo")
-						.setHeader(JsonHeaders.CONTENT_TYPE_ID, "bar")
-						.setHeader(JsonHeaders.KEY_TYPE_ID, "baz")
-						.build();
-			}
+		channel.subscribe(new MessageTransformingHandler(message -> {
+			assertSame(rabbitChannel, message.getHeaders().get(AmqpHeaders.CHANNEL));
+			assertEquals(123L, message.getHeaders().get(AmqpHeaders.DELIVERY_TAG));
+			return MessageBuilder.fromMessage(message)
+					.setHeader(JsonHeaders.TYPE_ID, "foo")
+					.setHeader(JsonHeaders.CONTENT_TYPE_ID, "bar")
+					.setHeader(JsonHeaders.KEY_TYPE_ID, "baz")
+					.build();
 		}));
 
 		RabbitTemplate rabbitTemplate = Mockito.mock(RabbitTemplate.class);
 
-		Mockito.doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				org.springframework.amqp.core.Message message =
-						(org.springframework.amqp.core.Message) invocation.getArguments()[2];
-				Map<String, Object> headers = message.getMessageProperties().getHeaders();
-				assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-				assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-				assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
-				assertFalse(headers.containsKey(JsonHeaders.TYPE_ID));
-				assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID));
-				assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
-				return null;
-			}
+		Mockito.doAnswer(invocation -> {
+			org.springframework.amqp.core.Message message =
+					(org.springframework.amqp.core.Message) invocation.getArguments()[2];
+			Map<String, Object> headers = message.getMessageProperties().getHeaders();
+			assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+			assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+			assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+			assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
+			assertFalse(headers.containsKey(JsonHeaders.TYPE_ID));
+			assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID));
+			assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
+			return null;
 		}).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
 				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 

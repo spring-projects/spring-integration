@@ -40,17 +40,15 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Matchers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate.RabbitMessageFuture;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.rabbit.listener.adapter.ReplyingMessageListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
@@ -61,7 +59,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.concurrent.SettableListenableFuture;
@@ -107,20 +104,16 @@ public class AsyncAmqpGatewayTests {
 		receiver.setBeanName("receiver");
 		receiver.setQueueNames("asyncQ1");
 		final CountDownLatch waitForAckBeforeReplying = new CountDownLatch(1);
-		MessageListenerAdapter messageListener = new MessageListenerAdapter(new Object() {
-
-			@SuppressWarnings("unused")
-			public String handleMessage(String foo) {
-				try {
-					waitForAckBeforeReplying.await(10, TimeUnit.SECONDS);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				return foo.toUpperCase();
-			}
-
-		});
+		MessageListenerAdapter messageListener = new MessageListenerAdapter(
+				(ReplyingMessageListener<String, String>) foo -> {
+					try {
+						waitForAckBeforeReplying.await(10, TimeUnit.SECONDS);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					return foo.toUpperCase();
+				});
 		receiver.setMessageListener(messageListener);
 		receiver.afterPropertiesSet();
 		receiver.start();
@@ -129,15 +122,10 @@ public class AsyncAmqpGatewayTests {
 		Log logger = spy(TestUtils.getPropertyValue(gateway, "logger", Log.class));
 		given(logger.isDebugEnabled()).willReturn(true);
 		final CountDownLatch replyTimeoutLatch = new CountDownLatch(1);
-		willAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				invocation.callRealMethod();
-				replyTimeoutLatch.countDown();
-				return null;
-			}
-
+		willAnswer(invocation -> {
+			invocation.callRealMethod();
+			replyTimeoutLatch.countDown();
+			return null;
 		}).given(logger).debug(Matchers.startsWith("Reply not required and async timeout for"));
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel outputChannel = new QueueChannel();
@@ -175,13 +163,7 @@ public class AsyncAmqpGatewayTests {
 		// timeout tests
 		asyncTemplate.setReceiveTimeout(10);
 
-		receiver.setMessageListener(new MessageListener() {
-
-			@Override
-			public void onMessage(org.springframework.amqp.core.Message message) {
-			}
-
-		});
+		receiver.setMessageListener(message1 -> { });
 		// reply timeout with no requiresReply
 		message = MessageBuilder.withPayload("bar").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
@@ -203,13 +185,8 @@ public class AsyncAmqpGatewayTests {
 		// error on sending result
 		DirectChannel errorForce = new DirectChannel();
 		errorForce.setBeanName("errorForce");
-		errorForce.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("intentional");
-			}
-
+		errorForce.subscribe(message1 -> {
+			throw new RuntimeException("intentional");
 		});
 		gateway.setOutputChannel(errorForce);
 		message = MessageBuilder.withPayload("qux").setErrorChannel(errorChannel).build();

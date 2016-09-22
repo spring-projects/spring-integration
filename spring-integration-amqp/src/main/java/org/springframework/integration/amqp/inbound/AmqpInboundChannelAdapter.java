@@ -19,7 +19,6 @@ package org.springframework.integration.amqp.inbound;
 import java.util.Map;
 
 import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -30,8 +29,6 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -80,21 +77,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	@Override
 	protected void onInit() {
-		this.messageListenerContainer.setMessageListener(new ChannelAwareMessageListener() {
-
-			@Override
-			public void onMessage(Message message, Channel channel) throws Exception {
-				Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
-				Map<String, Object> headers =
-						AmqpInboundChannelAdapter.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				if (AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
-						== AcknowledgeMode.MANUAL) {
-					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
-					headers.put(AmqpHeaders.CHANNEL, channel);
-				}
-				sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build());
+		this.messageListenerContainer.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
+			Object payload = this.messageConverter.fromMessage(message);
+			Map<String, Object> headers =
+					this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
+			if (this.messageListenerContainer.getAcknowledgeMode()
+					== AcknowledgeMode.MANUAL) {
+				headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
+				headers.put(AmqpHeaders.CHANNEL, channel);
 			}
-
+			sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build());
 		});
 		this.messageListenerContainer.afterPropertiesSet();
 		super.onInit();
