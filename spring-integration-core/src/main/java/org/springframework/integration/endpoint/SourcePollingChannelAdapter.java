@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.aopalliance.aop.Advice;
 
@@ -50,6 +51,10 @@ import org.springframework.util.Assert;
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		implements TrackableComponent {
 
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	private final Collection<Advice> appliedAdvices = new HashSet<>();
+
 	private volatile MessageSource<?> source;
 
 	private volatile MessageChannel outputChannel;
@@ -57,8 +62,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	private volatile String outputChannelName;
 
 	private volatile boolean shouldTrack;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -129,10 +132,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
 		if (AopUtils.isAopProxy(this.source)) {
+			this.appliedAdvices.forEach(((Advised) this.source)::removeAdvice);
 			for (Advice advice : chain) {
-				NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(advice);
-				sourceAdvice.addMethodName("receive");
-				((Advised) this.source).addAdvice(advice);
+				NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
+				sourceAdvisor.addMethodName("receive");
+				((Advised) this.source).addAdvisor(sourceAdvisor);
 			}
 		}
 		else {
@@ -142,14 +146,16 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			}
 			this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 		}
+		this.appliedAdvices.clear();
+		this.appliedAdvices.addAll(chain);
 	}
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		if (this.source instanceof Lifecycle) {
 			((Lifecycle) this.source).start();
 		}
-		super.doStart();
 	}
 
 

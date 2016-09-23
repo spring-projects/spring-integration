@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -34,13 +35,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.Advisor;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -58,6 +64,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.SimplePollSkipStrategy;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
@@ -82,8 +89,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class PollerAdviceTests {
 
-	public Message<?> receiveAdviceResult;
-
 	@Autowired
 	private MessageChannel control;
 
@@ -94,13 +99,9 @@ public class PollerAdviceTests {
 	public void testDefaultDontSkip() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final CountDownLatch latch = new CountDownLatch(1);
-		adapter.setSource(new MessageSource<Object>() {
-
-			@Override
-			public Message<Object> receive() {
-				latch.countDown();
-				return null;
-			}
+		adapter.setSource(() -> {
+			latch.countDown();
+			return null;
 		});
 		adapter.setTrigger(new Trigger() {
 
@@ -131,7 +132,7 @@ public class PollerAdviceTests {
 
 			private final CountDownLatch latch;
 
-			LocalSource(CountDownLatch latch) {
+			private LocalSource(CountDownLatch latch) {
 				this.latch = latch;
 			}
 
@@ -157,7 +158,7 @@ public class PollerAdviceTests {
 		}
 		adapter.setTrigger(new OneAndDone10msTrigger());
 		configure(adapter);
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
 		skipper.skipPolls();
 		PollSkipAdvice advice = new PollSkipAdvice(skipper);
@@ -178,65 +179,49 @@ public class PollerAdviceTests {
 
 	@Test
 	public void testSkipSimpleControlBus() {
-		this.control.send(new GenericMessage<String>("@skipper.skipPolls()"));
+		this.control.send(new GenericMessage<>("@skipper.skipPolls()"));
 		assertTrue(this.skipper.skipPoll());
-		this.control.send(new GenericMessage<String>("@skipper.reset()"));
+		this.control.send(new GenericMessage<>("@skipper.reset()"));
 		assertFalse(this.skipper.skipPoll());
 	}
 
 	@Test
 	public void testMixedAdvice() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		final List<String> callOrder = new ArrayList<String>();
-		final CountDownLatch latch = new CountDownLatch(4); // advice + advice + source + advice
-		adapter.setSource(new MessageSource<Object>() {
-
-			@Override
-			public Message<Object> receive() {
-				callOrder.add("c");
-				latch.countDown();
-				return null;
-			}
-		});
-		adapter.setTrigger(new Trigger() {
-
-			private boolean done;
-
-			@Override
-			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Date date = done ? null : new Date(System.currentTimeMillis() + 10);
-				done = true;
-				return date;
-			}
-		});
+		final List<String> callOrder = new ArrayList<>();
+		final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(4));
+		MessageSource<Object> source = () -> {
+			callOrder.add("c");
+			latch.get().countDown();
+			return null;
+		};
+		adapter.setSource(source);
+		OnlyOnceTrigger trigger = new OnlyOnceTrigger();
+		adapter.setTrigger(trigger);
 		configure(adapter);
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 
-		class TestGeneralAdvice implements MethodInterceptor {
+		adviceChain.add((MethodInterceptor) invocation -> {
+			callOrder.add("a");
+			latch.get().countDown();
+			return invocation.proceed();
+		});
 
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				callOrder.add("a");
-				latch.countDown();
-				return invocation.proceed();
-			}
-
-		}
-		adviceChain.add(new TestGeneralAdvice());
-
+		final AtomicInteger count = new AtomicInteger();
 		class TestSourceAdvice extends AbstractMessageSourceAdvice {
 
 			@Override
 			public boolean beforeReceive(MessageSource<?> target) {
+				count.incrementAndGet();
 				callOrder.add("b");
-				latch.countDown();
+				latch.get().countDown();
 				return true;
 			}
 
 			@Override
 			public Message<?> afterReceive(Message<?> result, MessageSource<?> target) {
 				callOrder.add("d");
-				latch.countDown();
+				latch.get().countDown();
 				return result;
 			}
 
@@ -246,9 +231,37 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
 		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
 		adapter.stop();
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		adapter.stop();
+		assertEquals(2, count.get());
+
+		// Now test when the source is already a proxy.
+
+		ProxyFactory pf = new ProxyFactory(source);
+		pf.addAdvice((MethodInterceptor) Joinpoint::proceed);
+		adapter.setSource((MessageSource<?>) pf.getProxy());
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		count.set(0);
+		callOrder.clear();
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
+		adapter.stop();
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		adapter.stop();
+		assertEquals(2, count.get());
+		Advisor[] advisors = ((Advised) adapter.getMessageSource()).getAdvisors();
+		assertEquals(2, advisors.length); // make sure we didn't remove the original one
 	}
 
 	@Test
@@ -257,18 +270,14 @@ public class PollerAdviceTests {
 		final CountDownLatch latch = new CountDownLatch(5);
 		final LinkedList<Long> triggerPeriods = new LinkedList<Long>();
 		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
-		adapter.setSource(new MessageSource<Object>() {
-
-			@Override
-			public Message<Object> receive() {
-				triggerPeriods.add(trigger.getPeriod());
-				Message<Object> m = null;
-				if (latch.getCount() % 2 == 0) {
-					m = new GenericMessage<Object>("foo");
-				}
-				latch.countDown();
-				return m;
+		adapter.setSource(() -> {
+			triggerPeriods.add(trigger.getPeriod());
+			Message<Object> m = null;
+			if (latch.getCount() % 2 == 0) {
+				m = new GenericMessage<>("foo");
 			}
+			latch.countDown();
+			return m;
 		});
 		SimpleActiveIdleMessageSourceAdvice toggling = new SimpleActiveIdleMessageSourceAdvice(trigger);
 		toggling.setActivePollPeriod(11);
@@ -294,18 +303,14 @@ public class PollerAdviceTests {
 		final CompoundTrigger compoundTrigger = new CompoundTrigger(new PeriodicTrigger(10));
 		Trigger override = spy(new PeriodicTrigger(5));
 		final CompoundTriggerAdvice advice = new CompoundTriggerAdvice(compoundTrigger, override);
-		adapter.setSource(new MessageSource<Object>() {
-
-			@Override
-			public Message<Object> receive() {
-				overridePresent.add(TestUtils.getPropertyValue(compoundTrigger, "override"));
-				Message<Object> m = null;
-				if (latch.getCount() % 2 == 0) {
-					m = new GenericMessage<Object>("foo");
-				}
-				latch.countDown();
-				return m;
+		adapter.setSource(() -> {
+			overridePresent.add(TestUtils.getPropertyValue(compoundTrigger, "override"));
+			Message<Object> m = null;
+			if (latch.getCount() % 2 == 0) {
+				m = new GenericMessage<>("foo");
 			}
+			latch.countDown();
+			return m;
 		});
 		adapter.setAdviceChain(Collections.singletonList(advice));
 		adapter.setTrigger(compoundTrigger);
