@@ -17,9 +17,11 @@
 package org.springframework.integration.endpoint;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -50,6 +52,10 @@ import org.springframework.util.Assert;
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		implements TrackableComponent {
 
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	private final Collection<Advice> appliedAdvices = new HashSet<Advice>();
+
 	private volatile MessageSource<?> source;
 
 	private volatile MessageChannel outputChannel;
@@ -57,8 +63,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	private volatile String outputChannelName;
 
 	private volatile boolean shouldTrack;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -129,6 +133,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
 		if (AopUtils.isAopProxy(this.source)) {
+			Advisor[] advisors = ((Advised) this.source).getAdvisors();
+			for (Advisor advisor : advisors)  {
+				Advice advice = advisor.getAdvice();
+				if (advice != null && this.appliedAdvices.contains(advice)) {
+					((Advised) this.source).removeAdvice(advice);
+				}
+			}
 			for (Advice advice : chain) {
 				NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(advice);
 				sourceAdvice.addMethodName("receive");
@@ -142,6 +153,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			}
 			this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 		}
+		this.appliedAdvices.clear();
+		this.appliedAdvices.addAll(chain);
 	}
 
 	@Override
