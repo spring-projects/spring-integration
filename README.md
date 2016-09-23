@@ -1,6 +1,8 @@
 Spring Integration <img src="https://build.spring.io/plugins/servlet/buildStatusImage/INT-B41">
 ==================
 
+[![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # Checking out and Building
 
 To check out the project and build from source, do the following:
