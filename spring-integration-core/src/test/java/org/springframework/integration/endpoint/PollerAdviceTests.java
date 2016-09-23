@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -34,6 +35,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -41,6 +44,9 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.Advisor;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -58,6 +64,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.SimplePollSkipStrategy;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
@@ -188,27 +195,18 @@ public class PollerAdviceTests {
 	public void testMixedAdvice() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final List<String> callOrder = new ArrayList<String>();
-		final CountDownLatch latch = new CountDownLatch(4); // advice + advice + source + advice
-		adapter.setSource(new MessageSource<Object>() {
-
+		final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(4));
+		MessageSource<Object> source = new MessageSource<Object>() {
 			@Override
 			public Message<Object> receive() {
 				callOrder.add("c");
-				latch.countDown();
+				latch.get().countDown();
 				return null;
 			}
-		});
-		adapter.setTrigger(new Trigger() {
-
-			private boolean done;
-
-			@Override
-			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Date date = done ? null : new Date(System.currentTimeMillis() + 10);
-				done = true;
-				return date;
-			}
-		});
+		};
+		adapter.setSource(source);
+		OnlyOnceTrigger trigger = new OnlyOnceTrigger();
+		adapter.setTrigger(trigger);
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
@@ -217,26 +215,28 @@ public class PollerAdviceTests {
 			@Override
 			public Object invoke(MethodInvocation invocation) throws Throwable {
 				callOrder.add("a");
-				latch.countDown();
+				latch.get().countDown();
 				return invocation.proceed();
 			}
 
 		}
 		adviceChain.add(new TestGeneralAdvice());
 
+		final AtomicInteger count = new AtomicInteger();
 		class TestSourceAdvice extends AbstractMessageSourceAdvice {
 
 			@Override
 			public boolean beforeReceive(MessageSource<?> target) {
+				count.incrementAndGet();
 				callOrder.add("b");
-				latch.countDown();
+				latch.get().countDown();
 				return true;
 			}
 
 			@Override
 			public Message<?> afterReceive(Message<?> result, MessageSource<?> target) {
 				callOrder.add("d");
-				latch.countDown();
+				latch.get().countDown();
 				return result;
 			}
 
@@ -246,9 +246,43 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
 		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
 		adapter.stop();
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		adapter.stop();
+		assertEquals(2, count.get());
+
+		// Now test when the source is already a proxy.
+
+		MethodInterceptor dummy = new MethodInterceptor() {
+			@Override
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				return invocation.proceed();
+			}
+		};
+		ProxyFactory pf = new ProxyFactory(source);
+		pf.addAdvice(dummy);
+		adapter.setSource((MessageSource<?>) pf.getProxy());
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		count.set(0);
+		callOrder.clear();
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
+		adapter.stop();
+		trigger.reset();
+		latch.set(new CountDownLatch(4));
+		adapter.start();
+		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
+		adapter.stop();
+		assertEquals(2, count.get());
+		Advisor[] advisors = ((Advised) adapter.getMessageSource()).getAdvisors();
+		assertEquals(2, advisors.length); // make sure we didn't remove the original one
 	}
 
 	@Test
