@@ -1,7 +1,5 @@
-Spring Integration <img src="https://build.spring.io/plugins/servlet/buildStatusImage/INT-B41">
+Spring Integration [<img src="https://build.spring.io/plugins/servlet/buildStatusImage/INT-MASTER">](https://build.spring.io/browse/INT-MASTER) [![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==================
-
-[![Join the chat at https://gitter.im/spring-projects/spring-integration](https://badges.gitter.im/spring-projects/spring-integration.svg)](https://gitter.im/spring-projects/spring-integration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Checking out and Building
 
