@@ -64,6 +64,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.SimplePollSkipStrategy;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
@@ -204,19 +205,8 @@ public class PollerAdviceTests {
 			}
 		};
 		adapter.setSource(source);
-		class OnceTrigger implements Trigger {
-
-			private boolean done;
-
-			@Override
-			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Date date = done ? null : new Date(System.currentTimeMillis() + 10);
-				done = true;
-				return date;
-			}
-
-		}
-		adapter.setTrigger(new OnceTrigger());
+		OnlyOnceTrigger trigger = new OnlyOnceTrigger();
+		adapter.setTrigger(trigger);
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
@@ -259,7 +249,7 @@ public class PollerAdviceTests {
 		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
 		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
 		adapter.stop();
-		adapter.setTrigger(new OnceTrigger());
+		trigger.reset();
 		latch.set(new CountDownLatch(4));
 		adapter.start();
 		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
@@ -277,7 +267,7 @@ public class PollerAdviceTests {
 		ProxyFactory pf = new ProxyFactory(source);
 		pf.addAdvice(dummy);
 		adapter.setSource((MessageSource<?>) pf.getProxy());
-		adapter.setTrigger(new OnceTrigger());
+		trigger.reset();
 		latch.set(new CountDownLatch(4));
 		count.set(0);
 		callOrder.clear();
@@ -285,7 +275,7 @@ public class PollerAdviceTests {
 		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
 		assertThat(callOrder, contains("a", "b", "c", "d")); // advice + advice + source + advice
 		adapter.stop();
-		adapter.setTrigger(new OnceTrigger());
+		trigger.reset();
 		latch.set(new CountDownLatch(4));
 		adapter.start();
 		assertTrue(latch.get().await(10, TimeUnit.SECONDS));
