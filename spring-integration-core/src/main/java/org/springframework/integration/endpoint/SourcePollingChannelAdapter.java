@@ -16,13 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -134,17 +132,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
 		if (AopUtils.isAopProxy(this.source)) {
-			Advisor[] advisors = ((Advised) this.source).getAdvisors();
-			Arrays.stream(advisors).forEach(advisor -> {
-				Advice advice = advisor.getAdvice();
-				if (advice != null && this.appliedAdvices.contains(advice)) {
-					((Advised) this.source).removeAdvice(advice);
-				}
-			});
+			this.appliedAdvices.stream().forEach(((Advised) this.source)::removeAdvice);
 			for (Advice advice : chain) {
-				NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(advice);
-				sourceAdvice.addMethodName("receive");
-				((Advised) this.source).addAdvice(advice);
+				NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
+				sourceAdvisor.addMethodName("receive");
+				((Advised) this.source).addAdvisor(sourceAdvisor);
 			}
 		}
 		else {
@@ -160,10 +152,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		if (this.source instanceof Lifecycle) {
 			((Lifecycle) this.source).start();
 		}
-		super.doStart();
 	}
 
 
