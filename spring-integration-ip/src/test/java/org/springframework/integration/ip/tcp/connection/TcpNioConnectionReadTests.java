@@ -54,7 +54,9 @@ public class TcpNioConnectionReadTests {
 
 	private AbstractServerConnectionFactory getConnectionFactory(
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
-		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setUsingDirectBuffers(true);
+		scf.setApplicationEventPublisher(e -> { });
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.registerListener(listener);

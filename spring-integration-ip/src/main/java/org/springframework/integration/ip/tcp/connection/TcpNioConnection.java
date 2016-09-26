@@ -441,7 +441,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		if (logger.isTraceEnabled()) {
 			logger.trace(this.getConnectionId() + " Sending " + rawBuffer.limit() + " to pipe");
 		}
-		this.channelInputStream.write(rawBuffer.array(), rawBuffer.limit());
+		this.channelInputStream.write(rawBuffer);
 		rawBuffer.clear();
 	}
 
@@ -723,10 +723,11 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		 * @param bytesToWrite
 		 * @throws IOException
 		 */
-		public void write(byte[] array, int bytesToWrite) throws IOException {
+		public void write(ByteBuffer byteBuffer) throws IOException {
+			int bytesToWrite = byteBuffer.limit() - byteBuffer.position();
 			if (bytesToWrite > 0) {
 				byte[] buffer = new byte[bytesToWrite];
-				System.arraycopy(array, 0, buffer, 0, bytesToWrite);
+				byteBuffer.get(buffer);
 				this.available.addAndGet(bytesToWrite);
 				if (TcpNioConnection.this.writingLatch != null) {
 					TcpNioConnection.this.writingLatch.countDown();
