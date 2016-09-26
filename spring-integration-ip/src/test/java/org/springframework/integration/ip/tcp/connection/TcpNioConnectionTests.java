@@ -420,7 +420,7 @@ public class TcpNioConnectionTests {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
 				.getPropertyValue("channelInputStream");
-		stream.write("foo".getBytes(), 3);
+		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[2];
 		int n = stream.read(out);
 		assertEquals(2, n);
@@ -439,8 +439,8 @@ public class TcpNioConnectionTests {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
 				.getPropertyValue("channelInputStream");
-		stream.write("foo".getBytes(), 3);
-		stream.write("bar".getBytes(), 3);
+		stream.write(ByteBuffer.wrap("foo".getBytes()));
+		stream.write(ByteBuffer.wrap("bar".getBytes()));
 		byte[] out = new byte[6];
 		int n = stream.read(out);
 		assertEquals(6, n);
@@ -455,7 +455,7 @@ public class TcpNioConnectionTests {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
 				.getPropertyValue("channelInputStream");
-		stream.write("foo".getBytes(), 3);
+		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 		int n = stream.read(out, 1, 4);
 		assertEquals(3, n);
@@ -470,7 +470,7 @@ public class TcpNioConnectionTests {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
 		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
 				.getPropertyValue("channelInputStream");
-		stream.write("foo".getBytes(), 3);
+		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		byte[] out = new byte[5];
 		try {
 			stream.read(out, 1, 5);
@@ -511,7 +511,7 @@ public class TcpNioConnectionTests {
 		});
 		Thread.sleep(1000);
 		assertEquals(0x00, out[0]);
-		stream.write("foo".getBytes(), 3);
+		stream.write(ByteBuffer.wrap("foo".getBytes()));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("foo\u0000", new String(out));
 	}
@@ -785,7 +785,7 @@ public class TcpNioConnectionTests {
 				readerFinishedLatch.countDown();
 				return null;
 			}
-		}).when(cis).write(any(byte[].class), Matchers.anyInt());
+		}).when(cis).write(any(ByteBuffer.class));
 
 		doReturn(true).when(logger).isTraceEnabled();
 		doAnswer(new Answer<Void>() {

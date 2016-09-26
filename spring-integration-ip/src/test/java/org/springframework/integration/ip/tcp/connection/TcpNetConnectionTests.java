@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -104,7 +105,7 @@ public class TcpNetConnectionTests {
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, nullPublisher, null);
 		ChannelInputStream inputStream = 
 				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
-		inputStream.write(new byte[] {(byte) 0x80}, 1);
+		inputStream.write(ByteBuffer.wrap(new byte[] { (byte) 0x80 }));
 		assertEquals(0x80, inputStream.read());
 	}
 
