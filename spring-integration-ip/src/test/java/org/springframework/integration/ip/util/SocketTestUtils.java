@@ -234,7 +234,7 @@ public class SocketTestUtils {
 				testCompleteLatch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e1) {
-				e1.printStackTrace();
+				logger.debug("write failed", e1);
 			}
 			finally {
 				if (socket != null) {
