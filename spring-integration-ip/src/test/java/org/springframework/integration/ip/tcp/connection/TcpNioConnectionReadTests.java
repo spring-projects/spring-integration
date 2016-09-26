@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import javax.net.SocketFactory;
 
 import org.junit.Test;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
@@ -54,7 +56,9 @@ public class TcpNioConnectionReadTests {
 
 	private AbstractServerConnectionFactory getConnectionFactory(
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
-		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(0);
+		scf.setUsingDirectBuffers(true);
+		scf.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.registerListener(listener);
