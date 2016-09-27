@@ -152,14 +152,14 @@ For example, an _Aggregator_ waits for a number of Messages to arrive and is oft
 When using the namespace configuration, you do not strictly need to know all of the details, but it still might be worth knowing that several of these components share a common base class, the `AbstractReplyProducingMessageHandler`, and it provides a `setOutputChannel(..)` method.
 
 [[endpoint-namespace]]
-==== Namespace Support
+==== Endpoint Namespace Support
 
 Throughout the reference manual, you will see specific configuration examples for endpoint elements, such as router, transformer, service-activator, and so on.
 Most of these will support an _input-channel_ attribute and many will support an _output-channel_ attribute.
 After being parsed, these endpoint elements produce an instance of either the `PollingConsumer` or the `EventDrivenConsumer` depending on the type of the _input-channel_ that is referenced: `PollableChannel` or `SubscribableChannel` respectively.
 When the channel is pollable, then the polling behavior is determined based on the endpoint element's _poller_ sub-element and its attributes.
 
-_Configuration_Below you find a _poller_ with all available configuration options:
+In the configuration below you find a _poller_ with all available configuration options:
 
 [source,xml]
 ----

@@ -188,7 +188,7 @@ Alternatively, provide the host, username, and password:
 ----
 
 NOTE: Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`,
-a `<poller>` sub-element should be provided (see ).
+a `<poller>` sub-element should be provided (see <<endpoint-namespace>>).
 
 When using the namespace support, a _header-enricher_ Message Transformer is also available.
 This simplifies the application of the headers mentioned above to any Message prior to sending to the Mail Outbound Channel Adapter.
