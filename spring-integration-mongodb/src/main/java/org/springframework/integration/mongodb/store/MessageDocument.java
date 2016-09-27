@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.UUID;
 
+import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.messaging.Message;
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  */
 @Document
+@AccessType(AccessType.Type.PROPERTY)
 public class MessageDocument {
 
 	/*
@@ -37,21 +39,17 @@ public class MessageDocument {
 	 * when the application context is configured with auditing. The document is not
 	 * currently Auditable.
 	 */
-	@SuppressWarnings("unused")
 	@Id
 	private String _id;
 
 	private final Message<?> message;
 
-	@SuppressWarnings("unused")
 	private final UUID messageId;
 
-	@SuppressWarnings("unused")
 	private Integer priority;
 
 	private Long createdTime = 0L;
 
-	@SuppressWarnings("unused")
 	private Object groupId;
 
 	private Long lastModifiedTime = 0L;
@@ -60,7 +58,6 @@ public class MessageDocument {
 
 	private Integer lastReleasedSequence = 0;
 
-	@SuppressWarnings("unused")
 	private int sequence;
 
 	public MessageDocument(Message<?> message) {
@@ -115,6 +112,22 @@ public class MessageDocument {
 
 	public void setSequence(int sequence) {
 		this.sequence = sequence;
+	}
+
+	public UUID getMessageId() {
+		return this.messageId;
+	}
+
+	public Integer getPriority() {
+		return this.priority;
+	}
+
+	public Object getGroupId() {
+		return this.groupId;
+	}
+
+	public int getSequence() {
+		return this.sequence;
 	}
 
 }
