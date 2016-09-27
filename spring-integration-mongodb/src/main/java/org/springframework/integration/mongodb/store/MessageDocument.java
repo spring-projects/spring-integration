@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.UUID;
 
+import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.messaging.Message;
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * @since 4.0
  */
 @Document
+@AccessType(AccessType.Type.PROPERTY)
 public class MessageDocument {
 
 	/*
@@ -115,6 +117,22 @@ public class MessageDocument {
 
 	public void setSequence(int sequence) {
 		this.sequence = sequence;
+	}
+
+	public UUID getMessageId() {
+		return this.messageId;
+	}
+
+	public Integer getPriority() {
+		return this.priority;
+	}
+
+	public Object getGroupId() {
+		return this.groupId;
+	}
+
+	public int getSequence() {
+		return this.sequence;
 	}
 
 }
