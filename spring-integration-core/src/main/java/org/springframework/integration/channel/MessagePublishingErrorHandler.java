@@ -39,6 +39,7 @@ import org.springframework.util.ErrorHandler;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
@@ -47,6 +48,8 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile MessageChannel defaultErrorChannel;
+
+	private volatile String defaultErrorChannelName;
 
 	private volatile long sendTimeout = 1000;
 
@@ -70,7 +73,23 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	 * @since 4.3
 	 */
 	public MessageChannel getDefaultErrorChannel() {
+		String defaultErrorChannelName = this.defaultErrorChannelName;
+		if (defaultErrorChannelName != null) {
+			if (this.channelResolver != null) {
+				this.defaultErrorChannel = this.channelResolver.resolveDestination(defaultErrorChannelName);
+				this.defaultErrorChannelName = null;
+			}
+		}
 		return this.defaultErrorChannel;
+	}
+
+	/**
+	 * Specify the bean name of default error channel for this error handler.
+	 * @param defaultErrorChannelName the bean name of the error channel
+	 * @since 4.3.3
+	 */
+	public void setDefaultErrorChannelName(String defaultErrorChannelName) {
+		this.defaultErrorChannelName = defaultErrorChannelName;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -87,7 +106,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 
 	@Override
 	public final void handleError(Throwable t) {
-		MessageChannel errorChannel = this.resolveErrorChannel(t);
+		MessageChannel errorChannel = resolveErrorChannel(t);
 		boolean sent = false;
 		if (errorChannel != null) {
 			try {
@@ -123,7 +142,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	private MessageChannel resolveErrorChannel(Throwable t) {
 		Message<?> failedMessage = (t instanceof MessagingException) ?
 				((MessagingException) t).getFailedMessage() : null;
-		if (this.defaultErrorChannel == null && this.channelResolver != null) {
+		if (getDefaultErrorChannel() == null && this.channelResolver != null) {
 			this.defaultErrorChannel = this.channelResolver.resolveDestination(
 					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		}
@@ -137,7 +156,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		}
 		Assert.isInstanceOf(String.class, errorChannelHeader,
 				"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
-				errorChannelHeader.getClass() + "]");
+						errorChannelHeader.getClass() + "]");
 		return this.channelResolver.resolveDestination((String) errorChannelHeader);
 	}
 
