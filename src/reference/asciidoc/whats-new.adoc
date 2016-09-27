@@ -15,7 +15,7 @@ development process.
 
 ==== Core Changes
 
-The `@Poller` is supplied now with the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
+The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 See <<annotations>> for more information.
 
 ==== JMS Changes

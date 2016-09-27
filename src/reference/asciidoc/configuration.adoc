@@ -424,7 +424,7 @@ public class AnnotationService {
 }
 ----
 
-Starting with _version 4.3.3_, the `@Poller` is supplied with the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
+Starting with _version 4.3.3_, the `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 This attribute play the same role as `error-channel` in the `<poller>` xml component.
 See <<endpoint-namespace>> for more information.
 
