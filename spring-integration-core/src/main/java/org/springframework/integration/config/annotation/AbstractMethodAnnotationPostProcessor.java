@@ -101,7 +101,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final List<String> messageHandlerAttributes = new ArrayList<>();
+	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
 

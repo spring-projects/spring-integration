@@ -85,7 +85,8 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 
 	/**
 	 * Specify the bean name of default error channel for this error handler.
-	 * @since 5.0
+	 * @param defaultErrorChannelName the bean name of the error channel
+	 * @since 4.3.3
 	 */
 	public void setDefaultErrorChannelName(String defaultErrorChannelName) {
 		this.defaultErrorChannelName = defaultErrorChannelName;

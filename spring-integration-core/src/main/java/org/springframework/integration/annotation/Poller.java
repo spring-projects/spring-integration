@@ -88,6 +88,7 @@ public @interface Poller {
 	/**
 	 * @return The the bean name of default error channel
 	 * for the underlying {@code MessagePublishingErrorHandler}.
+	 * @since 4.3.3
 	 */
 	String errorChannel() default "";
 
