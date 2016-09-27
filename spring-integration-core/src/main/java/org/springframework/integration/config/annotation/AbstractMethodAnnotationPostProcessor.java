@@ -49,6 +49,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -100,7 +101,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
+	protected final List<String> messageHandlerAttributes = new ArrayList<>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
 
@@ -236,8 +237,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		boolean createEndpoint = StringUtils.hasText(inputChannel);
 		if (!createEndpoint && beanAnnotationAware()) {
 			boolean isBean = AnnotatedElementUtils.isAnnotated(method, Bean.class.getName());
-			Assert.isTrue(!isBean, "A channel name in '" + getInputChannelAttribute() + "' is required when " + this.annotationType +
-					" is used on '@Bean' methods.");
+			Assert.isTrue(!isBean, "A channel name in '" + getInputChannelAttribute() + "' is required when " +
+					this.annotationType + " is used on '@Bean' methods.");
 		}
 		return createEndpoint;
 	}
@@ -343,7 +344,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		PollerMetadata pollerMetadata = null;
 		Poller[] pollers = MessagingAnnotationUtils.resolveAttribute(annotations, "poller", Poller[].class);
 		if (!ObjectUtils.isEmpty(pollers)) {
-			Assert.state(pollers.length == 1, "The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
+			Assert.state(pollers.length == 1,
+					"The 'poller' for an Annotation-based endpoint can have only one '@Poller'.");
 			Poller poller = pollers[0];
 
 			String ref = poller.value();
@@ -353,6 +355,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String fixedRateValue = this.beanFactory.resolveEmbeddedValue(poller.fixedRate());
 			String maxMessagesPerPollValue = this.beanFactory.resolveEmbeddedValue(poller.maxMessagesPerPoll());
 			String cron = this.beanFactory.resolveEmbeddedValue(poller.cron());
+			String errorChannel = this.beanFactory.resolveEmbeddedValue(poller.errorChannel());
 
 			if (StringUtils.hasText(ref)) {
 				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) &&
@@ -370,9 +373,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					// SPCAs default to 1 message per poll
 					pollerMetadata.setMaxMessagesPerPoll(1);
 				}
+
 				if (StringUtils.hasText(executorRef)) {
 					pollerMetadata.setTaskExecutor(this.beanFactory.getBean(executorRef, TaskExecutor.class));
 				}
+
 				Trigger trigger = null;
 				if (StringUtils.hasText(triggerRef)) {
 					Assert.state(!StringUtils.hasText(cron) && !StringUtils.hasText(fixedDelayValue)
@@ -396,6 +401,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 				//'Trigger' can be null. 'PollingConsumer' does fallback to the 'new PeriodicTrigger(10)'.
 				pollerMetadata.setTrigger(trigger);
+
+				if (StringUtils.hasText(errorChannel)) {
+					MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+					errorHandler.setDefaultErrorChannelName(errorChannel);
+					errorHandler.setBeanFactory(this.beanFactory);
+					pollerMetadata.setErrorHandler(errorHandler);
+				}
 			}
 		}
 		else {
@@ -425,8 +437,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}
 
-	protected void setOutputChannelIfPresent(List<Annotation> annotations, AbstractReplyProducingMessageHandler handler) {
-		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel", String.class);
+	protected void setOutputChannelIfPresent(List<Annotation> annotations,
+			AbstractReplyProducingMessageHandler handler) {
+		String outputChannelName = MessagingAnnotationUtils.resolveAttribute(annotations, "outputChannel",
+				String.class);
 		if (StringUtils.hasText(outputChannelName)) {
 			handler.setOutputChannelName(outputChannelName);
 		}

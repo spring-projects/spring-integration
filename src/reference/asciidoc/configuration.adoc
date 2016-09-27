@@ -374,7 +374,7 @@ public class AnnotationService {
 
 This annotation provides only simple `PollerMetadata` options.
 The `@Poller`'s attributes `maxMessagesPerPoll`, `fixedDelay`, `fixedRate` and `cron` can be configured with _property-placeholders_.
-If it is necessary to provide more polling options (e.g. transaction, advice-chain, error-handler), the `PollerMetadata` should be configured as a generic bean with its bean name used for `@Poller`'s `value` attribute.
+If it is necessary to provide more polling options (e.g. transaction, advice-chain, error-handler etc.), the `PollerMetadata` should be configured as a generic bean with its bean name used for `@Poller`'s `value` attribute.
 In this case, no other attributes are allowed (they would be specified on the `PollerMetadata` bean).
 Note, if `inputChannel` is `PollableChannel` and no `@Poller` is configured, the default `PollerMetadata` will be used, if it is present in the application context.
 To declare the default poller using `@Configuration`, use:
@@ -423,6 +423,10 @@ public class AnnotationService {
     }
 }
 ----
+
+Starting with _version 4.0_, the `@Poller` is supplied with the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
+This attribute play the same role as `error-channel` in the `<poller>` xml component.
+See <<endpoint-namespace>> for more information.
 
 *@InboundChannelAdapter*
 

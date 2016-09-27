@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
@@ -75,6 +76,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -119,6 +121,9 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Qualifier("skippedMessageSource")
 	private MessageSource<?> skippedMessageSource;
 
+	@Autowired
+	private PollableChannel counterErrorChannel;
+
 	@Test
 	public void testMessagingAnnotationsFlow() {
 		this.sourcePollingChannelAdapter.start();
@@ -126,6 +131,17 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			Message<?> receive = this.discardChannel.receive(10000);
 			assertNotNull(receive);
 			assertTrue(((Integer) receive.getPayload()) % 2 == 0);
+
+			receive = this.counterErrorChannel.receive(10000);
+			assertNotNull(receive);
+			assertThat(receive, instanceOf(ErrorMessage.class));
+			assertThat(receive.getPayload(), instanceOf(MessageRejectedException.class));
+			MessageRejectedException exception = (MessageRejectedException) receive.getPayload();
+			assertThat(exception.getMessage(),
+					containsString("MessageFilter " +
+							"'messagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.filter.filter.handler'" +
+							" rejected Message"));
+
 		}
 		for (Message<?> message : collector) {
 			assertFalse(((Integer) message.getPayload()) % 2 == 0);
@@ -174,15 +190,14 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		@InboundChannelAdapter(value = "routerChannel", autoStartup = "false",
-				poller = @Poller(fixedRate = "10", maxMessagesPerPoll = "1"))
+				poller = @Poller(fixedRate = "10", maxMessagesPerPoll = "1", errorChannel = "counterErrorChannel"))
 		public MessageSource<Integer> counterMessageSource(final AtomicInteger counter) {
-			return new MessageSource<Integer>() {
+			return () -> new GenericMessage<>(counter.incrementAndGet());
+		}
 
-				@Override
-				public Message<Integer> receive() {
-					return new GenericMessage<Integer>(counter.incrementAndGet());
-				}
-			};
+		@Bean
+		public PollableChannel counterErrorChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean
@@ -191,7 +206,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Router(inputChannel = "routerChannel", channelMappings = {"true=odd", "false=filter"}, suffix = "Channel")
+		@Router(inputChannel = "routerChannel", channelMappings = { "true=odd", "false=filter" }, suffix = "Channel")
 		public MessageSelector router() {
 			return new ExpressionEvaluatingSelector("payload % 2 == 0");
 		}
@@ -208,7 +223,10 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 		@Bean
-		@Filter(inputChannel = "filterChannel", outputChannel = "aggregatorChannel", discardChannel = "discardChannel")
+		@Filter(inputChannel = "filterChannel",
+				outputChannel = "aggregatorChannel",
+				discardChannel = "discardChannel",
+				throwExceptionOnRejection = "true")
 		public MessageSelector filter() {
 			return new ExpressionEvaluatingSelector("payload % 2 != 0");
 		}
@@ -277,7 +295,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Filter(inputChannel = "skippedChannel5")
 		@Profile("foo")
 		public MessageHandler skippedMessageHandler() {
-			return m -> { };
+			return m -> {
+			};
 		}
 
 		@Bean

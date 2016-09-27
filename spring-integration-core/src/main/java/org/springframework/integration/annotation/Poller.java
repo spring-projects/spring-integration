@@ -85,4 +85,10 @@ public @interface Poller {
 	 */
 	String cron() default "";
 
+	/**
+	 * @return The the bean name of default error channel
+	 * for the underlying {@code MessagePublishingErrorHandler}.
+	 */
+	String errorChannel() default "";
+
 }

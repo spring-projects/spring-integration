@@ -15,6 +15,9 @@ development process.
 
 ==== Core Changes
 
+The `@Poller` is supplied now with the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
+See <<annotations>> for more information.
+
 ==== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.
