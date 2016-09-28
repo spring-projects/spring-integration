@@ -352,4 +352,16 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		registry.destroy();
 	}
 
+	@Test
+	public void testTryLock() throws Exception {
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
+		for (int i = 0; i < 10; i++) {
+			Lock lock = registry.obtain("foo");
+			assertTrue(lock.tryLock());
+			lock.unlock();
+		}
+
+		registry.destroy();
+	}
+
 }

@@ -271,7 +271,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		@Override
 		public boolean tryLock() {
 			try {
-				return tryLock(0, TimeUnit.MICROSECONDS);
+				return tryLock(1, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
