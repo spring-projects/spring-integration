@@ -154,10 +154,29 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
+	/**
+	 * Construct a gateway that will wait for the {@link #setReplyTimeout(long)
+	 * replyTimeout} for a reply; if the timeout is exceeded a '500 Internal Server Error'
+	 * status code is returned. This can be modified using the
+	 * {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * @see #setReplyTimeout(long)
+	 * @see #setStatusCodeExpression(Expression)
+	 */
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
 	}
 
+	/**
+	 * Construct a gateway. If 'expectReply' is true it will wait for the
+	 * {@link #setReplyTimeout(long) replyTimeout} for a reply; if the timeout is exceeded
+	 * a '500 Internal Server Error' status code is returned. This can be modified using
+	 * the {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * If 'false', a 200 OK status will be returned; this can also be modified using
+	 * {@link #setStatusCodeExpression(Expression) statusCodeExpression}.
+	 * @param expectReply true if a reply is expected from the downstream flow.
+	 * @see #setReplyTimeout(long)
+	 * @see #setStatusCodeExpression(Expression)
+	 */
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		super(expectReply);
 		this.expectReply = expectReply;
@@ -330,14 +349,19 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * Specify the {@link Expression} to resolve a status code for Response
-	 * to override the default '200 OK'.
-	 * <p> The {@link #statusCodeExpression} is applied only for the one-way {@code <http:inbound-channel-adapter/>}
-	 * or when no reply (timeout) is received for a gateway.
-	 * The {@code <http:inbound-gateway/>} resolves an {@link HttpStatus} from the
-	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply {@link Message} header.
+	 * Specify the {@link Expression} to resolve a status code for Response to override
+	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
+	 * <p>The {@link #statusCodeExpression} is applied only for the one-way
+	 * {@code <http:inbound-channel-adapter/>} or when no reply (timeout) is received for
+	 * a gateway. The {@code <http:inbound-gateway/>} (or whenever
+	 * {@link #HttpRequestHandlingEndpointSupport(boolean) expectReply} is true) resolves
+	 * an {@link HttpStatus} from the
+	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply
+	 * {@link Message} header.
 	 * @param statusCodeExpression The status code Expression.
 	 * @since 4.1
+	 * @see #setReplyTimeout(long)
+	 * @see HttpRequestHandlingEndpointSupport#HttpRequestHandlingEndpointSupport(boolean)
 	 */
 	public void setStatusCodeExpression(Expression statusCodeExpression) {
 		this.statusCodeExpression = statusCodeExpression;
