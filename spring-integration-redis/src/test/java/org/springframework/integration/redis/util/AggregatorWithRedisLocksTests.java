@@ -45,11 +45,13 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -124,6 +126,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
+	@Repeat(10)
 	public void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -222,5 +225,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 			this.callers = new AtomicInteger();
 			this.maxCallers = new AtomicInteger();
 		}
+
 	}
+
 }
