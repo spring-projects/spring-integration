@@ -41,9 +41,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -420,32 +419,32 @@ public final class RedisLockRegistry implements LockRegistry {
 
 			Boolean success = false;
 			try {
-				success = RedisLockRegistry.this.redisTemplate.execute(new SessionCallback<Boolean>() {
 
-					@SuppressWarnings({"unchecked", "rawtypes"})
+				success = RedisLockRegistry.this.redisTemplate.execute(new RedisCallback<Boolean>() {
+
 					@Override
-					public Boolean execute(RedisOperations ops) throws DataAccessException {
-						String key = constructLockKey();
+					public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
 
-						ops.watch(key); //monitor key
+						/*
+						Perform Redis command 'SET resource-name anystring NX EX max-lock-time' directly.
+						As it is recommended by Redis: http://redis.io/commands/set.
+						This command isn't supported directly by RedisTemplate.
+						*/
+						long expireAfter = TimeoutUtils.toSeconds(RedisLockRegistry.this.expireAfter,
+								TimeUnit.MILLISECONDS);
+						RedisSerializer<String> serializer = RedisLockRegistry.this.redisTemplate.getStringSerializer();
+						byte[][] actualArgs = new byte[][] {
+								serializer.serialize(constructLockKey()),
+								RedisLockRegistry.this.lockSerializer.serialize(RedisLock.this),
+								serializer.serialize("NX"),
+								serializer.serialize("EX"),
+								serializer.serialize(String.valueOf(expireAfter))
+						};
 
-						if (ops.opsForValue().get(key) != null) {
-							ops.unwatch(); //key already exists, stop monitoring
-							return false;
-						}
-
-						ops.multi(); //transaction start
-
-						//set the value and expire
-						ops.opsForValue()
-								.set(key, RedisLock.this, RedisLockRegistry.this.expireAfter, TimeUnit.MILLISECONDS);
-
-						//exec will contain all operations result or null - if execution has been aborted due to 'watch'
-						return ops.exec() != null;
+						return connection.execute("SET", actualArgs) != null;
 					}
 
 				});
-
 			}
 			finally {
 
