@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
 /**
  * @author Senthil Arumugam, Samiraj Panneer Selvam
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -99,16 +100,16 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void testPutIfAbsent() throws Exception {
 		String fileID = store.get(file1);
-		assertNull("Get First time, Key doesnt exists", fileID);
+		assertNull("Get First time, Value must not exist", fileID);
 
 		fileID = store.putIfAbsent(file1, file1Id);
-		assertNull("Insert First time, Key insertion successful", fileID);
+		assertNull("Insert First time, Value must return null", fileID);
 
 		fileID = store.putIfAbsent(file1, "56789");
-		assertNotNull("Key Already Exists - Insertion Failed, for different value", fileID);
-		assertEquals("Retrieving the Old Value", file1Id, fileID);
+		assertNotNull("Key Already Exists - Insertion Failed, ol value must be returned", fileID);
+		assertEquals("The Old Value must be equal to returned", file1Id, fileID);
 
-		assertEquals("Retrieving the Old Value", file1Id, store.get(file1));
+		assertEquals("The Old Value must return", file1Id, store.get(file1));
 
 	}
 

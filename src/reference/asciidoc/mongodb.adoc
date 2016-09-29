@@ -167,10 +167,7 @@ public MetadataStore metadataStore(MongoDbFactory factory) {
 
 The `MongoDbMetadataStore` also implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple
 application instances where only one instance will be allowed to store or modify a key's value.
-All these operations are _atomic_ via MongoDB guarantees. For this purpose the `putIfAbsent` operation is implemented
-as a _stored_ JavaScript function. Fom more information see
-http://docs.spring.io/spring-data/data-mongo/docs/current/reference/html/#mongo.server-side-scripts[Script Operations]
-and `MongoDbMetadataStore` JavaDocs.
+All these operations are _atomic_ via MongoDB guarantees.
 
 [[mongodb-inbound-channel-adapter]]
 === MongoDB Inbound Channel Adapter
