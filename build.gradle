@@ -78,10 +78,8 @@ subprojects { subproject ->
 	}
 
 	compileTestJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		sourceCompatibility = 1.8
 	}
-
 
 	ext {
 		activeMqVersion = '5.13.2'
@@ -129,7 +127,7 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.2.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.3.RELEASE'
 		springDataJpaVersion = '1.10.1.RELEASE'
 		springDataMongoVersion = '1.9.1.RELEASE'
 		springDataRedisVersion = '1.7.1.RELEASE'
@@ -288,11 +286,6 @@ project('spring-integration-amqp') {
 
 project('spring-integration-core') {
 	description = 'Spring Integration Core'
-
-	compileTestJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
-	}
 
 	dependencies {
 		compile "org.springframework:spring-core:$springVersion"
