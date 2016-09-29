@@ -186,6 +186,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		if (this.dataTimeout != null) {
 			client.setDataTimeout(this.dataTimeout);
 		}
+		client.setControlEncoding(this.controlEncoding);
 
 		this.postProcessClientBeforeConnect(client);
 
@@ -209,7 +210,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.updateClientMode(client);
 		client.setFileType(fileType);
 		client.setBufferSize(bufferSize);
-		client.setControlEncoding(controlEncoding);
 		return client;
 	}
 
