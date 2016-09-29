@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,6 +49,7 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @DirtiesContext
+@Ignore("Unstable from the Gemfire side.")
 public class CqInboundChannelAdapterTests {
 
 	@Autowired
