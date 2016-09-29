@@ -36,7 +36,6 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -46,6 +45,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
@@ -61,7 +61,6 @@ import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -178,12 +177,16 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String SAVED_KEY = JdbcMessageStore.class.getSimpleName() + ".SAVED";
 
 	/**
 	 * The name of the message header that stores a timestamp for the time the message was inserted.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private final MessageMapper mapper = new MessageMapper();
@@ -326,42 +329,49 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public MessageMetadata getMessageMetadata(UUID id) {
+		List<MessageMetadata> list =
+				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE),
+						(rs, rn) -> {
+							MessageMetadata messageMetadata =
+									new MessageMetadata(UUID.fromString(rs.getString("MESSAGE_ID")));
+							messageMetadata.setTimestamp(rs.getTimestamp("CREATED_DATE").getTime());
+							return messageMetadata;
+						}, getKey(id), this.region);
+		if (list.isEmpty()) {
+			return null;
+		}
+		return list.get(0);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(final Message<T> message) {
-		if (message.getHeaders().containsKey(SAVED_KEY)) {
-			Message<T> saved = (Message<T>) getMessage(message.getHeaders().getId());
-			if (saved != null) {
-				if (saved.equals(message)) {
-					return message;
-				} // We need to save it under its own id
-			}
+		UUID id = message.getHeaders().getId();
+		final String messageId = getKey(id);
+		final byte[] messageBytes = this.serializer.convert(message);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Inserting message with id key=" + messageId);
 		}
 
-		final long createdDate = System.currentTimeMillis();
-		Message<T> result = this.getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, createdDate).build();
-
-		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
-		// using reflection to set ID since it is immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
-
-		final String messageId = getKey(result.getHeaders().getId());
-		final byte[] messageBytes = this.serializer.convert(result);
-
-		this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE), new PreparedStatementSetter() {
-
-			@Override
-			public void setValues(PreparedStatement ps) throws SQLException {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Inserting message with id key=" + messageId);
-				}
+		try {
+			this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE), ps -> {
 				ps.setString(1, messageId);
-				ps.setString(2, JdbcMessageStore.this.region);
-				ps.setTimestamp(3, new Timestamp(createdDate));
-				JdbcMessageStore.this.lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
+				ps.setString(2, this.region);
+				ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+
+				this.lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
+			});
+		}
+		catch (DuplicateKeyException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("The Message with id [" + id + "] already exists.\n" +
+						"Ignoring INSERT and SELECT existing...");
 			}
-		});
-		return result;
+			return (Message<T>) getMessage(id);
+		}
+		return message;
 	}
 
 	@Override
@@ -442,19 +452,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
-		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new RowCallbackHandler() {
+		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), rs -> {
+			updateDate.set(rs.getTimestamp("UPDATED_DATE"));
 
-			@Override
-			public void processRow(ResultSet rs) throws SQLException {
-				updateDate.set(rs.getTimestamp("UPDATED_DATE"));
+			createDate.set(rs.getTimestamp("CREATED_DATE"));
 
-				createDate.set(rs.getTimestamp("CREATED_DATE"));
+			completeFlag.set(rs.getInt("COMPLETE") > 0);
 
-				completeFlag.set(rs.getInt("COMPLETE") > 0);
-
-				lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
-			}
-
+			lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
 		}, key, this.region);
 
 		if (createDate.get() == null && updateDate.get() == null) {
@@ -751,7 +756,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		@Override
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			return (Message<?>) JdbcMessageStore.this.deserializer.convert(JdbcMessageStore.this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
+			byte[] messageBytes = JdbcMessageStore.this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES");
+			return (Message<?>) JdbcMessageStore.this.deserializer.convert(messageBytes);
 		}
 
 	}

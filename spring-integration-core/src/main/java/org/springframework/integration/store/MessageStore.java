@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Dave Syer
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -37,6 +38,16 @@ public interface MessageStore {
 	 * @return The Message with the given id, or <i>null</i> if no Message with that id exists in the MessageStore.
 	 */
 	Message<?> getMessage(UUID id);
+
+	/**
+	 * Return a {@link MessageMetadata} for the {@link Message} by provided {@code id}.
+	 * @param id The message identifier.
+	 * @return The MessageMetadata with the given id, or <i>null</i>
+	 * if no Message with that id exists in the MessageStore
+	 * or the message has no metadata (legacy message from an earlier version).
+	 * @since 5.0
+	 */
+	MessageMetadata getMessageMetadata(UUID id);
 
 	/**
 	 * Put the provided Message into the MessageStore. The store may need to mutate the message internally, and if it

@@ -98,9 +98,6 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 		assertNotNull(messageFromDb);
 		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
-
-		assertNotNull(messageFromDb.getHeaders().get(JdbcChannelMessageStore.SAVED_KEY));
-		assertNotNull(messageFromDb.getHeaders().get(JdbcChannelMessageStore.CREATED_DATE_KEY));
 	}
 
 }

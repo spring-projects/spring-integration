@@ -139,12 +139,9 @@ public class MySqlJdbcMessageStoreTests {
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertNotNull(result);
 		assertThat(saved, sameExceptIgnorableHeaders(result));
-		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
-		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
 	}
 
 	@Test
@@ -252,7 +249,7 @@ public class MySqlJdbcMessageStoreTests {
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
 		assertNotSame(saved, result);
-		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY, "newHeader"));
+		assertThat(saved, sameExceptIgnorableHeaders(result, "newHeader"));
 		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
 	}
 
