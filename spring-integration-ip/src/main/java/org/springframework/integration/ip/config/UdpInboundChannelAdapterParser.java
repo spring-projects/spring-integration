@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
+import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -32,8 +34,6 @@ import org.w3c.dom.Element;
  */
 public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 	
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.udp";
-
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
@@ -41,8 +41,7 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.POOL_SIZE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
-				element, "channel", "outputChannel");
+		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
@@ -72,12 +71,10 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("false")) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-					".UnicastReceivingChannelAdapter");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(UnicastReceivingChannelAdapter.class);
 		}
 		else {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-					".MulticastReceivingChannelAdapter");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(MulticastReceivingChannelAdapter.class);
 			String mcAddress = element
 					.getAttribute(IpAdapterParserUtils.MULTICAST_ADDRESS);
 			if (!StringUtils.hasText(mcAddress)) {

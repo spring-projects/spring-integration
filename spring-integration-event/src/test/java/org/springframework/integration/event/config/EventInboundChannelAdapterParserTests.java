@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.event.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -59,6 +61,12 @@ public class EventInboundChannelAdapterParserTests {
 
 	@Autowired
 	MessageChannel errorChannel;
+
+	@Autowired
+	MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	ApplicationEventListeningMessageProducer eventListener;
 
 	@Test
 	public void validateEventParser() {
@@ -126,6 +134,10 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertEquals("source + '-test'", expression.getExpressionString());
 	}
 
+	@Test
+	public void testAutoCreateChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(eventListener, "outputChannel"));
+	}
 
 	@SuppressWarnings("serial")
 	public static class SampleEvent extends ApplicationEvent {
