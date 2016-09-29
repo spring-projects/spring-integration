@@ -20,14 +20,19 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
@@ -91,20 +96,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
-		boolean channelExists = false;
-		if (parserContext.getRegistry() instanceof BeanFactory) {
-			// BeanFactory also checks ancestor contexts in a hierarchy
-			channelExists = ((BeanFactory) parserContext.getRegistry()).containsBean(inputChannelName);
-		}
-		else {
-			channelExists = parserContext.getRegistry().containsBeanDefinition(inputChannelName);
-		}
-		if (!channelExists && this.shouldAutoCreateChannel(inputChannelName)) {
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
-			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
-			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		}
+		
+		BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(MessageChannelCreator.class);
+		channelDef.addConstructorArgValue(inputChannelName);
+		BeanDefinitionReaderUtils.registerWithGeneratedName(channelDef.getBeanDefinition(), parserContext.getRegistry());
+			
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
 		if (!CollectionUtils.isEmpty(pollerElementList)) {
@@ -121,9 +117,30 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		return null;
 	}
 
-	private boolean shouldAutoCreateChannel(String channelName) {
-		return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
-				&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
-	}
+	private static class MessageChannelCreator implements BeanFactoryPostProcessor {
+		
+		private final String channelName;
+		
+		@SuppressWarnings("unused")
+		public MessageChannelCreator(String channelName){
+			this.channelName = channelName;
+		}
 
+		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+				
+			if (!beanFactory.containsBean(channelName) && this.shouldAutoCreateChannel(channelName)){
+				BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+				RootBeanDefinition messageChannel = new RootBeanDefinition();
+				messageChannel.setBeanClass(DirectChannel.class);
+				BeanDefinitionHolder messageChannelHolder = new BeanDefinitionHolder(messageChannel, this.channelName);
+				BeanDefinitionReaderUtils.registerBeanDefinition(messageChannelHolder, registry);
+			}
+		}
+		
+		private boolean shouldAutoCreateChannel(String channelName) {
+			return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
+					&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
+		}
+
+	}
 }

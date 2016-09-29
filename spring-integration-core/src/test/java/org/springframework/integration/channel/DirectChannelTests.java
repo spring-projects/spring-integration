@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -66,6 +67,14 @@ public class DirectChannelTests {
 		}, "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("test-thread", target.threadName);
+	}
+	
+	@Test // nothing to assert. This test simply should not fail. See INT-2434
+	public void testChannelCreationWithBeanDefinitionOverrideTrue() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
+		context.setAllowBeanDefinitionOverriding(false);
+		context.setConfigLocations(new String[]{"classpath:org/springframework/integration/channel/channel-override-config.xml"});
+		context.refresh();
 	}
 
 
