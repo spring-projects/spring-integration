@@ -25,9 +25,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -56,8 +53,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
 	private volatile boolean messageBuilderFactorySet;
 
 	private boolean lazyLoadMessageGroups = true;
@@ -74,16 +69,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 
-	}
-
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			this.messageBuilderFactorySet = true;
-		}
-		return this.messageBuilderFactory;
 	}
 
 	@Override

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.store;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +33,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,6 +40,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
@@ -61,7 +59,6 @@ import org.springframework.integration.transaction.TransactionSynchronizationFac
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
@@ -70,7 +67,6 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -127,12 +123,16 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String SAVED_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".SAVED";
 
 	/**
 	 * The name of the message header that stores a timestamp for the time the message was inserted.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String CREATED_DATE_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
@@ -399,7 +399,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {
-			logger.warn("The jdbcTemplate's fetchsize is not 1. This may cause FIFO issues with Oracle databases.");
+			logger.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
 		if (this.beanFactory != null) {
@@ -419,36 +419,31 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param message a message
 	 */
 	@Override
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings("unchecked")
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 
-		final String groupKey = getKey(groupId);
+		String groupKey = getKey(groupId);
 
-		final long createdDate = System.currentTimeMillis();
-		final Message<?> result = this.messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, createdDate).build();
+		long createdDate = System.currentTimeMillis();
 
-		final Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
-		// using reflection to set ID since it is immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
+		String messageId = getKey(message.getHeaders().getId());
 
-		final String messageId = getKey(result.getHeaders().getId());
-		final byte[] messageBytes = this.serializer.convert(result);
+		byte[] messageBytes = this.serializer.convert(message);
 
-		this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
-				new PreparedStatementSetter() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Inserting message with id key=" + messageId);
+		}
 
-					@Override
-					public void setValues(PreparedStatement ps) throws SQLException {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Inserting message with id key=" + messageId);
-						}
+		try {
+			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
+					ps -> {
 						ps.setString(1, messageId);
 						ps.setString(2, groupKey);
-						ps.setString(3, JdbcChannelMessageStore.this.region);
+						ps.setString(3, this.region);
 						ps.setLong(4, createdDate);
 
-						Integer priority = new IntegrationMessageHeaderAccessor(message).getPriority();
+						Integer priority = message.getHeaders()
+								.get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
 
 						if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
 							ps.setInt(5, priority);
@@ -457,10 +452,15 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 							ps.setNull(5, Types.NUMERIC);
 						}
 
-						JdbcChannelMessageStore.this.lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
-					}
-
-				});
+						this.lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
+					});
+		}
+		catch (DuplicateKeyException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("The Message with id [" + messageId + "] already exists.\n" +
+						"Ignoring INSERT...");
+			}
+		}
 
 		return getMessageGroup(groupId);
 	}

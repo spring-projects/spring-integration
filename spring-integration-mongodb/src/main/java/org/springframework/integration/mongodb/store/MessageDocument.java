@@ -70,6 +70,10 @@ public class MessageDocument {
 		return this.message;
 	}
 
+	public UUID getMessageId() {
+		return this.messageId;
+	}
+
 	public void setGroupId(Object groupId) {
 		this.groupId = groupId;
 	}

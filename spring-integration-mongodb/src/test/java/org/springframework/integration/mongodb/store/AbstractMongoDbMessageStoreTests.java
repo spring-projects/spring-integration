@@ -264,6 +264,15 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 	}
 
+	@Test
+	@MongoDbAvailable
+	public void testAddAndUpdateAlreadySaved() throws Exception {
+		MessageStore messageStore = getMessageStore();
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		message = messageStore.addMessage(message);
+		Message<String> result = messageStore.addMessage(message);
+		assertEquals(message, result);
+	}
 
 	public static class Foo implements Serializable {
 		/**

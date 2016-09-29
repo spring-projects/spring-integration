@@ -20,14 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -44,17 +41,23 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
 
+	/**
+	 * Represents the time when the message has been added to the store.
+	 * @deprecated since 5.0. This constant isn't used any more.
+	 */
+	@Deprecated
 	protected static final String CREATED_DATE = "CREATED_DATE";
 
 	// MessageStore methods
 
 	@Override
-	public Message<?> getMessage(UUID id) {
-		Message<?> message = getRawMessage(id);
+	public Message<?> getMessage(UUID messageId) {
+		Assert.notNull(messageId, "'messageId' must not be null");
+		Message<?> message = (Message<?>) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
 		if (message != null) {
-			return normalizeMessage(message);
+			Assert.isInstanceOf(Message.class, message);
 		}
-		return null;
+		return message;
 	}
 
 	@Override
@@ -62,8 +65,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
-		doStore(MESSAGE_KEY_PREFIX + messageId, message);
-		return (Message<T>) getRawMessage(messageId);
+		doStoreIfAbsent(MESSAGE_KEY_PREFIX + messageId, message);
+		return (Message<T>) getMessage(messageId);
 	}
 
 	@Override
@@ -73,10 +76,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (message != null) {
 			Assert.isInstanceOf(Message.class, message);
 		}
-		if (message != null) {
-			return normalizeMessage((Message<?>) message);
-		}
-		return null;
+		return (Message<?>) message;
 	}
 
 	@Override
@@ -131,14 +131,12 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		}
 
 		for (Message<?> message : messages) {
-			// enrich Message with additional headers and add it to MS
-			Message<?> enrichedMessage = enrichMessage(message);
-			addMessage(enrichedMessage);
+			addMessage(message);
 			if (metadata != null) {
-				metadata.add(enrichedMessage.getHeaders().getId());
+				metadata.add(message.getHeaders().getId());
 			}
 			else {
-				group.add(enrichedMessage);
+				group.add(message);
 			}
 		}
 
@@ -296,40 +294,11 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	protected abstract void doStore(Object id, Object objectToStore);
 
+	protected abstract void doStoreIfAbsent(Object id, Object objectToStore);
+
 	protected abstract Object doRemove(Object id);
 
 	protected abstract Collection<?> doListKeys(String keyPattern);
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Message<?> normalizeMessage(Message<?> message) {
-		Message<?> normalizedMessage = getMessageBuilderFactory().fromMessage(message)
-				.removeHeader("CREATED_DATE")
-				.build();
-		Map innerMap = (Map) new DirectFieldAccessor(normalizedMessage.getHeaders()).getPropertyValue("headers");
-		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
-		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().getTimestamp());
-		return normalizedMessage;
-	}
-
-	/**
-	 * Will enrich Message with additional meta headers
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Message<?> enrichMessage(Message<?> message) {
-		Message<?> enrichedMessage = getMessageBuilderFactory().fromMessage(message)
-				.setHeader(CREATED_DATE, System.currentTimeMillis())
-				.build();
-		Map innerMap = (Map) new DirectFieldAccessor(enrichedMessage.getHeaders()).getPropertyValue("headers");
-		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
-		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().getTimestamp());
-		return enrichedMessage;
-	}
-
-	private Message<?> getRawMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
-		Object message = doRetrieve(MESSAGE_KEY_PREFIX + id);
-		return (Message<?>) message;
-	}
 
 	private final class MessageGroupIterator implements Iterator<MessageGroup> {
 

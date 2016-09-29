@@ -72,12 +72,30 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 			ops.set(objectToStore);
 		}
 		catch (SerializationException e) {
-			throw new IllegalArgumentException("If relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
-					"the Object must be Serializable. Either make it Serializable or provide your own implementation of " +
-					"RedisSerializer via 'setValueSerializer(..)'", e);
+			rethrowAsIllegalArgumentException(e);
+
 		}
 	}
 
+	@Override
+	protected void doStoreIfAbsent(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
+		try {
+			ops.setIfAbsent(objectToStore);
+		}
+		catch (SerializationException e) {
+			rethrowAsIllegalArgumentException(e);
+		}
+	}
+
+	private void rethrowAsIllegalArgumentException(SerializationException e) {
+		throw new IllegalArgumentException("If relying on the default RedisSerializer " +
+				"(JdkSerializationRedisSerializer) the Object must be Serializable. " +
+				"Either make it Serializable or provide your own implementation of " +
+				"RedisSerializer via 'setValueSerializer(..)'", e);
+	}
 
 	@Override
 	protected Object doRemove(Object id) {

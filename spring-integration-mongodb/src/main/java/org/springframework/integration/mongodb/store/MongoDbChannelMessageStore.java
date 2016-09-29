@@ -72,7 +72,8 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		this(mongoDbFactory, null, collectionName);
 	}
 
-	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter, String collectionName) {
+	public MongoDbChannelMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
+			String collectionName) {
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
 	}
 
@@ -105,7 +106,7 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 		document.setCreatedTime(System.currentTimeMillis());
 		document.setLastModifiedTime(System.currentTimeMillis());
 		if (this.priorityEnabled) {
-			document.setPriority(new IntegrationMessageHeaderAccessor(message).getPriority());
+			document.setPriority(message.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class));
 		}
 		document.setSequence(this.getNextId());
 
