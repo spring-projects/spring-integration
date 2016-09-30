@@ -53,6 +53,7 @@ public class KafkaMessageDrivenChannelAdapterParser extends AbstractChannelAdapt
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "payload-type");
 
 		return builder.getBeanDefinition();
 	}

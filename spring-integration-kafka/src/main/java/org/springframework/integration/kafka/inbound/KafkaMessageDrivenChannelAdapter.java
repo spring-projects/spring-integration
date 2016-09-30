@@ -33,9 +33,11 @@ import org.springframework.kafka.listener.adapter.RecordMessagingMessageListener
 import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
+import org.springframework.kafka.support.converter.ConversionException;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
@@ -193,6 +195,17 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		this.filterInRetry = filterInRetry;
 	}
 
+	/**
+	 * When using a type-aware message converter (such as {@code StringJsonMessageConverter},
+	 * set the payload type the converter should create. Defaults to {@link Object}.
+	 * @param payloadType the type.
+	 * @since 2.1.1
+	 */
+	public void setPayloadType(Class<?> payloadType) {
+		this.recordListener.setFallbackType(payloadType);
+		this.batchListener.setFallbackType(payloadType);
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -200,7 +213,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		if (this.mode.equals(ListenerMode.record)) {
 			AcknowledgingMessageListener<K, V> listener = this.recordListener;
 
-			boolean filterInRetry = this.filterInRetry && this.retryTemplate != null && this.recordFilterStrategy != null;
+			boolean filterInRetry = this.filterInRetry && this.retryTemplate != null
+					&& this.recordFilterStrategy != null;
 
 			if (filterInRetry) {
 				listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
@@ -284,8 +298,23 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 		@Override
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
-			Message<?> message = toMessagingMessage(record, acknowledgment);
-			sendMessage(message);
+			Message<?> message = null;
+			try {
+				message = toMessagingMessage(record, acknowledgment);
+			}
+			catch (RuntimeException e) {
+				Exception exception = new ConversionException("Failed to convert to message for: " + record, e);
+				if (getErrorChannel() != null) {
+					getMessagingTemplate().send(getErrorChannel(), new ErrorMessage(exception));
+				}
+			}
+			if (message != null) {
+				sendMessage(message);
+			}
+			else {
+				KafkaMessageDrivenChannelAdapter.this.logger.debug("Converter returned a null message for: "
+						+ record);
+			}
 		}
 
 	}
@@ -298,8 +327,23 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 		@Override
 		public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment) {
-			Message<?> message = toMessagingMessage(records, acknowledgment);
-			sendMessage(message);
+			Message<?> message = null;
+			try {
+				message = toMessagingMessage(records, acknowledgment);
+			}
+			catch (RuntimeException e) {
+				Exception exception = new ConversionException("Failed to convert to message for: " + records, e);
+				if (getErrorChannel() != null) {
+					getMessagingTemplate().send(getErrorChannel(), new ErrorMessage(exception));
+				}
+			}
+			if (message != null) {
+				sendMessage(message);
+			}
+			else {
+				KafkaMessageDrivenChannelAdapter.this.logger.debug("Converter returned a null message for: "
+						+ records);
+			}
 		}
 
 	}
