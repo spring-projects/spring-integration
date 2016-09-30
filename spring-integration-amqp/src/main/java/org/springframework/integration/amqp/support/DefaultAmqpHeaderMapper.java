@@ -122,8 +122,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(contentType)) {
 				headers.put(AmqpHeaders.CONTENT_TYPE, contentType);
 			}
-			byte[] correlationId = amqpMessageProperties.getCorrelationId();
-			if (correlationId != null && correlationId.length > 0) {
+			String correlationId = amqpMessageProperties.getCorrelationId();
+			if (StringUtils.hasText(contentType)) {
 				headers.put(AmqpHeaders.CORRELATION_ID, correlationId);
 			}
 			MessageDeliveryMode receivedDeliveryMode = amqpMessageProperties.getReceivedDeliveryMode();
@@ -234,10 +234,12 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (StringUtils.hasText(contentType)) {
 			amqpMessageProperties.setContentType(contentType);
 		}
-		Object correlationId = headers.get(AmqpHeaders.CORRELATION_ID);
-		if (correlationId instanceof byte[]) {
-			amqpMessageProperties.setCorrelationId((byte[]) correlationId);
+
+		String correlationId = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_ENCODING, String.class);
+		if (StringUtils.hasText(correlationId)) {
+			amqpMessageProperties.setCorrelationId(correlationId);
 		}
+
 		Integer delay = getHeaderIfAvailable(headers, AmqpHeaders.DELAY, Integer.class);
 		if (delay != null) {
 			amqpMessageProperties.setDelay(delay);

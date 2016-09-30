@@ -45,6 +45,7 @@ import org.springframework.util.MimeTypeUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
+ * @author Artem Bilan
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
@@ -158,7 +159,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setContentEncoding("test.contentEncoding");
 		amqpProperties.setContentLength(99L);
 		amqpProperties.setContentType("test.contentType");
-		byte[] testCorrelationId = new byte[] { 1, 2, 3 };
+		String testCorrelationId = "foo";
 		amqpProperties.setCorrelationId(testCorrelationId);
 		amqpProperties.setReceivedDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
 		amqpProperties.setDeliveryTag(1234L);
