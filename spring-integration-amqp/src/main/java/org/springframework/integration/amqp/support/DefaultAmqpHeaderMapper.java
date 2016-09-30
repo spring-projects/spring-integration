@@ -235,7 +235,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			amqpMessageProperties.setContentType(contentType);
 		}
 
-		String correlationId = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_ENCODING, String.class);
+		String correlationId = getHeaderIfAvailable(headers, AmqpHeaders.CORRELATION_ID, String.class);
 		if (StringUtils.hasText(correlationId)) {
 			amqpMessageProperties.setCorrelationId(correlationId);
 		}
@@ -244,7 +244,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (delay != null) {
 			amqpMessageProperties.setDelay(delay);
 		}
-		MessageDeliveryMode deliveryMode = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class);
+		MessageDeliveryMode deliveryMode = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE,
+				MessageDeliveryMode.class);
 		if (deliveryMode != null) {
 			amqpMessageProperties.setDeliveryMode(deliveryMode);
 		}
@@ -329,7 +330,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	@Override
-	protected void populateUserDefinedHeader(String headerName, Object headerValue, MessageProperties amqpMessageProperties) {
+	protected void populateUserDefinedHeader(String headerName, Object headerValue,
+			MessageProperties amqpMessageProperties) {
 		// do not overwrite an existing header with the same key
 		// TODO: do we need to expose a boolean 'overwrite' flag?
 		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {

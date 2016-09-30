@@ -59,7 +59,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.CONTENT_ENCODING, "test.contentEncoding");
 		headerMap.put(AmqpHeaders.CONTENT_LENGTH, 99L);
 		headerMap.put(AmqpHeaders.CONTENT_TYPE, "test.contentType");
-		byte[] testCorrelationId = new byte[] { 1, 2, 3 };
+		String testCorrelationId = "foo";
 		headerMap.put(AmqpHeaders.CORRELATION_ID, testCorrelationId);
 		headerMap.put(AmqpHeaders.DELAY, 1234);
 		headerMap.put(AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.NON_PERSISTENT);
