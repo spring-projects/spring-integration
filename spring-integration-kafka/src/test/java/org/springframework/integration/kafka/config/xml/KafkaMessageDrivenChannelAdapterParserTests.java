@@ -74,6 +74,10 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		assertThat(container).isNotNull();
 		assertThat(TestUtils.getPropertyValue(kafkaListener, "mode", ListenerMode.class))
 				.isEqualTo(ListenerMode.record);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recordListener.fallbackType"))
+				.isEqualTo(String.class);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "batchListener.fallbackType"))
+				.isEqualTo(String.class);
 	}
 
 	@Test

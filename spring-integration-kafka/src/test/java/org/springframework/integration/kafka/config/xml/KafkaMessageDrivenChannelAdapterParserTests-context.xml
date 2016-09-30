@@ -21,6 +21,7 @@
 			send-timeout="5000"
 			channel="nullChannel"
 			message-converter="messageConverter"
+			payload-type="java.lang.String"
 			error-channel="errorChannel" />
 
 	<int-kafka:message-driven-channel-adapter

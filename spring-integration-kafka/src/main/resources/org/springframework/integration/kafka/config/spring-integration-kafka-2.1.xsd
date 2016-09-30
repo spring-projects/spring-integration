@@ -188,6 +188,14 @@
 					<xsd:union memberTypes="listenerMode xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="payload-type" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set the payload type to convert to when using a type-aware message converter such as the
+						StringJsonMessageConverter. Fully qualified class name; defaults to 'java.lang.Object'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
