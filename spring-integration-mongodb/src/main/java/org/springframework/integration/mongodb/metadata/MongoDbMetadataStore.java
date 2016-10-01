@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -103,7 +102,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * If a document exists with the specified {@code key}, the method performs an {@code update}.
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value
-	 * @see MongoTemplate#execute(String, CollectionCallback)
+	 * @see MongoTemplate#execute(String, org.springframework.data.mongodb.core.CollectionCallback)
 	 * @see DBCollection#save
 	 */
 	@Override
