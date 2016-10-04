@@ -18,6 +18,7 @@ package org.springframework.integration.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -25,7 +26,8 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 
 /**
@@ -48,13 +50,13 @@ public class CharacterStreamSourceTests {
 	public void testEOF() {
 		StringReader reader = new StringReader("test");
 		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader, -1, true);
-		ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-		source.setApplicationContext(applicationContext);
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+		source.setApplicationEventPublisher(publisher);
 		Message<?> message1 = source.receive();
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = source.receive();
 		assertNull(message2);
-		verify(applicationContext).close();
+		verify(publisher).publishEvent(any(ApplicationEvent.class));
 	}
 
 }

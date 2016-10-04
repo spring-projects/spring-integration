@@ -22,7 +22,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.messaging.Message;
@@ -36,13 +37,18 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class CharacterStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<String> {
+public class CharacterStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<String>,
+		ApplicationEventPublisherAware {
 
 	private final BufferedReader reader;
 
 	private final Object monitor;
 
-	private final boolean blockAndCloseContext;
+	private final boolean blockToDetectEOF;
+
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private volatile boolean eventPublished;
 
 	/**
 	 * Construct an instance with the provider reader.
@@ -75,16 +81,16 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	 * </pre>
 	 * or
 	 * <pre class="code">
-	 *     java -jar my.jar < foo.txt
+	 *     java -jar my.jar &lt; foo.txt
 	 * </pre>
 	 * @param reader the reader.
 	 * @param bufferSize the buffer size; if negative use the default in
 	 * {@link BufferedReader}.
-	 * @param blockAndCloseContext true to block the thread until data is available and
-	 * close the context at EOF.
+	 * @param blockToDetectEOF true to block the thread until data is available and
+	 * publish a {@link StreamClosedEvent} at EOF.
 	 * @since 5.0
 	 */
-	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize, boolean blockAndCloseContext) {
+	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize, boolean blockToDetectEOF) {
 		Assert.notNull(reader, "reader must not be null");
 		this.monitor = reader;
 		if (reader instanceof BufferedReader) {
@@ -96,9 +102,13 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 		else {
 			this.reader = new BufferedReader(reader);
 		}
-		this.blockAndCloseContext = blockAndCloseContext;
+		this.blockToDetectEOF = blockToDetectEOF;
 	}
 
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
 
 	@Override
 	public String getComponentType() {
@@ -109,16 +119,13 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	public Message<String> receive() {
 		try {
 			synchronized (this.monitor) {
-				if (!this.blockAndCloseContext && !this.reader.ready()) {
+				if (!this.blockToDetectEOF && !this.reader.ready()) {
 					return null;
 				}
 				String line = this.reader.readLine();
-				if (line == null) {
-					ConfigurableApplicationContext context = (ConfigurableApplicationContext) getApplicationContext();
-					if (context != null) {
-						this.logger.info("EOF on stream; closing context");
-						context.close();
-					}
+				if (line == null && this.applicationEventPublisher != null && !this.eventPublished) {
+					this.applicationEventPublisher.publishEvent(new StreamClosedEvent(this));
+					this.eventPublished = true;
 				}
 				return (line != null) ? new GenericMessage<String>(line) : null;
 			}
@@ -156,6 +163,7 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	 * context closed.
 	 * @return the stream.
 	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
+	 * @since 5.0
 	 */
 	public static final CharacterStreamReadingMessageSource stdinPipe() {
 		return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in), -1, true);
@@ -167,6 +175,7 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	 * @param charsetName the charset to use when converting bytes to String.
 	 * @return the stream.
 	 * @see CharacterStreamReadingMessageSource#CharacterStreamReadingMessageSource(Reader, int, boolean)
+	 * @since 5.0
 	 */
 	public static final CharacterStreamReadingMessageSource stdinPipe(String charsetName) {
 		try {

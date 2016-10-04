@@ -76,7 +76,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		assertEquals("foo", message.getPayload());
 		adapter = context.getBean("pipedAdapterNoCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertTrue(TestUtils.getPropertyValue(source, "blockAndCloseContext", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
 		context.close();
 	}
 
@@ -90,7 +90,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
-		assertEquals(false, sourceAccessor.getPropertyValue("blockAndCloseContext"));
+		assertEquals(false, sourceAccessor.getPropertyValue("blockToDetectEOF"));
 		DirectFieldAccessor bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		Reader reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
 		assertEquals(InputStreamReader.class, reader.getClass());
@@ -101,10 +101,9 @@ public class ConsoleInboundChannelAdapterParserTests {
 		assertEquals("foo", message.getPayload());
 		adapter = context.getBean("pipedAdapterWithCharset.adapter", SourcePollingChannelAdapter.class);
 		source = adapter.getMessageSource();
-		assertTrue(TestUtils.getPropertyValue(source, "blockAndCloseContext", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
 		bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
-		assertEquals(false, sourceAccessor.getPropertyValue("blockAndCloseContext"));
 		bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
 		assertEquals(InputStreamReader.class, reader.getClass());

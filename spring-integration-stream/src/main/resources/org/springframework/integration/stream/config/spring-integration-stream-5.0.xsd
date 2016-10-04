@@ -40,10 +40,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="close-context-on-eof">
+			<xsd:attribute name="detect-eof">
 				<xsd:annotation>
 					<xsd:documentation>
-						When 'true' the application context will be closed when EOF is detected
+						When 'true' the an application event is published when EOF is detected
 						on stdin. To facilitate this, the poller thread will block until data is
 						present or EOF is detected.
 					</xsd:documentation>

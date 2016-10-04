@@ -37,7 +37,7 @@ public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundCh
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				CharacterStreamReadingMessageSource.class);
-		String pipe = element.getAttribute("close-context-on-eof");
+		String pipe = element.getAttribute("detect-eof");
 		if (StringUtils.hasText(pipe)) {
 			builder.setFactoryMethod("stdinPipe");
 		}
