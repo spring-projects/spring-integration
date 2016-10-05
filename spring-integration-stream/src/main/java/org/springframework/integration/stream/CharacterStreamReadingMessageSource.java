@@ -70,11 +70,12 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	}
 
 	/**
-	 * Construct an instance with the provider reader and buffer size.
-	 * When {@code blockReceive} is {@code false},
+	 * Construct an instance with the provided reader and buffer size.
+	 * When {@code blockToDetectEOF} is {@code false},
 	 * {@link #receive()} will return {@code null} when the reader is not ready.
 	 * When it is {@code true}, the thread will block until data is available; when the
-	 * underlying stream is closed, the application context (if present) will be closed.
+	 * underlying stream is closed, a {@link StreamClosedEvent} is published to inform
+	 * the application via an {@link org.springframework.context.ApplicationListener}.
 	 * This can be useful, for example, when piping stdin
 	 * <pre class="code">
 	 *     cat foo.txt | java -jar my.jar
