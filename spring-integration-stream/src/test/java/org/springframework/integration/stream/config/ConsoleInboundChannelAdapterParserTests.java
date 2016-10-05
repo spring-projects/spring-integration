@@ -36,11 +36,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class ConsoleInboundChannelAdapterParserTests {
 
@@ -54,8 +56,8 @@ public class ConsoleInboundChannelAdapterParserTests {
 	public void adapterWithDefaultCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
-		SourcePollingChannelAdapter adapter =
-				(SourcePollingChannelAdapter) context.getBean("adapterWithDefaultCharset.adapter");
+		SourcePollingChannelAdapter adapter = context.getBean("adapterWithDefaultCharset.adapter",
+				SourcePollingChannelAdapter.class);
 		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		assertTrue(source instanceof NamedComponent);
 		assertEquals("adapterWithDefaultCharset.adapter", adapter.getComponentName());
@@ -72,6 +74,9 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Message<?> message = source.receive();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
+		adapter = context.getBean("pipedAdapterNoCharset.adapter", SourcePollingChannelAdapter.class);
+		source = adapter.getMessageSource();
+		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
 		context.close();
 	}
 
@@ -79,12 +84,13 @@ public class ConsoleInboundChannelAdapterParserTests {
 	public void adapterWithProvidedCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
-		SourcePollingChannelAdapter adapter =
-				(SourcePollingChannelAdapter) context.getBean("adapterWithProvidedCharset.adapter");
-		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
+		SourcePollingChannelAdapter adapter = context.getBean("adapterWithProvidedCharset.adapter",
+				SourcePollingChannelAdapter.class);
+		MessageSource<?> source = adapter.getMessageSource();
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
+		assertEquals(false, sourceAccessor.getPropertyValue("blockToDetectEOF"));
 		DirectFieldAccessor bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
 		Reader reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
 		assertEquals(InputStreamReader.class, reader.getClass());
@@ -93,6 +99,16 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Message<?> message = source.receive();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
+		adapter = context.getBean("pipedAdapterWithCharset.adapter", SourcePollingChannelAdapter.class);
+		source = adapter.getMessageSource();
+		assertTrue(TestUtils.getPropertyValue(source, "blockToDetectEOF", Boolean.class));
+		bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
+		assertEquals(BufferedReader.class, bufferedReader.getClass());
+		bufferedReaderAccessor = new DirectFieldAccessor(bufferedReader);
+		reader = (Reader) bufferedReaderAccessor.getPropertyValue("in");
+		assertEquals(InputStreamReader.class, reader.getClass());
+		readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
+		assertEquals(Charset.forName("UTF-8"), readerCharset);
 		context.close();
 	}
 

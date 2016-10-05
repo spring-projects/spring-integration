@@ -32,7 +32,26 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
-			<xsd:attribute name="charset" type="xsd:string"/>
+			<xsd:attribute name="charset" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The charset to use when converting the byte stream from stdin to
+						String.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="detect-eof">
+				<xsd:annotation>
+					<xsd:documentation>
+						When 'true' an application event is published when EOF is detected
+						on stdin. To facilitate this, the poller thread will block until data is
+						present or EOF is detected.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
