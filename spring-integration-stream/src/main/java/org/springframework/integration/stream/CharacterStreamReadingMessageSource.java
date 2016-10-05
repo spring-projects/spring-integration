@@ -48,8 +48,6 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile boolean eventPublished;
-
 	/**
 	 * Construct an instance with the provider reader.
 	 * {@link #receive()} will return {@code null} when the reader is not ready.
@@ -124,9 +122,8 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 					return null;
 				}
 				String line = this.reader.readLine();
-				if (line == null && this.applicationEventPublisher != null && !this.eventPublished) {
+				if (line == null && this.applicationEventPublisher != null) {
 					this.applicationEventPublisher.publishEvent(new StreamClosedEvent(this));
-					this.eventPublished = true;
 				}
 				return (line != null) ? new GenericMessage<String>(line) : null;
 			}

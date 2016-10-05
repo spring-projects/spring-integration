@@ -40,6 +40,11 @@ When EOF is detected, a `StreamClosedEvent` (application event) is published; yo
 
 NOTE: To faciltate EOF detection, the poller thread will block in the `receive()` method until either data arrives or EOF is detected.
 
+IMPORTANT: The poller will continue to publish an event on each poll once EOF has been detected; the application listener can stop the adapter to prevent this.
+The event is published on the poller thread and stopping the adapter will cause the thread to be interrupted.
+If you intend to perform some interruptible task after stopping the adapter, you must either perform the `stop()` on a different thread, or use a differnent thread for those downstrean activities.
+Note that sending to a `QueueChannel` is interruptible so if you wish to send a message from the listener, do it before stopping the adapter.
+
 This facilitates "piping" or redirecting data to `stdin`, such as...
 
 [source]
