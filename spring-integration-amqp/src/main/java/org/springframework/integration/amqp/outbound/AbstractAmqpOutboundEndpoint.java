@@ -77,6 +77,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private volatile ConnectionFactory connectionFactory;
 
+	private volatile Expression delayExpression;
+
+	private volatile ExpressionEvaluatingMessageProcessor<Integer> delayGenerator;
+
 	private volatile boolean running;
 
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
@@ -188,6 +192,31 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.lazyConnect = lazyConnect;
 	}
 
+	/**
+	 * Set the SpEL expression to calculate the {@code x-delay} header when using the
+	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
+	 * header (if present) is mapped; setting the expression here overrides that value.
+	 * @param delayExpression the expression.
+	 */
+	public void setDelayExpression(Expression delayExpression) {
+		this.delayExpression = delayExpression;
+	}
+
+	/**
+	 * Set the SpEL expression to calculate the {@code x-delay} header when using the
+	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
+	 * header (if present) is mapped; setting the expression here overrides that value.
+	 * @param delayExpression the expression.
+	 */
+	public void setDelayExpressionString(String delayExpression) {
+		if (delayExpression == null) {
+			this.delayExpression = null;
+		}
+		else {
+			this.delayExpression = EXPRESSION_PARSER.parseExpression(delayExpression);
+		}
+	}
+
 	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
@@ -284,6 +313,13 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			Assert.state(this.confirmNackChannel == null || nullChannel != null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmNackChannel'");
 		}
+		if (this.delayExpression != null) {
+			this.delayGenerator = new ExpressionEvaluatingMessageProcessor<Integer>(this.delayExpression,
+					Integer.class);
+			if (beanFactory != null) {
+				this.delayGenerator.setBeanFactory(beanFactory);
+			}
+		}
 		endpointInit();
 	}
 
@@ -363,6 +399,12 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 			routingKey = this.routingKeyGenerator.processMessage(requestMessage);
 		}
 		return routingKey;
+	}
+
+	protected void addDelayProperty(Message<?> message, org.springframework.amqp.core.Message amqpMessage) {
+		if (this.delayGenerator != null) {
+			amqpMessage.getMessageProperties().setDelay(this.delayGenerator.processMessage(message));
+		}
 	}
 
 	protected Message<?> buildReplyMessage(MessageConverter converter,

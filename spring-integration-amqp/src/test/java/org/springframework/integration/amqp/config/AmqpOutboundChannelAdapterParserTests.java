@@ -124,6 +124,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 				AmqpOutboundEndpoint.class);
 		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
+		assertEquals("42",
+				TestUtils.getPropertyValue(endpoint, "delayExpression", org.springframework.expression.Expression.class)
+						.getExpressionString());
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
