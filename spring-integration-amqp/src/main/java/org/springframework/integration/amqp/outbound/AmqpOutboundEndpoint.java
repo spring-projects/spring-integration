@@ -130,6 +130,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
 					getHeaderMapper(), getDefaultDeliveryMode());
+			addDelayProperty(requestMessage, amqpMessage);
 			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
 		else {
@@ -153,6 +154,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
 				getHeaderMapper(), getDefaultDeliveryMode());
+		addDelayProperty(requestMessage, amqpMessage);
 		org.springframework.amqp.core.Message amqpReplyMessage =
 				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey, amqpMessage,
 						correlationData);

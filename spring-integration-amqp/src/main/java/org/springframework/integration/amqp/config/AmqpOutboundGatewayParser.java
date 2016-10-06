@@ -100,6 +100,8 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		mapperBuilder.setFactoryMethod("outboundMapper");
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, mapperBuilder,
 				null);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-expression",
+				"delayExpressionString");
 
 		return builder;
 	}

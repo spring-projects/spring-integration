@@ -49,6 +49,7 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class DefaultAmqpHeaderMapperTests {
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
@@ -149,6 +150,7 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
