@@ -50,3 +50,8 @@ See <<global-properties>> for more information.
 
 There is a new option on the `CharacterStreamReadingMessageSource` to allow it to be used to "pipe" stdin and publish an application event when the pipe is closed.
 See <<stream-reading>> for more information.
+
+==== Barrier Changes
+
+The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
+See <<barrier>> for more information.
