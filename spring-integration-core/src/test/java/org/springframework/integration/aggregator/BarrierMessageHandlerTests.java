@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -99,19 +100,14 @@ public class BarrierMessageHandlerTests {
 		handler.afterPropertiesSet();
 		final AtomicReference<Exception> dupCorrelation = new AtomicReference<Exception>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
-				}
-				catch (MessagingException e) {
-					dupCorrelation.set(e);
-				}
-				latch.countDown();
+		Runnable runnable = () -> {
+			try {
+				handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 			}
-
+			catch (MessagingException e) {
+				dupCorrelation.set(e);
+			}
+			latch.countDown();
 		};
 		ExecutorService exec = Executors.newCachedThreadPool();
 		exec.execute(runnable);
@@ -144,14 +140,8 @@ public class BarrierMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
-			}
-
-		});
+		Executors.newSingleThreadExecutor()
+				.execute(() -> handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build()));
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
@@ -171,31 +161,32 @@ public class BarrierMessageHandlerTests {
 	public void testLateReply() throws Exception {
 		final BarrierMessageHandler handler = new BarrierMessageHandler(0);
 		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
+		handler.setDiscardChannelName("discards");
+		handler.setChannelResolver(s -> discardChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
-				latch.countDown();
-			}
-
+		Executors.newSingleThreadExecutor().execute(() -> {
+			handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+			latch.countDown();
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("suspension not removed", 0, suspensions.size());
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
-		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		final Message<String> triggerMessage = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
+		handler.trigger(triggerMessage);
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captor.capture());
 		assertThat(captor.getValue(),
-				Matchers.allOf(containsString("Suspending thread timed out or did not arrive within timeout for:"),
+				allOf(containsString("Suspending thread timed out or did not arrive within timeout for:"),
 						containsString("payload=bar")));
 		assertEquals(0, suspensions.size());
+		Message<?> discard = discardChannel.receive(0);
+		assertSame(discard, triggerMessage);
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 		assertEquals(0, suspensions.size());
 	}
@@ -226,19 +217,14 @@ public class BarrierMessageHandlerTests {
 		handler.afterPropertiesSet();
 		final AtomicReference<Exception> exception = new AtomicReference<Exception>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
-				}
-				catch (Exception e) {
-					exception.set(e);
-					latch.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 			}
-
+			catch (Exception e) {
+				exception.set(e);
+				latch.countDown();
+			}
 		});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
 		int n = 0;

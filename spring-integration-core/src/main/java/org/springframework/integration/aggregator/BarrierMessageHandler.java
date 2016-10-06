@@ -23,9 +23,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -46,7 +48,8 @@ import org.springframework.util.Assert;
  *
  * @since 4.2
  */
-public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler implements MessageTriggerAction {
+public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
+		implements MessageTriggerAction, DiscardingMessageHandler {
 
 	private final ConcurrentMap<Object, SynchronousQueue<Message<?>>> suspensions =
 			new ConcurrentHashMap<Object, SynchronousQueue<Message<?>>>();
@@ -58,6 +61,10 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 	private final CorrelationStrategy correlationStrategy;
 
 	private final MessageGroupProcessor messageGroupProcessor;
+
+	private volatile MessageChannel discardChannel;
+
+	private String discardChannelName;
 
 	/**
 	 * Construct an instance with the provided timeout and default correlation and
@@ -104,6 +111,35 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 		this.messageGroupProcessor = outputProcessor;
 		this.correlationStrategy = correlationStrategy;
 		this.timeout = timeout;
+	}
+
+	/**
+	 * Set the name of the channel to which late arriving trigger messages are sent.
+	 * @param discardChannelName the discard channel.
+	 * @since 5.0
+	 */
+	public void setDiscardChannelName(String discardChannelName) {
+		this.discardChannelName = discardChannelName;
+	}
+
+	/**
+	 * Set the channel to which late arriving trigger messages are sent.
+	 * @param discardChannel the discard channel.
+	 * @since 5.0
+	 */
+	public void setDiscardChannel(MessageChannel discardChannel) {
+		this.discardChannel = discardChannel;
+	}
+
+	/**
+	 * @since 5.0
+	 */
+	@Override
+	public MessageChannel getDiscardChannel() {
+		if (this.discardChannel == null && this.discardChannelName != null && getChannelResolver() != null) {
+			this.discardChannel = getChannelResolver().resolveDestination(this.discardChannelName);
+		}
+		return this.discardChannel;
 	}
 
 	@Override
@@ -186,6 +222,9 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler 
 			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {
 				this.logger.error("Suspending thread timed out or did not arrive within timeout for: " + message);
 				this.suspensions.remove(key);
+				if (getDiscardChannel() != null) {
+					this.messagingTemplate.send(getDiscardChannel(), message);
+				}
 			}
 		}
 		catch (InterruptedException e) {
