@@ -25,6 +25,7 @@
 								   exchange-name="outboundchanneladapter.test.1"
 								   default-delivery-mode="NON_PERSISTENT"
 								   lazy-connect="false"
+								   delay-expression="42"
 								   mapped-request-headers="foo*"/>
 
 	<bean id="customHeaderMapper" class="org.mockito.Mockito" factory-method="mock">

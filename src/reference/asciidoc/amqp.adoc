@@ -1149,7 +1149,14 @@ To configure a default user id for outbound messages, configure it on a `RabbitT
 Similarly, to set the user id property on replies, inject an appropriately configured template into the inbound gateway.
 See the http://docs.spring.io/spring-amqp/reference/html/_reference.html#template-user-id[Spring AMQP documentation] for more information.
 
+[[amqp-delay]]
+=== Delayed Message Exchange
 
+Spring AMQP supports the http://docs.spring.io/spring-amqp/reference/html/_reference.html#delayed-message-exchange[RabbitMQ Delayed Message Exchange Plugin].
+For inbound messages, the `x-delay` header is mapped to the `AmqpHeaders.RECEIVED_DELAY` header.
+Setting the `AMQPHeaders.DELAY` header will cause the corresponding `x-delay` header to be set in outbound messages.
+You can also specify the `delay` and `delayExpression` properties on outbound endpoints (`delay-expression` when using XML configuration).
+This takes precedence over the `AmqpHeaders.DELAY` header.
 
 [[amqp-channels]]
 === AMQP Backed Message Channels

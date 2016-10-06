@@ -542,6 +542,20 @@ property set to TRUE.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="delay-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+			A SpEL expression that evaluates to the value that will be set on the 'x-delay' header
+			when using the RabbitMQ Delayed Message Exchange plugin. Takes precedence over any
+			'AmqpHeaders.DELAY' set on the outbound message.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
