@@ -16,7 +16,9 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
@@ -61,6 +63,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -126,7 +130,7 @@ public class BarrierMessageHandlerTests {
 		assertTrue("suspension did not appear in time", n < 100);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertNotNull(dupCorrelation.get());
-		assertThat(dupCorrelation.get().getMessage(), Matchers.startsWith("Correlation key (foo) is already in use by"));
+		assertThat(dupCorrelation.get().getMessage(), startsWith("Correlation key (foo) is already in use by"));
 		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
 		Message<?> received = outputChannel.receive(10000);
 		assertNotNull(received);
@@ -144,14 +148,15 @@ public class BarrierMessageHandlerTests {
 		handler.setOutputChannel(outputChannel);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
+		Executors.newSingleThreadExecutor()
+				.execute(new Runnable() {
 
-			@Override
-			public void run() {
-				handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
-			}
+					@Override
+					public void run() {
+						handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+					}
 
-		});
+				});
 		Map<?, ?> suspensions = TestUtils.getPropertyValue(handler, "suspensions", Map.class);
 		int n = 0;
 		while (n++ < 100 && suspensions.size() == 0) {
@@ -171,7 +176,17 @@ public class BarrierMessageHandlerTests {
 	public void testLateReply() throws Exception {
 		final BarrierMessageHandler handler = new BarrierMessageHandler(0);
 		QueueChannel outputChannel = new QueueChannel();
+		final QueueChannel discardChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
+		handler.setDiscardChannelName("discards");
+		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
+
+			@Override
+			public MessageChannel resolveDestination(String s) throws DestinationResolutionException {
+				return discardChannel;
+			}
+
+		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -189,13 +204,16 @@ public class BarrierMessageHandlerTests {
 		assertEquals("suspension not removed", 0, suspensions.size());
 		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
 		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
-		handler.trigger(MessageBuilder.withPayload("bar").setCorrelationId("foo").build());
+		final Message<String> triggerMessage = MessageBuilder.withPayload("bar").setCorrelationId("foo").build();
+		handler.trigger(triggerMessage);
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captor.capture());
 		assertThat(captor.getValue(),
-				Matchers.allOf(containsString("Suspending thread timed out or did not arrive within timeout for:"),
+				allOf(containsString("Suspending thread timed out or did not arrive within timeout for:"),
 						containsString("payload=bar")));
 		assertEquals(0, suspensions.size());
+		Message<?> discard = discardChannel.receive(0);
+		assertSame(discard, triggerMessage);
 		handler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
 		assertEquals(0, suspensions.size());
 	}
