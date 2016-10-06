@@ -23,6 +23,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -60,7 +61,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
 	private boolean sync;
 
-	private long sendTimeout = DEFAULT_SEND_TIMEOUT;
+	private Expression sendTimeoutExpression = new ValueExpression<>(DEFAULT_SEND_TIMEOUT);
 
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
@@ -95,12 +96,27 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Specify a timeout in milliseconds how long {@link KafkaProducerMessageHandler}
-	 * should wait wait for send operation results. Defaults to 10 seconds.
+	 * Specify a timeout in milliseconds for how long this
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
+	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
 	 * @param sendTimeout the timeout to wait for result fo send operation.
+	 * @since 2.0.1
 	 */
 	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
+		setSendTimeoutExpression(new ValueExpression<>(sendTimeout));
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a timeout in milliseconds for how long this
+	 * {@link KafkaProducerMessageHandler} should wait wait for send operation
+	 * results. Defaults to 10 seconds. The timeout is applied only in {@link #sync} mode.
+	 * @param sendTimeoutExpression the {@link Expression} for timeout to wait for result
+	 * fo send operation.
+	 * @since 2.1.1
+	 */
+	public void setSendTimeoutExpression(Expression sendTimeoutExpression) {
+		Assert.notNull(sendTimeoutExpression, "'sendTimeoutExpression' must not be null");
+		this.sendTimeoutExpression = sendTimeoutExpression;
 	}
 
 	@Override
@@ -149,12 +165,13 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 			}
 		}
 		if (this.sync) {
-			if (this.sendTimeout < 0) {
+			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
+			if (sendTimeout == null || sendTimeout < 0) {
 				future.get();
 			}
 			else {
 				try {
-					future.get(this.sendTimeout, TimeUnit.MILLISECONDS);
+					future.get(sendTimeout, TimeUnit.MILLISECONDS);
 				}
 				catch (TimeoutException te) {
 					throw new MessageTimeoutException(message, "Timeout waiting for response from KafkaProducer", te);
