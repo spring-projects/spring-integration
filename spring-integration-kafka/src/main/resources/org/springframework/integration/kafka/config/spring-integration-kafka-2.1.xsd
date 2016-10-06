@@ -99,14 +99,36 @@
 			<xsd:attribute name="sync">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-								Specifies whether to block the sending thread until the producer
-								callback has been invoked, indicating the broker has accepted the
-								message (or an exception thrown if the send fails). Default: false.
+						Specifies whether to block the sending thread until the producer
+						callback has been invoked, indicating the broker has accepted the
+						message (or an exception thrown if the send fails). Default: false.
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:int xsd:boolean"/>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
 				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies a timeout in milliseconds for how long the 'KafkaProducerMessageHandler'
+						should wait wait for send operation results. Defaults to 10 seconds.
+						The timeout is applied only in 'sync' mode.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:int xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies an expression that is evaluated to determine a timeout in milliseconds
+						for how long the 'KafkaProducerMessageHandler'
+						should wait wait for send operation results. Defaults to 10 seconds.
+						The timeout is applied only in 'sync' mode.
+					</xsd:documentation>
+				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="order">
 				<xsd:annotation>

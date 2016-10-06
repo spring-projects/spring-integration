@@ -68,12 +68,15 @@ public class KafkaOutboundAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(messageHandler, "messageKeyExpression.expression")).isEqualTo("'bar'");
 		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression")).isEqualTo("'2'");
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isTrue();
+		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.expression")).isEqualTo("1000");
 
 		messageHandler
 				= this.appContext.getBean("kafkaOutboundChannelAdapter2.handler", KafkaProducerMessageHandler.class);
 		assertThat(messageHandler).isNotNull();
 		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.literalValue")).isEqualTo("0");
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isFalse();
+
+		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.literalValue")).isEqualTo("500");
 	}
 
 

@@ -67,6 +67,14 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 			kafkaProducerMessageHandlerBuilder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(kafkaProducerMessageHandlerBuilder, element, "sync");
+
+		BeanDefinition sendTimeoutExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("send-timeout",
+						"send-timeout-expression", parserContext, element, false);
+		if (sendTimeoutExpressionDef != null) {
+			kafkaProducerMessageHandlerBuilder.addPropertyValue("sendTimeoutExpression", sendTimeoutExpressionDef);
+		}
+
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
 	}
 
