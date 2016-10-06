@@ -290,3 +290,8 @@ See <<jdbc-message-store-channels>> for more information.
 
 The `ServerWebSocketContainer` now exposes `allowedOrigins` option and `SockJsServiceOptions` a `suppressCors` option.
 See <<web-sockets>> for more information.
+
+==== Barrier Changes
+
+The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
+See <<barrier>> for more information.

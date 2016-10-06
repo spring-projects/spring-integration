@@ -44,6 +44,7 @@ An exception is thrown if a second thread arrives with the same correlation.
 <int:barrier id="barrier1" input-channel="in" output-channel="out"
         correlation-strategy-expression="headers['myHeader']"
         output-processor="myOutputProcessor"
+        discard-channel="lateTriggerChannel"
         timeout="10000">
 </int:barrier>
 
@@ -55,6 +56,7 @@ Either the thread sending a message to `in` or the one sending a message to `rel
 up to 10 seconds until the other arrives.
 When the message is released, the `out` channel will be sent a message combining the result of invoking the
 custom `MessageGroupProcessor` bean `myOutputProcessor`.
+If the main thread times out and a trigger arrives later, you can configure a discard channel to which the late trigger will be sent.
 Java configuration is shown below.
 
 [source, java]
@@ -68,6 +70,7 @@ public class Config {
     public BarrierMessageHandler barrier() {
         BarrierMessageHandler barrier = new BarrierMessageHandler(10000);
         barrier.setOutputChannel(out());
+        barrier.setDiscardChannel(lateTriggers());
         return barrier;
     }
 

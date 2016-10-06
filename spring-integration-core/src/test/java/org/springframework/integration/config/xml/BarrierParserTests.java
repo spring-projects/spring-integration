@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -62,6 +63,9 @@ public class BarrierParserTests {
 	private PollableChannel out;
 
 	@Autowired
+	private PollableChannel discards;
+
+	@Autowired
 	private PollingConsumer barrier1;
 
 	@Autowired
@@ -91,6 +95,7 @@ public class BarrierParserTests {
 				instanceOf(TestMGP.class));
 		assertThat(TestUtils.getPropertyValue(this.barrier3, "handler.correlationStrategy"),
 				instanceOf(TestCS.class));
+		assertSame(handler.getDiscardChannel(), this.discards);
 	}
 
 	public static class TestMGP implements MessageGroupProcessor {

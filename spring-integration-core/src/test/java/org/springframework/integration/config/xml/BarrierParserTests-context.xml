@@ -10,12 +10,16 @@
 	</int:channel>
 
 	<int:barrier id="barrier1" input-channel="in" output-channel="out" correlation-strategy-expression="'foo'"
-				requires-reply="true"
+				requires-reply="true" discard-channel="discards"
 				timeout="10000">
 		<int:poller fixed-delay="100" />
 	</int:barrier>
 
 	<int:channel id="out">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="discards">
 		<int:queue />
 	</int:channel>
 
