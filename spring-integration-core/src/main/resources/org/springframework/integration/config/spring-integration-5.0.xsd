@@ -1731,11 +1731,24 @@
 							<tool:expected-type type="org.springframework.integration.aggregator.MessageGroupProcessor" />
 						</tool:annotation>
 					</xsd:appinfo>
-						<xsd:documentation>
-							A reference to a bean that implements 'MessageGroupProcessor'. The processor is invoked to
-							produce the result when the release is triggered. By default the payloads of the two
-							messages are aggregated as a 'Collection' and the message headers are merged.
-						</xsd:documentation>
+					<xsd:documentation>
+						A reference to a bean that implements 'MessageGroupProcessor'. The processor is invoked to
+						produce the result when the release is triggered. By default the payloads of the two
+						messages are aggregated as a 'Collection' and the message headers are merged.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="discard-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The message channel to which to send a trigger message if it arrives after the main
+						thread has timed out.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
