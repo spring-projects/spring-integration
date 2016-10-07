@@ -550,6 +550,22 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("FOO", targetObject.arguments.get("foo2"));
 	}
 
+	@Test
+	public void testPrivateMethod() throws Exception {
+		class Foo {
+
+			@ServiceActivator
+			private String service(String payload) {
+				return payload.toUpperCase();
+			}
+
+		}
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new Foo(), ServiceActivator.class, false);
+
+		assertEquals("FOO", helper.process(new GenericMessage<>("foo")));
+	}
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 
