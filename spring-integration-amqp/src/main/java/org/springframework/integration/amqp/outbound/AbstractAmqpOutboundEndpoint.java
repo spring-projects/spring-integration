@@ -31,7 +31,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.expression.SupplierExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -201,7 +201,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * @since 5.0
 	 */
 	public void setDelay(int delay) {
-		this.delayExpression = new SupplierExpression<>(() -> delay);
+		this.delayExpression = new ValueExpression<>(delay);
 	}
 
 	/**
