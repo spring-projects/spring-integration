@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * Any {@link #setValue} operations and {@link #getValueType} related operations
  * throw {@link EvaluationException}.
  *
- * @param <S> The evaluation context root object type.
+ * @param <T> The type the Supplier will return.
  *
  * @author Artem Bilan
  * @author Gary Russell

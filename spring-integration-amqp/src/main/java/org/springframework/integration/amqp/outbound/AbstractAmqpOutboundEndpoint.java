@@ -197,7 +197,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * Set the value to set in the {@code x-delay} header when using the
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the delay here overrides that value.
-	 * @param delayExpression the expression.
+	 * @param delay the delay.
 	 * @since 5.0
 	 */
 	public void setDelay(int delay) {
