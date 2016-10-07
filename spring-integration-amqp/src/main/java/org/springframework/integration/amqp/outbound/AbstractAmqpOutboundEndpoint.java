@@ -31,6 +31,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.expression.SupplierExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -193,10 +194,22 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	/**
+	 * Set the value to set in the {@code x-delay} header when using the
+	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
+	 * header (if present) is mapped; setting the delay here overrides that value.
+	 * @param delayExpression the expression.
+	 * @since 5.0
+	 */
+	public void setDelay(int delay) {
+		this.delayExpression = new SupplierExpression<>(() -> delay);
+	}
+
+	/**
 	 * Set the SpEL expression to calculate the {@code x-delay} header when using the
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
+	 * @since 5.0
 	 */
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
@@ -207,6 +220,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
+	 * @since 5.0
 	 */
 	public void setDelayExpressionString(String delayExpression) {
 		if (delayExpression == null) {

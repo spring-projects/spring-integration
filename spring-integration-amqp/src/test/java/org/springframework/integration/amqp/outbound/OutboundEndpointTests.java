@@ -81,6 +81,13 @@ public class OutboundEndpointTests {
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture(), any(CorrelationData.class));
 		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
+
+		endpoint.setDelay(23);
+		endpoint.setRoutingKey("baz");
+		endpoint.afterPropertiesSet();
+		endpoint.handleMessage(new GenericMessage<>("foo"));
+		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("baz"), captor.capture(), any(CorrelationData.class));
+		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(23));
 	}
 
 	@Test
