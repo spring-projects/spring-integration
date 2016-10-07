@@ -55,3 +55,8 @@ See <<stream-reading>> for more information.
 
 The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
 See <<barrier>> for more information.
+
+==== AMQP Changes
+
+The AMQP outbound endpoints now support setting a delay expression for when using the RabbitMQ Delayed Message Exchange plugin.
+See <<amqp-delay>> for more information.

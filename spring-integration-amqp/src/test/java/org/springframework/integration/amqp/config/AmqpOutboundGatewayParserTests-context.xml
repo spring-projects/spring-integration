@@ -15,6 +15,7 @@
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate"
+		delay-expression="42"
 		auto-startup="false"
 		order="5"
 		return-channel="returnChannel">
@@ -92,6 +93,7 @@
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		async-template="asyncTemplate"
+		delay-expression="42"
 		auto-startup="false"
 		order="5"
 		return-channel="returnChannel">

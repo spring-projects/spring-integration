@@ -92,6 +92,9 @@ public class AmqpOutboundGatewayParserTests {
 
 		assertEquals(Long.valueOf(777), sendTimeout);
 		assertTrue(TestUtils.getPropertyValue(gateway, "lazyConnect", Boolean.class));
+		assertEquals("42",
+				TestUtils.getPropertyValue(gateway, "delayExpression", org.springframework.expression.Expression.class)
+						.getExpressionString());
 	}
 
 	@SuppressWarnings("rawtypes")
