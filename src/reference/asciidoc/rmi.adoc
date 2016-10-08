@@ -32,7 +32,7 @@ To receive messages over RMI you need to use a `RmiInboundGateway`.
 This gateway can be configured like this
 [source,xml]
 ----
-<bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiInboundGateway>
+<bean id="rmiInGateway" class=org.spf.integration.rmi.RmiInboundGateway>
     <property name="requestChannel" value="requests"/>
 </bean>
 ----
