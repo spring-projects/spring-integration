@@ -27,7 +27,7 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
@@ -55,7 +55,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 * @param amqpTemplate the template.
 	 * @see #setExtractPayload(boolean)
 	 */
-	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	public PublishSubscribeAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate, true);
 	}
@@ -71,7 +71,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 * @see #setExtractPayload(boolean)
 	 * @since 4.3
 	 */
-	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	public PublishSubscribeAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
 		super(channelName, container, amqpTemplate, true, outboundMapper, inboundMapper);
 	}

@@ -18,7 +18,7 @@
 	<bean id="rabbitConnectionFactory" class="org.springframework.integration.amqp.StubRabbitConnectionFactory"/>
 
 	<amqp:channel id="channelWithSubscriberLimit" max-subscribers="1" missing-queues-fatal="false"
-			template-channel-transacted="true"/>
+			template-channel-transacted="true" consumers-per-queue="2" />
 
 	<amqp:publish-subscribe-channel id="pubSub" />
 
