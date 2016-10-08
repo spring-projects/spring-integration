@@ -874,7 +874,17 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	Specify the number of concurrent consumers to create. Default is 1.
 	Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in
 	from a queue. However, note that any ordering guarantees are lost once multiple consumers are registered. In
-	general, stick with 1 consumer for low-volume queues.
+	general, use 1 consumer for low-volume queues. Mutually exclusive with 'consumers-per-queue'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="consumers-per-queue" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the number of consumers to create for each queue.
+	Setting this attribute creates a 'DirectMessageListenerContainer' instead of the default
+	'SimpleMessageListenerContainer'. Refer to the Spring AMQP reference documentation for
+	more information about these containers.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -915,6 +925,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 				<xsd:appinfo>
 					<xsd:documentation>
 	The timeout for each attempt by a consumer to receive the next message.
+	Not allowed when 'consumers-per-queue' is set.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -980,6 +991,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 					<xsd:documentation>
 	How many messages to process in a single transaction (if the channel is transactional). For best results it should be
 	less than or equal to the prefetch count.
+	Not allowed when 'consumers-per-queue' is set.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -991,7 +1003,7 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 	If 'true', and none of the queues are available on the broker, the container will throw a fatal exception during
 	startup and will stop if the queues are deleted when the container is running (after making 3 attempts to
 	passively declare the queues). If false, the container will not throw an exception and go into recovery mode,
-	attempting to restart according to the 'recovery-interval'. Default 'true'.
+	attempting to restart according to the 'recovery-interval'. Default 'true' unless 'consumers-per-queue' is set.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>

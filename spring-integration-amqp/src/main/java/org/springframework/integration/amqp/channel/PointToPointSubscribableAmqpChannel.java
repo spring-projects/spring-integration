@@ -19,7 +19,7 @@ package org.springframework.integration.amqp.channel;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -43,7 +43,7 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	 * @param amqpTemplate the template.
 	 * @see #setExtractPayload(boolean)
 	 */
-	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	public PointToPointSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
 		super(channelName, container, amqpTemplate);
 	}
@@ -60,7 +60,7 @@ public class PointToPointSubscribableAmqpChannel extends AbstractSubscribableAmq
 	 * @see #setExtractPayload(boolean)
 	 * @since 4.3
 	 */
-	public PointToPointSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	public PointToPointSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
 		super(channelName, container, amqpTemplate, outboundMapper, inboundMapper);
 	}

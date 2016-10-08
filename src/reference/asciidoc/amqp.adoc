@@ -32,7 +32,7 @@ It provides much more in-depth information regarding Spring's integration with A
 
 A configuration sample for an AMQP Inbound Channel Adapter is shown below.
 
-[source,xml]
+[source, xml]
 ----
 <int-amqp:inbound-channel-adapter
                                   id="inboundAmqp" <1>
@@ -59,8 +59,8 @@ A configuration sample for an AMQP Inbound Channel Adapter is shown below.
                                   task-executor="" <22>
                                   transaction-attribute="" <23>
                                   transaction-manager="" <24>
-                                  tx-size="" /> <25>
-
+                                  tx-size="" <25>
+                                  consumers-per-queue /> <26>
 ----
 
 <1> Unique ID for this adapter.
@@ -92,7 +92,8 @@ _Optional (Defaults to false)_.
 Default is 1.
 Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in from a queue.
 However, note that any ordering guarantees are lost once multiple consumers are registered.
-In general, stick with 1 consumer for low-volume queues.
+In general, use 1 consumer for low-volume queues.
+Not allowed when 'consumers-per-queue' is set.
 _Optional_.
 
 
@@ -122,7 +123,7 @@ The values in this list can also be simple patterns to be matched against the he
 "\*" or "foo*, bar" or "*foo").
 
 
-<13> Reference to the `SimpleMessageListenerContainer` to use for receiving AMQP Messages.
+<13> Reference to the `AbstractMessageListenerContainer` to use for receiving AMQP Messages.
 If this attribute is provided, then no other attribute related to the listener container configuration should be provided.
 In other words, by setting this reference, you must take full responsibility of the listener container configuration.
 The only exception is the MessageListener itself.
@@ -138,7 +139,7 @@ _Optional_.
 _Optional_.
 
 
-<16> Specify the phase in which the underlying `SimpleMessageListenerContainer` should be started and stopped.
+<16> Specify the phase in which the underlying `AbstractMessageListenerContainer` should be started and stopped.
 The startup order proceeds from lowest to highest, and the shutdown order is the reverse of that.
 By default this value is Integer.MAX_VALUE meaning that this container starts as late as possible and stops as soon as possible.
 _Optional_.
@@ -154,7 +155,7 @@ _Optional (Defaults to 1)_.
 _Optional (Defaults to 1000)_.
 
 
-<19> Specifies the interval between recovery attempts of the underlying `SimpleMessageListenerContainer` (in milliseconds)
+<19> Specifies the interval between recovery attempts of the underlying `AbstractMessageListenerContainer` (in milliseconds)
 ._Optional (Defaults to 5000)_.
 
 
@@ -163,24 +164,24 @@ If false, the container will not throw an exception and go into recovery mode, a
 _Optional (Defaults to `true`)_.
 
 
-<21> The time to wait for workers in milliseconds after the underlying `SimpleMessageListenerContainer` is stopped, and before the AMQP connection is forced closed.
+<21> The time to wait for workers in milliseconds after the underlying `AbstractMessageListenerContainer` is stopped, and before the AMQP connection is forced closed.
 If any workers are active when the shutdown signal comes they will be allowed to finish processing as long as they can finish within this timeout.
 Otherwise the connection is closed and messages remain unacked (if the channel is transactional).
 _Optional (Defaults to 5000)_.
 
 
-<22> By default, the underlying `SimpleMessageListenerContainer` uses a SimpleAsyncTaskExecutor implementation, that fires up a new Thread for each task, executing it asynchronously.
+<22> By default, the underlying `AbstractMessageListenerContainer` uses a SimpleAsyncTaskExecutor implementation, that fires up a new Thread for each task, executing it asynchronously.
 By default, the number of concurrent threads is unlimited.
 *NOTE:* This implementation does not reuse threads.
 Consider a thread-pooling TaskExecutor implementation as an alternative.
 _Optional (Defaults to SimpleAsyncTaskExecutor)_.
 
 
-<23> By default the underlying `SimpleMessageListenerContainer` creates a new instance of the DefaultTransactionAttribute (takes the EJB approach to rolling back on runtime, but not checked exceptions.
+<23> By default the underlying `AbstractMessageListenerContainer` creates a new instance of the DefaultTransactionAttribute (takes the EJB approach to rolling back on runtime, but not checked exceptions.
 _Optional (Defaults to DefaultTransactionAttribute)_.
 
 
-<24> Sets a Bean reference to an external `PlatformTransactionManager` on the underlying SimpleMessageListenerContainer.
+<24> Sets a Bean reference to an external `PlatformTransactionManager` on the underlying AbstractMessageListenerContainer.
 The transaction manager works in conjunction with the "channel-transacted" attribute.
 If there is already a transaction in progress when the framework is sending or receiving a message, and the channelTransacted flag is true, then the commit or rollback of the messaging transaction will be deferred until the end of the current transaction.
 If the channelTransacted flag is false, then no transaction semantics apply to the messaging operation (it is auto-acked).
@@ -191,7 +192,11 @@ _Optional_.
 
 <25> Tells the `SimpleMessageListenerContainer` how many messages to process in a single transaction (if the channel is transactional).
 For best results it should be less than or equal to the set "prefetch-count".
+Not allowed when 'consumers-per-queue' is set.
 _Optional (Defaults to 1)_.
+
+<26> Indicates that the underlying listener container should be a `DirectMessageListenerContainer` instead of the default `SimpleMessageListenerContainer`.
+Refer to the Spring AMQP Reference Manual for more information.
 
 
 [NOTE]
@@ -215,8 +220,8 @@ For this reason, you must define the container using a normal Spring `<bean/>` d
 
 IMPORTANT: Even though the Spring Integration JMS and AMQP support is very similar, important differences exist.
 The JMS Inbound Channel Adapter is using a `JmsDestinationPollingSource` under the covers and expects a configured Poller.
-The AMQP Inbound Channel Adapter on the other side uses a`SimpleMessageListenerContainer` and is message driven.
-In that regard it is more similar to the JMS Message Driven Channel Adapter.
+The AMQP Inbound Channel Adapter uses an `AbstractMessageListenerContainer` and is message driven.
+In that regard, it is more similar to the JMS Message Driven Channel Adapter.
 
 ==== Configuring with Java Configuration
 
@@ -301,7 +306,7 @@ public class AmqpJavaApplication {
 
 The inbound gateway supports all the attributes on the inbound channel adapter (except 'channel' is replaced by 'request-channel'), plus some additional attributes:
 
-[source,xml]
+[source, xml]
 ----
 <int-amqp:inbound-gateway
                           id="inboundGateway" <1>
@@ -328,21 +333,19 @@ _Required_.
 _Optional_.
 By default only standard AMQP properties (e.g.
 `contentType`) will be copied to and from Spring Integration `MessageHeaders`.
-Any user-defined headers within the AMQP`MessageProperties` will NOT be copied to or from an AMQP Message by the default `DefaultAmqpHeaderMapper`.
+Any user-defined headers within the AMQP `MessageProperties` will NOT be copied to or from an AMQP Message by the default `DefaultAmqpHeaderMapper`.
 Not allowed if 'request-header-names' or 'reply-header-names' is provided.
 
 
 <4> Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the `MessageHeaders`.
 This can only be provided if the 'header-mapper' reference is not provided.
-The values in this list can also be simple patterns to be matched against the header names (e.g.
-"\*" or "foo*, bar" or "*foo").
+The values in this list can also be simple patterns to be matched against the header names (e.g. `"\*"` or `"foo*, bar"` or `"*foo"`).
 
 
 <5> Comma-separated list of names of `MessageHeaders` to be mapped into the AMQP Message Properties of the AMQP reply message.
 All standard Headers (e.g., `contentType`) will be mapped to AMQP Message Properties while user-defined headers will be mapped to the 'headers' property.
 This can only be provided if the 'header-mapper' reference is not provided.
-The values in this list can also be simple patterns to be matched against the header names (e.g.
-"\*" or "foo*, bar" or "*foo").
+The values in this list can also be simple patterns to be matched against the header names (e.g. `"\*"` or `"foo*, bar"` or `"*foo"`).
 
 
 <6> Message Channel where reply Messages will be expected.
@@ -369,6 +372,7 @@ See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener
 ==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the inbound gateway using Java configuration:
+
 [source, java]
 ----
 @SpringBootApplication
@@ -594,8 +598,7 @@ _Optional_.
 
 <15> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
 Not allowed if the 'header-mapper' reference is provided.
-The values in this list can also be simple patterns to be matched against the header names (e.g.
-"\*" or "foo*, bar" or "*foo").
+The values in this list can also be simple patterns to be matched against the header names (e.g. `"\*"` or `"foo*, bar"` or `"*foo"`).
 
 
 <16> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.

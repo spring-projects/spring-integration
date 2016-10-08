@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -46,6 +48,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		"acknowledge-mode",
 		"channel-transacted",
 		"concurrent-consumers",
+		"consumers-per-queue",
 		"expose-listener-channel",
 		"phase",
 		"prefetch-count",
@@ -124,8 +127,26 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			parserContext.getReaderContext().error("If no 'listener-container' reference is provided, " +
 					"the 'queue-names' attribute is required.", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer");
+		String consumersPerQueue = element.getAttribute("consumers-per-queue");
+		BeanDefinitionBuilder builder;
+		if (StringUtils.hasText(consumersPerQueue)) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectMessageListenerContainer.class);
+			if (StringUtils.hasText(element.getAttribute("concurrent-consumers"))) {
+				parserContext.getReaderContext().error("'consumers-per-queue' and 'concurrent-consumers' are mutually "
+						+ "exclusive", element);
+			}
+			if (StringUtils.hasText(element.getAttribute("tx-size"))) {
+				parserContext.getReaderContext().error("'tx-size' is not allowed with 'consumers-per-queue'", element);
+			}
+			if (StringUtils.hasText(element.getAttribute("receive-timeout"))) {
+				parserContext.getReaderContext().error("'receive-timeout' is not allowed with 'consumers-per-queue'",
+						element);
+			}
+			builder.addPropertyValue("consumersPerQueue", consumersPerQueue);
+		}
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class);
+		}
 		String connectionFactoryRef = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactoryRef)) {
 			connectionFactoryRef = "rabbitConnectionFactory";
