@@ -331,10 +331,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.size());
-		assertEquals(1, headers.get("X-foo").size());
-		assertEquals("abc", headers.getFirst("X-foo"));
-		assertEquals(1, headers.get("X-bar").size());
-		assertEquals("123", headers.getFirst("X-bar"));
+		assertEquals(1, headers.get("foo").size());
+		assertEquals("abc", headers.getFirst("foo"));
+		assertEquals(1, headers.get("bar").size());
+		assertEquals("123", headers.getFirst("bar"));
 	}
 
 	@Test
@@ -356,18 +356,19 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertNull(headers.get("z1"));
 		assertNull(headers.get("abc"));
 		assertNull(headers.get("def"));
-		assertEquals(1, headers.get("X-x1").size());
-		assertEquals("x1-value", headers.getFirst("X-x1"));
-		assertEquals(1, headers.get("X-1z").size());
-		assertEquals("1z-value", headers.getFirst("X-1z"));
-		assertEquals(1, headers.get("X-abcdef").size());
-		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));
+		assertEquals(1, headers.get("x1").size());
+		assertEquals("x1-value", headers.getFirst("x1"));
+		assertEquals(1, headers.get("1z").size());
+		assertEquals("1z-value", headers.getFirst("1z"));
+		assertEquals(1, headers.get("abcdef").size());
+		assertEquals("abcdef-value", headers.getFirst("abcdef"));
 	}
 
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeaders() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] { "foo*", "HTTP_RESPONSE_HEADERS" });
+		mapper.setUserDefinedHeaderPrefix("X-");
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
 		messageHeaders.put("Accept", "text/html");
@@ -518,9 +519,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("customHeaderB", new TestClass());
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNotNull(headers.get("X-customHeaderA"));
-		assertEquals("123", headers.get("X-customHeaderA").get(0));
-		assertNull(headers.get("X-customHeaderB"));
+		assertNotNull(headers.get("customHeaderA"));
+		assertEquals("123", headers.get("customHeaderA").get(0));
+		assertNull(headers.get("customHeaderB"));
 	}
 
 	@Test
@@ -540,10 +541,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("customHeaderB", new TestClass());
 
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertNotNull(headers.get("X-customHeaderA"));
-		assertEquals("123", headers.get("X-customHeaderA").get(0));
-		assertNotNull(headers.get("X-customHeaderB"));
-		assertEquals("TestClass.class", headers.get("X-customHeaderB").get(0));
+		assertNotNull(headers.get("customHeaderA"));
+		assertEquals("123", headers.get("customHeaderA").get(0));
+		assertNotNull(headers.get("customHeaderB"));
+		assertEquals("TestClass.class", headers.get("customHeaderB").get(0));
 	}
 
 	@Test

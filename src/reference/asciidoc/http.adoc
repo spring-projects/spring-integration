@@ -515,7 +515,7 @@ The configuration looks very similar to the gateway:
 [NOTE]
 =====
 To specify the URL; you can use either the 'url' attribute or the 'url-expression' attribute.
-The 'url' is a simple string (with placedholders for URI variables, as described below); the 'url-expression' is a SpEL expression, with the Message as the root object, enabling dynamic urls.
+The 'url' is a simple string (with placeholders for URI variables, as described below); the 'url-expression' is a SpEL expression, with the Message as the root object, enabling dynamic urls.
 The url resulting from the expression evaluation can still have placeholders for URI variables.
 
 In previous releases, some users used the place holders to replace the entire URL with a URI variable.
@@ -773,6 +773,11 @@ Here are some examples:
 The adapters and gateways will use the `DefaultHttpHeaderMapper` which now provides two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be applied (mapping HTTP requests/responses IN/OUT as appropriate).
 
 If further customization is required you can also configure a `DefaultHttpHeaderMapper` independently and inject it into the adapter via the `header-mapper` attribute.
+
+Before _version 5.0_, the `DefaultHttpHeaderMapper` has provided by default "X-" prefix for user-defined, non-standard HTTP headers.
+In `_version 5.0_` this has been changed to the empty string.
+According https://tools.ietf.org/html/rfc6648[RFC-6648], there is no such a prefix requirement any more.
+This option can still be customized by the `DefaultHttpHeaderMapper.setUserDefinedHeaderPrefix()` property.
 
 [source,xml]
 ----

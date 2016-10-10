@@ -291,7 +291,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private volatile String[] excludedInboundStandardResponseHeaderNames = new String[0];
 
-	private volatile String userDefinedHeaderPrefix = "X-";
+	private volatile String userDefinedHeaderPrefix = "";
 
 	private volatile boolean isDefaultOutboundMapper;
 
@@ -384,7 +384,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	/**
-	 * Sets the prefix to use with user-defined (non-standard) headers. Default is 'X-'.
+	 * Sets the prefix to use with user-defined (non-standard) headers. Default is empty string.
 	 * @param userDefinedHeaderPrefix The user defined header prefix.
 	 */
 	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
