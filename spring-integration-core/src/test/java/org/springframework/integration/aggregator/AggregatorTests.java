@@ -415,6 +415,7 @@ public class AggregatorTests {
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		Message<?> message4 = createMessage(7, "ABC", 3, 3, replyChannel, null);
+		this.aggregator.setReleaseStrategy(new SequenceSizeReleaseStrategy());
 
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message3);

@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
-import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
+import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
@@ -52,7 +52,7 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
+		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy);
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
 		assertEquals(-1L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
@@ -65,7 +65,7 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
+		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SimpleSequenceSizeReleaseStrategy);
 		assertEquals("outputChannel", getPropertyValue(aggregator, "outputChannelName"));
 		assertEquals("discardChannel", getPropertyValue(aggregator, "discardChannelName"));
 		assertEquals(98765432L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));

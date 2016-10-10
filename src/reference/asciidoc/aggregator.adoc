@@ -35,7 +35,7 @@ The Aggregation API consists of a number of classes:
 
 * The interface `MessageGroupProcessor`, and its subclasses:`MethodInvokingAggregatingMessageGroupProcessor` and `ExpressionEvaluatingMessageGroupProcessor`
 
-* The `ReleaseStrategy` interface and its default implementation `SequenceSizeReleaseStrategy`
+* The `ReleaseStrategy` interface and its default implementation `SimpleSequenceSizeReleaseStrategy`
 
 * The `CorrelationStrategy` interface and its default implementation `HeaderAttributeCorrelationStrategy`
 
@@ -85,7 +85,7 @@ public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, Messag
     ...
     this.correlationStrategy = correlationStrategy == null ?
         new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
-    this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
+    this.releaseStrategy = releaseStrategy == null ? new SimpleSequenceSizeReleaseStrategy() : releaseStrategy;
     ...
 }
 ----
@@ -214,9 +214,12 @@ This can eventually cause out of memory conditions.
 To avoid such situations, you should consider configuring a `MessageGroupStoreReaper` to remove the group metadata; the expiry parameters should be set to expire groups after it is not expected that late messages will arrive.
 For information about configuring a reaper, see <<reaper>>.
 
-Spring Integration provides an out-of-the box implementation for `ReleaseStrategy`, the `SequenceSizeReleaseStrategy`.
+Spring Integration provides an out-of-the box implementation for `ReleaseStrategy`, the `SimpleSequenceSizeReleaseStrategy`.
 This implementation consults the `SEQUENCE_NUMBER` and `SEQUENCE_SIZE` headers of each arriving message to decide when a message group is complete and ready to be aggregated.
 As shown above, it is also the default strategy.
+
+NOTE: Before _version 5.0_, the default release strategy was `SequenceSizeReleaseStrategy` which does not perform well with large groups.
+With that strategy, duplicate sequence numbers are detected and rejected; this operation can be expensive.
 
 ===== CorrelationStrategy
 
@@ -263,7 +266,7 @@ Below you can see an example of an aggregator.
 ----
 <channel id="inputChannel"/>
 
-<int:aggregator id=""myAggregator"  <1>
+<int:aggregator id="myAggregator"  <1>
         auto-startup="true"  <2>
         input-channel="inputChannel"  <3>
         output-channel="outputChannel"  <4>
@@ -680,7 +683,7 @@ Must be specified if this class will be used as an aggregator.
 
 
 <2> An annotation indicating that this method shall be used as the release strategy of an aggregator.
-If not present on any method, the aggregator will use the SequenceSizeReleaseStrategy.
+If not present on any method, the aggregator will use the SimpleSequenceSizeReleaseStrategy.
 
 
 

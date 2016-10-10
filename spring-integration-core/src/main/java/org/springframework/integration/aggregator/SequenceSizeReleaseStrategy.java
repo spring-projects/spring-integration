@@ -28,8 +28,9 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.Message;
 
 /**
- * An implementation of {@link ReleaseStrategy} that simply compares the current size of the message list to the
- * expected 'sequenceSize'.
+ * An implementation of {@link ReleaseStrategy} that simply compares the current size of
+ * the message list to the expected 'sequenceSize'. Supports release of partial sequences.
+ * Correlating message handlers prevent the addition of duplicate sequences to the group.
  *
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -47,10 +48,19 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	private volatile boolean releasePartialSequences;
 
+	/**
+	 * Construct an instance that does not support releasing partial sequences.
+	 */
 	public SequenceSizeReleaseStrategy() {
 		this(false);
 	}
 
+	/**
+	 * Construct an instance that supports releasing partial sequences if
+	 * releasePartialSequences is true. This can be an expensive operation on large
+	 * groups.
+	 * @param releasePartialSequences true to allow the release of partial sequences.
+	 */
 	public SequenceSizeReleaseStrategy(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}
@@ -59,6 +69,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	 * Flag that determines if partial sequences are allowed. If true then as soon as
 	 * enough messages arrive that can be ordered they will be released, provided they
 	 * all have sequence numbers greater than those already released.
+	 * This can be an expensive operation for large groups.
 	 * @param releasePartialSequences true when partial sequences should be released.
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
