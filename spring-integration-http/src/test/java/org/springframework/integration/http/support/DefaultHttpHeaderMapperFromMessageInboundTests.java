@@ -581,15 +581,6 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(MediaType.valueOf("text/plain"), httpHeaders.getContentType());
 	}
 
-	@Test
-	public void testContentTypeInboundHeader() throws Exception {
-		HeaderMapper<HttpHeaders> mapper = DefaultHttpHeaderMapper.inboundMapper();
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.CONTENT_TYPE.toLowerCase(), "text/plain");
-		Map<String, ?> result = mapper.toHeaders(headers);
-		assertEquals(MediaType.valueOf("text/plain"), result.get(MessageHeaders.CONTENT_TYPE));
-	}
-
 
 	public static class TestClass {
 

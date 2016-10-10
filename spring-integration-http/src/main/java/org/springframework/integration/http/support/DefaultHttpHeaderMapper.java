@@ -462,7 +462,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 						if (logger.isDebugEnabled()) {
 							logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
 						}
-						if (CONTENT_TYPE.equalsIgnoreCase(name)) {
+						if (CONTENT_TYPE.equals(name)) {
 							name = MessageHeaders.CONTENT_TYPE;
 						}
 						this.setMessageHeader(target, name, value);
