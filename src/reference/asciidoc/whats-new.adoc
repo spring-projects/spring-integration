@@ -60,3 +60,8 @@ See <<barrier>> for more information.
 
 The AMQP outbound endpoints now support setting a delay expression for when using the RabbitMQ Delayed Message Exchange plugin.
 See <<amqp-delay>> for more information.
+
+==== HTTP Changes
+
+The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string by default instead of `X-`.
+See <<http-header-mapping>> for more information.
