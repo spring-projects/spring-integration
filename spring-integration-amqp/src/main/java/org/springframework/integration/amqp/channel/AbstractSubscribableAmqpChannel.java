@@ -27,7 +27,7 @@ import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.DisposableBean;
@@ -57,7 +57,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	private final String channelName;
 
-	private final SimpleMessageListenerContainer container;
+	private final AbstractMessageListenerContainer container;
 
 	private volatile AbstractDispatcher dispatcher;
 
@@ -77,7 +77,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @param amqpTemplate the template.
 	 * @see #setExtractPayload(boolean)
 	 */
-	protected AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	protected AbstractSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
 	}
@@ -93,7 +93,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @see #setExtractPayload(boolean)
 	 * @since 4.3
 	 */
-	protected AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container,
+	protected AbstractSubscribableAmqpChannel(String channelName, AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
 		this(channelName, container, amqpTemplate, false, outboundMapper, inboundMapper);
 	}
@@ -108,7 +108,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @see #setExtractPayload(boolean)
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName,
-			SimpleMessageListenerContainer container,
+			AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub) {
 		super(amqpTemplate);
 		Assert.notNull(container, "container must not be null");
@@ -133,7 +133,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	 * @since 4.3
 	 */
 	protected AbstractSubscribableAmqpChannel(String channelName,
-			SimpleMessageListenerContainer container,
+			AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub,
 			AmqpHeaderMapper outboundMapper, AmqpHeaderMapper inboundMapper) {
 		super(amqpTemplate, outboundMapper, inboundMapper);

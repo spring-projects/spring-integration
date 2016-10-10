@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.config;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -30,6 +31,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
@@ -80,6 +83,7 @@ public class AmqpChannelParserTests {
 		assertTrue(TestUtils.getPropertyValue(channel, "container.missingQueuesFatal", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(channel, "container"), instanceOf(SimpleMessageListenerContainer.class));
 	}
 
 	@Test
@@ -91,6 +95,8 @@ public class AmqpChannelParserTests {
 		assertFalse(TestUtils.getPropertyValue(channel, "container.transactional", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(channel, "amqpTemplate.transactional", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(channel, "extractPayload", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(channel, "container"), instanceOf(DirectMessageListenerContainer.class));
+		assertEquals(2, TestUtils.getPropertyValue(channel, "container.consumersPerQueue"));
 	}
 
 	@Test

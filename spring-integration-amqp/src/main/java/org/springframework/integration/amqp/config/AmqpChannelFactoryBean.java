@@ -29,6 +29,8 @@ import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -88,6 +90,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	private volatile Advice[] adviceChain;
 
 	private volatile Integer concurrentConsumers;
+
+	private volatile Integer consumersPerQueue;
 
 	private volatile ConnectionFactory connectionFactory;
 
@@ -261,6 +265,10 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.concurrentConsumers = concurrentConsumers;
 	}
 
+	public void setConsumersPerQueue(Integer consumersPerQueue) {
+		this.consumersPerQueue = consumersPerQueue;
+	}
+
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}
@@ -341,7 +349,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	@Override
 	protected AbstractAmqpChannel createInstance() throws Exception {
 		if (this.messageDriven) {
-			SimpleMessageListenerContainer container = this.createContainer();
+			AbstractMessageListenerContainer container = this.createContainer();
 			if (this.amqpTemplate instanceof InitializingBean) {
 				((InitializingBean) this.amqpTemplate).afterPropertiesSet();
 			}
@@ -397,8 +405,26 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		return this.channel;
 	}
 
-	private SimpleMessageListenerContainer createContainer() throws Exception {
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+	private AbstractMessageListenerContainer createContainer() throws Exception {
+		AbstractMessageListenerContainer container;
+		if (this.consumersPerQueue == null) {
+			SimpleMessageListenerContainer smlc = new SimpleMessageListenerContainer();
+			if (this.concurrentConsumers != null) {
+				smlc.setConcurrentConsumers(this.concurrentConsumers);
+			}
+			if (this.receiveTimeout != null) {
+				smlc.setReceiveTimeout(this.receiveTimeout);
+			}
+			if (this.txSize != null) {
+				smlc.setTxSize(this.txSize);
+			}
+			container = smlc;
+		}
+		else {
+			DirectMessageListenerContainer dmlc = new DirectMessageListenerContainer();
+			dmlc.setConsumersPerQueue(this.consumersPerQueue);
+			container = dmlc;
+		}
 		if (this.acknowledgeMode != null) {
 			container.setAcknowledgeMode(this.acknowledgeMode);
 		}
@@ -407,9 +433,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 		container.setAutoStartup(this.autoStartup);
 		container.setChannelTransacted(this.channelTransacted);
-		if (this.concurrentConsumers != null) {
-			container.setConcurrentConsumers(this.concurrentConsumers);
-		}
 		container.setConnectionFactory(this.connectionFactory);
 		if (this.errorHandler != null) {
 			container.setErrorHandler(this.errorHandler);
@@ -426,9 +449,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		if (this.prefetchCount != null) {
 			container.setPrefetchCount(this.prefetchCount);
 		}
-		if (this.receiveTimeout != null) {
-			container.setReceiveTimeout(this.receiveTimeout);
-		}
 		if (this.recoveryInterval != null) {
 			container.setRecoveryInterval(this.recoveryInterval);
 		}
@@ -443,9 +463,6 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 		if (this.transactionManager != null) {
 			container.setTransactionManager(this.transactionManager);
-		}
-		if (this.txSize != null) {
-			container.setTxSize(this.txSize);
 		}
 		if (this.missingQueuesFatal != null) {
 			container.setMissingQueuesFatal(this.missingQueuesFatal);

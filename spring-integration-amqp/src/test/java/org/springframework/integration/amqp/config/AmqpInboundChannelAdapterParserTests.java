@@ -16,10 +16,12 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -30,6 +32,8 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -66,6 +70,18 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(Integer.MAX_VALUE / 2, TestUtils.getPropertyValue(adapter, "phase"));
 		assertTrue(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"),
+				instanceOf(SimpleMessageListenerContainer.class));
+	}
+
+	@Test
+	public void verifyDMCC() {
+		Object adapter = context.getBean("dmlc.adapter");
+		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
+		assertFalse(TestUtils.getPropertyValue(adapter, "messageListenerContainer.missingQueuesFatal", Boolean.class));
+		assertThat(TestUtils.getPropertyValue(adapter, "messageListenerContainer"),
+				instanceOf(DirectMessageListenerContainer.class));
+		assertEquals(2, TestUtils.getPropertyValue(adapter, "messageListenerContainer.consumersPerQueue"));
 	}
 
 	@Test

@@ -60,3 +60,6 @@ See <<barrier>> for more information.
 
 The AMQP outbound endpoints now support setting a delay expression for when using the RabbitMQ Delayed Message Exchange plugin.
 See <<amqp-delay>> for more information.
+
+The inbound endpoints now support the Spring AMQP `DirectMessageListenerContainer`.
+See <<amqp-inbound-channel-adapter>> for more information.

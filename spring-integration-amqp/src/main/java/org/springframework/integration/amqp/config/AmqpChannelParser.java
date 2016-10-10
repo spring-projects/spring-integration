@@ -50,6 +50,21 @@ public class AmqpChannelParser extends AbstractChannelParser {
 
 		builder.addPropertyValue("pubSub", "publish-subscribe-channel".equals(element.getLocalName()));
 
+		String consumersPerQueue = element.getAttribute("consumers-per-queue");
+		if (StringUtils.hasText(consumersPerQueue)) {
+			if (StringUtils.hasText(element.getAttribute("concurrent-consumers"))) {
+				parserContext.getReaderContext().error("'consumers-per-queue' and 'concurrent-consumers' are mutually "
+						+ "exclusive", element);
+			}
+			if (StringUtils.hasText(element.getAttribute("tx-size"))) {
+				parserContext.getReaderContext().error("'tx-size' is not allowed with 'consumers-per-queue'", element);
+			}
+			if (StringUtils.hasText(element.getAttribute("receive-timeout"))) {
+				parserContext.getReaderContext().error("'receive-timeout' is not allowed with 'consumers-per-queue'",
+						element);
+			}
+			builder.addPropertyValue("consumersPerQueue", consumersPerQueue);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "advice-chain");
