@@ -202,7 +202,7 @@ public class HttpInboundGatewayParserTests {
 		headers = new HttpHeaders();
 		headerMapper.fromHeaders(mh, headers);
 		assertTrue(headers.size() == 1);
-		List<String> abc = headers.get("X-abc");
+		List<String> abc = headers.get("abc");
 		assertEquals("abc", abc.get(0));
 	}
 
@@ -210,6 +210,8 @@ public class HttpInboundGatewayParserTests {
 	public void requestWithHeadersWithConversionService() throws Exception {
 		DefaultHttpHeaderMapper headerMapper =
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
+
+		headerMapper.setUserDefinedHeaderPrefix("X-");
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
