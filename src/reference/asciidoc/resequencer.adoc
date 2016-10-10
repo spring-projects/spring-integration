@@ -13,6 +13,9 @@ It simply releases them in the order of their `SEQUENCE_NUMBER` header values.
 
 With respect to that, the user might opt to release all messages at once (after the whole sequence, according to the `SEQUENCE_SIZE`, has been released), or as soon as a valid sequence is available.
 
+IMPORTANT: The resequencer is intended to resequence relatively short sequences of messages with small gaps.
+If you have a large number of disjoint sequences with many gaps, you may experience performance issues.
+
 ==== Configuring a Resequencer
 
 Configuring a resequencer requires only including the appropriate element in XML.

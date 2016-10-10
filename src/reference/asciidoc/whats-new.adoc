@@ -65,6 +65,7 @@ See <<barrier>> for more information.
 
 The AMQP outbound endpoints now support setting a delay expression for when using the RabbitMQ Delayed Message Exchange plugin.
 See <<amqp-delay>> for more information.
+
 The inbound endpoints now support the Spring AMQP `DirectMessageListenerContainer`.
 See <<amqp-inbound-channel-adapter>> for more information.
 
@@ -72,3 +73,8 @@ See <<amqp-inbound-channel-adapter>> for more information.
 
 The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string by default instead of `X-`.
 See <<http-header-mapping>> for more information.
+
+==== Aggregator Performance Changes
+
+Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
+See <<aggregator>> for more information.
