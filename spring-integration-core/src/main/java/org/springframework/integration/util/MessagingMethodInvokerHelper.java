@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -272,7 +273,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 			@Override
 			protected Method[] getMethods(Class<?> type) {
-				return type.getDeclaredMethods();
+				return Stream.of(type.getMethods(), type.getDeclaredMethods())
+						.flatMap(Stream::of)
+						.toArray(Method[]::new);
 			}
 
 		};
@@ -297,7 +300,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			declaredMethodResolver.registerMethodFilter(targetType, annotatedMethodFilter);
 		}
 		context.setVariable("target", this.targetObject);
-		context.addMethodResolver(declaredMethodResolver);
+		context.setMethodResolvers(Collections.singletonList(declaredMethodResolver));
 	}
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,

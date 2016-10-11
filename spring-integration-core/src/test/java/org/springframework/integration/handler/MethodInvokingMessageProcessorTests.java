@@ -564,6 +564,7 @@ public class MethodInvokingMessageProcessorTests {
 		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new Foo(), ServiceActivator.class, false);
 
 		assertEquals("FOO", helper.process(new GenericMessage<>("foo")));
+		assertEquals("BAR", helper.process(new GenericMessage<>("bar")));
 	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
