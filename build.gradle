@@ -31,6 +31,7 @@ allprojects {
 
 	repositories {
 		if (version.endsWith('BUILD-SNAPSHOT') || project.hasProperty('platformVersion')) {
+			mavenLocal()
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
 		maven { url 'https://repo.spring.io/libs-milestone' }
