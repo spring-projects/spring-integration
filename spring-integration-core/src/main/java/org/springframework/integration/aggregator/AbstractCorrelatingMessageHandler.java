@@ -227,7 +227,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (this.releasePartialSequences) {
 			Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
 					"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName() +
-							"] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
+							"] cannot release partial sequences. Use a SequenceSizeReleaseStrategy instead.");
 			((SequenceSizeReleaseStrategy) this.releaseStrategy)
 					.setReleasePartialSequences(this.releasePartialSequences);
 		}
@@ -297,7 +297,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * @param releasePartialSequences true to allow release.
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
-		if (!this.releaseStrategySet) {
+		if (!this.releaseStrategySet && releasePartialSequences) {
 			setReleaseStrategy(new SequenceSizeReleaseStrategy());
 		}
 		this.releasePartialSequences = releasePartialSequences;

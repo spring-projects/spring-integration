@@ -683,7 +683,7 @@ Must be specified if this class will be used as an aggregator.
 
 
 <2> An annotation indicating that this method shall be used as the release strategy of an aggregator.
-If not present on any method, the aggregator will use the SimpleSequenceSizeReleaseStrategy.
+If not present on any method, the aggregator will use the `SimpleSequenceSizeReleaseStrategy`.
 
 
 
