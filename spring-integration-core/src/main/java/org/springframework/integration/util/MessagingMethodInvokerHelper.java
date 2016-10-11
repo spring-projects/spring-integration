@@ -50,6 +50,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.MethodResolver;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.ReflectiveMethodResolver;
@@ -275,6 +276,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			protected Method[] getMethods(Class<?> type) {
 				return Stream.of(type.getMethods(), type.getDeclaredMethods())
 						.flatMap(Stream::of)
+						.distinct()
 						.toArray(Method[]::new);
 			}
 
@@ -300,7 +302,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			declaredMethodResolver.registerMethodFilter(targetType, annotatedMethodFilter);
 		}
 		context.setVariable("target", this.targetObject);
-		context.setMethodResolvers(Collections.singletonList(declaredMethodResolver));
+		context.addMethodResolver(declaredMethodResolver);
+		// Remove default ReflectiveMethodResolver since 'declaredMethodResolver' does the same
+		for (Iterator<MethodResolver> iterator = context.getMethodResolvers().iterator(); iterator.hasNext();) {
+			MethodResolver methodResolver = iterator.next();
+			if (methodResolver.getClass().equals(ReflectiveMethodResolver.class)) {
+				iterator.remove();
+			}
+		}
 	}
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
