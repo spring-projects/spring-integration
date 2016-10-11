@@ -60,7 +60,8 @@ public class ConcurrentAggregatorTests {
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
-		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
+		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), this.store);
+		this.aggregator.setReleaseStrategy(new SimpleSequenceSizeReleaseStrategy());
 	}
 
 
@@ -267,6 +268,9 @@ public class ConcurrentAggregatorTests {
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		Message<?> message4 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		CountDownLatch latch = new CountDownLatch(4);
+
+		this.aggregator.setReleaseStrategy(new SequenceSizeReleaseStrategy());
+
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
 				message1, latch));
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
@@ -278,9 +282,9 @@ public class ConcurrentAggregatorTests {
 
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 
-		Message<?> reply = replyChannel.receive(1000);
+		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull("A message should be aggregated", reply);
-		assertThat(((Integer) reply.getPayload()), is(105));
+		assertThat(reply.getPayload(), is(105));
 	}
 
 
@@ -325,13 +329,13 @@ public class ConcurrentAggregatorTests {
 				this.aggregator.handleMessage(message);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				this.exception = e;
 			}
 			finally {
 				this.latch.countDown();
 			}
 		}
+
 	}
 
 
@@ -345,6 +349,7 @@ public class ConcurrentAggregatorTests {
 			}
 			return product;
 		}
+
 	}
 
 
@@ -355,6 +360,7 @@ public class ConcurrentAggregatorTests {
 		public Object processMessageGroup(MessageGroup group) {
 			return null;
 		}
+
 	}
 
 }

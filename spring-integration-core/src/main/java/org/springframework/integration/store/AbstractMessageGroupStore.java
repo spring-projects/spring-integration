@@ -23,8 +23,6 @@ import java.util.LinkedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -40,7 +38,7 @@ import org.springframework.messaging.Message;
  */
 @ManagedResource
 public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageGroupStore
-		implements MessageGroupStore, Iterable<MessageGroup>, BeanFactoryAware {
+		implements MessageGroupStore, Iterable<MessageGroup> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -51,10 +49,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	private volatile boolean timeoutOnIdle;
 
-	private volatile BeanFactory beanFactory;
-
-	private volatile boolean messageBuilderFactorySet;
-
 	private boolean lazyLoadMessageGroups = true;
 
 	protected AbstractMessageGroupStore() {
@@ -63,12 +57,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	protected AbstractMessageGroupStore(boolean lazyLoadMessageGroups) {
 		this.lazyLoadMessageGroups = lazyLoadMessageGroups;
-	}
-
-	@Override
-	public final void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-
 	}
 
 	@Override

@@ -50,6 +50,8 @@ public class MessageDocument {
 
 	private Long createdTime = 0L;
 
+	private Long groupCreatedTime = 0L;
+
 	private Object groupId;
 
 	private Long lastModifiedTime = 0L;
@@ -96,6 +98,14 @@ public class MessageDocument {
 
 	public void setCreatedTime(long createdTime) {
 		this.createdTime = createdTime;
+	}
+
+	public Long getGroupCreatedTime() {
+		return this.groupCreatedTime;
+	}
+
+	public void setGroupCreatedTime(long groupCreatedTime) {
+		this.groupCreatedTime = groupCreatedTime;
 	}
 
 	public Boolean isComplete() {

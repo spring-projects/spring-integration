@@ -48,6 +48,7 @@ import org.springframework.integration.mongodb.support.MongoDbMessageBytesConver
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -159,6 +160,20 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		return document != null ? document.getMessage() : null;
 	}
 
+	public MessageMetadata getMessageMetadata(UUID id) {
+		Assert.notNull(id, "'id' must not be null");
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
+		MessageDocument document = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		if (document != null) {
+			MessageMetadata messageMetadata = new MessageMetadata(id);
+			messageMetadata.setTimestamp(document.getCreatedTime());
+			return messageMetadata;
+		}
+		else {
+			return null;
+		}
+	}
+
 	@Override
 	public void removeMessageGroup(Object groupId) {
 		this.mongoTemplate.remove(groupIdQuery(groupId), this.collectionName);
@@ -188,9 +203,10 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {
-		if (document.getCreatedTime() == 0) {
-			document.setCreatedTime(System.currentTimeMillis());
+		if (document.getGroupCreatedTime() == 0) {
+			document.setGroupCreatedTime(System.currentTimeMillis());
 		}
+		document.setCreatedTime(System.currentTimeMillis());
 		try {
 			this.mongoTemplate.insert(document, this.collectionName);
 		}

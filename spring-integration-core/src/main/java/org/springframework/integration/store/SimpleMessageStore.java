@@ -192,6 +192,19 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	public MessageMetadata getMessageMetadata(UUID id) {
+		Message<?> message = getMessage(id);
+		if (message != null) {
+			MessageMetadata messageMetadata = new MessageMetadata(id);
+			messageMetadata.setTimestamp(message.getHeaders().getTimestamp());
+			return messageMetadata;
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
 	public Message<?> removeMessage(UUID key) {
 		if (key != null) {
 			Message<?> message = this.idToMessage.remove(key);

@@ -53,11 +53,27 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Message<?> getMessage(UUID messageId) {
 		Assert.notNull(messageId, "'messageId' must not be null");
-		Message<?> message = (Message<?>) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
-		if (message != null) {
-			Assert.isInstanceOf(Message.class, message);
+		MessageHolder messageHolder = (MessageHolder) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		if (messageHolder != null) {
+			Assert.isInstanceOf(MessageHolder.class, messageHolder);
+			return messageHolder.getMessage();
 		}
-		return message;
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public MessageMetadata getMessageMetadata(UUID messageId) {
+		Assert.notNull(messageId, "'messageId' must not be null");
+		MessageHolder messageHolder = (MessageHolder) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		if (messageHolder != null) {
+			Assert.isInstanceOf(MessageHolder.class, messageHolder);
+			return messageHolder.getMessageMetadata();
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -65,7 +81,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
-		doStoreIfAbsent(MESSAGE_KEY_PREFIX + messageId, message);
+		doStoreIfAbsent(MESSAGE_KEY_PREFIX + messageId, new MessageHolder(message));
 		return (Message<T>) getMessage(messageId);
 	}
 
@@ -74,9 +90,12 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(id, "'id' must not be null");
 		Object message = doRemove(MESSAGE_KEY_PREFIX + id);
 		if (message != null) {
-			Assert.isInstanceOf(Message.class, message);
+			Assert.isInstanceOf(MessageHolder.class, message);
+			return ((MessageHolder) message).getMessage();
 		}
-		return (Message<?>) message;
+		else {
+			return null;
+		}
 	}
 
 	@Override

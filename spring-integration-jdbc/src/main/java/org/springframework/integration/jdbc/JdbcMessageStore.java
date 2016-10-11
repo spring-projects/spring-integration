@@ -45,6 +45,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.util.UUIDConverter;
@@ -328,6 +329,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public MessageMetadata getMessageMetadata(UUID id) {
+		List<MessageMetadata> list =
+				this.jdbcTemplate.query(getQuery(Query.GET_MESSAGE),
+						(rs, rn) -> {
+							MessageMetadata messageMetadata =
+									new MessageMetadata(UUID.fromString(rs.getString("MESSAGE_ID")));
+							messageMetadata.setTimestamp(rs.getTimestamp("CREATED_DATE").getTime());
+							return messageMetadata;
+						}, getKey(id), this.region);
+		if (list.isEmpty()) {
+			return null;
+		}
+		return list.get(0);
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(final Message<T> message) {
 		UUID id = message.getHeaders().getId();
@@ -435,19 +452,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
-		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new RowCallbackHandler() {
+		this.jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), rs -> {
+			updateDate.set(rs.getTimestamp("UPDATED_DATE"));
 
-			@Override
-			public void processRow(ResultSet rs) throws SQLException {
-				updateDate.set(rs.getTimestamp("UPDATED_DATE"));
+			createDate.set(rs.getTimestamp("CREATED_DATE"));
 
-				createDate.set(rs.getTimestamp("CREATED_DATE"));
+			completeFlag.set(rs.getInt("COMPLETE") > 0);
 
-				completeFlag.set(rs.getInt("COMPLETE") > 0);
-
-				lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
-			}
-
+			lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
 		}, key, this.region);
 
 		if (createDate.get() == null && updateDate.get() == null) {

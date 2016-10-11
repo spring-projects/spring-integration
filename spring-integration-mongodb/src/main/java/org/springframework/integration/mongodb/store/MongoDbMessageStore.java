@@ -59,6 +59,7 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessage;
@@ -198,6 +199,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			if (document.get_Group_timestamp() == 0) {
 				document.set_Group_timestamp(System.currentTimeMillis());
 			}
+			document.set_message_timestamp(System.currentTimeMillis());
 			this.template.insert(document, this.collectionName);
 		}
 	}
@@ -208,6 +210,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		MessageWrapper messageWrapper =
 				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
+	}
+
+	public MessageMetadata getMessageMetadata(UUID id) {
+		Assert.notNull(id, "'id' must not be null");
+		MessageWrapper messageWrapper =
+				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
+		if (messageWrapper != null) {
+			MessageMetadata messageMetadata = new MessageMetadata(id);
+			messageMetadata.setTimestamp(messageWrapper.get_message_timestamp());
+			return messageMetadata;
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -754,6 +770,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private final Message<?> inputMessage;
 
+		private long _message_timestamp;
+
 		private volatile long _group_timestamp;
 
 		private volatile long _group_update_timestamp;
@@ -806,6 +824,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		public void set_Group_timestamp(long groupTimestamp) {
 			this._group_timestamp = groupTimestamp;
+		}
+
+		public long get_message_timestamp() {
+			return this._message_timestamp;
+		}
+
+		public void set_message_timestamp(long _message_timestamp) {
+			this._message_timestamp = _message_timestamp;
 		}
 
 		public long get_Group_update_timestamp() {
