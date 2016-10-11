@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Base class for file tailing inbound adapters.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -101,7 +102,8 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	protected void send(String line) {
 		Message<?> message = this.getMessageBuilderFactory().withPayload(line)
-				.setHeader(FileHeaders.FILENAME, this.file.getAbsolutePath())
+				.setHeader(FileHeaders.FILENAME, this.file.getName())
+				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
 				.build();
 		super.sendMessage(message);
 	}

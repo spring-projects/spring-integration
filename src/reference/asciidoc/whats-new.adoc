@@ -37,6 +37,11 @@ See <<gateway-error-handling>> for more information.
 Some inconsistencies with rendering IMAP mail content have been resolved.
 See <<imap-format-important, the note in the Mail-Receiving Channel Adapter Section>> for more information.
 
+==== File Changes
+
+The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to prepresent relative path in the `FileReadingMessageSource`.
+See <<file-reading>> for more information.
+
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.

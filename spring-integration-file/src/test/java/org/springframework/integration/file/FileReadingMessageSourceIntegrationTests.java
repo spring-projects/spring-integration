@@ -134,7 +134,12 @@ public class FileReadingMessageSourceIntegrationTests {
 	public void inputDirExhausted() throws Exception {
 		assertNotNull(pollableFileSource.receive());
 		assertNotNull(pollableFileSource.receive());
-		assertNotNull(pollableFileSource.receive());
+		Message<File> receive = pollableFileSource.receive();
+		assertNotNull(receive);
+		File payload = receive.getPayload();
+		assertEquals(payload, receive.getHeaders().get(FileHeaders.ORIGINAL_FILE));
+		assertEquals(payload.getName(), receive.getHeaders().get(FileHeaders.FILENAME));
+		assertEquals(payload.getName(), receive.getHeaders().get(FileHeaders.RELATIVE_PATH));
 		assertNull(pollableFileSource.receive());
 	}
 

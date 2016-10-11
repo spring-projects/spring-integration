@@ -22,12 +22,15 @@ package org.springframework.integration.file;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class FileHeaders {
 
 	private static final String PREFIX = "file_";
 
 	public static final String FILENAME = PREFIX + "name";
+
+	public static final String RELATIVE_PATH = PREFIX + "relativePath";
 
 	public static final String ORIGINAL_FILE = PREFIX + "originalFile";
 
