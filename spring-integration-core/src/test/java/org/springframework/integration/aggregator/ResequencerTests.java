@@ -284,6 +284,7 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 5, 1, null);
 		this.resequencer.setSendPartialResultOnExpiry(false);
 		this.resequencer.setDiscardChannel(discardChannel);
+		this.resequencer.setReleasePartialSequences(true); // force SequenceSizeReleaseStrategy
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));

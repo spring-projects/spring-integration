@@ -145,6 +145,7 @@ public interface MessageGroupStore extends BasicMessageGroupStore {
 	/**
 	 * Invoked when a MessageGroupStore expires a group.
 	 */
+	@FunctionalInterface
 	interface MessageGroupCallback {
 
 		void execute(MessageGroupStore messageGroupStore, MessageGroup group);

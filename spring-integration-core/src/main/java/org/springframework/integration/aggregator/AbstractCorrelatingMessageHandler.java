@@ -46,7 +46,6 @@ import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -88,7 +87,7 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
 		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware {
 
-	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new SequenceNumberComparator();
 
@@ -101,6 +100,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private volatile CorrelationStrategy correlationStrategy;
 
 	private volatile ReleaseStrategy releaseStrategy;
+
+	private volatile boolean releaseStrategySet;
 
 	private volatile MessageChannel discardChannel;
 
@@ -140,7 +141,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.correlationStrategy = (correlationStrategy == null
 				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
 				: correlationStrategy);
-		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
+		this.releaseStrategy = releaseStrategy == null ? new SimpleSequenceSizeReleaseStrategy() : releaseStrategy;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
@@ -161,12 +162,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public final void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
-		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				AbstractCorrelatingMessageHandler.this.forceReleaseProcessor.processMessageGroup(group);
-			}
-		});
+		store.registerMessageGroupExpiryCallback(
+				(messageGroupStore, group) ->
+					AbstractCorrelatingMessageHandler.this.forceReleaseProcessor.processMessageGroup(group));
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
@@ -178,6 +176,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Assert.notNull(releaseStrategy);
 		this.releaseStrategy = releaseStrategy;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
+		this.releaseStrategySet = true;
 	}
 
 	public void setGroupTimeoutExpression(Expression groupTimeoutExpression) {
@@ -228,12 +227,18 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (this.releasePartialSequences) {
 			Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
 					"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName() +
-							"] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
-			((SequenceSizeReleaseStrategy) this.releaseStrategy).setReleasePartialSequences(this.releasePartialSequences);
+							"] cannot release partial sequences. Use a SequenceSizeReleaseStrategy instead.");
+			((SequenceSizeReleaseStrategy) this.releaseStrategy)
+					.setReleasePartialSequences(this.releasePartialSequences);
 		}
 
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
+
+		if (this.sequenceAware && this.logger.isWarnEnabled()) {
+			this.logger.warn("Using a SequenceSizeReleaseStrategy with large groups may not perform well, consider "
+					+ "using a SimpleSequenceSizeReleaseStrategy");
 		}
 
 		/*
@@ -287,11 +292,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	/**
-	 * Set {@code releasePartialSequences} on an underlying
-	 * {@link SequenceSizeReleaseStrategy}.
+	 * Set {@code releasePartialSequences} on an underlying default
+	 * {@link SequenceSizeReleaseStrategy}. Ignored for other release strategies.
 	 * @param releasePartialSequences true to allow release.
 	 */
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		if (!this.releaseStrategySet && releasePartialSequences) {
+			setReleaseStrategy(new SequenceSizeReleaseStrategy());
+		}
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
@@ -384,8 +392,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
 		Assert.state(correlationKey != null, "Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
 		}
 
 		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
@@ -396,8 +404,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
 			if (scheduledFuture != null) {
 				boolean canceled = scheduledFuture.cancel(true);
-				if (canceled && logger.isDebugEnabled()) {
-					logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ "
+				if (canceled && this.logger.isDebugEnabled()) {
+					this.logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ "
 							+ correlationKey + "].");
 				}
 			}
@@ -407,8 +415,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			}
 
 			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Adding message to group [ " + messageGroup + "]");
+				if (this.logger.isTraceEnabled()) {
+					this.logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
 				messageGroup = this.store(correlationKey, message);
 
@@ -446,26 +454,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (groupTimeout > 0) {
 				final Object groupId = messageGroup.getGroupId();
 				ScheduledFuture<?> scheduledFuture = getTaskScheduler()
-						.schedule(new Runnable() {
-
-							@Override
-							public void run() {
-								try {
-									processForceRelease(groupId);
-								}
-								catch (MessageDeliveryException e) {
-									if (logger.isDebugEnabled()) {
-										logger.debug("The MessageGroup [ " + groupId +
-												"] is rescheduled by the reason: " + e.getMessage());
-									}
-									scheduleGroupToForceComplete(groupId);
-								}
+						.schedule(() -> {
+							try {
+								processForceRelease(groupId);
 							}
-
+							catch (MessageDeliveryException e) {
+								if (AbstractCorrelatingMessageHandler.this.logger.isDebugEnabled()) {
+									AbstractCorrelatingMessageHandler.this.logger.debug("The MessageGroup [ "
+											+ groupId + "] is rescheduled by the reason: " + e.getMessage());
+								}
+								scheduleGroupToForceComplete(groupId);
+							}
 						}, new Date(System.currentTimeMillis() + groupTimeout));
 
-				if (logger.isDebugEnabled()) {
-					logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Schedule MessageGroup [ " + messageGroup + "] to 'forceComplete'.");
 				}
 				this.expireGroupScheduledFutures.put(UUIDConverter.getUUID(groupId), scheduledFuture);
 			}
@@ -520,8 +523,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						this.expireGroupScheduledFutures.remove(UUIDConverter.getUUID(correlationKey));
 				if (scheduledFuture != null) {
 					boolean canceled = scheduledFuture.cancel(false);
-					if (canceled && logger.isDebugEnabled()) {
-						logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
+					if (canceled && this.logger.isDebugEnabled()) {
+						this.logger.debug("Cancel 'forceComplete' scheduling for MessageGroup [ " + group + "].");
 					}
 				}
 				MessageGroup groupNow = group;
@@ -568,23 +571,23 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
 						removeGroup = lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
-						if (removeGroup && logger.isDebugEnabled()) {
-							logger.debug("Removing empty group: " + correlationKey);
+						if (removeGroup && this.logger.isDebugEnabled()) {
+							this.logger.debug("Removing empty group: " + correlationKey);
 						}
 					}
 				}
 				else {
 					removeGroup = false;
-					if (logger.isDebugEnabled()) {
-						logger.debug("Group expiry candidate (" + correlationKey +
+					if (this.logger.isDebugEnabled()) {
+						this.logger.debug("Group expiry candidate (" + correlationKey +
 								") has changed - it may be reconsidered for a future expiration");
 					}
 				}
 			}
 			catch (MessageDeliveryException e) {
 				removeGroup = false;
-				if (logger.isDebugEnabled()) {
-					logger.debug("Group expiry candidate (" + correlationKey +
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Group expiry candidate (" + correlationKey +
 							") has been affected by MessageDeliveryException - " +
 							"it may be reconsidered for a future expiration one more time");
 				}
@@ -603,7 +606,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 		catch (InterruptedException ie) {
 			Thread.currentThread().interrupt();
-			logger.debug("Thread was interrupted while trying to obtain lock");
+			this.logger.debug("Thread was interrupted while trying to obtain lock");
 		}
 	}
 
@@ -622,19 +625,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected void expireGroup(Object correlationKey, MessageGroup group) {
-		if (logger.isInfoEnabled()) {
-			logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
+		if (this.logger.isInfoEnabled()) {
+			this.logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		}
 		if (this.sendPartialResultOnExpiry) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Prematurely releasing partially complete group with key ["
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Prematurely releasing partially complete group with key ["
 						+ correlationKey + "] to: " + getOutputChannel());
 			}
 			completeGroup(correlationKey, group);
 		}
 		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Discarding messages of partially complete group with key ["
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Discarding messages of partially complete group with key ["
 						+ correlationKey + "] to: "
 						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
@@ -658,8 +661,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	@SuppressWarnings("unchecked")
 	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
 
 		Object result = this.outputProcessor.processMessageGroup(group);
