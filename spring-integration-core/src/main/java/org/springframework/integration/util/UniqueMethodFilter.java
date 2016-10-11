@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UniqueMethodFilter implements MethodFilter {
@@ -33,7 +34,7 @@ public class UniqueMethodFilter implements MethodFilter {
 
 
 	public UniqueMethodFilter(Class<?> targetClass) {
-		ArrayList<Method> allMethods = new ArrayList<Method>(Arrays.asList(targetClass.getMethods()));
+		Method[] allMethods = ReflectionUtils.getAllDeclaredMethods(targetClass);
 		for (Method method : allMethods) {
 			this.uniqueMethods.add(org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetClass));
 		}

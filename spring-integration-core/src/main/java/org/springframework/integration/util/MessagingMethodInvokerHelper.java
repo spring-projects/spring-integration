@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,8 +50,10 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.MethodResolver;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.ReflectiveMethodResolver;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -118,7 +121,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private String methodName;
 
 	private Method method;
-
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -223,7 +225,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.requiresReply = expectedType != null;
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget =
-				this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, this.requiresReply);
+				findHandlerMethodsForTarget(targetObject, annotationType, methodName, this.requiresReply);
 		Map<Class<?>, HandlerMethod> handlerMethods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
 		Map<Class<?>, HandlerMethod> handlerMessageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
 		if ((handlerMethods.size() == 1 && handlerMessageMethods.isEmpty()) ||
@@ -242,13 +244,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			this.handlerMethod = null;
 			this.handlerMethods = handlerMethods;
 			this.handlerMessageMethods = handlerMessageMethods;
-			this.handlerMethodsList = new LinkedList<Map<Class<?>, HandlerMethod>>();
+			this.handlerMethodsList = new LinkedList<>();
 
 			//TODO Consider to use global option to determine a precedence of methods
 			this.handlerMethodsList.add(this.handlerMethods);
 			this.handlerMethodsList.add(this.handlerMessageMethods);
 		}
-		this.setDisplayString(targetObject, methodName);
+		setDisplayString(targetObject, methodName);
 	}
 
 	private void setDisplayString(Object targetObject, Object targetMethod) {
@@ -267,8 +269,23 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private void prepareEvaluationContext() {
 		StandardEvaluationContext context = getEvaluationContext(false);
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
+
+		ReflectiveMethodResolver declaredMethodResolver = new ReflectiveMethodResolver() {
+
+			@Override
+			protected Method[] getMethods(Class<?> type) {
+				return Stream.of(type.getMethods(), type.getDeclaredMethods())
+						.flatMap(Stream::of)
+						.distinct()
+						.toArray(Method[]::new);
+			}
+
+		};
+
 		if (this.method != null) {
-			context.registerMethodFilter(targetType, new FixedMethodFilter(this.method));
+			FixedMethodFilter fixedMethodFilter = new FixedMethodFilter(this.method);
+			context.registerMethodFilter(targetType, fixedMethodFilter);
+			declaredMethodResolver.registerMethodFilter(targetType, fixedMethodFilter);
 			if (this.expectedType != null) {
 				Assert.state(context.getTypeConverter()
 								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()),
@@ -277,13 +294,22 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 		}
 		else {
-			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
-					this.requiresReply);
-			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
+			AnnotatedMethodFilter annotatedMethodFilter = new AnnotatedMethodFilter(this.annotationType,
+					this.methodName, this.requiresReply);
+			Assert.state(canReturnExpectedType(annotatedMethodFilter, targetType, context.getTypeConverter()),
 					"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
-			context.registerMethodFilter(targetType, filter);
+			context.registerMethodFilter(targetType, annotatedMethodFilter);
+			declaredMethodResolver.registerMethodFilter(targetType, annotatedMethodFilter);
 		}
 		context.setVariable("target", this.targetObject);
+		context.addMethodResolver(declaredMethodResolver);
+		// Remove default ReflectiveMethodResolver since 'declaredMethodResolver' does the same
+		for (Iterator<MethodResolver> iterator = context.getMethodResolvers().iterator(); iterator.hasNext();) {
+			MethodResolver methodResolver = iterator.next();
+			if (methodResolver.getClass().equals(ReflectiveMethodResolver.class)) {
+				iterator.remove();
+			}
+		}
 	}
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
@@ -316,7 +342,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		Class<?> expectedType = this.expectedType != null ? this.expectedType : candidate.method.getReturnType();
 		try {
 			@SuppressWarnings("unchecked")
-			T result = (T) this.evaluateExpression(expression, parameters, expectedType);
+			T result = (T) evaluateExpression(expression, parameters, expectedType);
 			if (this.requiresReply) {
 				Assert.notNull(result,
 						"Expression evaluation result was null, but this processor requires a reply.");
@@ -348,7 +374,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		final Map<Class<?>, HandlerMethod> fallbackMessageMethods = new HashMap<Class<?>, HandlerMethod>();
 		final AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<Class<?>>();
 		final AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<Class<?>>();
-		final Class<?> targetClass = this.getTargetClass(targetObject);
+		final Class<?> targetClass = getTargetClass(targetObject);
 		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
 		ReflectionUtils.doWithMethods(targetClass, method1 -> {
 			boolean matchesAnnotation = false;
@@ -361,7 +387,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (method1.getDeclaringClass().equals(Proxy.class)) {
 				return;
 			}
-			if (!Modifier.isPublic(method1.getModifiers())) {
+			if (annotationType != null && AnnotationUtils.findAnnotation(method1, annotationType) != null) {
+				matchesAnnotation = true;
+			}
+			else if (!Modifier.isPublic(method1.getModifiers())) {
 				return;
 			}
 			if (requiresReply && void.class.equals(method1.getReturnType())) {
@@ -373,9 +402,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (methodName == null
 					&& ObjectUtils.containsElement(new String[] { "start", "stop", "isRunning" }, method1.getName())) {
 				return;
-			}
-			if (annotationType != null && AnnotationUtils.findAnnotation(method1, annotationType) != null) {
-				matchesAnnotation = true;
 			}
 			HandlerMethod handlerMethod1 = null;
 			try {
