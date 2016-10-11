@@ -154,10 +154,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void doStart() {
+		super.doStart();
 		if (this.source instanceof Lifecycle) {
 			((Lifecycle) this.source).start();
 		}
-		super.doStart();
 	}
 
 
