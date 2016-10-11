@@ -47,3 +47,7 @@ task generateSql {
 
 // tie schema generation to the build lifecycle
 compileJava.dependsOn generateSql
+
+task cleanSql (type: Delete) {
+	delete fileTree(dir: 'src/main/resources/org/springframework/integration/jdbc').include('*.sql').exclude('config', 'store/channel')
+}
