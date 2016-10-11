@@ -17,7 +17,6 @@
 package org.springframework.integration.redis.store;
 
 import java.util.Collection;
-import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -83,7 +82,11 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		Assert.notNull(objectToStore, "'objectToStore' must not be null");
 		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
 		try {
-			ops.setIfAbsent(objectToStore);
+			Boolean present = ops.setIfAbsent(objectToStore);
+			if (present != null && logger.isDebugEnabled()) {
+				logger.debug("The message: [" + present + "] is already present in the store. " +
+						"The [" + objectToStore + "] is ignored.");
+			}
 		}
 		catch (SerializationException e) {
 			rethrowAsIllegalArgumentException(e);
@@ -111,7 +114,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
-		Set<Object> keys = this.redisTemplate.keys(keyPattern);
-		return keys;
+		return this.redisTemplate.keys(keyPattern);
 	}
 }

@@ -118,10 +118,6 @@ public class MessageDocument {
 		this.sequence = sequence;
 	}
 
-	public UUID getMessageId() {
-		return this.messageId;
-	}
-
 	public Integer getPriority() {
 		return this.priority;
 	}
