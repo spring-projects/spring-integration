@@ -53,10 +53,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Message<?> getMessage(UUID messageId) {
 		Assert.notNull(messageId, "'messageId' must not be null");
-		MessageHolder messageHolder = (MessageHolder) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		Object messageHolder = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
 		if (messageHolder != null) {
 			Assert.isInstanceOf(MessageHolder.class, messageHolder);
-			return messageHolder.getMessage();
+			return ((MessageHolder) messageHolder).getMessage();
 		}
 		else {
 			return null;
@@ -66,10 +66,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public MessageMetadata getMessageMetadata(UUID messageId) {
 		Assert.notNull(messageId, "'messageId' must not be null");
-		MessageHolder messageHolder = (MessageHolder) doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		Object messageHolder = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
 		if (messageHolder != null) {
 			Assert.isInstanceOf(MessageHolder.class, messageHolder);
-			return messageHolder.getMessageMetadata();
+			return ((MessageHolder) messageHolder).getMessageMetadata();
 		}
 		else {
 			return null;
