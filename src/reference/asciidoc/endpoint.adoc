@@ -584,7 +584,8 @@ You can assign endpoints to roles using XML, Java configuration, or programmatic
 
 [source, xml]
 ----
-<int:inbound-channel-adapter id="ica" channel="someChannel" expression="'foo'" role="cluster">
+<int:inbound-channel-adapter id="ica" channel="someChannel" expression="'foo'" role="cluster"
+        auto-startup="false">
     <int:poller fixed-rate="60000" />
 </int:inbound-channel-adapter>
 ----
@@ -592,7 +593,7 @@ You can assign endpoints to roles using XML, Java configuration, or programmatic
 [source, java]
 ----
 @Bean
-@ServiceActivator(inputChannel = "sendAsyncChannel")
+@ServiceActivator(inputChannel = "sendAsyncChannel", autoStartup="false")
 @Role("cluster")
 public MessageHandler sendAsyncHandler() {
     return // some MessageHandler
@@ -630,6 +631,8 @@ The `SmartLifecycleRoleController` implements `ApplicationListener<AbstractLeade
 start/stop its configured `SmartLifecycle` objects when leadership is granted/revoked (when some bean publishes
 `OnGrantedEvent` or `OnRevokedEvent` respectively).
 
+IMPORTANT: When using leadership election to start/stop components, it is important to set the `auto-startup` XML attribute (`autoStartup` bean property) to `false` so the application context does not start the components during context intialization.
+
 [[leadership-event-handling]]
 === Leadership Event Handling
 
@@ -638,7 +641,10 @@ This is useful in clustered scenarios where shared resources must only be consum
 An example of this is a file inbound channel adapter that is polling a shared directory.
 (See <<file-reading>>).
 
-To participate in a leader election and be notified when elected leader or when leadership is revoked, an application creates a component in the application context called a "leader initiator". Normally a leader initiator is a `SmartLifecycle` so it starts up (optionally) automatically when the context starts, and then publishes notifications when leadership changes. By convention the user provides a `Candidate` that receives the callbacks and also can revoke the leadership through a `Context` object provided by the framework. User code can also listen for `AbstractLeaderEvents`, and respond accordingly, for instance using a `SmartLifecycleRoleController`.
+To participate in a leader election and be notified when elected leader or when leadership is revoked, an application creates a component in the application context called a "leader initiator".
+Normally a leader initiator is a `SmartLifecycle` so it starts up (optionally) automatically when the context starts, and then publishes notifications when leadership changes.
+By convention the user provides a `Candidate` that receives the callbacks and also can revoke the leadership through a `Context` object provided by the framework.
+User code can also listen for `AbstractLeaderEvents`, and respond accordingly, for instance using a `SmartLifecycleRoleController`.
 
 There is a basic implementation of a leader initiator based on the `LockRegistry` abstraction. To use it you just need to create an instance as a bean, for example:
 
