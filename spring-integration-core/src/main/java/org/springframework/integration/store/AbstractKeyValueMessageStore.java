@@ -53,27 +53,40 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Message<?> getMessage(UUID messageId) {
 		Assert.notNull(messageId, "'messageId' must not be null");
-		Object messageHolder = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
-		if (messageHolder != null) {
-			Assert.isInstanceOf(MessageHolder.class, messageHolder);
-			return ((MessageHolder) messageHolder).getMessage();
+		Object object = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		if (object != null) {
+			return extractMessage(object);
 		}
 		else {
 			return null;
 		}
 	}
 
+	private Message<?> extractMessage(Object object) {
+		if (object instanceof MessageHolder) {
+			return ((MessageHolder) object).getMessage();
+		}
+		else if (object instanceof Message) {
+			return (Message<?>) object;
+		}
+		else {
+			throw new IllegalArgumentException(
+					"Object of class [" + object.getClass().getName() +
+							"] must be an instance of [org.springframework.integration.store.MessageHolder].");
+		}
+	}
+
 	@Override
 	public MessageMetadata getMessageMetadata(UUID messageId) {
 		Assert.notNull(messageId, "'messageId' must not be null");
-		Object messageHolder = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
-		if (messageHolder != null) {
-			Assert.isInstanceOf(MessageHolder.class, messageHolder);
-			return ((MessageHolder) messageHolder).getMessageMetadata();
+		Object object = doRetrieve(MESSAGE_KEY_PREFIX + messageId);
+		if (object != null) {
+			extractMessage(object);
+			if (object instanceof MessageHolder) {
+				return ((MessageHolder) object).getMessageMetadata();
+			}
 		}
-		else {
-			return null;
-		}
+		return null;
 	}
 
 	@Override
@@ -88,10 +101,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Object message = doRemove(MESSAGE_KEY_PREFIX + id);
-		if (message != null) {
-			Assert.isInstanceOf(MessageHolder.class, message);
-			return ((MessageHolder) message).getMessage();
+		Object object = doRemove(MESSAGE_KEY_PREFIX + id);
+		if (object != null) {
+			return extractMessage(object);
 		}
 		else {
 			return null;
