@@ -50,6 +50,8 @@ public class MessageDocument {
 
 	private Long createdTime = 0L;
 
+	private Long groupCreatedTime = 0L;
+
 	private Object groupId;
 
 	private Long lastModifiedTime = 0L;
@@ -68,6 +70,10 @@ public class MessageDocument {
 
 	public Message<?> getMessage() {
 		return this.message;
+	}
+
+	public UUID getMessageId() {
+		return this.messageId;
 	}
 
 	public void setGroupId(Object groupId) {
@@ -94,6 +100,14 @@ public class MessageDocument {
 		this.createdTime = createdTime;
 	}
 
+	public Long getGroupCreatedTime() {
+		return this.groupCreatedTime;
+	}
+
+	public void setGroupCreatedTime(long groupCreatedTime) {
+		this.groupCreatedTime = groupCreatedTime;
+	}
+
 	public Boolean isComplete() {
 		return this.complete;
 	}
@@ -112,10 +126,6 @@ public class MessageDocument {
 
 	public void setSequence(int sequence) {
 		this.sequence = sequence;
-	}
-
-	public UUID getMessageId() {
-		return this.messageId;
 	}
 
 	public Integer getPriority() {

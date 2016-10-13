@@ -145,7 +145,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		MessageDocument messageDocument = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
 
 		if (messageDocument != null) {
-			long createdTime = messageDocument.getCreatedTime();
+			long createdTime = messageDocument.getGroupCreatedTime();
 			long lastModifiedTime = messageDocument.getLastModifiedTime();
 			boolean complete = messageDocument.isComplete();
 			int lastReleasedSequence = messageDocument.getLastReleasedSequence();
@@ -181,7 +181,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		boolean complete = false;
 
 		if (messageDocument != null) {
-			createdTime = messageDocument.getCreatedTime();
+			createdTime = messageDocument.getGroupCreatedTime();
 			lastReleasedSequence = messageDocument.getLastReleasedSequence();
 			complete = messageDocument.isComplete();
 		}
@@ -191,7 +191,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 			document.setGroupId(groupId);
 			document.setComplete(complete);
 			document.setLastReleasedSequence(lastReleasedSequence);
-			document.setCreatedTime(createdTime);
+			document.setGroupCreatedTime(createdTime);
 			document.setLastModifiedTime(messageDocument == null ? createdTime : System.currentTimeMillis());
 			document.setSequence(getNextId());
 

@@ -107,6 +107,17 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	}
 
 	@Override
+	protected void doStoreIfAbsent(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		Object present = this.messageStoreRegion.putIfAbsent(id, objectToStore);
+		if (present != null && logger.isDebugEnabled()) {
+			logger.debug("The message: [" + present + "] is already present in the store. " +
+					"The [" + objectToStore + "] is ignored.");
+		}
+	}
+
+	@Override
 	protected Object doRemove(Object id) {
 		Assert.notNull(id, "'id' must not be null");
 		return this.messageStoreRegion.remove(id);

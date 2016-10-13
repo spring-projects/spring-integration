@@ -17,7 +17,6 @@
 package org.springframework.integration.redis.store;
 
 import java.util.Collection;
-import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -72,12 +71,34 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 			ops.set(objectToStore);
 		}
 		catch (SerializationException e) {
-			throw new IllegalArgumentException("If relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
-					"the Object must be Serializable. Either make it Serializable or provide your own implementation of " +
-					"RedisSerializer via 'setValueSerializer(..)'", e);
+			rethrowAsIllegalArgumentException(e);
+
 		}
 	}
 
+	@Override
+	protected void doStoreIfAbsent(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		BoundValueOperations<Object, Object> ops = this.redisTemplate.boundValueOps(id);
+		try {
+			Boolean present = ops.setIfAbsent(objectToStore);
+			if (present != null && logger.isDebugEnabled()) {
+				logger.debug("The message: [" + present + "] is already present in the store. " +
+						"The [" + objectToStore + "] is ignored.");
+			}
+		}
+		catch (SerializationException e) {
+			rethrowAsIllegalArgumentException(e);
+		}
+	}
+
+	private void rethrowAsIllegalArgumentException(SerializationException e) {
+		throw new IllegalArgumentException("If relying on the default RedisSerializer " +
+				"(JdkSerializationRedisSerializer) the Object must be Serializable. " +
+				"Either make it Serializable or provide your own implementation of " +
+				"RedisSerializer via 'setValueSerializer(..)'", e);
+	}
 
 	@Override
 	protected Object doRemove(Object id) {
@@ -93,7 +114,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
-		Set<Object> keys = this.redisTemplate.keys(keyPattern);
-		return keys;
+		return this.redisTemplate.keys(keyPattern);
 	}
 }

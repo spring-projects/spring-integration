@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
@@ -101,12 +100,9 @@ public class JdbcMessageStoreTests {
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertNotNull(result);
 		assertThat(saved, sameExceptIgnorableHeaders(result));
-		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
-		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
 	}
 
 	@Test
@@ -186,7 +182,7 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		Message<String> result = messageStore.addMessage(message);
-		assertSame(message, result);
+		assertEquals(message, result);
 	}
 
 	@Test
@@ -207,7 +203,7 @@ public class JdbcMessageStoreTests {
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
 		assertNotSame(saved, result);
-		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY, "newHeader"));
+		assertThat(saved, sameExceptIgnorableHeaders(result, "newHeader"));
 		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
 	}
 

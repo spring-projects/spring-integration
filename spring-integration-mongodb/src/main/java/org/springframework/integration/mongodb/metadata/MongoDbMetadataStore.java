@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,17 @@ package org.springframework.integration.mongodb.metadata;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.ScriptOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.script.NamedMongoScript;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
-import com.mongodb.MongoException;
 
 /**
  * MongoDbMetadataStore implementation of {@link ConcurrentMetadataStore}.
@@ -54,25 +50,9 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 
 	private static final String VALUE = "value";
 
-	private static final String PUT_IF_ABSENT_FUNCTION =
-			"function putIfAbsent(collection, key, value){ " +
-					"  var alreadyPresent = db[collection].findOne({\"_id\": key}, {\"_id\": 0}); " +
-					"  if(alreadyPresent == null){" +
-					"      db[collection].insert({\"_id\": key, \"value\": value}); " +
-					"      return null; " +
-					"   }" +
-					"   return alreadyPresent;" +
-					"}";
-
-	private static final String PUT_IF_ABSENT_SCRIPT_NAME = "metadataStorePutIfAbsent";
-
 	private final MongoTemplate template;
 
 	private final String collectionName;
-
-	private final ScriptOperations scriptOperations;
-
-	private volatile boolean scriptInitialized;
 
 	/**
 	 * Configure the MongoDbMetadataStore by provided {@link MongoDbFactory} and
@@ -112,7 +92,6 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.hasText(collectionName, "'collectionName' must not be empty.");
 		this.template = template;
 		this.collectionName = collectionName;
-		this.scriptOperations = template.scriptOps();
 	}
 
 	/**
@@ -123,24 +102,17 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * If a document exists with the specified {@code key}, the method performs an {@code update}.
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value
-	 * @see MongoTemplate#execute(String, CollectionCallback)
+	 * @see MongoTemplate#execute(String, org.springframework.data.mongodb.core.CollectionCallback)
 	 * @see DBCollection#save
 	 */
 	@Override
 	public void put(String key, String value) {
 		Assert.hasText(key, "'key' must not be empty.");
 		Assert.hasText(value, "'value' must not be empty.");
-		final Map<String, String> entry = new HashMap<String, String>();
+		final Map<String, String> entry = new HashMap<>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
-		this.template.execute(this.collectionName, (CollectionCallback<Object>) new CollectionCallback<Object>() {
-
-			@Override
-			public Object doInCollection(DBCollection collection) throws MongoException, DataAccessException {
-				return collection.save(new BasicDBObject(entry));
-			}
-
-		});
+		this.template.execute(this.collectionName, collection -> collection.save(new BasicDBObject(entry)));
 	}
 
 	/**
@@ -188,29 +160,22 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * }</pre>
 	 * except that the action is performed atomically.
 	 * <p>
-	 * Performs the {@code stored} JavaScript function.
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value to store
 	 * @return null if successful, the old value otherwise.
 	 * @see java.util.concurrent.ConcurrentMap#putIfAbsent(Object, Object)
-	 * @see ScriptOperations#call(String, Object...)
 	 */
 	@Override
 	public String putIfAbsent(String key, String value) {
 		Assert.hasText(key, "'key' must not be empty.");
 		Assert.hasText(value, "'value' must not be empty.");
-		if (!this.scriptInitialized) {
-			synchronized (this) {
-				if (!this.scriptInitialized) {
-					this.scriptOperations.register(
-							new NamedMongoScript(PUT_IF_ABSENT_SCRIPT_NAME, PUT_IF_ABSENT_FUNCTION));
-					this.scriptInitialized = true;
-				}
-			}
-		}
-		BasicDBObject result =
-				(BasicDBObject) this.scriptOperations.call(PUT_IF_ABSENT_SCRIPT_NAME, this.collectionName, key, value);
-		return (result == null) ? null : (String) result.get(VALUE);
+
+		Query query = new Query(Criteria.where(ID_FIELD).is(key));
+		query.fields().exclude(ID_FIELD);
+		@SuppressWarnings("unchecked")
+		Map<String, String> result = this.template.findAndModify(query, new Update().setOnInsert(VALUE, value),
+				new FindAndModifyOptions().upsert(true), Map.class, this.collectionName);
+		return result == null ? null : result.get(VALUE);
 	}
 
 	/**

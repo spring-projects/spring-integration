@@ -59,6 +59,7 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessage;
@@ -100,12 +101,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String SAVED_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".SAVED";
 
 	/**
 	 * The name of the message header that stores a timestamp for the time the message was inserted.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String CREATED_DATE_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private final static String GROUP_ID_KEY = "_groupId";
@@ -187,33 +192,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		return message;
 	}
 
-	private void addMessageDocument(final MessageWrapper document) {
-		Message<?> message = document.getMessage();
-		if (message.getHeaders().containsKey(SAVED_KEY)) {
-			Message<?> saved = getMessage(message.getHeaders().getId());
-			if (saved != null) {
-				if (saved.equals(message)) {
-					return;
-				} // We need to save it under its own id
+	private void addMessageDocument(MessageWrapper document) {
+		UUID messageId = (UUID) document.headers.get(MessageHeaders.ID);
+		Query query = whereMessageIdIsAndGroupIdIs(messageId, document.get_GroupId());
+		if (!this.template.exists(query, MessageWrapper.class, this.collectionName)) {
+			if (document.get_Group_timestamp() == 0) {
+				document.set_Group_timestamp(System.currentTimeMillis());
 			}
+			document.set_message_timestamp(System.currentTimeMillis());
+			this.template.insert(document, this.collectionName);
 		}
-
-		final long createdDate = document.get_Group_timestamp() == 0
-				? System.currentTimeMillis()
-				: document.get_Group_timestamp();
-
-		Message<?> result = getMessageBuilderFactory().fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, createdDate).build();
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> innerMap =
-				(Map<String, Object>) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
-		// using reflection to set ID since it is immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
-		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
-
-		document.set_Group_timestamp(createdDate);
-		this.template.insert(document, this.collectionName);
 	}
 
 	@Override
@@ -222,6 +210,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		MessageWrapper messageWrapper =
 				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
+	}
+
+	public MessageMetadata getMessageMetadata(UUID id) {
+		Assert.notNull(id, "'id' must not be null");
+		MessageWrapper messageWrapper =
+				this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
+		if (messageWrapper != null) {
+			MessageMetadata messageMetadata = new MessageMetadata(id);
+			messageMetadata.setTimestamp(messageWrapper.get_message_timestamp());
+			return messageMetadata;
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -768,6 +770,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private final Message<?> inputMessage;
 
+		private long _message_timestamp;
+
 		private volatile long _group_timestamp;
 
 		private volatile long _group_update_timestamp;
@@ -820,6 +824,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		public void set_Group_timestamp(long groupTimestamp) {
 			this._group_timestamp = groupTimestamp;
+		}
+
+		public long get_message_timestamp() {
+			return this._message_timestamp;
+		}
+
+		public void set_message_timestamp(long _message_timestamp) {
+			this._message_timestamp = _message_timestamp;
 		}
 
 		public long get_Group_update_timestamp() {

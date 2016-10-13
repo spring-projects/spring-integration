@@ -27,10 +27,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -48,11 +48,11 @@ import org.springframework.integration.mongodb.support.MongoDbMessageBytesConver
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -71,12 +71,16 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String SAVED_KEY = "MongoDbMessageStore.SAVED";
 
 	/**
 	 * The name of the message header that stores a timestamp for the time the message was inserted.
+	 * @deprecated since 5.0. This constant isn't used any more.
 	 */
+	@Deprecated
 	public static final String CREATED_DATE_KEY = "MongoDbMessageStore.CREATED_DATE";
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
@@ -141,6 +145,10 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC));
 
 		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
+				.on(MessageDocumentFields.MESSAGE_ID, Sort.Direction.ASC)
+				.unique());
+
+		indexOperations.ensureIndex(new Index(MessageDocumentFields.GROUP_ID, Sort.Direction.ASC)
 				.on(MessageDocumentFields.LAST_MODIFIED_TIME, Sort.Direction.DESC)
 				.on(MessageDocumentFields.SEQUENCE, Sort.Direction.DESC));
 	}
@@ -150,6 +158,20 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
 		MessageDocument document = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
 		return document != null ? document.getMessage() : null;
+	}
+
+	public MessageMetadata getMessageMetadata(UUID id) {
+		Assert.notNull(id, "'id' must not be null");
+		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).is(id));
+		MessageDocument document = this.mongoTemplate.findOne(query, MessageDocument.class, this.collectionName);
+		if (document != null) {
+			MessageMetadata messageMetadata = new MessageMetadata(id);
+			messageMetadata.setTimestamp(document.getCreatedTime());
+			return messageMetadata;
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override
@@ -181,32 +203,19 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {
-		Message<?> message = document.getMessage();
-		if (message.getHeaders().containsKey(SAVED_KEY)) {
-			Message<?> saved = getMessage(message.getHeaders().getId());
-			if (saved != null) {
-				if (saved.equals(message)) {
-					return;
-				} // We need to save it under its own id
+		if (document.getGroupCreatedTime() == 0) {
+			document.setGroupCreatedTime(System.currentTimeMillis());
+		}
+		document.setCreatedTime(System.currentTimeMillis());
+		try {
+			this.mongoTemplate.insert(document, this.collectionName);
+		}
+		catch (DuplicateKeyException e) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("The Message with id [" + document.getMessageId() + "] already exists.\n" +
+						"Ignoring INSERT and SELECT existing...");
 			}
 		}
-
-		final long createdDate = document.getCreatedTime() == 0
-				? System.currentTimeMillis()
-				: document.getCreatedTime();
-
-		Message<?> result = this.messageBuilderFactory.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
-				.setHeader(CREATED_DATE_KEY, createdDate).build();
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> innerMap = (Map<String, Object>) new DirectFieldAccessor(result.getHeaders())
-				.getPropertyValue("headers");
-		// using reflection to set ID since it is immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
-		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
-
-		document.setCreatedTime(createdDate);
-		this.mongoTemplate.insert(document, this.collectionName);
 	}
 
 	protected static Query groupIdQuery(Object groupId) {
