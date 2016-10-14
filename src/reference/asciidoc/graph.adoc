@@ -216,7 +216,7 @@ It is not necessary to refresh the graph for metrics, they are provided in real-
 Refresh can be called if the application context has been modified since the graph was last retrieved and the graph is completely rebuilt.
 
 Any Security and Cross Origin restrictions for the `IntegrationGraphController` can be achieved with the standard configuration options and components provided by Spring Security and Spring MVC projects.
-The simple example of that may be:
+A simple example of that follows:
 
 [source,xml]
 ----
@@ -236,7 +236,8 @@ The simple example of that may be:
 <int-http:graph-controller path="/myIntegration" />
 ----
 
-and the Java & Annotation Configuration variant is:
+The Java & Annotation Configuration variant follows; note that, for convenience, the annotation provides an `allowedOrigins` attribute; this just provides `GET` access to the `path`.
+For more sophistication, you can configure the CORS mappings using standard Spring MVC mechanisms.
 
 [source,java]
 ----
@@ -244,9 +245,8 @@ and the Java & Annotation Configuration variant is:
 @EnableWebMvc
 @EnableWebSecurity
 @EnableIntegration
-@EnableIntegrationGraphController(path = "/testIntegration")
-public class IntegrationConfiguration extends WebSecurityConfigurerAdapter
-            implements WebMvcConfigurer {
+@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins="http://localhost:9090")
+public class IntegrationConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -255,13 +255,6 @@ public class IntegrationConfiguration extends WebSecurityConfigurerAdapter
                .antMatchers("/testIntegration/**").hasRole("ADMIN")
             // ...
             .formLogin();
-    }
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-    	registry.addMapping("/testIntegration/**")
-    			.allowedOrigins("http://localhost:9090")
-    			.allowedMethods(HttpMethod.GET.name());
     }
 
     //...
