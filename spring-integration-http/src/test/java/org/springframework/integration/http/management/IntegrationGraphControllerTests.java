@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -37,7 +38,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -55,15 +55,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -121,6 +121,11 @@ public class IntegrationGraphControllerTests {
 
 		Object handler = executionChain.getHandler();
 
+		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
+			// Assert the CORS config
+			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+		}
+
 		handlerAdapter.handle(request, response, handler);
 		assertEquals(HttpStatus.OK.value(), response.getStatus());
 		assertThat(response.getContentAsString(), containsString("\"name\":\"nullChannel\","));
@@ -138,6 +143,11 @@ public class IntegrationGraphControllerTests {
 
 		handler = executionChain.getHandler();
 
+		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
+			// Assert the CORS config
+			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+		}
+
 		handlerAdapter.handle(request, response, handler);
 		assertEquals(HttpStatus.OK.value(), response.getStatus());
 		assertThat(response.getContentAsString(), containsString("\"name\":\"myChannel\","));
@@ -151,16 +161,8 @@ public class IntegrationGraphControllerTests {
 	@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
 			countsEnabled = "!*",
 			defaultLoggingEnabled = "false")
-	@EnableIntegrationGraphController(path = "/testIntegration")
-	public static class ContextConfiguration extends WebMvcConfigurerAdapter {
-
-		@Override
-		public void addCorsMappings(CorsRegistry registry) {
-			registry.addMapping("/testIntegration/**")
-					.allowedOrigins("http://foo.bar.com")
-					.allowedMethods(HttpMethod.GET.name());
-
-		}
+	@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins = "http://foo.bar.com")
+	public static class ContextConfiguration {
 
 	}
 
