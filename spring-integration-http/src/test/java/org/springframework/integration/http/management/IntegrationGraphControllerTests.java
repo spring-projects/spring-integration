@@ -37,7 +37,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -56,14 +55,13 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -151,16 +149,8 @@ public class IntegrationGraphControllerTests {
 	@EnableIntegrationManagement(statsEnabled = "_org.springframework.integration.errorLogger.handler",
 			countsEnabled = "!*",
 			defaultLoggingEnabled = "false")
-	@EnableIntegrationGraphController(path = "/testIntegration")
-	public static class ContextConfiguration extends WebMvcConfigurerAdapter {
-
-		@Override
-		public void addCorsMappings(CorsRegistry registry) {
-			registry.addMapping("/testIntegration/**")
-					.allowedOrigins("http://foo.bar.com")
-					.allowedMethods(HttpMethod.GET.name());
-
-		}
+	@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins = "http://foo.bar.com")
+	public static class ContextConfiguration {
 
 	}
 

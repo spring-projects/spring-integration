@@ -58,4 +58,11 @@ public @interface EnableIntegrationGraphController {
 	@AliasFor("value")
 	String path() default HttpContextUtils.GRAPH_CONTROLLER_DEFAULT_PATH;
 
+	/**
+	 * Specify allowed origin URLs for cross-origin request handling.
+	 * Only allows GET operations.
+	 * @return the URLs.
+	 */
+	String[] allowedOrigins() default {};
+
 }

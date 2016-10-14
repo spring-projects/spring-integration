@@ -39,9 +39,14 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.http.management.IntegrationGraphController;
 import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.integration.support.management.graph.IntegrationGraphServer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 /**
+ * Registers the necessary beans for {@link EnableIntegrationGraphController}.
+ *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.3
  */
 class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistrar {
@@ -54,6 +59,16 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME)) {
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,
 					new RootBeanDefinition(IntegrationGraphServer.class));
+		}
+
+		String[] allowedOrigins = (String[]) annotationAttributes.get("allowedOrigins");
+		if (allowedOrigins != null && allowedOrigins.length > 0) {
+			AbstractBeanDefinition controllerCorsConfigurer =
+				BeanDefinitionBuilder.genericBeanDefinition(IntegrationGraphCorsConfigurer.class)
+					.addConstructorArgValue(annotationAttributes.get("value"))
+					.addConstructorArgValue(allowedOrigins)
+					.getBeanDefinition();
+			BeanDefinitionReaderUtils.registerWithGeneratedName(controllerCorsConfigurer, registry);
 		}
 
 		if (!registry.containsBeanDefinition(HttpContextUtils.GRAPH_CONTROLLER_BEAN_NAME)) {
@@ -94,6 +109,24 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 		@Override
 		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
+		}
+
+	}
+
+	static class IntegrationGraphCorsConfigurer extends WebMvcConfigurerAdapter {
+
+		private final String path;
+
+		private final String[] allowedOrigins;
+
+		public IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) {
+			this.path = path;
+			this.allowedOrigins = allowedOrigins;
+		}
+
+		@Override
+		public void addCorsMappings(CorsRegistry registry) {
+			registry.addMapping(this.path).allowedOrigins(this.allowedOrigins).allowedMethods("GET");
 		}
 
 	}
