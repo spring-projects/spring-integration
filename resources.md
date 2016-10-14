@@ -116,6 +116,10 @@ The [spring.io](http://spring.io/) site contains a *Getting Started* guide that 
 
 <iframe width="560" height="315" src="//www.youtube.com/embed/3QBrf3B6aA8" frameborder="0" allowfullscreen></iframe>
 
+## Spring Tips: A gentle introduction to Spring Integration
+
+<iframe width="560" height="315" src="//https://youtu.be/MTKlk8_9aAw" frameborder="0" allowfullscreen></iframe>
+
 ## Enterprise Integration - The Seriously Nasty Stuff
 
 * http://www.infoq.com/presentations/Enterprise-Integration
