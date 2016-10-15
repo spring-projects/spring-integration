@@ -215,25 +215,22 @@ The `o.s.i.support.management.graph.Graph` is returned as a `@ResponseBody` of t
 It is not necessary to refresh the graph for metrics, they are provided in real-time when the graph is retrieved.
 Refresh can be called if the application context has been modified since the graph was last retrieved and the graph is completely rebuilt.
 
-Any Security and Cross Origin restrictions for the `IntegrationGraphController` can be achieved with the standard configuration options and components provided by Spring Security and Spring MVC projects.
-The simple example of that may be:
+Any Security for the `IntegrationGraphController` can be achieved with the standard configuration options and components provided by the Spring Security project.
+
+The `graph-controller` element has an attribute for configuring Cross Origin restrictions; this simply allows pages from the provided origins to access the `path` with the `GET` method.
+For more sophisticated configuration you can use the standard Spring MVC project configuration options and components.
+
+A simple example of that may be:
 
 [source,xml]
 ----
 <mvc:annotation-driven />
 
-<mvc:cors>
-	<mvc:mapping path="/myIntegration/**"
-				 allowed-origins="http://localhost:9090"
-				 allowed-methods="GET" />
-</mvc:cors>
-
 <security:http>
     <security:intercept-url pattern="/myIntegration/**" access="ROLE_ADMIN" />
 </security:http>
 
-
-<int-http:graph-controller path="/myIntegration" />
+<int-http:graph-controller path="/myIntegration" allowed-origins="http://localhost:9090" />
 ----
 
 and the Java & Annotation Configuration variant is:
@@ -244,9 +241,8 @@ and the Java & Annotation Configuration variant is:
 @EnableWebMvc
 @EnableWebSecurity
 @EnableIntegration
-@EnableIntegrationGraphController(path = "/testIntegration")
-public class IntegrationConfiguration extends WebSecurityConfigurerAdapter
-            implements WebMvcConfigurer {
+@EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins="http://localhost:9090")
+public class IntegrationConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -255,13 +251,6 @@ public class IntegrationConfiguration extends WebSecurityConfigurerAdapter
                .antMatchers("/testIntegration/**").hasRole("ADMIN")
             // ...
             .formLogin();
-    }
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-    	registry.addMapping("/testIntegration/**")
-    			.allowedOrigins("http://localhost:9090")
-    			.allowedMethods(HttpMethod.GET.name());
     }
 
     //...
