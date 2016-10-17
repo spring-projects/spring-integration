@@ -16,7 +16,7 @@
 
 package org.springframework.integration.http.config;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import org.w3c.dom.Element;
@@ -26,12 +26,10 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.integration.http.support.HttpContextUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * The {@link BeanDefinitionParser} for the {@code <int-http:graph-controller>} component.
  * @author Artem Bilan
- * @author Gary Russell
  *
  * @since 4.3
  */
@@ -48,14 +46,7 @@ public class IntegrationGraphControllerParser implements BeanDefinitionParser {
 
 						@Override
 						public Map<String, Object> getAnnotationAttributes(String annotationType) {
-							Map<String, Object> attributes = new HashMap<String, Object>();
-							attributes.put("value", element.getAttribute("path"));
-							String allowedOrigins = element.getAttribute("allowed-origins");
-							if (StringUtils.hasText(allowedOrigins)) {
-								attributes.put("allowedOrigins",
-										StringUtils.commaDelimitedListToStringArray(allowedOrigins));
-							}
-							return attributes;
+							return Collections.<String, Object>singletonMap("value", element.getAttribute("path"));
 						}
 
 					}, parserContext.getRegistry());

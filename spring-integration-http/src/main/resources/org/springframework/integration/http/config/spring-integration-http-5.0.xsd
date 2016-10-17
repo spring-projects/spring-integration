@@ -511,14 +511,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="allowed-origins" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Comma-delimited list of allowed origins for cross-origin requests.
-						Allows GET operations only.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

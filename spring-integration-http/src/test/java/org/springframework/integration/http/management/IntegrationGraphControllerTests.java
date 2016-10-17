@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -54,6 +55,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
@@ -119,6 +121,11 @@ public class IntegrationGraphControllerTests {
 
 		Object handler = executionChain.getHandler();
 
+		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
+			// Assert the CORS config
+			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+		}
+
 		handlerAdapter.handle(request, response, handler);
 		assertEquals(HttpStatus.OK.value(), response.getStatus());
 		assertThat(response.getContentAsString(), containsString("\"name\":\"nullChannel\","));
@@ -135,6 +142,11 @@ public class IntegrationGraphControllerTests {
 		assertNotNull(executionChain);
 
 		handler = executionChain.getHandler();
+
+		for (HandlerInterceptor handlerInterceptor : executionChain.getInterceptors()) {
+			// Assert the CORS config
+			assertTrue(handlerInterceptor.preHandle(request, response, handler));
+		}
 
 		handlerAdapter.handle(request, response, handler);
 		assertEquals(HttpStatus.OK.value(), response.getStatus());

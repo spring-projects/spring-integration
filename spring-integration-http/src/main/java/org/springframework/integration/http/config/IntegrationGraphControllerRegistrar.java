@@ -113,13 +113,13 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 
 	}
 
-	static class IntegrationGraphCorsConfigurer extends WebMvcConfigurerAdapter {
+	private static final class IntegrationGraphCorsConfigurer extends WebMvcConfigurerAdapter {
 
 		private final String path;
 
 		private final String[] allowedOrigins;
 
-		public IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) {
+		private IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) {
 			this.path = path;
 			this.allowedOrigins = allowedOrigins;
 		}

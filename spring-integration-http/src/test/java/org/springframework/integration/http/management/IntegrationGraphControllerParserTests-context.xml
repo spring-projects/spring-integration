@@ -12,6 +12,12 @@
 
 	<mvc:annotation-driven />
 
-	<graph-controller path="/foo" allowed-origins="http://foo.bar.com" />
+	<mvc:cors>
+		<mvc:mapping path="/foo"
+					 allowed-origins="http://foo.bar.com"
+					 allowed-methods="GET" />
+	</mvc:cors>
+
+	<graph-controller path="/foo" />
 
 </beans:beans>
