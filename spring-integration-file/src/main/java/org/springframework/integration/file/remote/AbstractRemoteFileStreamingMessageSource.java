@@ -143,7 +143,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 						.build();
 			}
 			catch (IOException e) {
-				return new MessagingException("IOException when retrieving " + remotePath, e);
+				throw new MessagingException("IOException when retrieving " + remotePath, e);
 			}
 		}
 		return null;

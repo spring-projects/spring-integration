@@ -20,18 +20,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -43,6 +47,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
@@ -50,6 +55,9 @@ import org.springframework.messaging.Message;
  *
  */
 public class StreamingInboundTests {
+
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
 
 	private final StreamTransformer transformer = new StreamTransformer();
 
@@ -107,6 +115,17 @@ public class StreamingInboundTests {
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(4)).close();
 
 		verify(sessionFactory.getSession(), times(2)).list("/foo");
+	}
+
+	@Test
+	public void testExceptionOnFetch() {
+		exception.expect(MessagingException.class);
+		StringSessionFactory sessionFactory = new StringSessionFactory();
+		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
+		streamer.setBeanFactory(mock(BeanFactory.class));
+		streamer.setRemoteDirectory("/bad");
+		streamer.afterPropertiesSet();
+		streamer.receive();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -250,6 +269,9 @@ public class StreamingInboundTests {
 				ByteArrayInputStream bar2 = new ByteArrayInputStream("baz\r\nqux".getBytes());
 				willReturn(foo2).given(session).readRaw("/bar/foo");
 				willReturn(bar2).given(session).readRaw("/bar/bar");
+
+				willReturn(new String[] { "/bad/file" }).given(session).list("/bad");
+				willThrow(new IOException("No file")).given(session).readRaw("/bad/file");
 
 				given(session.finalizeRaw()).willReturn(true);
 
