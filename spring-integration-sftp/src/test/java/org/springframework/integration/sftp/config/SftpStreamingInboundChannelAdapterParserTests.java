@@ -73,6 +73,7 @@ public class SftpStreamingInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class), equalTo("X"));
 		assertThat(TestUtils.getPropertyValue(source, "filter"), instanceOf(SftpSimplePatternFileListFilter.class));
 		assertSame(this.csf, TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory"));
+		assertEquals(31, TestUtils.getPropertyValue(source, "maxFetchSize"));
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultSftpSessionFactory> {

@@ -62,6 +62,7 @@ public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
 		if (StringUtils.hasText(comparator)) {
 			messageSourceBuilder.addConstructorArgReference(comparator);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "max-fetch-size");
 		return messageSourceBuilder.getBeanDefinition();
 	}
 

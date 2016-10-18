@@ -22,6 +22,7 @@
 				filename-pattern="*.txt"
 				remote-file-separator="X"
 				comparator="comparator"
+				max-fetch-size="31"
 				remote-directory-expression="'foo/bar'">
 			<int:poller fixed-rate="1000" />
 	</int-ftp:inbound-streaming-channel-adapter>

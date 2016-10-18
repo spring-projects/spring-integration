@@ -446,6 +446,7 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
             filter="filter"
             remote-file-separator="/"
             comparator="comparator"
+            max-fetch-size="1"
             remote-directory-expression="'foo/bar'">
         <int:poller fixed-rate="1000" />
 </int-ftp:inbound-streaming-channel-adapter>
@@ -458,6 +459,8 @@ If you do not delete the remote file (e.g. using an outbound gateway with an rm 
 file being processed again, you can configure an `FtpPersistentFileListFilter` in the `filter` attribute.
 If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+
+Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment;
 
 ==== Configuring with Java Configuration
 
@@ -480,6 +483,7 @@ public class FtpJavaApplication {
         messageSource.setRemoteDirectory("ftpSource/");
         messageSource.setFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(),
                            "streaming"));
+        messageSource.setMaxFetchSize(1);
         return messageSource;
     }
 

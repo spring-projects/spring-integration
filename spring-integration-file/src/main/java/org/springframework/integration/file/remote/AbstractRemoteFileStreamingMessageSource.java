@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,9 +33,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -47,8 +49,8 @@ import org.springframework.util.Assert;
  * @since 4.3
  *
  */
-public abstract class AbstractRemoteFileStreamingMessageSource<F> extends AbstractMessageSource<InputStream>
-		implements BeanFactoryAware, InitializingBean {
+public abstract class AbstractRemoteFileStreamingMessageSource<F>
+		extends AbstractFetchLimitingMessageSource<InputStream> implements BeanFactoryAware, InitializingBean {
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
@@ -147,6 +149,11 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 		return null;
 	}
 
+	@Override
+	protected Object doReceive(int maxFetchSize) {
+		return doReceive();
+	}
+
 	protected AbstractFileInfo<F> poll() {
 		if (this.toBeReceived.size() == 0) {
 			listFiles();
@@ -164,7 +171,16 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 	private void listFiles() {
 		String remoteDirectory = this.remoteDirectoryExpression.getValue(getEvaluationContext(), String.class);
 		F[] files = this.remoteFileTemplate.list(remoteDirectory);
+		int maxFetchSize = getMaxFetchSize();
 		List<F> filteredFiles = this.filter == null ? Arrays.asList(files) : this.filter.filterFiles(files);
+		if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
+			rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+			List<F> newList = new ArrayList<>(maxFetchSize);
+			for (int i = 0; i < maxFetchSize; i++) {
+				newList.add(filteredFiles.get(i));
+			}
+			filteredFiles = newList;
+		}
 		List<AbstractFileInfo<F>> fileInfoList = asFileInfoList(filteredFiles);
 		Iterator<AbstractFileInfo<F>> iterator = fileInfoList.iterator();
 		while (iterator.hasNext()) {
@@ -180,6 +196,13 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F> extends Abstra
 			Collections.sort(fileInfoList, this.comparator);
 		}
 		this.toBeReceived.addAll(fileInfoList);
+	}
+
+	protected void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
+		if (this.filter instanceof ReversibleFileListFilter) {
+			((ReversibleFileListFilter<F>) this.filter)
+					.rollback(file, filteredFiles);
+		}
 	}
 
 	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
