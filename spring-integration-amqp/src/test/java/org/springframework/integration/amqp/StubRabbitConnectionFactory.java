@@ -35,6 +35,7 @@ import com.rabbitmq.client.AMQP.Exchange.UnbindOk;
 import com.rabbitmq.client.AMQP.Queue.PurgeOk;
 import com.rabbitmq.client.AMQP.Tx.CommitOk;
 import com.rabbitmq.client.AMQP.Tx.RollbackOk;
+import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Command;
 import com.rabbitmq.client.ConfirmListener;
@@ -590,6 +591,34 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		@Override
 		public long consumerCount(String queue) throws IOException {
 			return 0;
+		}
+
+		@Override
+		public DeclareOk exchangeDeclare(String exchange, BuiltinExchangeType type) throws IOException {
+			return null;
+		}
+
+		@Override
+		public DeclareOk exchangeDeclare(String exchange, BuiltinExchangeType type, boolean durable)
+				throws IOException {
+			return null;
+		}
+
+		@Override
+		public DeclareOk exchangeDeclare(String exchange, BuiltinExchangeType type, boolean durable, boolean autoDelete,
+				Map<String, Object> arguments) throws IOException {
+			return null;
+		}
+
+		@Override
+		public DeclareOk exchangeDeclare(String exchange, BuiltinExchangeType type, boolean durable, boolean autoDelete,
+				boolean internal, Map<String, Object> arguments) throws IOException {
+			return null;
+		}
+
+		@Override
+		public void exchangeDeclareNoWait(String exchange, BuiltinExchangeType type, boolean durable,
+				boolean autoDelete, boolean internal, Map<String, Object> arguments) throws IOException {
 		}
 
 	}
