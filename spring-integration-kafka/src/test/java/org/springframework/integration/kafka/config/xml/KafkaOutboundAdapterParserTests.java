@@ -17,7 +17,7 @@
 package org.springframework.integration.kafka.config.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.ExecutionException;
@@ -102,18 +102,28 @@ public class KafkaOutboundAdapterParserTests {
 					return null;
 				});
 
-		assertThatExceptionOfType(MessageHandlingException.class)
-				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
-				.withMessageContaining("Async Producer Mock exception")
-				.withCauseExactlyInstanceOf(ExecutionException.class)
-				.withRootCauseExactlyInstanceOf(RuntimeException.class);
+		try {
+			handler.handleMessage(new GenericMessage<>("foo"));
+			fail("MessageHandlingException expected");
+		}
+		catch (Exception e) {
+			assertThat(e).isInstanceOf(MessageHandlingException.class);
+			assertThat(e.getCause()).isExactlyInstanceOf(ExecutionException.class);
+			assertThat(e.getCause().getCause()).isInstanceOf(RuntimeException.class);
+			assertThat(e.getMessage()).contains("Async Producer Mock exception");
+		}
 
 		handler.setSendTimeout(1);
 
-		assertThatExceptionOfType(MessageTimeoutException.class)
-				.isThrownBy(() -> handler.handleMessage(new GenericMessage<>("foo")))
-				.withMessageContaining("Timeout waiting for response from KafkaProducer")
-				.withCauseExactlyInstanceOf(TimeoutException.class);
+		try {
+			handler.handleMessage(new GenericMessage<>("foo"));
+			fail("MessageTimeoutException expected");
+		}
+		catch (Exception e) {
+			assertThat(e).isInstanceOf(MessageTimeoutException.class);
+			assertThat(e.getCause()).isExactlyInstanceOf(TimeoutException.class);
+			assertThat(e.getMessage()).contains("Timeout waiting for response from KafkaProducer");
+		}
 	}
 
 }
