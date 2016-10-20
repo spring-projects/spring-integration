@@ -95,7 +95,7 @@ public class AsyncAmqpGatewayTests {
 		container.setQueueNames("asyncRQ1");
 		container.afterPropertiesSet();
 		container.start();
-		AsyncRabbitTemplate asyncTemplate = spy(new AsyncRabbitTemplate(template, container));
+		AsyncRabbitTemplate asyncTemplate = new AsyncRabbitTemplate(template, container);
 		asyncTemplate.setEnableConfirms(true);
 		asyncTemplate.setMandatory(true);
 		asyncTemplate.start();
@@ -208,7 +208,7 @@ public class AsyncAmqpGatewayTests {
 
 		// Simulate a nack - it's hard to get Rabbit to generate one
 		// We must have consumed all the real acks by now, though, to prevent partial stubbing errors
-
+		asyncTemplate = mock(AsyncRabbitTemplate.class);
 		RabbitMessageFuture future = asyncTemplate.new RabbitMessageFuture(null, null);
 		willReturn(future).given(asyncTemplate).sendAndReceive(anyString(), anyString(),
 				any(org.springframework.amqp.core.Message.class));
@@ -217,6 +217,7 @@ public class AsyncAmqpGatewayTests {
 		SettableListenableFuture<Boolean> confirmFuture = new SettableListenableFuture<Boolean>();
 		confirmFuture.set(false);
 		dfa.setPropertyValue("confirm", confirmFuture);
+		new DirectFieldAccessor(gateway).setPropertyValue("template", asyncTemplate);
 
 		message = MessageBuilder.withPayload("buz").setErrorChannel(errorChannel).build();
 		gateway.handleMessage(message);
