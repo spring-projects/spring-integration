@@ -16,11 +16,11 @@
 
 package org.springframework.integration.sftp.gateway;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
@@ -30,6 +30,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.sftp.support.GeneralSftpException;
+import org.springframework.util.ReflectionUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -43,6 +44,13 @@ import com.jcraft.jsch.SftpException;
  * @since 2.1
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
+
+	private static final Method LS_ENTRY_SET_FILENAME_METHOD;
+
+	static {
+			LS_ENTRY_SET_FILENAME_METHOD = ReflectionUtils.findMethod(LsEntry.class, "setFilename", String.class);
+			LS_ENTRY_SET_FILENAME_METHOD.setAccessible(true);
+	}
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -62,7 +70,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param messageSessionCallback the callback.
 	 */
 	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate,
-				MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
 		super(remoteFileTemplate, messageSessionCallback);
 	}
 
@@ -124,8 +132,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 
 	@Override
 	protected LsEntry enhanceNameWithSubDirectory(LsEntry file, String directory) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(file);
-		accessor.setPropertyValue("filename", directory + file.getFilename());
+		ReflectionUtils.invokeMethod(LS_ENTRY_SET_FILENAME_METHOD, file, directory + file.getFilename());
 		return file;
 	}
 
