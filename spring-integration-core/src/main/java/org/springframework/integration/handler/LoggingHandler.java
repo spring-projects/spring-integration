@@ -205,8 +205,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	private Object createLogMessage(Message<?> message) {
-		Assert.notNull(expression, "'expression' must not be null");
-		Assert.notNull(evaluationContext, "'evaluationContext' must not be null");
+		Assert.notNull(this.expression, "'expression' must not be null");
+		Assert.notNull(this.evaluationContext, "'evaluationContext' must not be null");
 
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		return logMessage instanceof Throwable
