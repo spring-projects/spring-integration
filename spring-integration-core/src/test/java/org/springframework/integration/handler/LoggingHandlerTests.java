@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import org.springframework.expression.Expression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.handler.LoggingHandler.Level;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Andriy Kryvtsun
  * @since 2.0
  */
 @ContextConfiguration
@@ -124,6 +127,23 @@ public class LoggingHandlerTests {
 		loggingHandler.handleMessage(new GenericMessage<>("foo"));
 		verify(log, times(1)).info(Mockito.anyString());
 		verify(log, times(1)).warn(Mockito.anyString());
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void checkExpressionPresents() {
+		Message<String> message = MessageBuilder.withPayload("TEST_PAYLOAD").build();
+		LoggingHandler loggingHandler = new LoggingHandler("ERROR");
+
+		loggingHandler.handleMessage(message);
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void checkExpressionContextPresents() {
+		Message<String> message = MessageBuilder.withPayload("TEST_PAYLOAD").build();
+		LoggingHandler loggingHandler = new LoggingHandler("ERROR");
+		loggingHandler.setLogExpressionString("payload");
+
+		loggingHandler.handleMessage(message);
 	}
 
 	public static class TestBean {
