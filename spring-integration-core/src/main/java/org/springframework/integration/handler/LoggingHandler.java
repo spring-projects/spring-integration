@@ -91,7 +91,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @since 4.3
 	 */
 	public LoggingHandler(Level level) {
-		setLevel(level);
+		doSetLevel(level);
 	}
 
 	/**
@@ -130,6 +130,10 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @param level the level.
 	 */
 	public void setLevel(Level level) {
+		doSetLevel(level);
+	}
+
+	private void doSetLevel(Level level) {
 		Assert.notNull(level, "'level' cannot be null");
 		this.level = level;
 	}
