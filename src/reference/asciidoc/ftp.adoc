@@ -459,6 +459,7 @@ If you do not delete the remote file (e.g. using an outbound gateway with an rm 
 file being processed again, you can configure an `FtpPersistentFileListFilter` in the `filter` attribute.
 If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+The java configuration below shows one technique to remove the remote file after processing.
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment;
 
@@ -490,7 +491,7 @@ public class FtpJavaApplication {
     @Bean
     @Transformer(inputChannel = "stream", outputChannel = "data")
     public org.springframework.integration.transformer.Transformer transformer() {
-        return new StreamTransformer();
+        return new StreamTransformer("UTF-8");
     }
 
     @Bean
@@ -498,8 +499,25 @@ public class FtpJavaApplication {
         return new FtpRemoteFileTemplate(ftpSessionFactory());
     }
 
+    @ServiceActivator(inputChannel = "data", adviceChain = "after")
+    @Bean
+    public MessageHandler handle() {
+        return System.out::println;
+    }
+
+    @Bean
+    public ExpressionEvaluatingRequestHandlerAdvice after() {
+        ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+        advice.setOnSuccessExpression(
+                "@template.remove(headers['file_remoteDirectory'] + headers['file_remoteFile'])");
+        advice.setPropagateEvaluationFailures(true);
+        return advice;
+    }
+
 }
 ----
+
+Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
 
 [[ftp-outbound]]
 === FTP Outbound Channel Adapter
