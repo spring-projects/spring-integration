@@ -385,15 +385,16 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
 										  final File resultFile) throws IOException {
 		if (FileExistsMode.APPEND.equals(this.fileExistsMode)) {
-			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
+			final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 					fileToWriteTo.getAbsolutePath()) {
 
 				@Override
 				protected void whileLocked() throws IOException {
+					BufferedOutputStream bos = null;
 					try {
+						bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
 						while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
@@ -411,7 +412,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						catch (IOException ex) {
 						}
 						try {
-							bos.close();
+							if (bos != null) {
+								bos.close();
+							}
 						}
 						catch (IOException ex) {
 						}
@@ -425,9 +428,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else {
 
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile));
-
+			BufferedOutputStream bos = null;
 			try {
+				bos = new BufferedOutputStream(new FileOutputStream(tempFile));
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead = -1;
 				while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
@@ -445,7 +448,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException ex) {
 				}
 				try {
-					bos.close();
+					if (bos != null) {
+						bos.close();
+					}
 				}
 				catch (IOException ex) {
 				}
@@ -457,17 +462,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile)
 			throws IOException {
-		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 				fileToWriteTo.getAbsolutePath()) {
 
 			@Override
 			protected void whileLocked() throws IOException {
+				BufferedOutputStream bos = null;
 				try {
+					bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append));
 					bos.write(bytes);
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						bos.write(LINE_SEPARATOR.getBytes());
@@ -475,7 +481,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						bos.close();
+						if (bos != null) {
+							bos.close();
+						}
 					}
 					catch (IOException ex) {
 					}
@@ -490,18 +498,19 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile)
 			throws IOException {
-		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final BufferedWriter writer =
-				new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 				fileToWriteTo.getAbsolutePath()) {
 
 			@Override
 			protected void whileLocked() throws IOException {
+				BufferedWriter writer = null;
 				try {
+					writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append),
+							FileWritingMessageHandler.this.charset));
 					writer.write(content);
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						writer.newLine();
@@ -509,7 +518,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				finally {
 					try {
-						writer.close();
+						if (writer != null) {
+							writer.close();
+						}
 					}
 					catch (IOException ex) {
 					}
