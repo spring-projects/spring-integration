@@ -394,7 +394,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				"Destination directory [" + destinationDirectory + "] does not exist.");
 		Assert.isTrue(destinationDirectory.isDirectory(),
 				"Destination path [" + destinationDirectory + "] does not point to a directory.");
-		Assert.isTrue(destinationDirectory.canWrite(),
+		Assert.isTrue(Files.isWritable(destinationDirectory.toPath()),
 				"Destination directory [" + destinationDirectory + "] is not writable.");
 	}
 
@@ -524,8 +524,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 				@Override
 				protected void whileLocked() throws IOException {
-					BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
+					BufferedOutputStream bos = null;
 					try {
+						bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
 						byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 						int bytesRead = -1;
 						while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
@@ -543,7 +544,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						}
 						try {
 							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-								bos.close();
+								if (bos != null) {
+									bos.close();
+								}
 								clearState(fileToWriteTo, state);
 							}
 							else {
@@ -562,9 +565,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		else {
 
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize);
-
+			BufferedOutputStream bos = null;
 			try {
+				bos = new BufferedOutputStream(new FileOutputStream(tempFile), this.bufferSize);
 				byte[] buffer = new byte[StreamUtils.BUFFER_SIZE];
 				int bytesRead = -1;
 				while ((bytesRead = sourceFileInputStream.read(buffer)) != -1) {
@@ -582,7 +585,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException ex) {
 				}
 				try {
-					bos.close();
+					if (bos != null) {
+						bos.close();
+					}
 				}
 				catch (IOException ex) {
 				}
@@ -605,8 +610,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				BufferedOutputStream bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
+				BufferedOutputStream bos = null;
 				try {
+					bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
 					bos.write(bytes);
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						bos.write(LINE_SEPARATOR.getBytes());
@@ -615,7 +621,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				finally {
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-							bos.close();
+							if (bos != null) {
+								bos.close();
+							}
 							clearState(fileToWriteTo, state);
 						}
 						else {
@@ -646,8 +654,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				BufferedWriter writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
+				BufferedWriter writer = null;
 				try {
+					writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
 					writer.write(content);
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						writer.newLine();
@@ -656,7 +665,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				finally {
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
-							writer.close();
+							if (writer != null) {
+								writer.close();
+							}
 							clearState(fileToWriteTo, state);
 						}
 						else {
