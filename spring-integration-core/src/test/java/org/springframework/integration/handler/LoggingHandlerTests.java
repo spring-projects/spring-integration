@@ -16,14 +16,8 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
@@ -35,12 +29,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.handler.LoggingHandler.Level;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.handler.LoggingHandler.Level;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -129,21 +122,20 @@ public class LoggingHandlerTests {
 		verify(log, times(1)).warn(Mockito.anyString());
 	}
 
-	@Test(expected = MessageHandlingException.class)
-	public void checkExpressionPresents() {
-		Message<String> message = MessageBuilder.withPayload("TEST_PAYLOAD").build();
+	@Test
+	public void checkUsageWithoutSpringInitialization() {
 		LoggingHandler loggingHandler = new LoggingHandler("ERROR");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(loggingHandler);
+		Log log = (Log) accessor.getPropertyValue("messageLogger");
+		log = spy(log);
+		accessor.setPropertyValue("messageLogger", log);
+
+		String testPayload = "TEST_PAYLOAD";
+		Message<String> message = MessageBuilder.withPayload(testPayload).build();
 
 		loggingHandler.handleMessage(message);
-	}
 
-	@Test(expected = MessageHandlingException.class)
-	public void checkExpressionContextPresents() {
-		Message<String> message = MessageBuilder.withPayload("TEST_PAYLOAD").build();
-		LoggingHandler loggingHandler = new LoggingHandler("ERROR");
-		loggingHandler.setLogExpressionString("payload");
-
-		loggingHandler.handleMessage(message);
+		verify(log, times(1)).error(testPayload);
 	}
 
 	public static class TestBean {

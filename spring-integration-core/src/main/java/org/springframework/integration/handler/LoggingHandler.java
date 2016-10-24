@@ -48,18 +48,17 @@ public class LoggingHandler extends AbstractMessageHandler {
 		FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}
 
-	private volatile Expression expression;
+	private volatile Level level;
 
 	private volatile boolean expressionSet;
 
+	private volatile Expression expression = EXPRESSION_PARSER.parseExpression("payload");
+
+	private volatile EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+
 	private volatile boolean shouldLogFullMessageSet;
 
-	private volatile Level level;
-
-	private volatile EvaluationContext evaluationContext;
-
 	private volatile Log messageLogger = this.logger;
-
 
 	/**
 	 * Create a LoggingHandler with the given log level (case-insensitive).
@@ -165,9 +164,6 @@ public class LoggingHandler extends AbstractMessageHandler {
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		if (this.expression == null) {
-			this.expression = EXPRESSION_PARSER.parseExpression("payload");
-		}
 	}
 
 	@Override
@@ -209,9 +205,6 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	private Object createLogMessage(Message<?> message) {
-		Assert.notNull(this.expression, "'expression' must not be null");
-		Assert.notNull(this.evaluationContext, "'evaluationContext' must not be null");
-
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		return logMessage instanceof Throwable
 				? createLogMessage((Throwable) logMessage)
