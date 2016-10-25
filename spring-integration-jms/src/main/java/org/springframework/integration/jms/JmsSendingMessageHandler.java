@@ -157,7 +157,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 		private final JmsHeaderMapper headerMapper;
 
-		private HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper) {
+		HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper) {
 			this.integrationMessage = integrationMessage;
 			this.headerMapper = headerMapper;
 		}

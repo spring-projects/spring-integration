@@ -90,6 +90,10 @@ public class AggregatorIntegrationTests {
 
 		public static CountDownLatch latch = new CountDownLatch(1);
 
+		RollbackTxSync() {
+			super();
+		}
+
 		@Override
 		public void afterCompletion(int status) {
 			if (TransactionSynchronization.STATUS_ROLLED_BACK == status) {

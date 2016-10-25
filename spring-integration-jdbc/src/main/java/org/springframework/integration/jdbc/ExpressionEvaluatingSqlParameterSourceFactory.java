@@ -158,7 +158,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private final boolean cache;
 
-		private ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters,
+		ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters,
 				Map<String, Expression[]> parameterExpressions, boolean cache) {
 			this.input = input;
 			this.parameterExpressions = parameterExpressions;

@@ -82,8 +82,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.FieldCallback;
-import org.springframework.util.ReflectionUtils.FieldFilter;
 import org.springframework.util.StringValueResolver;
 
 /**
@@ -304,23 +302,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	private MessageHandler handlerInAnonymousWrapper(final Object bean) {
 		if (bean != null && bean.getClass().isAnonymousClass()) {
 			final AtomicReference<MessageHandler> wrapped = new AtomicReference<MessageHandler>();
-			ReflectionUtils.doWithFields(bean.getClass(), new FieldCallback() {
-
-				@Override
-				public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-					field.setAccessible(true);
-					Object handler = field.get(bean);
-					if (handler instanceof MessageHandler) {
-						wrapped.set((MessageHandler) handler);
-					}
+			ReflectionUtils.doWithFields(bean.getClass(), field -> {
+				field.setAccessible(true);
+				Object handler = field.get(bean);
+				if (handler instanceof MessageHandler) {
+					wrapped.set((MessageHandler) handler);
 				}
-			}, new FieldFilter() {
-
-				@Override
-				public boolean matches(Field field) {
-					return wrapped.get() == null && field.getName().startsWith("val$");
-				}
-			});
+			}, field -> wrapped.get() == null && field.getName().startsWith("val$"));
 			return wrapped.get();
 		}
 		else {

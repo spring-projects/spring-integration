@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 import javax.management.Notification;
-import javax.management.NotificationFilter;
 import javax.management.ObjectName;
 
 import org.junit.After;
@@ -129,12 +128,7 @@ public class NotificationListeningMessageProducerTests {
 		adapter.setServer(this.server);
 		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
-		adapter.setFilter(new NotificationFilter() {
-			@Override
-			public boolean isNotificationEnabled(Notification notification) {
-				return !notification.getMessage().equals("bad");
-			}
-		});
+		adapter.setFilter(notification -> !notification.getMessage().equals("bad"));
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();

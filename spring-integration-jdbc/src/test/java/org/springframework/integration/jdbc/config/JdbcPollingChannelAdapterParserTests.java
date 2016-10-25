@@ -43,8 +43,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -152,15 +150,12 @@ public class JdbcPollingChannelAdapterParserTests {
 	@Test
 	public void testMaxRowsInboundChannelAdapter() {
 		setUp("pollingWithMaxRowsJdbcInboundChannelAdapterTest.xml", getClass());
-		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
-				jdbcTemplate.update("insert into item values(1,'',2)");
-				jdbcTemplate.update("insert into item values(2,'',2)");
-				jdbcTemplate.update("insert into item values(3,'',2)");
-				jdbcTemplate.update("insert into item values(4,'',2)");
-				return null;
-			}
+		new TransactionTemplate(transactionManager).execute(status -> {
+			jdbcTemplate.update("insert into item values(1,'',2)");
+			jdbcTemplate.update("insert into item values(2,'',2)");
+			jdbcTemplate.update("insert into item values(3,'',2)");
+			jdbcTemplate.update("insert into item values(4,'',2)");
+			return null;
 		});
 		int count = 0;
 		while (count < 4) {

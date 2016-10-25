@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -59,7 +58,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -153,40 +151,34 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
 		for (int i = 0; i < concurrency; i++) {
-			completionService.submit(new Callable<Boolean>() {
-				@Override
-				public Boolean call() throws Exception {
-					for (int i = 0; i < 100; i++) {
-						boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
-							@Override
-							public Boolean doInTransaction(TransactionStatus status) {
-								Message<?> message = null;
-								try {
-									message = jdbcChannelMessageStore.pollMessageFromGroup(groupId);
-								}
-								catch (Exception e) {
-									log.error("IdCache race condition.", e);
-									return false;
-								}
-								try {
-									Thread.sleep(10);
-								}
-								catch (InterruptedException e) {
-									log.error(e);
-								}
-								if (message != null) {
-									jdbcChannelMessageStore.removeFromIdCache(message.getHeaders().getId().toString());
-								}
-								return true;
-							}
-						});
-						if (!result) {
+			completionService.submit(() -> {
+				for (int i1 = 0; i1 < 100; i1++) {
+					boolean result = transactionTemplate.execute(status -> {
+						Message<?> message = null;
+						try {
+							message = jdbcChannelMessageStore.pollMessageFromGroup(groupId);
+						}
+						catch (Exception e1) {
+							log.error("IdCache race condition.", e1);
 							return false;
 						}
+						try {
+							Thread.sleep(10);
+						}
+						catch (InterruptedException e2) {
+							log.error(e2);
+						}
+						if (message != null) {
+							jdbcChannelMessageStore.removeFromIdCache(message.getHeaders().getId().toString());
+						}
+						return true;
+					});
+					if (!result) {
+						return false;
 					}
-
-					return true;
 				}
+
+				return true;
 			});
 		}
 

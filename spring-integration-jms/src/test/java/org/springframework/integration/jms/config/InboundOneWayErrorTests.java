@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Session;
 
 import org.junit.Test;
 
@@ -40,6 +38,7 @@ import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class InboundOneWayErrorTests {
 
@@ -48,12 +47,7 @@ public class InboundOneWayErrorTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("InboundOneWayErrorTests-context.xml", getClass());
 		JmsTemplate jmsTemplate = new JmsTemplate(context.getBean("jmsConnectionFactory", ConnectionFactory.class));
 		Destination queue = context.getBean("queueA", Destination.class);
-		jmsTemplate.send(queue, new MessageCreator() {
-			@Override
-			public javax.jms.Message createMessage(Session session) throws JMSException {
-				return session.createTextMessage("test-A");
-			}
-		});
+		jmsTemplate.send(queue, (MessageCreator) session -> session.createTextMessage("test-A"));
 		TestErrorHandler errorHandler = context.getBean("testErrorHandler", TestErrorHandler.class);
 		errorHandler.latch.await(3000, TimeUnit.MILLISECONDS);
 		assertNotNull(errorHandler.lastError);
@@ -69,12 +63,7 @@ public class InboundOneWayErrorTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("InboundOneWayErrorTests-context.xml", getClass());
 		JmsTemplate jmsTemplate = new JmsTemplate(context.getBean("jmsConnectionFactory", ConnectionFactory.class));
 		Destination queue = context.getBean("queueB", Destination.class);
-		jmsTemplate.send(queue, new MessageCreator() {
-			@Override
-			public javax.jms.Message createMessage(Session session) throws JMSException {
-				return session.createTextMessage("test-B");
-			}
-		});
+		jmsTemplate.send(queue, (MessageCreator) session -> session.createTextMessage("test-B"));
 		PollableChannel errorChannel = context.getBean("testErrorChannel", PollableChannel.class);
 		Message<?> errorMessage = errorChannel.receive(3000);
 		assertNotNull(errorMessage);

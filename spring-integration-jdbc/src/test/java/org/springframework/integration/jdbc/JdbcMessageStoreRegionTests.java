@@ -18,8 +18,6 @@ package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import org.junit.After;
@@ -28,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -128,26 +127,16 @@ public class JdbcMessageStoreRegionTests {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
-		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'", new RowMapper<String>() {
-
-			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return rs.getString("REGION");
-			}
-
-		});
+		List<String> regions = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region1'",
+				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
 
 		assertEquals(1, regions.size());
 		assertEquals("region1", regions.get(0));
 
 		messageStore2.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
 
-		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'", new RowMapper<String>() {
-
-			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return rs.getString("REGION");
-			}
-
-		});
+		List<String> regions2 = jdbcTemplate.query("Select * from INT_MESSAGE_GROUP where REGION = 'region2'",
+				(RowMapper<String>) (rs, rowNum) -> rs.getString("REGION"));
 
 		assertEquals(1, regions2.size());
 		assertEquals("region2", regions2.get(0));

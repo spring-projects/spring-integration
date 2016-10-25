@@ -175,8 +175,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	@SuppressWarnings("unused")
 	private static class TestJdbcMessageStore extends JdbcMessageStore {
 
-		private TestJdbcMessageStore() {
-			super();
+		TestJdbcMessageStore() {
 			this.setDataSource(dataSource);
 		}
 
@@ -196,6 +195,10 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	private static class RollbackTxSync extends TransactionSynchronizationAdapter {
 
 		public static CountDownLatch latch = new CountDownLatch(2);
+
+		RollbackTxSync() {
+			super();
+		}
 
 		@Override
 		public void afterCompletion(int status) {

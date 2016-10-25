@@ -28,10 +28,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,12 +59,7 @@ public class MethodInvokerTests {
 		// System . err.println(names);
 		// the router and the error handler...
 		assertEquals(2, names.size());
-		underscores.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertEquals("foo", message.getPayload());
-			}
-		});
+		underscores.subscribe(message -> assertEquals("foo", message.getPayload()));
 		echos.send(MessageBuilder.withPayload("foo").setHeader("entity-type", "underscore").build());
 	}
 

@@ -36,10 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.integration.http.AbstractHttpInboundTests;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -118,35 +115,31 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 		final RequestAttributes attributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(attributes);
 
-		this.toLowerCaseChannel.subscribe(new MessageHandler() {
+		this.toLowerCaseChannel.subscribe(message -> {
+			MessageHeaders headers = message.getHeaders();
 
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageHeaders headers = message.getHeaders();
+			assertEquals(attributes, headers.get("requestAttributes"));
 
-				assertEquals(attributes, headers.get("requestAttributes"));
+			Object requestParams = headers.get("requestParams");
+			assertNotNull(requestParams);
+			assertEquals(params, ((MultiValueMap<String, String>) requestParams).toSingleValueMap());
 
-				Object requestParams = headers.get("requestParams");
-				assertNotNull(requestParams);
-				assertEquals(params, ((MultiValueMap<String, String>) requestParams).toSingleValueMap());
+			Object matrixVariables = headers.get("matrixVariables");
+			assertThat(matrixVariables, Matchers.instanceOf(Map.class));
+			Object value = ((Map<?, ?>) matrixVariables).get("value");
+			assertThat(value, Matchers.instanceOf(MultiValueMap.class));
+			assertEquals("1", ((MultiValueMap<String, ?>) value).getFirst("q1"));
+			assertEquals("2", ((MultiValueMap<String, ?>) value).getFirst("q2"));
 
-				Object matrixVariables = headers.get("matrixVariables");
-				assertThat(matrixVariables, Matchers.instanceOf(Map.class));
-				Object value = ((Map<?, ?>) matrixVariables).get("value");
-				assertThat(value, Matchers.instanceOf(MultiValueMap.class));
-				assertEquals("1", ((MultiValueMap<String, ?>) value).getFirst("q1"));
-				assertEquals("2", ((MultiValueMap<String, ?>) value).getFirst("q2"));
+			Object requestHeaders = headers.get("requestHeaders");
+			assertNotNull(requestParams);
+			assertEquals(MediaType.TEXT_PLAIN, ((HttpHeaders) requestHeaders).getContentType());
 
-				Object requestHeaders = headers.get("requestHeaders");
-				assertNotNull(requestParams);
-				assertEquals(MediaType.TEXT_PLAIN, ((HttpHeaders) requestHeaders).getContentType());
-
-				Map<String, Cookie> cookies = (Map<String, Cookie>) headers.get("cookies");
-				assertEquals(1, cookies.size());
-				Cookie foo = cookies.get("foo");
-				assertNotNull(foo);
-				assertEquals(cookie, foo);
-			}
+			Map<String, Cookie> cookies = (Map<String, Cookie>) headers.get("cookies");
+			assertEquals(1, cookies.size());
+			Cookie foo = cookies.get("foo");
+			assertNotNull(foo);
+			assertEquals(cookie, foo);
 		});
 
 		MockHttpServletResponse response = new MockHttpServletResponse();

@@ -25,12 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,14 +41,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.serializer.Deserializer;
-import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -136,19 +127,13 @@ public class JdbcMessageStoreTests {
 	@Test
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
-		messageStore.setSerializer(new Serializer<Message<?>>() {
-			@Override
-			public void serialize(Message<?> object, OutputStream outputStream) throws IOException {
-				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
-				outputStream.flush();
-			}
+		messageStore.setSerializer((object, outputStream) -> {
+			outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
+			outputStream.flush();
 		});
-		messageStore.setDeserializer(new Deserializer<GenericMessage<String>>() {
-			@Override
-			public GenericMessage<String> deserialize(InputStream inputStream) throws IOException {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-				return new GenericMessage<String>(reader.readLine());
-			}
+		messageStore.setDeserializer(inputStream -> {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			return new GenericMessage<String>(reader.readLine());
 		});
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -327,14 +312,9 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessagesToGroup(groupId, message);
 		final CountDownLatch groupRemovalLatch = new CountDownLatch(1);
-		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-				groupRemovalLatch.countDown();
-			}
-
+		messageStore.registerMessageGroupExpiryCallback((messageGroupStore, group) -> {
+			messageGroupStore.removeMessageGroup(group.getGroupId());
+			groupRemovalLatch.countDown();
 		});
 
 		messageStore.expireMessageGroups(2000);
@@ -347,15 +327,10 @@ public class JdbcMessageStoreTests {
 		template.afterPropertiesSet();
 
 		template.update("UPDATE INT_MESSAGE_GROUP set CREATED_DATE=? where GROUP_KEY=? and REGION=?",
-				new PreparedStatementSetter() {
-
-					@Override
-					public void setValues(PreparedStatement ps) throws SQLException {
-						ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 10000));
-						ps.setString(2, UUIDConverter.getUUID(groupId).toString());
-						ps.setString(3, "DEFAULT");
-					}
-
+				(PreparedStatementSetter) ps -> {
+					ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - 10000));
+					ps.setString(2, UUIDConverter.getUUID(groupId).toString());
+					ps.setString(3, "DEFAULT");
 				});
 
 		messageStore.expireMessageGroups(2000);
@@ -371,14 +346,7 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.setTimeoutOnIdle(true);
 		messageStore.addMessagesToGroup(groupId, message);
-		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
-
-		});
+		messageStore.registerMessageGroupExpiryCallback((messageGroupStore, group) -> messageGroupStore.removeMessageGroup(group.getGroupId()));
 
 		JdbcTemplate template = new JdbcTemplate(this.dataSource);
 		template.afterPropertiesSet();
@@ -404,15 +372,10 @@ public class JdbcMessageStoreTests {
 
 	private void updateMessageGroup(JdbcTemplate template, final String groupId, final long timeout) {
 		template.update("UPDATE INT_MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?",
-				new PreparedStatementSetter() {
-
-					@Override
-					public void setValues(PreparedStatement ps) throws SQLException {
-						ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - timeout));
-						ps.setString(2, UUIDConverter.getUUID(groupId).toString());
-						ps.setString(3, "DEFAULT");
-					}
-
+				(PreparedStatementSetter) ps -> {
+					ps.setTimestamp(1, new Timestamp(System.currentTimeMillis() - timeout));
+					ps.setString(2, UUIDConverter.getUUID(groupId).toString());
+					ps.setString(3, "DEFAULT");
 				});
 
 	}

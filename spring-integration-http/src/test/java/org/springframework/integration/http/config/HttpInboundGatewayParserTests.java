@@ -46,7 +46,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
@@ -54,9 +53,7 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingMessaging
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
@@ -273,12 +270,7 @@ public class HttpInboundGatewayParserTests {
 
 	@SuppressWarnings("rawtypes")
 	private MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
-		return new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
-				assertThat(message, is(messageMatcher));
-			}
-		};
+		return message -> assertThat(message, is(messageMatcher));
 	}
 
 

@@ -48,9 +48,7 @@ import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StopWatch;
 
@@ -107,20 +105,16 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		// After a rollback in the poller the message is still waiting to be delivered
 		// but unless we use a transaction here there is a chance that the queue will
 		// appear empty....
-		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+		new TransactionTemplate(transactionManager).execute(status -> {
 
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
+			synchronized (storeLock) {
 
-				synchronized (storeLock) {
-
-					assertEquals(1, input.getQueueSize());
-					assertNotNull(input.receive(100L));
-
-				}
-				return null;
+				assertEquals(1, input.getQueueSize());
+				assertNotNull(input.receive(100L));
 
 			}
+			return null;
+
 		});
 	}
 
@@ -128,28 +122,24 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Repeat(2)
 	public void testTransactionalSendAndReceive() throws Exception {
 
-		boolean result = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Boolean>() {
+		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
 
-			@Override
-			public Boolean doInTransaction(TransactionStatus status) {
+			synchronized (storeLock) {
 
-				synchronized (storeLock) {
-
-					boolean result = input.send(new GenericMessage<String>("foo"), 500L);
-					// This will time out because the transaction has not committed yet
-					try {
-						Service.await(3000);
-						fail("Expected timeout");
-					}
-					catch (Exception e) {
-						// expected
-					}
-
-					return result;
-
+				boolean result1 = input.send(new GenericMessage<String>("foo"), 500L);
+				// This will time out because the transaction has not committed yet
+				try {
+					Service.await(3000);
+					fail("Expected timeout");
+				}
+				catch (Exception e) {
+					// expected
 				}
 
+				return result1;
+
 			}
+
 		});
 
 		assertTrue("Could not send message", result);
@@ -194,36 +184,32 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		transactionDefinition.setTimeout(200);
 
 		boolean result = new TransactionTemplate(transactionManager, transactionDefinition)
-				.execute(new TransactionCallback<Boolean>() {
+				.execute(status -> {
 
-					@Override
-					public Boolean doInTransaction(TransactionStatus status) {
+					synchronized (storeLock) {
 
-						synchronized (storeLock) {
-
-							boolean result = input.send(new GenericMessage<String>("foo"), 500L);
-							// This will time out because the transaction has not committed yet
-							try {
-								Service.await(1000);
-								fail("Expected timeout");
-							}
-							catch (Exception e) {
-								// expected
-							}
-
-							try {
-								stopWatch.start();
-								assertNotNull(input.receive(100L));
-							}
-							finally {
-								stopWatch.stop();
-							}
-
-							return result;
-
+						boolean result1 = input.send(new GenericMessage<String>("foo"), 500L);
+						// This will time out because the transaction has not committed yet
+						try {
+							Service.await(1000);
+							fail("Expected timeout");
+						}
+						catch (Exception e) {
+							// expected
 						}
 
+						try {
+							stopWatch.start();
+							assertNotNull(input.receive(100L));
+						}
+						finally {
+							stopWatch.stop();
+						}
+
+						return result1;
+
 					}
+
 				});
 
 		assertTrue("Could not send message", result);

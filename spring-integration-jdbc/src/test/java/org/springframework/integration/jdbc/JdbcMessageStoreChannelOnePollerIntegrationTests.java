@@ -39,8 +39,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StopWatch;
 
@@ -81,37 +79,33 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 		assertNull(relay.receive(100L));
 		final StopWatch stopWatch = new StopWatch();
 
-		boolean result = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Boolean>() {
+		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
 
-			@Override
-			public Boolean doInTransaction(TransactionStatus status) {
+			synchronized (storeLock) {
 
-				synchronized (storeLock) {
-
-					boolean result = relay.send(new GenericMessage<String>("foo"), 500L);
-					// This will time out because the transaction has not committed yet
-					try {
-						Service.await(1000);
-						fail("Expected timeout");
-					}
-					catch (Exception e) {
-						// expected
-					}
-
-					try {
-						stopWatch.start();
-						// It hasn't arrive yet because we are still in the sending transaction
-						assertNull(durable.receive(100L));
-					}
-					finally {
-						stopWatch.stop();
-					}
-
-					return result;
-
+				boolean result1 = relay.send(new GenericMessage<String>("foo"), 500L);
+				// This will time out because the transaction has not committed yet
+				try {
+					Service.await(1000);
+					fail("Expected timeout");
+				}
+				catch (Exception e) {
+					// expected
 				}
 
+				try {
+					stopWatch.start();
+					// It hasn't arrive yet because we are still in the sending transaction
+					assertNull(durable.receive(100L));
+				}
+				finally {
+					stopWatch.stop();
+				}
+
+				return result1;
+
 			}
+
 		});
 
 		assertTrue("Could not send message", result);
@@ -130,24 +124,19 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 		 *
 		 * With the storeLock: It doesn't deadlock as long as the lock is injected into the poller as well.
 		 */
-		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+		new TransactionTemplate(transactionManager).execute(status -> {
+			synchronized (storeLock) {
 
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
-				synchronized (storeLock) {
-
-					try {
-						stopWatch.start();
-						durable.receive(100L);
-						return null;
-					}
-					finally {
-						stopWatch.stop();
-					}
-
+				try {
+					stopWatch.start();
+					durable.receive(100L);
+					return null;
 				}
-			}
+				finally {
+					stopWatch.stop();
+				}
 
+			}
 		});
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout

@@ -183,7 +183,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		private final MessageBuilderFactory messageBuilderFactory;
 
 
-		private DispatchingMessageListener(JmsTemplate jmsTemplate,
+		DispatchingMessageListener(JmsTemplate jmsTemplate,
 				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub,
 				MessageBuilderFactory messageBuilderFactory) {
 			this.jmsTemplate = jmsTemplate;

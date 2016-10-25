@@ -31,9 +31,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -48,7 +47,6 @@ import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -190,14 +188,9 @@ public class PollableJmsChannelTests {
 		assertTrue(sent1);
 		final AtomicReference<javax.jms.Message> message = new AtomicReference<javax.jms.Message>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				message.set(receiver.receive(queue));
-				latch1.countDown();
-			}
-
+		Executors.newSingleThreadExecutor().execute(() -> {
+			message.set(receiver.receive(queue));
+			latch1.countDown();
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		assertNotNull(message.get());
@@ -208,14 +201,9 @@ public class PollableJmsChannelTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
 		assertTrue(sent2);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				message.set(receiver.receive(queue));
-				latch2.countDown();
-			}
-
+		Executors.newSingleThreadExecutor().execute(() -> {
+			message.set(receiver.receive(queue));
+			latch2.countDown();
 		});
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(message.get());
@@ -246,15 +234,10 @@ public class PollableJmsChannelTests {
 
 		JmsTemplate jmsTemplate = new JmsTemplate(this.connectionFactory);
 		jmsTemplate.setDefaultDestinationName("pollableJmsChannelSelectorTestQueue");
-		jmsTemplate.send(new MessageCreator() {
-
-			@Override
-			public javax.jms.Message createMessage(Session session) throws JMSException {
-				TextMessage message = session.createTextMessage("bar");
-				message.setStringProperty("baz", "qux");
-				return message;
-			}
-
+		jmsTemplate.send(session -> {
+			TextMessage message = session.createTextMessage("bar");
+			message.setStringProperty("baz", "qux");
+			return message;
 		});
 
 		Message<?> result2 = channel.receive(10000);

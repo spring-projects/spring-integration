@@ -28,21 +28,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -53,9 +51,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 public class OutboundGatewayConnectionTests {
 
-	private Destination requestQueue1 = new ActiveMQQueue("request1");
+	private final Destination requestQueue1 = new ActiveMQQueue("request1");
 
-	private Destination replyQueue1 = new ActiveMQQueue("reply1");
+	private final Destination replyQueue1 = new ActiveMQQueue("reply1");
 
 	@Test @Ignore // need a more reliable stop/start for AMQ
 	public void testContainerWithDestBrokenConnection() throws Exception {
@@ -82,15 +80,13 @@ public class OutboundGatewayConnectionTests {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -100,12 +96,7 @@ public class OutboundGatewayConnectionTests {
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			public Message createMessage(Session session) throws JMSException {
-				return jmsReply;
-			}
-		});
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -116,15 +107,13 @@ public class OutboundGatewayConnectionTests {
 
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final CountDownLatch latch4 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			public void run() {
-				latch3.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch4.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch3.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch4.countDown();
 			}
 		});
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
@@ -134,12 +123,7 @@ public class OutboundGatewayConnectionTests {
 		request = template.receive(requestQueue1);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply2 = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			public Message createMessage(Session session) throws JMSException {
-				return jmsReply2;
-			}
-		});
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply2);
 		assertTrue(latch4.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 

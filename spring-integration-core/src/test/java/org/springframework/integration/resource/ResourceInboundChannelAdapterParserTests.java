@@ -117,7 +117,7 @@ public class ResourceInboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"ResourcePatternResolver-config-usage.xml", this.getClass());
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
-		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(3000);
+		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(10000);
 		assertNotNull(message);
 		Resource[] resources = message.getPayload();
 		for (Resource resource : resources) {
@@ -148,7 +148,7 @@ public class ResourceInboundChannelAdapterParserTests {
 		assertFalse(customFilter.invoked);
 		resourceAdapter.start();
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
-		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(1000);
+		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(10000);
 		assertNotNull(message);
 		assertTrue(customFilter.invoked);
 		context.close();
@@ -183,6 +183,7 @@ public class ResourceInboundChannelAdapterParserTests {
 			this.invoked = true;
 			return unfilteredResources;
 		}
+
 	}
 
 }

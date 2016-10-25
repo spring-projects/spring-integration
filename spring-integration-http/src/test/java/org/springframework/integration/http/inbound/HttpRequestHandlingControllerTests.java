@@ -29,18 +29,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.Errors;
@@ -349,26 +350,24 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		final AtomicInteger active = new AtomicInteger();
 		final AtomicBoolean expected503 = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			public void run() {
-				try {
-					// wait for the active thread
-					latch2.await(10, TimeUnit.SECONDS);
-				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
-				}
-				// start the shutdown
-				active.set(controller.beforeShutdown());
-				try {
-					MockHttpServletResponse response = new MockHttpServletResponse();
-					controller.handleRequest(request, response);
-					expected503.set(response.getStatus() == HttpStatus.SERVICE_UNAVAILABLE.value());
-					latch1.countDown();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				// wait for the active thread
+				latch2.await(10, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			// start the shutdown
+			active.set(controller.beforeShutdown());
+			try {
+				MockHttpServletResponse response1 = new MockHttpServletResponse();
+				controller.handleRequest(request, response1);
+				expected503.set(response1.getStatus() == HttpStatus.SERVICE_UNAVAILABLE.value());
+				latch1.countDown();
+			}
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("Async handleRequest failed", e);
 			}
 		});
 		ModelAndView modelAndView = controller.handleRequest(request, response);

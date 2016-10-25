@@ -30,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,15 +89,10 @@ public class MonitorTests {
 				TestUtils.getPropertyValue(this.next, "channelMetrics", DefaultMessageChannelMetrics.class);
 		channelMetrics = Mockito.spy(channelMetrics);
 
-		Mockito.doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object result = invocation.callRealMethod();
-				afterSendLatch.countDown();
-				return result;
-			}
-
+		Mockito.doAnswer(invocation -> {
+			Object result = invocation.callRealMethod();
+			afterSendLatch.countDown();
+			return result;
 		}).when(channelMetrics).afterSend(Mockito.any(MetricsContext.class), Mockito.eq(Boolean.TRUE));
 
 		new DirectFieldAccessor(this.next).setPropertyValue("channelMetrics", channelMetrics);

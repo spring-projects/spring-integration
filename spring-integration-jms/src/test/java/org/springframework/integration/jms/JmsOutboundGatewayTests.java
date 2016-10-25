@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
@@ -45,8 +44,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -61,7 +58,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -91,6 +87,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 				TestUtils.getPropertyValue(gateway, "replyContainer.beanName"));
 	}
 
+	@SuppressWarnings("serial")
 	@Test
 	public void testReplyContainerRecovery() throws Exception {
 		JmsOutboundGateway gateway = new JmsOutboundGateway();
@@ -101,34 +98,23 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
 		final List<Throwable> errors = new ArrayList<Throwable>();
 		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
-				new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), new ErrorHandler() {
-
-					@Override
-					public void handleError(Throwable t) {
-						logger.info("Error:", t);
-						errors.add(t);
-						throw new RuntimeException(t);
-					}
-
+				new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), t -> {
+					errors.add(t);
+					throw new RuntimeException(t);
 				});
 		replyContainerProperties.setTaskExecutor(errorHandlingTaskExecutor);
 		replyContainerProperties.setRecoveryInterval(100L);
 		gateway.setReplyContainerProperties(replyContainerProperties);
 		final Connection connection = mock(Connection.class);
 		final AtomicInteger connectionAttempts = new AtomicInteger();
-		doAnswer(new Answer<Connection>() {
+		doAnswer(invocation -> {
+			int theCount = connectionAttempts.incrementAndGet();
+			if (theCount > 1 && theCount < 4) {
+				throw new JmsException("bar") {
 
-			@SuppressWarnings("serial")
-			@Override
-			public Connection answer(InvocationOnMock invocation) throws Throwable {
-				int theCount = connectionAttempts.incrementAndGet();
-				if (theCount > 1 && theCount < 4) {
-					throw new JmsException("bar") {
-
-					};
-				}
-				return connection;
+				};
 			}
+			return connection;
 		}).when(connectionFactory).createConnection();
 		Session session = mock(Session.class);
 		when(connection.createSession(false, 1)).thenReturn(session);
@@ -137,23 +123,18 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		when(session.createTemporaryQueue()).thenReturn(mock(TemporaryQueue.class));
 		final Message message = mock(Message.class);
 		final AtomicInteger count = new AtomicInteger();
-		doAnswer(new Answer<Message>() {
+		doAnswer(invocation -> {
+			int theCount = count.incrementAndGet();
+			if (theCount > 1 && theCount < 4) {
+				throw new JmsException("foo") {
 
-			@SuppressWarnings("serial")
-			@Override
-			public Message answer(InvocationOnMock invocation) throws Throwable {
-				int theCount = count.incrementAndGet();
-				if (theCount > 1 && theCount < 4) {
-					throw new JmsException("foo") {
-
-					};
-				}
-				if (theCount > 4) {
-					Thread.sleep(100);
-					return null;
-				}
-				return message;
+				};
 			}
+			if (theCount > 4) {
+				Thread.sleep(100);
+				return null;
+			}
+			return message;
 		}).when(consumer).receive(anyLong());
 		when(message.getJMSCorrelationID()).thenReturn("foo");
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
@@ -192,13 +173,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.setReceiveTimeout(60000);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				gateway.handleMessage(new GenericMessage<String>("foo"));
-			}
-		});
+		Executors.newSingleThreadExecutor().execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
@@ -207,15 +182,10 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		final Message request = template.receive(requestQ);
 		assertNotNull(request);
 		connectionFactory1.resetConnection();
-		MessageCreator reply = new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage reply = session.createTextMessage("bar");
-				reply.setJMSCorrelationID(request.getJMSMessageID());
-				logger.debug("Sent reply: " + reply);
-				return reply;
-			}
+		MessageCreator reply = session -> {
+			TextMessage reply1 = session.createTextMessage("bar");
+			reply1.setJMSCorrelationID(request.getJMSMessageID());
+			return reply1;
 		};
 		template.send(replyQ, reply);
 		org.springframework.messaging.Message<?> received = queueChannel.receive(20000);
@@ -243,13 +213,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				gateway.handleMessage(new GenericMessage<String>("foo"));
-			}
-		});
+		Executors.newSingleThreadExecutor().execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
@@ -258,14 +222,10 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		final Message request = template.receive(requestQ);
 		assertNotNull(request);
 		connectionFactory1.resetConnection();
-		MessageCreator reply = new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage reply = session.createTextMessage("bar");
-				reply.setJMSCorrelationID(request.getJMSCorrelationID());
-				return reply;
-			}
+		MessageCreator reply = session -> {
+			TextMessage reply1 = session.createTextMessage("bar");
+			reply1.setJMSCorrelationID(request.getJMSCorrelationID());
+			return reply1;
 		};
 		logger.debug("Sending reply to: " + replyQ);
 		template.send(replyQ, reply);

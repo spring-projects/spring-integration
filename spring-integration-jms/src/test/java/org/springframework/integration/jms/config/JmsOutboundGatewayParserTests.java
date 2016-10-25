@@ -26,9 +26,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
@@ -40,7 +37,6 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.NotReadablePropertyException;
@@ -62,7 +58,6 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -236,23 +231,18 @@ public class JmsOutboundGatewayParserTests {
 				"gatewayMaintainsReplyChannel.xml", this.getClass());
 		SampleGateway gateway = context.getBean("gateway", SampleGateway.class);
 		SubscribableChannel jmsInput = context.getBean("jmsInput", SubscribableChannel.class);
-		MessageHandler handler = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageHistory history = MessageHistory.read(message);
-				assertNotNull(history);
-				Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
-				assertNotNull(componentHistoryRecord);
-				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
-				MessagingTemplate messagingTemplate = new MessagingTemplate();
-				messagingTemplate.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
-				messagingTemplate.send(message);
-			}
+		MessageHandler handler = message -> {
+			MessageHistory history = MessageHistory.read(message);
+			assertNotNull(history);
+			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
+			assertNotNull(componentHistoryRecord);
+			assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
+			MessagingTemplate messagingTemplate = new MessagingTemplate();
+			messagingTemplate.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
+			messagingTemplate.send(message);
 		};
-		handler = spy(handler);
 		jmsInput.subscribe(handler);
 		String result = gateway.echo("hello");
-		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		assertEquals("hello", result);
 		JmsOutboundGateway gw1 = context.getBean("chain1$child.gateway.handler", JmsOutboundGateway.class);
 		MessageChannel out = TestUtils.getPropertyValue(gw1, "outputChannel", MessageChannel.class);

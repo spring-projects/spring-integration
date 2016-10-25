@@ -26,10 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -44,20 +41,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.serializer.Deserializer;
-import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jdbc.JdbcMessageStore;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.annotation.Repeat;
@@ -65,9 +58,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -112,18 +103,15 @@ public class MySqlJdbcMessageStoreTests {
 	@After
 	public void afterTest() {
 		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-		new TransactionTemplate(this.transactionManager).execute(new TransactionCallback<Void>() {
+		new TransactionTemplate(this.transactionManager).execute(status -> {
+			final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+			final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
+			final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
 
-			public Void doInTransaction(TransactionStatus status) {
-				final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
-				final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
-				final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
-
-				LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
-								"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
-						deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
-				return null;
-			}
+			LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
+							"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
+					deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
+			return null;
 		});
 	}
 
@@ -178,19 +166,13 @@ public class MySqlJdbcMessageStoreTests {
 	@Transactional
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
-		messageStore.setSerializer(new Serializer<Message<?>>() {
-
-			public void serialize(Message<?> object, OutputStream outputStream) throws IOException {
-				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
-				outputStream.flush();
-			}
+		messageStore.setSerializer((object, outputStream) -> {
+			outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
+			outputStream.flush();
 		});
-		messageStore.setDeserializer(new Deserializer<GenericMessage<String>>() {
-
-			public GenericMessage<String> deserialize(InputStream inputStream) throws IOException {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-				return new GenericMessage<String>(reader.readLine());
-			}
+		messageStore.setDeserializer(inputStream -> {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			return new GenericMessage<String>(reader.readLine());
 		});
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
@@ -363,12 +345,8 @@ public class MySqlJdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
-		});
+		messageStore.registerMessageGroupExpiryCallback(
+				(messageGroupStore, group) -> messageGroupStore.removeMessageGroup(group.getGroupId()));
 		Thread.sleep(1000);
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
@@ -387,12 +365,8 @@ public class MySqlJdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.setTimeoutOnIdle(true);
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
-		});
+		messageStore.registerMessageGroupExpiryCallback(
+				(messageGroupStore, group) -> messageGroupStore.removeMessageGroup(group.getGroupId()));
 		Thread.sleep(1000);
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
@@ -473,8 +447,8 @@ public class MySqlJdbcMessageStoreTests {
 		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup1).getSequenceNumber());
 		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromGroup2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), messageFromGroup1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), messageFromGroup2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 
@@ -517,8 +491,8 @@ public class MySqlJdbcMessageStoreTests {
 		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion1).getSequenceNumber());
 		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + new IntegrationMessageHeaderAccessor(messageFromRegion2).getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), messageFromRegion1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), messageFromRegion2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 
 	}
 

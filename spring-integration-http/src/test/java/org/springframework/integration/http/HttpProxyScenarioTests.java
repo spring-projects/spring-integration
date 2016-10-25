@@ -32,8 +32,6 @@ import java.util.TimeZone;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.PropertyAccessor;
@@ -121,24 +119,19 @@ public class HttpProxyScenarioTests {
 
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
-		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
+		Mockito.doAnswer(invocation -> {
+			URI uri = (URI) invocation.getArguments()[0];
+			assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
+			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
+			HttpHeaders httpHeaders = httpEntity.getHeaders();
+			assertEquals(ifModifiedSince, httpHeaders.getIfModifiedSince());
+			assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
+			assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
 
-			@Override
-			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
-				URI uri = (URI) invocation.getArguments()[0];
-				assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
-				HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-				HttpHeaders httpHeaders = httpEntity.getHeaders();
-				assertEquals(ifModifiedSince, httpHeaders.getIfModifiedSince());
-				assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
-				assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
-
-				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
-				responseHeaders.set("Connection", "close");
-				responseHeaders.set("Content-Disposition", contentDispositionValue);
-				return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
-			}
-
+			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+			responseHeaders.set("Connection", "close");
+			responseHeaders.set("Content-Disposition", contentDispositionValue);
+			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
 				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
 
@@ -179,28 +172,23 @@ public class HttpProxyScenarioTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
-		Mockito.doAnswer(new Answer<ResponseEntity<?>>() {
+		Mockito.doAnswer(invocation -> {
+			URI uri = (URI) invocation.getArguments()[0];
+			assertEquals(new URI("http://testServer/testmp"), uri);
+			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
+			HttpHeaders httpHeaders = httpEntity.getHeaders();
+			assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
+			assertEquals("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ",
+					httpHeaders.getContentType().toString());
 
-			@Override
-			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
-				URI uri = (URI) invocation.getArguments()[0];
-				assertEquals(new URI("http://testServer/testmp"), uri);
-				HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
-				HttpHeaders httpHeaders = httpEntity.getHeaders();
-				assertEquals("Keep-Alive", httpHeaders.getFirst("Connection"));
-				assertEquals("multipart/form-data;boundary=----WebKitFormBoundarywABD2xqC1FLBijlQ",
-						httpHeaders.getContentType().toString());
+			HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
+			assertThat(entity.getBody(), instanceOf(byte[].class));
+			assertEquals("foo", new String((byte[]) entity.getBody()));
 
-				HttpEntity<?> entity = (HttpEntity<?>) invocation.getArguments()[2];
-				assertThat(entity.getBody(), instanceOf(byte[].class));
-				assertEquals("foo", new String((byte[]) entity.getBody()));
-
-				MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
-				responseHeaders.set("Connection", "close");
-				responseHeaders.set("Content-Type", "text/plain");
-				return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
-			}
-
+			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
+			responseHeaders.set("Connection", "close");
+			responseHeaders.set("Content-Type", "text/plain");
+			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
 				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
 

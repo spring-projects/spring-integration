@@ -25,11 +25,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupQueue;
@@ -55,19 +54,14 @@ public class MessageGroupQueueTests {
 
 		final AtomicReference<InterruptedException> exceptionHolder = new AtomicReference<InterruptedException>();
 
-		Thread t = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				queue.offer(new GenericMessage<String>("hello"));
-				try {
-					queue.offer(new GenericMessage<String>("hello"), 100, TimeUnit.SECONDS);
-				}
-				catch (InterruptedException e) {
-					exceptionHolder.set(e);
-				}
+		Thread t = new Thread(() -> {
+			queue.offer(new GenericMessage<String>("hello"));
+			try {
+				queue.offer(new GenericMessage<String>("hello"), 100, TimeUnit.SECONDS);
 			}
-
+			catch (InterruptedException e) {
+				exceptionHolder.set(e);
+			}
 		});
 		t.start();
 		Thread.sleep(1000);
@@ -81,31 +75,21 @@ public class MessageGroupQueueTests {
 		final MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), 1, 1);
 		final AtomicReference<Message<?>> messageHolder = new AtomicReference<Message<?>>();
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t1 = new Thread(() -> {
+			try {
+				messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.offer(new GenericMessage<String>("hello"), 1000, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t2 = new Thread(() -> {
+			try {
+				queue.offer(new GenericMessage<String>("hello"), 1000, TimeUnit.SECONDS);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
 		t1.start();
 		t2.start();
@@ -120,32 +104,22 @@ public class MessageGroupQueueTests {
 
 		queue.offer(new GenericMessage<String>("hello"), 1000, TimeUnit.SECONDS);
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t1 = new Thread(() -> {
+			try {
+				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.poll(1000, TimeUnit.SECONDS);
-					messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t2 = new Thread(() -> {
+			try {
+				queue.poll(1000, TimeUnit.SECONDS);
+				messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
 
 		t1.start();
@@ -162,57 +136,37 @@ public class MessageGroupQueueTests {
 		final AtomicReference<Message<?>> messageHolder2 = new AtomicReference<Message<?>>();
 		final AtomicReference<Message<?>> messageHolder3 = new AtomicReference<Message<?>>();
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					messageHolder1.set(queue.poll(10, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t1 = new Thread(() -> {
+			try {
+				messageHolder1.set(queue.poll(10, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					messageHolder2.set(queue.poll(10, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t2 = new Thread(() -> {
+			try {
+				messageHolder2.set(queue.poll(10, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
-		Thread t3 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					messageHolder3.set(queue.poll(10, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t3 = new Thread(() -> {
+			try {
+				messageHolder3.set(queue.poll(10, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
-		Thread t4 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.offer(new GenericMessage<String>("Hi"), 10, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t4 = new Thread(() -> {
+			try {
+				queue.offer(new GenericMessage<String>("Hi"), 10, TimeUnit.SECONDS);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
 		t1.start();
 		Thread.sleep(1000);
@@ -235,46 +189,31 @@ public class MessageGroupQueueTests {
 		final AtomicReference<Boolean> booleanHolder2 = new AtomicReference<Boolean>(true);
 		final AtomicReference<Boolean> booleanHolder3 = new AtomicReference<Boolean>(true);
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					booleanHolder1.set(queue.offer(new GenericMessage<String>("Hi-1"), 2, TimeUnit.SECONDS));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t1 = new Thread(() -> {
+			try {
+				booleanHolder1.set(queue.offer(new GenericMessage<String>("Hi-1"), 2, TimeUnit.SECONDS));
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					boolean offered = queue.offer(new GenericMessage<String>("Hi-2"), 2, TimeUnit.SECONDS);
-					booleanHolder2.set(offered);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t2 = new Thread(() -> {
+			try {
+				boolean offered = queue.offer(new GenericMessage<String>("Hi-2"), 2, TimeUnit.SECONDS);
+				booleanHolder2.set(offered);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
-		Thread t3 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					boolean offered = queue.offer(new GenericMessage<String>("Hi-3"), 2, TimeUnit.SECONDS);
-					booleanHolder3.set(offered);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t3 = new Thread(() -> {
+			try {
+				boolean offered = queue.offer(new GenericMessage<String>("Hi-3"), 2, TimeUnit.SECONDS);
+				booleanHolder3.set(offered);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
 		t1.start();
 		Thread.sleep(1000);
@@ -294,36 +233,26 @@ public class MessageGroupQueueTests {
 
 		queue.offer(new GenericMessage<String>("hello"), 1000, TimeUnit.SECONDS);
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
-					queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
-					queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t1 = new Thread(() -> {
+			try {
+				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
+				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
+				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
+			}
 		});
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					queue.poll(1000, TimeUnit.SECONDS);
-					messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
-					queue.poll(1000, TimeUnit.SECONDS);
-					queue.poll(1000, TimeUnit.SECONDS);
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t2 = new Thread(() -> {
+			try {
+				queue.poll(1000, TimeUnit.SECONDS);
+				messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
+				queue.poll(1000, TimeUnit.SECONDS);
+				queue.poll(1000, TimeUnit.SECONDS);
 			}
-
+			catch (Exception e) {
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
+			}
 		});
 
 		t1.start();
@@ -338,14 +267,9 @@ public class MessageGroupQueueTests {
 	public void validateMgqInterruptionStoreLock() throws Exception {
 
 		MessageGroupStore mgs = Mockito.mock(MessageGroupStore.class);
-		Mockito.doAnswer(new Answer<MessageGroup>() {
-
-			@Override
-			public MessageGroup answer(InvocationOnMock invocation) throws Throwable {
-				Thread.sleep(5000);
-				return null;
-			}
-
+		Mockito.doAnswer(invocation -> {
+			Thread.sleep(5000);
+			return null;
 		}).when(mgs).addMessageToGroup(Mockito.any(Integer.class), Mockito.any(Message.class));
 
 		MessageGroup mg = Mockito.mock(MessageGroup.class);
@@ -356,29 +280,17 @@ public class MessageGroupQueueTests {
 
 		final AtomicReference<InterruptedException> exceptionHolder = new AtomicReference<InterruptedException>();
 
-		Thread t1 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				queue.offer(new GenericMessage<String>("hello"));
-			}
-
-		});
+		Thread t1 = new Thread(() -> queue.offer(new GenericMessage<String>("hello")));
 		t1.start();
 		Thread.sleep(500);
-		Thread t2 = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				queue.offer(new GenericMessage<String>("hello"));
-				try {
-					queue.offer(new GenericMessage<String>("hello"), 100, TimeUnit.SECONDS);
-				}
-				catch (InterruptedException e) {
-					exceptionHolder.set(e);
-				}
+		Thread t2 = new Thread(() -> {
+			queue.offer(new GenericMessage<String>("hello"));
+			try {
+				queue.offer(new GenericMessage<String>("hello"), 100, TimeUnit.SECONDS);
 			}
-
+			catch (InterruptedException e) {
+				exceptionHolder.set(e);
+			}
 		});
 		t2.start();
 		Thread.sleep(1000);

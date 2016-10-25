@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.junit.Rule;
@@ -58,22 +56,14 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 
 			final Destination requestDestination = context.getBean("siOutQueueC", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueC", Destination.class);
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					final Message requestMessage = jmsTemplate.receive(requestDestination);
-					jmsTemplate.send(replyDestination, new MessageCreator() {
-
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							TextMessage message = session.createTextMessage();
-							message.setText("bar");
-							message.setJMSCorrelationID(requestMessage.getJMSMessageID());
-							return message;
-						}
-					});
-				}
+			new Thread(() -> {
+				final Message requestMessage = jmsTemplate.receive(requestDestination);
+				jmsTemplate.send(replyDestination, (MessageCreator) session -> {
+					TextMessage message = session.createTextMessage();
+					message.setText("bar");
+					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
+					return message;
+				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
 			assertEquals("bar", siReplyMessage.getPayload());
@@ -94,21 +84,14 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 
 			final Destination requestDestination = context.getBean("siOutQueueD", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueD", Destination.class);
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					final Message requestMessage = jmsTemplate.receive(requestDestination);
-					jmsTemplate.send(replyDestination, new MessageCreator() {
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							TextMessage message = session.createTextMessage();
-							message.setText("bar");
-							message.setJMSCorrelationID(requestMessage.getJMSMessageID());
-							return message;
-						}
-					});
-				}
+			new Thread(() -> {
+				final Message requestMessage = jmsTemplate.receive(requestDestination);
+				jmsTemplate.send(replyDestination, (MessageCreator) session -> {
+					TextMessage message = session.createTextMessage();
+					message.setText("bar");
+					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
+					return message;
+				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
 			assertEquals("bar", siReplyMessage.getPayload());
@@ -129,22 +112,14 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 
 			final Destination requestDestination = context.getBean("siOutQueueA", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueA", Destination.class);
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					final Message requestMessage = jmsTemplate.receive(requestDestination);
-					jmsTemplate.send(replyDestination, new MessageCreator() {
-
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							TextMessage message = session.createTextMessage();
-							message.setText("bar");
-							message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
-							return message;
-						}
-					});
-				}
+			new Thread(() -> {
+				final Message requestMessage = jmsTemplate.receive(requestDestination);
+				jmsTemplate.send(replyDestination, (MessageCreator) session -> {
+					TextMessage message = session.createTextMessage();
+					message.setText("bar");
+					message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
+					return message;
+				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
 			assertEquals("bar", siReplyMessage.getPayload());
@@ -165,22 +140,14 @@ public class RequestReplyScenariosWithNonCachedConsumersTests extends ActiveMQMu
 
 			final Destination requestDestination = context.getBean("siOutQueueB", Destination.class);
 			final Destination replyDestination = context.getBean("siInQueueB", Destination.class);
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					final Message requestMessage = jmsTemplate.receive(requestDestination);
-					jmsTemplate.send(replyDestination, new MessageCreator() {
-
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							TextMessage message = session.createTextMessage();
-							message.setText("bar");
-							message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
-							return message;
-						}
-					});
-				}
+			new Thread(() -> {
+				final Message requestMessage = jmsTemplate.receive(requestDestination);
+				jmsTemplate.send(replyDestination, (MessageCreator) session -> {
+					TextMessage message = session.createTextMessage();
+					message.setText("bar");
+					message.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
+					return message;
+				});
 			}).start();
 			org.springframework.messaging.Message<?> siReplyMessage = gateway.exchange(new GenericMessage<String>("foo"));
 			assertEquals("bar", siReplyMessage.getPayload());

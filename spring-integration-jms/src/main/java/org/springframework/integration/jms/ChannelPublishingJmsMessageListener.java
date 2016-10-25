@@ -485,7 +485,7 @@ public class ChannelPublishingJmsMessageListener
 
 		private final boolean isTopic;
 
-		private DestinationNameHolder(String name, boolean isTopic) {
+		DestinationNameHolder(String name, boolean isTopic) {
 			this.name = name;
 			this.isTopic = isTopic;
 		}
@@ -493,6 +493,10 @@ public class ChannelPublishingJmsMessageListener
 	}
 
 	private class GatewayDelegate extends MessagingGatewaySupport {
+
+		GatewayDelegate() {
+			super();
+		}
 
 		@Override
 		public MessageChannel getErrorChannel() {
