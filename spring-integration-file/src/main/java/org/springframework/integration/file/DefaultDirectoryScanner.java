@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
+import org.springframework.messaging.MessagingException;
 
 /**
  * Default directory scanner and base class for other directory scanners.
@@ -40,17 +40,6 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	private volatile FileListFilter<File> filter;
 
 	private volatile FileLocker locker;
-
-	public void setFilter(FileListFilter<File> filter) {
-		this.filter = filter;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public final void setLocker(FileLocker locker) {
-		this.locker = locker;
-	}
 
 	/**
 	 * Initializes {@link DefaultDirectoryScanner#filter} with a default list of
@@ -67,16 +56,36 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 		this.filter = new CompositeFileListFilter<File>(defaultFilters);
 	}
 
+	@Override
+	public void setFilter(FileListFilter<File> filter) {
+		this.filter = filter;
+	}
+
+	protected FileListFilter<File> getFilter() {
+		return this.filter;
+	}
+
+	@Override
+	public final void setLocker(FileLocker locker) {
+		this.locker = locker;
+	}
+
+	protected FileLocker getLocker() {
+		return this.locker;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 * <p>
 	 * This class takes the minimal implementation and merely delegates to the
 	 * locker if set.
 	 */
+	@Override
 	public final boolean tryClaim(File file) {
 		return (this.locker == null) || this.locker.lock(file);
 	}
 
+	@Override
 	public final List<File> listFiles(File directory) throws IllegalArgumentException {
 		File[] files = listEligibleFiles(directory);
 		if (files == null) {

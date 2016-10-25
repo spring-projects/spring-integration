@@ -22,6 +22,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -32,8 +34,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -85,6 +89,16 @@ public class FileInboundTransactionTests {
 
 	@Test
 	public void testNoTx() throws Exception {
+
+		Object scanner = TestUtils.getPropertyValue(pseudoTx.getMessageSource(), "scanner");
+		assertThat(scanner.getClass().getName(), containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+
+		@SuppressWarnings("unchecked")
+		ResettableFileListFilter<File> fileListFilter =
+				spy(TestUtils.getPropertyValue(scanner, "filter", ResettableFileListFilter.class));
+
+		new DirectFieldAccessor(scanner).setPropertyValue("filter", fileListFilter);
+
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean crash = new AtomicBoolean();
 		input.subscribe(new MessageHandler() {
@@ -115,8 +129,7 @@ public class FileInboundTransactionTests {
 		assertFalse(transactionManager.getCommitted());
 		assertFalse(transactionManager.getRolledBack());
 
-		Object scanner = TestUtils.getPropertyValue(pseudoTx.getMessageSource(), "scanner");
-		assertThat(scanner.getClass().getName(), containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
+		verify(fileListFilter).remove(new File(tmpDir.getRoot(), "si-test1/foo"));
 	}
 
 	@Test
