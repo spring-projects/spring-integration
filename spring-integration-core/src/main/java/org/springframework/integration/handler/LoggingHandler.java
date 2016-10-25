@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Andriy Kryvtsun
  * @since 1.0.1
  */
 public class LoggingHandler extends AbstractMessageHandler {
@@ -46,18 +48,17 @@ public class LoggingHandler extends AbstractMessageHandler {
 		FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}
 
-	private volatile Expression expression;
+	private volatile Level level;
 
 	private volatile boolean expressionSet;
 
+	private volatile Expression expression = EXPRESSION_PARSER.parseExpression("payload");
+
+	private volatile EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+
 	private volatile boolean shouldLogFullMessageSet;
 
-	private volatile Level level;
-
-	private volatile EvaluationContext evaluationContext;
-
 	private volatile Log messageLogger = this.logger;
-
 
 	/**
 	 * Create a LoggingHandler with the given log level (case-insensitive).
@@ -68,9 +69,13 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @see #LoggingHandler(Level)
 	 */
 	public LoggingHandler(String level) {
+		this(convertLevel(level));
+	}
+
+	private static Level convertLevel(String level) {
 		Assert.hasText(level, "'level' cannot be empty");
 		try {
-			this.level = Level.valueOf(level.toUpperCase());
+			return Level.valueOf(level.toUpperCase());
 		}
 		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("Invalid log level '" + level
@@ -85,8 +90,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @since 4.3
 	 */
 	public LoggingHandler(Level level) {
-		Assert.notNull(level, "'level' cannot be null");
-		this.level = level;
+		doSetLevel(level);
 	}
 
 	/**
@@ -125,6 +129,10 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * @param level the level.
 	 */
 	public void setLevel(Level level) {
+		doSetLevel(level);
+	}
+
+	private void doSetLevel(Level level) {
 		Assert.notNull(level, "'level' cannot be null");
 		this.level = level;
 	}
@@ -142,7 +150,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
 		Assert.isTrue(!(this.expressionSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
 		this.shouldLogFullMessageSet = true;
-		this.expression = (shouldLogFullMessage)
+		this.expression = shouldLogFullMessage
 				? EXPRESSION_PARSER.parseExpression("#root")
 				: EXPRESSION_PARSER.parseExpression("payload");
 	}
@@ -156,66 +164,68 @@ public class LoggingHandler extends AbstractMessageHandler {
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		if (this.expression == null) {
-			this.expression = EXPRESSION_PARSER.parseExpression("payload");
-		}
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		switch (this.level) {
-		case FATAL:
-			if (this.messageLogger.isFatalEnabled()) {
-				this.messageLogger.fatal(createLogMessage(message));
-			}
-			break;
-		case ERROR:
-			if (this.messageLogger.isErrorEnabled()) {
-				this.messageLogger.error(createLogMessage(message));
-			}
-			break;
-		case WARN:
-			if (this.messageLogger.isWarnEnabled()) {
-				this.messageLogger.warn(createLogMessage(message));
-			}
-			break;
-		case INFO:
-			if (this.messageLogger.isInfoEnabled()) {
-				this.messageLogger.info(createLogMessage(message));
-			}
-			break;
-		case DEBUG:
-			if (this.messageLogger.isDebugEnabled()) {
-				this.messageLogger.debug(createLogMessage(message));
-			}
-			break;
-		case TRACE:
-			if (this.messageLogger.isTraceEnabled()) {
-				this.messageLogger.trace(createLogMessage(message));
-			}
-			break;
-		default:
-			throw new IllegalStateException("Level '" + this.level + "' is not supported");
+			case FATAL:
+				if (this.messageLogger.isFatalEnabled()) {
+					this.messageLogger.fatal(createLogMessage(message));
+				}
+				break;
+			case ERROR:
+				if (this.messageLogger.isErrorEnabled()) {
+					this.messageLogger.error(createLogMessage(message));
+				}
+				break;
+			case WARN:
+				if (this.messageLogger.isWarnEnabled()) {
+					this.messageLogger.warn(createLogMessage(message));
+				}
+				break;
+			case INFO:
+				if (this.messageLogger.isInfoEnabled()) {
+					this.messageLogger.info(createLogMessage(message));
+				}
+				break;
+			case DEBUG:
+				if (this.messageLogger.isDebugEnabled()) {
+					this.messageLogger.debug(createLogMessage(message));
+				}
+				break;
+			case TRACE:
+				if (this.messageLogger.isTraceEnabled()) {
+					this.messageLogger.trace(createLogMessage(message));
+				}
+				break;
+			default:
+				throw new IllegalStateException("Level '" + this.level + "' is not supported");
 		}
 	}
-
 
 	private Object createLogMessage(Message<?> message) {
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
-		if (logMessage instanceof Throwable) {
-			StringWriter stringWriter = new StringWriter();
-			if (logMessage instanceof AggregateMessageDeliveryException) {
-				stringWriter.append(((Throwable) logMessage).getMessage());
-				for (Exception exception : ((AggregateMessageDeliveryException) logMessage).getAggregatedExceptions()) {
-					exception.printStackTrace(new PrintWriter(stringWriter, true));
-				}
-			}
-			else {
-				((Throwable) logMessage).printStackTrace(new PrintWriter(stringWriter, true));
-			}
-			logMessage = stringWriter.toString();
-		}
-		return logMessage;
+		return logMessage instanceof Throwable
+				? createLogMessage((Throwable) logMessage)
+				: logMessage;
 	}
 
+	private String createLogMessage(Throwable throwable) {
+		StringWriter stringWriter = new StringWriter();
+		if (throwable instanceof AggregateMessageDeliveryException) {
+			stringWriter.append(throwable.getMessage());
+			for (Exception exception : ((AggregateMessageDeliveryException) throwable).getAggregatedExceptions()) {
+				printStackTrace(exception, stringWriter);
+			}
+		}
+		else {
+			printStackTrace(throwable, stringWriter);
+		}
+		return stringWriter.toString();
+	}
+
+	private void printStackTrace(Throwable throwable, Writer writer) {
+		throwable.printStackTrace(new PrintWriter(writer, true));
+	}
 }
