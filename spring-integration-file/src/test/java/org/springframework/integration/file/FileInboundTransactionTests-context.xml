@@ -14,7 +14,8 @@
 	<int-file:inbound-channel-adapter id="pseudoTx"
 		channel="input" auto-startup="false"
 						directory="#{T (org.springframework.integration.file.FileInboundTransactionTests).tmpDir.root}/si-test1"
-						use-watch-service="true">
+						use-watch-service="true"
+						watch-events="CREATE,DELETE">
 		<int:poller fixed-rate="500">
 			<int:transactional synchronization-factory="syncFactoryA"/>
 		</int:poller>

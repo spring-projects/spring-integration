@@ -490,8 +490,8 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 						}
 
 						if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-							if (FileReadingMessageSource.this.filter instanceof ResettableFileListFilter) {
-								((ResettableFileListFilter<File>) FileReadingMessageSource.this.filter).remove(file);
+							if (getFilter() != null && getFilter() instanceof ResettableFileListFilter) {
+								((ResettableFileListFilter<File>) getFilter()).remove(file);
 							}
 							boolean fileRemoved = files.remove(file);
 							if (fileRemoved && logger.isDebugEnabled()) {
