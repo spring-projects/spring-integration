@@ -29,10 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.broker.BrokerService;
@@ -80,35 +78,27 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 
 		final Destination requestDestination = context.getBean("siOutQueue", Destination.class);
 
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				final Message requestMessage = jmsTemplate.receive(requestDestination);
-				Destination replyTo = null;
+		new Thread(() -> {
+			final Message requestMessage = jmsTemplate.receive(requestDestination);
+			Destination replyTo = null;
+			try {
+				replyTo = requestMessage.getJMSReplyTo();
+			}
+			catch (Exception e) {
+				fail();
+			}
+			jmsTemplate.send(replyTo, (MessageCreator) session -> {
 				try {
-					replyTo = requestMessage.getJMSReplyTo();
+					TextMessage message = session.createTextMessage();
+					message.setText("bar");
+					message.setJMSCorrelationID(requestMessage.getJMSMessageID());
+					return message;
 				}
 				catch (Exception e) {
-					fail();
+					// ignore
 				}
-				jmsTemplate.send(replyTo, new MessageCreator() {
-
-					@Override
-					public Message createMessage(Session session) throws JMSException {
-						try {
-							TextMessage message = session.createTextMessage();
-							message.setText("bar");
-							message.setJMSCorrelationID(requestMessage.getJMSMessageID());
-							return message;
-						}
-						catch (Exception e) {
-							// ignore
-						}
-						return null;
-					}
-				});
-			}
+				return null;
+			});
 		}).start();
 		gateway.exchange(new GenericMessage<String>("foo"));
 		context.close();
@@ -127,34 +117,30 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
 		dmlc.setConnectionFactory(connectionFactory);
 		dmlc.setDestination(requestDestination);
-		dmlc.setMessageListener(new SessionAwareMessageListener<Message>() {
-
-			@Override
-			public void onMessage(Message message, Session session) {
-				Destination replyTo = null;
+		dmlc.setMessageListener((SessionAwareMessageListener<Message>) (message, session) -> {
+			Destination replyTo = null;
+			try {
+				replyTo = message.getJMSReplyTo();
+			}
+			catch (Exception e1) {
+				fail();
+			}
+			String requestPayload = (String) extractPayload(message);
+			if (requestPayload.equals("foo")) {
 				try {
-					replyTo = message.getJMSReplyTo();
+					Thread.sleep(6000);
 				}
-				catch (Exception e) {
-					fail();
-				}
-				String requestPayload = (String) extractPayload(message);
-				if (requestPayload.equals("foo")) {
-					try {
-						Thread.sleep(6000);
-					}
-					catch (Exception e) { /*ignore*/ }
-				}
-				try {
-					TextMessage replyMessage = session.createTextMessage();
-					replyMessage.setText(requestPayload);
-					replyMessage.setJMSCorrelationID(message.getJMSMessageID());
-					MessageProducer producer = session.createProducer(replyTo);
-					producer.send(replyMessage);
-				}
-				catch (Exception e) {
-					// ignore. the test will fail
-				}
+				catch (Exception e2) { /*ignore*/ }
+			}
+			try {
+				TextMessage replyMessage = session.createTextMessage();
+				replyMessage.setText(requestPayload);
+				replyMessage.setJMSCorrelationID(message.getJMSMessageID());
+				MessageProducer producer = session.createProducer(replyTo);
+				producer.send(replyMessage);
+			}
+			catch (Exception e3) {
+				// ignore. the test will fail
 			}
 		});
 		dmlc.afterPropertiesSet();
@@ -231,32 +217,29 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		final AtomicInteger missmatches = new AtomicInteger();
 		for (int i = 0; i < testNumbers; i++) {
 			final int y = i;
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
+			executor.execute(() -> {
+				try {
 
-						String reply = (String) gateway.exchange(new GenericMessage<String>(String.valueOf(y))).getPayload();
-						if (!String.valueOf(y).equals(reply)) {
-							missmatches.incrementAndGet();
-						}
+					String reply = (String) gateway.exchange(new GenericMessage<String>(String.valueOf(y))).getPayload();
+					if (!String.valueOf(y).equals(reply)) {
+						missmatches.incrementAndGet();
 					}
-					catch (Exception e) {
-						if (e instanceof MessageDeliveryException) {
-							timeouts.incrementAndGet();
-						}
-						else {
-							failures.incrementAndGet();
-						}
+				}
+				catch (Exception e) {
+					if (e instanceof MessageDeliveryException) {
+						timeouts.incrementAndGet();
 					}
+					else {
+						failures.incrementAndGet();
+					}
+				}
 //					if (latch.getCount()%100 == 0){
 //						long count = testNumbers-latch.getCount();
 //						if (count > 0){
 //							print(failures, timeouts, missmatches, testNumbers-latch.getCount());
 //						}
 //					}
-					latch.countDown();
-				}
+				latch.countDown();
 			});
 		}
 		latch.await();

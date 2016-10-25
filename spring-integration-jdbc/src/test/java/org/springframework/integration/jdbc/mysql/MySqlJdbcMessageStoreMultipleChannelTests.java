@@ -48,8 +48,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -94,31 +92,25 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 
 	@After
 	public void afterTest() {
-		new TransactionTemplate(this.transactionManager).execute(new TransactionCallback<Void>() {
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
-				final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
-				final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
-				final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
+		new TransactionTemplate(this.transactionManager).execute(status -> {
+			final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+			final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
+			final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
 
-				LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
-						"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
-						deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
+			LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
+					"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
+					deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
 
-				return null;
-			}
+			return null;
 		});
 	}
 
 	@Test
 	public void testSendAndActivateTransactionalSend() throws Exception {
 
-		new TransactionTemplate(this.transactionManager).execute(new TransactionCallback<Void>() {
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
-				requestChannel.send(MessageBuilder.withPayload("Hello ").build());
-				return null;
-			}
+		new TransactionTemplate(this.transactionManager).execute(status -> {
+			requestChannel.send(MessageBuilder.withPayload("Hello ").build());
+			return null;
 		});
 
 		assertTrue("countDownLatch1 was " + countDownLatch1.getCount(), countDownLatch1.await(10000, TimeUnit.MILLISECONDS));

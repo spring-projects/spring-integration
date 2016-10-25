@@ -16,14 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
@@ -145,6 +142,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * query returns no rows, this method will return <code>null</code>.
 	 * #return the {@link Message} or {@code null} as a result of query.
 	 */
+	@Override
 	public Message<Object> receive() {
 		Object payload = poll();
 		if (payload == null) {
@@ -186,16 +184,13 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		ResultSetExtractor<List<Object>> resultSetExtractor;
 
 		if (this.maxRowsPerPoll > 0) {
-			resultSetExtractor = new ResultSetExtractor<List<Object>>() {
-
-				public List<Object> extractData(ResultSet rs) throws SQLException, DataAccessException {
-					List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRowsPerPoll);
-					int rowNum = 0;
-					while (rs.next() && rowNum < JdbcPollingChannelAdapter.this.maxRowsPerPoll) {
-						results.add(rowMapper.mapRow(rs, rowNum++));
-					}
-					return results;
+			resultSetExtractor = rs -> {
+				List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRowsPerPoll);
+				int rowNum = 0;
+				while (rs.next() && rowNum < JdbcPollingChannelAdapter.this.maxRowsPerPoll) {
+					results.add(rowMapper.mapRow(rs, rowNum++));
 				}
+				return results;
 			};
 		}
 		else {

@@ -29,12 +29,9 @@ import java.util.Map;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Session;
-import javax.jms.TextMessage;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -536,14 +533,8 @@ public class DefaultJmsHeaderMapperTests {
 
 		Session session = Mockito.mock(Session.class);
 
-		Mockito.doAnswer(new Answer<TextMessage>() {
-
-			@Override
-			public TextMessage answer(InvocationOnMock invocation) throws Throwable {
-				return new StubTextMessage((String) invocation.getArguments()[0]);
-			}
-
-		}).when(session).createTextMessage(Mockito.anyString());
+		Mockito.doAnswer(invocation -> new StubTextMessage((String) invocation.getArguments()[0])).when(session)
+				.createTextMessage(Mockito.anyString());
 
 		javax.jms.Message request = converter.toMessage(new Foo(), session);
 

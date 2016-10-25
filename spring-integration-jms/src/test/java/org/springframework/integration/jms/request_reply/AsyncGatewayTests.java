@@ -22,9 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -80,15 +78,10 @@ public class AsyncGatewayTests {
 		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest1");
 		assertNotNull(received);
-		template.send(received.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage textMessage = session.createTextMessage("bar");
-				textMessage.setJMSCorrelationID(received.getJMSCorrelationID());
-				return textMessage;
-			}
-
+		template.send(received.getJMSReplyTo(), (MessageCreator) session -> {
+			TextMessage textMessage = session.createTextMessage("bar");
+			textMessage.setJMSCorrelationID(received.getJMSCorrelationID());
+			return textMessage;
 		});
 		org.springframework.messaging.Message<?> reply = replies.receive(10000);
 		assertNotNull(reply);

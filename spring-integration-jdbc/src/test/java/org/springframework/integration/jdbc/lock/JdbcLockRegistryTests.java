@@ -26,7 +26,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -154,21 +153,17 @@ public class JdbcLockRegistryTests {
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				Lock lock2 = JdbcLockRegistryTests.this.registry.obtain("foo");
-				locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
-				latch.countDown();
-				try {
-					lock2.unlock();
-				}
-				catch (Exception e) {
-					return e;
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			Lock lock2 = JdbcLockRegistryTests.this.registry.obtain("foo");
+			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
+			latch.countDown();
+			try {
+				lock2.unlock();
 			}
+			catch (Exception e) {
+				return e;
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());
@@ -186,24 +181,20 @@ public class JdbcLockRegistryTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = JdbcLockRegistryTests.this.registry.obtain("foo");
-				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-					latch3.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = JdbcLockRegistryTests.this.registry.obtain("foo");
+			try {
+				latch1.countDown();
+				lock2.lockInterruptibly();
+				latch2.await(10, TimeUnit.SECONDS);
+				locked.set(true);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock2.unlock();
+				latch3.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -226,24 +217,20 @@ public class JdbcLockRegistryTests {
 			final CountDownLatch latch2 = new CountDownLatch(1);
 			final CountDownLatch latch3 = new CountDownLatch(1);
 			lock1.lockInterruptibly();
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-				public void run() {
-					Lock lock2 = registry2.obtain("foo");
-					try {
-						latch1.countDown();
-						lock2.lockInterruptibly();
-						latch2.await(10, TimeUnit.SECONDS);
-						locked.set(true);
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					finally {
-						lock2.unlock();
-						latch3.countDown();
-					}
+			Executors.newSingleThreadExecutor().execute(() -> {
+				Lock lock2 = registry2.obtain("foo");
+				try {
+					latch1.countDown();
+					lock2.lockInterruptibly();
+					latch2.await(10, TimeUnit.SECONDS);
+					locked.set(true);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					lock2.unlock();
+					latch3.countDown();
 				}
 			});
 			assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -262,19 +249,15 @@ public class JdbcLockRegistryTests {
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				try {
-					lock.unlock();
-				}
-				catch (Exception e) {
-					latch.countDown();
-					return e;
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			try {
+				lock.unlock();
 			}
+			catch (Exception e) {
+				latch.countDown();
+				return e;
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());

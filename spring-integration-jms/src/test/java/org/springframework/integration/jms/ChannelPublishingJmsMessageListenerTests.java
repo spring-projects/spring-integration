@@ -97,13 +97,10 @@ public class ChannelPublishingJmsMessageListenerTests {
 	}
 
 	private void startBackgroundReplier(final PollableChannel channel) {
-		new SimpleAsyncTaskExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> request = channel.receive(50000);
-				Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
-				((MessageChannel) request.getHeaders().getReplyChannel()).send(reply, 5000);
-			}
+		new SimpleAsyncTaskExecutor().execute(() -> {
+			Message<?> request = channel.receive(50000);
+			Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
+			((MessageChannel) request.getHeaders().getReplyChannel()).send(reply, 5000);
 		});
 	}
 

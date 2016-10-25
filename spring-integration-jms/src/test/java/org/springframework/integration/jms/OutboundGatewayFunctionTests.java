@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
@@ -99,16 +97,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -118,13 +113,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue1);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				return jmsReply;
-			}
-		});
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -151,16 +140,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -170,13 +156,9 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue2);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
-				return jmsReply;
-			}
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
+			return jmsReply;
 		});
 		assertTrue(latch2.await(20, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
@@ -205,16 +187,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -224,13 +203,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue3);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				return jmsReply;
-			}
-		});
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -257,16 +230,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -276,13 +246,9 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue4);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
-				return jmsReply;
-			}
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
+			return jmsReply;
 		});
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
@@ -311,16 +277,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -330,13 +293,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue5);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				return jmsReply;
-			}
-		});
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -363,16 +320,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -382,13 +336,9 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue6);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
-				return jmsReply;
-			}
+		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
+			return jmsReply;
 		});
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
@@ -417,33 +367,12 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.setReceiveTimeout(20000);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				JmsTemplate template = new JmsTemplate();
-				template.setConnectionFactory(getConnectionFactory());
-				template.setReceiveTimeout(20000);
-				receiveAndSend(template);
-				receiveAndSend(template);
-			}
-
-			private void receiveAndSend(JmsTemplate template) {
-				javax.jms.Message request = template.receive(requestQueue7);
-				final javax.jms.Message jmsReply = request;
-				try {
-					template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							return jmsReply;
-						}
-					});
-				}
-				catch (JmsException e) {
-				}
-				catch (JMSException e) {
-				}
-			}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			JmsTemplate template = new JmsTemplate();
+			template.setConnectionFactory(getConnectionFactory());
+			template.setReceiveTimeout(20000);
+			receiveAndSend(template);
+			receiveAndSend(template);
 		});
 
 		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
@@ -460,6 +389,18 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.stop();
 		assertFalse(container.isRunning());
 		scheduler.destroy();
+	}
+
+	private void receiveAndSend(JmsTemplate template) {
+		javax.jms.Message request = template.receive(requestQueue7);
+		final javax.jms.Message jmsReply = request;
+		try {
+			template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		}
+		catch (JmsException e) {
+		}
+		catch (JMSException e) {
+		}
 	}
 
 	private ConnectionFactory getConnectionFactory() {

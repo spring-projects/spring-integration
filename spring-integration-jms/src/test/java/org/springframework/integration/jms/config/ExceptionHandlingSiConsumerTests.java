@@ -21,9 +21,7 @@ import static org.junit.Assert.assertNotNull;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.junit.Test;
@@ -46,15 +44,11 @@ public class ExceptionHandlingSiConsumerTests {
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("jmsConnectionFactory", ConnectionFactory.class));
 		Destination request = applicationContext.getBean("requestQueueA", Destination.class);
 		final Destination reply = applicationContext.getBean("replyQueueA", Destination.class);
-		jmsTemplate.send(request, new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage message = session.createTextMessage();
-				message.setText("echoChannel");
-				message.setJMSReplyTo(reply);
-				return message;
-			}
+		jmsTemplate.send(request, (MessageCreator) session -> {
+			TextMessage message = session.createTextMessage();
+			message.setText("echoChannel");
+			message.setJMSReplyTo(reply);
+			return message;
 		});
 		Message message = jmsTemplate.receive(reply);
 		assertNotNull(message);
@@ -68,15 +62,11 @@ public class ExceptionHandlingSiConsumerTests {
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("jmsConnectionFactory", ConnectionFactory.class));
 		Destination request = applicationContext.getBean("requestQueueB", Destination.class);
 		final Destination reply = applicationContext.getBean("replyQueueB", Destination.class);
-		jmsTemplate.send(request, new MessageCreator() {
-
-			@Override
-			public Message createMessage(Session session) throws JMSException {
-				TextMessage message = session.createTextMessage();
-				message.setText("echoWithExceptionChannel");
-				message.setJMSReplyTo(reply);
-				return message;
-			}
+		jmsTemplate.send(request, (MessageCreator) session -> {
+			TextMessage message = session.createTextMessage();
+			message.setText("echoWithExceptionChannel");
+			message.setJMSReplyTo(reply);
+			return message;
 		});
 		Message message = jmsTemplate.receive(reply);
 		assertNotNull(message);

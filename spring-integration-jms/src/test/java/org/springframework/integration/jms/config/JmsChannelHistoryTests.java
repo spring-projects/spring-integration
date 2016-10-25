@@ -24,8 +24,6 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -41,11 +39,11 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  */
 public class JmsChannelHistoryTests {
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void testMessageHistory() throws Exception {
 		AbstractMessageListenerContainer mlContainer = mock(AbstractMessageListenerContainer.class);
@@ -55,16 +53,12 @@ public class JmsChannelHistoryTests {
 		channel.setBeanName("jmsChannel");
 		Message<String> message = new GenericMessage<String>("hello");
 
-		doAnswer(new Answer() {
-
-			@Override
+		doAnswer(invocation -> {
 			@SuppressWarnings("unchecked")
-			public Object answer(InvocationOnMock invocation) {
-				Message<String> msg = (Message<String>) invocation.getArguments()[0];
-				MessageHistory history = MessageHistory.read(msg);
-				assertTrue(history.get(0).contains("jmsChannel"));
-				return null;
-			}
+			Message<String> msg = invocation.getArgumentAt(0, Message.class);
+			MessageHistory history = MessageHistory.read(msg);
+			assertTrue(history.get(0).contains("jmsChannel"));
+			return null;
 		}).when(template).convertAndSend(Mockito.any(Message.class));
 		channel.send(message);
 		verify(template, times(1)).convertAndSend(Mockito.any(Message.class));

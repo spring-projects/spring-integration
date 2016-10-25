@@ -38,7 +38,6 @@ import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -103,19 +102,14 @@ public class ExtractRequestReplyPayloadTests {
 		this.inboundGateway.setExtractRequestPayload(true);
 
 		final AtomicBoolean failOnce = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertTrue(message.getPayload() instanceof String);
-				if (failOnce.compareAndSet(false, true)) {
-					throw new RuntimeException("test tx");
-				}
-				MessagingTemplate template = new MessagingTemplate();
-				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
-				template.send(message);
+		MessageHandler handler = message -> {
+			assertTrue(message.getPayload() instanceof String);
+			if (failOnce.compareAndSet(false, true)) {
+				throw new RuntimeException("test tx");
 			}
-
+			MessagingTemplate template = new MessagingTemplate();
+			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
+			template.send(message);
 		};
 		this.jmsInputChannel.subscribe(handler);
 		this.outboundChannel.send(new GenericMessage<String>("Hello " + this.testName.getMethodName()));
@@ -239,58 +233,43 @@ public class ExtractRequestReplyPayloadTests {
 	}
 
 	private MessageHandler echoInboundStringHandler() {
-		return new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate();
-				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
-				template.send(message);
-			}
-
+		return message -> {
+			assertTrue(message.getPayload() instanceof String);
+			MessagingTemplate template = new MessagingTemplate();
+			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
+			template.send(message);
 		};
 	}
 
 	private MessageHandler unwrapObjectMessageAndEchoHandler() {
-		return new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat(message.getPayload(), instanceOf(javax.jms.ObjectMessage.class));
-				MessagingTemplate template = new MessagingTemplate();
-				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
-				Message<?> origMessage = null;
-				try {
-					origMessage = (Message<?>) ((javax.jms.ObjectMessage) message.getPayload()).getObject();
-				}
-				catch (JMSException e) {
-					fail("failed to deserialize message");
-				}
-				template.send(origMessage);
+		return message -> {
+			assertThat(message.getPayload(), instanceOf(javax.jms.ObjectMessage.class));
+			MessagingTemplate template = new MessagingTemplate();
+			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
+			Message<?> origMessage = null;
+			try {
+				origMessage = (Message<?>) ((javax.jms.ObjectMessage) message.getPayload()).getObject();
 			}
-
+			catch (JMSException e) {
+				fail("failed to deserialize message");
+			}
+			template.send(origMessage);
 		};
 	}
 
 	private MessageHandler unwrapTextMessageAndEchoHandler() {
-		return new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat(message.getPayload(), instanceOf(javax.jms.TextMessage.class));
-				MessagingTemplate template = new MessagingTemplate();
-				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
-				String payload = null;
-				try {
-					payload = ((javax.jms.TextMessage) message.getPayload()).getText();
-				}
-				catch (JMSException e) {
-					fail("failed to deserialize message");
-				}
-				template.send(new GenericMessage<String>(payload));
+		return message -> {
+			assertThat(message.getPayload(), instanceOf(javax.jms.TextMessage.class));
+			MessagingTemplate template = new MessagingTemplate();
+			template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
+			String payload = null;
+			try {
+				payload = ((javax.jms.TextMessage) message.getPayload()).getText();
 			}
-
+			catch (JMSException e) {
+				fail("failed to deserialize message");
+			}
+			template.send(new GenericMessage<String>(payload));
 		};
 	}
 

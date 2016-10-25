@@ -1172,14 +1172,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				new SettableListenableFuture<AbstractIntegrationMessageBuilder<?>>();
 		this.futures.put(correlationId, future);
 		if (this.receiveTimeout > 0) {
-			getTaskScheduler().schedule(new Runnable() {
-
-				@Override
-				public void run() {
-					expire(correlationId);
-				}
-
-			}, new Date(System.currentTimeMillis() + this.receiveTimeout));
+			getTaskScheduler().schedule((Runnable) () -> expire(correlationId),
+					new Date(System.currentTimeMillis() + this.receiveTimeout));
 		}
 		return future;
 	}
@@ -1339,6 +1333,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private volatile Destination replyDestination;
 
+		GatewayReplyListenerContainer() {
+			super();
+		}
+
 		@Override
 		protected Destination resolveDestinationName(Session session, String destinationName) throws JMSException {
 			if (!StringUtils.hasText(destinationName)) {
@@ -1429,7 +1427,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private final javax.jms.Message reply;
 
-		private TimedReply(javax.jms.Message reply) {
+		TimedReply(javax.jms.Message reply) {
 			this.reply = reply;
 		}
 
@@ -1443,6 +1441,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private class LateReplyReaper implements Runnable {
+
+		LateReplyReaper() {
+			super();
+		}
 
 		@Override
 		public void run() {
@@ -1471,6 +1473,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private class IdleContainerStopper implements Runnable {
+
+		IdleContainerStopper() {
+			super();
+		}
 
 		@Override
 		public void run() {
@@ -1517,6 +1523,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		private volatile Integer idleTaskExecutionLimit;
 
 		private volatile Executor taskExecutor;
+
+		ReplyContainerProperties() {
+			super();
+		}
 
 		public String getSessionAcknowledgeModeName() {
 			return this.sessionAcknowledgeModeName;

@@ -19,8 +19,6 @@ package org.springframework.integration.jdbc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -86,14 +84,9 @@ public class JdbcMessageHandlerIntegrationTests {
 	public void testInsertWithMessagePreparedStatementSetter() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (1, 0, ?)");
 		final AtomicBoolean setterInvoked = new AtomicBoolean();
-		handler.setPreparedStatementSetter(new MessagePreparedStatementSetter() {
-
-			@Override
-			public void setValues(PreparedStatement ps, Message<?> requestMessage) throws SQLException {
-				ps.setObject(1, requestMessage.getPayload());
-				setterInvoked.set(true);
-			}
-
+		handler.setPreparedStatementSetter((ps, requestMessage) -> {
+			ps.setObject(1, requestMessage.getPayload());
+			setterInvoked.set(true);
 		});
 		handler.afterPropertiesSet();
 		Message<String> message = new GenericMessage<String>("foo");

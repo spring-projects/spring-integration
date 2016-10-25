@@ -106,24 +106,20 @@ public class JdbcLockRegistryDifferentClientTests {
 			final CountDownLatch latch2 = new CountDownLatch(1);
 			final CountDownLatch latch3 = new CountDownLatch(1);
 			lock1.lockInterruptibly();
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-				public void run() {
-					Lock lock2 = registry2.obtain("foo");
-					try {
-						latch1.countDown();
-						lock2.lockInterruptibly();
-						latch2.await(10, TimeUnit.SECONDS);
-						locked.set(true);
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					finally {
-						lock2.unlock();
-						latch3.countDown();
-					}
+			Executors.newSingleThreadExecutor().execute(() -> {
+				Lock lock2 = registry2.obtain("foo");
+				try {
+					latch1.countDown();
+					lock2.lockInterruptibly();
+					latch2.await(10, TimeUnit.SECONDS);
+					locked.set(true);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
+					lock2.unlock();
+					latch3.countDown();
 				}
 			});
 			assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -147,50 +143,42 @@ public class JdbcLockRegistryDifferentClientTests {
 			final List<String> locked = new ArrayList<String>();
 			final CountDownLatch latch = new CountDownLatch(2);
 			ExecutorService pool = Executors.newFixedThreadPool(2);
-			pool.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					Lock lock = registry1.obtain("foo");
+			pool.execute(() -> {
+				Lock lock = registry1.obtain("foo");
+				try {
+					lock.lockInterruptibly();
+					locked.add("1");
+					latch.countDown();
+				}
+				catch (InterruptedException e1) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
 					try {
-						lock.lockInterruptibly();
-						locked.add("1");
-						latch.countDown();
+						lock.unlock();
 					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					finally {
-						try {
-							lock.unlock();
-						}
-						catch (Exception e) {
-							// ignore
-						}
+					catch (Exception e2) {
+						// ignore
 					}
 				}
 			});
 
-			pool.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					Lock lock = registry2.obtain("foo");
+			pool.execute(() -> {
+				Lock lock = registry2.obtain("foo");
+				try {
+					lock.lockInterruptibly();
+					locked.add("2");
+					latch.countDown();
+				}
+				catch (InterruptedException e1) {
+					Thread.currentThread().interrupt();
+				}
+				finally {
 					try {
-						lock.lockInterruptibly();
-						locked.add("2");
-						latch.countDown();
+						lock.unlock();
 					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					finally {
-						try {
-							lock.unlock();
-						}
-						catch (Exception e) {
-							// ignore
-						}
+					catch (Exception e2) {
+						// ignore
 					}
 				}
 			});
@@ -217,30 +205,26 @@ public class JdbcLockRegistryDifferentClientTests {
 				final DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
 				client.afterPropertiesSet();
 				this.context.getAutowireCapableBeanFactory().autowireBean(client);
-				Callable<Boolean> task = new Callable<Boolean>() {
-
-					@Override
-					public Boolean call() {
-						Lock lock = new JdbcLockRegistry(client).obtain("foo");
-						try {
-							if (locked.isEmpty() && lock.tryLock()) {
-								if (locked.isEmpty()) {
-									locked.add("done");
-									return true;
-								}
+				Callable<Boolean> task = () -> {
+					Lock lock = new JdbcLockRegistry(client).obtain("foo");
+					try {
+						if (locked.isEmpty() && lock.tryLock()) {
+							if (locked.isEmpty()) {
+								locked.add("done");
+								return true;
 							}
 						}
-						finally {
-							try {
-								lock.unlock();
-							}
-							catch (Exception e) {
-								// ignore
-							}
-							latch.countDown();
-						}
-						return false;
 					}
+					finally {
+						try {
+							lock.unlock();
+						}
+						catch (Exception e) {
+							// ignore
+						}
+						latch.countDown();
+					}
+					return false;
 				};
 				tasks.add(task);
 			}
@@ -266,29 +250,25 @@ public class JdbcLockRegistryDifferentClientTests {
 		final BlockingQueue<Integer> data = new LinkedBlockingQueue<Integer>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
-				try {
-					latch1.countDown();
-					StopWatch stopWatch = new StopWatch();
-					stopWatch.start();
-					lock2.lockInterruptibly();
-					stopWatch.stop();
-					data.add(4);
-					Thread.sleep(10);
-					data.add(5);
-					Thread.sleep(10);
-					data.add(6);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+			try {
+				latch1.countDown();
+				StopWatch stopWatch = new StopWatch();
+				stopWatch.start();
+				lock2.lockInterruptibly();
+				stopWatch.stop();
+				data.add(4);
+				Thread.sleep(10);
+				data.add(5);
+				Thread.sleep(10);
+				data.add(6);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock2.unlock();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));

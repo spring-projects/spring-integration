@@ -49,7 +49,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 
 	private final Map<String, JdbcLock> locks = new HashMap<String, JdbcLock>();
 
-	private LockRepository client;
+	private final LockRepository client;
 
 	public JdbcLockRegistry(LockRepository client) {
 		this.client = client;
@@ -99,9 +99,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 
 		private volatile long lastUsed = System.currentTimeMillis();
 
-		private ReentrantLock delegate = new ReentrantLock();
+		private final ReentrantLock delegate = new ReentrantLock();
 
-		private JdbcLock(LockRepository client, String path) {
+		JdbcLock(LockRepository client, String path) {
 			this.mutex = client;
 			this.path = path;
 		}

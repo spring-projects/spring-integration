@@ -62,7 +62,7 @@ public class BeanPropertySqlParameterSourceFactory implements SqlParameterSource
 
 		private final Map<String, Object> staticParameters;
 
-		private StaticBeanPropertySqlParameterSource(Object input, Map<String, Object> staticParameters) {
+		StaticBeanPropertySqlParameterSource(Object input, Map<String, Object> staticParameters) {
 			this.input = new BeanPropertySqlParameterSource(input);
 			this.staticParameters = staticParameters;
 		}

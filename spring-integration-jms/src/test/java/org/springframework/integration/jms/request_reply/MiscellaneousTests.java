@@ -66,18 +66,15 @@ public class MiscellaneousTests {
 
 
 	private void exchange(final CountDownLatch latch, final RequestReplyExchanger gateway, final AtomicInteger replies) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					gateway.exchange(new GenericMessage<String>(""));
-					replies.incrementAndGet();
-				}
-				catch (Exception e) {
-					//ignore
-				}
-				latch.countDown();
+		new Thread(() -> {
+			try {
+				gateway.exchange(new GenericMessage<String>(""));
+				replies.incrementAndGet();
 			}
+			catch (Exception e) {
+				//ignore
+			}
+			latch.countDown();
 		}).start();
 	}
 }

@@ -16,10 +16,8 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -33,7 +31,6 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
@@ -70,14 +67,8 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
-	private final PreparedStatementCreator generatedKeysStatementCreator = new PreparedStatementCreator() {
-
-		@Override
-		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-			return con.prepareStatement(JdbcMessageHandler.this.updateSql, Statement.RETURN_GENERATED_KEYS);
-		}
-
-	};
+	private final PreparedStatementCreator generatedKeysStatementCreator = con ->
+			con.prepareStatement(JdbcMessageHandler.this.updateSql, Statement.RETURN_GENERATED_KEYS);
 
 	private volatile String updateSql;
 
@@ -175,26 +166,20 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		if (keysGenerated) {
 			if (this.preparedStatementSetter != null) {
 				return this.jdbcOperations.getJdbcOperations().execute(this.generatedKeysStatementCreator,
-						new PreparedStatementCallback<List<Map<String, Object>>>() {
+						(PreparedStatementCallback<List<Map<String, Object>>>) ps -> {
+							JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message);
+							ps.executeUpdate();
+							ResultSet keys = ps.getGeneratedKeys();
+							if (keys != null) {
+								try {
 
-							@Override
-							public List<Map<String, Object>> doInPreparedStatement(PreparedStatement ps)
-									throws SQLException {
-								JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message);
-								ps.executeUpdate();
-								ResultSet keys = ps.getGeneratedKeys();
-								if (keys != null) {
-									try {
-
-										return JdbcMessageHandler.this.generatedKeysResultSetExtractor.extractData(keys);
-									}
-									finally {
-										JdbcUtils.closeResultSet(keys);
-									}
+									return JdbcMessageHandler.this.generatedKeysResultSetExtractor.extractData(keys);
 								}
-								return new LinkedList<Map<String, Object>>();
+								finally {
+									JdbcUtils.closeResultSet(keys);
+								}
 							}
-
+							return new LinkedList<Map<String, Object>>();
 						});
 			}
 			else {
@@ -207,14 +192,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 			int updated;
 			if (this.preparedStatementSetter != null) {
 				updated = this.jdbcOperations.getJdbcOperations().update(this.updateSql,
-						new PreparedStatementSetter() {
-
-							@Override
-							public void setValues(PreparedStatement ps) throws SQLException {
-								JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message);
-							}
-
-						});
+						ps -> JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message));
 			}
 			else {
 				updated = this.jdbcOperations.update(this.updateSql, updateParameterSource);

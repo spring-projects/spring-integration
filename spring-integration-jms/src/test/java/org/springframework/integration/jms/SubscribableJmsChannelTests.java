@@ -45,8 +45,6 @@ import org.apache.commons.logging.Log;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -100,20 +98,14 @@ public class SubscribableJmsChannelTests {
 	public void queueReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler1 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList1.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler1 = message -> {
+			receivedList1.add(message);
+			latch.countDown();
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler2 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList2.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler2 = message -> {
+			receivedList2.add(message);
+			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
@@ -141,20 +133,14 @@ public class SubscribableJmsChannelTests {
 	public void topicReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler1 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList1.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler1 = message -> {
+			receivedList1.add(message);
+			latch.countDown();
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler2 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList2.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler2 = message -> {
+			receivedList2.add(message);
+			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
@@ -185,22 +171,14 @@ public class SubscribableJmsChannelTests {
 	public void queueName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler1 = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList1.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler1 = message -> {
+			receivedList1.add(message);
+			latch.countDown();
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler2 = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList2.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler2 = message -> {
+			receivedList2.add(message);
+			latch.countDown();
 		};
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
@@ -233,20 +211,14 @@ public class SubscribableJmsChannelTests {
 	public void topicName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler1 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList1.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler1 = message -> {
+			receivedList1.add(message);
+			latch.countDown();
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageHandler handler2 = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				receivedList2.add(message);
-				latch.countDown();
-			}
+		MessageHandler handler2 = message -> {
+			receivedList2.add(message);
+			latch.countDown();
 		};
 
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
@@ -345,16 +317,12 @@ public class SubscribableJmsChannelTests {
 				channel, "container", AbstractMessageListenerContainer.class);
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation)
-					throws Throwable {
-				String message = (String) invocation.getArguments()[0];
-				if (message.startsWith("Dispatcher has no subscribers")) {
-					logList.add(message);
-				}
-				return null;
+		doAnswer(invocation -> {
+			String message = (String) invocation.getArguments()[0];
+			if (message.startsWith("Dispatcher has no subscribers")) {
+				logList.add(message);
 			}
+			return null;
 		}).when(logger).warn(anyString(), any(Exception.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
 		Object listener = container.getMessageListener();

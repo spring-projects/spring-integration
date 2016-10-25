@@ -174,23 +174,20 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 
 			for (int i = 1000000; i < 1000000 + requests * 100000; i += 100000) {
 				final int y = i;
-				executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							assertEquals(y + offset, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
-							successCounter.incrementAndGet();
-						}
-						catch (MessageTimeoutException e) {
-							timeoutCounter.incrementAndGet();
-						}
-						catch (Throwable t) {
-							t.printStackTrace();
-							failureCounter.incrementAndGet();
-						}
-						finally {
-							latch.countDown();
-						}
+				executor.execute(() -> {
+					try {
+						assertEquals(y + offset, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
+						successCounter.incrementAndGet();
+					}
+					catch (MessageTimeoutException e) {
+						timeoutCounter.incrementAndGet();
+					}
+					catch (Throwable t) {
+						t.printStackTrace();
+						failureCounter.incrementAndGet();
+					}
+					finally {
+						latch.countDown();
 					}
 				});
 			}
