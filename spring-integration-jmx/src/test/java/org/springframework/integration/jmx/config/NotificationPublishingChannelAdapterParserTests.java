@@ -174,6 +174,10 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 	private static class TestData {
 
+		TestData() {
+			super();
+		}
+
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

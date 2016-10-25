@@ -108,6 +108,10 @@ public class MessageMetricsAdviceTests {
 		@SuppressWarnings("unused")
 		boolean invoked = false;
 
+		DummyHandler() {
+			super();
+		}
+
 		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {
 			invoked = true;
@@ -118,6 +122,10 @@ public class MessageMetricsAdviceTests {
 	private static class DummyInterceptor implements MethodInterceptor {
 
 		boolean invoked = false;
+
+		DummyInterceptor() {
+			super();
+		}
 
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {

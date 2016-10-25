@@ -61,7 +61,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
@@ -203,21 +202,10 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
-			return new IdempotentReceiverInterceptor(new MetadataStoreSelector(new MessageProcessor<String>() {
-
-						@Override
-						public String processMessage(Message<?> message) {
-							return message.getPayload().toString();
-						}
-
-					}, new MessageProcessor<String>() {
-
-						@Override
-						public String processMessage(Message<?> message) {
-							return message.getPayload().toString().toUpperCase();
-						}
-
-					}, store()));
+			return new IdempotentReceiverInterceptor(
+					new MetadataStoreSelector(
+							message -> message.getPayload().toString(),
+							message -> message.getPayload().toString().toUpperCase(), store()));
 		}
 
 		@Bean
@@ -234,14 +222,7 @@ public class IdempotentReceiverIntegrationTests {
 		@org.springframework.integration.annotation.Transformer(inputChannel = "input",
 				outputChannel = "output", adviceChain = {"fooAdvice", "idempotentReceiverInterceptor"})
 		public Transformer transformer() {
-			return new Transformer() {
-
-				@Override
-				public Message<?> transform(Message<?> message) {
-					return message;
-				}
-
-			};
+			return message -> message;
 		}
 
 		@Bean
@@ -291,15 +272,10 @@ public class IdempotentReceiverIntegrationTests {
 		@ServiceActivator(inputChannel = "annotatedBeanMessageHandlerChannel2")
 		@IdempotentReceiver("idempotentReceiverInterceptor")
 		public MessageHandler messageHandler2() {
-			return new MessageHandler() {
-
-				@Override
-				public void handleMessage(Message<?> message) throws MessagingException {
-					if (message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)) {
-						throw new MessageHandlingException(message, "duplicate message has been received");
-					}
+			return message -> {
+				if (message.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE)) {
+					throw new MessageHandlingException(message, "duplicate message has been received");
 				}
-
 			};
 		}
 
