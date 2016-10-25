@@ -62,9 +62,17 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 		this.filter = filter;
 	}
 
+	protected FileListFilter<File> getFilter() {
+		return filter;
+	}
+
 	@Override
 	public final void setLocker(FileLocker locker) {
 		this.locker = locker;
+	}
+
+	protected FileLocker getLocker() {
+		return locker;
 	}
 
 	/**
