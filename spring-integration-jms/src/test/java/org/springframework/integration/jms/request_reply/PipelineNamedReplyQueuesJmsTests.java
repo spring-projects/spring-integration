@@ -183,7 +183,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 						timeoutCounter.incrementAndGet();
 					}
 					catch (Throwable t) {
-						t.printStackTrace();
+						logger.error("gateway invocation failed", t);
 						failureCounter.incrementAndGet();
 					}
 					finally {

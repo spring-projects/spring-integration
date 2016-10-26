@@ -397,9 +397,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		try {
 			template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
 		}
-		catch (JmsException e) {
-		}
-		catch (JMSException e) {
+		catch (JmsException | JMSException e) {
 		}
 	}
 

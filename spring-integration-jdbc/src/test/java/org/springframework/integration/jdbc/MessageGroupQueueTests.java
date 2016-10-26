@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -79,7 +80,7 @@ public class MessageGroupQueueTests {
 				messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 		Thread t2 = new Thread(() -> {
@@ -87,7 +88,7 @@ public class MessageGroupQueueTests {
 				queue.offer(new GenericMessage<String>("hello"), 1000, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		t1.start();
@@ -108,7 +109,7 @@ public class MessageGroupQueueTests {
 				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		Thread t2 = new Thread(() -> {
@@ -117,7 +118,7 @@ public class MessageGroupQueueTests {
 				messageHolder.set(queue.poll(1000, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 
@@ -140,7 +141,7 @@ public class MessageGroupQueueTests {
 				messageHolder1.set(queue.poll(10, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 		Thread t2 = new Thread(() -> {
@@ -148,7 +149,7 @@ public class MessageGroupQueueTests {
 				messageHolder2.set(queue.poll(10, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 		Thread t3 = new Thread(() -> {
@@ -156,7 +157,7 @@ public class MessageGroupQueueTests {
 				messageHolder3.set(queue.poll(10, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 		Thread t4 = new Thread(() -> {
@@ -164,7 +165,7 @@ public class MessageGroupQueueTests {
 				queue.offer(new GenericMessage<String>("Hi"), 10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		t1.start();
@@ -193,7 +194,7 @@ public class MessageGroupQueueTests {
 				booleanHolder1.set(queue.offer(new GenericMessage<String>("Hi-1"), 2, TimeUnit.SECONDS));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		Thread t2 = new Thread(() -> {
@@ -202,7 +203,7 @@ public class MessageGroupQueueTests {
 				booleanHolder2.set(offered);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		Thread t3 = new Thread(() -> {
@@ -211,7 +212,7 @@ public class MessageGroupQueueTests {
 				booleanHolder3.set(offered);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		t1.start();
@@ -239,7 +240,7 @@ public class MessageGroupQueueTests {
 				queue.offer(new GenericMessage<String>("Hi"), 1000, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue offer failed", e);
 			}
 		});
 		Thread t2 = new Thread(() -> {
@@ -250,7 +251,7 @@ public class MessageGroupQueueTests {
 				queue.poll(1000, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("queue poll failed", e);
 			}
 		});
 

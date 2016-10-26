@@ -93,14 +93,9 @@ public class MySqlJdbcMessageStoreMultipleChannelTests {
 	@After
 	public void afterTest() {
 		new TransactionTemplate(this.transactionManager).execute(status -> {
-			final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
-			final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
-			final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
-
-			LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
-					"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
-					deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
-
+			this.jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+			this.jdbcTemplate.update("delete from INT_MESSAGE");
+			this.jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
 			return null;
 		});
 	}

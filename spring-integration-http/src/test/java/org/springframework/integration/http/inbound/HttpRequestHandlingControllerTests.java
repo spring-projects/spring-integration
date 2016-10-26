@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -366,7 +367,7 @@ public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests
 				latch1.countDown();
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				LogFactory.getLog(getClass()).error("Async handleRequest failed", e);
 			}
 		});
 		ModelAndView modelAndView = controller.handleRequest(request, response);
