@@ -69,7 +69,7 @@ public class GatewayCompletableFutureProxyFactoryBean extends GatewayProxyFactor
 
 		private final MethodInvocation invocation;
 
-		private Invoker(MethodInvocation methodInvocation) {
+		Invoker(MethodInvocation methodInvocation) {
 			this.invocation = methodInvocation;
 		}
 

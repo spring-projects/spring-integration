@@ -964,9 +964,9 @@ public class AdvisedMessageHandlerTests {
 		pollingTask.call();
 		assertFalse(called.get());
 		assertNotNull(logMessage.get());
-		assertTrue(logMessage.get().endsWith("can only be used for MessageHandlers; " +
+		assertThat(logMessage.get(), Matchers.containsString("can only be used for MessageHandlers; " +
 				"an attempt to advise method 'call' in " +
-				"'org.springframework.integration.endpoint.AbstractPollingEndpoint$1' is ignored"));
+				"'org.springframework.integration.endpoint.AbstractPollingEndpoint"));
 		consumer.stop();
 	}
 

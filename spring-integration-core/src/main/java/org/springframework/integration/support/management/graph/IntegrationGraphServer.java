@@ -267,6 +267,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private final AtomicInteger nodeId = new AtomicInteger();
 
+		NodeFactory() {
+			super();
+		}
+
 		private MessageChannelNode channelNode(String name, MessageChannel channel) {
 			return new MessageChannelNode(this.nodeId.incrementAndGet(), name, channel);
 		}

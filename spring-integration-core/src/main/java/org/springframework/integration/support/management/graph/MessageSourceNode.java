@@ -38,7 +38,7 @@ public class MessageSourceNode extends ErrorCapableEndpointNode {
 
 		private final MessageSourceMetrics source;
 
-		private Stats(MessageSourceMetrics source) {
+		Stats(MessageSourceMetrics source) {
 			this.source = source;
 		}
 

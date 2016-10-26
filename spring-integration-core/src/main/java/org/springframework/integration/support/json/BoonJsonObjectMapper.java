@@ -91,13 +91,7 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 	public Map<String, Object> toJsonNode(final Object value) throws Exception {
 		PipedReader in = new PipedReader();
 		final PipedWriter out = new PipedWriter(in);
-		Executors.newSingleThreadExecutor()
-				.execute(new Runnable() {
-					@Override
-					public void run() {
-						toJson(value, out);
-					}
-				});
+		Executors.newSingleThreadExecutor().execute(() -> toJson(value, out));
 		return (Map<String, Object>) this.slurper.parse(in);
 	}
 

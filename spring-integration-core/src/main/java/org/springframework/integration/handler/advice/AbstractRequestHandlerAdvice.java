@@ -182,9 +182,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	}
 
 	@SuppressWarnings("serial")
-	private final class ThrowableHolderException extends RuntimeException {
+	private static final class ThrowableHolderException extends RuntimeException {
 
-		private ThrowableHolderException(Throwable cause) {
+		ThrowableHolderException(Throwable cause) {
 			super(cause);
 		}
 

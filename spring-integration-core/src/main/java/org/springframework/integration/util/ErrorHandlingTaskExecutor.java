@@ -48,15 +48,12 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 
 	@Override
 	public void execute(final Runnable task) {
-		this.executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					task.run();
-				}
-				catch (Throwable t) { //NOSONAR
-					ErrorHandlingTaskExecutor.this.errorHandler.handleError(t);
-				}
+		this.executor.execute(() -> {
+			try {
+				task.run();
+			}
+			catch (Throwable t) { //NOSONAR
+				ErrorHandlingTaskExecutor.this.errorHandler.handleError(t);
 			}
 		});
 	}

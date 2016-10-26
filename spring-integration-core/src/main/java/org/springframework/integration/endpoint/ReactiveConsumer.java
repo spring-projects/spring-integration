@@ -153,7 +153,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		private Subscription actualSubscription;
 
 
-		private SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
+		SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
 			this.channel = channel;
 		}
 

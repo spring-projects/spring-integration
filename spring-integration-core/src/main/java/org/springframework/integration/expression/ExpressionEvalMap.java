@@ -64,14 +64,7 @@ import org.springframework.util.Assert;
  */
 public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
-	public static final EvaluationCallback SIMPLE_CALLBACK = new EvaluationCallback() {
-
-		@Override
-		public Object evaluate(Expression expression) {
-			return expression.getValue();
-		}
-
-	};
+	public static final EvaluationCallback SIMPLE_CALLBACK = expression -> expression.getValue();
 
 	private final Map<String, ?> original;
 
@@ -187,6 +180,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 * Implementations of this interface can be provided to build 'on demand {@link #get(Object)} logic'
 	 * for {@link ExpressionEvalMap}.
 	 */
+	@FunctionalInterface
 	public interface EvaluationCallback {
 
 		Object evaluate(Expression expression);
@@ -313,7 +307,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 	}
 
-
+	@FunctionalInterface
 	public interface ExpressionEvalMapFinalBuilder {
 
 		ExpressionEvalMap build();

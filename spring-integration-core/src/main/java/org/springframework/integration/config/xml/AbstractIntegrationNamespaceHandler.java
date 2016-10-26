@@ -93,6 +93,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	private class NamespaceHandlerDelegate extends NamespaceHandlerSupport {
 
+		NamespaceHandlerDelegate() {
+			super();
+		}
+
 		@Override
 		public void init() {
 			AbstractIntegrationNamespaceHandler.this.init();

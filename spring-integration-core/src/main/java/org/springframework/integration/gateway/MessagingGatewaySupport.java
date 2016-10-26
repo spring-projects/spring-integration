@@ -563,6 +563,10 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 		private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
+		DefaultRequestMapper() {
+			super();
+		}
+
 		void setMessageBuilderFactory(MessageBuilderFactory messageBuilderFactory) {
 			this.messageBuilderFactory = messageBuilderFactory;
 		}

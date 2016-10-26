@@ -20,10 +20,8 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.MessageHandlingTaskDecorator;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -158,18 +156,13 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 		}
 		getDispatcher().setBeanFactory(this.getBeanFactory());
 
-		getDispatcher().setMessageHandlingTaskDecorator(new MessageHandlingTaskDecorator() {
-
-			@Override
-			public Runnable decorate(MessageHandlingRunnable task) {
-				if (PublishSubscribeChannel.this.executorInterceptorsSize > 0) {
-					return new MessageHandlingTask(task);
-				}
-				else {
-					return task;
-				}
+		getDispatcher().setMessageHandlingTaskDecorator(task -> {
+			if (PublishSubscribeChannel.this.executorInterceptorsSize > 0) {
+				return new MessageHandlingTask(task);
 			}
-
+			else {
+				return task;
+			}
 		});
 	}
 

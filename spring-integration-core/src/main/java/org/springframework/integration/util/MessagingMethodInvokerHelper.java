@@ -914,7 +914,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	@SuppressWarnings("serial")
 	private static final class IneligibleMethodException extends RuntimeException {
 
-		private IneligibleMethodException(String message) {
+		IneligibleMethodException(String message) {
 			super(message);
 		}
 

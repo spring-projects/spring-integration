@@ -89,7 +89,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		private final MessageHandler target;
 
-		private ReplyProducingMessageHandlerWrapper(MessageHandler target) {
+		ReplyProducingMessageHandlerWrapper(MessageHandler target) {
 			this.target = target;
 		}
 

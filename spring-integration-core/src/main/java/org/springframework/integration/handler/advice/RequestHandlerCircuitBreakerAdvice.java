@@ -79,6 +79,10 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 
 		private volatile long lastFailure;
 
+		AdvisedMetadata() {
+			super();
+		}
+
 		private long getLastFailure() {
 			return this.lastFailure;
 		}
@@ -99,7 +103,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 
 		private static final long serialVersionUID = 1L;
 
-		private CircuitBreakerOpenException(String message) {
+		CircuitBreakerOpenException(String message) {
 			super(message);
 		}
 

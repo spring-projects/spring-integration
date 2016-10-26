@@ -325,13 +325,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
 			if (this.asyncExecutor != null) {
-				Callable<String> task = new Callable<String>() {
-
-					@Override
-					public String call() throws Exception {
-						return null;
-					}
-				};
+				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);
 				this.asyncSubmitType = submitType.getClass();
 				if (this.asyncExecutor instanceof AsyncListenableTaskExecutor) {
@@ -661,7 +655,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private static final class MethodInvocationGateway extends MessagingGatewaySupport {
 
-		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
+		MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			this.setRequestMapper(messageMapper);
 		}
 
@@ -672,7 +666,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 		private final MethodInvocation invocation;
 
-		private AsyncInvocationTask(MethodInvocation invocation) {
+		AsyncInvocationTask(MethodInvocation invocation) {
 			this.invocation = invocation;
 		}
 

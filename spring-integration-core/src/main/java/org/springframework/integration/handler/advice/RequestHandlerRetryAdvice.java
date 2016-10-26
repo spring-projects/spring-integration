@@ -48,15 +48,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	// Stateless unless a state generator is provided
-	private volatile RetryStateGenerator retryStateGenerator =
-			new RetryStateGenerator() {
-
-				@Override
-				public RetryState determineRetryState(Message<?> message) {
-					return null;
-				}
-
-			};
+	private volatile RetryStateGenerator retryStateGenerator = message -> null;
 
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
 		Assert.notNull(retryTemplate, "'retryTemplate' cannot be null");
@@ -86,14 +78,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		messageHolder.set(message);
 
 		try {
-			return this.retryTemplate.execute(new RetryCallback<Object, Exception>() {
-
-				@Override
-				public Object doWithRetry(RetryContext context) throws Exception {
-					return callback.cloneAndExecute();
-				}
-
-			}, this.recoveryCallback, retryState);
+			return this.retryTemplate.execute(context -> callback.cloneAndExecute(), this.recoveryCallback, retryState);
 		}
 		catch (MessagingException e) {
 			if (e.getFailedMessage() == null) {

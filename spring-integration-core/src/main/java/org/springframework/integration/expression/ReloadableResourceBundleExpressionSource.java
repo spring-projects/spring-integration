@@ -537,7 +537,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * change detection, and the timestamp of the last refresh attempt
 	 * (updated every time the cache entry gets re-validated).
 	 */
-	private final class PropertiesHolder {
+	private static final class PropertiesHolder {
 
 		private Properties properties;
 
@@ -545,13 +545,13 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 
 		private long refreshTimestamp = -1;
 
-
-		private PropertiesHolder(Properties properties, long fileTimestamp) {
-			this.properties = properties;
-			this.fileTimestamp = fileTimestamp;
+		PropertiesHolder() {
+			super();
 		}
 
-		private PropertiesHolder() {
+		PropertiesHolder(Properties properties, long fileTimestamp) {
+			this.properties = properties;
+			this.fileTimestamp = fileTimestamp;
 		}
 
 		public Properties getProperties() {

@@ -107,26 +107,21 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 			this.gatherEndpoint.afterPropertiesSet();
 		}
 
-		((MessageProducer) this.gatherer).setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageHeaders headers = message.getHeaders();
-				if (headers.containsKey(GATHER_RESULT_CHANNEL)) {
-					Object gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL);
-					if (gatherResultChannel instanceof MessageChannel) {
-						messagingTemplate.send((MessageChannel) gatherResultChannel, message);
-					}
-					else if (gatherResultChannel instanceof String) {
-						messagingTemplate.send((String) gatherResultChannel, message);
-					}
+		((MessageProducer) this.gatherer).setOutputChannel(new FixedSubscriberChannel(message -> {
+			MessageHeaders headers = message.getHeaders();
+			if (headers.containsKey(GATHER_RESULT_CHANNEL)) {
+				Object gatherResultChannel = headers.get(GATHER_RESULT_CHANNEL);
+				if (gatherResultChannel instanceof MessageChannel) {
+					messagingTemplate.send((MessageChannel) gatherResultChannel, message);
 				}
-				else {
-					throw new MessageDeliveryException(message,
-							"The 'gatherResultChannel' header is required to delivery gather result.");
+				else if (gatherResultChannel instanceof String) {
+					messagingTemplate.send((String) gatherResultChannel, message);
 				}
 			}
-
+			else {
+				throw new MessageDeliveryException(message,
+						"The 'gatherResultChannel' header is required to delivery gather result.");
+			}
 		}));
 
 		this.replyChannelRegistry = getBeanFactory()

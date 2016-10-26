@@ -733,6 +733,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private class ForceReleaseMessageGroupProcessor implements MessageGroupProcessor {
 
+		ForceReleaseMessageGroupProcessor() {
+			super();
+		}
+
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			forceComplete(group);
