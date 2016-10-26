@@ -493,15 +493,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
-			if (rename(sourceFile, resultFile)) {
+			try {
+				rename(sourceFile, resultFile);
 				return resultFile;
 			}
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
-						sourceFile.getAbsolutePath()));
+			catch (IOException e) {
+				if (this.logger.isInfoEnabled()) {
+					this.logger.info("Failed to move file '" + sourceFile + "'. Using copy and delete fallback.", e);
+				}
 			}
 		}
-		final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
 		return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
 	}
 
@@ -721,10 +724,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (resultFile.exists()) {
 			if (resultFile.setWritable(true, false) && resultFile.delete()) {
-				if (!rename(tempFile, resultFile)) {
-					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
-							"' to '" + resultFile.getAbsolutePath() + "'");
-				}
+				rename(tempFile, resultFile);
 			}
 			else {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
@@ -733,10 +733,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		else {
-			if (!rename(tempFile, resultFile)) {
-				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
-						"' to '" + resultFile.getAbsolutePath() + "'");
-			}
+			rename(tempFile, resultFile);
 		}
 	}
 
@@ -873,9 +870,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private static boolean rename(File source, File target) throws IOException {
+	private static void rename(File source, File target) throws IOException {
 		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		return true;
 	}
 
 	private static final class FileState {
@@ -886,12 +882,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private volatile long lastWrite;
 
-		private FileState(BufferedWriter writer) {
+		FileState(BufferedWriter writer) {
 			this.writer = writer;
 			this.stream = null;
 		}
 
-		private FileState(BufferedOutputStream stream) {
+		FileState(BufferedOutputStream stream) {
 			this.writer = null;
 			this.stream = stream;
 		}
