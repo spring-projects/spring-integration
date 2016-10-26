@@ -58,7 +58,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -103,9 +102,6 @@ import org.springframework.util.StringUtils;
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, MessageTriggerAction {
-
-	private static final boolean nioFilesPresent = ClassUtils.isPresent("java.nio.file.Files",
-			FileWritingMessageHandler.class.getClassLoader());
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -497,16 +493,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
-			if (rename(sourceFile, resultFile)) {
-				return resultFile;
-			}
-			if (this.logger.isInfoEnabled()) {
-				this.logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
-						sourceFile.getAbsolutePath()));
-			}
+			rename(sourceFile, resultFile);
+			return resultFile;
 		}
-		final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
-		return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+		else {
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+			return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+		}
 	}
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
@@ -725,10 +718,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (resultFile.exists()) {
 			if (resultFile.setWritable(true, false) && resultFile.delete()) {
-				if (!rename(tempFile, resultFile)) {
-					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
-							"' to '" + resultFile.getAbsolutePath() + "'");
-				}
+				rename(tempFile, resultFile);
 			}
 			else {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
@@ -737,10 +727,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		else {
-			if (!rename(tempFile, resultFile)) {
-				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
-						"' to '" + resultFile.getAbsolutePath() + "'");
-			}
+			rename(tempFile, resultFile);
 		}
 	}
 
@@ -839,7 +826,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
-		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
@@ -860,7 +847,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
-		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
@@ -877,13 +864,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private static boolean rename(File source, File target) throws IOException {
-		return (nioFilesPresent && filesMove(source, target)) || source.renameTo(target);
-	}
-
-	private static boolean filesMove(File source, File target) throws IOException {
+	private static void rename(File source, File target) throws IOException {
 		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		return true;
 	}
 
 	private static final class FileState {
@@ -894,12 +876,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private volatile long lastWrite;
 
-		private FileState(BufferedWriter writer) {
+		FileState(BufferedWriter writer) {
 			this.writer = writer;
 			this.stream = null;
 		}
 
-		private FileState(BufferedOutputStream stream) {
+		FileState(BufferedOutputStream stream) {
 			this.writer = null;
 			this.stream = stream;
 		}
@@ -921,12 +903,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private final class Flusher implements Runnable {
 
+		Flusher() {
+			super();
+		}
+
 		@Override
 		public void run() {
 			synchronized (FileWritingMessageHandler.this) {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
-				Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+				Iterator<Entry<String, FileState>> iterator =
+						FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 				while (iterator.hasNext()) {
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
@@ -986,6 +973,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Flushes files where the path matches a pattern, regardless of last write time.
 	 */
 	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
+
+		DefaultFlushPredicate() {
+			super();
+		}
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
