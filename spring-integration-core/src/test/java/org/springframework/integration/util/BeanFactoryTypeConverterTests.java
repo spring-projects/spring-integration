@@ -47,8 +47,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -293,27 +291,21 @@ public class BeanFactoryTypeConverterTests {
 		final AtomicBoolean inGetDefaultEditor = new AtomicBoolean();
 		final AtomicBoolean concurrentlyInGetDefaultEditor = new AtomicBoolean();
 		final AtomicInteger count = new AtomicInteger();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				count.incrementAndGet();
-				Thread.sleep(500);
-				concurrentlyInGetDefaultEditor.set(inGetDefaultEditor.getAndSet(true));
-				Thread.sleep(500);
-				inGetDefaultEditor.set(false);
-				return invocation.callRealMethod();
-			}
+		doAnswer(invocation -> {
+			count.incrementAndGet();
+			Thread.sleep(500);
+			concurrentlyInGetDefaultEditor.set(inGetDefaultEditor.getAndSet(true));
+			Thread.sleep(500);
+			inGetDefaultEditor.set(false);
+			return invocation.callRealMethod();
 		}).when(typeConverter).getDefaultEditor(UUID.class);
 		beanFactoryTypeConverter.setBeanFactory(beanFactory);
 		final TypeDescriptor sourceType = TypeDescriptor.valueOf(UUID.class);
 		final TypeDescriptor targetType = TypeDescriptor.valueOf(String.class);
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		Runnable test = new Runnable() {
-			@Override
-			public void run() {
-				beanFactoryTypeConverter.canConvert(sourceType, targetType);
-				beanFactoryTypeConverter.convertValue(UUID.randomUUID(), sourceType, targetType);
-			}
+		Runnable test = () -> {
+			beanFactoryTypeConverter.canConvert(sourceType, targetType);
+			beanFactoryTypeConverter.convertValue(UUID.randomUUID(), sourceType, targetType);
 		};
 		exec.execute(test);
 		exec.execute(test);

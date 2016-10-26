@@ -28,8 +28,6 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
@@ -40,7 +38,6 @@ import org.springframework.integration.test.util.TestUtils.TestApplicationContex
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -96,13 +93,9 @@ public class MessagingGatewayTests {
 
 	@Test
 	public void sendObject() {
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
-				return true;
-			}
+		Mockito.doAnswer(invocation -> {
+			assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
+			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 
 		this.messagingGateway.send("test");
@@ -111,13 +104,9 @@ public class MessagingGatewayTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void sendObject_failure() {
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
-				return false;
-			}
+		Mockito.doAnswer(invocation -> {
+			assertEquals("test", ((Message<?>) invocation.getArguments()[0]).getPayload());
+			return false;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.eq(1000L));
 
 		this.messagingGateway.send("test");
@@ -151,15 +140,11 @@ public class MessagingGatewayTests {
 	public void sendObjectAndReceiveObject() {
 		Mockito.when(replyChannel.receive(100L)).thenReturn(messageMock);
 		Mockito.when(messageMock.getPayload()).thenReturn("test");
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-				return true;
-			}
+		Mockito.doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
+			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
 		// TODO: if timeout is 0, this will fail occasionally
@@ -177,15 +162,11 @@ public class MessagingGatewayTests {
 		Mockito.when(messageMock.getHeaders()).thenReturn(messageHeadersMock);
 		Mockito.when(messageMock.getPayload()).thenReturn("foo");
 
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-				return true;
-			}
+		Mockito.doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
+			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
 		this.messagingGateway.setReplyTimeout(0);
@@ -202,15 +183,11 @@ public class MessagingGatewayTests {
 	public void sendObjectAndReceiveMessage() {
 		Mockito.when(messageMock.getPayload()).thenReturn("foo");
 		Mockito.when(replyChannel.receive(100L)).thenReturn(messageMock);
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(messageMock);
-				return true;
-			}
+		Mockito.doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(messageMock);
+			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
 		this.messagingGateway.setReplyTimeout(100L);
@@ -227,15 +204,11 @@ public class MessagingGatewayTests {
 		Mockito.when(replyChannel.receive(Mockito.anyLong())).thenReturn(messageMock);
 		Mockito.when(messageMock.getHeaders()).thenReturn(messageHeadersMock);
 		Mockito.when(messageMock.getPayload()).thenReturn("foo");
-		Mockito.doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(messageMock);
-				return true;
-			}
+		Mockito.doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(messageMock);
+			return true;
 		}).when(requestChannel).send(Mockito.any(Message.class), Mockito.anyLong());
 
 		Message<?> receiveMessage = this.messagingGateway.sendAndReceiveMessage(messageMock);
@@ -251,11 +224,8 @@ public class MessagingGatewayTests {
 	@Test(expected = MessagingException.class)
 	public void validateErroMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
-		reqChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("ooops");
-			}
+		reqChannel.subscribe(message -> {
+			throw new RuntimeException("ooops");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyErrorService());
@@ -279,11 +249,8 @@ public class MessagingGatewayTests {
 	@Test
 	public void validateErrorChannelWithSuccessfulReply() {
 		DirectChannel reqChannel = new DirectChannel();
-		reqChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("ooops");
-			}
+		reqChannel.subscribe(message -> {
+			throw new RuntimeException("ooops");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyOneWayErrorService());
@@ -302,15 +269,20 @@ public class MessagingGatewayTests {
 
 		this.messagingGateway.send("hello");
 	}
+
 	public static class MyErrorService {
+
 		public Message<?> handleErrorMessage(Message<?> errorMessage) {
 			return errorMessage;
 		}
+
 	}
 
 	public static class MyOneWayErrorService {
+
 		public void handleErrorMessage(Message<?> errorMessage) {
 		}
+
 	}
 
 }

@@ -50,8 +50,6 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -59,7 +57,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -69,15 +66,12 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryState;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.retry.support.RetryTemplate;
@@ -85,7 +79,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.ErrorHandler;
 
 /**
  * @author Gary Russell
@@ -511,13 +504,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-		advice.setRetryStateGenerator(new RetryStateGenerator() {
-
-			@Override
-			public RetryState determineRetryState(Message<?> message) {
-				return new DefaultRetryState(message.getHeaders().getId());
-			}
-		});
+		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -558,13 +545,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setOutputChannel(replies);
 		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
 
-		advice.setRetryStateGenerator(new RetryStateGenerator() {
-
-			@Override
-			public RetryState determineRetryState(Message<?> message) {
-				return new DefaultRetryState(message.getHeaders().getId());
-			}
-		});
+		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
 
 		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
 
@@ -595,14 +576,7 @@ public class AdvisedMessageHandlerTests {
 
 	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
 			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
-		advice.setRecoveryCallback(new RecoveryCallback<Object>() {
-
-			@Override
-			public Object recover(RetryContext context) throws Exception {
-				return "baz";
-			}
-
-		});
+		advice.setRecoveryCallback(context -> "baz");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -707,13 +681,9 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
-		adviceChain.add(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				counter.getAndDecrement();
-				throw new RuntimeException("intentional");
-			}
+		adviceChain.add((MethodInterceptor) invocation -> {
+			counter.getAndDecrement();
+			throw new RuntimeException("intentional");
 		});
 
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -765,12 +735,8 @@ public class AdvisedMessageHandlerTests {
 		});
 		adviceChain.add(expressionAdvice);
 		adviceChain.add(new RequestHandlerRetryAdvice());
-		adviceChain.add(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				throw new RuntimeException("intentional: " + counter.incrementAndGet());
-			}
+		adviceChain.add((MethodInterceptor) invocation -> {
+			throw new RuntimeException("intentional: " + counter.incrementAndGet());
 		});
 
 		handler.setAdviceChain(adviceChain);
@@ -808,12 +774,8 @@ public class AdvisedMessageHandlerTests {
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
 		adviceChain.add(expressionAdvice);
-		adviceChain.add(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				throw new RuntimeException("intentional: " + counter.incrementAndGet());
-			}
+		adviceChain.add((MethodInterceptor) invocation -> {
+			throw new RuntimeException("intentional: " + counter.incrementAndGet());
 		});
 
 		handler.setAdviceChain(adviceChain);
@@ -866,12 +828,8 @@ public class AdvisedMessageHandlerTests {
 		when(methodInvocation.getMethod()).thenReturn(method);
 		when(methodInvocation.getArguments()).thenReturn(new Object[] { new GenericMessage<String>("foo") });
 		try {
-			doAnswer(new Answer<Object>() {
-
-				@Override
-				public Object answer(InvocationOnMock invocation) throws Throwable {
-					throw theThrowable;
-				}
+			doAnswer(invocation -> {
+				throw theThrowable;
 			}).when(methodInvocation).proceed();
 			advice.invoke(methodInvocation);
 			fail("Expected throwable");
@@ -924,21 +882,9 @@ public class AdvisedMessageHandlerTests {
 			}
 		};
 		PollableChannel inputChannel = new QueueChannel();
-		PollingConsumer consumer = new PollingConsumer(inputChannel, new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-			}
-		});
+		PollingConsumer consumer = new PollingConsumer(inputChannel, message -> { });
 		consumer.setAdviceChain(Collections.singletonList(advice));
-		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(
-				Executors.newSingleThreadExecutor(),
-				new ErrorHandler() {
-
-					@Override
-					public void handleError(Throwable t) {
-					}
-				}));
+		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(Executors.newSingleThreadExecutor(), t -> { }));
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
@@ -950,13 +896,9 @@ public class AdvisedMessageHandlerTests {
 		logger = spy(logger);
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
 		final AtomicReference<String> logMessage = new AtomicReference<String>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				logMessage.set((String) invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			logMessage.set((String) invocation.getArguments()[0]);
+			return null;
 		}).when(logger).warn(Mockito.anyString());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(advice);
 		accessor.setPropertyValue("logger", logger);
@@ -971,13 +913,7 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	public void filterDiscardNoAdvice() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-
-			@Override
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		filter.handleMessage(new GenericMessage<String>("foo"));
@@ -986,13 +922,7 @@ public class AdvisedMessageHandlerTests {
 
 	@Test
 	public void filterDiscardWithinAdvice() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-
-			@Override
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		List<Advice> adviceChain = new ArrayList<Advice>();
@@ -1016,13 +946,7 @@ public class AdvisedMessageHandlerTests {
 
 	@Test
 	public void filterDiscardOutsideAdvice() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-
-			@Override
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
 		List<Advice> adviceChain = new ArrayList<Advice>();

@@ -59,11 +59,9 @@ public class ThreadLocalChannelParserTests {
 		simpleChannel.send(new GenericMessage<String>("test"));
 		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
 		final CountDownLatch latch = new CountDownLatch(1);
-		otherThreadExecutor.execute(new Runnable() {
-			public void run() {
-				simpleChannel.send(new GenericMessage<String>("crap"));
-				latch.countDown();
-			}
+		otherThreadExecutor.execute(() -> {
+			simpleChannel.send(new GenericMessage<String>("crap"));
+			latch.countDown();
 		});
 		latch.await(1, TimeUnit.SECONDS);
 		assertEquals("test", simpleChannel.receive(10).getPayload());
@@ -81,17 +79,13 @@ public class ThreadLocalChannelParserTests {
 		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
 		final List<Object> otherThreadResults = new ArrayList<Object>();
 		final CountDownLatch latch = new CountDownLatch(2);
-		otherThreadExecutor.execute(new Runnable() {
-			public void run() {
-				otherThreadResults.add(simpleChannel.receive(0));
-				latch.countDown();
-			}
+		otherThreadExecutor.execute(() -> {
+			otherThreadResults.add(simpleChannel.receive(0));
+			latch.countDown();
 		});
-		otherThreadExecutor.execute(new Runnable() {
-			public void run() {
-				otherThreadResults.add(channelWithInterceptor.receive(0));
-				latch.countDown();
-			}
+		otherThreadExecutor.execute(() -> {
+			otherThreadResults.add(channelWithInterceptor.receive(0));
+			latch.countDown();
 		});
 		latch.await(1, TimeUnit.SECONDS);
 		assertEquals(2, otherThreadResults.size());

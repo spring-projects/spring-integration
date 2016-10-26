@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -201,13 +202,7 @@ public class DelegatingConsumerParserTests {
 	public static class MyFilter extends MessageFilter {
 
 		public MyFilter() {
-			super(new MessageSelector() {
-
-				@Override
-				public boolean accept(Message<?> message) {
-					return true;
-				}
-			});
+			super(message -> true);
 		}
 
 	}

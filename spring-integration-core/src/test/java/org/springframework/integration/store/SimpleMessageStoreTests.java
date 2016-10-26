@@ -107,14 +107,9 @@ public class SimpleMessageStoreTests {
 
 		final CountDownLatch message2Latch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				store2.addMessage(testMessage2);
-				message2Latch.countDown();
-			}
-
+		Executors.newSingleThreadExecutor().execute(() -> {
+			store2.addMessage(testMessage2);
+			message2Latch.countDown();
 		});
 		// Simulate a blocked consumer
 		Thread.sleep(10);
@@ -155,14 +150,9 @@ public class SimpleMessageStoreTests {
 
 		final CountDownLatch message2Latch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				store2.addMessageToGroup("foo", testMessage2);
-				message2Latch.countDown();
-			}
-
+		Executors.newSingleThreadExecutor().execute(() -> {
+			store2.addMessageToGroup("foo", testMessage2);
+			message2Latch.countDown();
 		});
 		// Simulate a blocked consumer
 		Thread.sleep(10);
@@ -264,13 +254,7 @@ public class SimpleMessageStoreTests {
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList(new MessageGroupStore.MessageGroupCallback() {
-
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-			}
-
-		}));
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList((messageGroupStore, group) -> { }));
 		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
 	}
 
@@ -279,14 +263,9 @@ public class SimpleMessageStoreTests {
 
 		SimpleMessageStore store = new SimpleMessageStore();
 		final List<String> list = new ArrayList<String>();
-		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				list.add(group.getOne().getPayload().toString());
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
-
+		store.registerMessageGroupExpiryCallback((messageGroupStore, group) -> {
+			list.add(group.getOne().getPayload().toString());
+			messageGroupStore.removeMessageGroup(group.getGroupId());
 		});
 
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();

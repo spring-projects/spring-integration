@@ -35,11 +35,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,8 +46,6 @@ import org.apache.commons.logging.Log;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
@@ -103,6 +99,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -115,7 +112,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.support.CronTrigger;
@@ -294,15 +290,10 @@ public class EnableIntegrationTests {
 		Log logger = spy(TestUtils.getPropertyValue(this.serviceActivatorEndpoint, "logger", Log.class));
 		when(logger.isDebugEnabled()).thenReturn(true);
 		final CountDownLatch pollerInterruptedLatch = new CountDownLatch(1);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				pollerInterruptedLatch.countDown();
-				invocation.callRealMethod();
-				return null;
-			}
-
+		doAnswer(invocation -> {
+			pollerInterruptedLatch.countDown();
+			invocation.callRealMethod();
+			return null;
 		}).when(logger).debug("Received no Message during the poll, returning 'false'");
 		new DirectFieldAccessor(this.serviceActivatorEndpoint).setPropertyValue("logger", logger);
 
@@ -719,15 +710,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public Trigger onlyOnceTrigger() {
-			return new Trigger() {
-
-				private final AtomicBoolean invoked = new AtomicBoolean();
-
-				@Override
-				public Date nextExecutionTime(TriggerContext triggerContext) {
-					return this.invoked.getAndSet(true) ? null : new Date();
-				}
-			};
+			return new OnlyOnceTrigger();
 		}
 
 		@Bean

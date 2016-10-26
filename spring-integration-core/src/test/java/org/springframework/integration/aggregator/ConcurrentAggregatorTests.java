@@ -341,6 +341,10 @@ public class ConcurrentAggregatorTests {
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
 
+		MultiplyingProcessor() {
+			super();
+		}
+
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
@@ -355,6 +359,10 @@ public class ConcurrentAggregatorTests {
 
 	@SuppressWarnings("unused")
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
+
+		NullReturningMessageProcessor() {
+			super();
+		}
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {

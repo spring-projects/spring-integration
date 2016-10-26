@@ -53,18 +53,13 @@ public class ForeignClassloaderTests {
 	 */
 	@Test
 	public void testThreadHasWrongClassLoader() {
-		Thread t = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					foo.send(new GenericMessage<String>("foo"));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+		Thread t = new Thread(() -> {
+			try {
+				foo.send(new GenericMessage<String>("foo"));
 			}
-
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 		});
 		t.setContextClassLoader(new ClassLoader() {
 

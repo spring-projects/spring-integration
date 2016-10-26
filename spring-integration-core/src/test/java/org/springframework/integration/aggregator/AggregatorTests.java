@@ -40,8 +40,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -51,10 +49,8 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
@@ -79,19 +75,7 @@ public class AggregatorTests {
 	public void configureAggregator() {
 		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 		this.aggregator.setBeanFactory(mock(BeanFactory.class));
-		this.aggregator.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				expiryEvents.add((MessageGroupExpiredEvent) event);
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
-		});
+		this.aggregator.setApplicationEventPublisher(event -> expiryEvents.add((MessageGroupExpiredEvent) event));
 		this.aggregator.setBeanName("testAggregator");
 		this.aggregator.afterPropertiesSet();
 		expiryEvents.clear();
@@ -100,14 +84,7 @@ public class AggregatorTests {
 	@Test
 	public void testAggPerf() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
-		handler.setCorrelationStrategy(new CorrelationStrategy() {
-
-			@Override
-			public Object getCorrelationKey(Message<?> message) {
-				return "foo";
-			}
-
-		});
+		handler.setCorrelationStrategy(message -> "foo");
 		handler.setReleaseStrategy(new MessageCountReleaseStrategy(60000));
 		handler.setExpireGroupsUponCompletion(true);
 		handler.setSendPartialResultOnExpiry(true);
@@ -115,15 +92,10 @@ public class AggregatorTests {
 		handler.setOutputChannel(outputChannel);
 
 		final CompletableFuture<Collection<?>> resultFuture = new CompletableFuture<>();
-		outputChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				Collection<?> payload = (Collection<?>) message.getPayload();
-				logger.warn("Received " + payload.size());
-				resultFuture.complete(payload);
-			}
-
+		outputChannel.subscribe(message -> {
+			Collection<?> payload = (Collection<?>) message.getPayload();
+			logger.warn("Received " + payload.size());
+			resultFuture.complete(payload);
 		});
 
 		SimpleMessageStore store = new SimpleMessageStore();
@@ -200,15 +172,10 @@ public class AggregatorTests {
 		CustomHandler handler = new CustomHandler(outputChannel);
 
 		final CompletableFuture<Collection<?>> resultFuture = new CompletableFuture<>();
-		outputChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				Collection<?> payload = (Collection<?>) message.getPayload();
-				logger.warn("Received " + payload.size());
-				resultFuture.complete(payload);
-			}
-
+		outputChannel.subscribe(message -> {
+			Collection<?> payload = (Collection<?>) message.getPayload();
+			logger.warn("Received " + payload.size());
+			resultFuture.complete(payload);
 		});
 		Message<?> message = new GenericMessage<String>("foo");
 		StopWatch stopwatch = new StopWatch();
@@ -441,6 +408,11 @@ public class AggregatorTests {
 
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
+
+		MultiplyingProcessor() {
+			super();
+		}
+
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;

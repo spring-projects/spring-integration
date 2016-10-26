@@ -25,8 +25,6 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -61,12 +59,10 @@ public class PublishingInterceptorParserTests {
 	public void validateDefaultChannelPublishing() {
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
 		defaultChannel.subscribe(handler);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				assertEquals("hello", message.getPayload());
-				return null;
-			}
+		doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			assertEquals("hello", message.getPayload());
+			return null;
 		}).when(handler).handleMessage((Message<?>) anyObject());
 		testBean.echoDefaultChannel("hello");
 		verify(handler, times(1)).handleMessage((Message<?>) anyObject());
@@ -76,13 +72,11 @@ public class PublishingInterceptorParserTests {
 	public void validateEchoChannelPublishing() {
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
 		echoChannel.subscribe(handler);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) {
-				Message<?> message = (Message<?>) invocation.getArguments()[0];
-				assertEquals("bar", message.getHeaders().get("foo"));
-				assertEquals("Echoing: hello", message.getPayload());
-				return null;
-			}
+		doAnswer(invocation -> {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			assertEquals("bar", message.getHeaders().get("foo"));
+			assertEquals("Echoing: hello", message.getPayload());
+			return null;
 		}).when(handler).handleMessage((Message<?>) anyObject());
 		testBean.echo("hello");
 		verify(handler, times(1)).handleMessage((Message<?>) anyObject());

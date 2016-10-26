@@ -63,45 +63,34 @@ public class AbstractCorrelatingMessageHandlerTests {
 		final CountDownLatch waitForSendLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapStartLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapCompleteLatch = new CountDownLatch(1);
-		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(
-				new MessageGroupProcessor() {
-
-					@Override
-					public Object processMessageGroup(MessageGroup group) {
-						return group;
-					}
-				}, groupStore) {
+		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
 
 			@Override
 			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
 			}
+
 		};
 		handler.setReleasePartialSequences(true);
 
 		/*
 		 * Runs "reap" when group 'bar' is in completion
 		 */
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					waitReapStartLatch.await(10, TimeUnit.SECONDS);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				waitForSendLatch.countDown();
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				groupStore.expireMessageGroups(50);
-				waitReapCompleteLatch.countDown();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				waitReapStartLatch.await(10, TimeUnit.SECONDS);
 			}
-
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			waitForSendLatch.countDown();
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e2) {
+				Thread.currentThread().interrupt();
+			}
+			groupStore.expireMessageGroups(50);
+			waitReapCompleteLatch.countDown();
 		});
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
@@ -133,14 +122,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				return this.send(message, 0);
 			}
 		});
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return group.size() == 2;
-			}
-
-		});
+		handler.setReleaseStrategy(group -> group.size() == 2);
 
 		QueueChannel discards = new QueueChannel();
 		handler.setDiscardChannel(discards);
@@ -175,15 +157,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	@Test // INT-2833
 	public void testReaperReapsAnEmptyGroup() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
-		AggregatingMessageHandler handler = new AggregatingMessageHandler(
-				new MessageGroupProcessor() {
-
-					@Override
-					public Object processMessageGroup(MessageGroup group) {
-						return group;
-					}
-				}, groupStore) {
-		};
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
 		handler.setOutputChannel(new MessageChannel() {
@@ -202,13 +176,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				return this.send(message, 0);
 			}
 		});
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return group.size() == 1;
-			}
-		});
+		handler.setReleaseStrategy(group -> group.size() == 1);
 
 		Message<String>	message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
@@ -225,15 +193,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	@Test // INT-2833
 	public void testReaperReapsAnEmptyGroupAfterConfiguredDelay() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
-		AggregatingMessageHandler handler = new AggregatingMessageHandler(
-				new MessageGroupProcessor() {
-
-					@Override
-					public Object processMessageGroup(MessageGroup group) {
-						return group;
-					}
-				}, groupStore) {
-		};
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
 		handler.setOutputChannel(new MessageChannel() {
@@ -252,13 +212,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				return this.send(message, 0);
 			}
 		});
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return group.size() == 1;
-			}
-		});
+		handler.setReleaseStrategy(group -> group.size() == 1);
 
 		handler.setMinimumTimeoutForEmptyGroups(1000);
 
@@ -281,12 +235,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	public void testReapWithChangeInSameMillisecond() throws Exception {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return true;
-			}
-		});
+		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
@@ -312,14 +261,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	public void testDontReapIfAlreadyComplete() throws Exception {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return true;
-			}
-
-		});
+		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
@@ -345,14 +287,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	public void testDontReapIfAlreadyCompleteAfterRefetch() throws Exception {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return true;
-			}
-
-		});
+		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
@@ -381,14 +316,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	public void testDontReapIfNewGroupFoundDuringRefetch() throws Exception {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return true;
-			}
-
-		});
+		handler.setReleaseStrategy(group -> true);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
@@ -418,14 +346,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setOutputChannel(new QueueChannel());
 		QueueChannel discardChannel = new QueueChannel();
 		handler.setDiscardChannel(discardChannel);
-		handler.setReleaseStrategy(new ReleaseStrategy() {
-
-			@Override
-			public boolean canRelease(MessageGroup group) {
-				return true;
-			}
-
-		});
+		handler.setReleaseStrategy(group -> true);
 		handler.setExpireGroupsUponTimeout(false);
 		SimpleMessageStore messageStore = new SimpleMessageStore() {
 			@Override
@@ -447,16 +368,11 @@ public class AbstractCorrelatingMessageHandlerTests {
 			//suppress an intentional 'removeMessageGroup' exception
 		}
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		executorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				handler.handleMessage(MessageBuilder.withPayload("foo")
-						.setCorrelationId(1)
-						.setSequenceNumber(2)
-						.setSequenceSize(2)
-						.build());
-			}
-		});
+		executorService.execute(() -> handler.handleMessage(MessageBuilder.withPayload("foo")
+				.setCorrelationId(1)
+				.setSequenceNumber(2)
+				.setSequenceSize(2)
+				.build()));
 		executorService.shutdown();
 		/* Previously lock for the groupId hasn't been unlocked from the 'forceComplete', because it wasn't
 		 reachable in case of exception from the BasicMessageGroupStore.removeMessageGroup

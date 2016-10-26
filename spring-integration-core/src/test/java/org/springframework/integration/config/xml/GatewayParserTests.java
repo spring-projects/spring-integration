@@ -349,40 +349,37 @@ public class GatewayParserTests {
 	}
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> request = requestChannel.receive(60000);
-				assertNotNull("Request not received", request);
-				Message<?> reply = MessageBuilder.fromMessage(request)
-						.setCorrelationId(request.getHeaders().getId()).build();
-				Object payload = null;
-				if (request.getPayload().equals("futureSync")) {
-					payload = new AsyncResult<Message<?>>(reply);
-				}
-				else if (request.getPayload().equals("flowCompletable")) {
-					payload = CompletableFuture.<String>completedFuture("SYNC_COMPLETABLE");
-				}
-				else if (request.getPayload().equals("flowCustomCompletable")) {
-					MyCompletableFuture myCompletableFuture = new MyCompletableFuture();
-					myCompletableFuture.complete("SYNC_CUSTOM_COMPLETABLE");
-					payload = myCompletableFuture;
-				}
-				else if (request.getPayload().equals("flowCompletableM")) {
-					payload = CompletableFuture.<Message<?>>completedFuture(reply);
-				}
-				else if (request.getPayload().equals("flowCustomCompletableM")) {
-					MyCompletableMessageFuture myCompletableFuture = new MyCompletableMessageFuture();
-					myCompletableFuture.complete(reply);
-					payload = myCompletableFuture;
-				}
-				if (payload != null) {
-					reply = MessageBuilder.withPayload(payload)
-							.copyHeaders(reply.getHeaders())
-							.build();
-				}
-				replyChannel.send(reply);
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Message<?> request = requestChannel.receive(60000);
+			assertNotNull("Request not received", request);
+			Message<?> reply = MessageBuilder.fromMessage(request)
+					.setCorrelationId(request.getHeaders().getId()).build();
+			Object payload = null;
+			if (request.getPayload().equals("futureSync")) {
+				payload = new AsyncResult<Message<?>>(reply);
 			}
+			else if (request.getPayload().equals("flowCompletable")) {
+				payload = CompletableFuture.<String>completedFuture("SYNC_COMPLETABLE");
+			}
+			else if (request.getPayload().equals("flowCustomCompletable")) {
+				MyCompletableFuture myCompletableFuture1 = new MyCompletableFuture();
+				myCompletableFuture1.complete("SYNC_CUSTOM_COMPLETABLE");
+				payload = myCompletableFuture1;
+			}
+			else if (request.getPayload().equals("flowCompletableM")) {
+				payload = CompletableFuture.<Message<?>>completedFuture(reply);
+			}
+			else if (request.getPayload().equals("flowCustomCompletableM")) {
+				MyCompletableMessageFuture myCompletableFuture2 = new MyCompletableMessageFuture();
+				myCompletableFuture2.complete(reply);
+				payload = myCompletableFuture2;
+			}
+			if (payload != null) {
+				reply = MessageBuilder.withPayload(payload)
+						.copyHeaders(reply.getHeaders())
+						.build();
+			}
+			replyChannel.send(reply);
 		});
 	}
 

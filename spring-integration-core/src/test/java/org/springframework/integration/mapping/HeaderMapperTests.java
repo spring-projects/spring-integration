@@ -454,7 +454,7 @@ public class HeaderMapperTests {
 	private static class GenericTestHeaderMapper extends AbstractHeaderMapper<GenericTestProperties> {
 
 
-		private GenericTestHeaderMapper() {
+		GenericTestHeaderMapper() {
 			super(GenericTestHeaders.PREFIX,
 					Arrays.asList(GenericTestHeaders.APP_ID, GenericTestHeaders.TRANSACTION_SIZE,
 							GenericTestHeaders.REDELIVERED, GenericTestHeaders.REQUEST_ONLY),
@@ -535,7 +535,8 @@ public class HeaderMapperTests {
 
 		private final Map<String, Object> userDefinedHeaders = new HashMap<String, Object>();
 
-		private GenericTestProperties() {
+		GenericTestProperties() {
+			super();
 		}
 
 		public String getAppId() {

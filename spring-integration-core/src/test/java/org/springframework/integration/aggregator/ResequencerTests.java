@@ -113,12 +113,7 @@ public class ResequencerTests {
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
-		this.resequencer.setCorrelationStrategy(new CorrelationStrategy() {
-			@Override
-			public Object getCorrelationKey(Message<?> message) {
-				return "A";
-			}
-		});
+		this.resequencer.setCorrelationStrategy(message -> "A");
 		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
 

@@ -43,7 +43,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  *
  */
-public class AnotatedTests {
+public class AnnotatedTests {
 
 	@Test
 	public void testHistoryWithAnnotatedComponents() throws Exception {

@@ -56,6 +56,11 @@ public class PayloadTransformerTests {
 
 	private static class TestPayloadTransformer extends AbstractPayloadTransformer<String, Integer> {
 
+		TestPayloadTransformer() {
+			super();
+		}
+
+		@Override
 		public Integer transformPayload(String s) throws Exception {
 			if (s.equals("bad")) {
 				throw new Exception("bad input!");

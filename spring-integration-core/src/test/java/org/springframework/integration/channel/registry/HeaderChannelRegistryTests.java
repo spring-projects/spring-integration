@@ -36,8 +36,6 @@ import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -226,12 +224,8 @@ public class HeaderChannelRegistryTests {
 		when(beanFactory.getBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
 						HeaderChannelRegistry.class))
 			.thenReturn(mock(HeaderChannelRegistry.class));
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				throw new NoSuchBeanDefinitionException("bar");
-			}
+		doAnswer(invocation -> {
+			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
 		resolver.setBeanFactory(beanFactory);
 		try {
@@ -248,12 +242,8 @@ public class HeaderChannelRegistryTests {
 	public void testBFCRNoRegistry() {
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver();
 		BeanFactory beanFactory = mock(BeanFactory.class);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				throw new NoSuchBeanDefinitionException("bar");
-			}
+		doAnswer(invocation -> {
+			throw new NoSuchBeanDefinitionException("bar");
 		}).when(beanFactory).getBean("foo", MessageChannel.class);
 		resolver.setBeanFactory(beanFactory);
 		try {

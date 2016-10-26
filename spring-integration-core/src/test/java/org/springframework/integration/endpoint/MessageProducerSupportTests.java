@@ -35,8 +35,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -53,11 +51,8 @@ public class MessageProducerSupportTests {
 	public void validateExceptionIfNoErrorChannel() {
 		DirectChannel outChannel = new DirectChannel();
 
-		outChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("problems");
-			}
+		outChannel.subscribe(message -> {
+			throw new RuntimeException("problems");
 		});
 		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannel(outChannel);
@@ -70,18 +65,12 @@ public class MessageProducerSupportTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void validateExceptionIfSendToErrorChannelFails() {
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("problems");
-			}
+		outChannel.subscribe(message -> {
+			throw new RuntimeException("problems");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
-		errorChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("ooops");
-			}
+		errorChannel.subscribe(message -> {
+			throw new RuntimeException("ooops");
 		});
 		MessageProducerSupport mps = new MessageProducerSupport() { };
 		mps.setOutputChannel(outChannel);
@@ -95,11 +84,8 @@ public class MessageProducerSupportTests {
 	@Test
 	public void validateSuccessfulErrorFlowDoesNotThrowErrors() {
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				throw new RuntimeException("problems");
-			}
+		outChannel.subscribe(message -> {
+			throw new RuntimeException("problems");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		SuccessfulErrorService errorService = new SuccessfulErrorService();
@@ -143,11 +129,8 @@ public class MessageProducerSupportTests {
 		assertTrue(endpoint.isStopped());
 		endpoint.start();
 		assertFalse(endpoint.isStopped());
-		endpoint.stop(new Runnable() {
-			@Override
-			public void run() {
-				// Do nothing
-			}
+		endpoint.stop(() -> {
+			// Do nothing
 		});
 		assertEquals(1, endpoint.getCount());
 		assertTrue(endpoint.isStopped());
@@ -156,6 +139,10 @@ public class MessageProducerSupportTests {
 	private static class SuccessfulErrorService {
 
 		private volatile Message<?> lastMessage;
+
+		SuccessfulErrorService() {
+			super();
+		}
 
 		@SuppressWarnings("unused")
 		public void handleErrorMessage(Message<?> errorMessage) {
@@ -166,7 +153,12 @@ public class MessageProducerSupportTests {
 	private static class CustomEndpoint extends AbstractEndpoint {
 
 		private final AtomicInteger count = new AtomicInteger(0);
+
 		private final AtomicBoolean stopped = new AtomicBoolean(true);
+
+		CustomEndpoint() {
+			super();
+		}
 
 		public int getCount() {
 			return this.count.get();

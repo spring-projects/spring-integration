@@ -49,14 +49,11 @@ public class QueueChannelTests {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> message = channel.receive();
-				if (message != null) {
-					messageReceived.set(true);
-					latch.countDown();
-				}
+		new Thread(() -> {
+			Message<?> message = channel.receive();
+			if (message != null) {
+				messageReceived.set(true);
+				latch.countDown();
 			}
 		}).start();
 		assertFalse(messageReceived.get());
@@ -72,35 +69,24 @@ public class QueueChannelTests {
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
-		Runnable receiveTask1 = new Runnable() {
-			@Override
-			public void run() {
-				Message<?> message = channel.receive(0);
-				if (message != null) {
-					messageReceived.set(true);
-				}
-				latch1.countDown();
+		Runnable receiveTask1 = () -> {
+			Message<?> message = channel.receive(0);
+			if (message != null) {
+				messageReceived.set(true);
 			}
+			latch1.countDown();
 		};
-		Runnable sendTask = new Runnable() {
-			@Override
-			public void run() {
-				channel.send(new GenericMessage<String>("testing"));
-			}
-		};
+		Runnable sendTask = () -> channel.send(new GenericMessage<String>("testing"));
 		singleThreadExecutor.execute(receiveTask1);
 		latch1.await();
 		singleThreadExecutor.execute(sendTask);
 		assertFalse(messageReceived.get());
-		Runnable receiveTask2 = new Runnable() {
-			@Override
-			public void run() {
-				Message<?> message = channel.receive(0);
-				if (message != null) {
-					messageReceived.set(true);
-				}
-				latch2.countDown();
+		Runnable receiveTask2 = () -> {
+			Message<?> message = channel.receive(0);
+			if (message != null) {
+				messageReceived.set(true);
 			}
+			latch2.countDown();
 		};
 		singleThreadExecutor.execute(receiveTask2);
 		latch2.await();
@@ -112,14 +98,11 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> message = channel.receive();
-				receiveInterrupted.set(true);
-				assertTrue(message == null);
-				latch.countDown();
-			}
+		Thread t = new Thread(() -> {
+			Message<?> message = channel.receive();
+			receiveInterrupted.set(true);
+			assertTrue(message == null);
+			latch.countDown();
 		});
 		t.start();
 		assertFalse(receiveInterrupted.get());
@@ -133,14 +116,11 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> message = channel.receive(10000);
-				receiveInterrupted.set(true);
-				assertTrue(message == null);
-				latch.countDown();
-			}
+		Thread t = new Thread(() -> {
+			Message<?> message = channel.receive(10000);
+			receiveInterrupted.set(true);
+			assertTrue(message == null);
+			latch.countDown();
 		});
 		t.start();
 		assertFalse(receiveInterrupted.get());
@@ -169,13 +149,10 @@ public class QueueChannelTests {
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				channel.send(new GenericMessage<String>("test-2"));
-				sendInterrupted.set(true);
-				latch.countDown();
-			}
+		Thread t = new Thread(() -> {
+			channel.send(new GenericMessage<String>("test-2"));
+			sendInterrupted.set(true);
+			latch.countDown();
 		});
 		t.start();
 		assertFalse(sendInterrupted.get());
@@ -191,13 +168,10 @@ public class QueueChannelTests {
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				channel.send(new GenericMessage<String>("test-2"), 10000);
-				sendInterrupted.set(true);
-				latch.countDown();
-			}
+		Thread t = new Thread(() -> {
+			channel.send(new GenericMessage<String>("test-2"), 10000);
+			sendInterrupted.set(true);
+			latch.countDown();
 		});
 		t.start();
 		assertFalse(sendInterrupted.get());

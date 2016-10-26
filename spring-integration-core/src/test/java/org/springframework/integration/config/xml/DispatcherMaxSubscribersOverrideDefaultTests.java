@@ -21,10 +21,8 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,19 +47,14 @@ public class DispatcherMaxSubscribersOverrideDefaultTests extends DispatcherMaxS
 
 	@Test
 	public void testExceed() {
-		oneSub.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) throws MessagingException {
-			}
-		});
+		oneSub.subscribe(message -> { });
 		try {
-			oneSub.subscribe(new MessageHandler() {
-				public void handleMessage(Message<?> message) throws MessagingException {
-				}
-			});
+			oneSub.subscribe(message -> { });
 			fail("Expected Exception");
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("Maximum subscribers exceeded", e.getMessage());
 		}
 	}
+
 }

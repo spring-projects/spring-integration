@@ -41,12 +41,7 @@ public class MessageStoreTests {
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		TestMessageStore store = new TestMessageStore();
-		store.setExpiryCallbacks(Collections.<MessageGroupCallback>singletonList(new MessageGroupCallback() {
-
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-			}
-		}));
+		store.setExpiryCallbacks(Collections.<MessageGroupCallback>singletonList((messageGroupStore, group) -> { }));
 		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
 	}
 
@@ -55,12 +50,9 @@ public class MessageStoreTests {
 
 		TestMessageStore store = new TestMessageStore();
 		final List<String> list = new ArrayList<String>();
-		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-			@Override
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				list.add(group.getOne().getPayload().toString());
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
+		store.registerMessageGroupExpiryCallback((messageGroupStore, group) -> {
+			list.add(group.getOne().getPayload().toString());
+			messageGroupStore.removeMessageGroup(group.getGroupId());
 		});
 
 		store.expireMessageGroups(-10000);
@@ -83,12 +75,15 @@ public class MessageStoreTests {
 
 	private static class TestMessageStore extends SimpleMessageStore  {
 
-		@SuppressWarnings("unchecked")
 		MessageGroup testMessages =
 				new SimpleMessageGroup(Collections.singletonList(new GenericMessage<String>("foo")), "bar");
 
 		private boolean removed = false;
 
+
+		TestMessageStore() {
+			super();
+		}
 
 		@Override
 		public Iterator<MessageGroup> iterator() {

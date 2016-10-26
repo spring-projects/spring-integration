@@ -38,9 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -130,28 +128,24 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerA);
 		dispatcher.addHandler(handlerB);
 
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				boolean sent = false;
-				try {
-					sent = channel.send(message);
-				}
-				catch (Exception e) {
-					exceptionRegistry.add(e);
-				}
-				if (!sent) {
-					failed.set(true);
-				}
-				allDone.countDown();
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			boolean sent = false;
+			try {
+				sent = channel.send(message);
+			}
+			catch (Exception e2) {
+				exceptionRegistry.add(e2);
+			}
+			if (!sent) {
+				failed.set(true);
+			}
+			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
@@ -176,39 +170,27 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerA);
 		dispatcher.addHandler(handlerB);
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				RuntimeException e = new RuntimeException();
-				allDone.countDown();
-				failed.set(true);
-				exceptionRegistry.add(e);
-				throw e;
-			}
+		doAnswer(invocation -> {
+			RuntimeException e = new RuntimeException();
+			allDone.countDown();
+			failed.set(true);
+			exceptionRegistry.add(e);
+			throw e;
 		}).when(handlerA).handleMessage(message);
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				allDone.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			allDone.countDown();
+			return null;
 		}).when(handlerB).handleMessage(message);
 
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				channel.send(message);
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			channel.send(message);
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
@@ -272,28 +254,24 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				boolean sent = false;
-				try {
-					sent = channel.send(message);
-				}
-				catch (Exception e) {
-					exceptionRegistry.add(e);
-				}
-				if (!sent) {
-					failed.set(true);
-				}
-				allDone.countDown();
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			boolean sent = false;
+			try {
+				sent = channel.send(message);
+			}
+			catch (Exception e2) {
+				exceptionRegistry.add(e2);
+			}
+			if (!sent) {
+				failed.set(true);
+			}
+			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
@@ -323,46 +301,30 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				failed.set(true);
-				RuntimeException e = new RuntimeException();
-				exceptionRegistry.add(e);
-				allDone.countDown();
-				throw e;
-			}
+		doAnswer(invocation -> {
+			failed.set(true);
+			RuntimeException e = new RuntimeException();
+			exceptionRegistry.add(e);
+			allDone.countDown();
+			throw e;
 		}).when(handlerA).handleMessage(message);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				allDone.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			allDone.countDown();
+			return null;
 		}).when(handlerB).handleMessage(message);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				allDone.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			allDone.countDown();
+			return null;
 		}).when(handlerC).handleMessage(message);
 
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				channel.send(message);
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			channel.send(message);
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
@@ -426,28 +388,24 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				boolean sent = false;
-				try {
-					sent = channel.send(message);
-				}
-				catch (Exception e) {
-					exceptionRegistry.add(e);
-				}
-				if (!sent) {
-					failed.set(true);
-				}
-				allDone.countDown();
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			boolean sent = false;
+			try {
+				sent = channel.send(message);
+			}
+			catch (Exception e2) {
+				exceptionRegistry.add(e2);
+			}
+			if (!sent) {
+				failed.set(true);
+			}
+			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
@@ -473,43 +431,25 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);
 		dispatcher.addHandler(handlerC);
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				RuntimeException e = new RuntimeException();
-				failed.set(true);
-				throw e;
-			}
+		doAnswer(invocation -> {
+			RuntimeException e = new RuntimeException();
+			failed.set(true);
+			throw e;
 		}).when(handlerA).handleMessage(message);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				allDone.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			allDone.countDown();
+			return null;
 		}).when(handlerB).handleMessage(message);
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> null).when(handlerC).handleMessage(message);
 
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				return null;
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
-		}).when(handlerC).handleMessage(message);
-
-		Runnable messageSenderTask = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				channel.send(message);
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
+			channel.send(message);
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);

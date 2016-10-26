@@ -592,6 +592,11 @@ public class MethodInvokingMessageProcessorTests {
 
 	@SuppressWarnings("unused")
 	private static class TestErrorService {
+
+		TestErrorService() {
+			super();
+		}
+
 		public String error(String input) {
 			throw new UnsupportedOperationException("Expected test exception");
 		}
@@ -599,10 +604,16 @@ public class MethodInvokingMessageProcessorTests {
 		public String checked(String input) throws Exception {
 			throw new CheckedException("Expected test exception");
 		}
+
 	}
 
 	@SuppressWarnings("unused")
 	private static class TestDifferentErrorService {
+
+		TestDifferentErrorService() {
+			super();
+		}
+
 		public String checked(String input) throws Exception {
 			throw new CheckedException("Expected test exception");
 		}
@@ -610,13 +621,19 @@ public class MethodInvokingMessageProcessorTests {
 
 	@SuppressWarnings("serial")
 	public static final class CheckedException extends Exception {
+
 		public CheckedException(String string) {
 			super(string);
 		}
+
 	}
 
 	@SuppressWarnings("unused")
 	private static class TestBean {
+
+		TestBean() {
+			super();
+		}
 
 		public String acceptPayloadAndReturnObject(String s) {
 			return s + "-1";
@@ -658,6 +675,10 @@ public class MethodInvokingMessageProcessorTests {
 
 	@SuppressWarnings("unused")
 	private static class AnnotatedTestService {
+
+		AnnotatedTestService() {
+			super();
+		}
 
 		public String messageOnly(Message<?> message) {
 			return (String) message.getPayload();
@@ -707,6 +728,10 @@ public class MethodInvokingMessageProcessorTests {
 
 		private volatile Object lastArg = null;
 
+		AmbiguousMethodBean() {
+			super();
+		}
+
 		public void foo(boolean b) {
 			this.lastArg = b;
 		}
@@ -732,6 +757,10 @@ public class MethodInvokingMessageProcessorTests {
 
 		private volatile Object lastArg = null;
 
+		OverloadedMethodBean() {
+			super();
+		}
+
 		public void foo(boolean b) {
 			this.lastArg = b;
 		}
@@ -747,6 +776,10 @@ public class MethodInvokingMessageProcessorTests {
 	private static class IneligibleMethodBean {
 
 		private volatile Object lastArg = null;
+
+		IneligibleMethodBean() {
+			super();
+		}
 
 		@SuppressWarnings("unused")
 		public void foo(String s) {

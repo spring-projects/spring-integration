@@ -55,9 +55,9 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public class PollingLifecycleTests {
 
-	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
-	private TestErrorHandler errorHandler = new TestErrorHandler();
+	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
 	@Before
 	public void init() throws Exception {
@@ -71,6 +71,7 @@ public class PollingLifecycleTests {
 		channel.send(new GenericMessage<String>("foo"));
 
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
@@ -105,6 +106,7 @@ public class PollingLifecycleTests {
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 		MessageSource<String> source = spy(new MessageSource<String>() {
+			@Override
 			public Message<String> receive() {
 				latch.countDown();
 				return new GenericMessage<String>("hello");
@@ -135,21 +137,19 @@ public class PollingLifecycleTests {
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 		final Runnable coughtInterrupted = mock(Runnable.class);
-		MessageSource<String> source = new MessageSource<String>() {
-			public Message<String> receive() {
+		MessageSource<String> source = () -> {
 
-				try {
-					for (int i = 0; i < 10; i++) {
-						Thread.sleep(1000);
-						latch.countDown();
-					}
+			try {
+				for (int i = 0; i < 10; i++) {
+					Thread.sleep(1000);
+					latch.countDown();
 				}
-				catch (InterruptedException e) {
-					coughtInterrupted.run();
-				}
-
-				return new GenericMessage<String>("hello");
 			}
+			catch (InterruptedException e) {
+				coughtInterrupted.run();
+			}
+
+			return new GenericMessage<String>("hello");
 		};
 		adapterFactory.setSource(source);
 		adapterFactory.setOutputChannel(channel);

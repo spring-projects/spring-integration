@@ -109,18 +109,15 @@ public class CorrelatingMessageBarrierTests {
 	}
 
 	private void sendAsynchronously(final MessageHandler handler, final Message<Object> message, final CountDownLatch start, final CountDownLatch sent) {
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				handler.handleMessage(message);
-				sent.countDown();
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			handler.handleMessage(message);
+			sent.countDown();
 		});
 
 	}
@@ -134,7 +131,12 @@ public class CorrelatingMessageBarrierTests {
 	 * ReleaseStrategy that emulates the use case described in INT-1068
 	 */
 	private static class OneMessagePerKeyReleaseStrategy implements ReleaseStrategy {
+
 		private final ConcurrentMap<Object, Semaphore> keyLocks = new ConcurrentHashMap<Object, Semaphore>();
+
+		OneMessagePerKeyReleaseStrategy() {
+			super();
+		}
 
 		@Override
 		public boolean canRelease(MessageGroup messageGroup) {

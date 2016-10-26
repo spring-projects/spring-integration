@@ -32,8 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -77,28 +75,20 @@ public class RouterConcurrencyTest {
 
 		final AtomicInteger beanCounter = new AtomicInteger();
 		BeanFactory beanFactory = mock(BeanFactory.class);
-		doAnswer(new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				if (beanCounter.getAndIncrement() < 2) {
-					semaphore.tryAcquire(4, TimeUnit.SECONDS);
-				}
-				return false;
+		doAnswer(invocation -> {
+			if (beanCounter.getAndIncrement() < 2) {
+				semaphore.tryAcquire(4, TimeUnit.SECONDS);
 			}
+			return false;
 		}).when(beanFactory).containsBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
 		router.setBeanFactory(beanFactory);
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		final List<ConversionService> returns = Collections.synchronizedList(
 				new ArrayList<ConversionService>());
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				ConversionService requiredConversionService = router.getRequiredConversionService();
-				returns.add(requiredConversionService);
-			}
+		Runnable runnable = () -> {
+			ConversionService requiredConversionService = router.getRequiredConversionService();
+			returns.add(requiredConversionService);
 		};
 		exec.execute(runnable);
 		exec.execute(runnable);

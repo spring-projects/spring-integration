@@ -26,10 +26,9 @@ import java.io.Serializable;
 
 import org.junit.Test;
 
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -73,11 +72,7 @@ public class PayloadSerializingTransformerTests {
 	@Test
 	public void customSerializer() {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
-		transformer.setConverter(new Converter<Object, byte[]>() {
-			public byte[] convert(Object source) {
-				return "Converted".getBytes();
-			}
-		});
+		transformer.setConverter(source -> "Converted".getBytes());
 		Message<?> message = transformer.transform(MessageBuilder.withPayload("Test").build());
 		assertEquals("Converted", new String((byte[]) message.getPayload()));
 	}
@@ -86,7 +81,7 @@ public class PayloadSerializingTransformerTests {
 	@SuppressWarnings("serial")
 	private static class TestBean implements Serializable {
 
-		private String name;
+		private final String name;
 
 		TestBean(String name) {
 			this.name = name;

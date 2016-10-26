@@ -52,8 +52,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -217,42 +215,38 @@ public class PseudoTransactionalMessageSourceTests {
 	public void testCommitWithManager() {
 		final PollableChannel queueChannel = new QueueChannel();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
-		transactionTemplate.execute(new TransactionCallback<Object>() {
+		transactionTemplate.execute(status -> {
+			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+					new ExpressionEvaluatingTransactionSynchronizationProcessor();
+			syncProcessor.setBeanFactory(mock(BeanFactory.class));
+			syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
+			syncProcessor.setBeforeCommitChannel(queueChannel);
+			syncProcessor.setAfterCommitChannel(queueChannel);
+			syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("#baz"));
 
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
-						new ExpressionEvaluatingTransactionSynchronizationProcessor();
-				syncProcessor.setBeanFactory(mock(BeanFactory.class));
-				syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
-				syncProcessor.setBeforeCommitChannel(queueChannel);
-				syncProcessor.setAfterCommitChannel(queueChannel);
-				syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("#baz"));
+			DefaultTransactionSynchronizationFactory syncFactory =
+					new DefaultTransactionSynchronizationFactory(syncProcessor);
 
-				DefaultTransactionSynchronizationFactory syncFactory =
-						new DefaultTransactionSynchronizationFactory(syncProcessor);
+			adapter.setTransactionSynchronizationFactory(syncFactory);
 
-				adapter.setTransactionSynchronizationFactory(syncFactory);
+			QueueChannel outputChannel = new QueueChannel();
+			adapter.setOutputChannel(outputChannel);
+			adapter.setSource(new MessageSource<String>() {
 
-				QueueChannel outputChannel = new QueueChannel();
-				adapter.setOutputChannel(outputChannel);
-				adapter.setSource(new MessageSource<String>() {
+				@Override
+				public Message<String> receive() {
+					GenericMessage<String> message = new GenericMessage<String>("foo");
+					IntegrationResourceHolder holder =
+							(IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this);
+					holder.addAttribute("baz", "qux");
+					holder.addAttribute("bix", "qox");
+					return message;
+				}
+			});
 
-					@Override
-					public Message<String> receive() {
-						GenericMessage<String> message = new GenericMessage<String>("foo");
-						IntegrationResourceHolder holder =
-								(IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this);
-						holder.addAttribute("baz", "qux");
-						holder.addAttribute("bix", "qox");
-						return message;
-					}
-				});
-
-				doPoll(adapter);
-				return null;
-			}
+			doPoll(adapter);
+			return null;
 		});
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
 		assertNotNull(beforeCommitMessage);
@@ -267,57 +261,7 @@ public class PseudoTransactionalMessageSourceTests {
 		final PollableChannel queueChannel = new QueueChannel();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
 		try {
-			transactionTemplate.execute(new TransactionCallback<Object>() {
-
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-
-					SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-					ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
-							new ExpressionEvaluatingTransactionSynchronizationProcessor();
-					syncProcessor.setBeanFactory(mock(BeanFactory.class));
-					syncProcessor.setAfterRollbackChannel(queueChannel);
-					syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
-
-					DefaultTransactionSynchronizationFactory syncFactory =
-							new DefaultTransactionSynchronizationFactory(syncProcessor);
-
-					adapter.setTransactionSynchronizationFactory(syncFactory);
-
-					QueueChannel outputChannel = new QueueChannel();
-					adapter.setOutputChannel(outputChannel);
-					adapter.setSource(new MessageSource<String>() {
-
-						@Override
-						public Message<String> receive() {
-							GenericMessage<String> message = new GenericMessage<String>("foo");
-							((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
-									.addAttribute("baz", "qux");
-							return message;
-						}
-					});
-
-					doPoll(adapter);
-					throw new RuntimeException("Force rollback");
-				}
-			});
-		}
-		catch (Exception e) {
-			assertEquals("Force rollback", e.getMessage());
-		}
-		Message<?> rollbackMessage = queueChannel.receive(1000);
-		assertNotNull(rollbackMessage);
-		assertEquals("qux", rollbackMessage.getPayload());
-	}
-
-	@Test
-	public void testRollbackWithManagerUsingStatus() {
-		final PollableChannel queueChannel = new QueueChannel();
-		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
-		transactionTemplate.execute(new TransactionCallback<Object>() {
-
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
+			transactionTemplate.execute(status -> {
 
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
@@ -345,9 +289,51 @@ public class PseudoTransactionalMessageSourceTests {
 				});
 
 				doPoll(adapter);
-				status.setRollbackOnly();
-				return null;
-			}
+				throw new RuntimeException("Force rollback");
+			});
+		}
+		catch (Exception e) {
+			assertEquals("Force rollback", e.getMessage());
+		}
+		Message<?> rollbackMessage = queueChannel.receive(1000);
+		assertNotNull(rollbackMessage);
+		assertEquals("qux", rollbackMessage.getPayload());
+	}
+
+	@Test
+	public void testRollbackWithManagerUsingStatus() {
+		final PollableChannel queueChannel = new QueueChannel();
+		TransactionTemplate transactionTemplate = new TransactionTemplate(new PseudoTransactionManager());
+		transactionTemplate.execute(status -> {
+
+			SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+			ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+					new ExpressionEvaluatingTransactionSynchronizationProcessor();
+			syncProcessor.setBeanFactory(mock(BeanFactory.class));
+			syncProcessor.setAfterRollbackChannel(queueChannel);
+			syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
+
+			DefaultTransactionSynchronizationFactory syncFactory =
+					new DefaultTransactionSynchronizationFactory(syncProcessor);
+
+			adapter.setTransactionSynchronizationFactory(syncFactory);
+
+			QueueChannel outputChannel = new QueueChannel();
+			adapter.setOutputChannel(outputChannel);
+			adapter.setSource(new MessageSource<String>() {
+
+				@Override
+				public Message<String> receive() {
+					GenericMessage<String> message = new GenericMessage<String>("foo");
+					((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
+							.addAttribute("baz", "qux");
+					return message;
+				}
+			});
+
+			doPoll(adapter);
+			status.setRollbackOnly();
+			return null;
 		});
 		Message<?> rollbackMessage = queueChannel.receive(1000);
 		assertNotNull(rollbackMessage);
@@ -358,13 +344,7 @@ public class PseudoTransactionalMessageSourceTests {
 	public void testInt2777UnboundResourceAfterTransactionComplete() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 
-		adapter.setSource(new MessageSource<String>() {
-
-			@Override
-			public Message<String> receive() {
-				return null;
-			}
-		});
+		adapter.setSource(() -> null);
 
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		doPoll(adapter);
@@ -396,13 +376,7 @@ public class PseudoTransactionalMessageSourceTests {
 		};
 
 		adapter.setTransactionSynchronizationFactory(syncFactory);
-		adapter.setSource(new MessageSource<String>() {
-
-			@Override
-			public Message<String> receive() {
-				return null;
-			}
-		});
+		adapter.setSource(() -> null);
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);

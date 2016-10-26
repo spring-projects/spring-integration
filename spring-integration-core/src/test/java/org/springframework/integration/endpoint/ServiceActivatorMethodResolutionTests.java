@@ -235,6 +235,10 @@ public class ServiceActivatorMethodResolutionTests {
 	@SuppressWarnings("unused")
 	private static class SingleAnnotationTestBean {
 
+		SingleAnnotationTestBean() {
+			super();
+		}
+
 		@ServiceActivator
 		public String upperCase(String s) {
 			return s.toUpperCase();
@@ -243,11 +247,15 @@ public class ServiceActivatorMethodResolutionTests {
 		public String lowerCase(String s) {
 			return s.toLowerCase();
 		}
+
 	}
 
 
-	@SuppressWarnings("unused")
 	private static class MultipleAnnotationTestBean {
+
+		MultipleAnnotationTestBean() {
+			super();
+		}
 
 		@ServiceActivator
 		public String upperCase(String s) {
@@ -258,11 +266,16 @@ public class ServiceActivatorMethodResolutionTests {
 		public String lowerCase(String s) {
 			return s.toLowerCase();
 		}
+
 	}
 
 
 	@SuppressWarnings("unused")
 	private static class SinglePublicMethodTestBean {
+
+		SinglePublicMethodTestBean() {
+			super();
+		}
 
 		public String upperCase(String s) {
 			return s.toUpperCase();
@@ -271,11 +284,16 @@ public class ServiceActivatorMethodResolutionTests {
 		String lowerCase(String s) {
 			return s.toLowerCase();
 		}
+
 	}
 
 
 	@SuppressWarnings("unused")
 	private static class MultiplePublicMethodTestBean {
+
+		MultiplePublicMethodTestBean() {
+			super();
+		}
 
 		public String upperCase(String s) {
 			return s.toUpperCase();
@@ -284,6 +302,7 @@ public class ServiceActivatorMethodResolutionTests {
 		public String lowerCase(String s) {
 			return s.toLowerCase();
 		}
+
 	}
 
 }

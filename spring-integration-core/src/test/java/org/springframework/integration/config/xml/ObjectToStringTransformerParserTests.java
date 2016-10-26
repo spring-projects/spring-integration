@@ -97,6 +97,10 @@ public class ObjectToStringTransformerParserTests {
 
 	private static class TestBean {
 
+		TestBean() {
+			super();
+		}
+
 		@Override
 		public String toString() {
 			return "test";

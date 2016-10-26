@@ -128,12 +128,9 @@ public class HeaderValueRouterTests {
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelMappings", channelMappings);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
-		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new DestinationResolver<MessageChannel>() {
-			@Override
-			public MessageChannel resolveDestination(String channelName) {
-				return context.getBean("anotherChannel", MessageChannel.class);
-			}
-		});
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver",
+				(DestinationResolver<MessageChannel>) channelName -> context.getBean("anotherChannel",
+						MessageChannel.class));
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		context.registerBeanDefinition("anotherChannel", new RootBeanDefinition(QueueChannel.class));

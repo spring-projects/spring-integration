@@ -31,8 +31,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.messaging.Message;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -50,21 +50,21 @@ public class PollingConsumerEndpointTests {
 
 	private PollingConsumer endpoint;
 
-	private TestTrigger trigger = new TestTrigger();
+	private final TestTrigger trigger = new TestTrigger();
 
-	private TestConsumer consumer = new TestConsumer();
-
-	@SuppressWarnings("rawtypes")
-	private Message message = new GenericMessage<String>("test");
+	private final TestConsumer consumer = new TestConsumer();
 
 	@SuppressWarnings("rawtypes")
-	private Message badMessage = new GenericMessage<String>("bad");
+	private final Message message = new GenericMessage<String>("test");
 
-	private TestErrorHandler errorHandler = new TestErrorHandler();
+	@SuppressWarnings("rawtypes")
+	private final Message badMessage = new GenericMessage<String>("bad");
 
-	private PollableChannel channelMock = Mockito.mock(PollableChannel.class);
+	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
-	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+	private final PollableChannel channelMock = Mockito.mock(PollableChannel.class);
+
+	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
 
 	@Before
@@ -176,6 +176,11 @@ public class PollingConsumerEndpointTests {
 
 		private volatile AtomicInteger counter = new AtomicInteger();
 
+		TestConsumer() {
+			super();
+		}
+
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.counter.incrementAndGet();
 			if ("bad".equals(message.getPayload().toString())) {
@@ -192,6 +197,11 @@ public class PollingConsumerEndpointTests {
 		private volatile CountDownLatch latch = new CountDownLatch(1);
 
 
+		TestTrigger() {
+			super();
+		}
+
+		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (!this.hasRun.getAndSet(true)) {
 				return new Date();
@@ -223,6 +233,11 @@ public class PollingConsumerEndpointTests {
 
 		private volatile Throwable lastError;
 
+		TestErrorHandler() {
+			super();
+		}
+
+		@Override
 		public void handleError(Throwable t) {
 			this.lastError = t;
 		}

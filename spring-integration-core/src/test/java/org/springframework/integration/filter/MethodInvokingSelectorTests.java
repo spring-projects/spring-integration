@@ -92,6 +92,10 @@ public class MethodInvokingSelectorTests {
 	@SuppressWarnings("unused")
 	private static class TestBean {
 
+		TestBean() {
+			super();
+		}
+
 		public boolean acceptString(Message<?> message) {
 			return (message.getPayload() instanceof String);
 		}

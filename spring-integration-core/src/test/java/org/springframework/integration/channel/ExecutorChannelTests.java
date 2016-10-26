@@ -264,6 +264,10 @@ public class ExecutorChannelTests {
 
 		private Message<?> messageToReturn;
 
+		BeforeHandleInterceptor() {
+			super();
+		}
+
 		public void setMessageToReturn(Message<?> messageToReturn) {
 			this.messageToReturn = messageToReturn;
 		}

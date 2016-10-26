@@ -133,7 +133,7 @@ public class MessageHistoryTests {
 
 		private final int id;
 
-		private TestComponent(int id) {
+		TestComponent(int id) {
 			this.id = id;
 		}
 

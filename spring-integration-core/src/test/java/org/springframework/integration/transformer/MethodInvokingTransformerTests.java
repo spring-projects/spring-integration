@@ -253,6 +253,10 @@ public class MethodInvokingTransformerTests {
 	@SuppressWarnings("unused")
 	private static class TestBean {
 
+		TestBean() {
+			super();
+		}
+
 		@Transformer
 		public String exclaim(String s) {
 			return s.toUpperCase() + "!";

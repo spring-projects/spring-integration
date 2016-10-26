@@ -27,7 +27,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -44,14 +43,10 @@ public class UnicastingDispatcherTests {
 	public void withInboundGatewayAsyncRequestChannelAndExplicitErrorChannel() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("unicasting-with-async.xml", this.getClass());
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
-		MessageHandler errorHandler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				assertTrue(message.getPayload() instanceof MessageDeliveryException);
-				replyChannel.send(new GenericMessage<String>("reply"));
-			}
+		MessageHandler errorHandler = message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			assertTrue(message.getPayload() instanceof MessageDeliveryException);
+			replyChannel.send(new GenericMessage<String>("reply"));
 		};
 		errorChannel.subscribe(errorHandler);
 

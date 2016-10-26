@@ -16,9 +16,14 @@
 
 package org.springframework.integration.aggregator.integration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
@@ -28,10 +33,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
@@ -39,11 +40,11 @@ import static org.junit.Assert.assertNull;
  */
 public class AggregatorSupportedUseCasesTests {
 
-	private MessageGroupStore store = new SimpleMessageStore(100);
+	private final MessageGroupStore store = new SimpleMessageStore(100);
 
-	private DefaultAggregatingMessageGroupProcessor processor = new DefaultAggregatingMessageGroupProcessor();
+	private final DefaultAggregatingMessageGroupProcessor processor = new DefaultAggregatingMessageGroupProcessor();
 
-	private AggregatingMessageHandler defaultHandler = new AggregatingMessageHandler(processor, store);
+	private final AggregatingMessageHandler defaultHandler = new AggregatingMessageHandler(processor, store);
 
 	@Test
 	public void waitForAllDefaultReleaseStrategyWithLateArrivals() {
@@ -151,6 +152,11 @@ public class AggregatorSupportedUseCasesTests {
 
 	private class SampleSizeReleaseStrategy implements ReleaseStrategy {
 
+		SampleSizeReleaseStrategy() {
+			super();
+		}
+
+		@Override
 		public boolean canRelease(MessageGroup group) {
 			return group.getMessages().size() == 5;
 		}
@@ -159,6 +165,11 @@ public class AggregatorSupportedUseCasesTests {
 
 	private class FirstBestReleaseStrategy implements ReleaseStrategy {
 
+		FirstBestReleaseStrategy() {
+			super();
+		}
+
+		@Override
 		public boolean canRelease(MessageGroup group) {
 			return true;
 		}

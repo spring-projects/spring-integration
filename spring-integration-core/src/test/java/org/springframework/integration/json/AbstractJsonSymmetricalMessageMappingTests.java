@@ -65,14 +65,16 @@ public abstract class AbstractJsonSymmetricalMessageMappingTests {
 
 		private final int id;
 
-		private TestNamedComponent(int id) {
+		TestNamedComponent(int id) {
 			this.id = id;
 		}
 
+		@Override
 		public String getComponentName() {
 			return "testName-" + this.id;
 		}
 
+		@Override
 		public String getComponentType() {
 			return "testType-" + this.id;
 		}

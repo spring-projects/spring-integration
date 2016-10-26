@@ -75,6 +75,11 @@ public class CorrelationStrategyAdapterTests {
 	}
 
 	private static class MultiHeaderCorrelator {
+
+		MultiHeaderCorrelator() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public String getKey(@Header("a") String header, @Header("c") String other) {
 			return header + other;
@@ -83,6 +88,11 @@ public class CorrelationStrategyAdapterTests {
 	}
 
 	private static class SimpleHeaderCorrelator {
+
+		SimpleHeaderCorrelator() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public String getKey(@Header("a") String header) {
 			return header;
@@ -91,6 +101,11 @@ public class CorrelationStrategyAdapterTests {
 	}
 
 	private static class SimplePojoCorrelator {
+
+		SimplePojoCorrelator() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public String getKey(String message) {
 			return message;
@@ -99,6 +114,11 @@ public class CorrelationStrategyAdapterTests {
 	}
 
 	private static class SimpleMessageCorrelator {
+
+		SimpleMessageCorrelator() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public String getKey(Message<?> message) {
 			return (String) message.getHeaders().get("a");

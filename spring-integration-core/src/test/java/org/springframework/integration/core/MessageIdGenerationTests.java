@@ -158,12 +158,7 @@ public class MessageIdGenerationTests {
 
 		Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGeneratorField);
-		ReflectionUtils.setField(idGeneratorField, null, new IdGenerator() {
-			@Override
-			public UUID generateId() {
-				return TimeBasedUUIDGenerator.generateId();
-			}
-		});
+		ReflectionUtils.setField(idGeneratorField, null, (IdGenerator) () -> TimeBasedUUIDGenerator.generateId());
 		watch = new StopWatch();
 		watch.start();
 		for (int i = 0; i < times; i++) {

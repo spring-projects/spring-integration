@@ -45,7 +45,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
@@ -271,15 +270,10 @@ public class ChannelInterceptorTests {
 		final CountDownLatch latch2 = new CountDownLatch(2);
 		final List<Message<?>> messages = new ArrayList<>();
 
-		PollingConsumer consumer = new PollingConsumer(channel, new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				messages.add(message);
-				latch1.countDown();
-				latch2.countDown();
-			}
-
+		PollingConsumer consumer = new PollingConsumer(channel, message -> {
+			messages.add(message);
+			latch1.countDown();
+			latch2.countDown();
 		});
 
 		testApplicationContext.registerBean("consumer", consumer);
@@ -339,6 +333,10 @@ public class ChannelInterceptorTests {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
+		PreSendReturnsNullInterceptor() {
+			super();
+		}
+
 		protected int getCount() {
 			return counter.get();
 		}
@@ -358,6 +356,10 @@ public class ChannelInterceptorTests {
 		private volatile boolean afterCompletionInvoked;
 
 		private RuntimeException exceptionToRaise;
+
+		AfterCompletionTestInterceptor() {
+			super();
+		}
 
 		public void setExceptionToRaise(RuntimeException exception) {
 			this.exceptionToRaise = exception;
@@ -397,6 +399,10 @@ public class ChannelInterceptorTests {
 
 		private RuntimeException exceptionToRaise;
 
+		PreReceiveReturnsTrueInterceptor() {
+			super();
+		}
+
 		public void setExceptionToRaise(RuntimeException exception) {
 			this.exceptionToRaise = exception;
 		}
@@ -430,6 +436,10 @@ public class ChannelInterceptorTests {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
+		PreReceiveReturnsFalseInterceptor() {
+			super();
+		}
+
 		@Override
 		public boolean preReceive(MessageChannel channel) {
 			counter.incrementAndGet();
@@ -440,6 +450,10 @@ public class ChannelInterceptorTests {
 
 	private static class TestExecutorInterceptor extends ChannelInterceptorAdapter
 			implements ExecutorChannelInterceptor {
+
+		TestExecutorInterceptor() {
+			super();
+		}
 
 		@Override
 		public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {

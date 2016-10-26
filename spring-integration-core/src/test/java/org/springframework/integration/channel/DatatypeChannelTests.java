@@ -233,17 +233,33 @@ public class DatatypeChannelTests {
 
 	private static class Foo {
 
+		Foo() {
+			super();
+		}
+
 	}
 
 	private static class Bar extends Foo {
+
+		Bar() {
+			super();
+		}
 
 	}
 
 	private static class Baz extends Foo {
 
+		Baz() {
+			super();
+		}
+
 	}
 
 	private static class StringToBarConverter implements GenericConverter {
+
+		StringToBarConverter() {
+			super();
+		}
 
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {
@@ -261,6 +277,10 @@ public class DatatypeChannelTests {
 	}
 
 	private static class IntegerToBazConverter implements GenericConverter {
+
+		IntegerToBazConverter() {
+			super();
+		}
 
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {

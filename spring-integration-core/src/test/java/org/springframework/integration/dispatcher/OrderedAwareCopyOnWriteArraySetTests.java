@@ -153,32 +153,26 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		final Object o8 = new Foo(Ordered.HIGHEST_PRECEDENCE);
 		final Object o9 = new Foo(4);
 		final Object o10 = new Foo(2);
-		Thread t1 = new Thread(new Runnable() {
-			public void run() {
-				setToTest.add(o1);
-				setToTest.add(o3);
-				setToTest.add(o5);
-				setToTest.add(o7);
-				setToTest.add(o9);
-			}
+		Thread t1 = new Thread(() -> {
+			setToTest.add(o1);
+			setToTest.add(o3);
+			setToTest.add(o5);
+			setToTest.add(o7);
+			setToTest.add(o9);
 		});
-		Thread t2 = new Thread(new Runnable() {
-			public void run() {
-				setToTest.add(o2);
-				setToTest.add(o4);
-				setToTest.add(o6);
-				setToTest.add(o8);
-				setToTest.add(o10);
-			}
+		Thread t2 = new Thread(() -> {
+			setToTest.add(o2);
+			setToTest.add(o4);
+			setToTest.add(o6);
+			setToTest.add(o8);
+			setToTest.add(o10);
 		});
-		Thread t3 = new Thread(new Runnable() {
-			public void run() {
-				setToTest.add(1);
-				setToTest.add(new Foo(2));
-				setToTest.add(3);
-				setToTest.add(new Foo(9));
-				setToTest.add(8);
-			}
+		Thread t3 = new Thread(() -> {
+			setToTest.add(1);
+			setToTest.add(new Foo(2));
+			setToTest.add(3);
+			setToTest.add(new Foo(9));
+			setToTest.add(8);
 		});
 		t1.start();
 		t2.start();
@@ -230,12 +224,10 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		tempList.add(o9);
 		tempList.add(o10);
 		final OrderedAwareCopyOnWriteArraySet orderAwareSet = new OrderedAwareCopyOnWriteArraySet();
-		Thread t1 = new Thread(new Runnable() {
-			public void run() {
-				orderAwareSet.addAll(tempList);
-				orderAwareSet.remove(o5);
-				orderAwareSet.remove(o7);
-			}
+		Thread t1 = new Thread(() -> {
+			orderAwareSet.addAll(tempList);
+			orderAwareSet.remove(o5);
+			orderAwareSet.remove(o7);
 		});
 		final List tempList2 = new ArrayList();
 		final Foo foo5 = new Foo(5);
@@ -249,17 +241,13 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		tempList2.add(10);
 		tempList2.add(13);
 		tempList2.add(new Foo(63));
-		Thread t2 = new Thread(new Runnable() {
-			public void run() {
-				orderAwareSet.addAll(tempList2);
-				orderAwareSet.remove(foo5);
-			}
+		Thread t2 = new Thread(() -> {
+			orderAwareSet.addAll(tempList2);
+			orderAwareSet.remove(foo5);
 		});
-		Thread t3 = new Thread(new Runnable() {
-			public void run() {
-				orderAwareSet.add("hello");
-				orderAwareSet.add("hello again");
-			}
+		Thread t3 = new Thread(() -> {
+			orderAwareSet.add("hello");
+			orderAwareSet.add("hello again");
 		});
 
 		t1.start();
@@ -277,17 +265,24 @@ public class OrderedAwareCopyOnWriteArraySetTests {
 		Object[] elements = orderAwareSet.toArray();
 		assertEquals(18, elements.length);
 	}
+
 	private static class Foo implements Ordered {
+
 		private final int order;
+
 		Foo(int order) {
 			this.order = order;
 		}
+
+		@Override
 		public int getOrder() {
 			return order;
 		}
+
 		@Override
 		public String toString() {
 			return "Foo-" + order;
 		}
 	}
+
 }

@@ -127,7 +127,7 @@ public class JsonOutboundMessageMapperTests {
 
 		private final int id;
 
-		private TestNamedComponent(int id) {
+		TestNamedComponent(int id) {
 			this.id = id;
 		}
 

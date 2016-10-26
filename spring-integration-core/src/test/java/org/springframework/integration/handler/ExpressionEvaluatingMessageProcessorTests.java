@@ -45,10 +45,10 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
@@ -218,6 +218,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				cause = item.getCause();
 				return cause instanceof EvaluationException;
 			}
+			@Override
 			public void describeTo(Description description) {
 				description.appendText("cause to be EvaluationException but was ").appendValue(cause);
 			}
@@ -239,6 +240,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				cause = item.getCause();
 				return cause instanceof UnsupportedOperationException;
 			}
+			@Override
 			public void describeTo(Description description) {
 				description.appendText("cause to be UnsupportedOperationException but was ").appendValue(cause);
 			}
@@ -260,6 +262,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				cause = item.getCause();
 				return cause instanceof CheckedException;
 			}
+			@Override
 			public void describeTo(Description description) {
 				description.appendText("cause to be CheckedException but was ").appendValue(cause);
 			}
@@ -274,6 +277,10 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	@SuppressWarnings("unused")
 	private static class TestPayload {
 
+		TestPayload() {
+			super();
+		}
+
 		public String throwRuntimeException() {
 			throw new UnsupportedOperationException("Expected test exception");
 		}
@@ -285,9 +292,11 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {
+
 		CheckedException(String string) {
 			super(string);
 		}
+
 	}
 
 }

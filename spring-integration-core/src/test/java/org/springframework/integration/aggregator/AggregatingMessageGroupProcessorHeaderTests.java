@@ -271,6 +271,10 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 
 	private static class TestAggregatorBean {
 
+		TestAggregatorBean() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public Object aggregate(List<String> payloads) {
 			StringBuilder sb = new StringBuilder();

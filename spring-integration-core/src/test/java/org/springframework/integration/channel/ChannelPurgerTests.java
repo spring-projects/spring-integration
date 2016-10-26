@@ -25,7 +25,6 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -51,11 +50,7 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test1"));
 		channel.send(new GenericMessage<String>("test2"));
 		channel.send(new GenericMessage<String>("test3"));
-		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		}, channel);
+		ChannelPurger purger = new ChannelPurger(message -> false, channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(3, purgedMessages.size());
 		assertNull(channel.receive(0));
@@ -67,11 +62,7 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test1"));
 		channel.send(new GenericMessage<String>("test2"));
 		channel.send(new GenericMessage<String>("test3"));
-		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		}, channel);
+		ChannelPurger purger = new ChannelPurger(message -> true, channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(0, purgedMessages.size());
 		assertNotNull(channel.receive(0));
@@ -85,11 +76,7 @@ public class ChannelPurgerTests {
 		channel.send(new GenericMessage<String>("test1"));
 		channel.send(new GenericMessage<String>("test2"));
 		channel.send(new GenericMessage<String>("test3"));
-		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return (message.getPayload().equals("test2"));
-			}
-		}, channel);
+		ChannelPurger purger = new ChannelPurger(message -> (message.getPayload().equals("test2")), channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(2, purgedMessages.size());
 		Message<?> message = channel.receive(0);
@@ -123,11 +110,7 @@ public class ChannelPurgerTests {
 		channel2.send(new GenericMessage<String>("test1"));
 		channel2.send(new GenericMessage<String>("test2"));
 		channel2.send(new GenericMessage<String>("test3"));
-		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return (message.getPayload().equals("test2"));
-			}
-		}, channel1, channel2);
+		ChannelPurger purger = new ChannelPurger(message -> (message.getPayload().equals("test2")), channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(4, purgedMessages.size());
 		Message<?> message1 = channel1.receive(0);
@@ -148,11 +131,7 @@ public class ChannelPurgerTests {
 		channel1.send(new GenericMessage<String>("test2"));
 		channel2.send(new GenericMessage<String>("test1"));
 		channel2.send(new GenericMessage<String>("test2"));
-		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		}, channel1, channel2);
+		ChannelPurger purger = new ChannelPurger(message -> true, channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(0, purgedMessages.size());
 		assertNotNull(channel1.receive(0));

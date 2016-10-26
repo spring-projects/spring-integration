@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -32,18 +31,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -73,15 +67,9 @@ public class StreamingSplitterTests {
 
 		splitter.handleMessage(message);
 		List<Message<?>> receivedMessages = replyChannel.clear();
-		Collections.sort(receivedMessages, new Comparator<Message<?>>() {
-
-			@Override
-			public int compare(Message<?> o1, Message<?> o2) {
-				return o1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)
-						.compareTo(o2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class));
-			}
-
-		});
+		Collections.sort(receivedMessages, (o1, o2) ->
+			o1.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)
+				.compareTo(o2.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class)));
 		assertThat(receivedMessages.get(4)
 						.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
@@ -148,15 +136,9 @@ public class StreamingSplitterTests {
 		DirectChannel replyChannel = new DirectChannel();
 		splitter.setOutputChannel(replyChannel);
 
-		new EventDrivenConsumer(replyChannel, new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat("Failure with msg: " + message,
-						message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
-						is(Integer.valueOf((String) message.getPayload())));
-			}
-		}).start();
+		new EventDrivenConsumer(replyChannel, message -> assertThat("Failure with msg: " + message,
+				message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class),
+				is(Integer.valueOf((String) message.getPayload())))).start();
 		splitter.handleMessage(message);
 	}
 
@@ -170,18 +152,10 @@ public class StreamingSplitterTests {
 		splitter.setOutputChannel(replyChannel);
 
 		final AtomicInteger receivedMessageCounter = new AtomicInteger(0);
-		new EventDrivenConsumer(replyChannel, new MessageHandler() {
+		new EventDrivenConsumer(replyChannel, message -> {
+			assertThat("Failure with msg: " + message, message.getPayload(), is(notNullValue()));
+			receivedMessageCounter.incrementAndGet();
 
-			@Override
-			public void handleMessage(Message<?> message)
-					throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				assertThat("Failure with msg: " + message,
-						message.getPayload(),
-						is(notNullValue()));
-				receivedMessageCounter.incrementAndGet();
-
-			}
 		}).start();
 
 		splitter.handleMessage(message);
