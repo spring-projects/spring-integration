@@ -99,7 +99,6 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		final List<Throwable> errors = new ArrayList<Throwable>();
 		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
 				new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), t -> {
-					logger.info("Error:", t);
 					errors.add(t);
 					throw new RuntimeException(t);
 				});
@@ -186,7 +185,6 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		MessageCreator reply = session -> {
 			TextMessage reply1 = session.createTextMessage("bar");
 			reply1.setJMSCorrelationID(request.getJMSMessageID());
-			logger.debug("Sent reply: " + reply1);
 			return reply1;
 		};
 		template.send(replyQ, reply);
