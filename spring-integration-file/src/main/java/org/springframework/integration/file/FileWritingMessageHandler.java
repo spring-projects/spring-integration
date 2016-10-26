@@ -493,19 +493,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
-			try {
-				rename(sourceFile, resultFile);
-				return resultFile;
-			}
-			catch (IOException e) {
-				if (this.logger.isInfoEnabled()) {
-					this.logger.info("Failed to move file '" + sourceFile + "'. Using copy and delete fallback.", e);
-				}
-			}
+			rename(sourceFile, resultFile);
+			return resultFile;
 		}
-
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
-		return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+		else {
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+			return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+		}
 	}
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
