@@ -58,7 +58,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -103,9 +102,6 @@ import org.springframework.util.StringUtils;
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, MessageTriggerAction {
-
-	private static final boolean nioFilesPresent = ClassUtils.isPresent("java.nio.file.Files",
-			FileWritingMessageHandler.class.getClassLoader());
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -839,7 +835,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
-		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
@@ -860,7 +856,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
-		Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
@@ -878,10 +874,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private static boolean rename(File source, File target) throws IOException {
-		return (nioFilesPresent && filesMove(source, target)) || source.renameTo(target);
-	}
-
-	private static boolean filesMove(File source, File target) throws IOException {
 		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		return true;
 	}
@@ -921,12 +913,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private final class Flusher implements Runnable {
 
+		Flusher() {
+			super();
+		}
+
 		@Override
 		public void run() {
 			synchronized (FileWritingMessageHandler.this) {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
-				Iterator<Entry<String, FileState>> iterator = FileWritingMessageHandler.this.fileStates.entrySet().iterator();
+				Iterator<Entry<String, FileState>> iterator =
+						FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 				while (iterator.hasNext()) {
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
@@ -986,6 +983,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Flushes files where the path matches a pattern, regardless of last write time.
 	 */
 	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
+
+		DefaultFlushPredicate() {
+			super();
+		}
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
