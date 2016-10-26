@@ -91,18 +91,8 @@ public class PriorityChannelTests {
 		final Message<String> message = new GenericMessage<String>("hello");
 		for (int i = 0; i < 1000; i++) {
 			channel.send(message);
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					channel.receive();
-				}
-			}).start();
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					message.getHeaders().toString();
-				}
-			}).start();
+			new Thread(() -> channel.receive()).start();
+			new Thread(() -> message.getHeaders().toString()).start();
 		}
 	}
 
@@ -239,14 +229,7 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
-		executor.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10));
-			}
-
-		});
+		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10)));
 		assertFalse(sentSecondMessage.get());
 
 		executor.shutdown();
@@ -265,12 +248,9 @@ public class PriorityChannelTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
-				latch.countDown();
-			}
+		executor.execute(() -> {
+			sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
+			latch.countDown();
 		});
 		assertFalse(sentSecondMessage.get());
 		Thread.sleep(500);
@@ -290,12 +270,7 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1));
-			}
-		});
+		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1)));
 		assertFalse(sentSecondMessage.get());
 		Thread.sleep(500);
 		Message<?> message1 = channel.receive(1000);

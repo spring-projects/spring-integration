@@ -321,28 +321,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		if (this.messageStore instanceof SimpleMessageStore) {
 			final Message<?> messageToSchedule = delayedMessage;
 
-			releaseTask = new Runnable() {
-
-				@Override
-				public void run() {
-					releaseMessage(messageToSchedule);
-				}
-
-			};
+			releaseTask = () -> releaseMessage(messageToSchedule);
 		}
 		else {
 			final UUID messageId = delayedMessage.getHeaders().getId();
 
-			releaseTask = new Runnable() {
-
-				@Override
-				public void run() {
-					Message<?> messageToRelease = getMessageById(messageId);
-					if (messageToRelease != null) {
-						releaseMessage(messageToRelease);
-					}
+			releaseTask = () -> {
+				Message<?> messageToRelease = getMessageById(messageId);
+				if (messageToRelease != null) {
+					releaseMessage(messageToRelease);
 				}
-
 			};
 		}
 
@@ -417,21 +405,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
-			getTaskScheduler().schedule(new Runnable() {
-
-				@Override
-				public void run() {
-					// This is fine to keep the reference to the message,
-					// because the scheduled task is performed immediately.
-					long delay = determineDelayForMessage(message);
-					if (delay > 0) {
-						releaseMessageAfterDelay(message, delay);
-					}
-					else {
-						releaseMessage(message);
-					}
+			getTaskScheduler().schedule((Runnable) () -> {
+				// This is fine to keep the reference to the message,
+				// because the scheduled task is performed immediately.
+				long delay = determineDelayForMessage(message);
+				if (delay > 0) {
+					releaseMessageAfterDelay(message, delay);
 				}
-
+				else {
+					releaseMessage(message);
+				}
 			}, new Date());
 		}
 	}
@@ -464,6 +447,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @see @releaseMessage
 	 */
 	private class ReleaseMessageHandler implements MessageHandler {
+
+		ReleaseMessageHandler() {
+			super();
+		}
 
 		@Override
 		public void handleMessage(Message<?> message) throws MessagingException {

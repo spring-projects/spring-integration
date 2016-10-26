@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -112,37 +111,33 @@ public class MessageGroupQueueTests {
 
 			final int big = i;
 
-			completionService.submit(new Callable<Boolean>() {
-				public Boolean call() throws Exception {
-					boolean result = true;
-					for (int j = 0; j < maxPerTask; j++) {
-						result &= queue.add(new GenericMessage<String>("count=" + big + ":" + j));
-						if (!result) {
-							logger.warn("Failed to add");
-						}
+			completionService.submit(() -> {
+				boolean result = true;
+				for (int j = 0; j < maxPerTask; j++) {
+					result &= queue.add(new GenericMessage<String>("count=" + big + ":" + j));
+					if (!result) {
+						logger.warn("Failed to add");
 					}
-					return result;
 				}
+				return result;
 			});
 
-			completionService.submit(new Callable<Boolean>() {
-				public Boolean call() throws Exception {
-					boolean result = true;
-					for (int j = 0; j < maxPerTask; j++) {
-						@SuppressWarnings("unchecked")
-						Message<String> item = (Message<String>) queue.poll(10, TimeUnit.SECONDS);
-						result &= item != null;
-						if (!result) {
-							logger.warn("Failed to poll");
-						}
-						else if (set != null) {
-							synchronized (set) {
-								set.add(item.getPayload());
-							}
+			completionService.submit(() -> {
+				boolean result = true;
+				for (int j = 0; j < maxPerTask; j++) {
+					@SuppressWarnings("unchecked")
+					Message<String> item = (Message<String>) queue.poll(10, TimeUnit.SECONDS);
+					result &= item != null;
+					if (!result) {
+						logger.warn("Failed to poll");
+					}
+					else if (set != null) {
+						synchronized (set) {
+							set.add(item.getPayload());
 						}
 					}
-					return result;
 				}
+				return result;
 			});
 
 			messageGroupStore.expireMessageGroups(-10000);

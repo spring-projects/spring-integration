@@ -24,6 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -46,10 +47,8 @@ public class DispatchingChannelErrorHandlingTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionPublishSubscribeWithoutExecutor() {
 		PublishSubscribeChannel channel = new PublishSubscribeChannel();
-		channel.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) {
-				throw new UnsupportedOperationException("intentional test failure");
-			}
+		channel.subscribe(message -> {
+			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
@@ -69,11 +68,9 @@ public class DispatchingChannelErrorHandlingTests {
 		channel.afterPropertiesSet();
 		ResultHandler resultHandler = new ResultHandler();
 		defaultErrorChannel.subscribe(resultHandler);
-		channel.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) {
-				throw new MessagingException(message,
-						new UnsupportedOperationException("intentional test failure"));
-			}
+		channel.subscribe(message -> {
+			throw new MessagingException(message,
+					new UnsupportedOperationException("intentional test failure"));
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
@@ -100,11 +97,9 @@ public class DispatchingChannelErrorHandlingTests {
 		channel.afterPropertiesSet();
 		ResultHandler resultHandler = new ResultHandler();
 		defaultErrorChannel.subscribe(resultHandler);
-		channel.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) {
-				throw new MessagingException(message,
-						new UnsupportedOperationException("intentional test failure"));
-			}
+		channel.subscribe(message -> {
+			throw new MessagingException(message,
+					new UnsupportedOperationException("intentional test failure"));
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		channel.send(message);
@@ -137,6 +132,7 @@ public class DispatchingChannelErrorHandlingTests {
 
 		private volatile Thread lastThread;
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.lastMessage = message;
 			this.lastThread = Thread.currentThread();

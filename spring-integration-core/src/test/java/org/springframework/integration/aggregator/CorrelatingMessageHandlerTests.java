@@ -146,12 +146,10 @@ public class CorrelatingMessageHandlerTests {
 		handler.handleMessage(message1);
 		bothMessagesHandled.countDown();
 		storedMessages.add(message1);
-		Executors.newSingleThreadExecutor().submit(new Runnable() {
-			public void run() {
-				handler.handleMessage(message2);
-				storedMessages.add(message2);
-				bothMessagesHandled.countDown();
-			}
+		Executors.newSingleThreadExecutor().submit(() -> {
+			handler.handleMessage(message2);
+			storedMessages.add(message2);
+			bothMessagesHandled.countDown();
 		});
 
 		assertTrue(bothMessagesHandled.await(10, TimeUnit.SECONDS));

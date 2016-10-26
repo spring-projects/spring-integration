@@ -37,8 +37,6 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
@@ -310,12 +308,9 @@ public class ChainParserTests {
 		Log logger = mock(Log.class);
 		final AtomicReference<String> log = new AtomicReference<String>();
 		when(logger.isWarnEnabled()).thenReturn(true);
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				log.set((String) invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			log.set((String) invocation.getArguments()[0]);
+			return null;
 		}).when(logger).warn(any());
 
 		@SuppressWarnings("unchecked")

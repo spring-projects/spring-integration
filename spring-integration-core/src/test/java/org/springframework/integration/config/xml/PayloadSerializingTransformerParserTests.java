@@ -28,13 +28,14 @@ import java.io.Serializable;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -125,6 +126,10 @@ public class PayloadSerializingTransformerParserTests {
 	@SuppressWarnings("serial")
 	private static class TestBean implements Serializable {
 
+		TestBean() {
+			super();
+		}
+
 		public final String name = "test";
 
 	}
@@ -132,6 +137,7 @@ public class PayloadSerializingTransformerParserTests {
 
 	public static class TestSerializer implements Serializer<Object> {
 
+		@Override
 		public void serialize(Object source, OutputStream outputStream) throws IOException {
 			outputStream.write(source.toString().toUpperCase().getBytes("UTF-8"));
 			outputStream.flush();

@@ -99,7 +99,7 @@ public abstract class ThreadStatePropagationChannelInterceptor<S>
 		private final S state;
 
 		@SuppressWarnings("unchecked")
-		private MessageWithThreadState(Message<?> message, S state) {
+		MessageWithThreadState(Message<?> message, S state) {
 			this.message = (Message<Object>) message;
 			this.state = state;
 		}

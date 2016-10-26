@@ -39,7 +39,7 @@ public class MessageChannelNode extends IntegrationNode {
 
 		private final MessageChannelMetrics channel;
 
-		private Stats(MessageChannelMetrics channel) {
+		Stats(MessageChannelMetrics channel) {
 			this.channel = channel;
 		}
 

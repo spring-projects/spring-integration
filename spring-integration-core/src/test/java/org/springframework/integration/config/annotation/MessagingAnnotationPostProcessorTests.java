@@ -320,7 +320,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class OutboundOnlyTestBean {
+	public static class OutboundOnlyTestBean {
 
 		private String messageText;
 
@@ -343,17 +343,17 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	private static class SimpleAnnotatedEndpointSubclass extends AnnotatedTestService {
+	public static class SimpleAnnotatedEndpointSubclass extends AnnotatedTestService {
 	}
 
 
 	@MessageEndpoint
-	private interface SimpleAnnotatedEndpointInterface {
+	public interface SimpleAnnotatedEndpointInterface {
 		String test(String input);
 	}
 
 
-	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
+	public static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
 
 		@Override
 		@ServiceActivator(inputChannel = "inputChannel", outputChannel = "outputChannel")
@@ -364,7 +364,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class ServiceActivatorAnnotatedBean {
+	public static class ServiceActivatorAnnotatedBean {
 
 		public final AtomicBoolean invoked = new AtomicBoolean();
 
@@ -385,7 +385,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class TransformerAnnotationTestBean {
+	public static class TransformerAnnotationTestBean {
 
 		@Transformer(inputChannel = "inputChannel", outputChannel = "outputChannel")
 		public String transformBefore(String input) {

@@ -32,10 +32,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
@@ -47,9 +47,9 @@ public class RoundRobinDispatcherConcurrentTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private UnicastingDispatcher dispatcher = new UnicastingDispatcher();
+	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
+	private final ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
 	@Mock
 	private MessageHandler handler1;
@@ -84,19 +84,17 @@ public class RoundRobinDispatcherConcurrentTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		Runnable messageSenderTask = new Runnable() {
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				if (!dispatcher.dispatch(message)) {
-					failed.set(true);
-				}
-				allDone.countDown();
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			if (!dispatcher.dispatch(message)) {
+				failed.set(true);
+			}
+			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
@@ -116,23 +114,21 @@ public class RoundRobinDispatcherConcurrentTests {
 		final CountDownLatch start = new CountDownLatch(1);
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
-		Runnable messageSenderTask = new Runnable() {
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				try {
-					dispatcher.dispatch(message);
-					fail("this shouldn't happen");
-				}
-				catch (MessagingException e) {
-					// expected
-				}
-				allDone.countDown();
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
 			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			try {
+				dispatcher.dispatch(message);
+				fail("this shouldn't happen");
+			}
+			catch (MessagingException e2) {
+				// expected
+			}
+			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
@@ -151,6 +147,7 @@ public class RoundRobinDispatcherConcurrentTests {
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
 		Runnable messageSenderTask = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					start.await();

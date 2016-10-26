@@ -445,6 +445,10 @@ public class RecipientListRouterTests {
 
 	private static class AlwaysTrueSelector implements MessageSelector {
 
+		AlwaysTrueSelector() {
+			super();
+		}
+
 		@Override
 		public boolean accept(Message<?> message) {
 			return true;
@@ -453,6 +457,10 @@ public class RecipientListRouterTests {
 
 
 	private static class AlwaysFalseSelector implements MessageSelector {
+
+		AlwaysFalseSelector() {
+			super();
+		}
 
 		@Override
 		public boolean accept(Message<?> message) {

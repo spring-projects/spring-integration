@@ -124,19 +124,15 @@ public class GatewayInterfaceTests {
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
-				assertThat(
-						(String) message.getHeaders().get("string"),
-						equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
-				assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
-				assertThat((String) message.getPayload(), equalTo("hello"));
-				assertThat(new MessageHeaderAccessor(message).getErrorChannel(), equalTo("errorChannel"));
-				called.set(true);
-			}
+		MessageHandler handler = message -> {
+			assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
+			assertThat(
+					(String) message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+			assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
+			assertThat((String) message.getPayload(), equalTo("hello"));
+			assertThat(new MessageHeaderAccessor(message).getErrorChannel(), equalTo("errorChannel"));
+			called.set(true);
 		};
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
@@ -153,18 +149,14 @@ public class GatewayInterfaceTests {
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
-				assertThat(
-						(String) message.getHeaders().get("string"),
-						equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
-				assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
-				assertThat((String) message.getPayload(), equalTo("foo"));
-				called.set(true);
-			}
+		MessageHandler handler = message -> {
+			assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
+			assertThat(
+					(String) message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+			assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
+			assertThat((String) message.getPayload(), equalTo("foo"));
+			called.set(true);
 		};
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
@@ -191,18 +183,14 @@ public class GatewayInterfaceTests {
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method bazMethod = Foo.class.getMethod("baz", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat((String) message.getHeaders().get("name"), equalTo("overrideGlobal"));
-				assertThat(
-						(String) message.getHeaders().get("string"),
-						equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.baz(java.lang.String)"));
-				assertThat((Method) message.getHeaders().get("object"), equalTo(bazMethod));
-				assertThat((String) message.getPayload(), equalTo("hello"));
-				called.set(true);
-			}
+		MessageHandler handler = message -> {
+			assertThat((String) message.getHeaders().get("name"), equalTo("overrideGlobal"));
+			assertThat(
+					(String) message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.baz(java.lang.String)"));
+			assertThat((Method) message.getHeaders().get("object"), equalTo(bazMethod));
+			assertThat((String) message.getPayload(), equalTo("hello"));
+			called.set(true);
 		};
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
@@ -217,18 +205,14 @@ public class GatewayInterfaceTests {
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method quxMethod = Bar.class.getMethod("qux", String.class, String.class);
 		final AtomicBoolean called = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat((String) message.getHeaders().get("name"), equalTo("arg1"));
-				assertThat(
-						(String) message.getHeaders().get("string"),
-						equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
-				assertThat((Method) message.getHeaders().get("object"), equalTo(quxMethod));
-				assertThat((String) message.getPayload(), equalTo("hello"));
-				called.set(true);
-			}
+		MessageHandler handler = message -> {
+			assertThat((String) message.getHeaders().get("name"), equalTo("arg1"));
+			assertThat(
+					(String) message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
+			assertThat((Method) message.getHeaders().get("object"), equalTo(quxMethod));
+			assertThat((String) message.getPayload(), equalTo("hello"));
+			called.set(true);
 		};
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
@@ -327,13 +311,9 @@ public class GatewayInterfaceTests {
 		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final AtomicBoolean called = new AtomicBoolean();
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat((String) message.getPayload(), equalTo("fizbuz"));
-				called.set(true);
-			}
+		MessageHandler handler = message -> {
+			assertThat((String) message.getPayload(), equalTo("fizbuz"));
+			called.set(true);
 		};
 		channel.subscribe(handler);
 		Baz baz = ac.getBean(Baz.class);

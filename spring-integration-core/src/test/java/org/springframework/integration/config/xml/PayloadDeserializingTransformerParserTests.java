@@ -32,11 +32,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -128,6 +128,10 @@ public class PayloadDeserializingTransformerParserTests {
 	@SuppressWarnings("serial")
 	private static class TestBean implements Serializable {
 
+		TestBean() {
+			super();
+		}
+
 		public final String name = "test";
 
 	}
@@ -135,6 +139,7 @@ public class PayloadDeserializingTransformerParserTests {
 
 	public static class TestDeserializer implements Deserializer<Object> {
 
+		@Override
 		public Object deserialize(InputStream source) throws IOException {
 			return FileCopyUtils.copyToString(new InputStreamReader(source, "UTF-8")).toUpperCase();
 		}

@@ -66,15 +66,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 
 	private volatile boolean messageBuilderFactorySet;
 
-	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator =
-			new MessageHandlingTaskDecorator() {
-
-				@Override
-				public Runnable decorate(MessageHandlingRunnable task) {
-					return task;
-				}
-
-			};
+	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
 	private BeanFactory beanFactory;
 
@@ -202,14 +194,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher implements BeanFa
 	private Runnable createMessageHandlingTask(final MessageHandler handler, final Message<?> message) {
 		MessageHandlingRunnable task = new MessageHandlingRunnable() {
 
-			private final MessageHandler delegate = new MessageHandler() {
-
-				@Override
-				public void handleMessage(Message<?> message) throws MessagingException {
-					invokeHandler(handler, message);
-				}
-
-			};
+			private final MessageHandler delegate = message1 -> invokeHandler(handler, message1);
 
 			@Override
 			public void run() {

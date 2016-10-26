@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
 public class AsyncMessagingTemplateTests {
 
 	// TODO: changed from 0 because of recurrent failure: is this right?
-	private long safety = 100;
+	private final long safety = 100;
 
 	@Test
 	public void asyncSendWithDefaultChannel() throws Exception {
@@ -438,19 +438,15 @@ public class AsyncMessagingTemplateTests {
 
 	private static void sendMessageAfterDelay(final MessageChannel channel, final GenericMessage<String> message,
 			final int delay) {
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			public void run() {
-				try {
-					Thread.sleep(delay);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return;
-				}
-				channel.send(message);
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				Thread.sleep(delay);
 			}
-
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			channel.send(message);
 		});
 	}
 
@@ -490,6 +486,7 @@ public class AsyncMessagingTemplateTests {
 
 	private static class TestMessagePostProcessor implements MessagePostProcessor {
 
+		@Override
 		public Message<?> postProcessMessage(Message<?> message) {
 			return MessageBuilder.fromMessage(message).setHeader("foo", "bar").build();
 		}

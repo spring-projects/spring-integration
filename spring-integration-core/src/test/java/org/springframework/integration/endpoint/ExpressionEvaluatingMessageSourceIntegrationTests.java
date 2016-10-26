@@ -31,12 +31,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -69,10 +68,8 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		adapter.setMaxMessagesPerPoll(3);
 		adapter.setTrigger(new PeriodicTrigger(60000));
 		adapter.setOutputChannel(channel);
-		adapter.setErrorHandler(new ErrorHandler() {
-			public void handleError(Throwable t) {
-				throw new IllegalStateException("unexpected exception in test", t);
-			}
+		adapter.setErrorHandler(t -> {
+			throw new IllegalStateException("unexpected exception in test", t);
 		});
 		adapter.start();
 		List<Message<?>> messages = new ArrayList<Message<?>>();

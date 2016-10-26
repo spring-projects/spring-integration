@@ -83,6 +83,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		TestBean1(String text) {
 			this.text = text;
 		}
+
 	}
 
 
@@ -99,6 +100,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		public String toString() {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
+
 	}
 	private static class TestBean3 {
 
@@ -113,21 +115,33 @@ public class ConverterParserWithExistingConversionServiceTests {
 		public String toString() {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
+
 	}
 
 	private static class TestConverter implements Converter<TestBean1, TestBean2> {
+
+		TestConverter() {
+			super();
+		}
 
 		@Override
 		public TestBean2 convert(TestBean1 source) {
 			return new TestBean2(source.text.toUpperCase());
 		}
+
 	}
 
 	private static class TestConverter3 implements Converter<TestBean1, TestBean3> {
+
+		TestConverter3() {
+			super();
+		}
 
 		@Override
 		public TestBean3 convert(TestBean1 source) {
 			return new TestBean3(source.text.toUpperCase());
 		}
+
 	}
+
 }

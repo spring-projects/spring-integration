@@ -44,7 +44,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
@@ -61,9 +60,6 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 
@@ -142,13 +138,7 @@ public class AggregatorParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithExpressionsInput");
 		SubscribableChannel outputChannel = (SubscribableChannel) context.getBean("aggregatorWithExpressionsOutput");
 		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<Message<?>>();
-		outputChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				aggregatedMessage.set(message);
-			}
-		});
+		outputChannel.subscribe(message -> aggregatedMessage.set(message));
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(MessageBuilder.withPayload("123").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("456").setHeader("foo", "1").build());

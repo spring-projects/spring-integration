@@ -55,7 +55,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 	 */
 	private final class DefaultTransactionalResourceSynchronization extends IntegrationResourceHolderSynchronization {
 
-		private DefaultTransactionalResourceSynchronization(Object resourceKey) {
+		DefaultTransactionalResourceSynchronization(Object resourceKey) {
 			super(new IntegrationResourceHolder(), resourceKey);
 		}
 

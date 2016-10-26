@@ -112,7 +112,7 @@ public class PriorityChannel extends QueueChannel {
 
 		private final Comparator<Message<?>> targetComparator;
 
-		private SequenceFallbackComparator(Comparator<Message<?>> targetComparator) {
+		SequenceFallbackComparator(Comparator<Message<?>> targetComparator) {
 			this.targetComparator = targetComparator;
 		}
 
@@ -145,7 +145,7 @@ public class PriorityChannel extends QueueChannel {
 		private final Message<?> rootMessage;
 		private final long sequence;
 
-		private MessageWrapper(Message<?> rootMessage) {
+		MessageWrapper(Message<?> rootMessage) {
 			this.rootMessage = rootMessage;
 			this.sequence = PriorityChannel.this.sequenceCounter.incrementAndGet();
 		}

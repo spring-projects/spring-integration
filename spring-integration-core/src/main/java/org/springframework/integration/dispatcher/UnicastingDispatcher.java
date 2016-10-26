@@ -25,7 +25,6 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
 
@@ -52,14 +51,7 @@ import org.springframework.util.Assert;
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
 
-	private final MessageHandler dispatchHandler = new MessageHandler() {
-
-		@Override
-		public void handleMessage(Message<?> message) throws MessagingException {
-			doDispatch(message);
-		}
-
-	};
+	private final MessageHandler dispatchHandler = message -> doDispatch(message);
 
 	private final Executor executor;
 
@@ -67,15 +59,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
-	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator =
-			new MessageHandlingTaskDecorator() {
-
-				@Override
-				public Runnable decorate(MessageHandlingRunnable task) {
-					return task;
-				}
-
-			};
+	private volatile MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
 
 	public UnicastingDispatcher() {
 		this.executor = null;

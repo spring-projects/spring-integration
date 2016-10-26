@@ -27,7 +27,6 @@ import org.springframework.util.Assert;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.pool.KryoCallback;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 
@@ -43,13 +42,11 @@ public abstract class AbstractKryoCodec implements Codec {
 	protected final KryoPool pool;
 
 	protected AbstractKryoCodec() {
-		KryoFactory factory = new KryoFactory() {
-			public Kryo create() {
-				Kryo kryo = new Kryo();
-				// configure Kryo instance, customize settings
-				configureKryoInstance(kryo);
-				return kryo;
-			}
+		KryoFactory factory = () -> {
+			Kryo kryo = new Kryo();
+			// configure Kryo instance, customize settings
+			configureKryoInstance(kryo);
+			return kryo;
 		};
 		// Build pool with SoftReferences enabled (optional)
 		this.pool = new KryoPool.Builder(factory).softReferences().build();
@@ -60,13 +57,9 @@ public abstract class AbstractKryoCodec implements Codec {
 		Assert.notNull(object, "cannot encode a null object");
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
-		this.pool.run(new KryoCallback<Object>() {
-
-			public Object execute(Kryo kryo) {
-				doEncode(kryo, object, output);
-				return Void.class;
-			}
-
+		this.pool.run(kryo -> {
+			doEncode(kryo, object, output);
+			return Void.class;
 		});
 		output.close();
 	}
@@ -90,13 +83,7 @@ public abstract class AbstractKryoCodec implements Codec {
 		final Input input = (inputStream instanceof Input ? (Input) inputStream : new Input(inputStream));
 		T result = null;
 		try {
-			result = this.pool.run(new KryoCallback<T>() {
-
-				public T execute(Kryo kryo) {
-					return doDecode(kryo, input, type);
-				}
-
-			});
+			result = this.pool.run(kryo -> doDecode(kryo, input, type));
 		}
 		finally {
 			input.close();

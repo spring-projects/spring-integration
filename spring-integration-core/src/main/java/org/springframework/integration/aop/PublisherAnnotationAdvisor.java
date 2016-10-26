@@ -122,7 +122,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		 * interfaces for the annotation type as well (even if the annotation type
 		 * is not marked as inherited itself)
 		 */
-		private MetaAnnotationMatchingPointcut(Class<? extends Annotation> classAnnotationType, boolean checkInherited) {
+		MetaAnnotationMatchingPointcut(Class<? extends Annotation> classAnnotationType, boolean checkInherited) {
 			this.classFilter = new AnnotationClassFilter(classAnnotationType, checkInherited);
 			this.methodMatcher = MethodMatcher.TRUE;
 		}
@@ -134,7 +134,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		 * @param methodAnnotationType the annotation type to look for at the method level
 		 * (can be <code>null</code>)
 		 */
-		private MetaAnnotationMatchingPointcut(
+		MetaAnnotationMatchingPointcut(
 				Class<? extends Annotation> classAnnotationType, Class<? extends Annotation> methodAnnotationType) {
 
 			Assert.isTrue((classAnnotationType != null || methodAnnotationType != null),
@@ -177,7 +177,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		 * Create a new AnnotationClassFilter for the given annotation type.
 		 * @param annotationType the annotation type to look for
 		 */
-		private MetaAnnotationMethodMatcher(Class<? extends Annotation> annotationType) {
+		MetaAnnotationMethodMatcher(Class<? extends Annotation> annotationType) {
 			super(annotationType);
 			this.annotationType = annotationType;
 		}

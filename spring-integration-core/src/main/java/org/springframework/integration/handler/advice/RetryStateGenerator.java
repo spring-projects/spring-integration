@@ -26,7 +26,9 @@ import org.springframework.retry.RetryState;
  * @since 2.2
  *
  */
+@FunctionalInterface
 public interface RetryStateGenerator {
 
 	RetryState determineRetryState(Message<?> message);
+
 }

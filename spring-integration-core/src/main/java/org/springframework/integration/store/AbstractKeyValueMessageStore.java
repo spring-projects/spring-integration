@@ -335,7 +335,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		private final Iterator<?> idIterator;
 
-		private MessageGroupIterator(Iterator<?> idIterator) {
+		MessageGroupIterator(Iterator<?> idIterator) {
 			this.idIterator = idIterator;
 		}
 

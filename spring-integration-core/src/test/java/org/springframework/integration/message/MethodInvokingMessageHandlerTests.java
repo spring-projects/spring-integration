@@ -110,6 +110,7 @@ public class MethodInvokingMessageHandlerTests {
 				Thread.currentThread().interrupt();
 			}
 		}
+
 	}
 
 
@@ -118,6 +119,10 @@ public class MethodInvokingMessageHandlerTests {
 
 		private String result;
 
+
+		TestSink() {
+			super();
+		}
 
 		public void validMethod(String s) {
 		}
@@ -136,6 +141,7 @@ public class MethodInvokingMessageHandlerTests {
 		public String get() {
 			return this.result;
 		}
+
 	}
 
 }

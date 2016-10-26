@@ -458,6 +458,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	 */
 	private static final class Gateway extends MessagingGatewaySupport {
 
+		Gateway() {
+			super();
+		}
+
 		@Override
 		protected Message<?> sendAndReceiveMessage(Object object) {
 			return super.sendAndReceiveMessage(object);

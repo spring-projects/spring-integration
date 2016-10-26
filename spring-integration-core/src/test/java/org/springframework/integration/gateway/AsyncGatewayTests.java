@@ -301,32 +301,27 @@ public class AsyncGatewayTests {
 	}
 
 	private static void startResponder(final PollableChannel requestChannel) {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				Message<?> input = requestChannel.receive();
-				String payload = input.getPayload() + "bar";
-				Message<?> reply = MessageBuilder.withPayload(payload)
+		new Thread(() -> {
+			Message<?> input = requestChannel.receive();
+			String payload = input.getPayload() + "bar";
+			Message<?> reply = MessageBuilder.withPayload(payload)
+					.copyHeaders(input.getHeaders())
+					.build();
+			try {
+				Thread.sleep(200);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			String header = (String) input.getHeaders().get("method");
+			if (header != null && header.startsWith("returnCustomFuture")) {
+				reply = MessageBuilder.withPayload(new CustomFuture(payload,
+						(Thread) input.getHeaders().get("thread")))
 						.copyHeaders(input.getHeaders())
 						.build();
-				try {
-					Thread.sleep(200);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return;
-				}
-				String header = (String) input.getHeaders().get("method");
-				if (header != null && header.startsWith("returnCustomFuture")) {
-					reply = MessageBuilder.withPayload(new CustomFuture(payload,
-							(Thread) input.getHeaders().get("thread")))
-							.copyHeaders(input.getHeaders())
-							.build();
-				}
-				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
-
+			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 	}
 

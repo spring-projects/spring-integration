@@ -23,12 +23,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -38,11 +37,7 @@ public class MessageFilterTests {
 
 	@Test
 	public void filterAcceptsMessage() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> true);
 		Message<?> message = new GenericMessage<String>("test");
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
@@ -54,11 +49,7 @@ public class MessageFilterTests {
 
 	@Test
 	public void filterRejectsMessageSilently() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
 		filter.handleMessage(new GenericMessage<String>("test"));
@@ -67,11 +58,7 @@ public class MessageFilterTests {
 
 	@Test(expected = MessageRejectedException.class)
 	public void filterThrowsException() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		filter.setThrowExceptionOnRejection(true);
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
@@ -82,11 +69,7 @@ public class MessageFilterTests {
 	public void filterAcceptsWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> true);
 		filter.setOutputChannel(outputChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
@@ -101,11 +84,7 @@ public class MessageFilterTests {
 	public void filterRejectsSilentlyWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		filter.setOutputChannel(outputChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
@@ -118,11 +97,7 @@ public class MessageFilterTests {
 	public void filterThrowsExceptionWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		filter.setOutputChannel(outputChannel);
 		filter.setThrowExceptionOnRejection(true);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
@@ -136,11 +111,7 @@ public class MessageFilterTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		filter.setOutputChannel(outputChannel);
 		filter.setDiscardChannel(discardChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
@@ -158,11 +129,7 @@ public class MessageFilterTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
+		MessageFilter filter = new MessageFilter(message -> false);
 		filter.setOutputChannel(outputChannel);
 		filter.setDiscardChannel(discardChannel);
 		filter.setThrowExceptionOnRejection(true);

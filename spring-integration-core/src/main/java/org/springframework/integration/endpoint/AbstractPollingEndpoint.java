@@ -183,13 +183,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 		}
 
-		Callable<Boolean> pollingTask = new Callable<Boolean>() {
-
-			@Override
-			public Boolean call() throws Exception {
-				return doPoll();
-			}
-		};
+		Callable<Boolean> pollingTask = () -> doPoll();
 
 		List<Advice> adviceChain = this.adviceChain;
 		if (!CollectionUtils.isEmpty(adviceChain)) {
@@ -335,37 +329,32 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 		private final Callable<Boolean> pollingTask;
 
-		private Poller(Callable<Boolean> pollingTask) {
+		Poller(Callable<Boolean> pollingTask) {
 			this.pollingTask = pollingTask;
 		}
 
 		@Override
 		public void run() {
-			AbstractPollingEndpoint.this.taskExecutor.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					int count = 0;
-					while (AbstractPollingEndpoint.this.initialized
-							&& (AbstractPollingEndpoint.this.maxMessagesPerPoll <= 0
-							|| count < AbstractPollingEndpoint.this.maxMessagesPerPoll)) {
-						try {
-							if (!Poller.this.pollingTask.call()) {
-								break;
-							}
-							count++;
+			AbstractPollingEndpoint.this.taskExecutor.execute(() -> {
+				int count = 0;
+				while (AbstractPollingEndpoint.this.initialized
+						&& (AbstractPollingEndpoint.this.maxMessagesPerPoll <= 0
+						|| count < AbstractPollingEndpoint.this.maxMessagesPerPoll)) {
+					try {
+						if (!Poller.this.pollingTask.call()) {
+							break;
 						}
-						catch (Exception e) {
-							if (e instanceof RuntimeException) {
-								throw (RuntimeException) e;
-							}
-							else {
-								throw new MessageHandlingException(new ErrorMessage(e), e);
-							}
+						count++;
+					}
+					catch (Exception e) {
+						if (e instanceof RuntimeException) {
+							throw (RuntimeException) e;
+						}
+						else {
+							throw new MessageHandlingException(new ErrorMessage(e), e);
 						}
 					}
 				}
-
 			});
 		}
 

@@ -38,8 +38,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -84,28 +82,23 @@ public class AsyncHandlerTests {
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				final SettableListenableFuture<String> future = new SettableListenableFuture<String>();
-				Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-					@Override
-					public void run() {
-						try {
-							latch.await(10, TimeUnit.SECONDS);
-							switch (whichTest) {
-								case 0:
-									future.set("reply");
-									break;
-								case 1:
-									future.setException(new RuntimeException("foo"));
-									break;
-								case 2:
-									future.setException(new MessagingException(requestMessage));
-							}
-						}
-						catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
+				Executors.newSingleThreadExecutor().execute(() -> {
+					try {
+						latch.await(10, TimeUnit.SECONDS);
+						switch (whichTest) {
+							case 0:
+								future.set("reply");
+								break;
+							case 1:
+								future.setException(new RuntimeException("foo"));
+								break;
+							case 2:
+								future.setException(new MessagingException(requestMessage));
 						}
 					}
-
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				});
 				return future;
 			}
@@ -117,16 +110,11 @@ public class AsyncHandlerTests {
 		this.latch = new CountDownLatch(1);
 		Log logger = spy(TestUtils.getPropertyValue(this.handler, "logger", Log.class));
 		new DirectFieldAccessor(this.handler).setPropertyValue("logger", logger);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				failedCallbackMessage = (String) invocation.getArguments()[0];
-				failedCallbackException = (Exception) invocation.getArguments()[1];
-				exceptionLatch.countDown();
-				return null;
-			}
-
+		doAnswer(invocation -> {
+			failedCallbackMessage = (String) invocation.getArguments()[0];
+			failedCallbackException = (Exception) invocation.getArguments()[1];
+			exceptionLatch.countDown();
+			return null;
 		}).when(logger).error(anyString(), any(Throwable.class));
 	}
 

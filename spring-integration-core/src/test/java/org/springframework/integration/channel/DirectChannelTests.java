@@ -45,7 +45,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 
@@ -93,13 +92,7 @@ public class DirectChannelTests {
 		 */
 		DirectChannel channel = new DirectChannel();
 		final AtomicInteger count = new AtomicInteger();
-		channel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				count.incrementAndGet();
-			}
-		});
+		channel.subscribe(message -> count.incrementAndGet());
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
 		for (int i = 0; i < 10000000; i++) {
@@ -119,20 +112,8 @@ public class DirectChannelTests {
 		DirectChannel channel = new DirectChannel();
 		final AtomicInteger count1 = new AtomicInteger();
 		final AtomicInteger count2 = new AtomicInteger();
-		channel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				count1.incrementAndGet();
-			}
-		});
-		channel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				count2.getAndIncrement();
-			}
-		});
+		channel.subscribe(message -> count1.incrementAndGet());
+		channel.subscribe(message -> count2.getAndIncrement());
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
 		for (int i = 0; i < 10000000; i++) {
@@ -152,13 +133,7 @@ public class DirectChannelTests {
 		 *  Added the same code to the other tests for comparison.
 		 */
 		final AtomicInteger count = new AtomicInteger();
-		FixedSubscriberChannel channel = new FixedSubscriberChannel(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				count.incrementAndGet();
-			}
-		});
+		FixedSubscriberChannel channel = new FixedSubscriberChannel(message -> count.incrementAndGet());
 		GenericMessage<String> message = new GenericMessage<String>("test");
 		assertTrue(channel.send(message));
 		for (int i = 0; i < 100000000; i++) {
@@ -173,12 +148,7 @@ public class DirectChannelTests {
 		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget(latch);
 		channel.subscribe(target);
 		final GenericMessage<String> message = new GenericMessage<String>("test");
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				channel.send(message);
-			}
-		}, "test-thread").start();
+		new Thread((Runnable) () -> channel.send(message), "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("test-thread", target.threadName);
 	}

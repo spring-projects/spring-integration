@@ -20,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import org.springframework.core.convert.converter.Converter;
-
 /**
  * @author Gary Russell
  * @since 2.0
@@ -37,14 +35,7 @@ public class PayloadTypeConvertingTransformerTests {
 	@Test
 	public void testTransformPayloadObject() throws Exception {
 		PayloadTypeConvertingTransformer<String, String> tx = new PayloadTypeConvertingTransformer<String, String>();
-		tx.setConverter(new Converter<String, String>() {
-
-			@Override
-			public String convert(String source) {
-				return source.toUpperCase();
-			}
-
-		});
+		tx.setConverter(source -> source.toUpperCase());
 		String in = "abcd";
 		String out = tx.transformPayload(in);
 		assertEquals("ABCD", out);

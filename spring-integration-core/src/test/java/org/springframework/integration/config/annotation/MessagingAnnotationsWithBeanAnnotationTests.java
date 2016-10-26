@@ -74,7 +74,6 @@ import org.springframework.integration.transformer.ExpressionEvaluatingTransform
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
@@ -278,13 +277,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@ServiceActivator(inputChannel = "serviceChannel")
 		public MessageHandler service() {
 			final List<Message<?>> collector = this.collector();
-			return new MessageHandler() {
-
-				@Override
-				public void handleMessage(Message<?> message) throws MessagingException {
-					collector.add(message);
-				}
-			};
+			return message -> collector.add(message);
 		}
 
 		@Bean

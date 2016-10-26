@@ -36,14 +36,11 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.StopWatch;
 
 /**
@@ -236,26 +233,16 @@ public class MessageHistoryIntegrationTests {
 
 		SampleGateway gatewayHistory = acWithHistory.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannelHistory = acWithHistory.getBean("endOfThePipeChannel", DirectChannel.class);
-		endOfThePipeChannelHistory.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message)
-					throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-			}
+		endOfThePipeChannelHistory.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
 		});
 
 		SampleGateway gateway = acWithoutHistory.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = acWithoutHistory.getBean("endOfThePipeChannel", DirectChannel.class);
-		endOfThePipeChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message)
-					throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(message);
-			}
+		endOfThePipeChannel.subscribe(message -> {
+			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+			replyChannel.send(message);
 		});
 
 		StopWatch stopWatch = new StopWatch();

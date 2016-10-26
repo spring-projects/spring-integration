@@ -45,7 +45,7 @@ public class MessageHandlerNode extends EndpointNode {
 
 		private final MessageHandlerMetrics handler;
 
-		private Stats(MessageHandlerMetrics handler) {
+		Stats(MessageHandlerMetrics handler) {
 			this.handler = handler;
 		}
 

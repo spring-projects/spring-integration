@@ -84,7 +84,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 		private final MethodFilter methodFilter;
 
 
-		private ExpressionCommandMethodResolver(MethodFilter methodFilter) {
+		ExpressionCommandMethodResolver(MethodFilter methodFilter) {
 			this.methodFilter = methodFilter;
 		}
 

@@ -78,20 +78,10 @@ public final class MessagingAnnotationUtils {
 	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {
 		final AtomicReference<Method> reference = new AtomicReference<Method>();
 
-		ReflectionUtils.doWithMethods(getTargetClass(target), new ReflectionUtils.MethodCallback() {
-
-			@Override
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				reference.compareAndSet(null, method);
-			}
-		}, new ReflectionUtils.MethodFilter() {
-
-			@Override
-			public boolean matches(Method method) {
-				return ReflectionUtils.USER_DECLARED_METHODS.matches(method) &&
-						AnnotatedElementUtils.isAnnotated(method, annotationType.getName());
-			}
-		});
+		ReflectionUtils.doWithMethods(getTargetClass(target),
+				method -> reference.compareAndSet(null, method),
+				method -> ReflectionUtils.USER_DECLARED_METHODS.matches(method) &&
+						AnnotatedElementUtils.isAnnotated(method, annotationType.getName()));
 
 		return reference.get();
 	}

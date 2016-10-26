@@ -211,6 +211,10 @@ public class ServiceActivatorParserTests {
 	@SuppressWarnings("unused")
 	private static class TestBean {
 
+		TestBean() {
+			super();
+		}
+
 		public String caps(String s) {
 			return s.toUpperCase();
 		}
@@ -223,6 +227,10 @@ public class ServiceActivatorParserTests {
 
 	@SuppressWarnings("unused")
 	private static class TestPayload {
+
+		TestPayload() {
+			super();
+		}
 
 		public String getSimpleClassName(Object o) {
 			return o.getClass().getSimpleName();

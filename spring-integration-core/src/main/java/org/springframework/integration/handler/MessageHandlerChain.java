@@ -232,7 +232,11 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 		}
 	}
 
-	private class ReplyForwardingMessageChannel implements MessageChannel {
+	private final class ReplyForwardingMessageChannel implements MessageChannel {
+
+		ReplyForwardingMessageChannel() {
+			super();
+		}
 
 		@Override
 		public boolean send(Message<?> message) {

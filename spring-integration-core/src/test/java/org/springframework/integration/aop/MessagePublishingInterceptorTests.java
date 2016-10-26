@@ -109,6 +109,7 @@ public class MessagePublishingInterceptorTests {
 
 	static class TestBeanImpl implements TestBean {
 
+		@Override
 		public String test() {
 			return "foo";
 		}
@@ -118,14 +119,21 @@ public class MessagePublishingInterceptorTests {
 
 	private static class TestPublisherMetadataSource implements PublisherMetadataSource {
 
+		TestPublisherMetadataSource() {
+			super();
+		}
+
+		@Override
 		public String getPayloadExpression(Method method) {
 			return "'test-' + #return";
 		}
 
+		@Override
 		public Map<String, String> getHeaderExpressions(Method method) {
 			return null;
 		}
 
+		@Override
 		public String getChannelName(Method method) {
 			return "c";
 		}

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -87,7 +88,7 @@ public class GatewayProxyFactoryBeanTests {
 				return source.getBytes();
 			}
 		};
-		stringToByteConverter = Mockito.spy(stringToByteConverter);
+		stringToByteConverter = spy(stringToByteConverter);
 		cs.addConverter(stringToByteConverter);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
@@ -156,13 +157,10 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testRequestReplyWithTypeConversion() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> input = requestChannel.receive();
-				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "456");
-				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
-			}
+		new Thread(() -> {
+			Message<?> input = requestChannel.receive();
+			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "456");
+			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
@@ -209,19 +207,16 @@ public class GatewayProxyFactoryBeanTests {
 		Executor executor = Executors.newFixedThreadPool(numRequests);
 		for (int i = 0; i < numRequests; i++) {
 			final int count = i;
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					// add some randomness to the ordering of requests
-					try {
-						Thread.sleep(new Random().nextInt(100));
-					}
-					catch (InterruptedException e) {
-						// ignore
-					}
-					results[count] = service.requestReply("test-" + count);
-					latch.countDown();
+			executor.execute(() -> {
+				// add some randomness to the ordering of requests
+				try {
+					Thread.sleep(new Random().nextInt(100));
 				}
+				catch (InterruptedException e) {
+					// ignore
+				}
+				results[count] = service.requestReply("test-" + count);
+				latch.countDown();
 			});
 		}
 		latch.await(30, TimeUnit.SECONDS);
@@ -267,13 +262,10 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testMessageAsReturnValue() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> input = requestChannel.receive();
-				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
-			}
+		new Thread(() -> {
+			Message<?> input = requestChannel.receive();
+			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
+			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
@@ -339,13 +331,10 @@ public class GatewayProxyFactoryBeanTests {
 
 
 	private static void startResponder(final PollableChannel requestChannel) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				Message<?> input = requestChannel.receive();
-				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
-			}
+		new Thread(() -> {
+			Message<?> input = requestChannel.receive();
+			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
+			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 	}
 

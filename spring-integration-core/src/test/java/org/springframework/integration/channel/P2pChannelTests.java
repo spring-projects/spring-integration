@@ -23,7 +23,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -31,13 +30,10 @@ import java.util.concurrent.Executor;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.FieldCallback;
 
 /**
  * @author Oleg Zhurakousky
@@ -78,21 +74,14 @@ public class P2pChannelTests {
 		final Log logger = mock(Log.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
 		final List<String> logs = new ArrayList<String>();
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				logs.add((String) invocation.getArguments()[0]);
-				return null;
-			}
+		doAnswer(invocation -> {
+			logs.add((String) invocation.getArguments()[0]);
+			return null;
 		}).when(logger).info(Mockito.anyString());
-		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
-			@Override
-			public void doWith(Field field) throws IllegalArgumentException,
-					IllegalAccessException {
-				if ("logger".equals(field.getName())) {
-					field.setAccessible(true);
-					field.set(channel, logger);
-				}
+		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {
+			if ("logger".equals(field.getName())) {
+				field.setAccessible(true);
+				field.set(channel, logger);
 			}
 		});
 		String log = "Channel '"
@@ -122,15 +111,10 @@ public class P2pChannelTests {
 
 		final Log logger = mock(Log.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
-		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
-
-			@Override
-			public void doWith(Field field) throws IllegalArgumentException,
-					IllegalAccessException {
-				if ("logger".equals(field.getName())) {
-					field.setAccessible(true);
-					field.set(channel, logger);
-				}
+		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {
+			if ("logger".equals(field.getName())) {
+				field.setAccessible(true);
+				field.set(channel, logger);
 			}
 		});
 		channel.subscribe(mock(MessageHandler.class));
@@ -145,15 +129,10 @@ public class P2pChannelTests {
 
 		final Log logger = mock(Log.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
-		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
-
-			@Override
-			public void doWith(Field field) throws IllegalArgumentException,
-					IllegalAccessException {
-				if ("logger".equals(field.getName())) {
-					field.setAccessible(true);
-					field.set(channel, logger);
-				}
+		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {
+			if ("logger".equals(field.getName())) {
+				field.setAccessible(true);
+				field.set(channel, logger);
 			}
 		});
 		channel.subscribe(mock(MessageHandler.class));

@@ -49,7 +49,7 @@ public class CallerBlocksPolicyTests {
 		te.initialize();
 		final AtomicReference<Throwable> e = new AtomicReference<Throwable>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		te.execute(new Runnable() {
+		Runnable task = new Runnable() {
 
 			@Override
 			public void run() {
@@ -61,7 +61,8 @@ public class CallerBlocksPolicyTests {
 				}
 				latch.countDown();
 			}
-		});
+		};
+		te.execute(task);
 		assertTrue(latch.await(10,  TimeUnit.SECONDS));
 		assertThat(e.get(), instanceOf(RejectedExecutionException.class));
 		assertEquals("Max wait time expired to queue task", e.get().getMessage());
@@ -77,32 +78,28 @@ public class CallerBlocksPolicyTests {
 		te.initialize();
 		final AtomicReference<Throwable> e = new AtomicReference<Throwable>();
 		final CountDownLatch latch = new CountDownLatch(3);
-		te.execute(new Runnable() {
+		te.execute(() -> {
+			try {
+				Runnable foo = new Runnable() {
 
-			@Override
-			public void run() {
-				try {
-					Runnable foo = new Runnable() {
-
-						@Override
-						public void run() {
-							try {
-								Thread.sleep(1000);
-							}
-							catch (InterruptedException e) {
-								Thread.currentThread().interrupt();
-								throw new RuntimeException();
-							}
-							latch.countDown();
+					@Override
+					public void run() {
+						try {
+							Thread.sleep(1000);
 						}
-					};
-					te.execute(foo);
-					te.execute(foo); // this one will be queued
-					te.execute(foo); // this one will be blocked and successful later
-				}
-				catch (TaskRejectedException tre) {
-					e.set(tre.getCause());
-				}
+						catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+							throw new RuntimeException();
+						}
+						latch.countDown();
+					}
+				};
+				te.execute(foo);
+				te.execute(foo); // this one will be queued
+				te.execute(foo); // this one will be blocked and successful later
+			}
+			catch (TaskRejectedException tre) {
+				e.set(tre.getCause());
 			}
 		});
 		assertTrue(latch.await(10,  TimeUnit.SECONDS));

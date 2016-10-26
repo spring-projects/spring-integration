@@ -634,7 +634,7 @@ public class MethodInvokingRouterTests {
 
 	public static class SingleChannelInstanceRoutingTestBean {
 
-		private DestinationResolver<MessageChannel> channelResolver;
+		private final DestinationResolver<MessageChannel> channelResolver;
 
 		public SingleChannelInstanceRoutingTestBean(DestinationResolver<MessageChannel> channelResolver) {
 			this.channelResolver = channelResolver;
@@ -659,7 +659,7 @@ public class MethodInvokingRouterTests {
 
 	public static class MultiChannelInstanceRoutingTestBean {
 
-		private DestinationResolver<MessageChannel> channelResolver;
+		private final DestinationResolver<MessageChannel> channelResolver;
 
 		public MultiChannelInstanceRoutingTestBean(DestinationResolver<MessageChannel> channelResolver) {
 			this.channelResolver = channelResolver;
@@ -697,6 +697,11 @@ public class MethodInvokingRouterTests {
 
 	private static class ClassAsKeyTestBean {
 
+		ClassAsKeyTestBean() {
+			super();
+		}
+
+		@SuppressWarnings("unused")
 		public Class<?> routePayload(Object payload) {
 			return payload.getClass();
 		}

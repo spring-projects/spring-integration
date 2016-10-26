@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -69,26 +68,20 @@ public class GatewayInvokingMessageHandlerTests {
 
 	@Test
 	public void validateGatewayInTheChainViaChannel() {
-		output.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
-				Assert.assertEquals("foo", message.getHeaders().get("foo"));
-				Assert.assertEquals("oleg", message.getHeaders().get("name"));
-			}
+		output.subscribe(message -> {
+			Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
+			Assert.assertEquals("foo", message.getHeaders().get("foo"));
+			Assert.assertEquals("oleg", message.getHeaders().get("name"));
 		});
 		channel.send(new GenericMessage<String>("hello"));
 	}
 
 	@Test
 	public void validateGatewayInTheChainViaAnotherGateway() {
-		output.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
-				Assert.assertEquals("foo", message.getHeaders().get("foo"));
-				Assert.assertEquals("oleg", message.getHeaders().get("name"));
-			}
+		output.subscribe(message -> {
+			Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
+			Assert.assertEquals("foo", message.getHeaders().get("foo"));
+			Assert.assertEquals("oleg", message.getHeaders().get("name"));
 		});
 		String result = gateway.process("hello");
 		Assert.assertEquals("echo:echo:echo:hello", result);

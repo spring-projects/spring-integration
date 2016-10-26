@@ -32,8 +32,6 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -57,12 +55,7 @@ public class PartialSequencesWithGapsTests {
 
 	@Before
 	public void collectOutput() {
-		out.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				received.add(message);
-			}
-		});
+		out.subscribe(message -> received.add(message));
 	}
 
 	@Test

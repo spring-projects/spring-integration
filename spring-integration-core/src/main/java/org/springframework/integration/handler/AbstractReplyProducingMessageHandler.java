@@ -173,6 +173,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private class AdvisedRequestHandler implements RequestHandler {
 
+		AdvisedRequestHandler() {
+			super();
+		}
+
 		@Override
 		public Object handleRequestMessage(Message<?> requestMessage) {
 			return AbstractReplyProducingMessageHandler.this.handleRequestMessage(requestMessage);

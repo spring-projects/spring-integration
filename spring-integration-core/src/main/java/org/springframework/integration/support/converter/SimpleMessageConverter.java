@@ -123,6 +123,10 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 	private class DefaultInboundMessageMapper implements InboundMessageMapper<Object> {
 
+		DefaultInboundMessageMapper() {
+			super();
+		}
+
 		@Override
 		public Message<?> toMessage(Object object) throws Exception {
 			if (object == null) {
@@ -138,6 +142,10 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 
 
 	private class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
+
+		DefaultOutboundMessageMapper() {
+			super();
+		}
 
 		@Override
 		public Object fromMessage(Message<?> message) throws Exception {

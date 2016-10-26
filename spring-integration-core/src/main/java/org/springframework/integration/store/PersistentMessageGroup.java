@@ -35,7 +35,7 @@ class PersistentMessageGroup implements MessageGroup {
 
 	private static final Log logger = LogFactory.getLog(PersistentMessageGroup.class);
 
-	private MessageGroupStore messageGroupStore;
+	private final MessageGroupStore messageGroupStore;
 
 	private final Collection<Message<?>> messages = new PersistentCollection();
 
@@ -168,9 +168,13 @@ class PersistentMessageGroup implements MessageGroup {
 	}
 
 
-	private class PersistentCollection extends AbstractCollection<Message<?>> {
+	private final class PersistentCollection extends AbstractCollection<Message<?>> {
 
 		private volatile Collection<Message<?>> collection;
+
+		PersistentCollection() {
+			super();
+		}
 
 		private void load() {
 			if (this.collection == null) {

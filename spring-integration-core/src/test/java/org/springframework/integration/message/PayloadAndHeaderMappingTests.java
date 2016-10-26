@@ -30,13 +30,13 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -696,6 +696,10 @@ public class PayloadAndHeaderMappingTests {
 	@SuppressWarnings("unused")
 	private static class SingleAmbiguousMethodTestBean {
 
+		SingleAmbiguousMethodTestBean() {
+			super();
+		}
+
 		public String concat(String s1, String s2) {
 			return "s1" + "s2";
 		}
@@ -708,6 +712,10 @@ public class PayloadAndHeaderMappingTests {
 
 		private volatile Object lastPayload;
 
+
+		TestBean() {
+			super();
+		}
 
 		public void headerPropertiesAndObjectPayload(Properties headers, Object payload) {
 			this.lastHeaders = headers;

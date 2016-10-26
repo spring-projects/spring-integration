@@ -33,9 +33,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ErrorHandler;
 
@@ -56,14 +53,7 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		dispatcher.setApplySequence(true);
-		dispatcher.addHandler(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-
-			}
-
-		});
+		dispatcher.addHandler(message -> { });
 		dispatcher.dispatch(new GenericMessage<String>("foo"));
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertNull(dispatcherAccessor.getPropertyValue("executor"));

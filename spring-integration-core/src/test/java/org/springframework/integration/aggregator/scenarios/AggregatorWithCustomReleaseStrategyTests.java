@@ -108,29 +108,20 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		for (int i = 0; i < 600; i++) {
 			final int counter = i;
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload("foo").
-							setHeader("correlation", "foo" + counter).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload("foo").
+						setHeader("correlation", "foo" + counter).build());
+				latch.countDown();
 			});
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload("bar").
-							setHeader("correlation", "foo" + counter).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload("bar").
+						setHeader("correlation", "foo" + counter).build());
+				latch.countDown();
 			});
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload("baz").
-							setHeader("correlation", "foo" + counter).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload("baz").
+						setHeader("correlation", "foo" + counter).build());
+				latch.countDown();
 			});
 		}
 
@@ -155,26 +146,17 @@ public class AggregatorWithCustomReleaseStrategyTests {
 		final CountDownLatch latch = new CountDownLatch(1800);
 
 		for (int i = 0; i < 600; i++) {
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).build());
+				latch.countDown();
 			});
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload(new Integer[]{9, 10, 11, 12, 13, 14, 15, 16}).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload(new Integer[]{9, 10, 11, 12, 13, 14, 15, 16}).build());
+				latch.countDown();
 			});
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					inputChannel.send(MessageBuilder.withPayload(new Integer[]{17, 18, 19, 20, 21, 22, 23, 24}).build());
-					latch.countDown();
-				}
+			executor.execute(() -> {
+				inputChannel.send(MessageBuilder.withPayload(new Integer[]{17, 18, 19, 20, 21, 22, 23, 24}).build());
+				latch.countDown();
 			});
 		}
 

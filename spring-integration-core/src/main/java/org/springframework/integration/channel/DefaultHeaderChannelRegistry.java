@@ -235,7 +235,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 		private final long expireAt;
 
-		private MessageChannelWrapper(MessageChannel channel, long expireAt) {
+		MessageChannelWrapper(MessageChannel channel, long expireAt) {
 			this.channel = channel;
 			this.expireAt = expireAt;
 		}

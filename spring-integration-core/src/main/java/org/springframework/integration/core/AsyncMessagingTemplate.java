@@ -16,7 +16,6 @@
 
 package org.springframework.integration.core;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -47,221 +46,119 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 
 	@Override
 	public Future<?> asyncSend(final Message<?> message) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				send(message);
-			}
-		});
+		return this.executor.submit(() -> send(message));
 	}
 
 	@Override
 	public Future<?> asyncSend(final MessageChannel channel, final Message<?> message) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				send(channel, message);
-			}
-		});
+		return this.executor.submit(() -> send(channel, message));
 	}
 
 	@Override
 	public Future<?> asyncSend(final String channelName, final Message<?> message) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				send(channelName, message);
-			}
-		});
+		return this.executor.submit(() -> send(channelName, message));
 	}
 
 	@Override
 	public Future<?> asyncConvertAndSend(final Object object) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				convertAndSend(object);
-			}
-		});
+		return this.executor.submit(() -> convertAndSend(object));
 	}
 
 	@Override
 	public Future<?> asyncConvertAndSend(final MessageChannel channel, final Object object) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				convertAndSend(channel, object);
-			}
-		});
+		return this.executor.submit(() -> convertAndSend(channel, object));
 	}
 
 	@Override
 	public Future<?> asyncConvertAndSend(final String channelName, final Object object) {
-		return this.executor.submit(new Runnable() {
-			@Override
-			public void run() {
-				convertAndSend(channelName, object);
-			}
-		});
+		return this.executor.submit(() -> convertAndSend(channelName, object));
 	}
 
 	@Override
 	public Future<Message<?>> asyncReceive() {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return receive();
-			}
-		});
+		return this.executor.submit(() -> receive());
 	}
 
 	@Override
 	public Future<Message<?>> asyncReceive(final PollableChannel channel) {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return receive(channel);
-			}
-		});
+		return this.executor.submit(() -> receive(channel));
 	}
 
 	@Override
 	public Future<Message<?>> asyncReceive(final String channelName) {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return receive(channelName);
-			}
-		});
+		return this.executor.submit(() -> receive(channelName));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert() {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) receiveAndConvert(null);
-			}
-		});
+		return this.executor.submit(() -> (R) receiveAndConvert(null));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) receiveAndConvert(channel, null);
-			}
-		});
+		return this.executor.submit(() -> (R) receiveAndConvert(channel, null));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) receiveAndConvert(channelName, null);
-			}
-		});
+		return this.executor.submit(() -> (R) receiveAndConvert(channelName, null));
 	}
 
 	@Override
 	public Future<Message<?>> asyncSendAndReceive(final Message<?> requestMessage) {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return sendAndReceive(requestMessage);
-			}
-		});
+		return this.executor.submit(() -> sendAndReceive(requestMessage));
 	}
 
 	@Override
 	public Future<Message<?>> asyncSendAndReceive(final MessageChannel channel, final Message<?> requestMessage) {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return sendAndReceive(channel, requestMessage);
-			}
-		});
+		return this.executor.submit(() -> sendAndReceive(channel, requestMessage));
 	}
 
 	@Override
 	public Future<Message<?>> asyncSendAndReceive(final String channelName, final Message<?> requestMessage) {
-		return this.executor.submit(new Callable<Message<?>>() {
-			@Override
-			public Message<?> call() throws Exception {
-				return sendAndReceive(channelName, requestMessage);
-			}
-		});
+		return this.executor.submit(() -> sendAndReceive(channelName, requestMessage));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final Object request) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(request, null);
-			}
-		});
+		return this.executor.submit(() -> (R) convertSendAndReceive(request, null));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(channel, request, null);
-			}
-		});
+		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, null));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(channelName, request, null);
-			}
-		});
+		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, null));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncConvertSendAndReceive(final Object request, final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(request, null, requestPostProcessor);
-			}
-		});
+	public <R> Future<R> asyncConvertSendAndReceive(final Object request,
+			final MessagePostProcessor requestPostProcessor) {
+		return this.executor.submit(() -> (R) convertSendAndReceive(request, null, requestPostProcessor));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request, final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(channel, request, null, requestPostProcessor);
-			}
-		});
+	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request,
+			final MessagePostProcessor requestPostProcessor) {
+		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, null, requestPostProcessor));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request, final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(new Callable<R>() {
-			@Override
-			public R call() throws Exception {
-				return (R) convertSendAndReceive(channelName, request, null, requestPostProcessor);
-			}
-		});
+	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request,
+			final MessagePostProcessor requestPostProcessor) {
+		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, null, requestPostProcessor));
 	}
 
 }

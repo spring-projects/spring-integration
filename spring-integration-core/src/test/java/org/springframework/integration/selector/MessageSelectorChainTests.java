@@ -21,8 +21,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -164,10 +164,11 @@ public class MessageSelectorChainTests {
 
 		private final boolean accept;
 
-		private TestSelector(boolean accept) {
+		TestSelector(boolean accept) {
 			this.accept = accept;
 		}
 
+		@Override
 		public boolean accept(Message<?> message) {
 			return this.accept;
 		}

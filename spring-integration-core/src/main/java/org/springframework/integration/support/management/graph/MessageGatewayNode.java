@@ -36,7 +36,7 @@ public class MessageGatewayNode extends ErrorCapableEndpointNode {
 
 		private final MessagingGatewaySupport gateway;
 
-		private Stats(MessagingGatewaySupport gateway) {
+		Stats(MessagingGatewaySupport gateway) {
 			this.gateway = gateway;
 		}
 

@@ -222,6 +222,10 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 
 		private volatile boolean running;
 
+		LifecycleMessageSource() {
+			super();
+		}
+
 		@Override
 		public void start() {
 			this.running = true;

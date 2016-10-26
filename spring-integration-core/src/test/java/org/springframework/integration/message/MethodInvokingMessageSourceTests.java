@@ -111,6 +111,10 @@ public class MethodInvokingMessageSourceTests {
 	@SuppressWarnings("unused")
 	private static class TestBean {
 
+		TestBean() {
+			super();
+		}
+
 		public String validMethod() {
 			return "valid";
 		}

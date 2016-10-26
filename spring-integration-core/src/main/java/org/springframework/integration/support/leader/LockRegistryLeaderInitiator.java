@@ -386,6 +386,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private class LockContext implements Context {
 
+		LockContext() {
+			super();
+		}
+
 		@Override
 		public boolean isLeader() {
 			return LockRegistryLeaderInitiator.this.leaderSelector.isLeader();
@@ -411,6 +415,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	private static final class NullContext implements Context {
+
+		NullContext() {
+			super();
+		}
 
 		@Override
 		public boolean isLeader() {

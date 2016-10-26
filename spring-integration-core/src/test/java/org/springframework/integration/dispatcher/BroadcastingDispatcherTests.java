@@ -27,8 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -48,15 +46,15 @@ public class BroadcastingDispatcherTests {
 
 	private BroadcastingDispatcher dispatcher;
 
-	private TaskExecutor taskExecutorMock = Mockito.mock(TaskExecutor.class);
+	private final TaskExecutor taskExecutorMock = Mockito.mock(TaskExecutor.class);
 
-	private Message<?> messageMock = Mockito.mock(Message.class);
+	private final Message<?> messageMock = Mockito.mock(Message.class);
 
-	private MessageHandler targetMock1 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock1 = Mockito.mock(MessageHandler.class);
 
-	private MessageHandler targetMock2 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock2 = Mockito.mock(MessageHandler.class);
 
-	private MessageHandler targetMock3 = Mockito.mock(MessageHandler.class);
+	private final MessageHandler targetMock3 = Mockito.mock(MessageHandler.class);
 
 
 	@Before
@@ -277,13 +275,9 @@ public class BroadcastingDispatcherTests {
 	}
 
 	private void defaultTaskExecutorMock() {
-		Mockito.doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				((Runnable) invocation.getArguments()[0]).run();
-				return null;
-			}
+		Mockito.doAnswer(invocation -> {
+			((Runnable) invocation.getArguments()[0]).run();
+			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
 
@@ -292,15 +286,11 @@ public class BroadcastingDispatcherTests {
 	 */
 	private void partialFailingExecutorMock(final boolean... passes) {
 		final AtomicInteger count = new AtomicInteger();
-		Mockito.doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if (passes[count.getAndIncrement()]) {
-					((Runnable) invocation.getArguments()[0]).run();
-				}
-				return null;
+		Mockito.doAnswer(invocation -> {
+			if (passes[count.getAndIncrement()]) {
+				((Runnable) invocation.getArguments()[0]).run();
 			}
+			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
 
@@ -313,6 +303,7 @@ public class BroadcastingDispatcherTests {
 			this.messageList = messageList;
 		}
 
+		@Override
 		public void handleMessage(Message<?> message) {
 			this.messageList.add(message);
 		}

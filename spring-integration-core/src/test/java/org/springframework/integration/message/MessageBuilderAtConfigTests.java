@@ -140,9 +140,16 @@ public class MessageBuilderAtConfigTests {
 	}
 
 	private static class RequestHeaderCopyingEchoHandler extends AbstractReplyProducingMessageHandler {
+
+		RequestHeaderCopyingEchoHandler() {
+			super();
+		}
+
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return requestMessage;
 		}
+
 	}
+
 }

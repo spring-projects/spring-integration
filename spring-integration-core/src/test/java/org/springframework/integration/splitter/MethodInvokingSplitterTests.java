@@ -42,7 +42,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class MethodInvokingSplitterTests {
 
-	private SplitterTestBean testBean = new SplitterTestBean();
+	private final SplitterTestBean testBean = new SplitterTestBean();
 
 	@Test
 	public void splitStringToStringArray() throws Exception {
@@ -609,7 +609,7 @@ public class MethodInvokingSplitterTests {
 	@SuppressWarnings("serial")
 	private static class TestStringMessage extends GenericMessage<String> {
 
-		private TestStringMessage(String payload) {
+		TestStringMessage(String payload) {
 			super(payload);
 		}
 

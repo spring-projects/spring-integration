@@ -18,7 +18,6 @@ package org.springframework.integration.support;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -133,15 +132,8 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
 		if (lifecycles != null) {
 			lifecycles = new ArrayList<SmartLifecycle>(lifecycles);
-			Collections.sort(lifecycles, new Comparator<SmartLifecycle>() {
-
-				@Override
-				public int compare(SmartLifecycle o1, SmartLifecycle o2) {
-					return o1.getPhase() < o2.getPhase() ? -1
-							: o1.getPhase() > o2.getPhase() ? 1 : 0;
-				}
-
-			});
+			Collections.sort(lifecycles, (o1, o2) ->
+					o1.getPhase() < o2.getPhase() ? -1 : o1.getPhase() > o2.getPhase() ? 1 : 0);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Zookeeper leadership granted: Starting: " + lifecycles);
 			}
@@ -172,15 +164,8 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
 		if (lifecycles != null) {
 			lifecycles = new ArrayList<SmartLifecycle>(lifecycles);
-			Collections.sort(lifecycles, new Comparator<SmartLifecycle>() {
-
-				@Override
-				public int compare(SmartLifecycle o1, SmartLifecycle o2) {
-					return o1.getPhase() < o2.getPhase() ? 1
-							: o1.getPhase() > o2.getPhase() ? -1 : 0;
-				}
-
-			});
+			Collections.sort(lifecycles, (o1, o2) ->
+					o1.getPhase() < o2.getPhase() ? 1 : o1.getPhase() > o2.getPhase() ? -1 : 0);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Zookeeper leadership revoked: Stopping: " + lifecycles);
 			}

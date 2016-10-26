@@ -34,8 +34,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -240,19 +238,14 @@ public class DelayHandlerTests {
 		taskScheduler.destroy();
 
 		final CountDownLatch latch = new CountDownLatch(1);
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
-					latch.countDown();
-				}
-				catch (InterruptedException e) {
-					// won't countDown
-				}
+		new Thread(() -> {
+			try {
+				taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
+				latch.countDown();
 			}
-
+			catch (InterruptedException e) {
+				// won't countDown
+			}
 		}).start();
 
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
@@ -267,16 +260,13 @@ public class DelayHandlerTests {
 		taskScheduler.destroy();
 
 		final CountDownLatch latch = new CountDownLatch(1);
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
-					latch.countDown();
-				}
-				catch (InterruptedException e) {
-					// won't countDown
-				}
+		new Thread(() -> {
+			try {
+				taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
+				latch.countDown();
+			}
+			catch (InterruptedException e) {
+				// won't countDown
 			}
 		}).start();
 		latch.await(50, TimeUnit.MILLISECONDS);
@@ -287,11 +277,8 @@ public class DelayHandlerTests {
 	public void handlerThrowsExceptionWithNoDelay() throws Exception {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
-		output.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) {
-				throw new UnsupportedOperationException("intentional test failure");
-			}
+		output.subscribe(message -> {
+			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
@@ -307,13 +294,8 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
-		output.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) {
-				throw new UnsupportedOperationException("intentional test failure");
-			}
-
+		output.subscribe(message -> {
+			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10")
@@ -343,13 +325,8 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
-		output.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) {
-				throw new UnsupportedOperationException("intentional test failure");
-			}
-
+		output.subscribe(message -> {
+			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10")
@@ -377,13 +354,8 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
-		output.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) {
-				throw new UnsupportedOperationException("intentional test failure");
-			}
-
+		output.subscribe(message -> {
+			throw new UnsupportedOperationException("intentional test failure");
 		});
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "10").build();
@@ -441,12 +413,7 @@ public class DelayHandlerTests {
 	// Can happen in the parent-child context e.g. Spring-MVC applications
 	public void testDoubleOnApplicationEvent() throws Exception {
 		this.delayHandler = Mockito.spy(this.delayHandler);
-		Mockito.doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(this.delayHandler).reschedulePersistedMessages();
+		Mockito.doAnswer(invocation -> null).when(this.delayHandler).reschedulePersistedMessages();
 
 		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(TestUtils.createTestApplicationContext());
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
@@ -530,6 +497,10 @@ public class DelayHandlerTests {
 		private volatile Message<?> lastMessage;
 
 		private volatile Thread lastThread;
+
+		ResultHandler() {
+			super();
+		}
 
 		@Override
 		public void handleMessage(Message<?> message) {
