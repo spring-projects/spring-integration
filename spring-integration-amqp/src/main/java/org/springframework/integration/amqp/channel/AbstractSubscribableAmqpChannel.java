@@ -42,7 +42,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
@@ -186,7 +185,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 					IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
 					Integer.class);
 		}
-		this.setMaxSubscribers(this.maxSubscribers);
+		setMaxSubscribers(this.maxSubscribers);
 		String queue = this.obtainQueueName(this.admin, this.channelName);
 		this.container.setQueueNames(queue);
 		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
@@ -307,13 +306,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 					}
 				}
 				else {
-					throw new MessageDeliveryException(
-							messageToSend, exceptionMessage, e);
+					throw new MessageDeliveryException(messageToSend, exceptionMessage, e);
 				}
-			}
-			catch (Exception e) {
-				throw new MessagingException("Failure occured in AMQP listener " +
-						"while attempting to convert and dispatch Message.", e);
 			}
 		}
 
