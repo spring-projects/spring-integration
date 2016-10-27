@@ -23,6 +23,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
@@ -32,15 +34,21 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.BlockingQueueConsumer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.converter.MessageConversionException;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
@@ -70,7 +78,10 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 	@ClassRule
 	public static final BrokerRunning brokerIsRunning =
-		BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP");
+		BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP", "testConvertFail");
+
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
 
 	@Autowired
 	private PublishSubscribeAmqpChannel channel;
@@ -229,6 +240,23 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"));
 		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper"));
+	}
+
+	@Test
+	public void messageConversionTests() throws Exception {
+		RabbitTemplate amqpTemplate = new RabbitTemplate(this.factory);
+		MessageConverter messageConverter = mock(MessageConverter.class);
+		amqpTemplate.setMessageConverter(messageConverter);
+		PointToPointSubscribableAmqpChannel channel = new PointToPointSubscribableAmqpChannel("testConvertFail",
+				new SimpleMessageListenerContainer(this.factory), amqpTemplate);
+		channel.afterPropertiesSet();
+		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener",
+				MessageListener.class);
+		willThrow(new MessageConversionException("foo", new IllegalStateException("bar")))
+			.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
+		this.exception.expect(MessageConversionException.class);
+		this.exception.expectCause(instanceOf(IllegalStateException.class));
+		listener.onMessage(mock(org.springframework.amqp.core.Message.class));
 	}
 
 	public static class Foo {
