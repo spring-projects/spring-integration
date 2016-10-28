@@ -73,7 +73,7 @@ public class MultipartAsRawByteArrayTests {
 
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				byte[] buff = (byte[]) invocation.getArguments()[0];
+				byte[] buff = invocation.getArgumentAt(0, byte[].class);
 				buff[0] = 'f';
 				buff[1] = 'o';
 				buff[2] = 'o';

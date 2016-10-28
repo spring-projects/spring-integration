@@ -309,7 +309,7 @@ public class RemoteFileOutboundGatewayTests {
 		}).when(session).rename(anyString(), anyString());
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(invocation -> {
-			madeDirs.add((String) invocation.getArguments()[0]);
+			madeDirs.add(invocation.getArgumentAt(0, String.class));
 			return null;
 		}).when(session).mkdir(anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -909,7 +909,7 @@ public class RemoteFileOutboundGatewayTests {
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			written.set((String) invocation.getArguments()[1]);
+			written.set(invocation.getArgumentAt(1, String.class));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");
@@ -943,7 +943,7 @@ public class RemoteFileOutboundGatewayTests {
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			written.set((String) invocation.getArguments()[1]);
+			written.set(invocation.getArgumentAt(1, String.class));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");

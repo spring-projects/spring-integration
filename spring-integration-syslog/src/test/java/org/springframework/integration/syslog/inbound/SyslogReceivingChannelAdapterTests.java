@@ -118,7 +118,7 @@ public class SyslogReceivingChannelAdapterTests {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if (((String) invocation.getArguments()[0]).contains("Error on syslog socket")) {
+				if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
 					sawLog.countDown();
 				}
 				invocation.callRealMethod();
@@ -201,7 +201,7 @@ public class SyslogReceivingChannelAdapterTests {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if (((String) invocation.getArguments()[0]).contains("Error on syslog socket")) {
+				if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
 					sawLog.countDown();
 				}
 				invocation.callRealMethod();

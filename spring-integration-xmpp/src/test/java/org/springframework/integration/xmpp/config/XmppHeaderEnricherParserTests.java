@@ -61,7 +61,7 @@ public class XmppHeaderEnricherParserTests {
 		MessageHandler handler = mock(MessageHandler.class);
 		doAnswer(new Answer() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Message message = (Message) invocation.getArguments()[0];
+				Message message = invocation.getArgumentAt(0, Message.class);
 				String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
 				assertNotNull(chatToUser);
 				assertEquals("test1@example.org", chatToUser);

@@ -167,7 +167,7 @@ public class InboundEndpointTests {
 
 		Mockito.doAnswer(invocation -> {
 			org.springframework.amqp.core.Message message =
-					(org.springframework.amqp.core.Message) invocation.getArguments()[2];
+					invocation.getArgumentAt(2, org.springframework.amqp.core.Message.class);
 			Map<String, Object> headers = message.getMessageProperties().getHeaders();
 			assertTrue(headers.containsKey(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));
 			assertNotEquals("foo", headers.get(JsonHeaders.TYPE_ID.replaceFirst(JsonHeaders.PREFIX, "")));

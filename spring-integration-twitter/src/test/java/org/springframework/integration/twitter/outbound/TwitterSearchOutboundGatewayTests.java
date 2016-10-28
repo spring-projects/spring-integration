@@ -84,7 +84,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertEquals("foo", searchParameters.getQuery());
 				assertEquals(Integer.valueOf(20), searchParameters.getCount());
 				return searchResults;
@@ -111,7 +111,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertEquals("foo", searchParameters.getQuery());
 				assertEquals(Integer.valueOf(30), searchParameters.getCount());
 				return searchResults;
@@ -138,7 +138,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertEquals("bar", searchParameters.getQuery());
 				assertEquals(Integer.valueOf(1), searchParameters.getCount());
 				assertEquals(Long.valueOf(2), searchParameters.getSinceId());
@@ -166,7 +166,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertSame(parameters, searchParameters);
 				return searchResults;
 			}
@@ -192,7 +192,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertEquals("foobar", searchParameters.getQuery());
 				assertEquals(Integer.valueOf(5), searchParameters.getCount());
 				assertEquals(Long.valueOf(11), searchParameters.getSinceId());
@@ -218,7 +218,7 @@ public class TwitterSearchOutboundGatewayTests {
 
 			@Override
 			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = (SearchParameters) invocation.getArguments()[0];
+				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
 				assertEquals("foo", searchParameters.getQuery());
 				assertEquals(Integer.valueOf(20), searchParameters.getCount());
 				return searchResults;

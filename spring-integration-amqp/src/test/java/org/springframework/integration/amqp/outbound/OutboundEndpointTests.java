@@ -120,7 +120,7 @@ public class OutboundEndpointTests {
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
 		willAnswer(invocation -> {
-			amqpMessage.set((Message) invocation.getArguments()[2]);
+			amqpMessage.set(invocation.getArgumentAt(2, Message.class));
 			return null;
 		}).given(amqpTemplate).send(anyString(), anyString(), any(Message.class),
 				any(CorrelationData.class));
@@ -144,7 +144,7 @@ public class OutboundEndpointTests {
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
 		willAnswer(invocation -> {
-			amqpMessage.set((Message) invocation.getArguments()[2]);
+			amqpMessage.set(invocation.getArgumentAt(2, Message.class));
 			return null;
 		}).given(amqpTemplate)
 				.doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class), any(CorrelationData.class));

@@ -111,8 +111,8 @@ public class AsyncHandlerTests {
 		Log logger = spy(TestUtils.getPropertyValue(this.handler, "logger", Log.class));
 		new DirectFieldAccessor(this.handler).setPropertyValue("logger", logger);
 		doAnswer(invocation -> {
-			failedCallbackMessage = (String) invocation.getArguments()[0];
-			failedCallbackException = (Exception) invocation.getArguments()[1];
+			failedCallbackMessage = invocation.getArgumentAt(0, String.class);
+			failedCallbackException = invocation.getArgumentAt(1, Exception.class);
 			exceptionLatch.countDown();
 			return null;
 		}).when(logger).error(anyString(), any(Throwable.class));

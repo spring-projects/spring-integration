@@ -318,7 +318,7 @@ public class SubscribableJmsChannelTests {
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
 		doAnswer(invocation -> {
-			String message = (String) invocation.getArguments()[0];
+			String message = invocation.getArgumentAt(0, String.class);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				logList.add(message);
 			}

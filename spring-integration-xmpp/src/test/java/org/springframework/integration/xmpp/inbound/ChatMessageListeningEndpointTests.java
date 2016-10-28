@@ -85,7 +85,7 @@ public class ChatMessageListeningEndpointTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.add((StanzaListener) invocation.getArguments()[0]);
+				packetListSet.add(invocation.getArgumentAt(0, StanzaListener.class));
 				return null;
 			}
 

@@ -120,7 +120,7 @@ public class HttpProxyScenarioTests {
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
 		Mockito.doAnswer(invocation -> {
-			URI uri = (URI) invocation.getArguments()[0];
+			URI uri = invocation.getArgumentAt(0, URI.class);
 			assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
@@ -173,7 +173,7 @@ public class HttpProxyScenarioTests {
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 		Mockito.doAnswer(invocation -> {
-			URI uri = (URI) invocation.getArguments()[0];
+			URI uri = invocation.getArgumentAt(0, URI.class);
 			assertEquals(new URI("http://testServer/testmp"), uri);
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();

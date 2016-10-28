@@ -167,7 +167,7 @@ public class MqttAdapterTests {
 
 			@Override
 			public MqttToken answer(InvocationOnMock invocation) throws Throwable {
-				MqttConnectOptions options = (MqttConnectOptions) invocation.getArguments()[0];
+				MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
 				assertEquals(23, options.getConnectionTimeout());
 				assertEquals(45, options.getKeepAliveInterval());
 				assertEquals("pass", new String(options.getPassword()));
@@ -190,7 +190,7 @@ public class MqttAdapterTests {
 			@Override
 			public MqttDeliveryToken answer(InvocationOnMock invocation) throws Throwable {
 				assertEquals("mqtt-foo", invocation.getArguments()[0]);
-				MqttMessage message = (MqttMessage) invocation.getArguments()[1];
+				MqttMessage message = invocation.getArgumentAt(1, MqttMessage.class);
 				assertEquals("Hello, world!", new String(message.getPayload()));
 				publishCalled.set(true);
 				return deliveryToken;
@@ -246,7 +246,7 @@ public class MqttAdapterTests {
 					waitToFail.await(10, TimeUnit.SECONDS);
 					throw reconnectException;
 				}
-				MqttConnectOptions options = (MqttConnectOptions) invocation.getArguments()[0];
+				MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
 				assertEquals(23, options.getConnectionTimeout());
 				assertEquals(45, options.getKeepAliveInterval());
 				assertEquals("pass", new String(options.getPassword()));
@@ -269,7 +269,7 @@ public class MqttAdapterTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				callback.set((MqttCallback) invocation.getArguments()[0]);
+				callback.set(invocation.getArgumentAt(0, MqttCallback.class));
 				return null;
 			}
 		}).when(client).setCallback(any(MqttCallback.class));
@@ -290,7 +290,7 @@ public class MqttAdapterTests {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				events.add((MqttIntegrationEvent) invocation.getArguments()[0]);
+				events.add(invocation.getArgumentAt(0, MqttIntegrationEvent.class));
 				return null;
 			}
 		}).when(applicationEventPublisher).publishEvent(any(MqttIntegrationEvent.class));
