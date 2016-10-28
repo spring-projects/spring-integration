@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
  * Implementation of AbstractRegexPatternMatchingFileListFilter for java.io.File instances.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<File> {
 
@@ -38,6 +39,11 @@ public class RegexPatternFileListFilter extends AbstractRegexPatternFileListFilt
 	@Override
 	protected String getFilename(File file) {
 		return (file != null) ? file.getName() : null;
+	}
+
+	@Override
+	protected boolean isDirectory(File file) {
+		return file.isDirectory();
 	}
 
 }
