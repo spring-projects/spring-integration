@@ -81,7 +81,6 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	String responseNonSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
 			"<person><name>oleg</name></person>";
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void headerMapperParserTest() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -182,7 +181,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertNull(replyMessage.getHeaders().get("baz"));
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "resource" })
 	public Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"ws-outbound-gateway-with-headermappers.xml", this.getClass());

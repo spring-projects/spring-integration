@@ -106,6 +106,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		context.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	@RedisAvailable
 	// synchronization rollback renames the list

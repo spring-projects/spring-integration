@@ -134,8 +134,8 @@ public class ChatMessageListeningEndpointTests {
 
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(message -> {
-throw new RuntimeException("ooops");
-});
+			throw new RuntimeException("ooops");
+		});
 		PollableChannel errorChannel = new QueueChannel();
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(outChannel);

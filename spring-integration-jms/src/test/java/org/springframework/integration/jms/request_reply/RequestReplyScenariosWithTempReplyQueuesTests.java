@@ -67,6 +67,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
+	@SuppressWarnings("resource")
 	@Test
 	public void messageCorrelationBasedOnRequestMessageId() throws Exception {
 		ActiveMqTestUtils.prepare();

@@ -136,7 +136,6 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				exception = e;
 			}
 		});

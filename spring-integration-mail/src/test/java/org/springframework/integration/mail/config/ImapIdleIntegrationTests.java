@@ -47,6 +47,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ImapIdleIntegrationTests {
 
+	@SuppressWarnings("resource")
 	@Test
 	public void testWithTransactionSynchronization() throws Exception {
 		final AtomicBoolean block = new AtomicBoolean(false);

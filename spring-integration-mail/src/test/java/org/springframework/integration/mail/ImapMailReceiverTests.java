@@ -447,6 +447,7 @@ public class ImapMailReceiverTests {
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception {
@@ -548,6 +549,7 @@ public class ImapMailReceiverTests {
 		context.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception {
 		ConfigurableApplicationContext context =
@@ -622,6 +624,7 @@ public class ImapMailReceiverTests {
 		context.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception {
 		ConfigurableApplicationContext context =
@@ -726,7 +729,6 @@ public class ImapMailReceiverTests {
 				}
 				catch (javax.mail.MessagingException e) {
 					if (e.getCause() instanceof NullPointerException) {
-						e.printStackTrace();
 						failed.getAndIncrement();
 					}
 				}
@@ -739,7 +741,6 @@ public class ImapMailReceiverTests {
 				}
 				catch (Exception ignore) {
 					// ignore
-					ignore.printStackTrace();
 				}
 			}).start();
 		}

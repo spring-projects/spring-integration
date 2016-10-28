@@ -37,6 +37,7 @@ import org.springframework.jms.core.MessageCreator;
  */
 public class ExceptionHandlingSiConsumerTests {
 
+	@SuppressWarnings("resource")
 	@Test
 	public void nonSiProducer_siConsumer_sync_withReturn() throws Exception {
 		ActiveMqTestUtils.prepare();
@@ -55,6 +56,7 @@ public class ExceptionHandlingSiConsumerTests {
 		applicationContext.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	public void nonSiProducer_siConsumer_sync_withReturnNoException() throws Exception {
 		ActiveMqTestUtils.prepare();
