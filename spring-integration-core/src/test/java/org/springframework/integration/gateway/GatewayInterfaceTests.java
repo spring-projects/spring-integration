@@ -30,6 +30,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
@@ -110,12 +114,14 @@ public class GatewayInterfaceTests {
 	@Autowired
 	@Qualifier("&gatewayInterfaceTests$NoExecGateway")
 	private GatewayProxyFactoryBean noExecGatewayFB;
-
 	@Autowired
 	private SimpleAsyncTaskExecutor exec;
 
 	@Autowired
 	private AutoCreateChannelService autoCreateChannelService;
+
+	@Autowired(required = false)
+	private NotAGatewayByScanFilter notAGatewayByScanFilter;
 
 
 	@Test
@@ -383,6 +389,13 @@ public class GatewayInterfaceTests {
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertThat(result2.get().getName(), startsWith("exec-"));
+
+		/*
+		@IntegrationComponentScan(useDefaultFilters = false,
+		includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
+		excludes this a candidate
+		*/
+		assertNull(this.notAGatewayByScanFilter);
 	}
 
 	@Test
@@ -402,6 +415,7 @@ public class GatewayInterfaceTests {
 	}
 
 	public interface Bar extends Foo {
+
 		@Gateway(requestChannel = "requestChannelBar")
 		void bar(String payload);
 
@@ -409,7 +423,9 @@ public class GatewayInterfaceTests {
 	}
 
 	public static class NotAnInterface {
-		public void fail(String payload) { }
+
+		public void fail(String payload) {
+		}
 	}
 
 	public interface Baz {
@@ -441,7 +457,8 @@ public class GatewayInterfaceTests {
 	@Configuration
 	@ComponentScan(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
 			classes = AutoCreateChannelService.class))
-	@IntegrationComponentScan
+	@IntegrationComponentScan(useDefaultFilters = false,
+			includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
 	@EnableIntegration
 	public static class TestConfig {
 
@@ -492,6 +509,7 @@ public class GatewayInterfaceTests {
 	}
 
 	@MessagingGateway
+	@TestMessagingGateway
 	public interface Int2634Gateway {
 
 		@Gateway(requestChannel = "gatewayChannel", payloadExpression = "#args[0]")
@@ -506,6 +524,7 @@ public class GatewayInterfaceTests {
 	}
 
 	@MessagingGateway(asyncExecutor = "exec")
+	@TestMessagingGateway
 	public interface ExecGateway {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
@@ -517,6 +536,7 @@ public class GatewayInterfaceTests {
 	}
 
 	@MessagingGateway(asyncExecutor = AnnotationConstants.NULL)
+	@TestMessagingGateway
 	public interface NoExecGateway {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
@@ -526,9 +546,23 @@ public class GatewayInterfaceTests {
 
 
 	@MessagingGateway(defaultRequestChannel = "autoCreateChannel")
+	@TestMessagingGateway
 	public interface AutoCreateChannelGateway {
 
 		String foo(String payload);
+
+	}
+
+	@MessagingGateway
+	public interface NotAGatewayByScanFilter {
+
+		String foo(String payload);
+
+	}
+
+	@Target({ ElementType.TYPE, ElementType.ANNOTATION_TYPE })
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface TestMessagingGateway {
 
 	}
 
