@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * Implementation of {@link AbstractSimplePatternFileListFilter} for SFTP.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<ChannelSftp.LsEntry> {
@@ -37,6 +38,11 @@ public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileLi
 	@Override
 	protected String getFilename(LsEntry entry) {
 		return (entry != null) ? entry.getFilename() : null;
+	}
+
+	@Override
+	protected boolean isDirectory(LsEntry file) {
+		return file.getAttrs().isDir();
 	}
 
 }

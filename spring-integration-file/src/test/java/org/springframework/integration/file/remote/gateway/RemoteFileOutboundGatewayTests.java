@@ -1051,7 +1051,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	static class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings("unchecked")
 		TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 				String command, String expression) {
 			super(sessionFactory, Command.toCommand(command), expression);
@@ -1178,6 +1178,11 @@ public class RemoteFileOutboundGatewayTests {
 		@Override
 		protected String getFilename(TestLsEntry file) {
 			return file.getFilename();
+		}
+
+		@Override
+		protected boolean isDirectory(TestLsEntry file) {
+			return file.isDirectory();
 		}
 
 	}

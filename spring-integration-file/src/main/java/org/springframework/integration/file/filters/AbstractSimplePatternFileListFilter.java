@@ -29,7 +29,7 @@ import org.springframework.util.AntPathMatcher;
  * @see org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter
  * @since 2.0
  */
-public abstract class AbstractSimplePatternFileListFilter<F> extends AbstractFileListFilter<F> {
+public abstract class AbstractSimplePatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F> {
 
 	private final AntPathMatcher matcher = new AntPathMatcher();
 
@@ -46,7 +46,7 @@ public abstract class AbstractSimplePatternFileListFilter<F> extends AbstractFil
 	 */
 	@Override
 	public final boolean accept(F file) {
-		return this.matcher.match(this.path, this.getFilename(file));
+		return alwaysAccept(file) || (file != null && this.matcher.match(this.path, this.getFilename(file)));
 	}
 
 	/**

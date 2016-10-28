@@ -879,12 +879,34 @@ By default, the entire remote tree is retrieved.
 However, files in the tree can be filtered, by providing a`FileListFilter`; directories in the tree can also be filtered this way.
 A `FileListFilter` can be provided by reference or by `filename-pattern` or `filename-regex` attributes.
 For example, `filename-regex="(subDir|.*1.txt)"` will retrieve all files ending with `1.txt` in the remote directory and the subdirectory `subDir`.
+However, see below for an alternative available in _version 5.0_.
+
 If a subdirectory is filtered, no additional traversal of that subdirectory is performed.
 
 The `-dirs` option is not allowed (the recursive mget uses the recursive `ls` to obtain the directory tree and the directories themselves cannot be included in the list).
 
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
+
+Starting with _verison 5.0_, the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` can be configured to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
+This allows recursion for a simple pattern; examples follow:
+
+[code, xnl]
+----
+<bean id="startDotTxtFilter" class="org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter">
+    <constructor-arg value="*.txt" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+
+<bean id="dotStarDotTxtFilter"
+            class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
+    <constructor-arg value="^.*\.txt$" />
+    <property name="alwaysAcceptDirectories" value="true" />
+</bean>
+----
+
+and provide one of these filters using `filter` property on the gateway.
+
 
 See also <<sftp-partial>>
 

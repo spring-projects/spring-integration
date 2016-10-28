@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.integration.file.filters.AbstractSimplePatternFileLis
  * Implementation of {@link AbstractSimplePatternFileListFilter} for FTP.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<FTPFile> {
@@ -36,6 +37,11 @@ public class FtpSimplePatternFileListFilter extends AbstractSimplePatternFileLis
 	@Override
 	protected String getFilename(FTPFile file) {
 		return (file != null) ? file.getName() : null;
+	}
+
+	@Override
+	protected boolean isDirectory(FTPFile file) {
+		return file.isDirectory();
 	}
 
 }

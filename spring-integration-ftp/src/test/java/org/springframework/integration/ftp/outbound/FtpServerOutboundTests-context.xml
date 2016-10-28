@@ -52,9 +52,15 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
+							  filter="startDotTxtFilter"
 							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
+
+	<bean id="startDotTxtFilter" class="org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter">
+		<constructor-arg value="*.txt" />
+		<property name="alwaysAcceptDirectories" value="true" />
+	</bean>
 
 	<int:channel id="inboundMGetRecursiveFiltered"/>
 
