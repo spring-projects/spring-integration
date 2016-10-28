@@ -897,7 +897,7 @@ public class AdvisedMessageHandlerTests {
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
 		final AtomicReference<String> logMessage = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			logMessage.set((String) invocation.getArguments()[0]);
+			logMessage.set(invocation.getArgumentAt(0, String.class));
 			return null;
 		}).when(logger).warn(Mockito.anyString());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(advice);

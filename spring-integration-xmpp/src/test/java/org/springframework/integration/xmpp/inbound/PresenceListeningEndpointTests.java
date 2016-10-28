@@ -70,7 +70,7 @@ public class PresenceListeningEndpointTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				rosterSet.add((RosterListener) invocation.getArguments()[0]);
+				rosterSet.add(invocation.getArgumentAt(0, RosterListener.class));
 				return null;
 			}
 
@@ -80,7 +80,7 @@ public class PresenceListeningEndpointTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				rosterSet.remove((RosterListener) invocation.getArguments()[0]);
+				rosterSet.remove(invocation.getArgumentAt(0, RosterListener.class));
 				return null;
 			}
 

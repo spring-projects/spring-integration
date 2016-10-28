@@ -75,7 +75,7 @@ public class P2pChannelTests {
 		when(logger.isInfoEnabled()).thenReturn(true);
 		final List<String> logs = new ArrayList<String>();
 		doAnswer(invocation -> {
-			logs.add((String) invocation.getArguments()[0]);
+			logs.add(invocation.getArgumentAt(0, String.class));
 			return null;
 		}).when(logger).info(Mockito.anyString());
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {

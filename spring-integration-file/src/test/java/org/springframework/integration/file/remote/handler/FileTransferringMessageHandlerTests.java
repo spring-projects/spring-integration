@@ -64,7 +64,7 @@ public class FileTransferringMessageHandlerTests {
 
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			String path =  (String) invocation.getArguments()[1];
+			String path =  invocation.getArgumentAt(1, String.class);
 			assertFalse(path.startsWith("/"));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
@@ -87,8 +87,8 @@ public class FileTransferringMessageHandlerTests {
 		final AtomicReference<String> finalPath = new AtomicReference<String>();
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			temporaryPath.set((String) invocation.getArguments()[0]);
-			finalPath.set((String) invocation.getArguments()[1]);
+			temporaryPath.set(invocation.getArgumentAt(0, String.class));
+			finalPath.set(invocation.getArgumentAt(1, String.class));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
@@ -110,7 +110,7 @@ public class FileTransferringMessageHandlerTests {
 
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			String path =  (String) invocation.getArguments()[1];
+			String path =  invocation.getArgumentAt(1, String.class);
 			assertFalse(path.startsWith("/"));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());

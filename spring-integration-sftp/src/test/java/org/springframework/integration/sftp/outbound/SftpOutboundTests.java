@@ -209,7 +209,7 @@ public class SftpOutboundTests {
 		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(invocation -> {
-			madeDirs.add((String) invocation.getArguments()[0]);
+			madeDirs.add(invocation.getArgumentAt(0, String.class));
 			return null;
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<String>("qux"));
@@ -356,16 +356,16 @@ public class SftpOutboundTests {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
 				doAnswer(invocation -> {
-					File file = new File((String) invocation.getArguments()[1]);
+					File file = new File(invocation.getArgumentAt(1, String.class));
 					assertTrue(file.getName().endsWith(".writing"));
-					FileCopyUtils.copy((InputStream) invocation.getArguments()[0], new FileOutputStream(file));
+					FileCopyUtils.copy(invocation.getArgumentAt(0, InputStream.class), new FileOutputStream(file));
 					return null;
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 
 				doAnswer(invocation -> {
-					File file = new File((String) invocation.getArguments()[0]);
+					File file = new File(invocation.getArgumentAt(0, String.class));
 					assertTrue(file.getName().endsWith(".writing"));
-					File renameToFile = new File((String) invocation.getArguments()[1]);
+					File renameToFile = new File(invocation.getArgumentAt(1, String.class));
 					file.renameTo(renameToFile);
 					return null;
 				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());

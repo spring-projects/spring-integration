@@ -303,7 +303,7 @@ public class TcpNioConnectionTests {
 			Socket socket = mock(Socket.class);
 			Mockito.when(channel.socket()).thenReturn(socket);
 			doAnswer(invocation -> {
-				ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
+				ByteBuffer buffer = invocation.getArgumentAt(0, ByteBuffer.class);
 				buffer.position(1);
 				return 1;
 			}).when(channel).read(Mockito.any(ByteBuffer.class));
@@ -343,7 +343,7 @@ public class TcpNioConnectionTests {
 			Socket socket = mock(Socket.class);
 			Mockito.when(channel.socket()).thenReturn(socket);
 			doAnswer(invocation -> {
-				ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
+				ByteBuffer buffer = invocation.getArgumentAt(0, ByteBuffer.class);
 				buffer.position(1025);
 				buffer.put((byte) '\r');
 				buffer.put((byte) '\n');
@@ -501,7 +501,7 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
+				ByteBuffer buff = invocation.getArgumentAt(0, ByteBuffer.class);
 				byte[] bytes = written.toByteArray();
 				buff.put(bytes);
 				return bytes.length;
@@ -516,7 +516,7 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				ByteBuffer buff = (ByteBuffer) invocation.getArguments()[0];
+				ByteBuffer buff = invocation.getArgumentAt(0, ByteBuffer.class);
 				byte[] bytes = new byte[buff.limit()];
 				buff.get(bytes);
 				written.write(bytes);

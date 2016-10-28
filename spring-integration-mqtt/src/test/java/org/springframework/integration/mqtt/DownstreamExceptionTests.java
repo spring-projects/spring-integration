@@ -84,7 +84,7 @@ public class DownstreamExceptionTests {
 
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if (((String) invocation.getArguments()[0]).contains("Unhandled")) {
+				if ((invocation.getArgumentAt(0, String.class)).contains("Unhandled")) {
 					latch.countDown();
 				}
 				return null;

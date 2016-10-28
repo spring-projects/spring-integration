@@ -119,7 +119,7 @@ public class UriVariableTests {
 		Mockito.doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				uri.set((String) invocation.getArguments()[0]);
+				uri.set(invocation.getArgumentAt(0, String.class));
 				throw new WebServiceIOException("intentional");
 			}
 		}).when(webServiceTemplate)

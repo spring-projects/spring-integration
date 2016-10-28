@@ -309,7 +309,7 @@ public class ChainParserTests {
 		final AtomicReference<String> log = new AtomicReference<String>();
 		when(logger.isWarnEnabled()).thenReturn(true);
 		doAnswer(invocation -> {
-			log.set((String) invocation.getArguments()[0]);
+			log.set(invocation.getArgumentAt(0, String.class));
 			return null;
 		}).when(logger).warn(any());
 

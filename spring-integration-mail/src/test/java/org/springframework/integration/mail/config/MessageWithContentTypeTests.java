@@ -85,7 +85,7 @@ public class MessageWithContentTypeTests {
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				MimeMessage mimeMessage = (MimeMessage) invocation.getArguments()[0];
+				MimeMessage mimeMessage = invocation.getArgumentAt(0, MimeMessage.class);
 				assertEquals("text/html", mimeMessage.getDataHandler().getContentType());
 				return null;
 			}

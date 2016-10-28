@@ -776,7 +776,7 @@ public class CachingClientConnectionFactoryTests {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				invocation.callRealMethod();
-				String log = (String) invocation.getArguments()[0];
+				String log = invocation.getArgumentAt(0, String.class);
 				if (log.startsWith("Response")) {
 					Executors.newSingleThreadScheduledExecutor().execute(new Runnable() {
 

@@ -161,7 +161,7 @@ public class FtpOutboundTests {
 		when(logger.isWarnEnabled()).thenReturn(true);
 		final AtomicReference<String> logged = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			logged.set((String) invocation.getArguments()[0]);
+			logged.set(invocation.getArgumentAt(0, String.class));
 			invocation.callRealMethod();
 			return null;
 		}).when(logger).warn(Mockito.anyString());
@@ -231,8 +231,8 @@ public class FtpOutboundTests {
 				when(ftpClient.storeFile(Mockito.anyString(), any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
 					@Override
 					public Boolean answer(InvocationOnMock invocation) throws Throwable {
-						String fileName = (String) invocation.getArguments()[0];
-						InputStream fis = (InputStream) invocation.getArguments()[1];
+						String fileName = invocation.getArgumentAt(0, String.class);
+						InputStream fis = invocation.getArgumentAt(1, InputStream.class);
 						FileCopyUtils.copy(fis, new FileOutputStream(fileName));
 						return true;
 					}
@@ -241,8 +241,8 @@ public class FtpOutboundTests {
 					@Override
 					public Boolean answer(InvocationOnMock invocation)
 							throws Throwable {
-						File file = new File((String) invocation.getArguments()[0]);
-						File renameToFile = new File((String) invocation.getArguments()[1]);
+						File file = new File(invocation.getArgumentAt(0, String.class));
+						File renameToFile = new File(invocation.getArgumentAt(1, String.class));
 						file.renameTo(renameToFile);
 						return true;
 					}

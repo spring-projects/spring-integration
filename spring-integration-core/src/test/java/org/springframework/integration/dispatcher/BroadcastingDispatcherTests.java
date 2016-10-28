@@ -276,7 +276,7 @@ public class BroadcastingDispatcherTests {
 
 	private void defaultTaskExecutorMock() {
 		Mockito.doAnswer(invocation -> {
-			((Runnable) invocation.getArguments()[0]).run();
+			(invocation.getArgumentAt(0, Runnable.class)).run();
 			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
 	}
@@ -288,7 +288,7 @@ public class BroadcastingDispatcherTests {
 		final AtomicInteger count = new AtomicInteger();
 		Mockito.doAnswer(invocation -> {
 			if (passes[count.getAndIncrement()]) {
-				((Runnable) invocation.getArguments()[0]).run();
+				(invocation.getArgumentAt(0, Runnable.class)).run();
 			}
 			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
