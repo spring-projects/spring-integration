@@ -252,6 +252,10 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	private class CuratorContext implements Context {
 
+		CuratorContext() {
+			super();
+		}
+
 		@Override
 		public boolean isLeader() {
 			return LeaderInitiator.this.leaderSelector.hasLeadership();

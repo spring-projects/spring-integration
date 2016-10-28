@@ -240,6 +240,10 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private class TweetComparator implements Comparator<T> {
 
+		TweetComparator() {
+			super();
+		}
+
 		@Override
 		public int compare(T tweet1, T tweet2) {
 			// hopefully temporary logic. Will suggest that SpringSocial use a common base class for DM and Tweet

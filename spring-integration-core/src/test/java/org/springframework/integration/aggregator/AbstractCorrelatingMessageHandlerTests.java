@@ -46,7 +46,6 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -94,33 +93,24 @@ public class AbstractCorrelatingMessageHandlerTests {
 		});
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
-		handler.setOutputChannel(new MessageChannel() {
-
+		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
 			 */
-			@Override
-			public boolean send(Message<?> message, long timeout) {
-				outputMessages.add(message);
-				// wake reaper
-				waitReapStartLatch.countDown();
-				try {
-					waitForSendLatch.await(10, TimeUnit.SECONDS);
-					// wait a little longer for reaper to grab groups
-					Thread.sleep(2000);
-					// simulate tx commit
-					groupStore.removeMessageGroup("bar");
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				return true;
+			outputMessages.add(message);
+			// wake reaper
+			waitReapStartLatch.countDown();
+			try {
+				waitForSendLatch.await(10, TimeUnit.SECONDS);
+				// wait a little longer for reaper to grab groups
+				Thread.sleep(2000);
+				// simulate tx commit
+				groupStore.removeMessageGroup("bar");
 			}
-
-			@Override
-			public boolean send(Message<?> message) {
-				return this.send(message, 0);
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
+			return true;
 		});
 		handler.setReleaseStrategy(group -> group.size() == 2);
 
@@ -160,21 +150,12 @@ public class AbstractCorrelatingMessageHandlerTests {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
-		handler.setOutputChannel(new MessageChannel() {
-
+		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
 			 */
-			@Override
-			public boolean send(Message<?> message, long timeout) {
-				outputMessages.add(message);
-				return true;
-			}
-
-			@Override
-			public boolean send(Message<?> message) {
-				return this.send(message, 0);
-			}
+			outputMessages.add(message);
+			return true;
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 
@@ -196,21 +177,12 @@ public class AbstractCorrelatingMessageHandlerTests {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
 		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
-		handler.setOutputChannel(new MessageChannel() {
-
+		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
 			 */
-			@Override
-			public boolean send(Message<?> message, long timeout) {
-				outputMessages.add(message);
-				return true;
-			}
-
-			@Override
-			public boolean send(Message<?> message) {
-				return this.send(message, 0);
-			}
+			outputMessages.add(message);
+			return true;
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 

@@ -34,8 +34,6 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -81,12 +79,9 @@ public class RedisChannelParserTests extends RedisAvailableTests {
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 
 		final CountDownLatch latch = new CountDownLatch(1);
-		redisChannel.subscribe(new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertEquals(m.getPayload(), message.getPayload());
-				latch.countDown();
-			}
+		redisChannel.subscribe(message -> {
+			assertEquals(m.getPayload(), message.getPayload());
+			latch.countDown();
 		});
 		redisChannel.send(m);
 

@@ -148,6 +148,10 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 	 */
 	private class IntegrationWebSocketHandler implements WebSocketHandler, SubProtocolCapable {
 
+		IntegrationWebSocketHandler() {
+			super();
+		}
+
 		@Override
 		public List<String> getSubProtocols() {
 			return IntegrationWebSocketContainer.this.getSubProtocols();

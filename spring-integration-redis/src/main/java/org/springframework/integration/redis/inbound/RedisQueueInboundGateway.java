@@ -332,6 +332,10 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 
 	private class ListenerTask implements SchedulingAwareRunnable {
 
+		ListenerTask() {
+			super();
+		}
+
 		@Override
 		public boolean isLongLived() {
 			return true;

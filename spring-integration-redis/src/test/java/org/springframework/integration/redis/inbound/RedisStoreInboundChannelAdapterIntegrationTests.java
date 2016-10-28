@@ -35,8 +35,6 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 
 /**
@@ -108,6 +106,7 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		context.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test
 	@RedisAvailable
 	// synchronization rollback renames the list
@@ -120,14 +119,9 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 				this.getClass());
 		SubscribableChannel fail = context.getBean("redisFailChannel", SubscribableChannel.class);
 		final CountDownLatch latch = new CountDownLatch(1);
-		fail.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				latch.countDown();
-				throw new RuntimeException("Test Rollback");
-			}
-
+		fail.subscribe(message -> {
+			latch.countDown();
+			throw new RuntimeException("Test Rollback");
 		});
 		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationAndRollback",
 				SourcePollingChannelAdapter.class);

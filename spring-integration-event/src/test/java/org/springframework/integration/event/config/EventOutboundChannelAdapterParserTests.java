@@ -130,6 +130,7 @@ public class EventOutboundChannelAdapterParserTests {
 				new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml",
 						EventOutboundChannelAdapterParserTests.class);
 		final CyclicBarrier barrier = new CyclicBarrier(2);
+		@SuppressWarnings("resource")
 		ApplicationListener<?> listener = event -> {
 			Object source = event.getSource();
 			if (source instanceof Message) {

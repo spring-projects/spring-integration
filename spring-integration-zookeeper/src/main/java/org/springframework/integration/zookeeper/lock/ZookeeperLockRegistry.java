@@ -178,6 +178,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	 * Zookeeper path.
 	 *
 	 */
+	@FunctionalInterface
 	public interface KeyToPathStrategy {
 
 		/**
@@ -191,7 +192,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		 * @return true if this strategy returns a bounded number of locks, removing
 		 * the need for removing LRU locks.
 		 */
-		boolean bounded();
+		default boolean bounded() {
+			return true;
+		}
 
 	}
 
@@ -199,7 +202,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 		private final String root;
 
-		private DefaultKeyToPathStrategy(String rootPath) {
+		DefaultKeyToPathStrategy(String rootPath) {
 			Assert.notNull(rootPath, "'rootPath' cannot be null");
 			if (!rootPath.endsWith("/")) {
 				this.root = rootPath + "/";
@@ -233,7 +236,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 		private long lastUsed;
 
-		private ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path) {
+		ZkLock(CuratorFramework client, AsyncTaskExecutor mutexTaskExecutor, String path) {
 			this.client = client;
 			this.mutex = new InterProcessMutex(client, path);
 			this.mutexTaskExecutor = mutexTaskExecutor;

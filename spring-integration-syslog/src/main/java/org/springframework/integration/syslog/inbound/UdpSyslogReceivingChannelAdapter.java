@@ -18,9 +18,6 @@ package org.springframework.integration.syslog.inbound;
 
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 /**
  * UDP implementation of a syslog inbound channel adapter.
@@ -58,14 +55,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 					"of the provided 'UnicastReceivingChannelAdapter' to support Syslog conversion " +
 					"for the incoming UDP packets");
 		}
-		this.udpAdapter.setOutputChannel(new FixedSubscriberChannel(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				convertAndSend(message);
-			}
-
-		}));
+		this.udpAdapter.setOutputChannel(new FixedSubscriberChannel(message -> convertAndSend(message)));
 		if (!this.udpAdapterSet) {
 			this.udpAdapter.afterPropertiesSet();
 		}

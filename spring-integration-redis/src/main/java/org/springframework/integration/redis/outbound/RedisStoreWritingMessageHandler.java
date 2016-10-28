@@ -288,26 +288,20 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 		if (this.extractPayloadElements) {
 			if ((payload instanceof Map<?, ?> && this.verifyAllMapValuesOfTypeNumber((Map<?, ?>) payload))) {
 				final Map<Object, Number> payloadAsMap = (Map<Object, Number>) payload;
-				this.processInPipeline(new PipelineCallback() {
-					@Override
-					public void process() {
-						for (Entry<Object, Number> entry : payloadAsMap.entrySet()) {
-							Number d = entry.getValue();
-							incrementOrOverwrite(ops, entry.getKey(), d == null ?
-									determineScore(message) :
-									NumberUtils.convertNumberToTargetClass(d, Double.class),
-									zsetIncrementHeader);
-						}
+				this.processInPipeline(() -> {
+					for (Entry<Object, Number> entry : payloadAsMap.entrySet()) {
+						Number d = entry.getValue();
+						incrementOrOverwrite(ops, entry.getKey(), d == null ?
+								determineScore(message) :
+								NumberUtils.convertNumberToTargetClass(d, Double.class),
+								zsetIncrementHeader);
 					}
 				});
 			}
 			else if (payload instanceof Collection<?>) {
-				this.processInPipeline(new PipelineCallback() {
-					@Override
-					public void process() {
-						for (Object object : ((Collection<?>) payload)) {
-							incrementOrOverwrite(ops, object, determineScore(message), zsetIncrementHeader);
-						}
+				this.processInPipeline(() -> {
+					for (Object object : ((Collection<?>) payload)) {
+						incrementOrOverwrite(ops, object, determineScore(message), zsetIncrementHeader);
 					}
 				});
 			}
@@ -350,12 +344,9 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 			final BoundSetOperations<String, Object> ops =
 					(BoundSetOperations<String, Object>) this.redisTemplate.boundSetOps(set.getKey());
 
-			this.processInPipeline(new PipelineCallback() {
-				@Override
-				public void process() {
-					for (Object object : ((Collection<?>) payload)) {
-						ops.add(object);
-					}
+			this.processInPipeline(() -> {
+				for (Object object : ((Collection<?>) payload)) {
+					ops.add(object);
 				}
 			});
 		}
@@ -368,12 +359,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private void writeToMap(final RedisMap<Object, Object> map, Message<?> message) {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Map<?, ?>) {
-			this.processInPipeline(new PipelineCallback() {
-				@Override
-				public void process() {
-					map.putAll((Map<? extends Object, ? extends Object>) payload);
-				}
-			});
+			this.processInPipeline(() -> map.putAll((Map<? extends Object, ? extends Object>) payload));
 		}
 		else {
 			Object key = this.determineMapKey(message, false);
@@ -384,12 +370,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private void writeToProperties(final RedisProperties properties, Message<?> message) {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Properties) {
-			this.processInPipeline(new PipelineCallback() {
-				@Override
-				public void process() {
-					properties.putAll((Properties) payload);
-				}
-			});
+			this.processInPipeline(() -> properties.putAll((Properties) payload));
 		}
 		else {
 			Assert.isInstanceOf(String.class, payload, "For property, payload must be a String.");
@@ -482,4 +463,5 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	private interface PipelineCallback {
 		void process();
 	}
+
 }

@@ -335,6 +335,10 @@ public class BackToBackAdapterTests {
 
 		private final CountDownLatch latch = new CountDownLatch(2);
 
+		EventPublisher() {
+			super();
+		}
+
 		@Override
 		public void publishEvent(ApplicationEvent event) {
 			if (event instanceof MqttMessageSentEvent) {

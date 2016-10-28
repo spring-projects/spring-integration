@@ -44,7 +44,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.SocketFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -56,8 +55,6 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.MqttToken;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.BeanFactory;
@@ -87,14 +84,7 @@ public class MqttAdapterTests {
 
 	{
 		ProxyFactoryBean pfb = new ProxyFactoryBean();
-		pfb.addAdvice(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				return null;
-			}
-
-		});
+		pfb.addAdvice((MethodInterceptor) invocation -> null);
 		pfb.setInterfaces(IMqttToken.class);
 		this.alwaysComplete = (IMqttToken) pfb.getObject();
 	}
@@ -147,13 +137,7 @@ public class MqttAdapterTests {
 
 		factory = spy(factory);
 		final MqttAsyncClient client = mock(MqttAsyncClient.class);
-		doAnswer(new Answer<MqttAsyncClient>() {
-
-			@Override
-			public MqttAsyncClient answer(InvocationOnMock invocation) throws Throwable {
-				return client;
-			}
-		}).when(factory).getAsyncClientInstance(anyString(), anyString());
+		doAnswer(invocation -> client).when(factory).getAsyncClientInstance(anyString(), anyString());
 
 		MqttPahoMessageHandler handler = new MqttPahoMessageHandler("foo", "bar", factory);
 		handler.setDefaultTopic("mqtt-foo");
@@ -163,38 +147,30 @@ public class MqttAdapterTests {
 
 		final MqttToken token = mock(MqttToken.class);
 		final AtomicBoolean connectCalled = new AtomicBoolean();
-		doAnswer(new Answer<MqttToken>() {
-
-			@Override
-			public MqttToken answer(InvocationOnMock invocation) throws Throwable {
-				MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
-				assertEquals(23, options.getConnectionTimeout());
-				assertEquals(45, options.getKeepAliveInterval());
-				assertEquals("pass", new String(options.getPassword()));
-				assertSame(socketFactory, options.getSocketFactory());
-				assertSame(props, options.getSSLProperties());
-				assertEquals("user", options.getUserName());
-				assertEquals("foo", options.getWillDestination());
-				assertEquals("bar", new String(options.getWillMessage().getPayload()));
-				assertEquals(2, options.getWillMessage().getQos());
-				connectCalled.set(true);
-				return token;
-			}
+		doAnswer(invocation -> {
+			MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
+			assertEquals(23, options.getConnectionTimeout());
+			assertEquals(45, options.getKeepAliveInterval());
+			assertEquals("pass", new String(options.getPassword()));
+			assertSame(socketFactory, options.getSocketFactory());
+			assertSame(props, options.getSSLProperties());
+			assertEquals("user", options.getUserName());
+			assertEquals("foo", options.getWillDestination());
+			assertEquals("bar", new String(options.getWillMessage().getPayload()));
+			assertEquals(2, options.getWillMessage().getQos());
+			connectCalled.set(true);
+			return token;
 		}).when(client).connect(any(MqttConnectOptions.class));
 		doReturn(token).when(client).subscribe(any(String[].class), any(int[].class));
 
 		final MqttDeliveryToken deliveryToken = mock(MqttDeliveryToken.class);
 		final AtomicBoolean publishCalled = new AtomicBoolean();
-		doAnswer(new Answer<MqttDeliveryToken>() {
-
-			@Override
-			public MqttDeliveryToken answer(InvocationOnMock invocation) throws Throwable {
-				assertEquals("mqtt-foo", invocation.getArguments()[0]);
-				MqttMessage message = invocation.getArgumentAt(1, MqttMessage.class);
-				assertEquals("Hello, world!", new String(message.getPayload()));
-				publishCalled.set(true);
-				return deliveryToken;
-			}
+		doAnswer(invocation -> {
+			assertEquals("mqtt-foo", invocation.getArguments()[0]);
+			MqttMessage message = invocation.getArgumentAt(1, MqttMessage.class);
+			assertEquals("Hello, world!", new String(message.getPayload()));
+			publishCalled.set(true);
+			return deliveryToken;
 		}).when(client).publish(anyString(), any(MqttMessage.class));
 
 		handler.handleMessage(new GenericMessage<String>("Hello, world!"));
@@ -222,13 +198,7 @@ public class MqttAdapterTests {
 
 		factory = spy(factory);
 		final MqttAsyncClient client = mock(MqttAsyncClient.class);
-		doAnswer(new Answer<MqttAsyncClient>() {
-
-			@Override
-			public MqttAsyncClient answer(InvocationOnMock invocation) throws Throwable {
-				return client;
-			}
-		}).when(factory).getAsyncClientInstance(anyString(), anyString());
+		doAnswer(invocation -> client).when(factory).getAsyncClientInstance(anyString(), anyString());
 
 		final MqttToken token = mock(MqttToken.class);
 		final AtomicBoolean connectCalled = new AtomicBoolean();
@@ -237,41 +207,33 @@ public class MqttAdapterTests {
 		final CountDownLatch failInProcess = new CountDownLatch(1);
 		final CountDownLatch goodConnection = new CountDownLatch(2);
 		final MqttException reconnectException = new MqttException(MqttException.REASON_CODE_SERVER_CONNECT_ERROR);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (failConnection.get()) {
-					failInProcess.countDown();
-					waitToFail.await(10, TimeUnit.SECONDS);
-					throw reconnectException;
-				}
-				MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
-				assertEquals(23, options.getConnectionTimeout());
-				assertEquals(45, options.getKeepAliveInterval());
-				assertEquals("pass", new String(options.getPassword()));
-				assertSame(socketFactory, options.getSocketFactory());
-				assertSame(props, options.getSSLProperties());
-				assertEquals("user", options.getUserName());
-				assertEquals("foo", options.getWillDestination());
-				assertEquals("bar", new String(options.getWillMessage().getPayload()));
-				assertEquals(2, options.getWillMessage().getQos());
-				connectCalled.set(true);
-				goodConnection.countDown();
-				return token;
+		doAnswer(invocation -> {
+			if (failConnection.get()) {
+				failInProcess.countDown();
+				waitToFail.await(10, TimeUnit.SECONDS);
+				throw reconnectException;
 			}
+			MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
+			assertEquals(23, options.getConnectionTimeout());
+			assertEquals(45, options.getKeepAliveInterval());
+			assertEquals("pass", new String(options.getPassword()));
+			assertSame(socketFactory, options.getSocketFactory());
+			assertSame(props, options.getSSLProperties());
+			assertEquals("user", options.getUserName());
+			assertEquals("foo", options.getWillDestination());
+			assertEquals("bar", new String(options.getWillMessage().getPayload()));
+			assertEquals(2, options.getWillMessage().getQos());
+			connectCalled.set(true);
+			goodConnection.countDown();
+			return token;
 		}).when(client).connect(any(MqttConnectOptions.class));
 		doReturn(token).when(client).subscribe(any(String[].class), any(int[].class));
 		doReturn(token).when(client).disconnect();
 
 		final AtomicReference<MqttCallback> callback = new AtomicReference<MqttCallback>();
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				callback.set(invocation.getArgumentAt(0, MqttCallback.class));
-				return null;
-			}
+		doAnswer(invocation -> {
+			callback.set(invocation.getArgumentAt(0, MqttCallback.class));
+			return null;
 		}).when(client).setCallback(any(MqttCallback.class));
 
 		when(client.isConnected()).thenReturn(true);
@@ -286,13 +248,9 @@ public class MqttAdapterTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<MqttIntegrationEvent>();
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				events.add(invocation.getArgumentAt(0, MqttIntegrationEvent.class));
-				return null;
-			}
+		doAnswer(invocation -> {
+			events.add(invocation.getArgumentAt(0, MqttIntegrationEvent.class));
+			return null;
 		}).when(applicationEventPublisher).publishEvent(any(MqttIntegrationEvent.class));
 		adapter.setApplicationEventPublisher(applicationEventPublisher);
 		adapter.setRecoveryInterval(500);

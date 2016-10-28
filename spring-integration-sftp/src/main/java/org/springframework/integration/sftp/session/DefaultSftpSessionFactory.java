@@ -469,6 +469,10 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 	 */
 	private class UserInfoWrapper implements UserInfo, UIKeyboardInteractive {
 
+		UserInfoWrapper() {
+			super();
+		}
+
 		/**
 		 * Convenience to check whether enclosing factory's UserInfo is configured.
 		 * @return true if there's a delegate.

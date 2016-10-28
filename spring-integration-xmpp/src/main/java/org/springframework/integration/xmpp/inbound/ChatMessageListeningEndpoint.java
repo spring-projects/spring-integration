@@ -116,6 +116,10 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	private class ChatMessagePublishingStanzaListener implements StanzaListener {
 
+		ChatMessagePublishingStanzaListener() {
+			super();
+		}
+
 		@Override
 		public void processPacket(final Stanza packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {

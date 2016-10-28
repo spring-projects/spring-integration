@@ -39,7 +39,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -108,12 +107,9 @@ public class JpaOutboundGatewayIntegrationTests {
 	 */
 	@Test
 	public void retrieveFromSecondRecordAndMaximumOneRecord() throws Exception {
-		this.handler = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertEquals(2, ((List<?>) message.getPayload()).size());
-				assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
-			}
+		this.handler = message -> {
+			assertEquals(2, ((List<?>) message.getPayload()).size());
+			assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
 		};
 		this.responseChannel.subscribe(this.handler);
 
@@ -126,13 +122,10 @@ public class JpaOutboundGatewayIntegrationTests {
 
 	@Test
 	public void testFindByEntityClass() throws Exception {
-		this.handler = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
-				StudentDomain student = (StudentDomain) message.getPayload();
-				assertEquals("First One", student.getFirstName());
-			}
+		this.handler = message -> {
+			assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+			StudentDomain student = (StudentDomain) message.getPayload();
+			assertEquals("First One", student.getFirstName());
 		};
 		this.responseChannel.subscribe(this.handler);
 
@@ -142,13 +135,10 @@ public class JpaOutboundGatewayIntegrationTests {
 
 	@Test
 	public void testFindByPayloadType() throws Exception {
-		this.handler = new MessageHandler() {
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
-				StudentDomain student = (StudentDomain) message.getPayload();
-				assertEquals("First Two", student.getFirstName());
-			}
+		this.handler = message -> {
+			assertThat(message.getPayload(), Matchers.instanceOf(StudentDomain.class));
+			StudentDomain student = (StudentDomain) message.getPayload();
+			assertEquals("First Two", student.getFirstName());
 		};
 		this.responseChannel.subscribe(this.handler);
 

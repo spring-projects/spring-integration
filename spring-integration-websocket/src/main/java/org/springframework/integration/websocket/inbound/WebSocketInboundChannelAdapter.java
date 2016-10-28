@@ -37,9 +37,7 @@ import org.springframework.integration.websocket.support.PassThruSubProtocolHand
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
@@ -119,18 +117,13 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		this.webSocketContainer = webSocketContainer;
 		this.server = this.webSocketContainer instanceof ServerWebSocketContainer;
 		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
-		this.subProtocolHandlerChannel = new FixedSubscriberChannel(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				try {
-					handleMessageAndSend(message);
-				}
-				catch (Exception e) {
-					throw new MessageHandlingException(message, e);
-				}
+		this.subProtocolHandlerChannel = new FixedSubscriberChannel(message -> {
+			try {
+				handleMessageAndSend(message);
 			}
-
+			catch (Exception e) {
+				throw new MessageHandlingException(message, e);
+			}
 		});
 	}
 

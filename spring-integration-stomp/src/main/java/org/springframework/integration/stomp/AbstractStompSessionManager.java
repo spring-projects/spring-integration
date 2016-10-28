@@ -261,14 +261,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		if (this.stompClient.getTaskScheduler() != null) {
 			this.reconnectFuture = this.stompClient.getTaskScheduler()
-					.schedule(new Runnable() {
-
-						@Override
-						public void run() {
-							connect();
-						}
-
-					}, new Date(System.currentTimeMillis() + this.recoveryInterval));
+					.schedule((Runnable) () -> connect(), new Date(System.currentTimeMillis() + this.recoveryInterval));
 		}
 		else {
 			this.logger.info("For automatic reconnection the 'stompClient' should be configured with a TaskScheduler.");
@@ -375,6 +368,10 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				Collections.synchronizedList(new ArrayList<StompSessionHandler>());
 
 		private volatile StompSession session;
+
+		CompositeStompSessionHandler() {
+			super();
+		}
 
 		void addHandler(StompSessionHandler delegate) {
 			if (this.session != null) {

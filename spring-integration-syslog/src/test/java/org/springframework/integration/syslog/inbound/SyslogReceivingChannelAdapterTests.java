@@ -38,8 +38,6 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -98,13 +96,9 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setOutputChannel(outputChannel);
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 		final CountDownLatch latch = new CountDownLatch(2);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				latch.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			latch.countDown();
+			return null;
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
 		factory.setApplicationEventPublisher(publisher);
 		factory.setBeanFactory(mock(BeanFactory.class));
@@ -114,16 +108,12 @@ public class SyslogReceivingChannelAdapterTests {
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
-					sawLog.countDown();
-				}
-				invocation.callRealMethod();
-				return null;
+		doAnswer(invocation -> {
+			if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
+				sawLog.countDown();
 			}
+			invocation.callRealMethod();
+			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		Thread.sleep(1000);
@@ -177,13 +167,9 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setOutputChannel(outputChannel);
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 		final CountDownLatch latch = new CountDownLatch(2);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				latch.countDown();
-				return null;
-			}
+		doAnswer(invocation -> {
+			latch.countDown();
+			return null;
 		}).when(publisher).publishEvent(any(ApplicationEvent.class));
 		factory.setBeanFactory(mock(BeanFactory.class));
 		AbstractServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(port);
@@ -197,16 +183,12 @@ public class SyslogReceivingChannelAdapterTests {
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		doReturn(true).when(logger).isDebugEnabled();
 		final CountDownLatch sawLog = new CountDownLatch(1);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
-					sawLog.countDown();
-				}
-				invocation.callRealMethod();
-				return null;
+		doAnswer(invocation -> {
+			if ((invocation.getArgumentAt(0, String.class)).contains("Error on syslog socket")) {
+				sawLog.countDown();
 			}
+			invocation.callRealMethod();
+			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		Thread.sleep(1000);
