@@ -131,17 +131,12 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	public void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-					exception = e;
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			try {
+				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
+			}
+			catch (Exception e) {
+				exception = e;
 			}
 		});
 		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
@@ -162,17 +157,12 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	private Runnable asyncSend(final String payload, final int sequence, final int correlation) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					in.send(new GenericMessage<String>(payload, stubHeaders(sequence, 2, correlation)));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-					exception = e;
-				}
+		return () -> {
+			try {
+				in.send(new GenericMessage<String>(payload, stubHeaders(sequence, 2, correlation)));
+			}
+			catch (Exception e) {
+				exception = e;
 			}
 		};
 	}

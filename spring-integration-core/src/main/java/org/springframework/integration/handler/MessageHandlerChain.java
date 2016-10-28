@@ -118,18 +118,13 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 			if (i < this.handlers.size() - 1) { // not the last handler
 				Assert.isInstanceOf(MessageProducer.class, handler, "All handlers except for " +
 						"the last one in the chain must implement the MessageProducer interface.");
-				final MessageHandler nextHandler = this.handlers.get(i + 1);
-				final MessageChannel nextChannel = new MessageChannel() {
-					@Override
-					public boolean send(Message<?> message, long timeout) {
-						return this.send(message);
-					}
-					@Override
-					public boolean send(Message<?> message) {
-						nextHandler.handleMessage(message);
-						return true;
-					}
+
+				MessageHandler nextHandler = this.handlers.get(i + 1);
+				MessageChannel nextChannel = (message, timeout) -> {
+					nextHandler.handleMessage(message);
+					return true;
 				};
+
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 
 				// If this 'handler' is a nested non-last &lt;chain&gt;, it is  necessary
@@ -146,7 +141,7 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 			else {
 				Assert.isNull(getOutputChannel(),
 						"An output channel was provided, but the final handler in " +
-						"the chain does not implement the MessageProducer interface.");
+								"the chain does not implement the MessageProducer interface.");
 			}
 		}
 	}
@@ -239,14 +234,9 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 		}
 
 		@Override
-		public boolean send(Message<?> message) {
+		public boolean send(Message<?> message, long timeout) {
 			produceOutput(message, message);
 			return true;
-		}
-
-		@Override
-		public boolean send(Message<?> message, long timeout) {
-			return send(message);
 		}
 
 	}

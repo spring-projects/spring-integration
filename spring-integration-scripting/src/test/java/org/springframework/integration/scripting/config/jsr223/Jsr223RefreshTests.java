@@ -26,11 +26,12 @@ import java.io.InputStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -67,8 +68,13 @@ public class Jsr223RefreshTests {
 	private static class CycleResource extends AbstractResource {
 
 		private int count = -1;
-		private String[] scripts = {"\"ruby-#{payload}-0\"", "\"ruby-#{payload}-1\""};
+		private final String[] scripts = {"\"ruby-#{payload}-0\"", "\"ruby-#{payload}-1\""};
 
+		CycleResource() {
+			super();
+		}
+
+		@Override
 		public String getDescription() {
 			return "CycleResource";
 		}
@@ -83,6 +89,7 @@ public class Jsr223RefreshTests {
 			return -1;
 		}
 
+		@Override
 		public InputStream getInputStream() throws IOException {
 			if (++count > scripts.length - 1) {
 				count = 0;

@@ -50,7 +50,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private PollingConsumer endpoint;
 
-	private TestTrigger trigger = new TestTrigger();
+	private final TestTrigger trigger = new TestTrigger();
 
 	private ThreadPoolTaskScheduler scheduler;
 
@@ -192,12 +192,13 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private static class TestObject {
 
-		private String text;
+		private final String text;
 
 		TestObject(String text) {
 			this.text = text;
 		}
 
+		@Override
 		public String toString() {
 			return this.text;
 		}
@@ -211,6 +212,11 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 		private volatile CountDownLatch latch = new CountDownLatch(1);
 
+		TestTrigger() {
+			super();
+		}
+
+		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (!hasRun.getAndSet(true)) {
 				return new Date();

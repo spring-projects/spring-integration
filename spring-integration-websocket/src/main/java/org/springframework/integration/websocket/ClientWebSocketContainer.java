@@ -204,7 +204,7 @@ public final class ClientWebSocketContainer extends IntegrationWebSocketContaine
 
 		private final boolean syncClientLifecycle;
 
-		private IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate,
+		IntegrationWebSocketConnectionManager(WebSocketClient client, String uriTemplate,
 				Object... uriVariables) {
 			super(uriTemplate, uriVariables);
 			this.client = client;

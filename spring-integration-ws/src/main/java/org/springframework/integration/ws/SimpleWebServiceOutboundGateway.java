@@ -102,7 +102,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	private final class SimpleRequestMessageCallback extends RequestMessageCallback {
 
-		private SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
+		SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 
@@ -145,7 +145,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 		private final Result result;
 
-		private SimpleResponseMessageExtractor(Result result) {
+		SimpleResponseMessageExtractor(Result result) {
 			super();
 			this.result = result;
 		}
@@ -174,6 +174,10 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 
 	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
+
+		DefaultSourceExtractor() {
+			super();
+		}
 
 		@Override
 		public DOMSource extractData(Source source) throws IOException, TransformerException {

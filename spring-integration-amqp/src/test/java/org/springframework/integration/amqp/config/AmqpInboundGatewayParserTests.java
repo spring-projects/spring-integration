@@ -96,7 +96,6 @@ public class AmqpInboundGatewayParserTests {
 		assertEquals(expected, defaultReplyTo);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void verifyUsageWithHeaderMapper() throws Exception {
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);

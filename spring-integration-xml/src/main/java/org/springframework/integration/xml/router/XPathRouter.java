@@ -130,6 +130,10 @@ public class XPathRouter extends AbstractMappingMessageRouter {
 
 	private static class TextContentNodeMapper implements NodeMapper<Object> {
 
+		TextContentNodeMapper() {
+			super();
+		}
+
 		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();

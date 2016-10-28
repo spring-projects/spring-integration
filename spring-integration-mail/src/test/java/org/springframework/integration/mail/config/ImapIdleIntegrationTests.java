@@ -34,8 +34,6 @@ import javax.mail.Folder;
 import javax.mail.Message;
 
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
@@ -49,6 +47,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ImapIdleIntegrationTests {
 
+	@SuppressWarnings("resource")
 	@Test
 	public void testWithTransactionSynchronization() throws Exception {
 		final AtomicBoolean block = new AtomicBoolean(false);
@@ -62,17 +61,14 @@ public class ImapIdleIntegrationTests {
 		// setup mock scenario
 		receiver = spy(receiver);
 
-		doAnswer(new Answer<Object>() { // ensures that waitFornewMessages call blocks after a first execution
+		doAnswer(invocation -> {
+			// ensures that waitFornewMessages call blocks after a first execution
 			// to emulate the behavior of IDLE
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (block.get()) {
-					Thread.sleep(5000);
-				}
-				block.set(true);
-				return null;
+			if (block.get()) {
+				Thread.sleep(5000);
 			}
+			block.set(true);
+			return null;
 		}).when(receiver).waitForNewMessages();
 
 		Message m1 = mock(Message.class);
@@ -90,14 +86,9 @@ public class ImapIdleIntegrationTests {
 		// end mock setup
 
 		final CountDownLatch txProcessorLatch = new CountDownLatch(1);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				txProcessorLatch.countDown();
-				return null;
-			}
-
+		doAnswer(invocation -> {
+			txProcessorLatch.countDown();
+			return null;
 		}).when(processor).process(any(Message.class));
 
 		adapter.start();

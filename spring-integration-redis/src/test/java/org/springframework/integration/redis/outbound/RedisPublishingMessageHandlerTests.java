@@ -83,7 +83,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 
 		private final CountDownLatch latch;
 
-		private Listener(CountDownLatch latch) {
+		Listener(CountDownLatch latch) {
 			this.latch = latch;
 		}
 

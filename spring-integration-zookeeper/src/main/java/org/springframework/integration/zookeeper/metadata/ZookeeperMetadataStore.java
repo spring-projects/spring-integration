@@ -334,7 +334,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 		private final int version;
 
-		private LocalChildData(String value, int version) {
+		LocalChildData(String value, int version) {
 			this.value = value;
 			this.version = version;
 		}
@@ -350,6 +350,10 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	private class MetadataStoreListenerInvokingPathChildrenCacheListener implements PathChildrenCacheListener {
+
+		MetadataStoreListenerInvokingPathChildrenCacheListener() {
+			super();
+		}
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {

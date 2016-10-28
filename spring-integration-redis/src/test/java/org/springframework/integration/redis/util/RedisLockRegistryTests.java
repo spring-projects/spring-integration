@@ -31,7 +31,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -82,7 +81,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 	private RedisTemplate<String, ?> createTemplate() {
-		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
+		RedisTemplate<String, ?> template = new RedisTemplate<>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
@@ -206,21 +205,17 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				Lock lock2 = registry.obtain("foo");
-				locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
-				latch.countDown();
-				try {
-					lock2.unlock();
-				}
-				catch (IllegalStateException ise) {
-					return ise;
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			Lock lock2 = registry.obtain("foo");
+			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
+			latch.countDown();
+			try {
+				lock2.unlock();
 			}
+			catch (IllegalStateException ise) {
+				return ise;
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());
@@ -242,25 +237,21 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
 		assertNotNull(TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get());
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = registry.obtain("foo");
-				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					assertNotNull(TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get());
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-					latch3.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = registry.obtain("foo");
+			try {
+				latch1.countDown();
+				lock2.lockInterruptibly();
+				assertNotNull(TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get());
+				latch2.await(10, TimeUnit.SECONDS);
+				locked.set(true);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock2.unlock();
+				latch3.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -284,31 +275,26 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
 		assertNotNull(TestUtils.getPropertyValue(registry1, "hardThreadLocks", ThreadLocal.class).get());
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = registry2.obtain("foo");
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = registry2.obtain("foo");
+			try {
+				latch1.countDown();
+				lock2.lockInterruptibly();
+				assertNotNull(TestUtils.getPropertyValue(registry2, "hardThreadLocks", ThreadLocal.class).get());
+				latch2.await(10, TimeUnit.SECONDS);
+				locked.set(true);
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+				logger.error("Interrupted while locking: " + lock2, e1);
+			}
+			finally {
 				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					assertNotNull(TestUtils.getPropertyValue(registry2, "hardThreadLocks", ThreadLocal.class).get());
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-					logger.debug("Locks in store: " + registry2.listLocks());
+					lock2.unlock();
+					latch3.countDown();
 				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					logger.error("Interrupted while locking: " + lock2, e);
-				}
-				finally {
-					try {
-						lock2.unlock();
-						latch3.countDown();
-					}
-					catch (IllegalStateException e) {
-						logger.error("Failed to unlock: " + lock2, e);
-					}
+				catch (IllegalStateException e2) {
+					logger.error("Failed to unlock: " + lock2, e2);
 				}
 			}
 		});
@@ -330,19 +316,15 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				try {
-					lock.unlock();
-				}
-				catch (IllegalStateException ise) {
-					latch.countDown();
-					return ise;
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			try {
+				lock.unlock();
 			}
+			catch (IllegalStateException ise) {
+				latch.countDown();
+				return ise;
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());
@@ -500,15 +482,10 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 		Long expire = getExpire(registry, "foo");
 
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				Lock lock2 = registry.obtain("foo");
-				assertFalse(lock2.tryLock());
-				return null;
-			}
-
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			Lock lock2 = registry.obtain("foo");
+			assertFalse(lock2.tryLock());
+			return null;
 		});
 		result.get();
 		assertEquals(expire, getExpire(registry, "foo"));

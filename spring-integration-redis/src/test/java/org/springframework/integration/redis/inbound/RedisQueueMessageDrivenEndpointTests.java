@@ -45,7 +45,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -262,14 +261,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		final CountDownLatch stopLatch = new CountDownLatch(1);
 
-		endpoint.stop(new Runnable() {
-
-			@Override
-			public void run() {
-				stopLatch.countDown();
-			}
-
-		});
+		endpoint.stop(() -> stopLatch.countDown());
 
 		executorService.shutdown();
 		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
@@ -282,7 +274,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	@SuppressWarnings("unchecked")
 	@Ignore("JedisConnectionFactory doesn't support proper 'destroy()' and allows to create new fresh Redis connection")
 	public void testInt3196Recovery() throws Exception {
 		String queueName = "test.si.Int3196Recovery";
@@ -294,19 +285,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
-		endpoint.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				exceptionEvents.add(event);
-				exceptionsLatch.countDown();
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
+		endpoint.setApplicationEventPublisher(event -> {
+			exceptionEvents.add((ApplicationEvent) event);
+			exceptionsLatch.countDown();
 		});
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(100);

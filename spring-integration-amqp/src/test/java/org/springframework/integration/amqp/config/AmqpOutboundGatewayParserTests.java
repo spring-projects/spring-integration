@@ -97,7 +97,7 @@ public class AmqpOutboundGatewayParserTests {
 						.getExpressionString());
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "resource" })
 	@Test
 	public void withHeaderMapperCustomRequestResponse() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
@@ -166,7 +166,7 @@ public class AmqpOutboundGatewayParserTests {
 		context.close();
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "resource" })
 	@Test
 	public void withHeaderMapperCustomAndStandardResponse() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
@@ -220,7 +220,7 @@ public class AmqpOutboundGatewayParserTests {
 		context.close();
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "resource" })
 	@Test
 	public void withHeaderMapperNothingToMap() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
@@ -272,6 +272,7 @@ public class AmqpOutboundGatewayParserTests {
 		context.close();
 	}
 
+	@SuppressWarnings("resource")
 	@Test //INT-1029
 	public void amqpOutboundGatewayWithinChain() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(

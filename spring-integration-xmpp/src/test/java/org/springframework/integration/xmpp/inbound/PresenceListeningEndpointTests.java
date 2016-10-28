@@ -19,6 +19,7 @@ package org.springframework.integration.xmpp.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -33,9 +34,6 @@ import org.jivesoftware.smack.packet.Presence.Type;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -44,7 +42,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -66,25 +63,15 @@ public class PresenceListeningEndpointTests {
 		Map<XMPPConnection, Roster> instances = TestUtils.getPropertyValue(roster, "INSTANCES", Map.class);
 		instances.put(connection, roster);
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> {
+			rosterSet.add(invocation.getArgumentAt(0, RosterListener.class));
+			return null;
+		}).when(roster).addRosterListener(any(RosterListener.class));
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				rosterSet.add(invocation.getArgumentAt(0, RosterListener.class));
-				return null;
-			}
-
-		}).when(roster).addRosterListener(Mockito.any(RosterListener.class));
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				rosterSet.remove(invocation.getArgumentAt(0, RosterListener.class));
-				return null;
-			}
-
-		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
+		doAnswer(invocation -> {
+			rosterSet.remove(invocation.getArgumentAt(0, RosterListener.class));
+			return null;
+		}).when(roster).removeRosterListener(any(RosterListener.class));
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		rosterEndpoint.setOutputChannel(new QueueChannel());
 		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
@@ -149,14 +136,8 @@ public class PresenceListeningEndpointTests {
 		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
 
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message)
-					throws MessagingException {
-				throw new RuntimeException("ooops");
-			}
-
+		outChannel.subscribe(message -> {
+			throw new RuntimeException("ooops");
 		});
 		PollableChannel errorChannel = new QueueChannel();
 		endpoint.setBeanFactory(bf);

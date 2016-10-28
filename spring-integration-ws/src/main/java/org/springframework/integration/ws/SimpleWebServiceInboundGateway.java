@@ -87,6 +87,11 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 
 
 	private static class TransformerSupportDelegate extends TransformerObjectSupport {
+
+		TransformerSupportDelegate() {
+			super();
+		}
+
 		void transformSourceToResult(Source source, Result result) throws TransformerException {
 			this.transform(source, result);
 		}

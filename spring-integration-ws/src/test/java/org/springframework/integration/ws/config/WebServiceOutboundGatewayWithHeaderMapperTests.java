@@ -35,8 +35,6 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -83,7 +81,6 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	String responseNonSoapMessage = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> " +
 			"<person><name>oleg</name></person>";
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void headerMapperParserTest() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -184,7 +181,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertNull(replyMessage.getHeaders().get("baz"));
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "resource" })
 	public Message<?> process(Object payload, String gatewayName, String channelName, final boolean soap) throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"ws-outbound-gateway-with-headermappers.xml", this.getClass());
@@ -201,12 +198,9 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
 		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
 
-		Mockito.doAnswer(new Answer() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) {
-				Object[] args = invocation.getArguments();
-				WebServiceMessage wsMessage = (WebServiceMessage) args[0];
+		Mockito.doAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			WebServiceMessage wsMessage = (WebServiceMessage) args[0];
 //				try { // uncomment if you want to see a pretty-print of SOAP message
 //					Transformer transformer = TransformerFactory.newInstance().newTransformer();
 //					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -215,32 +209,28 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //				catch (Exception e) {
 //					// ignore
 //				}
-				if (soap) {
-					SoapHeader soapHeader = ((SoapMessage) wsMessage).getSoapHeader();
-					assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo")));
-					assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar")));
-					assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz")));
-					assertNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar")));
-				}
-				return null;
+			if (soap) {
+				SoapHeader soapHeader = ((SoapMessage) wsMessage).getSoapHeader();
+				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo")));
+				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("foobar")));
+				assertNotNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("abaz")));
+				assertNull(soapHeader.getAttributeValue(QNameUtils.parseQNameString("bar")));
 			}
+			return null;
 		}).when(wsConnection).send(Mockito.any(WebServiceMessage.class));
 
-		Mockito.doAnswer(new Answer() {
+		Mockito.doAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
+			String responseMessage = factory instanceof SoapMessageFactory ? responseSoapMessage
+					: responseNonSoapMessage;
+			WebServiceMessage wsMessage = factory
+					.createWebServiceMessage(new ByteArrayInputStream(responseMessage.getBytes()));
+			if (soap) {
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Exception {
-				Object[] args = invocation.getArguments();
-				WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
-				String responseMessage = factory instanceof SoapMessageFactory ? responseSoapMessage
-						: responseNonSoapMessage;
-				WebServiceMessage wsMessage = factory
-						.createWebServiceMessage(new ByteArrayInputStream(responseMessage.getBytes()));
-				if (soap) {
-
-					((SoapMessage) wsMessage).getSoapHeader().addAttribute(QNameUtils.parseQNameString("bar"), "bar");
-					((SoapMessage) wsMessage).getSoapHeader().addAttribute(QNameUtils.parseQNameString("baz"), "baz");
-				}
+				((SoapMessage) wsMessage).getSoapHeader().addAttribute(QNameUtils.parseQNameString("bar"), "bar");
+				((SoapMessage) wsMessage).getSoapHeader().addAttribute(QNameUtils.parseQNameString("baz"), "baz");
+			}
 
 //				try { // uncomment if you want to see a pretty-print of SOAP message
 //					Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -250,8 +240,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 //				catch (Exception e) {
 //					// ignore
 //				}
-				return wsMessage;
-			}
+			return wsMessage;
 		}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
 
 		gateway.setMessageSender(messageSender);

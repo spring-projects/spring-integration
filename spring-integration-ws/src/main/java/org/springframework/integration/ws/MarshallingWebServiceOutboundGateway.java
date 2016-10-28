@@ -119,7 +119,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	private final class MarshallingRequestMessageCallback extends RequestMessageCallback {
 
-		private MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback,
+		MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback,
 				Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
@@ -132,9 +132,14 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 
 	private class MarshallingResponseMessageExtractor extends ResponseMessageExtractor {
 
+		MarshallingResponseMessageExtractor() {
+			super();
+		}
+
 		@Override
 		public Object doExtractData(WebServiceMessage message) throws IOException {
 			return MarshallingUtils.unmarshal(MarshallingWebServiceOutboundGateway.this.unmarshaller, message);
 		}
 	}
+
 }

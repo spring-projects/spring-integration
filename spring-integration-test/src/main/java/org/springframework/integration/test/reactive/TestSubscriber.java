@@ -194,13 +194,7 @@ public class TestSubscriber<T>
 	public static void await(Duration timeout,
 			final String errorMessage,
 			BooleanSupplier conditionSupplier) {
-		await(timeout, new Supplier<String>() {
-
-			@Override
-			public String get() {
-				return errorMessage;
-			}
-		}, conditionSupplier);
+		await(timeout, () -> errorMessage, conditionSupplier);
 	}
 
 	/**

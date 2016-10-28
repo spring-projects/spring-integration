@@ -20,7 +20,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,13 +31,12 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -153,7 +151,7 @@ public final class RedisLockRegistry implements LockRegistry {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(registryKey, "'registryKey' cannot be null");
 		Assert.notNull(localRegistry, "'localRegistry' cannot be null");
-		this.redisTemplate = new RedisTemplate<String, RedisLockRegistry.RedisLock>();
+		this.redisTemplate = new RedisTemplate<>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(this.lockSerializer);
@@ -198,7 +196,7 @@ public final class RedisLockRegistry implements LockRegistry {
 	private Collection<RedisLock> getHardThreadLocks() {
 		List<RedisLock> locks = this.hardThreadLocks.get();
 		if (locks == null) {
-			locks = new LinkedList<RedisLock>();
+			locks = new LinkedList<>();
 			this.hardThreadLocks.set(locks);
 		}
 		return locks;
@@ -293,20 +291,15 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	public Collection<Lock> listLocks() {
-		return this.redisTemplate.execute(new RedisCallback<Collection<Lock>>() {
-
-			@Override
-			public Collection<Lock> doInRedis(RedisConnection connection) throws DataAccessException {
-				Set<byte[]> keys = connection.keys((RedisLockRegistry.this.registryKey + ":*").getBytes());
-				ArrayList<Lock> list = new ArrayList<Lock>(keys.size());
-				if (keys.size() > 0) {
-					List<byte[]> locks = connection.mGet(keys.toArray(new byte[keys.size()][]));
-					for (byte[] lock : locks) {
-						list.add(RedisLockRegistry.this.lockSerializer.deserialize(lock));
-					}
-				}
-				return list;
+		return this.redisTemplate.execute((RedisCallback<Collection<Lock>>) connection -> {
+			Set<byte[]> keys = connection.keys((RedisLockRegistry.this.registryKey + ":*").getBytes());
+			if (keys.size() > 0) {
+				List<byte[]> locks = connection.mGet(keys.toArray(new byte[keys.size()][]));
+				return locks.stream()
+						.map(RedisLockRegistry.this.lockSerializer::deserialize)
+						.collect(Collectors.toList());
 			}
+			return Collections.emptyList();
 		});
 	}
 
@@ -324,7 +317,7 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		private int reLock;
 
-		private RedisLock(String lockKey) {
+		RedisLock(String lockKey) {
 			this.lockKey = lockKey;
 			this.lockHost = RedisLockRegistry.hostName;
 		}
@@ -420,30 +413,25 @@ public final class RedisLockRegistry implements LockRegistry {
 			Boolean success = false;
 			try {
 
-				success = RedisLockRegistry.this.redisTemplate.execute(new RedisCallback<Boolean>() {
+				success = RedisLockRegistry.this.redisTemplate.execute((RedisCallback<Boolean>) connection -> {
 
-					@Override
-					public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+					/*
+					Perform Redis command 'SET resource-name anystring NX EX max-lock-time' directly.
+					As it is recommended by Redis: http://redis.io/commands/set.
+					This command isn't supported directly by RedisTemplate.
+					*/
+					long expireAfter = TimeoutUtils.toSeconds(RedisLockRegistry.this.expireAfter,
+							TimeUnit.MILLISECONDS);
+					RedisSerializer<String> serializer = RedisLockRegistry.this.redisTemplate.getStringSerializer();
+					byte[][] actualArgs = new byte[][] {
+							serializer.serialize(constructLockKey()),
+							RedisLockRegistry.this.lockSerializer.serialize(RedisLock.this),
+							serializer.serialize("NX"),
+							serializer.serialize("EX"),
+							serializer.serialize(String.valueOf(expireAfter))
+					};
 
-						/*
-						Perform Redis command 'SET resource-name anystring NX EX max-lock-time' directly.
-						As it is recommended by Redis: http://redis.io/commands/set.
-						This command isn't supported directly by RedisTemplate.
-						*/
-						long expireAfter = TimeoutUtils.toSeconds(RedisLockRegistry.this.expireAfter,
-								TimeUnit.MILLISECONDS);
-						RedisSerializer<String> serializer = RedisLockRegistry.this.redisTemplate.getStringSerializer();
-						byte[][] actualArgs = new byte[][] {
-								serializer.serialize(constructLockKey()),
-								RedisLockRegistry.this.lockSerializer.serialize(RedisLock.this),
-								serializer.serialize("NX"),
-								serializer.serialize("EX"),
-								serializer.serialize(String.valueOf(expireAfter))
-						};
-
-						return connection.execute("SET", actualArgs) != null;
-					}
-
+					return connection.execute("SET", actualArgs) != null;
 				});
 			}
 			finally {
@@ -602,6 +590,10 @@ public final class RedisLockRegistry implements LockRegistry {
 	}
 
 	private class LockSerializer implements RedisSerializer<RedisLock> {
+
+		LockSerializer() {
+			super();
+		}
 
 		@Override
 		public byte[] serialize(RedisLock t) throws SerializationException {

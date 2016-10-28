@@ -326,11 +326,12 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 
 		private final String name = "abx";
 
-		private Abc() { }
+		Abc() { }
 
 		public String getName() {
 			return name;
 		}
+
 	}
 
 	public static class Xyz implements Serializable {
@@ -342,7 +343,8 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 		@SuppressWarnings("unused")
 		private final String name = "xyz";
 
-		private Xyz() { }
+		Xyz() { }
+
 	}
 
 

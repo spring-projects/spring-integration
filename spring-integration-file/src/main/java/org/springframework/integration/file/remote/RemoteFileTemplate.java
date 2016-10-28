@@ -399,6 +399,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		return this.sessionFactory.getSession();
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;

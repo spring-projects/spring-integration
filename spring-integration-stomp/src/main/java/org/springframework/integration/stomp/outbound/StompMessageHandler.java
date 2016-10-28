@@ -149,34 +149,24 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 			final String destination = stompHeaders.getDestination();
 			final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
 			if (applicationEventPublisher != null) {
-				receiptable.addReceiptTask(new Runnable() {
-
-					@Override
-					public void run() {
-						StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
-								destination, receiptable.getReceiptId(), StompCommand.SEND, false);
-						event.setMessage(message);
-						applicationEventPublisher.publishEvent(event);
-					}
-
+				receiptable.addReceiptTask(() -> {
+					StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
+							destination, receiptable.getReceiptId(), StompCommand.SEND, false);
+					event.setMessage(message);
+					applicationEventPublisher.publishEvent(event);
 				});
 			}
-			receiptable.addReceiptLostTask(new Runnable() {
-
-				@Override
-				public void run() {
-					if (applicationEventPublisher != null) {
-						StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
-								destination, receiptable.getReceiptId(), StompCommand.SEND, true);
-						event.setMessage(message);
-						applicationEventPublisher.publishEvent(event);
-					}
-					else {
-						logger.error("The receipt [" + receiptable.getReceiptId() + "] is lost for [" +
-								message + "] on destination [" + destination + "]");
-					}
+			receiptable.addReceiptLostTask(() -> {
+				if (applicationEventPublisher != null) {
+					StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
+							destination, receiptable.getReceiptId(), StompCommand.SEND, true);
+					event.setMessage(message);
+					applicationEventPublisher.publishEvent(event);
 				}
-
+				else {
+					logger.error("The receipt [" + receiptable.getReceiptId() + "] is lost for [" +
+							message + "] on destination [" + destination + "]");
+				}
 			});
 		}
 	}
@@ -223,6 +213,10 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	}
 
 	private class IntegrationOutboundStompSessionHandler extends StompSessionHandlerAdapter {
+
+		IntegrationOutboundStompSessionHandler() {
+			super();
+		}
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
