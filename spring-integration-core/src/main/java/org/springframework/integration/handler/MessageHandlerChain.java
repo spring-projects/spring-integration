@@ -119,16 +119,9 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler impleme
 				Assert.isInstanceOf(MessageProducer.class, handler, "All handlers except for " +
 						"the last one in the chain must implement the MessageProducer interface.");
 				final MessageHandler nextHandler = this.handlers.get(i + 1);
-				final MessageChannel nextChannel = new MessageChannel() {
-					@Override
-					public boolean send(Message<?> message, long timeout) {
-						return this.send(message);
-					}
-					@Override
-					public boolean send(Message<?> message) {
-						nextHandler.handleMessage(message);
-						return true;
-					}
+				final MessageChannel nextChannel = (message, timeout) -> {
+					nextHandler.handleMessage(message);
+					return true;
 				};
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 
