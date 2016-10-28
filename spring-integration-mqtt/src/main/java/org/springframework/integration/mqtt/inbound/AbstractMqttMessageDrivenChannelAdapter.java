@@ -258,7 +258,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 		private volatile int qos;
 
-		private Topic(String topic, int qos) {
+		Topic(String topic, int qos) {
 			this.topic = topic;
 			this.qos = qos;
 		}

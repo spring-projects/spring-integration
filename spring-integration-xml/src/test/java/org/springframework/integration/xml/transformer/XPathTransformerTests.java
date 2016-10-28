@@ -32,10 +32,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
+import org.springframework.messaging.Message;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
@@ -139,6 +139,11 @@ public class XPathTransformerTests {
 
 	private static class TestNodeMapper implements NodeMapper<Object> {
 
+		TestNodeMapper() {
+			super();
+		}
+
+		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
 		}
@@ -147,10 +152,16 @@ public class XPathTransformerTests {
 
 	private static class TestXmlPayloadConverter implements XmlPayloadConverter {
 
+		TestXmlPayloadConverter() {
+			super();
+		}
+
+		@Override
 		public Source convertToSource(Object object) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public Node convertToNode(Object object) {
 			try {
 				return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
@@ -161,6 +172,7 @@ public class XPathTransformerTests {
 			}
 		}
 
+		@Override
 		public Document convertToDocument(Object object) {
 			throw new UnsupportedOperationException();
 		}

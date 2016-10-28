@@ -138,6 +138,10 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private class MessageListenerDelegate {
 
+		MessageListenerDelegate() {
+			super();
+		}
+
 		@SuppressWarnings("unused")
 		public void handleMessage(Object object) {
 			sendMessage(convertMessage(object));

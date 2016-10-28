@@ -318,6 +318,10 @@ public class WebSocketServerTests {
 
 		private ApplicationEventPublisher applicationEventPublisher;
 
+		TestWebSocketHandlerDecoratorFactory() {
+			super();
+		}
+
 		@Override
 		public WebSocketHandler decorate(WebSocketHandler handler) {
 			return new TestWebSocketHandler(handler);

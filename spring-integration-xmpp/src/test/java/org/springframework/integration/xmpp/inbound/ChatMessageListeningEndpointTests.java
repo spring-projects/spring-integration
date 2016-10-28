@@ -45,8 +45,6 @@ import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -58,7 +56,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -81,25 +78,15 @@ public class ChatMessageListeningEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
-		willAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.add(invocation.getArgumentAt(0, StanzaListener.class));
-				return null;
-			}
-
+		willAnswer(invocation -> {
+			packetListSet.add(invocation.getArgumentAt(0, StanzaListener.class));
+			return null;
 		}).given(connection)
 				.addAsyncStanzaListener(Mockito.any(StanzaListener.class), Mockito.any(StanzaFilter.class));
 
-		willAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.remove(invocation.getArguments()[0]);
-				return null;
-			}
-
+		willAnswer(invocation -> {
+			packetListSet.remove(invocation.getArguments()[0]);
+			return null;
 		}).given(connection)
 				.removeAsyncStanzaListener(Mockito.any(StanzaListener.class));
 
@@ -146,15 +133,9 @@ public class ChatMessageListeningEndpointTests {
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(org.springframework.messaging.Message<?> message)
-					throws MessagingException {
-				throw new RuntimeException("ooops");
-			}
-
-		});
+		outChannel.subscribe(message -> {
+throw new RuntimeException("ooops");
+});
 		PollableChannel errorChannel = new QueueChannel();
 		endpoint.setBeanFactory(bf);
 		endpoint.setOutputChannel(outChannel);
@@ -203,15 +184,10 @@ public class ChatMessageListeningEndpointTests {
 		Log logger = Mockito.spy(TestUtils.getPropertyValue(endpoint, "logger", Log.class));
 		given(logger.isInfoEnabled()).willReturn(true);
 		final CountDownLatch logLatch = new CountDownLatch(1);
-		willAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Object result = invocation.callRealMethod();
-				logLatch.countDown();
-				return result;
-			}
-
+		willAnswer(invocation -> {
+			Object result = invocation.callRealMethod();
+			logLatch.countDown();
+			return result;
 		}).given(logger).info(anyString());
 
 		new DirectFieldAccessor(endpoint).setPropertyValue("logger", logger);
@@ -276,7 +252,7 @@ public class ChatMessageListeningEndpointTests {
 
 	private static class TestXMPPConnection extends XMPPTCPConnection {
 
-		private TestXMPPConnection() {
+		TestXMPPConnection() {
 			super(null);
 		}
 

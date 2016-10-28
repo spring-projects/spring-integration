@@ -22,17 +22,12 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.xml.transform.TransformerException;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -42,9 +37,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
-import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.transport.WebServiceConnection;
@@ -76,12 +69,9 @@ public class SimpleWebServiceOutboundGatewayTests {
 		String uri = "http://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(new TestDestinationProvider(uri));
 		final AtomicReference<String> soapActionFromCallback = new AtomicReference<String>();
-		gateway.setRequestCallback(new WebServiceMessageCallback() {
-			@Override
-			public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
-				SoapMessage soapMessage = (SoapMessage) message;
-				soapActionFromCallback.set(soapMessage.getSoapAction());
-			}
+		gateway.setRequestCallback(message -> {
+			SoapMessage soapMessage = (SoapMessage) message;
+			soapActionFromCallback.set(soapMessage.getSoapAction());
 		});
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
@@ -127,13 +117,10 @@ public class SimpleWebServiceOutboundGatewayTests {
 		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
 		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
 
-		Mockito.doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Exception {
-				Object[] args = invocation.getArguments();
-				WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
-				return factory.createWebServiceMessage(new ByteArrayInputStream(mockResponseMessage.getBytes()));
-			}
+		Mockito.doAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
+			return factory.createWebServiceMessage(new ByteArrayInputStream(mockResponseMessage.getBytes()));
 		}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
 
 		return messageSender;

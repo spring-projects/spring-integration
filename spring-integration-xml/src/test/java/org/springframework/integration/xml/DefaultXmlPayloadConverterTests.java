@@ -185,6 +185,10 @@ public class DefaultXmlPayloadConverterTests {
 
 	private static class MySource implements Source {
 
+		MySource() {
+			super();
+		}
+
 		@Override
 		public void setSystemId(String systemId) {
 		}

@@ -60,6 +60,10 @@ public class MailReceivingMessageSourceTests {
 
 		private final ConcurrentLinkedQueue<javax.mail.Message[]> messages = new ConcurrentLinkedQueue<javax.mail.Message[]>();
 
+		StubMailReceiver() {
+			super();
+		}
+
 		@Override
 		public javax.mail.Message[] receive() {
 			return messages.poll();

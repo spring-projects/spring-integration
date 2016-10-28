@@ -39,7 +39,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -131,14 +130,9 @@ public class SimpleWebServiceInboundGatewayTests {
 	}
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {
-		return new Answer<Boolean>() {
-
-			@Override
-			public Boolean answer(InvocationOnMock invocation) throws Throwable {
-				replyChannel.send((Message<?>) invocation.getArguments()[0]);
-				return true;
-			}
-
+		return invocation -> {
+			replyChannel.send((Message<?>) invocation.getArguments()[0]);
+			return true;
 		};
 	}
 

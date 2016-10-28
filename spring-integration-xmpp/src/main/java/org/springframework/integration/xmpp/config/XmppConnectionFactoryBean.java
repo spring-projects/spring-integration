@@ -212,6 +212,10 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private class LoggingConnectionListener implements ConnectionListener {
 
+		LoggingConnectionListener() {
+			super();
+		}
+
 		@Override
 		public void reconnectionSuccessful() {
 			logger.debug("Reconnection successful");

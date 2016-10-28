@@ -321,6 +321,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	private class ListenerTask implements SchedulingAwareRunnable {
 
+		ListenerTask() {
+			super();
+		}
+
 		@Override
 		public boolean isLongLived() {
 			return true;

@@ -38,9 +38,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 /**
@@ -66,13 +64,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 				RedisMessageListenerContainer.class));
 
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageHandler handler = new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				latch.countDown();
-			}
-		};
+		MessageHandler handler = message -> latch.countDown();
 		channel.subscribe(handler);
 
 		channel.send(new GenericMessage<String>("1"));

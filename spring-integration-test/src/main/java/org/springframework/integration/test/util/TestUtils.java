@@ -18,7 +18,6 @@ package org.springframework.integration.test.util;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -45,8 +44,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
-import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -133,7 +130,7 @@ public abstract class TestUtils {
 
 	public static class TestApplicationContext extends GenericApplicationContext {
 
-		private TestApplicationContext() {
+		TestApplicationContext() {
 			super();
 		}
 
@@ -156,26 +153,14 @@ public abstract class TestUtils {
 			final AtomicReference<String> componentName = new AtomicReference<String>();
 			for (Class<?> intface : interfaces) {
 				if ("org.springframework.integration.support.context.NamedComponent".equals(intface.getName())) {
-					ReflectionUtils.doWithMethods(channel.getClass(), new MethodCallback() {
-
-						@Override
-						public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-							try {
-								componentName.set((String) method.invoke(channel, new Object[0]));
-							}
-							catch (InvocationTargetException e) {
-								throw new IllegalArgumentException(e);
-							}
+					ReflectionUtils.doWithMethods(channel.getClass(), method -> {
+						try {
+							componentName.set((String) method.invoke(channel, new Object[0]));
 						}
-
-					}, new MethodFilter() {
-
-						@Override
-						public boolean matches(Method method) {
-							return method.getName().equals("getComponentName");
+						catch (InvocationTargetException e) {
+							throw new IllegalArgumentException(e);
 						}
-
-					});
+					}, method -> method.getName().equals("getComponentName"));
 					break;
 				}
 			}
@@ -229,7 +214,7 @@ public abstract class TestUtils {
 
 		private final TestApplicationContext context;
 
-		private MessagePublishingErrorHandler(TestApplicationContext ctx) {
+		MessagePublishingErrorHandler(TestApplicationContext ctx) {
 			this.context = ctx;
 		}
 

@@ -26,15 +26,14 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -59,14 +58,12 @@ public class XmppHeaderEnricherParserTests {
 	public void to() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		MessageHandler handler = mock(MessageHandler.class);
-		doAnswer(new Answer() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Message message = invocation.getArgumentAt(0, Message.class);
-				String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
-				assertNotNull(chatToUser);
-				assertEquals("test1@example.org", chatToUser);
-				return null;
-			}
+		doAnswer(invocation -> {
+			Message message = invocation.getArgumentAt(0, Message.class);
+			String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
+			assertNotNull(chatToUser);
+			assertEquals("test1@example.org", chatToUser);
+			return null;
 		}).when(handler).handleMessage(Mockito.any(Message.class));
 		output.subscribe(handler);
 		messagingTemplate.send(input, MessageBuilder.withPayload("foo").build());

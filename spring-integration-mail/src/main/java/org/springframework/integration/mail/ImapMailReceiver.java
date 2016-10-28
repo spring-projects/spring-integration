@@ -240,6 +240,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	}
 
 	private class IdleCanceler implements Runnable {
+
+		IdleCanceler() {
+			super();
+		}
+
 		@Override
 		public void run() {
 			try {
@@ -259,6 +264,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 */
 	private class SimpleMessageCountListener extends MessageCountAdapter {
 
+		SimpleMessageCountListener() {
+			super();
+		}
+
 		@Override
 		public void messagesAdded(MessageCountEvent event) {
 			Message[] messages = event.getMessages();
@@ -270,6 +279,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	}
 
 	private class DefaultSearchTermStrategy implements SearchTermStrategy {
+
+		DefaultSearchTermStrategy() {
+			super();
+		}
 
 		@Override
 		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {

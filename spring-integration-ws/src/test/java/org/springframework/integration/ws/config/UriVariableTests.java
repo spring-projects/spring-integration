@@ -19,6 +19,7 @@ package org.springframework.integration.ws.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,8 +43,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,12 +115,9 @@ public class UriVariableTests {
 		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway, "webServiceTemplate", WebServiceTemplate.class);
 		webServiceTemplate = Mockito.spy(webServiceTemplate);
 		final AtomicReference<String> uri = new AtomicReference<String>();
-		Mockito.doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				uri.set(invocation.getArgumentAt(0, String.class));
-				throw new WebServiceIOException("intentional");
-			}
+		doAnswer(invocation -> {
+			uri.set(invocation.getArgumentAt(0, String.class));
+			throw new WebServiceIOException("intentional");
 		}).when(webServiceTemplate)
 				.sendAndReceive(Mockito.anyString(),
 						Mockito.any(WebServiceMessageCallback.class),
@@ -235,10 +231,15 @@ public class UriVariableTests {
 
 		private volatile URI lastUri;
 
+		TestClientInterceptor() {
+			super();
+		}
+
 		public URI getLastUri() {
 			return this.lastUri;
 		}
 
+		@Override
 		public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
 			TransportContext tc = TransportContextHolder.getTransportContext();
 			if (tc != null) {
@@ -255,14 +256,17 @@ public class UriVariableTests {
 			return true;
 		}
 
+		@Override
 		public boolean handleResponse(MessageContext messageContext) throws WebServiceClientException {
 			return false;
 		}
 
+		@Override
 		public boolean handleFault(MessageContext messageContext) throws WebServiceClientException {
 			return false;
 		}
 
+		@Override
 		public void afterCompletion(MessageContext messageContext, Exception ex) throws WebServiceClientException {
 
 		}

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.redis.outbound;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -135,17 +133,15 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 		final byte[][] actualArgs = args;
 
-		return this.redisTemplate.execute(new RedisCallback<Object>() {
-
-			@Override
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.execute(command, actualArgs);
-			}
-
-		});
+		return this.redisTemplate.execute(
+				(RedisCallback<Object>) connection -> connection.execute(command, actualArgs));
 	}
 
 	private class PayloadArgumentsStrategy implements ArgumentsStrategy {
+
+		PayloadArgumentsStrategy() {
+			super();
+		}
 
 		@Override
 		public Object[] resolve(String command, Message<?> message) {

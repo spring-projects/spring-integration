@@ -35,8 +35,6 @@ import org.apache.commons.logging.Log;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -80,15 +78,11 @@ public class DownstreamExceptionTests {
 		service.n = 0;
 		Log logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", Log.class));
 		final  CountDownLatch latch = new CountDownLatch(1);
-		doAnswer(new Answer<Void>() {
-
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				if ((invocation.getArgumentAt(0, String.class)).contains("Unhandled")) {
-					latch.countDown();
-				}
-				return null;
+		doAnswer(invocation -> {
+			if ((invocation.getArgumentAt(0, String.class)).contains("Unhandled")) {
+				latch.countDown();
 			}
+			return null;
 		}).when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(noErrorChannel).setPropertyValue("logger", logger);
 		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");

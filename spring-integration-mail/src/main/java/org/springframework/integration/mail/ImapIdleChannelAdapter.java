@@ -183,30 +183,27 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	}
 
 	private Runnable createMessageSendingTask(final Object mailMessage) {
-		Runnable sendingTask = new Runnable() {
-			@Override
-			public void run() {
-				@SuppressWarnings("unchecked")
-				org.springframework.messaging.Message<?> message =
-						mailMessage instanceof Message
-							? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
-							:  (org.springframework.messaging.Message<Object>) mailMessage;
+		Runnable sendingTask = () -> {
+			@SuppressWarnings("unchecked")
+			org.springframework.messaging.Message<?> message =
+					mailMessage instanceof Message
+						? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
+						:  (org.springframework.messaging.Message<Object>) mailMessage;
 
-				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-					if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
-						TransactionSynchronization synchronization =
-								ImapIdleChannelAdapter.this.transactionSynchronizationFactory
-										.create(ImapIdleChannelAdapter.this);
-						TransactionSynchronizationManager.registerSynchronization(synchronization);
-						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-							IntegrationResourceHolder holder =
-									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-							holder.setMessage(message);
-						}
+			if (TransactionSynchronizationManager.isActualTransactionActive()) {
+				if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
+					TransactionSynchronization synchronization =
+							ImapIdleChannelAdapter.this.transactionSynchronizationFactory
+									.create(ImapIdleChannelAdapter.this);
+					TransactionSynchronizationManager.registerSynchronization(synchronization);
+					if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+						IntegrationResourceHolder holder =
+								((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
+						holder.setMessage(message);
 					}
 				}
-				sendMessage(message);
 			}
+			sendMessage(message);
 		};
 
 		// wrap in the TX proxy if necessary
@@ -235,6 +232,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 
 	private class ReceivingTask implements Runnable {
+
+		ReceivingTask() {
+			super();
+		}
+
 		@Override
 		public void run() {
 			try {
@@ -253,6 +255,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 
 	private class IdleTask implements Runnable {
+
+		IdleTask() {
+			super();
+		}
 
 		@Override
 		public void run() {
@@ -302,6 +308,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		private volatile boolean delayNextExecution;
 
+
+		ExceptionAwarePeriodicTrigger() {
+			super();
+		}
 
 		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {

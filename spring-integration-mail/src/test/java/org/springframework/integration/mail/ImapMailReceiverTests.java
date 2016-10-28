@@ -64,13 +64,9 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -268,35 +264,19 @@ public class ImapMailReceiverTests {
 
 		final Message[] messages = new Message[] { msg1, msg2 };
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE) {
-					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-				}
-
-				return null;
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
+
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.receive();
 		return receiver;
 	}
@@ -348,34 +328,18 @@ public class ImapMailReceiverTests {
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE) {
-					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-				}
-				return null;
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
@@ -400,29 +364,11 @@ public class ImapMailReceiverTests {
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> null).when(receiver).openFolder();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
@@ -447,34 +393,18 @@ public class ImapMailReceiverTests {
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE) {
-					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-				}
-				return null;
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
@@ -499,34 +429,18 @@ public class ImapMailReceiverTests {
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode != Folder.READ_WRITE) {
-					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
-				}
-				return null;
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
+			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
+			if (folderOpenMode != Folder.READ_WRITE) {
+				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
@@ -553,33 +467,17 @@ public class ImapMailReceiverTests {
 		when(mailMessage.getFlags()).thenReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
-				IMAPFolder folder = mock(IMAPFolder.class);
-				accessor.setPropertyValue("folder", folder);
-				when(folder.hasNewMessages()).thenReturn(true);
-				return null;
-			}
+		doAnswer(invocation -> {
+			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
+			IMAPFolder folder = mock(IMAPFolder.class);
+			accessor.setPropertyValue("folder", folder);
+			when(folder.hasNewMessages()).thenReturn(true);
+			return null;
 		}).when(receiver).openFolder();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 
 		PollableChannel channel = context.getBean("channel", PollableChannel.class);
 
@@ -626,21 +524,9 @@ public class ImapMailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> true).when(folder).isOpen();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return true;
-			}
-		}).when(folder).isOpen();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
+		doAnswer(invocation -> null).when(receiver).openFolder();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
@@ -650,21 +536,9 @@ public class ImapMailReceiverTests {
 		when(mailMessage.getFlags()).thenReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 
 		adapter.start();
 		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
@@ -703,13 +577,7 @@ public class ImapMailReceiverTests {
 		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 		storeField.set(receiver, store);
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return folder;
-			}
-		}).when(receiver).getFolder();
+		doAnswer(invocation -> folder).when(receiver).getFolder();
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
@@ -717,41 +585,27 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[] { mailMessage };
 
 		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				/*
-				 * Return the message from first invocation of waitForMessages()
-				 * and in receive(); then return false in the next call to
-				 * waitForMessages() so we enter idle(); counter will be reset
-				 * to 1 in the mocked idle().
-				 */
-				if (shouldFindMessagesCounter.decrementAndGet() >= 0) {
-					return messages;
-				}
-				else {
-					return new Message[0];
-				}
+		doAnswer(invocation -> {
+			/*
+			 * Return the message from first invocation of waitForMessages()
+			 * and in receive(); then return false in the next call to
+			 * waitForMessages() so we enter idle(); counter will be reset
+			 * to 1 in the mocked idle().
+			 */
+			if (shouldFindMessagesCounter.decrementAndGet() >= 0) {
+				return messages;
+			}
+			else {
+				return new Message[0];
 			}
 		}).when(receiver).searchForNewMessages();
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				Thread.sleep(5000);
-				shouldFindMessagesCounter.set(1);
-				return null;
-			}
+		doAnswer(invocation -> {
+			Thread.sleep(5000);
+			shouldFindMessagesCounter.set(1);
+			return null;
 		}).when(folder).idle();
 
 		adapter.start();
@@ -797,44 +651,22 @@ public class ImapMailReceiverTests {
 		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 		storeField.set(receiver, store);
 
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return folder;
-			}
-		}).when(receiver).getFolder();
+		doAnswer(invocation -> folder).when(receiver).getFolder();
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(new Answer<Object>() {
+		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
 
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
+		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
 
 		final CountDownLatch idles = new CountDownLatch(2);
-		doAnswer(new Answer<Object>() {
-
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				idles.countDown();
-				Thread.sleep(5000);
-				return null;
-			}
+		doAnswer(invocation -> {
+			idles.countDown();
+			Thread.sleep(5000);
+			return null;
 		}).when(folder).idle();
 
 		adapter.start();
@@ -856,20 +688,10 @@ public class ImapMailReceiverTests {
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
 		final AtomicReference<ImapIdleExceptionEvent> theEvent = new AtomicReference<ImapIdleExceptionEvent>();
 		final CountDownLatch latch = new CountDownLatch(1);
-		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
-
-			@Override
-			public void publishEvent(ApplicationEvent event) {
-				assertNull("only one event expected", theEvent.get());
-				theEvent.set((ImapIdleExceptionEvent) event);
-				latch.countDown();
-			}
-
-			@Override
-			public void publishEvent(Object event) {
-
-			}
-
+		adapter.setApplicationEventPublisher(event -> {
+			assertNull("only one event expected", theEvent.get());
+			theEvent.set((ImapIdleExceptionEvent) event);
+			latch.countDown();
 		});
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
@@ -898,34 +720,26 @@ public class ImapMailReceiverTests {
 			receiver.setBeanFactory(mock(BeanFactory.class));
 			receiver.afterPropertiesSet();
 
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						receiver.receive();
-					}
-					catch (javax.mail.MessagingException e) {
-						if (e.getCause() instanceof NullPointerException) {
-							e.printStackTrace();
-							failed.getAndIncrement();
-						}
-					}
-
+			new Thread(() -> {
+				try {
+					receiver.receive();
 				}
+				catch (javax.mail.MessagingException e) {
+					if (e.getCause() instanceof NullPointerException) {
+						e.printStackTrace();
+						failed.getAndIncrement();
+					}
+				}
+
 			}).start();
 
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						receiver.destroy();
-					}
-					catch (Exception ignore) {
-						// ignore
-						ignore.printStackTrace();
-					}
+			new Thread(() -> {
+				try {
+					receiver.destroy();
+				}
+				catch (Exception ignore) {
+					// ignore
+					ignore.printStackTrace();
 				}
 			}).start();
 		}

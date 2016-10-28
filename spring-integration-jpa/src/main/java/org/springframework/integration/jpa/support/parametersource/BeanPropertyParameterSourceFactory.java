@@ -58,7 +58,7 @@ public class BeanPropertyParameterSourceFactory implements ParameterSourceFactor
 
 		private final Map<String, Object> staticParameters;
 
-		private StaticBeanPropertyParameterSource(Object input, Map<String, Object> staticParameters) {
+		StaticBeanPropertyParameterSource(Object input, Map<String, Object> staticParameters) {
 			this.input = new BeanPropertyParameterSource(input);
 			this.staticParameters = staticParameters;
 		}

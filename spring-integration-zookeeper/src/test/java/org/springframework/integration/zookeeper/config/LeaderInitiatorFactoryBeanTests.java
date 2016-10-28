@@ -108,15 +108,10 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 
 		@Bean
 		public ApplicationListener<?> listener() {
-			return new ApplicationListener<AbstractLeaderEvent>() {
-
-				@Override
-				public void onApplicationEvent(AbstractLeaderEvent event) {
-					events.add(event);
-					latch1.countDown();
-					latch2.countDown();
-				}
-
+			return event -> {
+				events.add((AbstractLeaderEvent) event);
+				latch1.countDown();
+				latch2.countDown();
 			};
 		}
 

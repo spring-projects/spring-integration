@@ -28,9 +28,9 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Test;
 
+import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringResult;
@@ -81,10 +81,16 @@ public class MarshallingTransformerTests {
 
 		private final List<Object> payloads = new ArrayList<Object>();
 
+		TestMarshaller() {
+			super();
+		}
+
+		@Override
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}
 
+		@Override
 		public void marshal(Object source, Result result) throws XmlMappingException, IOException {
 			if (source instanceof Message) {
 				this.messages.add((Message<?>) source);

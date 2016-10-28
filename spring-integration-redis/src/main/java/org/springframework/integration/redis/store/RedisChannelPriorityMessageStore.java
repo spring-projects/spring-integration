@@ -47,14 +47,7 @@ import org.springframework.util.Assert;
 public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		implements PriorityCapableChannelMessageStore {
 
-	private final Comparator<String> keysComparator = new Comparator<String>() {
-
-		@Override
-		public int compare(String s1, String s2) {
-			return s2.compareTo(s1);
-		}
-
-	};
+	private final Comparator<String> keysComparator = (s1, s2) -> s2.compareTo(s1);
 
 	public RedisChannelPriorityMessageStore(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory);

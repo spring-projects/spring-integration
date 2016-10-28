@@ -212,6 +212,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
+	@Override
 	public MessageMetadata getMessageMetadata(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
 		MessageWrapper messageWrapper =
@@ -474,7 +475,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 	private final class MessageReadingMongoConverter extends MappingMongoConverter {
 
-		private MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
+		MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
@@ -603,6 +604,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
 
+		UuidToDBObjectConverter() {
+			super();
+		}
+
 		@Override
 		public DBObject convert(UUID source) {
 			BasicDBObject dbObject = new BasicDBObject();
@@ -614,6 +619,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
 
+		DBObjectToUUIDConverter() {
+			super();
+		}
+
 		@Override
 		public UUID convert(DBObject source) {
 			return UUID.fromString((String) source.get("_value"));
@@ -622,6 +631,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 
 	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory, DBObject> {
+
+		MessageHistoryToDBObjectConverter() {
+			super();
+		}
 
 		@Override
 		public DBObject convert(MessageHistory source) {
@@ -642,8 +655,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
 
-		@Override
+		DBObjectToGenericMessageConverter() {
+			super();
+		}
 
+		@Override
 		public GenericMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
@@ -660,6 +676,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private final class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
 
 
+		DBObjectToMutableMessageConverter() {
+			super();
+		}
+
 		@Override
 		public MutableMessage<?> convert(DBObject source) {
 			@SuppressWarnings("unchecked")
@@ -675,6 +695,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage<?>> {
+
+		DBObjectToAdviceMessageConverter() {
+			super();
+		}
 
 		@Override
 		public AdviceMessage<?> convert(DBObject source) {
@@ -711,6 +735,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
 
+		DBObjectToErrorMessageConverter() {
+			super();
+		}
+
 		@Override
 		public ErrorMessage convert(DBObject source) {
 			@SuppressWarnings("unchecked")
@@ -730,6 +758,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	private class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
 
 		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
+
+		ThrowableToBytesConverter() {
+			super();
+		}
 
 		@Override
 		public byte[] convert(Throwable source) {
@@ -783,7 +815,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		@SuppressWarnings("unused")
 		private int sequence;
 
-		private MessageWrapper(Message<?> message) {
+		MessageWrapper(Message<?> message) {
 			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
 			this._messageType = message.getClass().getName();

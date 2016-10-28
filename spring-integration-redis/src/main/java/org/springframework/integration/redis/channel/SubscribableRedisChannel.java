@@ -212,7 +212,11 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	private class MessageListenerDelegate {
 
-		@SuppressWarnings({ "unused", "unchecked" })
+		MessageListenerDelegate() {
+			super();
+		}
+
+		@SuppressWarnings({ "unused" })
 		public void handleMessage(Object payload) {
 			Message<?> siMessage = SubscribableRedisChannel.this.messageConverter.toMessage(payload, null);
 			try {

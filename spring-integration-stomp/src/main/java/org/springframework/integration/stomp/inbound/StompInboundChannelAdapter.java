@@ -240,32 +240,22 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 			if (this.stompSessionManager.isAutoReceiptEnabled()) {
 				final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
 				if (applicationEventPublisher != null) {
-					subscription.addReceiptTask(new Runnable() {
-
-						@Override
-						public void run() {
-							StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
-									destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, false);
-							applicationEventPublisher.publishEvent(event);
-						}
-
+					subscription.addReceiptTask(() -> {
+						StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
+								destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, false);
+						applicationEventPublisher.publishEvent(event);
 					});
 				}
-				subscription.addReceiptLostTask(new Runnable() {
-
-					@Override
-					public void run() {
-						if (applicationEventPublisher != null) {
-							StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
-									destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, true);
-							applicationEventPublisher.publishEvent(event);
-						}
-						else {
-							logger.error("The receipt [" + subscription.getReceiptId() + "] is lost for [" +
-									subscription.getSubscriptionId() + "] on destination [" + destination + "]");
-						}
+				subscription.addReceiptLostTask(() -> {
+					if (applicationEventPublisher != null) {
+						StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
+								destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, true);
+						applicationEventPublisher.publishEvent(event);
 					}
-
+					else {
+						logger.error("The receipt [" + subscription.getReceiptId() + "] is lost for [" +
+								subscription.getSubscriptionId() + "] on destination [" + destination + "]");
+					}
 				});
 			}
 			this.subscriptions.put(destination, subscription);

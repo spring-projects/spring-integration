@@ -51,7 +51,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	private PollingConsumer endpoint;
 
-	private TestTrigger trigger = new TestTrigger();
+	private final TestTrigger trigger = new TestTrigger();
 
 	private ThreadPoolTaskScheduler scheduler;
 
@@ -244,6 +244,11 @@ public class ByteStreamWritingMessageHandlerTests {
 
 		private volatile CountDownLatch latch = new CountDownLatch(1);
 
+		TestTrigger() {
+			super();
+		}
+
+		@Override
 		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (!hasRun.getAndSet(true)) {
 				return new Date();

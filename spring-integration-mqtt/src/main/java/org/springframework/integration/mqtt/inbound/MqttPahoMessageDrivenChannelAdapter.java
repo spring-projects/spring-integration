@@ -275,23 +275,18 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private void scheduleReconnect() {
 		try {
-			this.reconnectFuture = this.getTaskScheduler().scheduleWithFixedDelay(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						if (logger.isDebugEnabled()) {
-							logger.debug("Attempting reconnect");
-						}
-						if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
-							connectAndSubscribe();
-						}
+			this.reconnectFuture = this.getTaskScheduler().scheduleWithFixedDelay(() -> {
+				try {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Attempting reconnect");
 					}
-					catch (MqttException e) {
-						logger.error("Exception while connecting and subscribing", e);
+					if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
+						connectAndSubscribe();
 					}
 				}
-
+				catch (MqttException e) {
+					logger.error("Exception while connecting and subscribing", e);
+				}
 			}, this.recoveryInterval);
 		}
 		catch (Exception e) {

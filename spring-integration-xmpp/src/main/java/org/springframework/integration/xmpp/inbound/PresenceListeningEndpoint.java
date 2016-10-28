@@ -20,10 +20,10 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jivesoftware.smack.roster.Roster;
-import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterListener;
 
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.messaging.Message;
@@ -85,24 +85,32 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	 */
 	private class PresencePublishingRosterListener implements RosterListener {
 
+		PresencePublishingRosterListener() {
+			super();
+		}
+
+		@Override
 		public void entriesAdded(Collection<String> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries added: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}
 		}
 
+		@Override
 		public void entriesUpdated(Collection<String> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries updated: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}
 		}
 
+		@Override
 		public void entriesDeleted(Collection<String> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries deleted: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}
 		}
 
+		@Override
 		public void presenceChanged(Presence presence) {
 			if (presence != null) {
 				if (logger.isDebugEnabled()) {

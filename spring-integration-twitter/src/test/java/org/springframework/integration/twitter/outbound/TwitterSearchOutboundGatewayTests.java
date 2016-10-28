@@ -30,8 +30,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -80,15 +78,11 @@ public class TwitterSearchOutboundGatewayTests {
 		Tweet tweet = mock(Tweet.class);
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertEquals("foo", searchParameters.getQuery());
-				assertEquals(Integer.valueOf(20), searchParameters.getCount());
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertEquals("foo", searchParameters.getQuery());
+			assertEquals(Integer.valueOf(20), searchParameters.getCount());
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
@@ -107,15 +101,11 @@ public class TwitterSearchOutboundGatewayTests {
 		Tweet tweet = mock(Tweet.class);
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertEquals("foo", searchParameters.getQuery());
-				assertEquals(Integer.valueOf(30), searchParameters.getCount());
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertEquals("foo", searchParameters.getQuery());
+			assertEquals(Integer.valueOf(30), searchParameters.getCount());
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
@@ -134,17 +124,13 @@ public class TwitterSearchOutboundGatewayTests {
 		Tweet tweet = mock(Tweet.class);
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertEquals("bar", searchParameters.getQuery());
-				assertEquals(Integer.valueOf(1), searchParameters.getCount());
-				assertEquals(Long.valueOf(2), searchParameters.getSinceId());
-				assertEquals(Long.valueOf(3), searchParameters.getMaxId());
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertEquals("bar", searchParameters.getQuery());
+			assertEquals(Integer.valueOf(1), searchParameters.getCount());
+			assertEquals(Long.valueOf(2), searchParameters.getSinceId());
+			assertEquals(Long.valueOf(3), searchParameters.getMaxId());
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
@@ -162,14 +148,10 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		final SearchParameters parameters = new SearchParameters("bar");
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertSame(parameters, searchParameters);
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertSame(parameters, searchParameters);
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<SearchParameters>(parameters));
 		Message<?> reply = this.outputChannel.receive(0);
@@ -188,16 +170,12 @@ public class TwitterSearchOutboundGatewayTests {
 		Tweet tweet = mock(Tweet.class);
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertEquals("foobar", searchParameters.getQuery());
-				assertEquals(Integer.valueOf(5), searchParameters.getCount());
-				assertEquals(Long.valueOf(11), searchParameters.getSinceId());
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertEquals("foobar", searchParameters.getQuery());
+			assertEquals(Integer.valueOf(5), searchParameters.getCount());
+			assertEquals(Long.valueOf(11), searchParameters.getSinceId());
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("bar"));
 		Message<?> reply = this.outputChannel.receive(0);
@@ -214,15 +192,11 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		List<Tweet> empty = new ArrayList<Tweet>(0);
 		final SearchResults searchResults = new SearchResults(empty, searchMetadata);
-		doAnswer(new Answer<SearchResults>() {
-
-			@Override
-			public SearchResults answer(InvocationOnMock invocation) throws Throwable {
-				SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
-				assertEquals("foo", searchParameters.getQuery());
-				assertEquals(Integer.valueOf(20), searchParameters.getCount());
-				return searchResults;
-			}
+		doAnswer(invocation -> {
+			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			assertEquals("foo", searchParameters.getQuery());
+			assertEquals(Integer.valueOf(20), searchParameters.getCount());
+			return searchResults;
 		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);

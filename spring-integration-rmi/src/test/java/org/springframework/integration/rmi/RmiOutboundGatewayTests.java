@@ -27,15 +27,15 @@ import java.rmi.RemoteException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 
@@ -160,6 +160,11 @@ public class RmiOutboundGatewayTests {
 
 	private static class TestExchanger implements RequestReplyExchanger {
 
+		TestExchanger() {
+			super();
+		}
+
+		@Override
 		public Message<?> exchange(Message<?> message) {
 			if (message.getPayload().equals("fail")) {
 				new AbstractReplyProducingMessageHandler() {
@@ -176,6 +181,11 @@ public class RmiOutboundGatewayTests {
 
 
 	private static class NonSerializableTestObject {
+
+		NonSerializableTestObject() {
+			super();
+		}
+
 	}
 
 }

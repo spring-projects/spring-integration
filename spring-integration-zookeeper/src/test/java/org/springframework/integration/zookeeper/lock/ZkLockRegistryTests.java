@@ -27,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,7 +38,6 @@ import org.junit.Test;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
-import org.springframework.integration.zookeeper.lock.ZookeeperLockRegistry.KeyToPathStrategy;
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -150,21 +148,17 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				Lock lock2 = registry.obtain("foo");
-				locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
-				latch.countDown();
-				try {
-					lock2.unlock();
-				}
-				catch (MessagingException e) {
-					return e.getCause();
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			Lock lock2 = registry.obtain("foo");
+			locked.set(lock2.tryLock(200, TimeUnit.MILLISECONDS));
+			latch.countDown();
+			try {
+				lock2.unlock();
 			}
+			catch (MessagingException e) {
+				return e.getCause();
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());
@@ -184,24 +178,20 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = registry.obtain("foo");
-				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-					latch3.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = registry.obtain("foo");
+			try {
+				latch1.countDown();
+				lock2.lockInterruptibly();
+				latch2.await(10, TimeUnit.SECONDS);
+				locked.set(true);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock2.unlock();
+				latch3.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -223,24 +213,20 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = registry2.obtain("foo");
-				try {
-					latch1.countDown();
-					lock2.lockInterruptibly();
-					latch2.await(10, TimeUnit.SECONDS);
-					locked.set(true);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-					latch3.countDown();
-				}
+		Executors.newSingleThreadExecutor().execute(() -> {
+			Lock lock2 = registry2.obtain("foo");
+			try {
+				latch1.countDown();
+				lock2.lockInterruptibly();
+				latch2.await(10, TimeUnit.SECONDS);
+				locked.set(true);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				lock2.unlock();
+				latch3.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -260,19 +246,15 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		lock.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		Future<Object> result = Executors.newSingleThreadExecutor().submit(new Callable<Object>() {
-
-			@Override
-			public Object call() throws Exception {
-				try {
-					lock.unlock();
-				}
-				catch (Exception e) {
-					latch.countDown();
-					return e.getCause();
-				}
-				return null;
+		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
+			try {
+				lock.unlock();
 			}
+			catch (Exception e) {
+				latch.countDown();
+				return e.getCause();
+			}
+			return null;
 		});
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertFalse(locked.get());
@@ -285,18 +267,8 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 
 	@Test
 	public void testLockWithBoundedStrategy() throws Exception {
-		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client, new KeyToPathStrategy() {
-
-			@Override
-			public String pathFor(String key) {
-				return "/SpringIntegration-LockRegistry/singleLock";
-			}
-
-			@Override
-			public boolean bounded() {
-				return true;
-			}
-		});
+		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client,
+				key -> "/SpringIntegration-LockRegistry/singleLock");
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
 			lock.lock();

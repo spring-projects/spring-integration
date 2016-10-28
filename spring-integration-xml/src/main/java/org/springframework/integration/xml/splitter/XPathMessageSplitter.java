@@ -271,7 +271,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		private int index;
 
-		private NodeListIterator(NodeList nodeList) throws ParserConfigurationException {
+		NodeListIterator(NodeList nodeList) throws ParserConfigurationException {
 			this.nodeList = nodeList;
 			if (XPathMessageSplitter.this.createDocuments) {
 				this.documentBuilder = getNewDocumentBuilder();
