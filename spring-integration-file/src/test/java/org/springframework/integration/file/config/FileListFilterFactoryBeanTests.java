@@ -16,8 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -35,6 +35,7 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -117,7 +118,9 @@ public class FileListFilterFactoryBeanTests {
 				new DirectFieldAccessor(result).getPropertyValue("fileFilters");
 		Iterator<FileListFilter<?>> iterator = filters.iterator();
 		assertTrue(iterator.next() instanceof AcceptOnceFileListFilter);
-		assertThat(iterator.next(), is(instanceOf(SimplePatternFileListFilter.class)));
+		FileListFilter<?> patternFilter = iterator.next();
+		assertThat(patternFilter, is(instanceOf(SimplePatternFileListFilter.class)));
+		assertFalse(TestUtils.getPropertyValue(patternFilter, "alwaysAcceptDirectories", Boolean.class));
 	}
 
 	@Test
@@ -125,10 +128,12 @@ public class FileListFilterFactoryBeanTests {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		factory.setIgnoreHidden(false);
 		factory.setFilenamePattern(("foo"));
+		factory.setAlwaysAcceptDirectories(true);
 		factory.setPreventDuplicates(Boolean.FALSE);
 		FileListFilter<File> result = factory.getObject();
 		assertFalse(result instanceof CompositeFileListFilter);
 		assertThat(result, is(instanceOf(SimplePatternFileListFilter.class)));
+		assertTrue(TestUtils.getPropertyValue(result, "alwaysAcceptDirectories", Boolean.class));
 	}
 
 	private static class TestFilter extends AbstractFileListFilter<File> {

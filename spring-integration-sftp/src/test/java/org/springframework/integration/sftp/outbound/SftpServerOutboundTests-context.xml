@@ -51,9 +51,16 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
+							  filter="dotStarDotTxtFilter"
 							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('sftpSource', 'localTarget')"
 							  reply-channel="output"/>
+
+	<bean id="dotStarDotTxtFilter"
+				class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
+		<constructor-arg value="^.*\.txt$" />
+		<property name="alwaysAcceptDirectories" value="true" />
+	</bean>
 
 	<int:channel id="inboundMGetRecursiveFiltered"/>
 

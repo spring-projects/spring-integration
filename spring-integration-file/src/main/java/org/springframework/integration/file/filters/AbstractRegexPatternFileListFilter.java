@@ -30,7 +30,8 @@ import org.springframework.util.Assert;
  * @param <F> the type of file entry
  * @since 2.0
  */
-public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractFileListFilter<F> implements InitializingBean {
+public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F>
+		implements InitializingBean {
 
 	private volatile Pattern pattern;
 
@@ -59,7 +60,7 @@ public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractFile
 
 	@Override
 	public boolean accept(F file) {
-		return (file != null) && this.pattern.matcher(this.getFilename(file)).matches();
+		return alwaysAccept(file) || (file != null && this.pattern.matcher(getFilename(file)).matches());
 	}
 
 	/**

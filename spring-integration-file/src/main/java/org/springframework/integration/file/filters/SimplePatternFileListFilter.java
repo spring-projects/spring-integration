@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.File;
  * This filter only filters on the name of the file, the rest of the path is ignored.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class SimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<File> {
@@ -35,6 +36,12 @@ public class SimplePatternFileListFilter extends AbstractSimplePatternFileListFi
 	@Override
 	protected String getFilename(File file) {
 		return file.getName();
+	}
+
+
+	@Override
+	protected boolean isDirectory(File file) {
+		return file.isDirectory();
 	}
 
 }

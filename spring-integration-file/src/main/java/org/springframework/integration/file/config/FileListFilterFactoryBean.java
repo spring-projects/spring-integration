@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 1.0.3
  */
 public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
@@ -47,6 +48,8 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	private volatile Boolean ignoreHidden = Boolean.TRUE;
 
 	private volatile Boolean preventDuplicates;
+
+	private volatile Boolean alwaysAcceptDirectories;
 
 	private final Object monitor = new Object();
 
@@ -76,6 +79,18 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		this.preventDuplicates = preventDuplicates;
 	}
 
+	/**
+	 * Set to true to indicate that the pattern should not be applied to directories.
+	 * Used for recursive scans for file patterns, for example in gateway recursive
+	 * mget operations. Only applies when a pattern or regex is provided.
+	 * @param alwaysAcceptDirectories true to always pass directories.
+	 * @since 5.0
+	 */
+	public void setAlwaysAcceptDirectories(Boolean alwaysAcceptDirectories) {
+		this.alwaysAcceptDirectories = alwaysAcceptDirectories;
+	}
+
+	@Override
 	public FileListFilter<File> getObject() throws Exception {
 		if (this.result == null) {
 			synchronized (this.monitor) {
@@ -85,10 +100,12 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		return this.result;
 	}
 
+	@Override
 	public Class<?> getObjectType() {
 		return (this.result != null) ? this.result.getClass() : FileListFilter.class;
 	}
 
+	@Override
 	public boolean isSingleton() {
 		return true;
 	}
@@ -132,10 +149,18 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
 			}
 			if (this.filenamePattern != null) {
-				filtersNeeded.add(new SimplePatternFileListFilter(this.filenamePattern));
+				SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
+				if (this.alwaysAcceptDirectories != null) {
+					patternFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+				}
+				filtersNeeded.add(patternFilter);
 			}
 			if (this.filenameRegex != null) {
-				filtersNeeded.add(new RegexPatternFileListFilter(this.filenameRegex));
+				RegexPatternFileListFilter regexFilter = new RegexPatternFileListFilter(this.filenameRegex);
+				if (this.alwaysAcceptDirectories != null) {
+					regexFilter.setAlwaysAcceptDirectories(this.alwaysAcceptDirectories);
+				}
+				filtersNeeded.add(regexFilter);
 			}
 		}
 

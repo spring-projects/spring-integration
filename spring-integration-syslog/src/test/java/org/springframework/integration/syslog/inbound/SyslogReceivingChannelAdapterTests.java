@@ -74,6 +74,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.afterPropertiesSet();
 		factory.start();
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		Thread.sleep(1000);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
 		DatagramSocket socket = new DatagramSocket();
@@ -115,6 +116,7 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		Thread.sleep(1000);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write(buf);
@@ -142,6 +144,7 @@ public class SyslogReceivingChannelAdapterTests {
 		DefaultMessageConverter defaultMessageConverter = new DefaultMessageConverter();
 		defaultMessageConverter.setAsMap(false);
 		adapter.setConverter(defaultMessageConverter);
+		Thread.sleep(1000);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
 		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
 		DatagramSocket socket = new DatagramSocket();
@@ -188,6 +191,7 @@ public class SyslogReceivingChannelAdapterTests {
 			return null;
 		}).when(logger).debug(anyString());
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		Thread.sleep(1000);
 		byte[] buf = ("253 <14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
@@ -217,6 +221,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.afterPropertiesSet();
 		factory.start();
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
+		Thread.sleep(1000);
 		byte[] buf = ("<14>1 2014-06-20T09:14:07+00:00 loggregator d0602076-b14a-4c55-852a-981e7afeed38 DEA - " +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"]" +
 				"[exampleSDID@32473 iut=\\\"3\\\" eventSource=\\\"Application\\\" eventID=\\\"1011\\\"] Removing instance")
