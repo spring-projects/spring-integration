@@ -47,6 +47,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -356,6 +357,49 @@ public class AbstractCorrelatingMessageHandlerTests {
 		  */
 		Message<?> receive = discardChannel.receive(1000);
 		assertNotNull(receive);
+	}
+
+	@Test
+	public void testScheduleRemoveAnEmptyGroupAfterConfiguredDelay() throws Exception {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
+
+		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		handler.setOutputChannel((message, timeout) -> {
+			/*
+			 * Executes when group 'bar' completes normally
+			 */
+			outputMessages.add(message);
+			return true;
+		});
+		handler.setReleaseStrategy(group -> group.size() == 1);
+
+		handler.setMinimumTimeoutForEmptyGroups(100);
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+
+		Message<String>	message = MessageBuilder.withPayload("foo")
+				.setCorrelationId("bar")
+				.build();
+		handler.handleMessage(message);
+
+		assertEquals(1, outputMessages.size());
+
+		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+
+		Thread.sleep(100);
+
+		int n = 0;
+
+		while (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
+				&& n++ < 100) {
+			Thread.sleep(50);
+		}
+
+		assertTrue(n < 100);
+		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
 }

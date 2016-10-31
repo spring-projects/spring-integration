@@ -161,6 +161,7 @@ Late arriving messages will be immediately discarded.
 Set this to `true` to remove the group completely; then, late arriving messages will start a new group and won't be discarded until the group again times out.
 The new group will never be released normally because of the "hole" in the sequence range that caused the timeout.
 Empty groups can be expired (completely removed) later using a `MessageGroupStoreReaper` together with the `empty-group-min-timeout` attribute.
+Starting with _version 5.0_ the empty groups are also scheduled for removal after `empty-group-min-timeout`.
 Default: 'false'.
 
 NOTE: Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.

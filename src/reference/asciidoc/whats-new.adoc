@@ -81,4 +81,5 @@ See <<http-header-mapping>> for more information.
 ==== Aggregator Performance Changes
 
 Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
+Empty groups are now scheduled for removal after `empty-group-min-timeout`.
 See <<aggregator>> for more information.

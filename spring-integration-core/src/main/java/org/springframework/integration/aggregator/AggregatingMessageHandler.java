@@ -62,6 +62,11 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	}
 
 	@Override
+	protected boolean isExpireGroupsUponCompletion() {
+		return this.expireGroupsUponCompletion;
+	}
+
+	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 		Object groupId = messageGroup.getGroupId();
 		MessageGroupStore messageStore = getMessageStore();

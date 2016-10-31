@@ -505,6 +505,9 @@ Since _version 4.1_, you can now control this behavior using `expire-groups-upon
 NOTE: When a group is timed out, the `ReleaseStrategy` is given one more opportunity to release the group; if it does so, and `expire-groups-upon-timeout` is false, then expiration is controlled by `expire-groups-upon-completion`.
 If the group is not released by the release strategy during timeout, then the expiration is controlled by the `expire-groups-upon-timeout`.
 Timed-out groups are either discarded, or a partial release occurs (based on `send-partial-result-on-expiry`).
+
+Starting with _version 5.0_ the empty groups are also scheduled for removal after `empty-group-min-timeout`.
+If `expireGroupsUponCompletion == false` and `minimumTimeoutForEmptyGroups > 0`, the task to remove the group is scheduled, when normal or partial sequences release happens.
 =====
 
 Using a `ref` attribute is generally recommended if a custom aggregator handler implementation may be referenced in other `<aggregator>` definitions.
