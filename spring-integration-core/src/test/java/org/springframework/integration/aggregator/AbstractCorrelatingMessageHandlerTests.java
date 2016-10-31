@@ -119,7 +119,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setDiscardChannel(discards);
 		handler.setSendPartialResultOnExpiry(true);
 
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("qux")
 				.build();
 		// partial group that will be reaped
@@ -160,7 +160,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
 				.build();
 		handler.handleMessage(message);
@@ -187,20 +187,32 @@ public class AbstractCorrelatingMessageHandlerTests {
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 
-		handler.setMinimumTimeoutForEmptyGroups(1000);
-
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
 				.build();
 		handler.handleMessage(message);
+
+		handler.setMinimumTimeoutForEmptyGroups(100);
 
 		assertEquals(1, outputMessages.size());
 
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 		groupStore.expireMessageGroups(0);
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
-		Thread.sleep(1010);
-		groupStore.expireMessageGroups(0);
+
+		int n = 0;
+
+		while (n++ < 100) {
+			groupStore.expireMessageGroups(0);
+			if (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0) {
+				Thread.sleep(50);
+			}
+			else {
+				break;
+			}
+		}
+
+		assertTrue(n < 100);
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
@@ -322,6 +334,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setReleaseStrategy(group -> true);
 		handler.setExpireGroupsUponTimeout(false);
 		SimpleMessageStore messageStore = new SimpleMessageStore() {
+
 			@Override
 			public void removeMessageGroup(Object groupId) {
 				throw new RuntimeException("intentional");
@@ -380,7 +393,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		taskScheduler.afterPropertiesSet();
 		handler.setTaskScheduler(taskScheduler);
 
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
 				.build();
 		handler.handleMessage(message);
