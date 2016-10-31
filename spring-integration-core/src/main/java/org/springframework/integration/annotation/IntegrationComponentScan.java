@@ -77,6 +77,7 @@ public @interface IntegrationComponentScan {
 	/**
 	 * Indicates whether automatic detection of classes annotated with
 	 * {@code @MessagingGateway} should be enabled.
+	 * @return the {@code useDefaultFilters} flag
 	 * @since 5.0
 	 */
 	boolean useDefaultFilters() default true;
@@ -90,6 +91,7 @@ public @interface IntegrationComponentScan {
 	 * specified. Any type under the specified base packages which matches a given filter
 	 * will be included, even if it does not match the default filters (i.e. is not
 	 * annotated with {@code @MessagingGateway}).
+	 * @return the {@code includeFilters} array
 	 * @since 5.0
 	 * @see #excludeFilters()
 	 */
@@ -97,6 +99,7 @@ public @interface IntegrationComponentScan {
 
 	/**
 	 * Specifies which types are not eligible for component scanning.
+	 * @return the {@code excludeFilters} array
 	 * @since 5.0
 	 * @see #includeFilters()
 	 */

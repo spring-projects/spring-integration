@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -126,9 +127,7 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
-		for (Message<?> message : outboundMessages) {
-			input.send(message);
-		}
+		outboundMessages.forEach(input::send);
 		assertEquals(3, output.getQueueSize());
 		output.purge(null);
 	}
@@ -138,14 +137,12 @@ public class AggregatorParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithExpressionsInput");
 		SubscribableChannel outputChannel = (SubscribableChannel) context.getBean("aggregatorWithExpressionsOutput");
 		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<Message<?>>();
-		outputChannel.subscribe(message -> aggregatedMessage.set(message));
+		outputChannel.subscribe(aggregatedMessage::set);
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(MessageBuilder.withPayload("123").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("456").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("789").setHeader("foo", "1").build());
-		for (Message<?> message : outboundMessages) {
-			input.send(message);
-		}
+		outboundMessages.forEach(input::send);
 		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload()
 				.toString());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
@@ -164,11 +161,11 @@ public class AggregatorParserTests {
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertThat(consumer, is(instanceOf(AggregatingMessageHandler.class)));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
-		Object handlerMethods =  new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
+		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethods");
 		assertNull(handlerMethods);
-		Object handlerMethod =  new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
+		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("createSingleMessageFromGroup"));
@@ -205,9 +202,7 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage(1L, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2L, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3L, "id1", 3, 2, null));
-		for (Message<?> message : outboundMessages) {
-			input.send(message);
-		}
+		outboundMessages.forEach(input::send);
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive(10);
 		Assert.assertEquals(6L, response.getPayload());
@@ -234,30 +229,31 @@ public class AggregatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy' is defined"));
+			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy' available"));
 		}
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testAggregatorWithPojoReleaseStrategy() {
-		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
-		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
-		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
-				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
+		MessageChannel input = this.context.getBean("aggregatorWithPojoReleaseStrategyInput", MessageChannel.class);
+		EventDrivenConsumer endpoint = this.context.getBean("aggregatorWithPojoReleaseStrategy", EventDrivenConsumer.class);
+		ReleaseStrategy releaseStrategy =
+				TestUtils.getPropertyValue(endpoint, "handler.releaseStrategy", ReleaseStrategy.class);
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
-		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
-				.getPropertyValue("adapter")).getPropertyValue("delegate"));
-		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		MessagingMethodInvokerHelper<Long> methodInvokerHelper =
+				TestUtils.getPropertyValue(releaseStrategy, "adapter.delegate", MessagingMethodInvokerHelper.class);
+		Object handlerMethods = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethods");
 		assertNull(handlerMethods);
-		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
+		Object handlerMethod = TestUtils.getPropertyValue(methodInvokerHelper, "handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1L, "correllationId", 4, 0, null));
-		input.send(createMessage(2L, "correllationId", 4, 1, null));
-		input.send(createMessage(3L, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correlationId", 4, 0, null));
+		input.send(createMessage(2L, "correlationId", 4, 1, null));
+		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5L, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
@@ -276,13 +272,13 @@ public class AggregatorParserTests {
 		assertNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1L, "correllationId", 4, 0, null));
-		input.send(createMessage(2L, "correllationId", 4, 1, null));
-		input.send(createMessage(3L, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correlationId", 4, 0, null));
+		input.send(createMessage(2L, "correlationId", 4, 1, null));
+		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5L, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
