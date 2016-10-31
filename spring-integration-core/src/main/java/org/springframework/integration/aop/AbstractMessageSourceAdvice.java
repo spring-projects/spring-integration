@@ -34,8 +34,7 @@ public abstract class AbstractMessageSourceAdvice implements MethodInterceptor {
 	@Override
 	public final Object invoke(MethodInvocation invocation) throws Throwable {
 		Object target = invocation.getThis();
-		if (!(target instanceof MessageSource)
-				|| !invocation.getMethod().getName().equals("receive")) {
+		if (!(target instanceof MessageSource)) {
 			return invocation.proceed();
 		}
 

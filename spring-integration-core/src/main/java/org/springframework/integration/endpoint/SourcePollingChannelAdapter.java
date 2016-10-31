@@ -134,20 +134,24 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		if (AopUtils.isAopProxy(this.source)) {
 			this.appliedAdvices.forEach(((Advised) this.source)::removeAdvice);
 			for (Advice advice : chain) {
-				NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
-				sourceAdvisor.addMethodName("receive");
-				((Advised) this.source).addAdvisor(sourceAdvisor);
+				((Advised) this.source).addAdvisor(adviceToReceiveAdvisor(advice));
 			}
 		}
 		else {
 			ProxyFactory proxyFactory = new ProxyFactory(this.source);
 			for (Advice advice : chain) {
-				proxyFactory.addAdvice(advice);
+				proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice));
 			}
 			this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 		}
 		this.appliedAdvices.clear();
 		this.appliedAdvices.addAll(chain);
+	}
+
+	private NameMatchMethodPointcutAdvisor adviceToReceiveAdvisor(Advice advice) {
+		NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
+		sourceAdvisor.addMethodName("receive");
+		return sourceAdvisor;
 	}
 
 	@Override

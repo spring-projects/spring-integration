@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -344,10 +345,21 @@ public class PollerAdviceTests {
 		assertTrue(source.latch.await(10, TimeUnit.SECONDS));
 		assertNotNull(TestUtils.getPropertyValue(adapter, "trigger.override"));
 		adapter.stop();
+		OtherAdvice sourceAdvice = ctx.getBean(OtherAdvice.class);
+		int count = sourceAdvice.calls;
+		assertThat(count, greaterThan(0));
+		((Foo) adapter.getMessageSource()).otherMethod();
+		assertEquals(count, sourceAdvice.calls);
 		ctx.close();
 	}
 
-	public static class Source implements MessageSource<Object> {
+	public interface Foo {
+
+		void otherMethod();
+
+	}
+
+	public static class Source implements MessageSource<Object>, Foo {
 
 		private final CountDownLatch latch = new CountDownLatch(5);
 
@@ -355,6 +367,28 @@ public class PollerAdviceTests {
 		public Message<Object> receive() {
 			latch.countDown();
 			return null;
+		}
+
+		@Override
+		public void otherMethod() {
+
+		}
+
+	}
+
+	public static class OtherAdvice extends AbstractMessageSourceAdvice {
+
+		private int calls;
+
+		@Override
+		public boolean beforeReceive(MessageSource<?> source) {
+			this.calls++;
+			return true;
+		}
+
+		@Override
+		public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
+			return result;
 		}
 
 	}
