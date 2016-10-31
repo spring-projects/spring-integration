@@ -91,7 +91,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new SequenceNumberComparator();
 
-	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<UUID, ScheduledFuture<?>>();
+	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
 
 	private final MessageGroupProcessor outputProcessor;
 
@@ -163,8 +163,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	public final void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(
-				(messageGroupStore, group) ->
-					AbstractCorrelatingMessageHandler.this.forceReleaseProcessor.processMessageGroup(group));
+				(messageGroupStore, group) -> this.forceReleaseProcessor.processMessageGroup(group));
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
@@ -254,9 +253,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		if (this.groupTimeoutExpression != null && !CollectionUtils.isEmpty(this.forceReleaseAdviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(processor);
-			for (Advice advice : this.forceReleaseAdviceChain) {
-				proxyFactory.addAdvice(advice);
-			}
+			this.forceReleaseAdviceChain.forEach(proxyFactory::addAdvice);
 			return (MessageGroupProcessor) proxyFactory.getProxy(getApplicationContext().getClassLoader());
 		}
 		return processor;
@@ -405,7 +402,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (scheduledFuture != null) {
 				boolean canceled = scheduledFuture.cancel(true);
 				if (canceled && this.logger.isDebugEnabled()) {
-					this.logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ "
+					this.logger.debug("Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ "
 							+ correlationKey + "].");
 				}
 			}
@@ -430,6 +427,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						// processing messages
 						this.afterRelease(messageGroup, completedMessages);
 					}
+					if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
+						removeEmptyGroupAfterTimeout(messageGroup, this.minimumTimeoutForEmptyGroups);
+					}
 				}
 				else {
 					scheduleGroupToForceComplete(messageGroup);
@@ -442,6 +442,57 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		finally {
 			lock.unlock();
 		}
+	}
+
+	protected boolean isExpireGroupsUponCompletion() {
+		return false;
+	}
+
+	private void removeEmptyGroupAfterTimeout(MessageGroup messageGroup, long timeout) {
+		Object groupId = messageGroup.getGroupId();
+		UUID groupUuid = UUIDConverter.getUUID(groupId);
+		ScheduledFuture<?> scheduledFuture = getTaskScheduler()
+				.schedule(() -> {
+					Lock lock = this.lockRegistry.obtain(groupUuid.toString());
+
+					try {
+						lock.lockInterruptibly();
+						try {
+							this.expireGroupScheduledFutures.remove(groupUuid);
+							/*
+							 * Obtain a fresh state for group from the MessageStore,
+							 * since it could be changed while we have waited for lock.
+							 */
+							MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
+							boolean removeGroup = groupNow.size() == 0 &&
+									groupNow.getLastModified()
+											<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+							if (removeGroup) {
+								if (this.logger.isDebugEnabled()) {
+									this.logger.debug("Removing empty group: " + groupUuid);
+								}
+								this.messageStore.removeMessageGroup(groupId);
+							}
+						}
+						finally {
+							lock.unlock();
+						}
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("Thread was interrupted while trying to obtain lock."
+									+ "Rescheduling empty MessageGroup [ " + groupId + "] for removal.");
+						}
+						removeEmptyGroupAfterTimeout(messageGroup, timeout);
+					}
+
+				}, new Date(System.currentTimeMillis() + timeout));
+
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Schedule empty MessageGroup [ " + groupId + "] for removal.");
+		}
+		this.expireGroupScheduledFutures.put(groupUuid, scheduledFuture);
 	}
 
 	private void scheduleGroupToForceComplete(MessageGroup messageGroup) {
@@ -506,7 +557,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * @param completedMessages The completed messages.
 	 * @param timeout True if the release/discard was due to a timeout.
 	 */
-	protected void  afterRelease(MessageGroup group, Collection<Message<?>> completedMessages, boolean timeout) {
+	protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages, boolean timeout) {
 		afterRelease(group, completedMessages);
 	}
 

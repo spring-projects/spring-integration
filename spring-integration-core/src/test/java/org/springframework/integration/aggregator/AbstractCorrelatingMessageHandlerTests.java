@@ -47,6 +47,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -118,7 +119,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setDiscardChannel(discards);
 		handler.setSendPartialResultOnExpiry(true);
 
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("qux")
 				.build();
 		// partial group that will be reaped
@@ -159,7 +160,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
 				.build();
 		handler.handleMessage(message);
@@ -186,20 +187,32 @@ public class AbstractCorrelatingMessageHandlerTests {
 		});
 		handler.setReleaseStrategy(group -> group.size() == 1);
 
-		handler.setMinimumTimeoutForEmptyGroups(1000);
-
-		Message<String>	message = MessageBuilder.withPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setCorrelationId("bar")
 				.build();
 		handler.handleMessage(message);
+
+		handler.setMinimumTimeoutForEmptyGroups(100);
 
 		assertEquals(1, outputMessages.size());
 
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 		groupStore.expireMessageGroups(0);
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
-		Thread.sleep(1010);
-		groupStore.expireMessageGroups(0);
+
+		int n = 0;
+
+		while (n++ < 200) {
+			groupStore.expireMessageGroups(0);
+			if (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0) {
+				Thread.sleep(50);
+			}
+			else {
+				break;
+			}
+		}
+
+		assertTrue(n < 200);
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
@@ -321,6 +334,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		handler.setReleaseStrategy(group -> true);
 		handler.setExpireGroupsUponTimeout(false);
 		SimpleMessageStore messageStore = new SimpleMessageStore() {
+
 			@Override
 			public void removeMessageGroup(Object groupId) {
 				throw new RuntimeException("intentional");
@@ -354,8 +368,51 @@ public class AbstractCorrelatingMessageHandlerTests {
 		/* Since MessageGroup had been marked as 'complete', but hasn't been removed because of exception,
 		 the second message is discarded
 		  */
-		Message<?> receive = discardChannel.receive(1000);
+		Message<?> receive = discardChannel.receive(10000);
 		assertNotNull(receive);
+	}
+
+	@Test
+	public void testScheduleRemoveAnEmptyGroupAfterConfiguredDelay() throws Exception {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
+
+		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		handler.setOutputChannel((message, timeout) -> {
+			/*
+			 * Executes when group 'bar' completes normally
+			 */
+			outputMessages.add(message);
+			return true;
+		});
+		handler.setReleaseStrategy(group -> group.size() == 1);
+
+		handler.setMinimumTimeoutForEmptyGroups(100);
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setCorrelationId("bar")
+				.build();
+		handler.handleMessage(message);
+
+		assertEquals(1, outputMessages.size());
+
+		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+
+		Thread.sleep(100);
+
+		int n = 0;
+
+		while (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
+				&& n++ < 200) {
+			Thread.sleep(50);
+		}
+
+		assertTrue(n < 200);
+		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
 }
