@@ -3843,7 +3843,7 @@
 							If this is set, the group is scheduled for removal after normal
 							or partial sequences group release.
 							When a MessageGroupStoreReaper is configured to expire partial
-							groups, empty groups are also removed, but counting this option as well.
+							groups, empty groups are also removed, but using this value.
 							Note that the actual time to expire an
 							empty group will also be affected by the reaper's 'timeout'
 							property and it could be as much as this value plus the timeout.

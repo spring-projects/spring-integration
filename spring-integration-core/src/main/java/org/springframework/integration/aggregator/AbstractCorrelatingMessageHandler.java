@@ -253,9 +253,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		if (this.groupTimeoutExpression != null && !CollectionUtils.isEmpty(this.forceReleaseAdviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(processor);
-			for (Advice advice : this.forceReleaseAdviceChain) {
-				proxyFactory.addAdvice(advice);
-			}
+			this.forceReleaseAdviceChain.forEach(proxyFactory::addAdvice);
 			return (MessageGroupProcessor) proxyFactory.getProxy(getApplicationContext().getClassLoader());
 		}
 		return processor;
@@ -404,7 +402,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (scheduledFuture != null) {
 				boolean canceled = scheduledFuture.cancel(true);
 				if (canceled && this.logger.isDebugEnabled()) {
-					this.logger.debug("Cancel 'forceComplete' scheduling for MessageGroup with Correlation Key [ "
+					this.logger.debug("Cancel 'ScheduledFuture' for MessageGroup with Correlation Key [ "
 							+ correlationKey + "].");
 				}
 			}
@@ -460,7 +458,16 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					try {
 						lock.lockInterruptibly();
 						try {
-							this.messageStore.removeMessageGroup(groupId);
+							this.expireGroupScheduledFutures.remove(groupUuid);
+							MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
+							boolean removeGroup = groupNow.getLastModified()
+									<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+							if (removeGroup) {
+								if (this.logger.isDebugEnabled()) {
+									this.logger.debug("Removing empty group: " + groupUuid);
+								}
+								this.messageStore.removeMessageGroup(groupId);
+							}
 						}
 						finally {
 							lock.unlock();
@@ -468,7 +475,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					}
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						this.logger.debug("Thread was interrupted while trying to obtain lock");
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("Thread was interrupted while trying to obtain lock."
+									+ "Rescheduling empty MessageGroup [ " + groupId + "] for removal.");
+						}
+						removeEmptyGroupAfterTimeout(messageGroup, timeout);
 					}
 
 				}, new Date(System.currentTimeMillis() + timeout));
