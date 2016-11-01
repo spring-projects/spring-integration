@@ -244,7 +244,7 @@ public class AggregatorParserTests {
 			fail("Expected exception");
 		}
 		catch (BeanCreationException e) {
-			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy' is defined"));
+			assertThat(e.getMessage(), containsString("No bean named 'testReleaseStrategy'"));
 		}
 	}
 
@@ -261,13 +261,13 @@ public class AggregatorParserTests {
 		assertNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1L, "correllationId", 4, 0, null));
-		input.send(createMessage(2L, "correllationId", 4, 1, null));
-		input.send(createMessage(3L, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correlationId", 4, 0, null));
+		input.send(createMessage(2L, "correlationId", 4, 1, null));
+		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5L, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
@@ -286,13 +286,13 @@ public class AggregatorParserTests {
 		assertNull(handlerMethods);
 		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
 		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
-		input.send(createMessage(1L, "correllationId", 4, 0, null));
-		input.send(createMessage(2L, "correllationId", 4, 1, null));
-		input.send(createMessage(3L, "correllationId", 4, 2, null));
+		input.send(createMessage(1L, "correlationId", 4, 0, null));
+		input.send(createMessage(2L, "correlationId", 4, 1, null));
+		input.send(createMessage(3L, "correlationId", 4, 2, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		input.send(createMessage(5L, "correllationId", 4, 3, null));
+		input.send(createMessage(5L, "correlationId", 4, 3, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);
 		assertEquals(11L, reply.getPayload());
