@@ -459,9 +459,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						lock.lockInterruptibly();
 						try {
 							this.expireGroupScheduledFutures.remove(groupUuid);
+							/*
+							 * Obtain a fresh state for group from the MessageStore,
+							 * since it could be changed while we have waited for lock.
+							 */
 							MessageGroup groupNow = this.messageStore.getMessageGroup(groupUuid);
-							boolean removeGroup = groupNow.getLastModified()
-									<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+							boolean removeGroup = groupNow.size() == 0 &&
+									groupNow.getLastModified()
+											<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 							if (removeGroup) {
 								if (this.logger.isDebugEnabled()) {
 									this.logger.debug("Removing empty group: " + groupUuid);

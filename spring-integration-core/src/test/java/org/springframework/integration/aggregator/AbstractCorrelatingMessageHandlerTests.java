@@ -202,7 +202,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		int n = 0;
 
-		while (n++ < 100) {
+		while (n++ < 200) {
 			groupStore.expireMessageGroups(0);
 			if (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0) {
 				Thread.sleep(50);
@@ -212,7 +212,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 			}
 		}
 
-		assertTrue(n < 100);
+		assertTrue(n < 200);
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
@@ -368,7 +368,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		/* Since MessageGroup had been marked as 'complete', but hasn't been removed because of exception,
 		 the second message is discarded
 		  */
-		Message<?> receive = discardChannel.receive(1000);
+		Message<?> receive = discardChannel.receive(10000);
 		assertNotNull(receive);
 	}
 
@@ -407,11 +407,11 @@ public class AbstractCorrelatingMessageHandlerTests {
 		int n = 0;
 
 		while (TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
-				&& n++ < 100) {
+				&& n++ < 200) {
 			Thread.sleep(50);
 		}
 
-		assertTrue(n < 100);
+		assertTrue(n < 200);
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
