@@ -1524,10 +1524,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private volatile Executor taskExecutor;
 
-		ReplyContainerProperties() {
-			super();
-		}
-
 		public String getSessionAcknowledgeModeName() {
 			return this.sessionAcknowledgeModeName;
 		}
