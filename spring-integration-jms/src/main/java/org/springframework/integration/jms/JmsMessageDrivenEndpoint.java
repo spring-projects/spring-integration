@@ -16,12 +16,15 @@
 
 package org.springframework.integration.jms;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -33,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements DisposableBean, OrderlyShutdownCapable {
+public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements DisposableBean, OrderlyShutdownCapable {
 
 	private final AbstractMessageListenerContainer listenerContainer;
 
@@ -90,12 +93,63 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 	}
 
 	@Override
+	public void setOutputChannel(MessageChannel outputChannel) {
+		super.setOutputChannel(outputChannel);
+		this.listener.setRequestChannel(outputChannel);
+	}
+
+	@Override
+	public void setOutputChannelName(String outputChannelName) {
+		super.setOutputChannelName(outputChannelName);
+		this.listener.setRequestChannelName(outputChannelName);
+	}
+
+	@Override
+	public void setErrorChannel(MessageChannel errorChannel) {
+		super.setErrorChannel(errorChannel);
+		this.listener.setErrorChannel(errorChannel);
+	}
+
+	@Override
+	public void setErrorChannelName(String errorChannelName) {
+		super.setErrorChannelName(errorChannelName);
+		this.listener.setErrorChannelName(errorChannelName);
+	}
+
+	@Override
+	public void setSendTimeout(long sendTimeout) {
+		super.setSendTimeout(sendTimeout);
+		this.listener.setRequestTimeout(sendTimeout);
+	}
+
+	@Override
+	public void setShouldTrack(boolean shouldTrack) {
+		super.setShouldTrack(shouldTrack);
+		this.listener.setShouldTrack(shouldTrack);
+	}
+
+	public ChannelPublishingJmsMessageListener getListener() {
+		return this.listener;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		super.setApplicationContext(applicationContext);
+		this.listener.setBeanFactory(applicationContext);
+	}
+
+	@Override
 	public String getComponentType() {
 		return "jms:message-driven-channel-adapter";
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	public void afterSingletonsInstantiated() {
+		// skip the output channel requirement test for when the listener is pre-built
+	}
+
+	@Override
+	protected void onInit() {
 		this.listener.afterPropertiesSet();
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();

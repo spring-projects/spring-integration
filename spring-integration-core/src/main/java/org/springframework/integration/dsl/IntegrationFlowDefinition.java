@@ -213,6 +213,18 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
+	 * Populate a {@link MessageChannel} instance
+	 * at the current {@link IntegrationFlow} chain position using the {@link Channels}
+	 * factory fluent API.
+	 * @param channels the {@link Function} to use.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B channel(Function<Channels, MessageChannelSpec<?, ?>> channels) {
+		Assert.notNull(channels);
+		return channel(channels.apply(new Channels()));
+	}
+
+	/**
 	 * The {@link org.springframework.integration.channel.PublishSubscribeChannel} {@link #channel}
 	 * method specific implementation to allow the use of the 'subflow' subscriber capability.
 	 * @param publishSubscribeChannelConfigurer the {@link Consumer} to specify
