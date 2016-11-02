@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageSource;
@@ -72,6 +73,20 @@ public final class IntegrationFlows {
 		return fixedSubscriber
 				? from(new FixedSubscriberChannelPrototype(messageChannelName))
 				: from(messageChannelName);
+	}
+
+	/**
+	 * Populate the {@link MessageChannel} object to the
+	 * {@link IntegrationFlowBuilder} chain using the fluent API from {@link Channels} factory.
+	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
+	 * @param channels the {@link Function} to use method chain to configure.
+	 * {@link MessageChannel} via {@link Channels} factory.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 * @see Channels
+	 */
+	public static IntegrationFlowBuilder from(Function<Channels, MessageChannelSpec<?, ?>> channels) {
+		Assert.notNull(channels);
+		return from(channels.apply(new Channels()));
 	}
 
 	/**

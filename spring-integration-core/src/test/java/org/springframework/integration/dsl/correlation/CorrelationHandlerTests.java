@@ -242,7 +242,7 @@ public class CorrelationHandlerTests {
 		@Bean
 		@DependsOn("barrierFlow")
 		public IntegrationFlow releaseBarrierFlow(MessageTriggerAction barrierTriggerAction) {
-			return IntegrationFlows.from(MessageChannels.queue("releaseChannel"))
+			return IntegrationFlows.from(c -> c.queue("releaseChannel"))
 					.trigger(barrierTriggerAction,
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.get();
