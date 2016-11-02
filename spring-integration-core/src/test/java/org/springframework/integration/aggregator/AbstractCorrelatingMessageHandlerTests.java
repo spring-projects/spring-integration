@@ -192,13 +192,15 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		handler.setMinimumTimeoutForEmptyGroups(100);
+		handler.setMinimumTimeoutForEmptyGroups(10_000);
 
 		assertEquals(1, outputMessages.size());
 
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 		groupStore.expireMessageGroups(0);
 		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+
+		handler.setMinimumTimeoutForEmptyGroups(10);
 
 		int n = 0;
 
