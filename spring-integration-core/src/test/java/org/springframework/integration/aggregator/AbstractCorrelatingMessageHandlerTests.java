@@ -192,7 +192,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		handler.setMinimumTimeoutForEmptyGroups(100);
+		handler.setMinimumTimeoutForEmptyGroups(1000);
 
 		assertEquals(1, outputMessages.size());
 
