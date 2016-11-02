@@ -48,7 +48,6 @@ public final class Amqp {
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundGatewaySpec.
-	 * @since 1.1.1
 	 */
 	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			String... queueNames) {
@@ -76,7 +75,6 @@ public final class Amqp {
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
 	 * @param queues the queues.
 	 * @return the AmqpInboundGatewaySpec.
-	 * @since 1.1.1
 	 */
 	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			Queue... queues) {
@@ -107,7 +105,6 @@ public final class Amqp {
 	 * @param listenerContainer the listenerContainer
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
 	 * @return the AmqpBaseInboundGatewaySpec.
-	 * @since 1.1.1
 	 */
 	public static AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer,
 			AmqpTemplate amqpTemplate) {

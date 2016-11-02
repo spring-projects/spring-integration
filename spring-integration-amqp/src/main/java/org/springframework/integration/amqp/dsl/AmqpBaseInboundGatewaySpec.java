@@ -102,7 +102,6 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 * the routing key.
 	 * @param defaultReplyTo the default {@code replyTo} address to use.
 	 * @return the spec.
-	 * @since 1.1.1
 	 * @see AmqpInboundGateway#setDefaultReplyTo
 	 */
 	public S defaultReplyTo(String defaultReplyTo) {

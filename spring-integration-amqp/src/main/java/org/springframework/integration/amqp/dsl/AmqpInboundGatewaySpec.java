@@ -53,7 +53,6 @@ public class AmqpInboundGatewaySpec extends AmqpBaseInboundGatewaySpec<AmqpInbou
 	 * and {@link AmqpTemplate}.
 	 * @param listenerContainer the {@link SimpleMessageListenerContainer} to use.
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
-	 * @since 1.1.1
 	 */
 	AmqpInboundGatewaySpec(SimpleMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
 		super(new AmqpInboundGateway(listenerContainer, amqpTemplate));
