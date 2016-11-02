@@ -176,7 +176,8 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 	public void advised() throws Throwable {
 		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "advised");
 
-		MessageHandler jpaOutboundGateway = context.getBean("advised.handler", MessageHandler.class);
+		EventDrivenConsumer jpaOutboundGatewayEndpoint = context.getBean("advised", EventDrivenConsumer.class);
+		MessageHandler jpaOutboundGateway = TestUtils.getPropertyValue(jpaOutboundGatewayEndpoint, "handler", MessageHandler.class);
 		FooAdvice advice = context.getBean("jpaFooAdvice", FooAdvice.class);
 		assertTrue(AopUtils.isAopProxy(jpaOutboundGateway));
 

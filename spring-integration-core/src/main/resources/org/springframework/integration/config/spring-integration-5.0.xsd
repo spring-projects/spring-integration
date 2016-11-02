@@ -1367,6 +1367,7 @@
 					</xsd:complexContent>
 				</xsd:complexType>
 			</xsd:element>
+			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
@@ -1665,6 +1666,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 				<xsd:element ref="poller" />
 			</xsd:choice>
@@ -2871,6 +2873,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="expressionOrInnerEndpointDefinitionAwareNoAdviceChain">
 			    <xsd:sequence>
+					<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
 						<xsd:complexType>
 							<xsd:complexContent>
@@ -4125,6 +4128,7 @@
 				<xsd:choice minOccurs="0" maxOccurs="3">
 					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="request-handler-advice-chain" type="handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>

@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -28,8 +27,6 @@ import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
 
 /**
  * The {@link JpaOutboundGatewayFactoryBean} creates instances of the
@@ -51,16 +48,9 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 
 	/**
-	 * &lt;transactional /&gt; element applies to entire flow from this point
-	 */
-	private List<Advice> txAdviceChain;
-
-	/**
 	 * &lt;request-handler-advice-chain /&gt; only applies to the handleRequestMessage.
 	 */
 	private List<Advice> adviceChain;
-
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	private boolean producesReply = true;
 
@@ -83,10 +73,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 	public void setGatewayType(OutboundGatewayType gatewayType) {
 		this.gatewayType = gatewayType;
-	}
-
-	public void setTxAdviceChain(List<Advice> txAdviceChain) {
-		this.txAdviceChain = txAdviceChain;
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
@@ -129,12 +115,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		super.setBeanClassLoader(classLoader);
-		this.beanClassLoader = classLoader;
-	}
-
-	@Override
 	public Class<?> getObjectType() {
 		return MessageHandler.class;
 	}
@@ -154,18 +134,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		}
 		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
 		jpaOutboundGateway.afterPropertiesSet();
-		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
-
-			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
-			if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
-				for (Advice advice : this.txAdviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-			}
-
-			return (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
-		}
-
 		return jpaOutboundGateway;
 	}
 

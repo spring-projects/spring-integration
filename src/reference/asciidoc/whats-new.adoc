@@ -18,6 +18,9 @@ development process.
 The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 See <<annotations>> for more information.
 
+All the request-reply endpoints (based on `AbstractReplyProducingMessageHandler`) can now start transaction and, therefore, make the whole downstream flow transactional.
+See <<tx-handle-message-advice>> for more information.
+
 ==== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.

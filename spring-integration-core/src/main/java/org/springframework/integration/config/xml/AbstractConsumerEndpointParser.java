@@ -29,6 +29,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -86,10 +87,17 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
 
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
-		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
+
+		@SuppressWarnings("rawtypes")
+		ManagedList adviceChain = IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, txElement, true,
 				handlerBuilder.getRawBeanDefinition(), parserContext);
+
+		if (!CollectionUtils.isEmpty(adviceChain)) {
+			handlerBuilder.addPropertyValue("adviceChain", adviceChain);
+		}
 
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
@@ -120,6 +128,10 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+
+		if (!CollectionUtils.isEmpty(adviceChain)) {
+			builder.addPropertyValue("adviceChain", adviceChain);
+		}
 
 		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
 		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);

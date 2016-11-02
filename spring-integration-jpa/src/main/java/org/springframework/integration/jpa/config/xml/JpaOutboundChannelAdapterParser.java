@@ -22,12 +22,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * The parser for JPA outbound channel adapter
@@ -76,16 +74,6 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 
 		jpaOutboundChannelAdapterBuilder.addPropertyReference("jpaExecutor", jpaExecutorBeanName)
 				.addPropertyValue("producesReply", Boolean.FALSE);
-
-		final Element transactionalElement = DomUtils.getChildElementByTagName(element, "transactional");
-
-		if (transactionalElement != null) {
-			BeanDefinition txAdviceDefinition =
-					IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
-			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
-			adviceChain.add(txAdviceDefinition);
-			jpaOutboundChannelAdapterBuilder.addPropertyValue("txAdviceChain", adviceChain);
-		}
 
 		return jpaOutboundChannelAdapterBuilder.getBeanDefinition();
 

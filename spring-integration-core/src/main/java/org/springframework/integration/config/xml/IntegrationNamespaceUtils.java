@@ -48,10 +48,12 @@ import org.springframework.integration.config.FixedSubscriberChannelBeanFactoryP
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
+import org.springframework.integration.transaction.TransactionHandleMessageAdvice;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -381,19 +383,34 @@ public abstract class IntegrationNamespaceUtils {
 	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
 	 * with "transactionManager" and other "transactionDefinition" properties.
 	 * For example, this advisor will be applied on the Polling Task proxy.
-	 *
 	 * @param txElement The transactional element.
 	 * @return The bean definition.
-	 *
 	 * @see AbstractPollingEndpoint
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
+		return configureTransactionAttributes(txElement, false);
+	}
+
+	/**
+	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
+	 * or {@link TransactionHandleMessageAdvice}
+	 * with "transactionManager" and other "transactionDefinition" properties.
+	 * For example, this advisor will be applied on the Polling Task proxy.
+	 * @param txElement The transactional element.
+	 * @param handleMessageAdvice flag if to use {@link TransactionHandleMessageAdvice}
+	 * or regular {@link TransactionInterceptor}
+	 * @return The bean definition.
+	 * @see AbstractPollingEndpoint
+	 */
+	public static BeanDefinition configureTransactionAttributes(Element txElement, boolean handleMessageAdvice) {
 		BeanDefinition txDefinition = configureTransactionDefinition(txElement);
 		BeanDefinitionBuilder attributeSourceBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
 		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinition);
 		BeanDefinitionBuilder txInterceptorBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
+				BeanDefinitionBuilder.genericBeanDefinition(handleMessageAdvice
+						? TransactionHandleMessageAdvice.class
+						: TransactionInterceptor.class);
 		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
 		return txInterceptorBuilder.getBeanDefinition();
@@ -426,31 +443,47 @@ public abstract class IntegrationNamespaceUtils {
 
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
-		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBeanDefinition, parserContext,
-				"adviceChain");
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, false, parentBeanDefinition, parserContext);
+	}
+
+	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement,
+			Element txElement, boolean handleMessageAdvice, BeanDefinition parentBeanDefinition,
+			ParserContext parserContext) {
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, handleMessageAdvice,
+				parentBeanDefinition, parserContext, "adviceChain");
+	}
+
+	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+			BeanDefinition parentBeanDefinition, ParserContext parserContext, String propertyName) {
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, false, parentBeanDefinition,
+				parserContext, propertyName);
 	}
 
 	@SuppressWarnings({ "rawtypes" })
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
-			BeanDefinition parentBeanDefinition, ParserContext parserContext, String propertyName) {
-		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBeanDefinition,
-				parserContext);
-		if (adviceChain != null) {
+			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext,
+			String propertyName) {
+		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, handleMessageAdvice,
+				parentBeanDefinition, parserContext);
+		if (!CollectionUtils.isEmpty(adviceChain)) {
 			parentBeanDefinition.getPropertyValues().add(propertyName, adviceChain);
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings("rawtypes")
 	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
 			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
-		ManagedList adviceChain = null;
-		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
+		return configureAdviceChain(adviceChainElement, txElement, false, parentBeanDefinition, parserContext);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
+			boolean handleMessageAdvice, BeanDefinition parentBeanDefinition, ParserContext parserContext) {
+		ManagedList adviceChain = new ManagedList();
 		if (txElement != null) {
-			adviceChain = new ManagedList();
-			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
+			adviceChain.add(configureTransactionAttributes(txElement, handleMessageAdvice));
 		}
 		if (adviceChainElement != null) {
-			adviceChain = new ManagedList();
 			NodeList childNodes = adviceChainElement.getChildNodes();
 			for (int i = 0; i < childNodes.getLength(); i++) {
 				Node child = childNodes.item(i);

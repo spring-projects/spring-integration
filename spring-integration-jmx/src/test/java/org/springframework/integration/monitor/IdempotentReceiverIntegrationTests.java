@@ -24,10 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
@@ -44,6 +46,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -55,6 +58,8 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transaction.PseudoTransactionManager;
+import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
@@ -62,11 +67,15 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -77,8 +86,7 @@ import com.hazelcast.core.HazelcastInstance;
  * @author Gary Russell
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class IdempotentReceiverIntegrationTests {
 
@@ -109,11 +117,14 @@ public class IdempotentReceiverIntegrationTests {
 	@Autowired
 	private MessageChannel annotatedBeanMessageHandlerChannel2;
 
+	@Autowired
+	private AtomicBoolean txSupplied;
+
 	@Test
 	public void testIdempotentReceiver() {
 		this.idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 		TestUtils.getPropertyValue(this.store, "metadata", Map.class).clear();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		this.input.send(message);
 		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
@@ -136,18 +147,22 @@ public class IdempotentReceiverIntegrationTests {
 		assertEquals(2, this.adviceCalled.get());
 		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
 		assertEquals(1, TestUtils.getPropertyValue(store, "metadata", Map.class).size());
+
+		assertTrue(this.txSupplied.get());
 	}
 
 	@Test
 	public void testIdempotentReceiverOnMethod() {
 		TestUtils.getPropertyValue(this.store, "metadata", Map.class).clear();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		this.annotatedMethodChannel.send(message);
 		this.annotatedMethodChannel.send(message);
 
 		assertEquals(2, this.fooService.messages.size());
-		assertTrue(this.fooService.messages.get(1).getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE,
-				Boolean.class));
+		assertTrue(
+				this.fooService.messages.get(1)
+						.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
 	}
 
 	@Test
@@ -197,7 +212,9 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public ConcurrentMetadataStore store() {
-			return new SimpleMetadataStore(hazelcastInstance().<String, String>getMap("idempotentReceiverMetadataStore"));
+			return new SimpleMetadataStore(
+					hazelcastInstance()
+							.getMap("idempotentReceiverMetadataStore"));
 		}
 
 		@Bean
@@ -206,6 +223,17 @@ public class IdempotentReceiverIntegrationTests {
 					new MetadataStoreSelector(
 							message -> message.getPayload().toString(),
 							message -> message.getPayload().toString().toUpperCase(), store()));
+		}
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return spy(new PseudoTransactionManager());
+		}
+
+		@Bean
+		public TransactionInterceptor transactionInterceptor() {
+			return new TransactionInterceptorBuilder(true)
+					.build();
 		}
 
 		@Bean
@@ -219,8 +247,30 @@ public class IdempotentReceiverIntegrationTests {
 		}
 
 		@Bean
+		public AtomicBoolean txSupplied() {
+			return new AtomicBoolean();
+		}
+
+		@Bean
+		@GlobalChannelInterceptor(patterns = "output")
+		public ChannelInterceptor txSuppliedChannelInterceptor(final AtomicBoolean txSupplied) {
+			return new ChannelInterceptorAdapter() {
+
+				@Override
+				public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+					super.postSend(message, channel, sent);
+					txSupplied.set(TransactionSynchronizationManager.isActualTransactionActive());
+				}
+
+			};
+		}
+
+		@Bean
 		@org.springframework.integration.annotation.Transformer(inputChannel = "input",
-				outputChannel = "output", adviceChain = {"fooAdvice", "idempotentReceiverInterceptor"})
+				outputChannel = "output",
+				adviceChain = { "fooAdvice",
+						"idempotentReceiverInterceptor",
+						"transactionInterceptor" })
 		public Transformer transformer() {
 			return message -> message;
 		}
@@ -258,14 +308,7 @@ public class IdempotentReceiverIntegrationTests {
 		@ServiceActivator(inputChannel = "annotatedBeanMessageHandlerChannel")
 		@IdempotentReceiver("idempotentReceiverInterceptor")
 		public MessageHandler messageHandler() {
-			return new ServiceActivatingHandler(new MessageProcessor<Object>() {
-
-				@Override
-				public Object processMessage(Message<?> message) {
-					return message;
-				}
-
-			});
+			return new ServiceActivatingHandler((MessageProcessor<Object>) message -> message);
 		}
 
 		@Bean

@@ -487,6 +487,79 @@ Note, however, that in that case, the entire downstream flow would be within the
 
 In the case of a `MessageHandler` that does **not** return a response, the advice chain order is retained.
 
+[[tx-handle-message-advice]]
+==== Transaction Support
+
+Starting with _version 5.0_ a new `TransactionHandleMessageAdvice` has been introduced to make the whole downstream flow transactional, thanks to the `HandleMessageAdvice` implementation.
+When regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>`, for example via `<tx:advice>` configuration, a started transaction is only applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and isn't propagated to the downstream flow.
+
+To simplify XML configuration, alongside with the `<request-handler-advice-chain>`, a `<transactional>` sub-element has been added to all `<outbound-gateway>` and `<service-activator>` & family components:
+
+[source,xml]
+----
+<int-rmi:outbound-gateway remote-channel="foo" host="localhost"
+    request-channel="good" reply-channel="reply" port="#{@port}">
+        <int-rmi:transactional/>
+</int-rmi:outbound-gateway>
+
+<bean id="transactionManager" class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.springframework.transaction.PlatformTransactionManager"/>
+</bean>
+----
+
+For whom is familiar with <<jpa, JPA Integration components>> such a configuration isn't new, but now we can start transaction from any point in our flow, not only from the `<poller>` or Message Driven Channel Adapter like in <<jms-message-driven-channel-adapter, JMS>>.
+
+Java & Annotation configuration can be simplified via newly introduced `TransactionInterceptorBuilder` and the result bean name can be used in the <<annotations, Messaging Annotations>> `adviceChain` attribute:
+
+[source,java]
+----
+@Bean
+public ConcurrentMetadataStore store() {
+    return new SimpleMetadataStore(hazelcastInstance()
+                       .getMap("idempotentReceiverMetadataStore"));
+}
+
+@Bean
+public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
+    return new IdempotentReceiverInterceptor(
+            new MetadataStoreSelector(
+                    message -> message.getPayload().toString(),
+                    message -> message.getPayload().toString().toUpperCase(), store()));
+}
+
+@Bean
+public TransactionInterceptor transactionInterceptor() {
+    return new TransactionInterceptorBuilder(true)
+                .transactionManager(this.transactionManager)
+                .isolation(Isolation.READ_COMMITTED)
+                .propagation(Propagation.REQUIRES_NEW)
+                .build();
+}
+
+@Bean
+@org.springframework.integration.annotation.Transformer(inputChannel = "input",
+         outputChannel = "output",
+         adviceChain = { "idempotentReceiverInterceptor",
+                 "transactionInterceptor" })
+public Transformer transformer() {
+    return message -> message;
+}
+----
+
+Note the `true` for the `TransactionInterceptorBuilder` constructor, which means produce `TransactionHandleMessageAdvice`, not regular `TransactionInterceptor`.
+
+Java DSL supports such an `Advice` via `.transactional()` options on the endpoint configuration:
+[source,java]
+----
+@Bean
+public IntegrationFlow updatingGatewayFlow() {
+    return f -> f
+        .handle(Jpa.updatingGateway(this.entityManagerFactory),
+                e -> e.transactional(true))
+        .channel(c -> c.queue("persistResults"));
+}
+----
+
 [[advising-filters]]
 ==== Advising Filters
 
@@ -510,11 +583,11 @@ An example with the discard being performed after the advice is shown below.
 @MessageEndpoint
 public class MyAdvisedFilter {
 
-	@Filter(inputChannel="input", outputChannel="output",
-			adviceChain="adviceChain", discardWithinAdvice="false")
-	public boolean filter(String s) {
-		return s.contains("good");
-	}
+    @Filter(inputChannel="input", outputChannel="output",
+            adviceChain="adviceChain", discardWithinAdvice="false")
+    public boolean filter(String s) {
+    	return s.contains("good");
+    }
 }
 ----
 

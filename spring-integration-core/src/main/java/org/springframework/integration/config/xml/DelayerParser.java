@@ -101,6 +101,10 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
 				builder.getRawBeanDefinition(), parserContext, "delayedAdviceChain");
 
+		if (txElement != null) {
+			element.removeChild(txElement);
+		}
+
 		return builder;
 	}
 
