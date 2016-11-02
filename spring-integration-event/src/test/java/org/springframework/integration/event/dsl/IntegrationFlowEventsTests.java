@@ -24,7 +24,6 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,7 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.dsl.DelayerEndpointSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
@@ -186,7 +184,7 @@ public class IntegrationFlowEventsTests {
 		@Bean
 		public IntegrationFlow delayFlow() {
 			return flow -> flow
-					.delay(GROUP_ID, (Consumer<DelayerEndpointSpec>) e -> e
+					.delay(GROUP_ID, e -> e
 							.messageStore(messageGroupStore)
 							.id("delayer"))
 					.channel(MessageChannels.queue("delayedResults"));
