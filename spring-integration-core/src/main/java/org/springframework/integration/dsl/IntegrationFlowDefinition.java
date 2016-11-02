@@ -2778,7 +2778,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return new PublisherIntegrationFlow<T>(this.integrationComponents, channelForPublisher, executor);
 	}
 
-	@SuppressWarnings("unchecked")
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
 		if (endpointConfigurer != null) {
