@@ -12,8 +12,13 @@
 	<int:channel id="good" />
 
 	<int-rmi:outbound-gateway remote-channel="foo" host="localhost"
-		request-channel="good" reply-channel="reply"
-		port="#{@port}"/>
+		request-channel="good" reply-channel="reply" port="#{@port}">
+		<int-rmi:transactional/>
+	</int-rmi:outbound-gateway>
+
+	<bean id="transactionManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.transaction.PlatformTransactionManager"/>
+	</bean>
 
 	<int-rmi:inbound-gateway request-channel="foo" registry-port="#{@port}" />
 

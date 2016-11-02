@@ -21,24 +21,26 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Proxy;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
+
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  *
@@ -166,7 +168,7 @@ public class JpaMessageHandlerParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcedurepParametersAreSet() throws Exception {
+	public void testProcedureParametersAreSet() throws Exception {
 		setUp("JpaMessageHandlerParserTestsWithEmFactory.xml", getClass());
 
 		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
@@ -197,9 +199,11 @@ public class JpaMessageHandlerParserTests {
 
 		setUp("JpaMessageHandlerTransactionalParserTests.xml", getClass());
 
-		final Proxy proxy = TestUtils.getPropertyValue(this.consumer, "handler", Proxy.class);
-		assertNotNull(proxy);
-
+		AbstractReplyProducingMessageHandler.RequestHandler handler =
+				TestUtils.getPropertyValue(this.consumer, "handler.advisedRequestHandler",
+						AbstractReplyProducingMessageHandler.RequestHandler.class);
+		assertNotNull(handler);
+		assertTrue(AopUtils.isAopProxy(handler));
 	}
 
 	@Test

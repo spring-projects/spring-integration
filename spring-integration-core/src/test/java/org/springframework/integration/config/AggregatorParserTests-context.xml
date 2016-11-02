@@ -27,6 +27,9 @@
 				input-channel="aggregatorWithCustomMGPReferenceInput" output-channel="outputChannel"/>
 
 	<channel id="completelyDefinedAggregatorInput"/>
+
+	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+
 	<aggregator id="completelyDefinedAggregator"
 		input-channel="completelyDefinedAggregatorInput"
 		output-channel="outputChannel"
@@ -44,7 +47,7 @@
 		scheduler="scheduler"
 		message-store="store"
 		order="5">
-			<expire-advice-chain/>
+			<expire-transactional/>
 	</aggregator>
 
 	<beans:bean id="lockRegistry" class="org.springframework.integration.support.locks.DefaultLockRegistry"/>
@@ -116,4 +119,5 @@
 		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
 	</beans:bean>
+
 </beans:beans>

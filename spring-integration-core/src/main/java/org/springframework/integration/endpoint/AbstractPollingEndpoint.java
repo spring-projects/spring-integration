@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
 
@@ -174,26 +175,22 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception {
-		List<Advice> receiveOnlyAdviceChain = new ArrayList<Advice>();
+		List<Advice> receiveOnlyAdviceChain = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			for (Advice advice : this.adviceChain) {
-				if (isReceiveOnlyAdvice(advice)) {
-					receiveOnlyAdviceChain.add(advice);
-				}
-			}
+			receiveOnlyAdviceChain.addAll(this.adviceChain.stream()
+					.filter(this::isReceiveOnlyAdvice)
+					.collect(Collectors.toList()));
 		}
 
-		Callable<Boolean> pollingTask = () -> doPoll();
+		Callable<Boolean> pollingTask = this::doPoll;
 
 		List<Advice> adviceChain = this.adviceChain;
 		if (!CollectionUtils.isEmpty(adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
 			if (!CollectionUtils.isEmpty(adviceChain)) {
-				for (Advice advice : adviceChain) {
-					if (!isReceiveOnlyAdvice(advice)) {
-						proxyFactory.addAdvice(advice);
-					}
-				}
+				adviceChain.stream()
+						.filter(advice -> !isReceiveOnlyAdvice(advice))
+						.forEach(proxyFactory::addAdvice);
 			}
 			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
 		}

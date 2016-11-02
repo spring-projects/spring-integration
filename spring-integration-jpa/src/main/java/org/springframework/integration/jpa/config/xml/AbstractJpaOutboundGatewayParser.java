@@ -18,15 +18,12 @@ package org.springframework.integration.jpa.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * The Abstract Parser for the JPA Outbound Gateways.
@@ -54,16 +51,6 @@ public abstract class AbstractJpaOutboundGatewayParser extends AbstractConsumerE
 
 		if (StringUtils.hasText(replyChannel)) {
 			jpaOutboundGatewayBuilder.addPropertyReference("outputChannel", replyChannel);
-		}
-
-		final Element transactionalElement = DomUtils.getChildElementByTagName(gatewayElement, "transactional");
-
-		if (transactionalElement != null) {
-			BeanDefinition txAdviceDefinition =
-					IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
-			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
-			adviceChain.add(txAdviceDefinition);
-			jpaOutboundGatewayBuilder.addPropertyValue("txAdviceChain", adviceChain);
 		}
 
 		return jpaOutboundGatewayBuilder;

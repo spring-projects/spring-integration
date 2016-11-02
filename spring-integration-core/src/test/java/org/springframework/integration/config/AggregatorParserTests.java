@@ -34,11 +34,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -63,6 +64,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Marius Bogoevici
@@ -73,14 +75,11 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Gunnar Hillert
  * @author Gary Russell
  */
+@RunWith(SpringRunner.class)
 public class AggregatorParserTests {
 
+	@Autowired
 	private ApplicationContext context;
-
-	@Before
-	public void setUp() {
-		this.context = new ClassPathXmlApplicationContext("aggregatorParserTests.xml", this.getClass());
-	}
 
 	@Test
 	public void testAggregation() {
@@ -90,11 +89,11 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
-		for (Message<?> message : outboundMessages) {
-			input.send(message);
-		}
-		assertEquals("One and only one message must have been aggregated", 1, aggregatorBean.getAggregatedMessages()
-				.size());
+
+		outboundMessages.forEach(input::send);
+
+		assertEquals("One and only one message must have been aggregated", 1,
+				aggregatorBean.getAggregatedMessages().size());
 		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
 		assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage.getPayload());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
@@ -111,9 +110,9 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
-		for (Message<?> message : outboundMessages) {
-			input.send(message);
-		}
+
+		outboundMessages.forEach(input::send);
+
 		assertEquals(3, output.getQueueSize());
 		output.purge(null);
 	}
@@ -127,7 +126,9 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
+
 		outboundMessages.forEach(input::send);
+
 		assertEquals(3, output.getQueueSize());
 		output.purge(null);
 	}
@@ -142,7 +143,9 @@ public class AggregatorParserTests {
 		outboundMessages.add(MessageBuilder.withPayload("123").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("456").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("789").setHeader("foo", "1").build());
+
 		outboundMessages.forEach(input::send);
+
 		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload()
 				.toString());
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);

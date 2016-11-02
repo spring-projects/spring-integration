@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -81,12 +82,14 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 
 	private void configureRequestHandlerAdviceChain(Element element, ParserContext parserContext,
 							BeanDefinition handlerBeanDefinition, BeanDefinitionBuilder consumerBuilder) {
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
 		@SuppressWarnings("rawtypes")
 		ManagedList adviceChain =
-				IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, null, handlerBeanDefinition, parserContext);
-		if (adviceChain != null) {
+				IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, txElement, handlerBeanDefinition,
+						parserContext);
+		if (!CollectionUtils.isEmpty(adviceChain)) {
 			/*
 			 * For ARPMH, the advice chain is injected so just the handleRequestMessage method is advised.
 			 * Sometime ARPMHs do double duty as a gateway and a channel adapter. The parser subclass
