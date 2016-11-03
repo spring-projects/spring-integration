@@ -104,7 +104,7 @@ subprojects { subproject ->
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.1.1'
-		jrubyVersion = '1.7.23'
+		jrubyVersion = '9.1.5.0'
 		jschVersion = '0.1.52'
 		jsonpathVersion = '2.2.0'
 		junitVersion = '4.12'
