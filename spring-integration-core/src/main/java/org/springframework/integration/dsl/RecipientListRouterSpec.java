@@ -77,7 +77,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param selector the selector.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipientMessageSelector(String channelName, MessageSelector selector) {
+	public RecipientListRouterSpec recipient(String channelName, MessageSelector selector) {
 		return recipient(channelName, (GenericSelector<Message<?>>) selector);
 	}
 
@@ -131,7 +131,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param selector the selector.
 	 * @return the router spec.
 	 */
-	public RecipientListRouterSpec recipientMessageSelector(MessageChannel channel, MessageSelector selector) {
+	public RecipientListRouterSpec recipient(MessageChannel channel, MessageSelector selector) {
 		return recipient(channel, (GenericSelector<Message<?>>) selector);
 	}
 
