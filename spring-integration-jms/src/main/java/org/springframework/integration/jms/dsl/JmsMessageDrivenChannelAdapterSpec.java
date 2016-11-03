@@ -58,17 +58,6 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	 * @param headerMapper the headerMapper.
 	 * @return the spec.
 	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
-	 * @deprecated in favor of {@link #headerMapper(JmsHeaderMapper)}
-	 */
-	@Deprecated
-	public S setHeaderMapper(JmsHeaderMapper headerMapper) {
-		return headerMapper(headerMapper);
-	}
-
-	/**
-	 * @param headerMapper the headerMapper.
-	 * @return the spec.
-	 * @see ChannelPublishingJmsMessageListener#setHeaderMapper(JmsHeaderMapper)
 	 */
 	public S headerMapper(JmsHeaderMapper headerMapper) {
 		this.target.getListener().setHeaderMapper(headerMapper);
