@@ -29,7 +29,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageProducerSpec} for {@link JmsMessageDrivenChannelAdapter}s.
+ * A {@link MessageProducerSpec} for {@link JmsMessageDrivenEndpoint}s.
  *
  * @param <S> the target {@link JmsMessageDrivenChannelAdapterSpec} implementation type.
  *
