@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms.dsl;
+package org.springframework.integration.jms;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
-import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.messaging.MessageChannel;
 
 /**
- * A wrapper around the {@link JmsMessageDrivenEndpoint} to work around
- * Java single inheritance.
+ * A wrapper around the {@link JmsMessageDrivenEndpoint} implementing
+ * {@link MessagingGatewaySupport}.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -73,7 +71,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 		this.endpoint.afterPropertiesSet();
 	}
 
-	ChannelPublishingJmsMessageListener getListener() {
+	public ChannelPublishingJmsMessageListener getListener() {
 		return this.endpoint.getListener();
 	}
 

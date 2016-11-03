@@ -23,6 +23,7 @@ import javax.jms.Destination;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.integration.jms.JmsInboundGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
