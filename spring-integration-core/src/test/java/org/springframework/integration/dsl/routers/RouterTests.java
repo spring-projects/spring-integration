@@ -566,7 +566,7 @@ public class RouterTests {
 					.<String, String>transform(p -> p.replaceFirst("Payload", ""))
 					.routeToRecipients(r -> r
 							.recipient("foo-channel", "'foo' == payload")
-							.recipientMessageSelector("bar-channel", m ->
+							.recipient("bar-channel", m ->
 									m.getHeaders().containsKey("recipient")
 											&& (boolean) m.getHeaders().get("recipient"))
 							.recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
