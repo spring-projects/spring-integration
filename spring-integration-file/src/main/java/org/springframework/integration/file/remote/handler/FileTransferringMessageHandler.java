@@ -17,6 +17,7 @@
 package org.springframework.integration.file.remote.handler;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -62,6 +63,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 
 	/**
+	 * A {@code boolean} flag to indicate automatically create the directory or not.
 	 * @param autoCreateDirectory true to automatically create the directory.
 	 * @see RemoteFileTemplate#setAutoCreateDirectory(boolean)
 	 */
@@ -70,6 +72,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Specify a remote file separator symbol.
 	 * @param remoteFileSeparator the remote file separator.
 	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
 	 */
@@ -78,6 +81,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Specify a remote directory path SpEL expression.
 	 * @param remoteDirectoryExpression the remote directory expression
 	 * @see RemoteFileTemplate#setRemoteDirectoryExpression(Expression)
 	 */
@@ -86,6 +90,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Specify a remote directory path SpEL expression.
 	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression
 	 * @see RemoteFileTemplate#setTemporaryRemoteDirectoryExpression(Expression)
 	 */
@@ -102,6 +107,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * A {@code boolean} flag to use temporary files names or not.
+	 * Defaults to {@code true}.
 	 * @param useTemporaryFileName true to use a temporary file name.
 	 * @see RemoteFileTemplate#setUseTemporaryFileName(boolean)
 	 */
@@ -110,6 +117,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Set the file name generator used to generate the remote filename to be used when transferring
+	 * files to the remote system. Default {@link DefaultFileNameGenerator}.
 	 * @param fileNameGenerator the file name generator.
 	 * @see RemoteFileTemplate#setFileNameGenerator(FileNameGenerator)
 	 */
@@ -118,6 +127,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Set the charset to use when converting String payloads to bytes as the content of the
+	 * remote file. Default {@code UTF-8}.
 	 * @param charset the charset.
 	 * @see RemoteFileTemplate#setCharset(String)
 	 */
@@ -126,6 +137,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default ".writing".
 	 * @param temporaryFileSuffix the temporary file suffix.
 	 * @see RemoteFileTemplate#setTemporaryFileSuffix(String)
 	 */
