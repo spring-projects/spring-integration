@@ -36,6 +36,7 @@ import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
 import org.springframework.integration.transformer.PayloadTypeConvertingTransformer;
+import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -229,6 +230,24 @@ public abstract class Transformers {
 	 */
 	public static <T> DecodingTransformer<T> decoding(Codec codec, Expression typeExpression) {
 		return new DecodingTransformer<>(codec, typeExpression);
+	}
+
+	/**
+	 * The factory method for the {@link StreamTransformer}.
+	 * @return the {@link StreamTransformer} instance.
+	 */
+	public static StreamTransformer fromStream() {
+		return fromStream(null);
+	}
+
+	/**
+	 * Create an instance with the charset to convert the stream to a
+	 * String; if null a {@code byte[]} will be produced instead.
+	 * @param charset the charset.
+	 * @return the {@link StreamTransformer} instance.
+	 */
+	public static StreamTransformer fromStream(String charset) {
+		return new StreamTransformer(charset);
 	}
 
 }
