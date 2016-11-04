@@ -16,8 +16,6 @@
 
 package org.springframework.integration.scripting.dsl;
 
-import java.lang.reflect.Constructor;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
@@ -28,12 +26,11 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
+import org.springframework.integration.scripting.config.ScriptExecutingProcessorFactory;
 import org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.jsr223.ScriptExecutorFactory;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -48,27 +45,6 @@ import org.springframework.util.StringUtils;
  */
 class DslScriptExecutingMessageProcessor
 		implements MessageProcessor<Object>, InitializingBean, ApplicationContextAware {
-
-	private static Constructor<?> groovyScriptExecutingMessageProcessorConstructor = null;
-
-	static {
-		String groovyScriptExecutingMessageProcessorClassName =
-				"org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor";
-		if (ClassUtils.isPresent(groovyScriptExecutingMessageProcessorClassName, ClassUtils.getDefaultClassLoader())) {
-			try {
-				Class<?> groovyScriptExecutingMessageProcessorClass =
-						ClassUtils.forName(groovyScriptExecutingMessageProcessorClassName,
-								ClassUtils.getDefaultClassLoader());
-				groovyScriptExecutingMessageProcessorConstructor =
-						ReflectionUtils.accessibleConstructor(groovyScriptExecutingMessageProcessorClass,
-								ScriptSource.class, ScriptVariableGenerator.class);
-			}
-			catch (Exception e) {
-				ReflectionUtils.rethrowRuntimeException(e);
-			}
-
-		}
-	}
 
 	private Resource script;
 
@@ -127,9 +103,11 @@ class DslScriptExecutingMessageProcessor
 			this.lang = filename.substring(index);
 		}
 
-		if (groovyScriptExecutingMessageProcessorConstructor != null && "groovy".equals(this.lang.toLowerCase())) {
-			this.delegate = (AbstractScriptExecutingMessageProcessor) groovyScriptExecutingMessageProcessorConstructor
-					.newInstance(scriptSource, this.variableGenerator);
+		if (this.applicationContext.containsBean(ScriptExecutingProcessorFactory.BEAN_NAME)) {
+			ScriptExecutingProcessorFactory processorFactory =
+					this.applicationContext.getBean(ScriptExecutingProcessorFactory.BEAN_NAME,
+							ScriptExecutingProcessorFactory.class);
+			this.delegate = processorFactory.createMessageProcessor(this.lang, scriptSource, this.variableGenerator);
 		}
 		else {
 			this.delegate = new ScriptExecutingMessageProcessor(scriptSource, this.variableGenerator,
