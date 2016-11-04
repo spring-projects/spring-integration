@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -175,11 +174,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception {
-		List<Advice> receiveOnlyAdviceChain = new ArrayList<>();
+		List<Advice> receiveOnlyAdviceChain = null;
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-			receiveOnlyAdviceChain.addAll(this.adviceChain.stream()
+			receiveOnlyAdviceChain = this.adviceChain.stream()
 					.filter(this::isReceiveOnlyAdvice)
-					.collect(Collectors.toList()));
+					.collect(Collectors.toList());
 		}
 
 		Callable<Boolean> pollingTask = this::doPoll;
@@ -194,7 +193,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
 		}
-		if (receiveOnlyAdviceChain.size() > 0) {
+		if (receiveOnlyAdviceChain != null) {
 			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
 		}
 		return new Poller(pollingTask);
