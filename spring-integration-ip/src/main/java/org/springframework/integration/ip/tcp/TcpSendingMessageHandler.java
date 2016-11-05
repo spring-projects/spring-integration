@@ -291,10 +291,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				}
 				this.clientModeConnectionManager = null;
 				if (this.clientConnectionFactory != null) {
-					this.clientConnectionFactory.stop(callback);
+					this.clientConnectionFactory.stop();
 				}
 				if (this.serverConnectionFactory != null) {
-					this.serverConnectionFactory.stop(callback);
+					this.serverConnectionFactory.stop();
 				}
 			}
 		}
@@ -330,8 +330,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	/**
-	 * @param isClientMode
-	 *            the isClientMode to set
+	 * @param isClientMode the isClientMode to set
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
@@ -350,8 +349,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	/**
-	 * @param retryInterval
-	 *            the retryInterval to set
+	 * @param retryInterval the retryInterval to set
 	 */
 	public void setRetryInterval(long retryInterval) {
 		this.retryInterval = retryInterval;

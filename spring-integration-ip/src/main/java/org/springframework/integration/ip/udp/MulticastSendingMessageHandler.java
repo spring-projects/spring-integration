@@ -21,7 +21,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.SocketAddress;
+import java.net.URI;
 
+import org.springframework.expression.Expression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 
@@ -97,6 +100,28 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			boolean lengthCheck, boolean acknowledge, String ackHost,
 			int ackPort, int ackTimeout) {
 		super(address, port, lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
+	}
+
+	/**
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * determine the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination
+	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * @since 5.0
+	 */
+	public MulticastSendingMessageHandler(Expression destinationExpression) {
+		super(destinationExpression);
+	}
+
+	/**
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * determine the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination
+	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * @since 5.0
+	 */
+	public MulticastSendingMessageHandler(String destinationExpression) {
+		super(destinationExpression);
 	}
 
 	@Override

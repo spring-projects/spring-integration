@@ -74,6 +74,15 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		this.mapper.setLengthCheck(lengthCheck);
 	}
 
+	/**
+	 * @param lengthCheck if true, the incoming packet is expected to have a four
+	 * byte binary length header.
+	 * @since 5.0
+	 */
+	public void setLengthCheck(boolean lengthCheck) {
+		this.mapper.setLengthCheck(lengthCheck);
+	}
+
 	@Override
 	public boolean isLongLived() {
 		return true;

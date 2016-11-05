@@ -18,6 +18,7 @@ package org.springframework.integration.ip.util;
 
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -51,6 +52,37 @@ public final class TestingUtilities {
 		}
 		int n = 0;
 		while (!serverConnectionFactory.isListening()) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e1);
+			}
+
+			if (n++ > delay) {
+				throw new IllegalStateException("Server didn't start listening.");
+			}
+		}
+	}
+
+	/**
+	 * Wait for a server connection factory to actually start listening before
+	 * starting a test. Waits for up to 10 seconds by default.
+	 * @param adapter The server connection factory.
+	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @throws IllegalStateException If the server does not start listening in time.
+	 */
+	public static void waitListening(UnicastReceivingChannelAdapter adapter, Long delay)
+		throws IllegalStateException {
+		if (delay == null) {
+			delay = 100L;
+		}
+		else {
+			delay = delay / 100;
+		}
+		int n = 0;
+		while (!adapter.isListening()) {
 			try {
 				Thread.sleep(100);
 			}
