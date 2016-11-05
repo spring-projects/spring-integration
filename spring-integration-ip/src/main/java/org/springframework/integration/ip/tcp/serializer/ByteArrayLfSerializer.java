@@ -23,6 +23,11 @@ package org.springframework.integration.ip.tcp.serializer;
  */
 public class ByteArrayLfSerializer extends ByteArraySingleTerminatorSerializer {
 
+	/**
+	 * A single reusable instance.
+	 */
+	public static final ByteArrayLfSerializer INSTANCE = new ByteArrayLfSerializer();
+
 	public ByteArrayLfSerializer() {
 		super((byte) 0x0a);
 	}
