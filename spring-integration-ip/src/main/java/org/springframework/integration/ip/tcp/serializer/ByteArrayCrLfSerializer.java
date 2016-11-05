@@ -30,6 +30,11 @@ import java.io.OutputStream;
  */
 public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerializer {
 
+	/**
+	 * A single reusable instance.
+	 */
+	public static final ByteArrayCrLfSerializer INSTANCE = new ByteArrayCrLfSerializer();
+
 	private static final byte[] CRLF = "\r\n".getBytes();
 
 	/**

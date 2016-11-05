@@ -43,6 +43,11 @@ import java.net.SocketTimeoutException;
  */
 public class ByteArrayRawSerializer extends AbstractPooledBufferByteArraySerializer {
 
+	/**
+	 * A single reusable instance that does not treat timeouts as end of message.
+	 */
+	public static final ByteArrayRawSerializer INSTANCE = new ByteArrayRawSerializer();
+
 	private final boolean treatTimeoutAsEndOfMessage;
 
 	public ByteArrayRawSerializer() {

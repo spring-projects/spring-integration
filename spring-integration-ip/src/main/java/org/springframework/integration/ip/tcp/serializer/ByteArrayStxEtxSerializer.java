@@ -32,6 +32,11 @@ import org.springframework.integration.mapping.MessageMappingException;
  */
 public class ByteArrayStxEtxSerializer extends AbstractPooledBufferByteArraySerializer {
 
+	/**
+	 * A single reusable instance.
+	 */
+	public static final ByteArrayStxEtxSerializer INSTANCE = new ByteArrayStxEtxSerializer();
+
 	public static final int STX = 0x02;
 
 	public static final int ETX = 0x03;
