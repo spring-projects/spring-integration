@@ -388,21 +388,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		this.pool.removeAllIdleItems();
 	}
 
-	@Override
-	public int getPhase() {
-		return this.targetConnectionFactory.getPhase();
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.targetConnectionFactory.isAutoStartup();
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		this.targetConnectionFactory.stop(callback);
-	}
-
 	private final class CachedConnection extends TcpConnectionInterceptorSupport {
 
 		private final AtomicBoolean released = new AtomicBoolean();

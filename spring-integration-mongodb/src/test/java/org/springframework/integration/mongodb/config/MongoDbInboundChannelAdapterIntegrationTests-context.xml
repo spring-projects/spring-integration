@@ -18,7 +18,7 @@
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-rate="100" />
+		<int:poller fixed-delay="100" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterNamedFactory"
@@ -26,7 +26,7 @@
 										 channel="replyChannel"
 										 query="{'name' : 'Bob'}"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-delay="5000" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithTemplate"
@@ -36,7 +36,7 @@
 										 expect-single-result="true"
 										 entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.Person"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-delay="5000" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithNamedCollection"
@@ -46,7 +46,7 @@
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-delay="5000" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithNamedCollectionExpression"
@@ -56,7 +56,7 @@
 										 query="{'name' : 'Bob'}"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
-		<int:poller fixed-rate="5000" />
+		<int:poller fixed-delay="5000" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="inboundAdapterWithOnSuccessDisposition"
@@ -64,7 +64,7 @@
 										 query="{'name' : 'Bob'}"
 										 auto-startup="false">
 
-		<int:poller fixed-rate="200" max-messages-per-poll="1">
+		<int:poller fixed-delay="200" max-messages-per-poll="1">
 			<int:advice-chain  synchronization-factory="syncFactory">
 				<bean
 						class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterIntegrationTests.TestMessageSourceAdvice" />
@@ -87,7 +87,7 @@
 										 entity-class="java.lang.Object"
 										 mongo-converter="mongoConverter"
 										 auto-startup="false">
-		<int:poller fixed-rate="100" />
+		<int:poller fixed-delay="100" />
 	</int-mongodb:inbound-channel-adapter>
 
 	<bean id="documentCleaner"

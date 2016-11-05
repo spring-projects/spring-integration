@@ -114,10 +114,10 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to determine
-	 * the target destination at runtime against requestMessage.
-	 * @param destinationExpression the SpEL expression to evaluate the target destination at runtime.
-	 *                              Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * determine the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination
+	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
 	 * @since 4.3
 	 */
 	public UnicastSendingMessageHandler(String destinationExpression) {
@@ -129,10 +129,10 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to determine
-	 * the target destination at runtime against requestMessage.
-	 * @param destinationExpression the SpEL expression to evaluate the target destination at runtime.
-	 *                              Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * determine the target destination at runtime against requestMessage.
+	 * @param destinationExpression the SpEL expression to evaluate the target destination
+	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
 	 * @since 4.3
 	 */
 	public UnicastSendingMessageHandler(Expression destinationExpression) {
@@ -215,6 +215,15 @@ public class UnicastSendingMessageHandler extends
 		if (this.acknowledge) {
 			Assert.hasLength(ackHost);
 		}
+	}
+
+	/**
+	 * @param lengthCheck if true, a four byte binary length header is added to the
+	 * packet, allowing the receiver to check for data truncation.
+	 * @since 5.0
+	 */
+	public void setLengthCheck(boolean lengthCheck) {
+		this.mapper.setLengthCheck(lengthCheck);
 	}
 
 	@Override

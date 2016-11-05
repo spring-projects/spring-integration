@@ -24,7 +24,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -55,8 +55,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0.5
  */
-public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware,
-		BeanFactoryAware, ApplicationEventPublisherAware {
+public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory>
+		implements Lifecycle, BeanNameAware, BeanFactoryAware, ApplicationEventPublisherAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -444,33 +444,6 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	public void stop() {
 		this.connectionFactory.stop();
-	}
-
-	/**
-	 * @return phase
-	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#getPhase()
-	 */
-	@Override
-	public int getPhase() {
-		return this.connectionFactory.getPhase();
-	}
-
-	/**
-	 * @return isAutoStartup
-	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#isAutoStartup()
-	 */
-	@Override
-	public boolean isAutoStartup() {
-		return this.connectionFactory.isAutoStartup();
-	}
-
-	/**
-	 * @param callback The Runnable to invoke.
-	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#stop(java.lang.Runnable)
-	 */
-	@Override
-	public void stop(Runnable callback) {
-		this.connectionFactory.stop(callback);
 	}
 
 	@Override
