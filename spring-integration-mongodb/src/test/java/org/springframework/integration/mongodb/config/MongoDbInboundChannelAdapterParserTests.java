@@ -18,87 +18,115 @@ package org.springframework.integration.mongodb.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MongoDbInboundChannelAdapterParserTests {
+
+	@Autowired
+	private MongoDbFactory mongoDbFactory;
+
+	@Autowired
+	private MongoConverter mongoConverter;
+
+	@Autowired
+	private MongoTemplate mongoDbTemplate;
+
+	@Autowired
+	@Qualifier("minimalConfig.adapter")
+	private SourcePollingChannelAdapter minimalConfigAdapter;
+
+	@Autowired
+	@Qualifier("fullConfigWithCollectionExpression.adapter")
+	private SourcePollingChannelAdapter fullConfigWithCollectionExpressionAdapter;
+
+	@Autowired
+	@Qualifier("fullConfigWithCollectionName.adapter")
+	private SourcePollingChannelAdapter fullConfigWithCollectionNameAdapter;
+
+	@Autowired
+	@Qualifier("fullConfigWithMongoTemplate.adapter")
+	private SourcePollingChannelAdapter fullConfigWithMongoTemplateAdapter;
 
 	@Test
 	public void minimalConfig() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("minimalConfig.adapter", SourcePollingChannelAdapter.class);
-		MongoDbMessageSource source = TestUtils.getPropertyValue(spca, "source", MongoDbMessageSource.class);
+		MongoDbMessageSource source = TestUtils.getPropertyValue(this.minimalConfigAdapter, "source",
+				MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(spca, "shouldTrack"));
+		assertEquals(false, TestUtils.getPropertyValue(this.minimalConfigAdapter, "shouldTrack"));
 		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(source, "mongoDbFactory"));
+		assertEquals(this.mongoDbFactory, TestUtils.getPropertyValue(source, "mongoDbFactory"));
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("data", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithCollectionExpression() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithCollectionExpression.adapter", SourcePollingChannelAdapter.class);
-		MongoDbMessageSource source = TestUtils.getPropertyValue(spca, "source", MongoDbMessageSource.class);
+		MongoDbMessageSource source = TestUtils.getPropertyValue(this.fullConfigWithCollectionExpressionAdapter,
+				"source", MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(spca, "shouldTrack"));
+		assertEquals(false, TestUtils.getPropertyValue(this.fullConfigWithCollectionExpressionAdapter, "shouldTrack"));
 		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(source, "mongoDbFactory"));
-		assertEquals(context.getBean("mongoConverter"), TestUtils.getPropertyValue(source, "mongoConverter"));
+		assertEquals(this.mongoDbFactory, TestUtils.getPropertyValue(source, "mongoDbFactory"));
+		assertEquals(this.mongoConverter, TestUtils.getPropertyValue(source, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof SpelExpression);
 		assertEquals("'foo'", TestUtils.getPropertyValue(source, "collectionNameExpression.expression"));
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithCollectionName() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithCollectionName.adapter", SourcePollingChannelAdapter.class);
-		MongoDbMessageSource source = TestUtils.getPropertyValue(spca, "source", MongoDbMessageSource.class);
+		MongoDbMessageSource source = TestUtils.getPropertyValue(this.fullConfigWithCollectionNameAdapter, "source",
+				MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(spca, "shouldTrack"));
+		assertEquals(false, TestUtils.getPropertyValue(this.fullConfigWithCollectionNameAdapter, "shouldTrack"));
 		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(source, "mongoDbFactory"));
-		assertEquals(context.getBean("mongoConverter"), TestUtils.getPropertyValue(source, "mongoConverter"));
+		assertEquals(this.mongoDbFactory, TestUtils.getPropertyValue(source, "mongoDbFactory"));
+		assertEquals(this.mongoConverter, TestUtils.getPropertyValue(source, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
-		context.close();
 	}
 
 	@Test
 	public void fullConfigWithMongoTemplate() {
-		ClassPathXmlApplicationContext context =
-				new ClassPathXmlApplicationContext("inbound-adapter-parser-config.xml", this.getClass());
-		SourcePollingChannelAdapter spca = context.getBean("fullConfigWithMongoTemplate.adapter", SourcePollingChannelAdapter.class);
-		MongoDbMessageSource source = TestUtils.getPropertyValue(spca, "source", MongoDbMessageSource.class);
+		MongoDbMessageSource source = TestUtils.getPropertyValue(this.fullConfigWithMongoTemplateAdapter, "source",
+				MongoDbMessageSource.class);
 
-		assertEquals(false, TestUtils.getPropertyValue(spca, "shouldTrack"));
+		assertEquals(false, TestUtils.getPropertyValue(this.fullConfigWithMongoTemplateAdapter, "shouldTrack"));
 		assertNotNull(TestUtils.getPropertyValue(source, "mongoTemplate"));
-		assertEquals(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(source, "mongoTemplate"));
+		assertSame(this.mongoDbTemplate, TestUtils.getPropertyValue(source, "mongoTemplate"));
 		assertNotNull(TestUtils.getPropertyValue(source, "evaluationContext"));
 		assertTrue(TestUtils.getPropertyValue(source, "collectionNameExpression") instanceof LiteralExpression);
 		assertEquals("foo", TestUtils.getPropertyValue(source, "collectionNameExpression.literalValue"));
-		context.close();
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
@@ -112,4 +140,5 @@ public class MongoDbInboundChannelAdapterParserTests {
 		new ClassPathXmlApplicationContext("inbound-adapter-parser-fail-template-converter-config.xml", this.getClass())
 				.close();
 	}
+
 }

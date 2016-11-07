@@ -25,6 +25,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.context.ExpressionCapable;
@@ -55,6 +56,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private final Collection<Advice> appliedAdvices = new HashSet<Advice>();
 
+	private volatile MessageSource<?> originalSource;
+
 	private volatile MessageSource<?> source;
 
 	private volatile MessageChannel outputChannel;
@@ -70,6 +73,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	 */
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
+
+		Object target = extractProxyTarget(source);
+		this.originalSource = target != null ? (MessageSource<?>) target : source;
+
 		if (source instanceof ExpressionCapable) {
 			setPrimaryExpression(((ExpressionCapable) source).getExpression());
 		}
@@ -219,12 +226,29 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected Object getResourceToBind() {
-		return this.source;
+		return this.originalSource;
 	}
 
 	@Override
 	protected String getResourceKey() {
 		return IntegrationResourceHolder.MESSAGE_SOURCE;
 	}
+
+	private static Object extractProxyTarget(Object target) {
+		if (!(target instanceof Advised)) {
+			return target;
+		}
+		Advised advised = (Advised) target;
+		if (advised.getTargetSource() == null) {
+			return null;
+		}
+		try {
+			return extractProxyTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			throw new BeanCreationException("Could not extract target", e);
+		}
+	}
+
 
 }
