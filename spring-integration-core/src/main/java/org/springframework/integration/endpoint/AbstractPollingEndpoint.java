@@ -193,7 +193,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
 		}
-		if (receiveOnlyAdviceChain != null) {
+		if (!CollectionUtils.isEmpty(receiveOnlyAdviceChain)) {
 			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
 		}
 		return new Poller(pollingTask);

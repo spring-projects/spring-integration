@@ -140,7 +140,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(1, messageStore.getMessageGroupCount());
 		int n = 0;
 		while (n++ < 200 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
-			Thread.sleep(50);
+			Thread.sleep(100);
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 

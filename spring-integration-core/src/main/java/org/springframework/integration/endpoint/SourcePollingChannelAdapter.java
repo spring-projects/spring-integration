@@ -38,6 +38,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * A Channel Adapter implementation for connecting a
@@ -131,22 +132,24 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
-		if (AopUtils.isAopProxy(this.source)) {
-			Advised source = (Advised) this.source;
-			this.appliedAdvices.forEach(source::removeAdvice);
-			for (Advice advice : chain) {
-				source.addAdvisor(adviceToReceiveAdvisor(advice));
+		if (!CollectionUtils.isEmpty(chain)) {
+			if (AopUtils.isAopProxy(this.source)) {
+				Advised source = (Advised) this.source;
+				this.appliedAdvices.forEach(source::removeAdvice);
+				for (Advice advice : chain) {
+					source.addAdvisor(adviceToReceiveAdvisor(advice));
+				}
 			}
-		}
-		else {
-			ProxyFactory proxyFactory = new ProxyFactory(this.source);
-			for (Advice advice : chain) {
-				proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice));
+			else {
+				ProxyFactory proxyFactory = new ProxyFactory(this.source);
+				for (Advice advice : chain) {
+					proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice));
+				}
+				this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 			}
-			this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
+			this.appliedAdvices.clear();
+			this.appliedAdvices.addAll(chain);
 		}
-		this.appliedAdvices.clear();
-		this.appliedAdvices.addAll(chain);
 	}
 
 	private NameMatchMethodPointcutAdvisor adviceToReceiveAdvisor(Advice advice) {
