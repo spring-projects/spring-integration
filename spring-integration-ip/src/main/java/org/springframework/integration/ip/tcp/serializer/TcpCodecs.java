@@ -17,13 +17,14 @@
 package org.springframework.integration.ip.tcp.serializer;
 
 /**
- * Factory class to create TCP Serializer/Deserializers.
- * Used to simplify configuration with Java, such as
+ * Factory class to create TCP Serializer/Deserializers used to
+ * encode/decode messages to/from a TCP stream.
+ * This is used to simplify configuration with Java, such as
  *
  * <pre class="code">
  * TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(1234);
- * server.setSerializer(TcpSerDe.lf());
- * server.setDserializer(TcpSerDe.lf());
+ * server.setSerializer(TcpCodecs.lf());
+ * server.setDserializer(TcpCodecs.lf());
  * ...
  * </pre>
  *
@@ -31,7 +32,7 @@ package org.springframework.integration.ip.tcp.serializer;
  * @since 5.0
  *
  */
-public final class TcpSerDe {
+public final class TcpCodecs {
 
 	private static ByteArrayLengthHeaderSerializer oneByteLHS;
 
@@ -39,7 +40,7 @@ public final class TcpSerDe {
 
 	private static ByteArrayLengthHeaderSerializer fourByteLHS;
 
-	private TcpSerDe() {
+	private TcpCodecs() {
 		super();
 	}
 
@@ -76,14 +77,14 @@ public final class TcpSerDe {
 	 * @return a {@link ByteArraySingleTerminatorSerializer} using the supplied
 	 * terminator.
 	 */
-	public static ByteArraySingleTerminatorSerializer singleTerm(byte terminator) {
+	public static ByteArraySingleTerminatorSerializer singleTerminator(byte terminator) {
 		return new ByteArraySingleTerminatorSerializer(terminator);
 	}
 
 	/**
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 1 byte header.
 	 */
-	public static ByteArrayLengthHeaderSerializer headerL1() {
+	public static ByteArrayLengthHeaderSerializer lengthHeader1() {
 		if (oneByteLHS == null) {
 			oneByteLHS = new ByteArrayLengthHeaderSerializer(1);
 		}
@@ -93,9 +94,9 @@ public final class TcpSerDe {
 	/**
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 2 byte header.
 	 */
-	public static ByteArrayLengthHeaderSerializer headerL2() {
+	public static ByteArrayLengthHeaderSerializer lengthHeader2() {
 		if (twoByteLHS == null) {
-			twoByteLHS = new ByteArrayLengthHeaderSerializer(1);
+			twoByteLHS = new ByteArrayLengthHeaderSerializer(2);
 		}
 		return twoByteLHS;
 	}
@@ -103,11 +104,28 @@ public final class TcpSerDe {
 	/**
 	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 4 byte header.
 	 */
-	public static ByteArrayLengthHeaderSerializer headerL4() {
+	public static ByteArrayLengthHeaderSerializer lengthHeader4() {
 		if (fourByteLHS == null) {
-			fourByteLHS = new ByteArrayLengthHeaderSerializer(1);
+			fourByteLHS = new ByteArrayLengthHeaderSerializer(4);
 		}
 		return fourByteLHS;
+	}
+
+	/**
+	 * @param bytes header length.
+	 * @return a {@link ByteArrayLengthHeaderSerializer} with a 1, 2 or 4 byte header.
+	 */
+	public static ByteArrayLengthHeaderSerializer lengthHeader(int bytes) {
+		switch (bytes) {
+		case 1:
+			return lengthHeader1();
+		case 2:
+			return lengthHeader2();
+		case 4:
+			return lengthHeader4();
+		default:
+			throw new IllegalArgumentException("Only 1, 2 or 4 byte headers are supported");
+		}
 	}
 
 }
