@@ -7,11 +7,11 @@
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd">
 
 	<feed:inbound-channel-adapter id="feedAdapter"
-						channel="feedChannel"
-						auto-startup="false"
-						feed-fetcher="fileUrlFeedFetcher"
-						metadata-store="customMetadataStore"
-						url="classpath:org/springframework/integration/feed/sample.rss">
+								  channel="feedChannel"
+								  auto-startup="false"
+								  feed-input="syndFeedInput"
+								  metadata-store="metadataStore"
+								  resource="classpath:org/springframework/integration/feed/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</feed:inbound-channel-adapter>
 
@@ -19,8 +19,8 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.inbound.FileUrlFeedFetcher"/>
+	<bean id="syndFeedInput" class="com.rometools.rome.io.SyndFeedInput"/>
 
-	<bean id="customMetadataStore" class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests.SampleMetadataStore"/>
+	<bean id="metadataStore" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
 </beans>

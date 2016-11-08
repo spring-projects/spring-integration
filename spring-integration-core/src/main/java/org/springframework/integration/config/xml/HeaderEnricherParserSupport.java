@@ -222,7 +222,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					.error("The 'method' attribute cannot be used when a 'script' sub-element is defined", element);
 		}
 
-		if (!(isValue ^ (isRef ^ (isExpression ^ isCustomBean)))) {
+		if (isValue == (isRef ^ (isExpression ^ isCustomBean))) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the 'ref', 'value', 'expression' or inner bean is required.", element);
 		}

@@ -17,6 +17,7 @@
 package org.springframework.integration.feed.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -25,14 +26,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -48,6 +49,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.io.SyndFeedInput;
 
 /**
  * @author Oleg Zhurakousky
@@ -55,20 +57,16 @@ import com.rometools.rome.feed.synd.SyndEntry;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParserTests {
 
-	private static CountDownLatch latch;
+	@ClassRule
+	public final static TemporaryFolder tempFolder = new TemporaryFolder();
 
-	@Before
-	public void prepare() {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
-				"feedAdapter.last.entry");
-		if (persisterFile.exists()) {
-			persisterFile.delete();
-		}
-	}
+
+	private static CountDownLatch latch;
 
 	@Test
 	public void validateSuccessfulFileConfigurationWithCustomMetadataStore() {
@@ -76,16 +74,14 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
-		assertTrue(metadataStore instanceof SampleMetadataStore);
-		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
-		assertEquals("FileUrlFeedFetcher", fetcher.getClass().getSimpleName());
+		assertSame(context.getBean(MetadataStore.class), TestUtils.getPropertyValue(source, "metadataStore"));
+		SyndFeedInput syndFeedInput = TestUtils.getPropertyValue(source, "syndFeedInput", SyndFeedInput.class);
+		assertSame(context.getBean(SyndFeedInput.class), syndFeedInput);
+		assertFalse(syndFeedInput.isPreserveWireFeed());
 		context.close();
 	}
 
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -93,18 +89,11 @@ public class FeedInboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(TestUtils.getPropertyValue(source, "metadataStore"));
-		Object fetcher = TestUtils.getPropertyValue(source, "feedFetcher");
-		assertTrue(fetcher instanceof com.rometools.fetcher.impl.HttpURLFeedFetcher);
 		context.close();
 	}
 
 	@Test
 	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/",
-				"metadata-store.properties");
-		if (persisterFile.exists()) {
-			persisterFile.delete();
-		}
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -120,6 +109,10 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(500, TimeUnit.MILLISECONDS);
 		verify(latch, times(0)).countDown();
+
+		SourcePollingChannelAdapter adapter = context.getBean("feedAdapterUsage", SourcePollingChannelAdapter.class);
+		assertTrue(TestUtils.getPropertyValue(adapter, "source.syndFeedInput.preserveWireFeed", Boolean.class));
+
 		context.close();
 	}
 
@@ -127,7 +120,7 @@ public class FeedInboundChannelAdapterParserTests {
 	@Ignore // goes against the real feed
 	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageHandler handler = spy((MessageHandler) message -> latch.countDown());
+		MessageHandler handler = spy(message -> latch.countDown());
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);
@@ -172,25 +165,6 @@ public class FeedInboundChannelAdapterParserTests {
 
 		public void receiveFeedEntry(SyndEntry entry) {
 			latch.countDown();
-		}
-
-	}
-
-
-	public static class SampleMetadataStore implements MetadataStore {
-
-		@Override
-		public void put(String key, String value) {
-		}
-
-		@Override
-		public String get(String key) {
-			return null;
-		}
-
-		@Override
-		public String remove(String key) {
-			return null;
 		}
 
 	}

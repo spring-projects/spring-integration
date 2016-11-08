@@ -16,6 +16,7 @@
 
 package org.springframework.integration.feed.inbound;
 
+import java.io.Reader;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -38,6 +40,8 @@ import org.springframework.util.StringUtils;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 
 /**
  * This implementation of {@link MessageSource} will produce individual
@@ -48,24 +52,18 @@ import com.rometools.rome.feed.synd.SyndFeed;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Aaron Loes
+ *
  * @since 2.0
  */
-@SuppressWarnings("deprecation")
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
 
 	private final URL feedUrl;
 
-	private final com.rometools.fetcher.FeedFetcher feedFetcher;
-
-	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
+	private final Resource feedResource;
 
 	private final String metadataKey;
 
-	private volatile MetadataStore metadataStore;
-
-	private volatile long lastTime = -1;
-
-	private volatile boolean initialized;
+	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<>();
 
 	private final Object monitor = new Object();
 
@@ -73,39 +71,72 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Object feedMonitor = new Object();
 
+	private volatile SyndFeedInput syndFeedInput = new SyndFeedInput();
+
+	private boolean syndFeedInputSet;
+
+	private volatile MetadataStore metadataStore;
+
+	private volatile long lastTime = -1;
+
+	private volatile boolean initialized;
+
 
 	/**
 	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
-	 * {@link com.rometools.fetcher.FeedFetcher} via the alternate constructor.
+	 * {@link Resource} via the alternate constructor.
 	 * @param feedUrl The URL.
 	 * @param metadataKey The metadata key.
 	 */
 	public FeedEntryMessageSource(URL feedUrl, String metadataKey) {
-		this(feedUrl, metadataKey,
-				new com.rometools.fetcher.impl.HttpURLFeedFetcher(
-						com.rometools.fetcher.impl.HashMapFeedInfoCache.getInstance()));
+		Assert.notNull(feedUrl, "'feedUrl' must not be null");
+		Assert.notNull(metadataKey, "'metadataKey' must not be null");
+		this.feedUrl = feedUrl;
+		this.metadataKey = metadataKey + "." + feedUrl;
+		this.feedResource = null;
 	}
 
 	/**
-	 * Creates a FeedEntryMessageSource that will use the provided FeedFetcher to read from the given feed URL.
-	 * @param feedUrl The URL.
-	 * @param metadataKey The metadata key.
-	 * @param feedFetcher The feed fetcher.
+	 * Creates a FeedEntryMessageSource that will read feeds from the given {@link Resource}.
+	 * @param feedResource the {@link Resource} to use.
+	 * @param metadataKey the metadata key.
+	 * @since 5.0
 	 */
-	public FeedEntryMessageSource(URL feedUrl, String metadataKey, com.rometools.fetcher.FeedFetcher feedFetcher) {
-		Assert.notNull(feedUrl, "feedUrl must not be null");
-		Assert.notNull(metadataKey, "metadataKey must not be null");
-		Assert.notNull(feedFetcher, "feedFetcher must not be null");
-		this.feedUrl = feedUrl;
-		this.metadataKey = metadataKey + "." + this.feedUrl;
-		this.feedFetcher = feedFetcher;
+	public FeedEntryMessageSource(Resource feedResource, String metadataKey) {
+		Assert.notNull(feedResource, "'feedResource' must not be null");
+		Assert.notNull(metadataKey, "'metadataKey' must not be null");
+		this.feedResource = feedResource;
+		this.metadataKey = metadataKey;
+		this.feedUrl = null;
 	}
 
-
 	public void setMetadataStore(MetadataStore metadataStore) {
-		Assert.notNull(metadataStore, "metadataStore must not be null");
+		Assert.notNull(metadataStore, "'metadataStore' must not be null");
 		this.metadataStore = metadataStore;
+	}
+
+	/**
+	 * Specify a parser for Feed XML documents.
+	 * @param syndFeedInput the {@link SyndFeedInput} to use.
+	 * @since 5.0
+	 */
+	public void setSyndFeedInput(SyndFeedInput syndFeedInput) {
+		Assert.notNull(syndFeedInput, "'syndFeedInput' must not be null");
+		this.syndFeedInput = syndFeedInput;
+		this.syndFeedInputSet = true;
+	}
+
+	/**
+	 * Specify a flag to indication if {@code WireFeed} should be preserved in the target {@link SyndFeed}.
+	 * @param preserveWireFeed the {@code boolean} flag.
+	 * @since 5.0
+	 * @see SyndFeedInput#setPreserveWireFeed(boolean)
+	 */
+	public void setPreserveWireFeed(boolean preserveWireFeed) {
+		Assert.isTrue(!this.syndFeedInputSet,
+				"'preserveWireFeed' must be configured on the provided [" + this.syndFeedInput + "]");
+		this.syndFeedInput.setPreserveWireFeed(preserveWireFeed);
 	}
 
 	@Override
@@ -126,7 +157,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	@Override
 	protected void onInit() throws Exception {
-		this.feedFetcher.addFetcherEventListener(new FeedQueueUpdatingFetcherListener());
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -186,7 +216,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				for (SyndEntry entry : retrievedEntries) {
 					Date entryDate = getLastModifiedDate(entry);
 					if ((entryDate != null && entryDate.getTime() > this.lastTime)
-						|| (entryDate == null && withinNewEntries)) {
+							|| (entryDate == null && withinNewEntries)) {
 						this.entries.add(entry);
 						withinNewEntries = true;
 					}
@@ -196,25 +226,36 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	}
 
 	private SyndFeed getFeed() {
-		SyndFeed feed = null;
 		try {
 			synchronized (this.feedMonitor) {
-				feed = this.feedFetcher.retrieveFeed(this.feedUrl);
+				Reader reader = this.feedUrl != null
+						? new XmlReader(this.feedUrl)
+						: new XmlReader(this.feedResource.getInputStream());
+				SyndFeed feed = this.syndFeedInput.build(reader);
 				if (logger.isDebugEnabled()) {
-					logger.debug("retrieved feed at url '" + this.feedUrl + "'");
+					logger.debug("Retrieved feed for [" + this + "]");
 				}
 				if (feed == null) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("no feeds updated, returning null");
+						logger.debug("No feeds updated for [" + this + "], returning null");
 					}
 				}
+				return feed;
 			}
 		}
 		catch (Exception e) {
-			throw new MessagingException(
-					"Failed to retrieve feed at url '" + this.feedUrl + "'", e);
+			throw new MessagingException("Failed to retrieve feed for '" + this + "'", e);
 		}
-		return feed;
+	}
+
+	@Override
+	public String toString() {
+		return "FeedEntryMessageSource{" +
+				"feedUrl=" + this.feedUrl +
+				", feedResource=" + this.feedResource +
+				", metadataKey='" + this.metadataKey + '\'' +
+				", lastTime=" + this.lastTime +
+				'}';
 	}
 
 	private static Date getLastModifiedDate(SyndEntry entry) {
@@ -222,7 +263,11 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	}
 
 
-	private static class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
+	private static final class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
+
+		SyndEntryPublishedDateComparator() {
+			super();
+		}
 
 		@Override
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
@@ -235,26 +280,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				return 0;
 			}
 			return (date2 == null) ? 1 : 0;
-		}
-
-	}
-
-
-	private class FeedQueueUpdatingFetcherListener implements com.rometools.fetcher.FetcherListener {
-
-		@Override
-		public void fetcherEvent(final com.rometools.fetcher.FetcherEvent event) {
-			String eventType = event.getEventType();
-			if (com.rometools.fetcher.FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
-				}
-			}
-			else if (com.rometools.fetcher.FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
-				}
-			}
 		}
 
 	}

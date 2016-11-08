@@ -40,9 +40,15 @@ See <<gateway-error-handling>> for more information.
 Some inconsistencies with rendering IMAP mail content have been resolved.
 See <<imap-format-important, the note in the Mail-Receiving Channel Adapter Section>> for more information.
 
+==== Feed Changes
+
+Instead of the `com.rometools.fetcher.FeedFetcher`, which is deprecated in ROME, a new `Resource` property has been introduced to the `FeedEntryMessageSource`.
+See <<feed>> for more information.
+
+
 ==== File Changes
 
-The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to prepresent relative path in the `FileReadingMessageSource`.
+The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to represent relative path in the `FileReadingMessageSource`.
 See <<file-reading>> for more information.
 
 ==== (S)FTP Changes
