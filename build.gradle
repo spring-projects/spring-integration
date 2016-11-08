@@ -109,7 +109,7 @@ subprojects { subproject ->
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.1.1'
 		jrubyVersion = '1.7.23'
-		jschVersion = '0.1.52'
+		jschVersion = '0.1.54'
 		jsonpathVersion = '2.2.0'
 		junitVersion = '4.12'
 		jythonVersion = '2.5.3'
