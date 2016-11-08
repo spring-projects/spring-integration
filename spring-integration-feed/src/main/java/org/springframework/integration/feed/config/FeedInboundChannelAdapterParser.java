@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -41,13 +42,31 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 	@Override
 	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(FeedEntryMessageSource.class);
-		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
-		sourceBuilder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
-		String feedFetcherRef = element.getAttribute("feed-fetcher");
-		if (StringUtils.hasText(feedFetcherRef)) {
-			sourceBuilder.addConstructorArgReference(feedFetcherRef);
+
+		String url = element.getAttribute("url");
+		boolean hasUrl = StringUtils.hasText(url);
+
+		String resource = element.getAttribute("resource");
+		boolean hasResource = StringUtils.hasText(resource);
+
+		if (hasUrl == hasResource) {
+			parserContext.getReaderContext().error(
+					"Exactly one of the 'url', 'reader' or 'resource' is required.", element);
 		}
+
+		if (hasUrl) {
+			sourceBuilder.addConstructorArgValue(url);
+		}
+		else if (hasResource) {
+			sourceBuilder.addConstructorArgValue(resource);
+		}
+
+		sourceBuilder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "feed-input", "syndFeedInput");
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(sourceBuilder, element, "preserve-wire-feed");
 
 		return sourceBuilder.getBeanDefinition();
 	}
