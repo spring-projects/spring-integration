@@ -28,8 +28,7 @@ import org.springframework.scheduling.TaskScheduler;
  * @since 5.0
  *
  */
-public class TcpInboundGatewaySpec<S extends TcpInboundGatewaySpec<S>>
-		extends MessagingGatewaySpec<S, TcpInboundGateway> {
+public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway> {
 
 	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactory) {
 		super(new TcpInboundGateway());
@@ -41,7 +40,7 @@ public class TcpInboundGatewaySpec<S extends TcpInboundGatewaySpec<S>>
 	 * @return the spec.
 	 * @see TcpInboundGateway#setClientMode(boolean)
 	 */
-	public S clientMode(boolean isClientMode) {
+	public TcpInboundGatewaySpec clientMode(boolean isClientMode) {
 		this.target.setClientMode(isClientMode);
 		return _this();
 	}
@@ -51,7 +50,7 @@ public class TcpInboundGatewaySpec<S extends TcpInboundGatewaySpec<S>>
 	 * @return the spec.
 	 * @see TcpInboundGateway#setRetryInterval(long)
 	 */
-	public S retryInterval(long retryInterval) {
+	public TcpInboundGatewaySpec retryInterval(long retryInterval) {
 		this.target.setRetryInterval(retryInterval);
 		return _this();
 	}
@@ -61,7 +60,7 @@ public class TcpInboundGatewaySpec<S extends TcpInboundGatewaySpec<S>>
 	 * @return the spec.
 	 * @see TcpInboundGateway#setTaskScheduler(TaskScheduler)
 	 */
-	public S taskScheduler(TaskScheduler taskScheduler) {
+	public TcpInboundGatewaySpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
 	}

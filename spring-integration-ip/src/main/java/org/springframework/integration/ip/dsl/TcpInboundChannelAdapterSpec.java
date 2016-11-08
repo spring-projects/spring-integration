@@ -28,8 +28,8 @@ import org.springframework.scheduling.TaskScheduler;
  * @since 5.0
  *
  */
-public class TcpInboundChannelAdapterSpec<S extends TcpInboundChannelAdapterSpec<S>>
-	extends MessageProducerSpec<S, TcpReceivingChannelAdapter> {
+public class TcpInboundChannelAdapterSpec
+	extends MessageProducerSpec<TcpInboundChannelAdapterSpec, TcpReceivingChannelAdapter> {
 
 	TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactory) {
 		super(new TcpReceivingChannelAdapter());
@@ -41,7 +41,7 @@ public class TcpInboundChannelAdapterSpec<S extends TcpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see TcpReceivingChannelAdapter#setClientMode(boolean)
 	 */
-	public S clientMode(boolean isClientMode) {
+	public TcpInboundChannelAdapterSpec clientMode(boolean isClientMode) {
 		this.target.setClientMode(isClientMode);
 		return _this();
 	}
@@ -51,7 +51,7 @@ public class TcpInboundChannelAdapterSpec<S extends TcpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see TcpReceivingChannelAdapter#setRetryInterval(long)
 	 */
-	public S retryInterval(long retryInterval) {
+	public TcpInboundChannelAdapterSpec retryInterval(long retryInterval) {
 		this.target.setRetryInterval(retryInterval);
 		return _this();
 	}
@@ -61,7 +61,7 @@ public class TcpInboundChannelAdapterSpec<S extends TcpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see TcpReceivingChannelAdapter#setTaskScheduler(TaskScheduler)
 	 */
-	public S taskScheduler(TaskScheduler taskScheduler) {
+	public TcpInboundChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
 	}

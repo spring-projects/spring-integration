@@ -18,7 +18,6 @@ package org.springframework.integration.ip.dsl;
 
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 
 /**
  * Factory methods for TCP.
@@ -47,67 +46,73 @@ public final class Tcp {
 	/**
 	 * Create a server spec that uses NIO.
 	 * @param port the port to listen on.
-	 * @param <S> the spec type.
-	 * @param <C> the connection factrory type.
 	 * @return the spec.
 	 */
-	public static <S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
-			TcpServerConnectionFactorySpec<S, C> nioServer(int port) {
-		return new TcpServerConnectionFactorySpec<>(port, NIO);
+	public static TcpServerConnectionFactorySpec nioServer(int port) {
+		return new TcpServerConnectionFactorySpec(port, NIO);
 	}
 
 	/**
 	 * Create a server spec that does not use NIO.
 	 * @param port the port to listen on.
-	 * @param <S> the spec type.
-	 * @param <C> the connection factrory type.
 	 * @return the spec.
 	 */
-	public static <S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
-			TcpServerConnectionFactorySpec<S, C> netServer(int port) {
-		return new TcpServerConnectionFactorySpec<>(port, NET);
+	public static TcpServerConnectionFactorySpec netServer(int port) {
+		return new TcpServerConnectionFactorySpec(port, NET);
 	}
 
 	/**
 	 * Create a client spec that uses NIO.
 	 * @param host the host to connect to.
 	 * @param port the port to connect to.
-	 * @param <S> the spec type.
-	 * @param <C> the connection factrory type.
 	 * @return the spec.
 	 */
-	public static <S extends TcpClientConnectionFactorySpec<S, C>, C extends AbstractClientConnectionFactory>
-			TcpClientConnectionFactorySpec<S, C> nioClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec<>(host, port, NIO);
+	public static TcpClientConnectionFactorySpec nioClient(String host, int port) {
+		return new TcpClientConnectionFactorySpec(host, port, NIO);
 	}
 
 	/**
 	 * Create a client spec that does not use NIO.
 	 * @param host the host to connect to.
 	 * @param port the port to connect to.
-	 * @param <S> the spec type.
-	 * @param <C> the connection factrory type.
 	 * @return the spec.
 	 */
-	public static <S extends TcpClientConnectionFactorySpec<S, C>, C extends AbstractClientConnectionFactory>
-			TcpClientConnectionFactorySpec<S, C> netClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec<>(host, port, NET);
+	public static TcpClientConnectionFactorySpec netClient(String host, int port) {
+		return new TcpClientConnectionFactorySpec(host, port, NET);
 	}
 
-	public static <S extends TcpInboundGatewaySpec<S>> TcpInboundGatewaySpec<S> inboundGateway(
-			AbstractConnectionFactory connectionFactory) {
-		return new TcpInboundGatewaySpec<>(connectionFactory);
+	/**
+	 * Create an inbound gateway using the supplied connection factory.
+	 * @param connectionFactory the connection factory.
+	 * @return the spec.
+	 */
+	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory) {
+		return new TcpInboundGatewaySpec(connectionFactory);
 	}
 
-	public static <S extends TcpInboundChannelAdapterSpec<S>> TcpInboundChannelAdapterSpec<S> inboundAdapter(
-			AbstractConnectionFactory connectionFactory) {
-		return new TcpInboundChannelAdapterSpec<>(connectionFactory);
+	/**
+	 * Create an inbound channel adapter using the supplied connection factory.
+	 * @param connectionFactory the connection factory.
+	 * @return the spec.
+	 */
+	public static TcpInboundChannelAdapterSpec inboundAdapter(AbstractConnectionFactory connectionFactory) {
+		return new TcpInboundChannelAdapterSpec(connectionFactory);
 	}
 
+	/**
+	 * Create an outbound gateway using the supplied client connection factory.
+	 * @param connectionFactory the connection factory.
+	 * @return the spec.
+	 */
 	public static TcpOutboundGatewaySpec outboundGateway(AbstractClientConnectionFactory connectionFactory) {
 		return new TcpOutboundGatewaySpec(connectionFactory);
 	}
 
+	/**
+	 * Create an outbound gateway using the supplied connection factory.
+	 * @param connectionFactory the connection factory.
+	 * @return the spec.
+	 */
 	public static TcpOutboundChannelAdapterSpec outboundAdapter(AbstractConnectionFactory connectionFactory) {
 		return new TcpOutboundChannelAdapterSpec(connectionFactory);
 	}

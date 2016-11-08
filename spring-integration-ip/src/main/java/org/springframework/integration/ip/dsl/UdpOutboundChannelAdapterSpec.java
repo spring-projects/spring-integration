@@ -103,7 +103,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpression(Expression)
 	 */
-	public UdpOutboundChannelAdapterSpec SocketExpression(Expression socketExpression) {
+	public UdpOutboundChannelAdapterSpec socketExpression(Expression socketExpression) {
 		this.target.setSocketExpression(socketExpression);
 		return _this();
 	}
@@ -113,7 +113,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpressionString(String)
 	 */
-	public UdpOutboundChannelAdapterSpec SocketExpression(String socketExpression) {
+	public UdpOutboundChannelAdapterSpec socketExpression(String socketExpression) {
 		this.target.setSocketExpressionString(socketExpression);
 		return _this();
 	}

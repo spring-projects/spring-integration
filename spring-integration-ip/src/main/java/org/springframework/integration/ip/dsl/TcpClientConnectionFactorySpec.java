@@ -25,21 +25,17 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
  * An {@link IntegrationComponentSpec} for {@link AbstractClientConnectionFactory}s.
  * @author Gary Russell
  *
- * @param <S> the target {@link TcpClientConnectionFactorySpec} implementation type.
- * @param <C> the target {@link AbstractClientConnectionFactory} implementation type.
- *
  * @since 5.0
  *
  */
 public class TcpClientConnectionFactorySpec
-			<S extends TcpClientConnectionFactorySpec<S, C>, C extends AbstractClientConnectionFactory>
-		extends AbstractConnectionFactorySpec<S, AbstractClientConnectionFactory> {
+		extends AbstractConnectionFactorySpec<TcpClientConnectionFactorySpec, AbstractClientConnectionFactory> {
 
 	TcpClientConnectionFactorySpec(String host, int port) {
 		this(host, port, false);
 	}
 
-	public TcpClientConnectionFactorySpec(String host, int port, boolean nio) {
+	TcpClientConnectionFactorySpec(String host, int port, boolean nio) {
 		super(nio ? new TcpNioClientConnectionFactory(host, port) : new TcpNetClientConnectionFactory(host, port));
 	}
 

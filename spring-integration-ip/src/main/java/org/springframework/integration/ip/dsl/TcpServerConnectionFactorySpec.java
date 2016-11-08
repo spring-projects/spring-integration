@@ -25,21 +25,17 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
  * An {@link IntegrationComponentSpec} for {@link AbstractServerConnectionFactory}s.
  * @author Gary Russell
  *
- * @param <S> the target {@link TcpServerConnectionFactorySpec} implementation type.
- * @param <C> the target {@link AbstractServerConnectionFactory} implementation type.
- *
  * @since 5.0
  *
  */
 public class TcpServerConnectionFactorySpec
-			<S extends TcpServerConnectionFactorySpec<S, C>, C extends AbstractServerConnectionFactory>
-		extends AbstractConnectionFactorySpec<S, AbstractServerConnectionFactory> {
+		extends AbstractConnectionFactorySpec<TcpServerConnectionFactorySpec, AbstractServerConnectionFactory> {
 
 	TcpServerConnectionFactorySpec(int port) {
 		this(port, false);
 	}
 
-	public TcpServerConnectionFactorySpec(int port, boolean nio) {
+	TcpServerConnectionFactorySpec(int port, boolean nio) {
 		super(nio ? new TcpNioServerConnectionFactory(port) : new TcpNetServerConnectionFactory(port));
 	}
 
@@ -48,7 +44,7 @@ public class TcpServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see AbstractServerConnectionFactory#setLocalAddress(String)
 	 */
-	public S localAddress(String localAddress) {
+	public TcpServerConnectionFactorySpec localAddress(String localAddress) {
 		this.target.setLocalAddress(localAddress);
 		return _this();
 	}
@@ -58,7 +54,7 @@ public class TcpServerConnectionFactorySpec
 	 * @return the spec.
 	 * @see AbstractServerConnectionFactory#setBacklog(int)
 	 */
-	public S backlog(int backlog) {
+	public TcpServerConnectionFactorySpec backlog(int backlog) {
 		this.target.setBacklog(backlog);
 		return _this();
 	}

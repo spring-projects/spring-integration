@@ -37,7 +37,7 @@ public class UdpMulticastOutboundChannelAdapterSpec extends UdpOutboundChannelAd
 	 * @return the spec.
 	 * @see MulticastSendingMessageHandler#setTimeToLive(int)
 	 */
-	public UdpOutboundChannelAdapterSpec TimeToLive(int timeToLive) {
+	public UdpOutboundChannelAdapterSpec timeToLive(int timeToLive) {
 		((MulticastSendingMessageHandler) this.target).setTimeToLive(timeToLive);
 		return _this();
 	}

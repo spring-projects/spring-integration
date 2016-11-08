@@ -33,6 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -43,7 +44,6 @@ import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -100,7 +100,7 @@ public class IpIntegrationTests {
 		handler.handleMessage(new GenericMessage<>("foo"));
 		Message<?> receivedMessage = received.receive(10000);
 		assertNotNull(receivedMessage);
-		assertEquals("foo", new ObjectToStringTransformer().transform(receivedMessage).getPayload());
+		assertEquals("foo", Transformers.objectToString().transform(receivedMessage).getPayload());
 		client.stop();
 		server.stop();
 	}
@@ -111,7 +111,7 @@ public class IpIntegrationTests {
 		this.client1.setPort(this.server1.getPort());
 		IntegrationFlow flow = f -> f
 				.handle(Tcp.outboundGateway(this.client1))
-				.transform(new ObjectToStringTransformer());
+				.transform(Transformers.objectToString());
 		IntegrationFlowRegistration theFlow = this.flowContext.registration(flow).register();
 		assertThat(theFlow.getMessagingTemplate().convertSendAndReceive("foo", String.class), equalTo("FOO"));
 	}
@@ -125,7 +125,7 @@ public class IpIntegrationTests {
 		this.udpOut.send(outMessage);
 		Message<?> received = this.udpIn.receive(10000);
 		assertNotNull(received);
-		assertEquals("foo", new ObjectToStringTransformer().transform(received).getPayload());
+		assertEquals("foo", Transformers.objectToString().transform(received).getPayload());
 	}
 
 	@Configuration
@@ -151,7 +151,7 @@ public class IpIntegrationTests {
 		@Bean
 		public IntegrationFlow inTcpGateway() {
 			return IntegrationFlows.from(Tcp.inboundGateway(server1()))
-					.transform(new ObjectToStringTransformer())
+					.transform(Transformers.objectToString())
 					.<String, String>transform(String::toUpperCase)
 					.get();
 		}

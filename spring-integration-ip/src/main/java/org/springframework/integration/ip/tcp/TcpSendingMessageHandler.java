@@ -267,6 +267,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				if (this.scheduledFuture != null) {
 					this.scheduledFuture.cancel(true);
 				}
+				this.clientModeConnectionManager = null;
 				if (this.clientConnectionFactory != null) {
 					this.clientConnectionFactory.stop();
 				}
@@ -280,24 +281,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	@Override
 	public boolean isRunning() {
 		return this.active;
-	}
-
-	public void stop(Runnable callback) {
-		synchronized (this.lifecycleMonitor) {
-			if (this.active) {
-				this.active = false;
-				if (this.scheduledFuture != null) {
-					this.scheduledFuture.cancel(true);
-				}
-				this.clientModeConnectionManager = null;
-				if (this.clientConnectionFactory != null) {
-					this.clientConnectionFactory.stop();
-				}
-				if (this.serverConnectionFactory != null) {
-					this.serverConnectionFactory.stop();
-				}
-			}
-		}
 	}
 
 	/**

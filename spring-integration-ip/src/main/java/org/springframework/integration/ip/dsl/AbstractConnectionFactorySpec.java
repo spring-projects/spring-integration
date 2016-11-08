@@ -39,15 +39,14 @@ public abstract class AbstractConnectionFactorySpec
 			<S extends AbstractConnectionFactorySpec<S, C>, C extends AbstractConnectionFactory>
 		extends IntegrationComponentSpec<S, C> {
 
-	protected C target;
-
-	public AbstractConnectionFactorySpec(C connectionFactory) {
+	AbstractConnectionFactorySpec(C connectionFactory) {
 		this.target = connectionFactory;
 	}
 
 	@Override
 	public S id(String id) {
-		return super.id(id);
+		this.target.setBeanName(id);
+		return _this();
 	}
 
 	/**
@@ -219,14 +218,6 @@ public abstract class AbstractConnectionFactorySpec
 	public S tcpSocketSupport(TcpSocketSupport tcpSocketSupport) {
 		this.target.setTcpSocketSupport(tcpSocketSupport);
 		return _this();
-	}
-
-	@Override
-	protected C doGet() {
-		if (getId() != null) {
-			this.target.setBeanName(getId());
-		}
-		return this.target;
 	}
 
 }

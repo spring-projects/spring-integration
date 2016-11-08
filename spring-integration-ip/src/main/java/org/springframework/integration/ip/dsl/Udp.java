@@ -29,22 +29,20 @@ public final class Udp {
 		super();
 	}
 
-	public static <S extends UdpInboundChannelAdapterSpec<S>> UdpInboundChannelAdapterSpec<S> inboundAdapter(
-			int port) {
-		return new UdpInboundChannelAdapterSpec<>(port);
+	public static UdpInboundChannelAdapterSpec inboundAdapter(int port) {
+		return new UdpInboundChannelAdapterSpec(port);
 	}
 
-	public static <S extends UdpInboundChannelAdapterSpec<S>> UdpInboundChannelAdapterSpec<S> inboundMulticastAdapter(
-			int port, String multicastGroup) {
-		return new UdpInboundChannelAdapterSpec<>(port, multicastGroup);
+	public static UdpInboundChannelAdapterSpec inboundMulticastAdapter(int port, String multicastGroup) {
+		return new UdpInboundChannelAdapterSpec(port, multicastGroup);
 	}
 
 	public static UdpOutboundChannelAdapterSpec outboundAdapter(String destinationExpression) {
 		return new UdpOutboundChannelAdapterSpec(destinationExpression);
 	}
 
-	public static UdpOutboundChannelAdapterSpec outboundMultcastAdapter(String destinationExpression) {
-		return new UdpOutboundChannelAdapterSpec(destinationExpression);
+	public static UdpOutboundChannelAdapterSpec outboundMulticastAdapter(String destinationExpression) {
+		return new UdpMulticastOutboundChannelAdapterSpec(destinationExpression);
 	}
 
 }

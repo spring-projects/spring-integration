@@ -25,14 +25,14 @@ import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
- * A {@link MessageProducerSpec} for {@link UnicastReceivingChannelAdapter}s.
+ * A {@link MessageProducerSpec} for {@link UnicastReceivingChannelAdapter}UdpInboundChannelAdapterSpec.
  *
  * @author Gary Russell
  * @since 5.0
  *
  */
-public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec<S>>
-	extends MessageProducerSpec<S, UnicastReceivingChannelAdapter> {
+public class UdpInboundChannelAdapterSpec
+		extends MessageProducerSpec<UdpInboundChannelAdapterSpec, UnicastReceivingChannelAdapter> {
 
 	UdpInboundChannelAdapterSpec(int port) {
 		super(new UnicastReceivingChannelAdapter(port));
@@ -47,7 +47,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSoTimeout(int)
 	 */
-	public S soTimeout(int soTimeout) {
+	public UdpInboundChannelAdapterSpec soTimeout(int soTimeout) {
 		this.target.setSoTimeout(soTimeout);
 		return _this();
 	}
@@ -57,7 +57,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setTaskScheduler(TaskScheduler)
 	 */
-	public S taskScheduler(TaskScheduler taskScheduler) {
+	public UdpInboundChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
 	}
@@ -67,7 +67,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSoReceiveBufferSize(int)
 	 */
-	public S soReceiveBufferSize(int soReceiveBufferSize) {
+	public UdpInboundChannelAdapterSpec soReceiveBufferSize(int soReceiveBufferSize) {
 		this.target.setSoReceiveBufferSize(soReceiveBufferSize);
 		return _this();
 	}
@@ -77,7 +77,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setReceiveBufferSize(int)
 	 */
-	public S receiveBufferSize(int receiveBufferSize) {
+	public UdpInboundChannelAdapterSpec receiveBufferSize(int receiveBufferSize) {
 		this.target.setReceiveBufferSize(receiveBufferSize);
 		return _this();
 	}
@@ -87,7 +87,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setLengthCheck(boolean)
 	 */
-	public S lengthCheck(boolean lengthCheck) {
+	public UdpInboundChannelAdapterSpec lengthCheck(boolean lengthCheck) {
 		this.target.setLengthCheck(lengthCheck);
 		return _this();
 	}
@@ -97,7 +97,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setLocalAddress(String)
 	 */
-	public S localAddress(String localAddress) {
+	public UdpInboundChannelAdapterSpec localAddress(String localAddress) {
 		this.target.setLocalAddress(localAddress);
 		return _this();
 	}
@@ -107,7 +107,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setPoolSize(int)
 	 */
-	public S poolSize(int poolSize) {
+	public UdpInboundChannelAdapterSpec poolSize(int poolSize) {
 		this.target.setPoolSize(poolSize);
 		return _this();
 	}
@@ -117,7 +117,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setTaskExecutor(Executor)
 	 */
-	public S TaskExecutor(Executor taskExecutor) {
+	public UdpInboundChannelAdapterSpec taskExecutor(Executor taskExecutor) {
 		this.target.setTaskExecutor(taskExecutor);
 		return _this();
 	}
@@ -127,7 +127,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSocket(DatagramSocket)
 	 */
-	public S socket(DatagramSocket socket) {
+	public UdpInboundChannelAdapterSpec socket(DatagramSocket socket) {
 		this.target.setSocket(socket);
 		return _this();
 	}
@@ -137,7 +137,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSoSendBufferSize(int)
 	 */
-	public S soSendBufferSize(int soSendBufferSize) {
+	public UdpInboundChannelAdapterSpec soSendBufferSize(int soSendBufferSize) {
 		this.target.setSoSendBufferSize(soSendBufferSize);
 		return _this();
 	}
@@ -147,7 +147,7 @@ public class UdpInboundChannelAdapterSpec<S extends UdpInboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setLookupHost(boolean)
 	 */
-	public S LookupHost(boolean lookupHost) {
+	public UdpInboundChannelAdapterSpec lookupHost(boolean lookupHost) {
 		this.target.setLookupHost(lookupHost);
 		return _this();
 	}
