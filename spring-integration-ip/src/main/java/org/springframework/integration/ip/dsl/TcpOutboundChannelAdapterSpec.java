@@ -38,10 +38,24 @@ public class TcpOutboundChannelAdapterSpec
 
 	private final AbstractConnectionFactory connectionFactory;
 
-	TcpOutboundChannelAdapterSpec(AbstractConnectionFactory connectionFactory) {
+	/**
+	 * Construct an instance using an existing spring-managed connection factory.
+	 * @param connectionFactoryBean the spring-managed bean.
+	 */
+	TcpOutboundChannelAdapterSpec(AbstractConnectionFactory connectionFactoryBean) {
 		this.target = new TcpSendingMessageHandler();
-		this.connectionFactory = connectionFactory;
-		this.target.setConnectionFactory(connectionFactory);
+		this.connectionFactory = null;
+		this.target.setConnectionFactory(connectionFactoryBean);
+	}
+
+	/**
+	 * Construct an instance using the provided connection factory spec.
+	 * @param connectionFactorySpec the spec.
+	 */
+	TcpOutboundChannelAdapterSpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		this.target = new TcpSendingMessageHandler();
+		this.connectionFactory = connectionFactorySpec.get();
+		this.target.setConnectionFactory(this.connectionFactory);
 	}
 
 	/**
@@ -76,7 +90,8 @@ public class TcpOutboundChannelAdapterSpec
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return Collections.singletonList(this.connectionFactory);
+		return this.connectionFactory == null ? Collections.emptyList()
+				: Collections.singletonList(this.connectionFactory);
 	}
 
 }

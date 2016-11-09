@@ -39,10 +39,24 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 
 	private final AbstractClientConnectionFactory connectionFactory;
 
-	public TcpOutboundGatewaySpec(AbstractClientConnectionFactory connectionFactory) {
+	/**
+	 * Construct an instance using an existing spring-managed connection factory.
+	 * @param connectionFactoryBean the spring-managed bean.
+	 */
+	public TcpOutboundGatewaySpec(AbstractClientConnectionFactory connectionFactoryBean) {
 		this.target = new TcpOutboundGateway();
-		this.connectionFactory = connectionFactory;
-		this.target.setConnectionFactory(connectionFactory);
+		this.connectionFactory = null;
+		this.target.setConnectionFactory(connectionFactoryBean);
+	}
+
+	/**
+	 * Construct an instance using the supplied connection factory spec.
+	 * @param connectionFactorySpec the spec.
+	 */
+	public TcpOutboundGatewaySpec(TcpClientConnectionFactorySpec connectionFactorySpec) {
+		this.target = new TcpOutboundGateway();
+		this.connectionFactory = connectionFactorySpec.get();
+		this.target.setConnectionFactory(this.connectionFactory);
 	}
 
 	/**
@@ -75,7 +89,8 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return Collections.singletonList(this.connectionFactory);
+		return this.connectionFactory == null ? Collections.emptyList()
+				: Collections.singletonList(this.connectionFactory);
 	}
 
 }

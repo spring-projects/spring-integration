@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.net.DatagramSocket;
 import java.util.function.Function;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -39,6 +40,10 @@ public class UdpOutboundChannelAdapterSpec
 
 	UdpOutboundChannelAdapterSpec(String destinationExpression) {
 		this.target = new UnicastSendingMessageHandler(destinationExpression);
+	}
+
+	UdpOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
+		this.target = new UnicastSendingMessageHandler(new FunctionExpression<>(destinationFunction));
 	}
 
 	/**
@@ -102,12 +107,12 @@ public class UdpOutboundChannelAdapterSpec
 	}
 
 	/**
-	 * @param socketExpressionFunction the socket expression.
+	 * @param socketFunction the socket function.
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpression(org.springframework.expression.Expression)
 	 */
-	public UdpOutboundChannelAdapterSpec socketExpression(Function<Message<?>, ?> socketExpressionFunction) {
-		this.target.setSocketExpression(new FunctionExpression<>(socketExpressionFunction));
+	public UdpOutboundChannelAdapterSpec socketExpression(Function<Message<?>, DatagramSocket> socketFunction) {
+		this.target.setSocketExpression(new FunctionExpression<>(socketFunction));
 		return _this();
 	}
 

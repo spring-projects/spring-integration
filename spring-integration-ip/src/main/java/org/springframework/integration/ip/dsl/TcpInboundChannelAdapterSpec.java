@@ -38,10 +38,24 @@ public class TcpInboundChannelAdapterSpec
 
 	private final AbstractConnectionFactory connectionFactory;
 
-	TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactory) {
+	/**
+	 * Construct an instance using an existing spring-managed connection factory.
+	 * @param connectionFactoryBean the spring-managed bean.
+	 */
+	TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactoryBean) {
 		super(new TcpReceivingChannelAdapter());
-		this.connectionFactory = connectionFactory;
-		this.target.setConnectionFactory(connectionFactory);
+		this.connectionFactory = null;
+		this.target.setConnectionFactory(connectionFactoryBean);
+	}
+
+	/**
+	 * Construct an instance using the provided connection factory spec.
+	 * @param connectionFactorySpec the spec.
+	 */
+	TcpInboundChannelAdapterSpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		super(new TcpReceivingChannelAdapter());
+		this.connectionFactory = connectionFactorySpec.get();
+		this.target.setConnectionFactory(this.connectionFactory);
 	}
 
 	/**
@@ -76,7 +90,8 @@ public class TcpInboundChannelAdapterSpec
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return Collections.singletonList(this.connectionFactory);
+		return this.connectionFactory == null ? Collections.emptyList()
+				: Collections.singletonList(this.connectionFactory);
 	}
 
 }

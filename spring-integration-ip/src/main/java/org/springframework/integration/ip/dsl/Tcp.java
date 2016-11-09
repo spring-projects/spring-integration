@@ -83,7 +83,8 @@ public final class Tcp {
 
 	/**
 	 * Create an inbound gateway using the supplied connection factory.
-	 * @param connectionFactory the connection factory.
+	 * @param connectionFactory the connection factory - must be an existing bean - it
+	 * will not be initialized.
 	 * @return the spec.
 	 */
 	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactory connectionFactory) {
@@ -91,8 +92,18 @@ public final class Tcp {
 	}
 
 	/**
+	 * Create an inbound gateway using the supplied connection factory.
+	 * @param connectionFactorySpec the connection factory spec.
+	 * @return the spec.
+	 */
+	public static TcpInboundGatewaySpec inboundGateway(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		return new TcpInboundGatewaySpec(connectionFactorySpec);
+	}
+
+	/**
 	 * Create an inbound channel adapter using the supplied connection factory.
-	 * @param connectionFactory the connection factory.
+	 * @param connectionFactory the connection factory - must be an existing bean - it
+	 * will not be initialized.
 	 * @return the spec.
 	 */
 	public static TcpInboundChannelAdapterSpec inboundAdapter(AbstractConnectionFactory connectionFactory) {
@@ -100,8 +111,19 @@ public final class Tcp {
 	}
 
 	/**
+	 * Create an inbound channel adapter using the supplied connection factory.
+	 * @param connectionFactorySpec the connection factory spec.
+	 * @return the spec.
+	 */
+	public static TcpInboundChannelAdapterSpec inboundAdapter(
+			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		return new TcpInboundChannelAdapterSpec(connectionFactorySpec);
+	}
+
+	/**
 	 * Create an outbound gateway using the supplied client connection factory.
-	 * @param connectionFactory the connection factory.
+	 * @param connectionFactory the connection factory - must be an existing bean - it
+	 * will not be initialized.
 	 * @return the spec.
 	 */
 	public static TcpOutboundGatewaySpec outboundGateway(AbstractClientConnectionFactory connectionFactory) {
@@ -109,12 +131,32 @@ public final class Tcp {
 	}
 
 	/**
+	 * Create an outbound gateway using the supplied client connection factory.
+	 * @param connectionFactory the connection factory spec.
+	 * @return the spec.
+	 */
+	public static TcpOutboundGatewaySpec outboundGateway(TcpClientConnectionFactorySpec connectionFactory) {
+		return new TcpOutboundGatewaySpec(connectionFactory);
+	}
+
+	/**
 	 * Create an outbound gateway using the supplied connection factory.
-	 * @param connectionFactory the connection factory.
+	 * @param connectionFactory the connection factory - must be an existing bean - it
+	 * will not be initialized.
 	 * @return the spec.
 	 */
 	public static TcpOutboundChannelAdapterSpec outboundAdapter(AbstractConnectionFactory connectionFactory) {
 		return new TcpOutboundChannelAdapterSpec(connectionFactory);
+	}
+
+	/**
+	 * Create an outbound gateway using the supplied connection factory.
+	 * @param connectionFactorySpec the connection factory.
+	 * @return the spec.
+	 */
+	public static TcpOutboundChannelAdapterSpec outboundAdapter(
+			AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		return new TcpOutboundChannelAdapterSpec(connectionFactorySpec);
 	}
 
 }

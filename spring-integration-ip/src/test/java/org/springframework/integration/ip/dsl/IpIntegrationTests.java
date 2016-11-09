@@ -109,8 +109,7 @@ public class IpIntegrationTests {
 				.handle(Tcp.outboundGateway(Tcp.netClient("localhost", this.server1.getPort())
 						.serializer(TcpCodecs.crlf())
 						.deserializer(TcpCodecs.lengthHeader1())
-						.id("client1")
-						.get())
+						.id("client1"))
 					.remoteTimeout(m -> 5000))
 				.transform(Transformers.objectToString());
 		IntegrationFlowRegistration theFlow = this.flowContext.registration(flow).register();

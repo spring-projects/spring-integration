@@ -37,10 +37,24 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 
 	private final AbstractConnectionFactory connectionFactory;
 
-	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactory) {
+	/**
+	 * Construct an instance using an existing spring-managed connection factory.
+	 * @param connectionFactoryBean the spring-managed bean.
+	 */
+	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactoryBean) {
 		super(new TcpInboundGateway());
-		this.connectionFactory = connectionFactory;
-		this.target.setConnectionFactory(connectionFactory);
+		this.connectionFactory = null;
+		this.target.setConnectionFactory(connectionFactoryBean);
+	}
+
+	/**
+	 * Construct an instance using a connection factory spec.
+	 * @param connectionFactorySpec the spec.
+	 */
+	TcpInboundGatewaySpec(AbstractConnectionFactorySpec<?, ?> connectionFactorySpec) {
+		super(new TcpInboundGateway());
+		this.connectionFactory = connectionFactorySpec.get();
+		this.target.setConnectionFactory(this.connectionFactory);
 	}
 
 	/**
@@ -75,7 +89,8 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return Collections.singletonList(this.connectionFactory);
+		return this.connectionFactory == null ? Collections.emptyList()
+				: Collections.singletonList(this.connectionFactory);
 	}
 
 }
