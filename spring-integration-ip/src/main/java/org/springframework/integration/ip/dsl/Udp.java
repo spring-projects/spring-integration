@@ -29,19 +29,43 @@ public final class Udp {
 		super();
 	}
 
+	/**
+	 * Create an inbound unicast channel adapter using the supplied port.
+	 * @param port the port.
+	 * @return the spec.
+	 */
 	public static UdpInboundChannelAdapterSpec inboundAdapter(int port) {
 		return new UdpInboundChannelAdapterSpec(port);
 	}
 
+	/**
+	 * Create an inbound multicast channel adapter using the supplied port and
+	 * group.
+	 * @param port the port.
+	 * @param multicastGroup the group.
+	 * @return the spec.
+	 */
 	public static UdpInboundChannelAdapterSpec inboundMulticastAdapter(int port, String multicastGroup) {
 		return new UdpInboundChannelAdapterSpec(port, multicastGroup);
 	}
 
+	/**
+	 * Create an inbound unicast channel adapter using the supplied destination
+	 * expression.
+	 * @param destinationExpression destination expression.
+	 * @return the spec.
+	 */
 	public static UdpOutboundChannelAdapterSpec outboundAdapter(String destinationExpression) {
 		return new UdpOutboundChannelAdapterSpec(destinationExpression);
 	}
 
-	public static UdpOutboundChannelAdapterSpec outboundMulticastAdapter(String destinationExpression) {
+	/**
+	 * Create an inbound multicast channel adapter using the supplied destination
+	 * expression.
+	 * @param destinationExpression destination expression.
+	 * @return the spec.
+	 */
+	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(String destinationExpression) {
 		return new UdpMulticastOutboundChannelAdapterSpec(destinationExpression);
 	}
 

@@ -25,7 +25,7 @@ import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
- * A {@link MessageProducerSpec} for {@link UnicastReceivingChannelAdapter}UdpInboundChannelAdapterSpec.
+ * A {@link MessageProducerSpec} for {@link UnicastReceivingChannelAdapter}s.
  *
  * @author Gary Russell
  * @since 5.0
@@ -133,7 +133,7 @@ public class UdpInboundChannelAdapterSpec
 	}
 
 	/**
-	 * @param soSendBufferSize set the send bufffer size socket option.
+	 * @param soSendBufferSize set the send buffer size socket option.
 	 * @return the spec.
 	 * @see UnicastReceivingChannelAdapter#setSoSendBufferSize(int)
 	 */

@@ -16,13 +16,12 @@
 
 package org.springframework.integration.ip.dsl;
 
-import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 
 /**
- * An {@link IntegrationComponentSpec} for {@link AbstractClientConnectionFactory}s.
+ * An {@link AbstractConnectionFactorySpec} for {@link AbstractClientConnectionFactory}s.
  * @author Gary Russell
  *
  * @since 5.0

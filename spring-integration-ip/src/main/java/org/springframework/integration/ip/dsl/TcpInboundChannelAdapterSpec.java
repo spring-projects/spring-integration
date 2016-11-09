@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -29,10 +33,14 @@ import org.springframework.scheduling.TaskScheduler;
  *
  */
 public class TcpInboundChannelAdapterSpec
-	extends MessageProducerSpec<TcpInboundChannelAdapterSpec, TcpReceivingChannelAdapter> {
+		extends MessageProducerSpec<TcpInboundChannelAdapterSpec, TcpReceivingChannelAdapter>
+		implements ComponentsRegistration {
+
+	private final AbstractConnectionFactory connectionFactory;
 
 	TcpInboundChannelAdapterSpec(AbstractConnectionFactory connectionFactory) {
 		super(new TcpReceivingChannelAdapter());
+		this.connectionFactory = connectionFactory;
 		this.target.setConnectionFactory(connectionFactory);
 	}
 
@@ -64,6 +72,11 @@ public class TcpInboundChannelAdapterSpec
 	public TcpInboundChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return Collections.singletonList(this.connectionFactory);
 	}
 
 }

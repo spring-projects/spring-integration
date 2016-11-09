@@ -63,9 +63,6 @@ public class IpIntegrationTests {
 	private AbstractServerConnectionFactory server1;
 
 	@Autowired
-	private AbstractClientConnectionFactory client1;
-
-	@Autowired
 	private IntegrationFlowContext flowContext;
 
 	@Autowired
@@ -108,9 +105,13 @@ public class IpIntegrationTests {
 	@Test
 	public void testTcpGateways() {
 		TestingUtilities.waitListening(this.server1, null);
-		this.client1.setPort(this.server1.getPort());
 		IntegrationFlow flow = f -> f
-				.handle(Tcp.outboundGateway(this.client1))
+				.handle(Tcp.outboundGateway(Tcp.netClient("localhost", this.server1.getPort())
+						.serializer(TcpCodecs.crlf())
+						.deserializer(TcpCodecs.lengthHeader1())
+						.id("client1")
+						.get())
+					.remoteTimeout(m -> 5000))
 				.transform(Transformers.objectToString());
 		IntegrationFlowRegistration theFlow = this.flowContext.registration(flow).register();
 		assertThat(theFlow.getMessagingTemplate().convertSendAndReceive("foo", String.class), equalTo("FOO"));
@@ -137,14 +138,6 @@ public class IpIntegrationTests {
 			return Tcp.netServer(0)
 					.serializer(TcpCodecs.lengthHeader1())
 					.deserializer(TcpCodecs.crlf())
-					.get();
-		}
-
-		@Bean
-		public AbstractClientConnectionFactory client1() {
-			return Tcp.netClient("localhost", 0)
-					.serializer(TcpCodecs.crlf())
-					.deserializer(TcpCodecs.lengthHeader1())
 					.get();
 		}
 

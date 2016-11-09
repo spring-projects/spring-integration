@@ -16,9 +16,13 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.function.Function;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.messaging.Message;
 
 /**
  * A {@link MessageHandlerSpec} for {@link UnicastSendingMessageHandler}s.
@@ -103,8 +107,8 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpression(Expression)
 	 */
-	public UdpOutboundChannelAdapterSpec socketExpression(Expression socketExpression) {
-		this.target.setSocketExpression(socketExpression);
+	public UdpOutboundChannelAdapterSpec socketExpression(Function<Message<?>, ?> socketExpressionFunction) {
+		this.target.setSocketExpression(new FunctionExpression<>(socketExpressionFunction));
 		return _this();
 	}
 

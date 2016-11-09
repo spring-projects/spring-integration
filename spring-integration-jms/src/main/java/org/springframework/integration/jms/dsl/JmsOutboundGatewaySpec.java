@@ -108,7 +108,7 @@ public class JmsOutboundGatewaySpec extends MessageHandlerSpec<JmsOutboundGatewa
 	}
 
 	/**
-	 * Configure a {@link Function} that will be invoked at run time to determine the destination to
+	 * Configure a {@link Function} that will be invoked at runtime to determine the destination to
 	 * which a message will be sent. Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code

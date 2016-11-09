@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -28,10 +32,14 @@ import org.springframework.scheduling.TaskScheduler;
  * @since 5.0
  *
  */
-public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway> {
+public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewaySpec, TcpInboundGateway>
+		implements ComponentsRegistration {
+
+	private final AbstractConnectionFactory connectionFactory;
 
 	TcpInboundGatewaySpec(AbstractConnectionFactory connectionFactory) {
 		super(new TcpInboundGateway());
+		this.connectionFactory = connectionFactory;
 		this.target.setConnectionFactory(connectionFactory);
 	}
 
@@ -63,6 +71,11 @@ public class TcpInboundGatewaySpec extends MessagingGatewaySpec<TcpInboundGatewa
 	public TcpInboundGatewaySpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return Collections.singletonList(this.connectionFactory);
 	}
 
 }

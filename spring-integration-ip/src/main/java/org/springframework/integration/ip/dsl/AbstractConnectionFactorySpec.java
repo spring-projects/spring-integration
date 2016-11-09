@@ -50,7 +50,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soTimeout the socket timeout option.
+	 * @param soTimeout the timeout socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoTimeout(int)
 	 */
@@ -60,7 +60,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soReceiveBufferSize the socket receive buffer size option.
+	 * @param soReceiveBufferSize the receive buffer size socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoReceiveBufferSize(int)
 	 */
@@ -70,7 +70,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soSendBufferSize the socket send buffer size option.
+	 * @param soSendBufferSize the send buffer size socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoSendBufferSize(int)
 	 */
@@ -80,7 +80,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soTcpNoDelay the socket TCP no delay option (disable Nagle's algorithm).
+	 * @param soTcpNoDelay the TCP no delay socket option (disable Nagle's algorithm).
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoTcpNoDelay(boolean)
 	 */
@@ -90,7 +90,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soLinger the socket linger option.
+	 * @param soLinger the linger socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoLinger(int)
 	 */
@@ -100,7 +100,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soKeepAlive the socket keepalive option.
+	 * @param soKeepAlive the keep alive socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoKeepAlive(boolean)
 	 */
@@ -110,7 +110,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param soTrafficClass the socket traffic class option.
+	 * @param soTrafficClass the traffic class socket option.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setSoTrafficClass(int)
 	 */
@@ -120,7 +120,7 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param taskExecutor the task excecutor.
+	 * @param taskExecutor the task executor.
 	 * @return the spec.
 	 * @see AbstractConnectionFactory#setTaskExecutor(Executor)
 	 */
@@ -160,13 +160,12 @@ public abstract class AbstractConnectionFactorySpec
 	}
 
 	/**
-	 * @param keepOpen true to keep the socket open for additional messages; inverse
-	 * of {@link AbstractConnectionFactory#setSingleUse(boolean)}.
+	 * @param leaveOpen true to leave the socket open for additional messages.
 	 * @return the spec.
-	 * @see AbstractConnectionFactory#setSingleUse(boolean)
+	 * @see AbstractConnectionFactory#setLeaveOpen(boolean)
 	 */
-	public S keepOpen(boolean keepOpen) {
-		this.target.setSingleUse(!keepOpen);
+	public S leaveOpen(boolean leaveOpen) {
+		this.target.setLeaveOpen(leaveOpen);
 		return _this();
 	}
 

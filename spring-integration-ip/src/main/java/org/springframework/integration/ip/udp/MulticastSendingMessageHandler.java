@@ -103,7 +103,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * Construct MulticastSendingMessageHandler based on the destination SpEL expression to
 	 * determine the target destination at runtime against requestMessage.
 	 * @param destinationExpression the SpEL expression to evaluate the target destination
 	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
@@ -114,7 +114,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	/**
-	 * Construct UnicastSendingMessageHandler based on the destination SpEL expression to
+	 * Construct MulticastSendingMessageHandler based on the destination SpEL expression to
 	 * determine the target destination at runtime against requestMessage.
 	 * @param destinationExpression the SpEL expression to evaluate the target destination
 	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.

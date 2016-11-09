@@ -414,6 +414,15 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.singleUse = singleUse;
 	}
 
+	/**
+	 * If true, sockets created by this factory will be reused.
+	 * Inverse of {@link #setSingleUse(boolean)}.
+	 * @param leaveOpen The keepOpen to set.
+	 * @since 5.0
+	 */
+	public void setLeaveOpen(boolean leaveOpen) {
+		this.singleUse = !leaveOpen;
+	}
 
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.interceptorFactoryChain = interceptorFactoryChain;

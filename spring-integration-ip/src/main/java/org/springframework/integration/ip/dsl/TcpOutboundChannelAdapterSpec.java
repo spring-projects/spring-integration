@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -29,10 +33,14 @@ import org.springframework.scheduling.TaskScheduler;
  *
  */
 public class TcpOutboundChannelAdapterSpec
-		extends MessageHandlerSpec<TcpOutboundChannelAdapterSpec, TcpSendingMessageHandler> {
+		extends MessageHandlerSpec<TcpOutboundChannelAdapterSpec, TcpSendingMessageHandler>
+		implements ComponentsRegistration {
+
+	private final AbstractConnectionFactory connectionFactory;
 
 	TcpOutboundChannelAdapterSpec(AbstractConnectionFactory connectionFactory) {
 		this.target = new TcpSendingMessageHandler();
+		this.connectionFactory = connectionFactory;
 		this.target.setConnectionFactory(connectionFactory);
 	}
 
@@ -64,6 +72,11 @@ public class TcpOutboundChannelAdapterSpec
 	public TcpOutboundChannelAdapterSpec taskScheduler(TaskScheduler taskScheduler) {
 		this.target.setTaskScheduler(taskScheduler);
 		return _this();
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		return Collections.singletonList(this.connectionFactory);
 	}
 
 }
