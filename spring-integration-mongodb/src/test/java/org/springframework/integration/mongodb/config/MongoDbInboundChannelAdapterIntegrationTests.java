@@ -35,12 +35,12 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,7 +62,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	private MongoTemplate mongoTemplate;
 
 	@Autowired
-	private PollableChannel replyChannel;
+	private QueueChannel replyChannel;
 
 	@Autowired
 	@Qualifier("mongoInboundAdapter")
@@ -106,6 +106,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertNotNull(this.replyChannel.receive(10000));
 
 		this.mongoInboundAdapter.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -121,6 +122,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().get(0).get("name"));
 
 		this.mongoInboundAdapterNamedFactory.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -136,6 +138,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().getName());
 
 		this.mongoInboundAdapterWithTemplate.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -151,6 +154,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().get(0).getName());
 
 		this.mongoInboundAdapterWithNamedCollection.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -166,6 +170,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().get(0).getName());
 
 		this.mongoInboundAdapterWithNamedCollectionExpression.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -181,6 +186,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.inboundAdapterWithOnSuccessDisposition.stop();
 
 		assertNull(this.mongoTemplate.findOne(new Query(Criteria.where("name").is("Bob")), Person.class, "data"));
+		this.replyChannel.purge(null);
 	}
 
 	@Test
@@ -197,6 +203,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertNotNull(replyChannel.receive(10000));
 
 		this.mongoInboundAdapterWithConverter.stop();
+		this.replyChannel.purge(null);
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
