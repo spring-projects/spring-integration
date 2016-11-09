@@ -16,11 +16,11 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -45,7 +45,6 @@ public class AutoStartTests {
 
 	@Test
 	public void testNetIn() throws Exception {
-		assertFalse(cfS1.isAutoStartup());
 		DirectFieldAccessor dfa = new DirectFieldAccessor(cfS1);
 		assertNull(dfa.getPropertyValue("serverSocket"));
 		startAndStop();

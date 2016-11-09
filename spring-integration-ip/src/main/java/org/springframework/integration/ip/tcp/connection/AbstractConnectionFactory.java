@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -60,7 +59,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, SmartLifecycle, ApplicationEventPublisherAware {
+		implements ConnectionFactory, ApplicationEventPublisherAware {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -276,10 +275,30 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
+	 * Set the host; requires the factory to be stopped.
+	 * @param host the host.
+	 * @since 5.0
+	 */
+	public void setHost(String host) {
+		Assert.state(!isRunning(), "Cannot change the host while running");
+		this.host = host;
+	}
+
+	/**
 	 * @return the host
 	 */
 	public String getHost() {
 		return this.host;
+	}
+
+	/**
+	 * Set the port; requires the factory to be stopped.
+	 * @param port the port.
+	 * @since 5.0
+	 */
+	public void setPort(int port) {
+		Assert.state(!isRunning(), "Cannot change the host while running");
+		this.port = port;
 	}
 
 	/**
@@ -395,6 +414,15 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.singleUse = singleUse;
 	}
 
+	/**
+	 * If true, sockets created by this factory will be reused.
+	 * Inverse of {@link #setSingleUse(boolean)}.
+	 * @param leaveOpen The keepOpen to set.
+	 * @since 5.0
+	 */
+	public void setLeaveOpen(boolean leaveOpen) {
+		this.singleUse = !leaveOpen;
+	}
 
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.interceptorFactoryChain = interceptorFactoryChain;
@@ -750,26 +778,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
 		throw new UnsupportedOperationException("Nio server factory must override this method");
-	}
-
-	@Override
-	public int getPhase() {
-		return 0;
-	}
-
-	/**
-	 * We are controlled by the startup options of
-	 * the bound endpoint.
-	 */
-	@Override
-	public boolean isAutoStartup() {
-		return false;
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		stop();
-		callback.run();
 	}
 
 	protected void addConnection(TcpConnectionSupport connection) {

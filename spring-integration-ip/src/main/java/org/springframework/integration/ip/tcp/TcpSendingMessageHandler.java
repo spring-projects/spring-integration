@@ -267,6 +267,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				if (this.scheduledFuture != null) {
 					this.scheduledFuture.cancel(true);
 				}
+				this.clientModeConnectionManager = null;
 				if (this.clientConnectionFactory != null) {
 					this.clientConnectionFactory.stop();
 				}
@@ -280,24 +281,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	@Override
 	public boolean isRunning() {
 		return this.active;
-	}
-
-	public void stop(Runnable callback) {
-		synchronized (this.lifecycleMonitor) {
-			if (this.active) {
-				this.active = false;
-				if (this.scheduledFuture != null) {
-					this.scheduledFuture.cancel(true);
-				}
-				this.clientModeConnectionManager = null;
-				if (this.clientConnectionFactory != null) {
-					this.clientConnectionFactory.stop(callback);
-				}
-				if (this.serverConnectionFactory != null) {
-					this.serverConnectionFactory.stop(callback);
-				}
-			}
-		}
 	}
 
 	/**
@@ -330,8 +313,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	/**
-	 * @param isClientMode
-	 *            the isClientMode to set
+	 * @param isClientMode the isClientMode to set
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
@@ -350,8 +332,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	/**
-	 * @param retryInterval
-	 *            the retryInterval to set
+	 * @param retryInterval the retryInterval to set
 	 */
 	public void setRetryInterval(long retryInterval) {
 		this.retryInterval = retryInterval;
