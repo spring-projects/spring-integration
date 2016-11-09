@@ -33,7 +33,6 @@ import javax.jms.JMSException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -302,7 +301,6 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 	}
 
 	@Test
-	@Ignore
 	public void testContainerWithTemporaryNoCorrelation() throws Exception {
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
