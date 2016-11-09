@@ -21,6 +21,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.util.UpperBound;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -32,6 +34,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PriorityChannel extends QueueChannel {
 
@@ -39,19 +42,14 @@ public class PriorityChannel extends QueueChannel {
 
 	private final AtomicLong sequenceCounter = new AtomicLong();
 
+	private final boolean useMessageStore;
+
 	/**
-	 * Create a channel with the specified queue capacity. If the capacity
-	 * is a non-positive value, the queue will be unbounded. Message priority
-	 * will be determined by the provided {@link Comparator}. If the comparator
-	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
-	 *
-	 * @param capacity The capacity.
-	 * @param comparator The comparator.
+	 * Create a channel with an unbounded queue. Message priority will be
+	 * based on the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
 	 */
-	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
-		super(new PriorityBlockingQueue<Message<?>>(11, new SequenceFallbackComparator(comparator)));
-		this.upperBound = new UpperBound(capacity);
+	public PriorityChannel() {
+		this(0, null);
 	}
 
 	/**
@@ -77,11 +75,41 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	/**
-	 * Create a channel with an unbounded queue. Message priority will be
-	 * based on the value of {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 * Create a channel with the specified queue capacity. If the capacity
+	 * is a non-positive value, the queue will be unbounded. Message priority
+	 * will be determined by the provided {@link Comparator}. If the comparator
+	 * is <code>null</code>, the priority will be based upon the value of
+	 * {@link IntegrationMessageHeaderAccessor#getPriority()}.
+	 *
+	 * @param capacity The capacity.
+	 * @param comparator The comparator.
 	 */
-	public PriorityChannel() {
-		this(0, null);
+	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
+		super(new PriorityBlockingQueue<>(11, new SequenceFallbackComparator(comparator)));
+		this.upperBound = new UpperBound(capacity);
+		this.useMessageStore = false;
+	}
+
+	/**
+	 * Create a channel based on the provided {@link PriorityCapableChannelMessageStore}
+	 * and group id for message store operations.
+	 * @param messageGroupStore the {@link PriorityCapableChannelMessageStore} to use.
+	 * @param groupId to group message for this channel in the message store.
+	 * @since 5.0
+	 */
+	public PriorityChannel(PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
+		this(new MessageGroupQueue(messageGroupStore, groupId));
+	}
+
+	/**
+	 * Create a channel based on the provided {@link MessageGroupQueue}.
+	 * @param messageGroupQueue the {@link MessageGroupQueue} to use.
+	 * @since 5.0
+	 */
+	public PriorityChannel(MessageGroupQueue messageGroupQueue) {
+		super(messageGroupQueue);
+		this.upperBound = new UpperBound(0);
+		this.useMessageStore = true;
 	}
 
 	@Override
@@ -94,7 +122,9 @@ public class PriorityChannel extends QueueChannel {
 		if (!this.upperBound.tryAcquire(timeout)) {
 			return false;
 		}
-		message = new MessageWrapper(message);
+		if (!this.useMessageStore) {
+			message = new MessageWrapper(message);
+		}
 		return super.doSend(message, 0);
 	}
 
@@ -102,7 +132,9 @@ public class PriorityChannel extends QueueChannel {
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
-			message = ((MessageWrapper) message).getRootMessage();
+			if (!this.useMessageStore) {
+				message = ((MessageWrapper) message).getRootMessage();
+			}
 			this.upperBound.release();
 		}
 		return message;
@@ -138,11 +170,14 @@ public class PriorityChannel extends QueueChannel {
 			}
 			return compareResult;
 		}
+
 	}
 
 	//we need this because of INT-2508
 	private final class MessageWrapper implements Message<Object> {
+
 		private final Message<?> rootMessage;
+
 		private final long sequence;
 
 		MessageWrapper(Message<?> rootMessage) {
@@ -167,5 +202,7 @@ public class PriorityChannel extends QueueChannel {
 		long getSequence() {
 			return this.sequence;
 		}
+
 	}
+
 }

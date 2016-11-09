@@ -94,7 +94,6 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 					parserContext.getReaderContext().error("The 'capacity' attribute is not allowed"
 							+ " when providing a 'message-store' to a custom MessageGroupStore.", element);
 				}
-				builder.getRawBeanDefinition().setBeanClass(QueueChannel.class);
 			}
 
 		}

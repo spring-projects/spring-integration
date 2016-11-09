@@ -16,8 +16,10 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -35,14 +38,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class ChannelWithMessageStoreParserTests {
 
 	private static final String BASE_PACKAGE = "org.springframework.integration";
@@ -58,13 +61,16 @@ public class ChannelWithMessageStoreParserTests {
 	@Autowired
 	private TestHandler handler;
 
-	@Autowired @Qualifier("messageStore")
+	@Autowired
+	@Qualifier("messageStore")
 	private MessageGroupStore messageGroupStore;
 
-	@Autowired @Qualifier("priority")
+	@Autowired
+	@Qualifier("priority")
 	private PollableChannel priorityChannel;
 
-	@Autowired @Qualifier("priorityMessageStore")
+	@Autowired
+	@Qualifier("priorityMessageStore")
 	private MessageGroupStore priorityMessageStore;
 
 	@Test
@@ -87,6 +93,7 @@ public class ChannelWithMessageStoreParserTests {
 	@DirtiesContext
 	public void testPriorityMessageStore() {
 		assertSame(this.priorityMessageStore, TestUtils.getPropertyValue(this.priorityChannel, "queue.messageGroupStore"));
+		assertThat(this.priorityChannel, instanceOf(PriorityChannel.class));
 	}
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,

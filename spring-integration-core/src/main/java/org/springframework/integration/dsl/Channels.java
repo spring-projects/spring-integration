@@ -86,18 +86,17 @@ public class Channels {
 		return MessageChannels.priority(id);
 	}
 
-	public QueueChannelSpec.MessageStoreSpec priority(String id, PriorityCapableChannelMessageStore messageGroupStore,
+	public PriorityChannelSpec priority(String id, PriorityCapableChannelMessageStore messageGroupStore,
 			Object groupId) {
 		return MessageChannels.priority(id, messageGroupStore, groupId);
 	}
 
-	public QueueChannelSpec.MessageStoreSpec priority(PriorityCapableChannelMessageStore messageGroupStore,
-			Object groupId) {
-		return MessageChannels.priority(messageGroupStore, groupId);
-	}
-
 	public RendezvousChannelSpec rendezvous() {
 		return MessageChannels.rendezvous();
+	}
+
+	public PriorityChannelSpec priority(PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
+		return MessageChannels.priority(messageGroupStore, groupId);
 	}
 
 	public RendezvousChannelSpec rendezvous(String id) {

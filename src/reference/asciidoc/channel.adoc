@@ -520,7 +520,7 @@ public BasicMessageGroupStore mongoDbChannelMessageStore(MongoDbFactory mongoDbF
 
 @Bean
 public PollableChannel priorityQueue(BasicMessageGroupStore mongoDbChannelMessageStore) {
-    return new QueueChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
+    return new PriorityChannel(new MessageGroupQueue(mongoDbChannelMessageStore, "priorityQueue"));
 }
 ----
 
@@ -540,18 +540,22 @@ public IntegrationFlow priorityFlow(PriorityCapableChannelMessageStore mongoDbCh
 }
 ----
 
-Another option to customize the QueueChannel environment is provided by the `ref` attribute of the `<int:queue>` sub-element.
+Another option to customize the `QueueChannel` environment is provided by the `ref` attribute of the `<int:queue>` sub-element or particular constructor.
 This attribute implies the reference to any `java.util.Queue` implementation.
-An implementation is provided by the https://github.com/reactor/reactor[Project Reactor] and its `reactor.queue.PersistentQueue` implementation for the https://github.com/OpenHFT/Chronicle-Queue[IndexedChronicle]:
+For example Hazelcast distributed https://hazelcast.com/use-cases/imdg/imdg-messaging/[`IQueue`]:
 
 [source,java]
 ----
 @Bean
-public QueueChannel reactorQueue() {
-    return new QueueChannel(new PersistentQueueSpec<Message<?>>()
-                    .codec(new JavaSerializationCodec<Message<?>>())
-                    .basePath(System.getProperty("java.io.tmpdir") + "/reactor-queue")
-                    .get());
+public HazelcastInstance hazelcastInstance() {
+    return Hazelcast.newHazelcastInstance(new Config()
+                                           .setProperty("hazelcast.logging.type", "log4j"));
+}
+
+@Bean
+public PollableChannel distributedQueue() {
+    return new QueueChannel(hazelcastInstance()
+                              .getQueue("springIntegrationQueue"));
 }
 ----
 
@@ -632,7 +636,7 @@ The following example demonstrates all of these:
 ----
 
 Since _version 4.0_, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
-The message store must be a `PriorityCapableChannelMessageStore` and, in this case, the namespace parser will declare a `QueueChannel` instead of a `PriorityChannel`.
+The message store must be a `PriorityCapableChannelMessageStore` and, in this case.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC` and `MongoDB`.
 See <<channel-configuration-queuechannel>> and <<message-store>> for more information.
 You can find sample configuration in <<jdbc-message-store-channels>>.

@@ -19,7 +19,10 @@ package org.springframework.integration.dsl.channel;
 import java.util.Comparator;
 
 import org.springframework.integration.channel.PriorityChannel;
+import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
@@ -32,25 +35,38 @@ public class PriorityChannelSpec extends MessageChannelSpec<PriorityChannelSpec,
 
 	private Comparator<Message<?>> comparator;
 
-	public PriorityChannelSpec setCapacity(int capacity) {
+	private MessageGroupQueue messageGroupQueue;
+
+	PriorityChannelSpec() {
+		super();
+	}
+
+	public PriorityChannelSpec capacity(int capacity) {
 		this.capacity = capacity;
 		return this;
 	}
 
-	public PriorityChannelSpec setComparator(Comparator<Message<?>> comparator) {
+	public PriorityChannelSpec comparator(Comparator<Message<?>> comparator) {
 		this.comparator = comparator;
+		return this;
+	}
+
+	public PriorityChannelSpec messageStore(PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
+		this.messageGroupQueue = new MessageGroupQueue(messageGroupStore, groupId);
 		return this;
 	}
 
 	@Override
 	protected PriorityChannel doGet() {
-		this.channel = new PriorityChannel(this.capacity, this.comparator);
+		Assert.state(this.comparator != null && this.messageGroupQueue != null,
+				"Only one of 'comparator' or 'messageGroupStore' can be specified.");
+		if (this.messageGroupQueue != null) {
+			this.channel = new PriorityChannel(this.messageGroupQueue);
+		}
+		else {
+			this.channel = new PriorityChannel(this.capacity, this.comparator);
+		}
 		return super.doGet();
-	}
-
-
-	PriorityChannelSpec() {
-		super();
 	}
 
 }
