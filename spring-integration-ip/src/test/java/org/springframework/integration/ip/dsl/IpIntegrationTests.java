@@ -128,6 +128,13 @@ public class IpIntegrationTests {
 		assertEquals("foo", Transformers.objectToString().transform(received).getPayload());
 	}
 
+	@Test
+	public void testUdpInheritance() {
+		Udp.outboundMulticastAdapter("headers['udp_dest']")
+			.lengthCheck(true)
+			.timeToLive(10);
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {

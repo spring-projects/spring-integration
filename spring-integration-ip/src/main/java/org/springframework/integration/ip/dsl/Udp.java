@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.function.Function;
+
+import org.springframework.messaging.Message;
+
 /**
  * Factory methods for UDP.
  *
@@ -55,8 +59,18 @@ public final class Udp {
 	 * @param destinationExpression destination expression.
 	 * @return the spec.
 	 */
-	public static UdpOutboundChannelAdapterSpec outboundAdapter(String destinationExpression) {
-		return new UdpOutboundChannelAdapterSpec(destinationExpression);
+	public static UdpUnicastOutboundChannelAdapterSpec outboundAdapter(String destinationExpression) {
+		return new UdpUnicastOutboundChannelAdapterSpec(destinationExpression);
+	}
+
+	/**
+	 * Create an inbound unicast channel adapter using the supplied destination
+	 * expression.
+	 * @param destinationFunction function that will provide the destination based on the message.
+	 * @return the spec.
+	 */
+	public static UdpUnicastOutboundChannelAdapterSpec outboundAdapter(Function<Message<?>, ?> destinationFunction) {
+		return new UdpUnicastOutboundChannelAdapterSpec(destinationFunction);
 	}
 
 	/**
@@ -67,6 +81,17 @@ public final class Udp {
 	 */
 	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(String destinationExpression) {
 		return new UdpMulticastOutboundChannelAdapterSpec(destinationExpression);
+	}
+
+	/**
+	 * Create an inbound multicast channel adapter using the supplied destination
+	 * expression.
+	 * @param destinationFunction function that will provide the destination based on the message.
+	 * @return the spec.
+	 */
+	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(Function<Message<?>, ?>
+			destinationFunction) {
+		return new UdpMulticastOutboundChannelAdapterSpec(destinationFunction);
 	}
 
 }

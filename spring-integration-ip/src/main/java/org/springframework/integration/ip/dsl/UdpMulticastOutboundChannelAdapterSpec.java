@@ -16,8 +16,12 @@
 
 package org.springframework.integration.ip.dsl;
 
+import java.util.function.Function;
+
 import org.springframework.integration.dsl.MessageHandlerSpec;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
+import org.springframework.messaging.Message;
 
 /**
  * A {@link MessageHandlerSpec} for {@link MulticastSendingMessageHandler}s.
@@ -26,10 +30,15 @@ import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
  * @since 5.0
  *
  */
-public class UdpMulticastOutboundChannelAdapterSpec extends UdpOutboundChannelAdapterSpec {
+public class UdpMulticastOutboundChannelAdapterSpec
+		extends AbstractUdpOutboundChannelAdapterSpec<UdpMulticastOutboundChannelAdapterSpec> {
 
 	UdpMulticastOutboundChannelAdapterSpec(String destinationExpression) {
 		this.target = new MulticastSendingMessageHandler(destinationExpression);
+	}
+
+	UdpMulticastOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
+		this.target = new MulticastSendingMessageHandler(new FunctionExpression<>(destinationFunction));
 	}
 
 	/**
@@ -37,7 +46,7 @@ public class UdpMulticastOutboundChannelAdapterSpec extends UdpOutboundChannelAd
 	 * @return the spec.
 	 * @see MulticastSendingMessageHandler#setTimeToLive(int)
 	 */
-	public UdpOutboundChannelAdapterSpec timeToLive(int timeToLive) {
+	public UdpMulticastOutboundChannelAdapterSpec timeToLive(int timeToLive) {
 		((MulticastSendingMessageHandler) this.target).setTimeToLive(timeToLive);
 		return _this();
 	}

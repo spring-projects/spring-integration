@@ -25,24 +25,25 @@ import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
- * A {@link MessageHandlerSpec} for {@link UnicastSendingMessageHandler}s.
+ * A {@link MessageHandlerSpec} for UDB {@link org.springframework.messaging.MessageHandler}s.
  *
+ * @param <S> the target {@link UdpUnicastOutboundChannelAdapterSpec} implementation type.
  * @author Gary Russell
  * @since 5.0
  *
  */
-public class UdpOutboundChannelAdapterSpec
-		extends MessageHandlerSpec<UdpOutboundChannelAdapterSpec, UnicastSendingMessageHandler> {
+public abstract class AbstractUdpOutboundChannelAdapterSpec<S extends AbstractUdpOutboundChannelAdapterSpec<S>>
+		extends MessageHandlerSpec<S, UnicastSendingMessageHandler> {
 
-	protected UdpOutboundChannelAdapterSpec() {
+	protected AbstractUdpOutboundChannelAdapterSpec() {
 		super();
 	}
 
-	UdpOutboundChannelAdapterSpec(String destinationExpression) {
+	AbstractUdpOutboundChannelAdapterSpec(String destinationExpression) {
 		this.target = new UnicastSendingMessageHandler(destinationExpression);
 	}
 
-	UdpOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
+	AbstractUdpOutboundChannelAdapterSpec(Function<Message<?>, ?> destinationFunction) {
 		this.target = new UnicastSendingMessageHandler(new FunctionExpression<>(destinationFunction));
 	}
 
@@ -51,7 +52,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSoTimeout(int)
 	 */
-	public UdpOutboundChannelAdapterSpec soTimeout(int timeout) {
+	public S soTimeout(int timeout) {
 		this.target.setSoTimeout(timeout);
 		return _this();
 	}
@@ -61,7 +62,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSoSendBufferSize(int)
 	 */
-	public UdpOutboundChannelAdapterSpec soSendBufferSize(int size) {
+	public S soSendBufferSize(int size) {
 		this.target.setSoSendBufferSize(size);
 		return _this();
 	}
@@ -71,7 +72,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setLocalAddress(String)
 	 */
-	public UdpOutboundChannelAdapterSpec localAddress(String localAddress) {
+	public S localAddress(String localAddress) {
 		this.target.setLocalAddress(localAddress);
 		return _this();
 	}
@@ -81,7 +82,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setLengthCheck(boolean)
 	 */
-	public UdpOutboundChannelAdapterSpec lengthCheck(boolean lengthCheck) {
+	public S lengthCheck(boolean lengthCheck) {
 		this.target.setLengthCheck(lengthCheck);
 		return _this();
 	}
@@ -91,7 +92,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSoReceiveBufferSize(int)
 	 */
-	public UdpOutboundChannelAdapterSpec soReceiveBufferSize(int size) {
+	public S soReceiveBufferSize(int size) {
 		this.target.setSoReceiveBufferSize(size);
 		return _this();
 	}
@@ -101,7 +102,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setAckCounter(int)
 	 */
-	public UdpOutboundChannelAdapterSpec ackCounter(int ackCounter) {
+	public S ackCounter(int ackCounter) {
 		this.target.setAckCounter(ackCounter);
 		return _this();
 	}
@@ -111,7 +112,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpression(org.springframework.expression.Expression)
 	 */
-	public UdpOutboundChannelAdapterSpec socketExpression(Function<Message<?>, DatagramSocket> socketFunction) {
+	public S socketFunction(Function<Message<?>, DatagramSocket> socketFunction) {
 		this.target.setSocketExpression(new FunctionExpression<>(socketFunction));
 		return _this();
 	}
@@ -121,7 +122,7 @@ public class UdpOutboundChannelAdapterSpec
 	 * @return the spec.
 	 * @see UnicastSendingMessageHandler#setSocketExpressionString(String)
 	 */
-	public UdpOutboundChannelAdapterSpec socketExpression(String socketExpression) {
+	public S socketExpression(String socketExpression) {
 		this.target.setSocketExpressionString(socketExpression);
 		return _this();
 	}
