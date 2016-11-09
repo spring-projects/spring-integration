@@ -64,6 +64,7 @@ public class TcpOutboundGatewaySpec extends MessageHandlerSpec<TcpOutboundGatewa
 	 * }
 	 * </pre>
 	 * @param remoteTimeoutFunction the function.
+	 * @param <P> the message payload type.
 	 * @return the spec.
 	 * @see TcpOutboundGateway#setRemoteTimeoutExpression(org.springframework.expression.Expression)
 	 */
