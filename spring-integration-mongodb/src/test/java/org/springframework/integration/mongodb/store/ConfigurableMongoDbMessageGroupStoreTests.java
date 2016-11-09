@@ -140,8 +140,7 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 		context.refresh();
 
 		Object priorityChannel = context.getBean("priorityChannel");
-		assertThat(priorityChannel, Matchers.not(Matchers.instanceOf(PriorityChannel.class)));
-		assertThat(priorityChannel, Matchers.instanceOf(QueueChannel.class));
+		assertThat(priorityChannel, Matchers.instanceOf(PriorityChannel.class));
 
 		QueueChannel channel = (QueueChannel) priorityChannel;
 

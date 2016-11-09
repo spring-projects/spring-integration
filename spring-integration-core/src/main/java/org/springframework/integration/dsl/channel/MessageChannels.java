@@ -95,18 +95,17 @@ public final class MessageChannels {
 		return priority().id(id);
 	}
 
-	public static QueueChannelSpec.MessageStoreSpec priority(PriorityCapableChannelMessageStore messageGroupStore,
-			Object groupId) {
-		return new QueueChannelSpec.MessageStoreSpec(messageGroupStore, groupId);
+	public static PriorityChannelSpec priority(PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
+		return priority().messageStore(messageGroupStore, groupId);
 	}
 
-	public static QueueChannelSpec.MessageStoreSpec priority(String id,
+	public static PriorityChannelSpec priority(String id,
 			PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
-		return queue(messageGroupStore, groupId).id(id);
+		return priority(messageGroupStore, groupId).id(id);
 	}
 
 	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe() {
-		return new PublishSubscribeChannelSpec<S>();
+		return new PublishSubscribeChannelSpec<>();
 	}
 
 	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(
@@ -116,7 +115,7 @@ public final class MessageChannels {
 
 	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(
 			Executor executor) {
-		return new PublishSubscribeChannelSpec<S>(executor);
+		return new PublishSubscribeChannelSpec<>(executor);
 	}
 
 	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(String id,
@@ -125,6 +124,7 @@ public final class MessageChannels {
 	}
 
 	private MessageChannels() {
+		super();
 	}
 
 }
