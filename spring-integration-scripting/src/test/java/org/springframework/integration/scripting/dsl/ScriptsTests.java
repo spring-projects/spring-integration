@@ -178,13 +178,11 @@ public class ScriptsTests {
 		assertThat(payload, Matchers.instanceOf(Date.class));
 
 		// Some time window to avoid dates collision
-		Thread.sleep(500);
+		Thread.sleep(2);
 
 		assertTrue(((Date) payload).before(new Date()));
 
 		assertNotNull(this.messageSourceChannel.receive(20000));
-
-		assertNull(this.messageSourceChannel.receive(10));
 	}
 
 	@Configuration
