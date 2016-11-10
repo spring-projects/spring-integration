@@ -77,8 +77,8 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Configure a list of {@link Advice} objects to be applied, in nested order, to the endpoint's handler.
-	 * The advice objects are applied only to the handler.
+	 * Configure a list of {@link Advice} objects to be applied, in nested order, to the
+	 * endpoint's handler. The advice objects are applied only to the handler.
 	 * @param advice the advice chain.
 	 * @return the endpoint spec.
 	 */
@@ -88,9 +88,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
-	 * provided {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 */
@@ -99,13 +99,14 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with the
-	 * provided {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
-	 * {@code false} - regular {@link TransactionInterceptor};
-	 * {@code true} - {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice} extension.
+	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
+	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
+	 * extension.
 	 * @return the spec.
 	 */
 	public S transactional(PlatformTransactionManager transactionManager, boolean handleMessageAdvice) {
@@ -115,7 +116,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@link MessageHandler}.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
 	 * @see TransactionInterceptorBuilder
@@ -125,8 +126,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
-	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
+	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@link MessageHandler}.
 	 * @return the spec.
 	 */
 	public S transactional() {
@@ -134,11 +136,13 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with default {@code PlatformTransactionManager}
-	 * and {@link DefaultTransactionAttribute} for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
+	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@link MessageHandler}.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
-	 * {@code false} - regular {@link TransactionInterceptor};
-	 * {@code true} - {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice} extension.
+	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
+	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
+	 * extension.
 	 * @return the spec.
 	 */
 	public S transactional(boolean handleMessageAdvice) {
