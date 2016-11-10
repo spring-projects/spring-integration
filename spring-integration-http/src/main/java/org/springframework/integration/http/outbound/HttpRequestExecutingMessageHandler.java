@@ -83,7 +83,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
 	private final RestTemplate restTemplate;
 
@@ -93,7 +93,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean encodeUri = true;
 
-	private volatile Expression httpMethodExpression = new ValueExpression<HttpMethod>(HttpMethod.POST);
+	private volatile Expression httpMethodExpression = new ValueExpression<>(HttpMethod.POST);
 
 	private volatile boolean expectReply = true;
 
