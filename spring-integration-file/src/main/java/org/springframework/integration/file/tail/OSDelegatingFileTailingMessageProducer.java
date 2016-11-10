@@ -84,7 +84,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		super.doStart();
 		destroyProcess();
 		this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
-		this.getTaskExecutor().execute(() -> runExec());
+		this.getTaskExecutor().execute(this::runExec);
 	}
 
 	@Override
@@ -170,8 +170,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 				if (logger.isInfoEnabled()) {
 					logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
 				}
-				getRequiredTaskScheduler().schedule((Runnable) () -> runExec(),
-						new Date(System.currentTimeMillis() + getMissingFileDelay()));
+				getRequiredTaskScheduler()
+						.schedule(this::runExec, new Date(System.currentTimeMillis() + getMissingFileDelay()));
 			}
 		});
 	}

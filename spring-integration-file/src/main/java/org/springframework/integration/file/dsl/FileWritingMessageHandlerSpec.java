@@ -26,6 +26,7 @@ import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -34,6 +35,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link MessageHandlerSpec} for the {@link FileWritingMessageHandler}.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
@@ -70,27 +73,59 @@ public class FileWritingMessageHandlerSpec
 		return _this();
 	}
 
+	/**
+	 * Specify whether to create the destination directory automatically if it
+	 * does not yet exist upon initialization. By default, this value is
+	 * <em>true</em>. If set to <em>false</em> and the
+	 * destination directory does not exist, an Exception will be thrown upon
+	 * initialization.
+	 * @param autoCreateDirectory true to create the directory if needed.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec autoCreateDirectory(boolean autoCreateDirectory) {
 		this.target.setAutoCreateDirectory(autoCreateDirectory);
 		return _this();
 	}
 
+	/**
+	 * By default, every file that is in the process of being transferred will
+	 * appear in the file system with an additional suffix, which by default is {@code .writing}.
+	 * @param temporaryFileSuffix The temporary file suffix.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec temporaryFileSuffix(String temporaryFileSuffix) {
 		this.target.setTemporaryFileSuffix(temporaryFileSuffix);
 		return _this();
 	}
 
+	/**
+	 * Set the {@link FileExistsMode} that specifies what will happen in
+	 * case the destination exists.
+	 * @param fileExistsMode the {@link FileExistsMode} to consult.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec fileExistsMode(FileExistsMode fileExistsMode) {
 		this.target.setFileExistsMode(fileExistsMode);
 		return _this();
 	}
 
+	/**
+	 * Set the file name generator used to generate the target file name.
+	 * Default {@link DefaultFileNameGenerator}.
+	 * @param fileNameGenerator the file name generator.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec fileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = fileNameGenerator;
 		this.target.setFileNameGenerator(fileNameGenerator);
 		return _this();
 	}
 
+	/**
+	 * Set the {@link DefaultFileNameGenerator} based on the provided SpEL expression.
+	 * @param fileNameExpression the SpEL expression for file names generation.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec fileNameExpression(String fileNameExpression) {
 		Assert.isNull(this.fileNameGenerator,
 				"'fileNameGenerator' and 'fileNameGeneratorExpression' are mutually exclusive.");
@@ -99,18 +134,34 @@ public class FileWritingMessageHandlerSpec
 		return fileNameGenerator(this.defaultFileNameGenerator);
 	}
 
-
+	/**
+	 * Specify whether to delete source Files after writing to the destination
+	 * directory. The default is <em>false</em>. When set to <em>true</em>, it
+	 * will only have an effect if the inbound Message has a File payload or
+	 * a {@link FileHeaders#ORIGINAL_FILE} header value containing either a
+	 * File instance or a String representing the original file path.
+	 * @param deleteSourceFiles true to delete the source files.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec deleteSourceFiles(boolean deleteSourceFiles) {
 		this.target.setDeleteSourceFiles(deleteSourceFiles);
 		return _this();
 	}
 
+	/**
+	 * Set the charset to use when converting String payloads to bytes as the content of the file.
+	 * Default {@code UTF-8}.
+	 * @param charset the charset.
+	 * @return the current Spec
+	 */
 	public FileWritingMessageHandlerSpec charset(String charset) {
 		this.target.setCharset(charset);
 		return _this();
 	}
 
 	/**
+	 * If {@code true} will append a new-line after each write.
+	 * Defaults to {@code false}.
 	 * @param appendNewLine true if a new-line should be written to the file after payload is written.
 	 * @return the spec.
 	 * @see FileWritingMessageHandler#setAppendNewLine(boolean)

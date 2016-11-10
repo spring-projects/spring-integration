@@ -53,10 +53,22 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 		this.markers = markers;
 	}
 
+	/**
+	 * Set the charset to be used when reading the file, when something other than the default
+	 * charset is required.
+	 * @param charset the charset.
+	 * @return the FileSplitterSpec
+	 */
 	public FileSplitterSpec charset(String charset) {
 		return charset(Charset.forName(charset));
 	}
 
+	/**
+	 * Set the charset to be used when reading the file, when something other than the default
+	 * charset is required.
+	 * @param charset the charset.
+	 * @return the FileSplitterSpec
+	 */
 	public FileSplitterSpec charset(Charset charset) {
 		this.charset = charset;
 		return this;

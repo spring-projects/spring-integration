@@ -34,39 +34,77 @@ import org.springframework.messaging.Message;
  */
 public abstract class Files {
 
+	/**
+	 * Create a {@link FileInboundChannelAdapterSpec} builder for the {@code FileReadingMessageSource}.
+	 * @param directory the directory to scan files.
+	 * @return the {@link FileInboundChannelAdapterSpec} instance.
+	 */
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory) {
 		return inboundAdapter(directory, null);
 	}
 
+	/**
+	 * Create a {@link FileInboundChannelAdapterSpec} builder for the {@code FileReadingMessageSource}.
+	 * @param directory the directory to scan files.
+	 * @param receptionOrderComparator the {@link Comparator} for ordering file objects.
+	 * @return the {@link FileInboundChannelAdapterSpec} instance.
+	 */
 	public static FileInboundChannelAdapterSpec inboundAdapter(File directory,
 			Comparator<File> receptionOrderComparator) {
 		return new FileInboundChannelAdapterSpec(receptionOrderComparator).directory(directory);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the one-way {@code FileWritingMessageHandler}.
+	 * @param destinationDirectory the target directory to write files.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static FileWritingMessageHandlerSpec outboundAdapter(File destinationDirectory) {
 		return new FileWritingMessageHandlerSpec(destinationDirectory).expectReply(false);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the one-way {@code FileWritingMessageHandler}.
+	 * @param directoryExpression the SpEL expression to evaluate target directory for writing files.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static FileWritingMessageHandlerSpec outboundAdapter(String directoryExpression) {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(false);
 	}
 
 	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the one-way {@code FileWritingMessageHandler}.
 	 * @param directoryExpression an expression to evaluate the target directory.
-	 * @return the FileWritingMessageHandlerSpec instance.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
 	 */
 	public static FileWritingMessageHandlerSpec outboundAdapter(Expression directoryExpression) {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(false);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the one-way {@code FileWritingMessageHandler}.
+	 * @param directoryFunction the {@link Function} to evaluate the target directory at runtime.
+	 * @param <P> the payload type.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static <P> FileWritingMessageHandlerSpec outboundAdapter(Function<Message<P>, ?> directoryFunction) {
 		return new FileWritingMessageHandlerSpec(directoryFunction).expectReply(false);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the gateway {@code FileWritingMessageHandler}.
+	 * @param destinationDirectory the target directory to write files.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static FileWritingMessageHandlerSpec outboundGateway(File destinationDirectory) {
 		return new FileWritingMessageHandlerSpec(destinationDirectory).expectReply(true);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the gateway {@code FileWritingMessageHandler}.
+	 * @param directoryExpression the SpEL expression to evaluate target directory for writing files.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static FileWritingMessageHandlerSpec outboundGateway(String directoryExpression) {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(true);
 	}
@@ -80,10 +118,21 @@ public abstract class Files {
 		return new FileWritingMessageHandlerSpec(directoryExpression).expectReply(true);
 	}
 
+	/**
+	 * Create a {@link FileWritingMessageHandlerSpec} builder for the gateway {@code FileWritingMessageHandler}.
+	 * @param directoryFunction the {@link Function} to evaluate the target directory at runtime.
+	 * @param <P> the payload type.
+	 * @return the {@link FileWritingMessageHandlerSpec} instance.
+	 */
 	public static <P> FileWritingMessageHandlerSpec outboundGateway(Function<Message<P>, ?> directoryFunction) {
 		return new FileWritingMessageHandlerSpec(directoryFunction).expectReply(true);
 	}
 
+	/**
+	 * Create a {@link TailAdapterSpec} builder for the {@code FileTailingMessageProducerSupport}.
+	 * @param file the file to tail.
+	 * @return the {@link TailAdapterSpec} instance.
+	 */
 	public static TailAdapterSpec tailAdapter(File file) {
 		return new TailAdapterSpec().file(file);
 	}

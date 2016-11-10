@@ -185,10 +185,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.preserveTimestamp = preserveTimestamp;
 	}
 
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;

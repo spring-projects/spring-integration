@@ -70,6 +70,7 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * Specify the input directory.
 	 * @param directory the directory.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setDirectory(File)
@@ -80,6 +81,7 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * Specify a custom scanner.
 	 * @param scanner the scanner.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setScanner(DirectoryScanner)
@@ -90,6 +92,11 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * Specify whether to create the source directory automatically if it does
+	 * not yet exist upon initialization. By default, this value is
+	 * <em>true</em>. If set to <em>false</em> and the
+	 * source directory does not exist, an Exception will be thrown upon
+	 * initialization.
 	 * @param autoCreateDirectory the autoCreateDirectory.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setAutoCreateDirectory(boolean)
@@ -157,6 +164,8 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * Set a {@link FileLocker} to be used to guard files against
+	 * duplicate processing.
 	 * @param locker the locker.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setLocker(FileLocker)
@@ -179,6 +188,8 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
+	 * Set this flag if you want to make sure the internal queue is
+	 * refreshed with the latest content of the input directory on each poll.
 	 * @param scanEachPoll the scanEachPoll.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setScanEachPoll(boolean)

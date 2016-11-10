@@ -28,9 +28,9 @@ import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
+ * The {@link MessageHandlerSpec} for the {@link AbstractRemoteFileOutboundGateway}.
  *
  * @param <F> the target file type.
  * @param <S> the target {@link RemoteFileOutboundGatewaySpec} implementation type.
@@ -51,40 +51,69 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		this.target.setRequiresReply(true);
 	}
 
+	/**
+	 * Specify the array of options for various gateway commands.
+	 * @param options the options to set.
+	 * @return the spec
+	 * @see  #options(AbstractRemoteFileOutboundGateway.Option...)
+	 */
 	public S options(String options) {
 		this.target.setOptions(options);
 		return _this();
 	}
 
+	/**
+	 * Specify the array of {@link AbstractRemoteFileOutboundGateway.Option}
+	 * for various gateway commands.
+	 * @param options the options to set.
+	 * @return the spec
+	 */
 	public S options(AbstractRemoteFileOutboundGateway.Option... options) {
-		Assert.noNullElements(options);
-		StringBuilder optionsString = new StringBuilder();
-		for (AbstractRemoteFileOutboundGateway.Option option : options) {
-			optionsString.append(option.getOption()).append(" ");
-		}
-		this.target.setOptions(optionsString.toString());
+		this.target.setOptions(options);
 		return _this();
 	}
 
+	/**
+	 * Set the file separator when dealing with remote files; default '/'.
+	 * @param remoteFileSeparator the separator.
+	 * @return the spec
+	 */
 	public S remoteFileSeparator(String remoteFileSeparator) {
 		this.target.setRemoteFileSeparator(remoteFileSeparator);
 		return _this();
 	}
 
+	/**
+	 * Specify a directory path where remote files will be transferred to.
+	 * @param localDirectory the localDirectory to set
+	 * @return the spec
+	 */
 	public S localDirectory(File localDirectory) {
 		this.target.setLocalDirectory(localDirectory);
 		return _this();
 	}
 
+	/**
+	 * Specify a SpEL expression to evaluate directory path where remote files will be transferred to.
+	 * @param localDirectoryExpression the SpEL to determine the local directory.
+	 * @return the spec
+	 */
 	public S localDirectoryExpression(String localDirectoryExpression) {
 		return localDirectoryExpression(PARSER.parseExpression(localDirectoryExpression));
 	}
 
+	/**
+	 * Specify a {@link Function} to evaluate directory path where remote files will be transferred to.
+	 * @param localDirectoryFunction the {@link Function} to determine the local directory.
+	 * @param <P> the expected payload type.
+	 * @return the spec
+	 */
 	public <P> S localDirectory(Function<Message<P>, String> localDirectoryFunction) {
 		return localDirectoryExpression(new FunctionExpression<>(localDirectoryFunction));
 	}
 
 	/**
+	 * Specify a SpEL expression to evaluate directory path where remote files will be transferred to.
 	 * @param localDirectoryExpression a SpEL expression to evaluate the local directory.
 	 * @return the Spec.
 	 */
@@ -93,23 +122,40 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return _this();
 	}
 
+	/**
+	 * A {@code boolean} flag to identify if local directory should be created automatically.
+	 * Defaults to {@code true}.
+	 * @param autoCreateLocalDirectory the autoCreateLocalDirectory to set
+	 * @return the Spec.
+	 */
 	public S autoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
 		this.target.setAutoCreateLocalDirectory(autoCreateLocalDirectory);
 		return _this();
 	}
 
+	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default {@code .writing}.
+	 * @param temporaryFileSuffix the temporaryFileSuffix to set
+	 * @return the Spec.
+	 */
 	public S temporaryFileSuffix(String temporaryFileSuffix) {
 		this.target.setTemporaryFileSuffix(temporaryFileSuffix);
 		return _this();
 	}
 
+	/**
+	 * Set a {@link FileListFilter} to filter remote files.
+	 * @param filter the filter to set
+	 * @return the Spec.
+	 */
 	public S filter(FileListFilter<F> filter) {
 		if (this.filter == null) {
 			if (filter instanceof CompositeFileListFilter) {
 				this.filter = (CompositeFileListFilter<F>) filter;
 			}
 			else {
-				this.filter = new CompositeFileListFilter<F>();
+				this.filter = new CompositeFileListFilter<>();
 				this.filter.addFilter(filter);
 			}
 			this.target.setFilter(this.filter);
@@ -120,6 +166,12 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return _this();
 	}
 
+	/**
+	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
+	 * using {@code MPUT} command.
+	 * @param filter the filter to set
+	 * @return the Spec.
+	 */
 	public S mputFilter(FileListFilter<File> filter) {
 		if (this.mputFilter == null) {
 			if (filter instanceof CompositeFileListFilter) {
@@ -137,34 +189,94 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return _this();
 	}
 
+	/**
+	 * A {@link SimplePatternFileListFilter} that runs against the <em>local</em> file system view when
+	 * using {@code MPUT} command.
+	 * @param pattern the {@link SimplePatternFileListFilter} for {@code MPUT} command.
+	 * @return the Spec.
+	 */
 	public S patternMputFilter(String pattern) {
 		return mputFilter(new SimplePatternFileListFilter(pattern));
 	}
 
-
+	/**
+	 * A {@link SimplePatternFileListFilter} that runs against the <em>local</em> file system view when
+	 * using {@code MPUT} command.
+	 * @param regex the {@link SimplePatternFileListFilter} for {@code MPUT} command.
+	 * @return the Spec.
+	 */
 	public S regexMpuFilter(String regex) {
 		return mputFilter(new RegexPatternFileListFilter(regex));
 	}
 
+	/**
+	 * Specify a SpEL expression for files renaming during transfer.
+	 * @param expression the String in SpEL syntax.
+	 * @return the Spec.
+	 */
 	public S renameExpression(String expression) {
 		this.target.setRenameExpressionString(expression);
 		return _this();
 	}
 
+	/**
+	 * Specify a SpEL expression for files renaming during transfer.
+	 * @param expression the String in SpEL syntax.
+	 * @return the Spec.
+	 */
+	public S renameExpression(Expression expression) {
+		this.target.setRenameExpression(expression);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link Function} for files renaming during transfer.
+	 * @param renameFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 */
+	public <P> S renameFunction(Function<Message<P>, String> renameFunction) {
+		this.target.setRenameExpression(new FunctionExpression<>(renameFunction));
+		return _this();
+	}
+
+	/**
+	 * Specify a SpEL expression for local files renaming after downloading.
+	 * @param localFilenameExpression the SpEL expression to use.
+	 * @return the Spec.
+	 */
 	public S localFilenameExpression(String localFilenameExpression) {
 		return localFilenameExpression(PARSER.parseExpression(localFilenameExpression));
 	}
 
+	/**
+	 * Specify a {@link Function} for local files renaming after downloading.
+	 * @param localFilenameFunction the {@link Function} to use.
+	 * @param <P> the expected payload type.
+	 * @return the Spec.
+	 */
 	public <P> S localFilename(Function<Message<P>, String> localFilenameFunction) {
 		return localFilenameExpression(new FunctionExpression<>(localFilenameFunction));
 	}
 
 	/**
+	 * Specify a SpEL expression for local files renaming after downloading.
 	 * @param localFilenameExpression a SpEL expression to evaluate the local file name.
 	 * @return the Spec.
 	 */
 	public S localFilenameExpression(Expression localFilenameExpression) {
 		this.target.setLocalFilenameGeneratorExpression(localFilenameExpression);
+		return _this();
+	}
+
+	/**
+	 * Set the file permissions after uploading, e.g. 0600 for
+	 * owner read/write.
+	 * @param chmod the permissions.
+	 * @return the current Spec
+	 */
+	public S chmod(int chmod) {
+		this.target.setChmod(chmod);
 		return _this();
 	}
 

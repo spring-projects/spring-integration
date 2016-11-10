@@ -55,6 +55,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
+	 * Specify the options string for native {@code tail} command.
 	 * @param nativeOptions the nativeOptions.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer#setOptions(String)
@@ -86,6 +87,7 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
+	 * The delay between checks of the file for new content in milliseconds.
 	 * @param delay the delay.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setPollingDelay(long)
@@ -96,6 +98,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
+	 * The delay in milliseconds between attempts to tail a non-existent file,
+	 * or between attempts to execute a process if it fails for any reason.
 	 * @param fileDelay the fileDelay.
 	 * @return the spec.
 	 * @see FileTailingMessageProducerSupport#setTailAttemptsDelay(long)
@@ -106,6 +110,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
+	 * If {@code true}, tail from the end of the file, otherwise include all lines from the beginning.
+	 * Default {@code true}.
 	 * @param end the end.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setEnd(boolean)
@@ -116,6 +122,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
+	 * If {@code true}, close and reopen the file between reading chunks.
+	 * Default {@code false}.
 	 * @param reopen the reopen.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer#setReopen(boolean)

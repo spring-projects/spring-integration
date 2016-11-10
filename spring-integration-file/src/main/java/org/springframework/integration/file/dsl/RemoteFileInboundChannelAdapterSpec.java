@@ -74,6 +74,8 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	}
 
 	/**
+	 * A {@link FileListFilter} used to determine which files will generate messages
+	 * after they have been synchronized.
 	 * @param localFileListFilter the localFileListFilter.
 	 * @return the spec.
 	 * @see AbstractInboundFileSynchronizingMessageSource#setLocalFilter(FileListFilter)
@@ -125,7 +127,6 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		return _this();
 	}
 
-
 	/**
 	 * Configure a suffix to temporarily apply to the local filename; when copied the
 	 * file is renamed to its final name. Default: '.writing'.
@@ -138,6 +139,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	}
 
 	/**
+	 * Specify the full path to the remote directory.
 	 * @param remoteDirectory the remoteDirectory.
 	 * @return the spec.
 	 * @see AbstractInboundFileSynchronizer#setRemoteDirectory(String)
@@ -196,11 +198,21 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 */
 	public abstract S regexFilter(String regex);
 
+	/**
+	 * Set to true to enable deletion of remote files after successful transfer.
+	 * @param deleteRemoteFiles true to delete.
+	 * @return the spec.
+	 */
 	public S deleteRemoteFiles(boolean deleteRemoteFiles) {
 		this.synchronizer.setDeleteRemoteFiles(deleteRemoteFiles);
 		return _this();
 	}
 
+	/**
+	 * Set to true to enable the preservation of the remote file timestamp when transferring.
+	 * @param preserveTimestamp true to preserve.
+	 * @return the spec.
+	 */
 	public S preserveTimestamp(boolean preserveTimestamp) {
 		this.synchronizer.setPreserveTimestamp(preserveTimestamp);
 		return _this();

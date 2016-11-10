@@ -205,11 +205,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private final MessageSessionCallback<F, ?> messageSessionCallback;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
-			new ExpressionEvaluatingMessageProcessor<String>(
-					new SpelExpressionParser().parseExpression("headers." + FileHeaders.RENAME_TO));
+	protected final Set<Option> options = new HashSet<>();
 
-	protected volatile Set<Option> options = new HashSet<Option>();
+	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
+			new ExpressionEvaluatingMessageProcessor<>(
+					new SpelExpressionParser().parseExpression("headers." + FileHeaders.RENAME_TO));
 
 	private volatile Expression localDirectoryExpression;
 
@@ -313,20 +313,36 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify the array of options for various gateway commands.
 	 * @param options the options to set
 	 */
 	public void setOptions(String options) {
-		String[] opts = options.split("\\s");
-		for (String opt : opts) {
-			String trimmedOpt = opt.trim();
-			if (StringUtils.hasLength(trimmedOpt)) {
-				this.options.add(Option.toOption(trimmedOpt));
-			}
-		}
+		Assert.hasText(options, "'options' must not be empty.");
+		this.options.clear();
+		Arrays.stream(options.split("\\s"))
+				.filter(StringUtils::hasText)
+				.map(s -> Option.toOption(s.trim()))
+				.forEach(this.options::add);
+
 	}
 
 	/**
-	 * @param remoteFileSeparator the remoteFileSeparator to set
+	 * Specify the array of options for various gateway commands.
+	 * @param options the {@link Option} array to use.
+	 * @since 5.0
+	 */
+	public void setOptions(Option... options) {
+		Assert.notNull(options, "'options' must not be null");
+		Assert.noNullElements(options, "'options' cannot contain null element");
+
+		this.options.clear();
+
+		Collections.addAll(this.options, options);
+	}
+
+	/**
+	 * Set the file separator when dealing with remote files; default '/'.
+	 * @param remoteFileSeparator the separator.
 	 * @see RemoteFileTemplate#setRemoteFileSeparator(String)
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
@@ -334,6 +350,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a directory path where remote files will be transferred to.
 	 * @param localDirectory the localDirectory to set
 	 */
 	public void setLocalDirectory(File localDirectory) {
@@ -342,11 +359,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
+	/**
+	 * Specify a SpEL expression to evaluate directory path where remote files will be transferred to.
+	 * @param localDirectoryExpression the SpEL to determine the local directory.
+	 */
 	public void setLocalDirectoryExpression(Expression localDirectoryExpression) {
 		this.localDirectoryExpression = localDirectoryExpression;
 	}
 
 	/**
+	 * A {@code boolean} flag to identify if local directory should be created automatically.
+	 * Defaults to {@code true}.
 	 * @param autoCreateLocalDirectory the autoCreateLocalDirectory to set
 	 */
 	public void setAutoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
@@ -354,6 +377,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default {@code .writing}.
 	 * @param temporaryFileSuffix the temporaryFileSuffix to set
 	 * @see RemoteFileTemplate#setTemporaryFileSuffix(String)
 	 */
@@ -362,6 +387,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Set a {@link FileListFilter} to filter remote files.
 	 * @param filter the filter to set
 	 */
 	public void setFilter(FileListFilter<F> filter) {
@@ -369,6 +395,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
+	 * using {@code MPUT} command.
 	 * @param filter the filter to set
 	 */
 	public void setMputFilter(FileListFilter<File> filter) {
@@ -376,6 +404,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression for files renaming during transfer.
 	 * @param renameExpression the expression to use.
 	 * @since 4.3
 	 */
@@ -384,6 +413,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression for files renaming during transfer.
 	 * @param renameExpression the String in SpEL syntax.
 	 * @since 4.3
 	 */
@@ -393,6 +423,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression for local files renaming after downloading.
 	 * @param localFilenameGeneratorExpression the expression to use.
 	 * @since 3.0
 	 */
@@ -402,6 +433,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Specify a SpEL expression for local files renaming after downloading.
 	 * @param localFilenameGeneratorExpression the String in SpEL syntax.
 	 * @since 4.3
 	 */
