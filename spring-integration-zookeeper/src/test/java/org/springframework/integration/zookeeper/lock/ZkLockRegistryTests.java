@@ -18,6 +18,7 @@ package org.springframework.integration.zookeeper.lock;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
@@ -332,7 +333,7 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		Lock lock2 = registry.obtain("bar");
 
 		assertFalse("Should not have been able to lock with zookeeper server stopped!",
-					lock2.tryLock(1, TimeUnit.SECONDS));
+				lock2.tryLock(1, TimeUnit.SECONDS));
 
 		testingServer.restart();
 
@@ -357,7 +358,13 @@ public class ZkLockRegistryTests extends ZookeeperTestSupport {
 		ZookeeperLockRegistry registry = new ZookeeperLockRegistry(this.client);
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
-			assertTrue(lock.tryLock());
+
+			int n = 0;
+			while (!lock.tryLock() && n++ < 100) {
+				Thread.sleep(100);
+			}
+			assertThat(n, lessThan(100));
+
 			lock.unlock();
 		}
 
