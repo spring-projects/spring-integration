@@ -43,7 +43,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -109,12 +108,6 @@ public class HttpDslTests {
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
 
-		@Bean
-		@Override
-		public AuthenticationManager authenticationManagerBean() throws Exception {
-			return super.authenticationManagerBean();
-		}
-
 		@Override
 		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 			auth.inMemoryAuthentication()
@@ -172,10 +165,10 @@ public class HttpDslTests {
 		}
 
 		@Bean
-		public ChannelSecurityInterceptor channelSecurityInterceptor(AuthenticationManager authenticationManager,
-				AccessDecisionManager accessDecisionManager) {
+		public ChannelSecurityInterceptor channelSecurityInterceptor(AccessDecisionManager accessDecisionManager)
+				throws Exception {
 			ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
-			channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
+			channelSecurityInterceptor.setAuthenticationManager(authenticationManager());
 			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
 			return channelSecurityInterceptor;
 		}
