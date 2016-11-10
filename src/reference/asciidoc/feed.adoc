@@ -1,7 +1,8 @@
 [[feed]]
 == Feed Adapter
 
-Spring Integration provides support for Syndication via Feed Adapters
+Spring Integration provides support for Syndication via Feed Adapters.
+The implementation is based on the https://rometools.github.io/rome/[ROME Framework].
 
 [[feed-intro]]
 === Introduction
@@ -26,9 +27,9 @@ Below is an example configuration:
 [source,xml]
 ----
 <int-feed:inbound-channel-adapter id="feedAdapter"
-		channel="feedChannel"
-		url="http://feeds.bbci.co.uk/news/rss.xml">
-	<int:poller fixed-rate="10000" max-messages-per-poll="100" />
+        channel="feedChannel"
+        url="http://feeds.bbci.co.uk/news/rss.xml">
+    <int:poller fixed-rate="10000" max-messages-per-poll="100" />
 </int-feed:inbound-channel-adapter>
 ----
 
@@ -44,7 +45,7 @@ However, one important thing you must understand with regard to Feeds is that it
 When an Inbound Feed adapter is started, it does the first poll and receives a `com.sun.syndication.feed.synd.SyndEntryFeed` instance.
 That is an object that contains multiple `SyndEntry` objects.
 Each entry is stored in the local entry queue and is released based on the value in the `max-messages-per-poll` attribute such that each Message will contain a single entry.
-If during retrieval of the entries from the entry queue the queue had become empty, the adapter will attempt to update the Feed thereby populating the queue with more entries (SyndEntry instances) if available.
+If during retrieval of the entries from the entry queue the queue had become empty, the adapter will attempt to update the Feed thereby populating the queue with more entries (`SyndEntry` instances) if available.
 Otherwise the next attempt to poll for a feed will be determined by the trigger of the poller (e.g., every 10 seconds in the above configuration).
 
 _Duplicate Entries_
@@ -52,6 +53,52 @@ _Duplicate Entries_
 Polling for a Feed might result in entries that have already been processed ("I already read that news item, why are you showing it to me again?").
 Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
 Each feed entry will have a _published date_ field.
-Every time a new Message is generated and sent, Spring Integration will store the value of the latest _published date_ in an instance of the `MetadataStore` strategy (<<metadata-store>>).
+Every time a new `Message` is generated and sent, Spring Integration will store the value of the latest _published date_ in an instance of the `MetadataStore` strategy (<<metadata-store>>).
 
-NOTE: The key used to persist the latest _published date_ is the value of the (required) `id` attribute of the Feed Inbound Channel Adapter component plus the `feedUrl` from the adapter's configuration.
+NOTE: The key used to persist the latest _published date_ is the value of the (required) `id` attribute of the Feed Inbound Channel Adapter component plus the `feedUrl` (if any) from the adapter's configuration.
+
+_Other Options_
+
+Starting with _version 5.0_, the deprecated `com.rometools.fetcher.FeedFetcher` option has been removed and an overloaded `FeedEntryMessageSource` constructor for an `org.springframework.core.io.Resource` is provided.
+This is useful when Feed source isn't HTTP endpoint, but any other resource, local or remote on FTP, for example.
+In the `FeedEntryMessageSource` logic such a resource (or provided `URL`) is parsed by the `SyndFeedInput` to the `SyndFeed` object for processing mentioned above.
+A customized `SyndFeedInput` (for example with the `allowDoctypes` option) instance also can be injected to the `FeedEntryMessageSource`.
+
+[[feed-java-configuration]]
+=== Java DSL and Annotation configuration
+
+The following Spring Boot application provides an example of configuring the Inbound Adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class FeedJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(FeedJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Value("org/springframework/integration/feed/sample.rss")
+    private Resource feedResource;
+
+    @Bean
+    public MetadataStore metadataStore() {
+        PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+        metadataStore.setBaseDirectory(tempFolder.getRoot().getAbsolutePath());
+        return metadataStore;
+    }
+
+    @Bean
+    public IntegrationFlow feedFlow() {
+        return IntegrationFlows
+                .from(Feed.inboundAdapter(this.feedResource, "feedTest")
+                                .metadataStore(metadataStore()),
+                        e -> e.poller(p -> p.fixedDelay(100)))
+                .channel(c -> c.queue("entries"))
+                .get();
+    }
+
+}
+----

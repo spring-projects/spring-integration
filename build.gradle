@@ -317,7 +317,7 @@ project('spring-integration-feed') {
 	description = 'Spring Integration RSS Feed Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "com.rometools:rome-fetcher:$romeToolsVersion"
+		compile "com.rometools:rome:$romeToolsVersion"
 	}
 }
 

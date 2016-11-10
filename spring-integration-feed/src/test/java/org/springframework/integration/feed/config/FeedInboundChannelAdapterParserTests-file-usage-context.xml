@@ -9,9 +9,9 @@
 	<int:message-history />
 
 	<int-feed:inbound-channel-adapter id="feedAdapterUsage"
-						channel="feedChannelUsage"
-						url="classpath:org/springframework/integration/feed/sample.rss"
-						feed-fetcher="fileUrlFeedFetcher">
+									  channel="feedChannelUsage"
+									  resource="classpath:org/springframework/integration/feed/sample.rss"
+									  preserve-wire-feed="true">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100"/>
 	</int-feed:inbound-channel-adapter>
 
@@ -19,8 +19,9 @@
 		<bean class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests$SampleService" />
 	</int:service-activator>
 
-	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.inbound.FileUrlFeedFetcher"/>
-
-	<bean id="metadataStore" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore"/>
+	<bean id="metadataStore" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
+		<property name="baseDirectory"
+				  value="#{T (org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests).tempFolder.root.absolutePath}"/>
+	</bean>
 
 </beans>
