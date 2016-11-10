@@ -46,9 +46,9 @@ import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.http.config.EnableIntegrationGraphController;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -66,10 +66,10 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * @author Gary Russell
  * @since 4.3
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
 @WebAppConfiguration
 @TestPropertySource(properties = "spring.application.name:testApplication")
+@DirtiesContext
 public class IntegrationGraphControllerTests {
 
 	@Autowired

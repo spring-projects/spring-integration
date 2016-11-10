@@ -83,7 +83,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
 	private final RestTemplate restTemplate;
 
@@ -93,7 +93,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean encodeUri = true;
 
-	private volatile Expression httpMethodExpression = new ValueExpression<HttpMethod>(HttpMethod.POST);
+	private volatile Expression httpMethodExpression = new ValueExpression<>(HttpMethod.POST);
 
 	private volatile boolean expectReply = true;
 
@@ -180,8 +180,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * Specify the SpEL {@link Expression} to determine {@link HttpMethod} dynamically
-	 *
+	 * Specify the SpEL {@link Expression} to determine {@link HttpMethod} at runtime.
 	 * @param httpMethodExpression The method expression.
 	 */
 	public void setHttpMethodExpression(Expression httpMethodExpression) {
@@ -190,8 +189,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
-	 *
+	 * Specify the {@link HttpMethod} for requests.
+	 * The default method is {@code POST}.
 	 * @param httpMethod The method.
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
@@ -201,9 +200,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	/**
 	 * Specify whether the outbound message's payload should be extracted
-	 * when preparing the request body. Otherwise the Message instance itself
-	 * will be serialized. The default value is <code>true</code>.
-	 *
+	 * when preparing the request body.
+	 * Otherwise the Message instance itself is serialized.
+	 * The default value is {@code true}.
 	 * @param extractPayload true if the payload should be extracted.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
@@ -212,9 +211,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * Specify the charset name to use for converting String-typed payloads to
-	 * bytes. The default is 'UTF-8'.
-	 *
+	 * Specify the charset name to use for converting String-typed payloads to bytes.
+	 * The default is {@code UTF-8}.
 	 * @param charset The charset.
 	 */
 	public void setCharset(String charset) {
@@ -251,7 +249,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	/**
 	 * Specify the {@link Expression} to determine the type for the expected response
 	 * The returned value of the expression could be an instance of {@link Class} or
-	 * {@link String} representing a fully qualified class name
+	 * {@link String} representing a fully qualified class name.
 	 * @param expectedResponseTypeExpression The expected response type expression.
 	 * Also see {@link #setExpectedResponseType}
 	 */
@@ -283,9 +281,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * @param headerMapper The header mapper.
-	 *
 	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
+	 * @param headerMapper The header mapper.
 	 */
 	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");

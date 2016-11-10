@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-	id 'org.sonarqube' version '1.2'
+	id 'org.sonarqube' version '2.1'
 }
 
 description = 'Spring Integration'
@@ -127,7 +127,7 @@ subprojects { subproject ->
 		springDataMongoVersion = '1.10.0.BUILD-SNAPSHOT'
 		springDataRedisVersion = '1.8.0.BUILD-SNAPSHOT'
 		springGemfireVersion = '1.9.0.BUILD-SNAPSHOT'
-		springSecurityVersion = '4.1.2.RELEASE'
+		springSecurityVersion = '4.2.0.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.2.0.RC1'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
@@ -380,8 +380,12 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile("com.rometools:rome:$romeToolsVersion", optional)
-		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
+		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
+		compile ("com.rometools:rome:$romeToolsVersion", optional)
+
+		testCompile project(":spring-integration-security")
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
+		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
 	}
 }
 
