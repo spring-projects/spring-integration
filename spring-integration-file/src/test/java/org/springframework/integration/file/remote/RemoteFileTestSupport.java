@@ -57,12 +57,20 @@ public abstract class RemoteFileTestSupport {
 		return targetRemoteDirectory;
 	}
 
+	public String getTargetRemoteDirectoryName() {
+		return targetRemoteDirectory.getAbsolutePath() + File.separator;
+	}
+
 	public File getSourceLocalDirectory() {
 		return sourceLocalDirectory;
 	}
 
 	public File getTargetLocalDirectory() {
 		return targetLocalDirectory;
+	}
+
+	public String getTargetLocalDirectoryName() {
+		return targetLocalDirectory.getAbsolutePath() + File.separator;
 	}
 
 	/**

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ftp;
 
-import java.io.File;
 import java.util.Arrays;
 
 import org.apache.commons.net.ftp.FTPFile;
@@ -52,10 +51,6 @@ import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 public class FtpTestSupport extends RemoteFileTestSupport {
 
 	private static volatile FtpServer server;
-
-	public String getTargetLocalDirectoryName() {
-		return targetLocalDirectory.getAbsolutePath() + File.separator;
-	}
 
 	@BeforeClass
 	public static void createServer() throws Exception {
