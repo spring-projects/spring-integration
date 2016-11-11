@@ -84,54 +84,121 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
+	 * expanding and before send request via {@link RestTemplate}. The default value is <code>true</code>.
+	 * @param encodeUri true if the URI should be encoded.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec encodeUri(boolean encodeUri) {
 		this.target.setEncodeUri(encodeUri);
 		return this;
 	}
 
+	/**
+	 * Specify the SpEL {@link Expression} to determine {@link HttpMethod} at runtime.
+	 * @param httpMethodExpression The method expression.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec httpMethodExpression(Expression httpMethodExpression) {
 		this.target.setHttpMethodExpression(httpMethodExpression);
 		return this;
 	}
 
+	/**
+	 * Specify a {@link Function} to determine {@link HttpMethod} at runtime.
+	 * @param httpMethodFunction The HTTP method {@link Function}.
+	 * @param <P> the payload type.
+	 * @return the spec
+	 */
 	public <P> HttpMessageHandlerSpec httpMethodFunction(Function<Message<P>, ?> httpMethodFunction) {
 		return httpMethodExpression(new FunctionExpression<>(httpMethodFunction));
 	}
 
+	/**
+	 * Specify the {@link HttpMethod} for requests.
+	 * The default method is {@code POST}.
+	 * @param httpMethod the {@link HttpMethod} to use.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec httpMethod(HttpMethod httpMethod) {
 		this.target.setHttpMethod(httpMethod);
 		return this;
 	}
 
+	/**
+	 * Specify whether the outbound message's payload should be extracted
+	 * when preparing the request body.
+	 * Otherwise the Message instance itself is serialized.
+	 * The default value is {@code true}.
+	 * @param extractPayload true if the payload should be extracted.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec extractPayload(boolean extractPayload) {
 		this.target.setExtractPayload(extractPayload);
 		return this;
 	}
 
+	/**
+	 * Specify the charset name to use for converting String-typed payloads to bytes.
+	 * The default is {@code UTF-8}.
+	 * @param charset The charset.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec charset(String charset) {
 		this.target.setCharset(charset);
 		return this;
 	}
 
+	/**
+	 * Specify the expected response type for the REST request.
+	 * @param expectedResponseType The expected type.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec expectedResponseType(Class<?> expectedResponseType) {
 		this.target.setExpectedResponseType(expectedResponseType);
 		return this;
 	}
 
+	/**
+	 * Specify a {@link ParameterizedTypeReference} for the expected response type for the REST request.
+	 * @param expectedResponseType The {@link ParameterizedTypeReference} for expected type.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec expectedResponseType(ParameterizedTypeReference<?> expectedResponseType) {
 		return expectedResponseTypeExpression(new ValueExpression<ParameterizedTypeReference<?>>(expectedResponseType));
 	}
 
+	/**
+	 * Specify a SpEL {@link Expression} to determine the type for the expected response
+	 * The returned value of the expression could be an instance of {@link Class} or
+	 * {@link String} representing a fully qualified class name.
+	 * @param expectedResponseTypeExpression The expected response type expression.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec expectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
 		this.target.setExpectedResponseTypeExpression(expectedResponseTypeExpression);
 		return this;
 	}
 
+	/**
+	 * Specify a {@link Function} to determine the type for the expected response
+	 * The returned value of the expression could be an instance of {@link Class} or
+	 * {@link String} representing a fully qualified class name.
+	 * @param expectedResponseTypeFunction The expected response type {@link Function}.
+	 * @param <P> the payload type.
+	 * @return the spec
+	 */
 	public <P> HttpMessageHandlerSpec expectedResponseTypeFunction(
 			Function<Message<P>, ?> expectedResponseTypeFunction) {
 		return expectedResponseTypeExpression(new FunctionExpression<>(expectedResponseTypeFunction));
 	}
 
+	/**
+	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
+	 * @param errorHandler The error handler.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
 		Assert.isNull(this.restTemplate,
 				"the 'errorHandler' must be specified on the provided 'restTemplate': " + this.restTemplate);
@@ -139,6 +206,12 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
+	 * Converters configured via this method will override the default converters.
+	 * @param messageConverters The message converters.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
 		Assert.isNull(this.restTemplate,
 				"the 'messageConverters' must be specified on the provided 'restTemplate': " + this.restTemplate);
@@ -146,6 +219,11 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
+	 * @param requestFactory The request factory.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
 		Assert.isNull(this.restTemplate,
 				"the 'requestFactory' must be specified on the provided 'restTemplate': " + this.restTemplate);
@@ -153,6 +231,11 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and {@code MessageHeaders}.
+	 * @param headerMapper The header mapper.
+	 * @return the spec
+	 */
 	public HttpMessageHandlerSpec headerMapper(HeaderMapper<HttpHeaders> headerMapper) {
 		this.headerMapper = headerMapper;
 		this.target.setHeaderMapper(this.headerMapper);
@@ -160,6 +243,12 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Provide the pattern array for request headers to map.
+	 * @param patterns the patterns for request headers to map.
+	 * @return the spec
+	 * @see DefaultHttpHeaderMapper#setOutboundHeaderNames(String[])
+	 */
 	public HttpMessageHandlerSpec mappedRequestHeaders(String... patterns) {
 		Assert.isTrue(!this.headerMapperExplicitlySet,
 				"The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': " + this.headerMapper);
@@ -167,6 +256,12 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Provide the pattern array for response headers to map.
+	 * @param patterns the patterns for response headers to map.
+	 * @return the current Spec.
+	 * @see DefaultHttpHeaderMapper#setInboundHeaderNames(String[])
+	 */
 	public HttpMessageHandlerSpec mappedResponseHeaders(String... patterns) {
 		Assert.isTrue(!this.headerMapperExplicitlySet,
 				"The 'mappedResponseHeaders' must be specified on the provided 'headerMapper': " + this.headerMapper);
@@ -174,18 +269,33 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set the Map of URI variable expressions to evaluate against the outbound message
+	 * when replacing the variable placeholders in a URI template.
+	 * @param uriVariableExpressions The URI variable expressions.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
+	 */
 	public HttpMessageHandlerSpec uriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
 		this.uriVariableExpressions.clear();
 		this.uriVariableExpressions.putAll(uriVariableExpressions);
 		return this;
 	}
 
+	/**
+	 * Specify a SpEL expression to evaluate a value for the uri template variable.
+	 * @param variable the uri template variable.
+	 * @param value the expression to evaluate value for te uri template variable.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
+	 */
 	public HttpMessageHandlerSpec uriVariable(String variable, Expression value) {
 		this.uriVariableExpressions.put(variable, value);
 		return this;
 	}
 
 	/**
+	 * Specify a value for the uri template variable.
 	 * @param variable the uri template variable.
 	 * @param value the expression to evaluate value for te uri template variable.
 	 * @return the current Spec.
@@ -196,8 +306,9 @@ public class HttpMessageHandlerSpec
 	}
 
 	/**
+	 * Specify a {@link Function} to evaluate a value for the uri template variable.
 	 * @param variable the uri template variable.
-	 * @param valueFunction the function to evaluate value for te uri template variable.
+	 * @param valueFunction the {@link Function} to evaluate a value for the uri template variable.
 	 * @param <P> the payload type.
 	 * @return the current Spec.
 	 * @see HttpRequestExecutingMessageHandler#setUriVariableExpressions(Map)
@@ -206,12 +317,8 @@ public class HttpMessageHandlerSpec
 		return uriVariable(variable, new FunctionExpression<>(valueFunction));
 	}
 
-	public HttpMessageHandlerSpec uriVariablesExpression(Expression uriVariablesExpression) {
-		this.target.setUriVariablesExpression(uriVariablesExpression);
-		return this;
-	}
-
 	/**
+	 * Specify a SpEL expression to evaluate a {@link Map} of URI variables at runtime against request message.
 	 * @param uriVariablesExpression to use.
 	 * @return the current Spec.
 	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
@@ -221,7 +328,19 @@ public class HttpMessageHandlerSpec
 	}
 
 	/**
-	 * @param uriVariablesFunction to use.
+	 * Specify a SpEL expression to evaluate a {@link Map} of URI variables at runtime against request message.
+	 * @param uriVariablesExpression to use.
+	 * @return the current Spec.
+	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
+	 */
+	public HttpMessageHandlerSpec uriVariablesExpression(Expression uriVariablesExpression) {
+		this.target.setUriVariablesExpression(uriVariablesExpression);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link Function} to evaluate a {@link Map} of URI variables at runtime against request message.
+	 * @param uriVariablesFunction the {@link Function} to use.
 	 * @param <P> the payload type.
 	 * @return the current Spec.
 	 * @see HttpRequestExecutingMessageHandler#setUriVariablesExpression(Expression)
@@ -230,6 +349,12 @@ public class HttpMessageHandlerSpec
 		return uriVariablesExpression(new FunctionExpression<>(uriVariablesFunction));
 	}
 
+	/**
+	 * Set to {@code true} if you wish {@code Set-Cookie} header in response to be
+	 * transferred as {@code Cookie} header in subsequent interaction for a message.
+	 * @param transferCookies the transferCookies to set.
+	 * @return the current Spec.
+	 */
 	public HttpMessageHandlerSpec transferCookies(boolean transferCookies) {
 		this.target.setTransferCookies(transferCookies);
 		return this;

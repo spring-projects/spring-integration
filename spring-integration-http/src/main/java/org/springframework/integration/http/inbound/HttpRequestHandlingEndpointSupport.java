@@ -347,6 +347,16 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	public void setMultipartResolver(MultipartResolver multipartResolver) {
 		this.multipartResolver = multipartResolver;
 	}
+	/**
+	 * Specify the {@link Expression} to resolve a status code for Response to override
+	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
+	 * @param statusCodeExpression The status code Expression.
+	 * @since 5.0
+	 * @see #setStatusCodeExpression(Expression)
+	 */
+	public void setStatusCodeExpressionString(String statusCodeExpression) {
+		setStatusCodeExpression(EXPRESSION_PARSER.parseExpression(statusCodeExpression));
+	}
 
 	/**
 	 * Specify the {@link Expression} to resolve a status code for Response to override

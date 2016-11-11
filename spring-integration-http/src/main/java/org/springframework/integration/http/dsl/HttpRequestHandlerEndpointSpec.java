@@ -34,6 +34,11 @@ public class HttpRequestHandlerEndpointSpec
 		super(endpoint, path);
 	}
 
+	/**
+	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted.
+	 * @param convertExceptions the flag to set
+	 * @return the spec
+	 */
 	public HttpRequestHandlerEndpointSpec convertExceptions(boolean convertExceptions) {
 		this.target.setConvertExceptions(convertExceptions);
 		return this;
