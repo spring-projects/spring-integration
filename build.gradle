@@ -380,7 +380,8 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
+		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
+		compile ("com.rometools:rome:$romeToolsVersion", optional)
 
 		testCompile project(":spring-integration-security")
 		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
