@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartResolver;
 
 /**
+ * A base {@link MessagingGatewaySpec} for the {@link HttpRequestHandlingEndpointSupport} implementations.
  *
  * @param <S> the target {@link BaseHttpInboundEndpointSpec} implementation type.
  * @param <E> the target {@link HttpRequestHandlingEndpointSupport} implementation type.

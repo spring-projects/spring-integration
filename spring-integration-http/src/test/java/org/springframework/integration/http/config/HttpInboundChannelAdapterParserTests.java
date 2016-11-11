@@ -74,6 +74,7 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTests {
 
 	@Autowired

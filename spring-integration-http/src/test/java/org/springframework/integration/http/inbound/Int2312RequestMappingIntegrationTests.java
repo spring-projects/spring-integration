@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
@@ -59,6 +60,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 //INT-2312
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTests {
 
 	public static final String TEST_PATH = "/test/{value}";

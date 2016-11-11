@@ -47,6 +47,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
@@ -65,6 +66,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
+@DirtiesContext
 public class HttpDslTests {
 
 	@Autowired
