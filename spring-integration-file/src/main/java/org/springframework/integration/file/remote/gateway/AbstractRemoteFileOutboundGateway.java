@@ -331,7 +331,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param options the {@link Option} array to use.
 	 * @since 5.0
 	 */
-	public void setOptions(Option... options) {
+	public void setOption(Option... options) {
 		Assert.notNull(options, "'options' must not be null");
 		Assert.noNullElements(options, "'options' cannot contain null element");
 

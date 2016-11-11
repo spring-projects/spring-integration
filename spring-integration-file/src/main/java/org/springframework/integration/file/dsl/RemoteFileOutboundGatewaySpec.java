@@ -69,7 +69,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * @return the spec
 	 */
 	public S options(AbstractRemoteFileOutboundGateway.Option... options) {
-		this.target.setOptions(options);
+		this.target.setOption(options);
 		return _this();
 	}
 
