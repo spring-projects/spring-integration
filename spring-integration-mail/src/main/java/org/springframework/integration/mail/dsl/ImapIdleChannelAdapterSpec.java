@@ -284,7 +284,8 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	/**
-	 * Configure a chain of {@link Advice} objects for message delivery.
+	 * Configure a chain of {@link Advice} objects for message delivery, applied to
+	 * the downstream flow.
 	 * @param adviceChain the advice chain.
 	 * @return the spec.
 	 */
@@ -296,35 +297,19 @@ public class ImapIdleChannelAdapterSpec
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
 	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
+	 * for the downstream flow.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 */
 	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager) {
-		return transactional(transactionManager, false);
-	}
-
-	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
-	 * @param transactionManager the {@link PlatformTransactionManager} to use.
-	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
-	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
-	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
-	 * extension.
-	 * @return the spec.
-	 */
-	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager,
-			boolean handleMessageAdvice) {
-		return transactional(new TransactionInterceptorBuilder(handleMessageAdvice)
+				return transactional(new TransactionInterceptorBuilder(false)
 				.transactionManager(transactionManager)
 				.build());
 	}
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} for the
-	 * {@code pollingTask}.
+	 * downstream flow.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
 	 * @see TransactionInterceptorBuilder
@@ -336,7 +321,7 @@ public class ImapIdleChannelAdapterSpec
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
 	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
-	 * {@code pollingTask}.
+	 * downstream flow.
 	 * @return the spec.
 	 */
 	public ImapIdleChannelAdapterSpec transactional() {
@@ -346,6 +331,7 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	/**
+	 * Specify a task executor to be used to send messages to the downstream flow.
 	 * @param sendingTaskExecutor the sendingTaskExecutor.
 	 * @return the spec.
 	 * @see ImapIdleChannelAdapter#setSendingTaskExecutor(Executor)

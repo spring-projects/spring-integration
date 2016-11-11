@@ -101,7 +101,7 @@ public class MailSendingMessageHandlerSpec
 	}
 
 	/**
-	 * Stet the default encoding.
+	 * Set the default encoding.
 	 * @param defaultEncoding the default encoding.
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setDefaultEncoding(String)
@@ -112,7 +112,7 @@ public class MailSendingMessageHandlerSpec
 	}
 
 	/**
-	 * Stet the default type map.
+	 * Set the default type map.
 	 * @param defaultFileTypeMap the default type map.
 	 * @return the spec.
 	 * @see JavaMailSenderImpl#setDefaultFileTypeMap(FileTypeMap)

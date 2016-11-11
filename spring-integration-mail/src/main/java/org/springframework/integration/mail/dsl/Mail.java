@@ -18,6 +18,7 @@ package org.springframework.integration.mail.dsl;
 
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.transformer.MailToStringTransformer;
 
 /**
  * The factory for Spring Integration Mail components.
@@ -145,6 +146,28 @@ public final class Mail {
 	public static MailHeadersBuilder headers() {
 		return new MailHeadersBuilder();
 	}
+
+	/**
+	 * A {@link MailToStringTransformer} factory.
+	 * @return the transformer.
+	 */
+	public static MailToStringTransformer fromMail() {
+		return fromMail(null);
+	}
+
+	/**
+	 * A {@link MailToStringTransformer} factory.
+	 * @param charset the charset to use when the default is not appropriate.
+	 * @return the transformer.
+	 */
+	public static MailToStringTransformer fromMail(String charset) {
+		MailToStringTransformer transformer = new MailToStringTransformer();
+		if (charset != null) {
+			transformer.setCharset(charset);
+		}
+		return transformer;
+	}
+
 
 	private Mail() {
 		super();

@@ -90,7 +90,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
 	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
+	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 */
@@ -101,7 +101,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
 	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@code pollingTask}.
+	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
 	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
@@ -116,7 +116,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@code pollingTask}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@link MessageHandler}.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
 	 * @see TransactionInterceptorBuilder
@@ -128,7 +128,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
 	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
-	 * {@code pollingTask}.
+	 * {@link MessageHandler}.
 	 * @return the spec.
 	 */
 	public S transactional() {
@@ -138,7 +138,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
 	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
-	 * {@code pollingTask}.
+	 * {@link MessageHandler}.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
 	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
 	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
