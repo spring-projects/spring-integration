@@ -16,9 +16,11 @@
 
 package org.springframework.integration.mail.dsl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -41,7 +43,11 @@ import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.PropertiesBuilder;
+import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -58,6 +64,10 @@ public class ImapIdleChannelAdapterSpec
 
 	private final ImapMailReceiver receiver;
 
+	private final Collection<Object> componentsToRegister = new ArrayList<Object>();
+
+	private final List<Advice> adviceChain = new LinkedList<>();
+
 	protected final boolean externalReceiver;
 
 	private boolean sessionProvided;
@@ -68,7 +78,9 @@ public class ImapIdleChannelAdapterSpec
 
 	ImapIdleChannelAdapterSpec(ImapMailReceiver receiver, boolean externalReceiver) {
 		super(new ImapIdleChannelAdapter(receiver));
+		this.target.setAdviceChain(this.adviceChain);
 		this.receiver = receiver;
+		this.componentsToRegister.add(receiver);
 		this.externalReceiver = externalReceiver;
 	}
 
@@ -242,10 +254,11 @@ public class ImapIdleChannelAdapterSpec
 
 	/**
 	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
-	 * {@link Message} or {@link javax.mail.Multipart} content is rendered as a byte[] in the
-	 * payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * {@link Message} or {@link javax.mail.Multipart} content is rendered as a byte[] in
+	 * the payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
 	 * downstream serialization. Default: true.
-	 * <p>This has no effect if there is no header mapper, in that case the payload is the
+	 * <p>
+	 * This has no effect if there is no header mapper, in that case the payload is the
 	 * {@link MimeMessage}.
 	 * @param embeddedPartsAsBytes the embeddedPartsAsBytes to set.
 	 * @return the spec.
@@ -259,8 +272,8 @@ public class ImapIdleChannelAdapterSpec
 
 
 	/**
-	 * Configure a {@link TransactionSynchronizationFactory}. Usually used to synchronize message
-	 * deletion with some external transaction manager.
+	 * Configure a {@link TransactionSynchronizationFactory}. Usually used to synchronize
+	 * message deletion with some external transaction manager.
 	 * @param transactionSynchronizationFactory the transactionSynchronizationFactory.
 	 * @return the spec.
 	 */
@@ -276,8 +289,60 @@ public class ImapIdleChannelAdapterSpec
 	 * @return the spec.
 	 */
 	public ImapIdleChannelAdapterSpec adviceChain(Advice... adviceChain) {
-		this.target.setAdviceChain(Arrays.asList(adviceChain));
+		this.adviceChain.addAll(Arrays.asList(adviceChain));
 		return this;
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@code pollingTask}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @return the spec.
+	 */
+	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager) {
+		return transactional(transactionManager, false);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@code pollingTask}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
+	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
+	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
+	 * extension.
+	 * @return the spec.
+	 */
+	public ImapIdleChannelAdapterSpec transactional(PlatformTransactionManager transactionManager,
+			boolean handleMessageAdvice) {
+		return transactional(new TransactionInterceptorBuilder(handleMessageAdvice)
+				.transactionManager(transactionManager)
+				.build());
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the
+	 * {@code pollingTask}.
+	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
+	 * @return the spec.
+	 * @see TransactionInterceptorBuilder
+	 */
+	public ImapIdleChannelAdapterSpec transactional(TransactionInterceptor transactionInterceptor) {
+		return adviceChain(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
+	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@code pollingTask}.
+	 * @return the spec.
+	 */
+	public ImapIdleChannelAdapterSpec transactional() {
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(false).build();
+		this.componentsToRegister.add(transactionInterceptor);
+		return transactional(transactionInterceptor);
 	}
 
 	/**
@@ -302,7 +367,7 @@ public class ImapIdleChannelAdapterSpec
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singletonList(this.receiver);
+		return this.componentsToRegister;
 	}
 
 }
