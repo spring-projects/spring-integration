@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.test.mail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,7 +35,14 @@ import javax.net.ServerSocketFactory;
 import org.springframework.util.Base64Utils;
 
 /**
+ * A basic test mail server for pop3, imap,
+ * Serves up a canned email message with each protocol.
+ * For smtp, it handles the basic handshaking and captures
+ * the pertinent data so it can be verified by a test case.
+ *
  * @author Gary Russell
+ *
+ * @since 4.3.6
  *
  */
 public class TestMailServer {
@@ -283,8 +290,8 @@ public class TestMailServer {
 									+ "FLAGS (\\Seen) "
 									+ "ENVELOPE (\"Mon, 27 May 2013 15:14:49 +0530\" "
 									+ "\"Test Email\" ((\"Bar\" NIL \"bar\" \"baz\")) "
-									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
-									+ "((\"Foo\" NIL \"foo\" \"bar.tv\")) "
+									+ "((\"Bar\" NIL \"bar\" \"baz\")) "
+									+ "((\"Bar\" NIL \"bar\" \"baz\")) "
 									+ "((\"Foo\" NIL \"foo\" \"bar\")) NIL NIL "
 									+ "\"<4DA0A7E4.3010506@baz.net>\" "
 									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") "
@@ -433,8 +440,10 @@ public class TestMailServer {
 
 		public abstract class MailHandler implements Runnable {
 
-			protected static final String MESSAGE =
-					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\nfoo";
+			public static final String BODY = "foo\r\n";
+
+			public static final String MESSAGE =
+					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\n" + BODY;
 
 			protected final Socket socket;
 

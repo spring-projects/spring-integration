@@ -81,9 +81,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
-import org.springframework.integration.mail.TestMailServer.ImapServer;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
+import org.springframework.integration.test.mail.TestMailServer;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHeaders;
@@ -105,7 +105,7 @@ public class ImapMailReceiverTests {
 
 	private final AtomicInteger failed = new AtomicInteger(0);
 
-	private final static ImapServer imapIdleServer = TestMailServer.imap(0);
+	private final static TestMailServer.ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
 	@BeforeClass
