@@ -35,6 +35,7 @@ import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @since 5.0
  */
 public final class Ftp {
 

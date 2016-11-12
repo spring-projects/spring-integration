@@ -74,16 +74,6 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	}
 
 	/**
-	 * Configure the local directory to copy files to.
-	 * @param localDirectory the localDirectory.
-	 * @return the spec.
-	 */
-	public S localDirectory(String localDirectory) {
-		this.target.setLocalDirectory(new File(localDirectory));
-		return _this();
-	}
-
-	/**
 	 * A {@link FileListFilter} used to determine which files will generate messages
 	 * after they have been synchronized.
 	 * @param localFileListFilter the localFileListFilter.
