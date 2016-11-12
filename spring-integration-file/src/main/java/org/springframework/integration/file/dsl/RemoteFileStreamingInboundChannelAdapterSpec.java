@@ -81,7 +81,7 @@ public abstract class
 	 * @param remoteDirectoryFunction The remote directory function.
 	 * @return the spec.
 	 */
-	public S remoteDirectory(Function<Message<?>, String> remoteDirectoryFunction){
+	public S remoteDirectory(Function<Message<?>, String> remoteDirectoryFunction) {
 		this.target.setRemoteDirectoryExpression(new FunctionExpression<>(remoteDirectoryFunction));
 		return _this();
 	}
