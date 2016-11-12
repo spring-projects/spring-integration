@@ -8,8 +8,8 @@
 	<Loggers>
 		<Logger name="kafka" level="warn"/>
 		<Logger name="org.apache.kafka" level="warn"/>
-		<Logger name="org.springframework.kafka" level="debug"/>
-		<Logger name="org.springframework.integration" level="debug"/>
+		<Logger name="org.springframework.kafka" level="warn"/>
+		<Logger name="org.springframework.integration" level="warn"/>
 		<Root level="warn">
 			<AppenderRef ref="STDOUT" />
 		</Root>
