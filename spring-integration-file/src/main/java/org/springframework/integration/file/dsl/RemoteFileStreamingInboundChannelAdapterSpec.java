@@ -68,7 +68,7 @@ public abstract class
 
 	/**
 	 * Specify an expression that evaluates to the full path to the remote directory.
-	 * @param remoteDirectory The remote directory expression.
+	 * @param remoteDirectoryExpression The remote directory expression.
 	 * @return the spec.
 	 */
 	public S remoteDirectory(Expression remoteDirectoryExpression) {

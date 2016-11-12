@@ -61,7 +61,7 @@ public final class Ftp {
 	/**
 	 * A {@link FtpStreamingInboundChannelAdapterSpec} factory for an inbound channel
 	 * adapter spec.
-	 * @param sessionFactory the session factory.
+	 * @param remoteFileTemplate the remote file template.
 	 * @return the spec.
 	 */
 	public static FtpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
@@ -72,7 +72,7 @@ public final class Ftp {
 	/**
 	 * A {@link FtpStreamingInboundChannelAdapterSpec} factory for an inbound channel
 	 * adapter spec.
-	 * @param sessionFactory the session factory.
+	 * @param remoteFileTemplate the remote file template.
 	 * @param receptionOrderComparator the comparator.
 	 * @return the spec.
 	 */
