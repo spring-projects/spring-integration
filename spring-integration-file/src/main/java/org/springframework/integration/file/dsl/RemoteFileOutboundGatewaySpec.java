@@ -281,7 +281,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	/**
-	 * Specify a simple pattern to match remote files.
+	 * Specify a simple pattern to match remote files (e.g. '*.txt').
 	 * @param pattern the pattern.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter
@@ -290,7 +290,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	public abstract S patternFileNameFilter(String pattern);
 
 	/**
-	 * Specify a simple pattern to match remote files.
+	 * Specify a simple pattern to match remote files (e.g. '[0-9].*.txt').
 	 * @param regex the regex pattern.
 	 * @return the spec.
 	 * @see org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.dsl;
+package org.springframework.integration.sftp.dsl;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -22,13 +22,13 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,36 +48,40 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.support.FileExistsMode;
-import org.springframework.integration.ftp.FtpTestSupport;
-import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.jcraft.jsch.ChannelSftp;
+
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @since 5.0
+ *
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class FtpTests extends FtpTestSupport {
+public class SftpTests extends SftpTestSupport {
 
 	@Autowired
 	private IntegrationFlowContext flowContext;
 
 	@Test
-	public void testFtpInboundFlow() {
+	public void testSftpInboundFlow() {
 		QueueChannel out = new QueueChannel();
-		IntegrationFlow flow = IntegrationFlows.from(Ftp.inboundAdapter(sessionFactory())
-						.preserveTimestamp(true)
-						.remoteDirectory("ftpSource")
-						.regexFilter(".*\\.txt$")
-						.localFilename(f -> f.toUpperCase() + ".a")
-						.localDirectory(getTargetLocalDirectory()),
-				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+		IntegrationFlow flow = IntegrationFlows
+			.from(Sftp.inboundAdapter(sessionFactory())
+							.preserveTimestamp(true)
+							.remoteDirectory("sftpSource")
+							.regexFilter(".*\\.txt$")
+							.localFilenameExpression("#this.toUpperCase() + '.a'")
+							.localDirectory(getTargetLocalDirectory()),
+					e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 			.channel(out)
 			.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
@@ -86,84 +90,84 @@ public class FtpTests extends FtpTestSupport {
 		Object payload = message.getPayload();
 		assertThat(payload, instanceOf(File.class));
 		File file = (File) payload;
-		assertThat(file.getName(), isOneOf(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a"));
+		assertThat(file.getName(), isOneOf(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a"));
 		assertThat(file.getAbsolutePath(), containsString("localTarget"));
 
 		message = out.receive(10_000);
 		assertNotNull(message);
 		file = (File) message.getPayload();
-		assertThat(file.getName(), isOneOf(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a"));
+		assertThat(file.getName(), isOneOf(" SFTPSOURCE1.TXT.a", "SFTPSOURCE2.TXT.a"));
 		assertThat(file.getAbsolutePath(), containsString("localTarget"));
 
 		registration.destroy();
 	}
 
 	@Test
-	public void testFtpInboundStreamFlow() throws Exception {
+	public void testSftpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
 		StandardIntegrationFlow flow = IntegrationFlows.from(
-				Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
-						.remoteDirectory("ftpSource")
+				Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory()))
+						.remoteDirectory("sftpSource")
 						.regexFilter(".*\\.txt$"),
-				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+				e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 			.channel(out)
 			.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" ftpSource1.txt", "ftpSource2.txt"));
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf("sftpSource1.txt", "sftpSource2.txt"));
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		registration.destroy();
 	}
 
 	@Test
-	public void testFtpOutboundFlow() {
-		IntegrationFlow flow = f -> f
-			.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
-					.useTemporaryFileName(false)
-					.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
-					.remoteDirectory("ftpTarget"));
+	public void testSftpOutboundFlow() {
+		IntegrationFlow flow = f -> f.handle(Sftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+				.useTemporaryFileName(false)
+				.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+				.remoteDirectory("sftpTarget"));
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String fileName = "foo.file";
 		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
-			.setHeader(FileHeaders.FILENAME, fileName)
-			.build());
-		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(sessionFactory());
-		FTPFile[] files = template.execute(session ->
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build());
+
+		RemoteFileTemplate<ChannelSftp.LsEntry> template = new RemoteFileTemplate<>(sessionFactory());
+		ChannelSftp.LsEntry[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
 		assertEquals(1, files.length);
-		assertEquals(3, files[0].getSize());
+		assertEquals(3, files[0].getAttrs().getSize());
 
 		registration.destroy();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testFtpMgetFlow() {
+	public void testSftpMgetFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = f -> f
-				.handle(Ftp.outboundGateway(sessionFactory(),
-						AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
-							.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
-							.regexFileNameFilter("(subFtpSource|.*1.txt)")
-							.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
-							.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')"))
+				.handle(Sftp.outboundGateway(sessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET,
+						"payload")
+						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+						.regexFileNameFilter("(subSftpSource|.*1.txt)")
+						.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+						.localFilenameExpression("#remoteFileName.replaceFirst('sftpSource', 'localTarget')"))
 				.channel(out);
+		String dir = "sftpSource/";
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
-		String dir = "ftpSource/";
 		registration.getInputChannel().send(new GenericMessage<>(dir + "*"));
 		Message<?> result = out.receive(10_000);
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
-		// should have filtered ftpSource2.txt
+		// should have filtered sftpSource2.txt
 		assertEquals(2, localFiles.size());
 
 		for (File file : localFiles) {
@@ -171,7 +175,25 @@ public class FtpTests extends FtpTestSupport {
 					Matchers.containsString(dir));
 		}
 		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
-				Matchers.containsString(dir + "subFtpSource"));
+				Matchers.containsString(dir + "subSftpSource"));
+
+		registration.destroy();
+	}
+
+	@Test
+	public void testSftpSessionCallback() {
+		QueueChannel out = new QueueChannel();
+		IntegrationFlow flow = f -> f
+				.<String>handle((p, h) -> new SftpRemoteFileTemplate(sessionFactory()).execute(s -> s.list(p)))
+				.channel(out);
+		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
+		registration.getInputChannel().send(new GenericMessage<>("sftpSource"));
+		Message<?> receive = out.receive(10_000);
+		assertNotNull(receive);
+		Object payload = receive.getPayload();
+		assertThat(payload, instanceOf(ChannelSftp.LsEntry[].class));
+
+		assertTrue(((ChannelSftp.LsEntry[]) payload).length > 0);
 
 		registration.destroy();
 	}

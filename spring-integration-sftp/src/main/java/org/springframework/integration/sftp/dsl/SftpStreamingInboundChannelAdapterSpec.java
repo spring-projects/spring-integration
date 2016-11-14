@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,55 +14,52 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.dsl;
+package org.springframework.integration.sftp.dsl;
 
 import java.util.Comparator;
-
-import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
-import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
-import org.springframework.integration.ftp.inbound.FtpStreamingMessageSource;
+import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
+import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
+import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
+
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
- * A {@link RemoteFileStreamingInboundChannelAdapterSpec} for a
- * {@link FtpStreamingMessageSource}.
- *
  * @author Gary Russell
  * @since 5.0
+ *
  */
-public class FtpStreamingInboundChannelAdapterSpec
-		extends RemoteFileStreamingInboundChannelAdapterSpec<FTPFile, FtpStreamingInboundChannelAdapterSpec,
-				FtpStreamingMessageSource> {
+public class SftpStreamingInboundChannelAdapterSpec
+		extends RemoteFileStreamingInboundChannelAdapterSpec<LsEntry, SftpStreamingInboundChannelAdapterSpec,
+			SftpStreamingMessageSource> {
 
-	FtpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			Comparator<AbstractFileInfo<FTPFile>> comparator) {
-		this.target = new FtpStreamingMessageSource(remoteFileTemplate, comparator);
+	SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
+			Comparator<AbstractFileInfo<LsEntry>> comparator) {
+		this.target = new SftpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
 
 	/**
 	 * Specify a simple pattern to match remote files (e.g. '*.txt').
 	 * @param pattern the pattern.
-	 * @see FtpSimplePatternFileListFilter
+	 * @see SftpSimplePatternFileListFilter
 	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
 	 */
 	@Override
-	public FtpStreamingInboundChannelAdapterSpec patternFilter(String pattern) {
-		return filter(new FtpSimplePatternFileListFilter(pattern));
-	}
+	public SftpStreamingInboundChannelAdapterSpec patternFilter(String pattern) {
+		return filter(new SftpSimplePatternFileListFilter(pattern));	}
 
 	/**
 	 * Specify a regular expression to match remote files (e.g. '[0-9].*.txt').
 	 * @param regex the expression.
-	 * @see FtpRegexPatternFileListFilter
+	 * @see SftpRegexPatternFileListFilter
 	 * @see #filter(org.springframework.integration.file.filters.FileListFilter)
 	 */
 	@Override
-	public FtpStreamingInboundChannelAdapterSpec regexFilter(String regex) {
-		return filter(new FtpRegexPatternFileListFilter(regex));
+	public SftpStreamingInboundChannelAdapterSpec regexFilter(String regex) {
+		return filter(new SftpRegexPatternFileListFilter(regex));
 	}
 
 }

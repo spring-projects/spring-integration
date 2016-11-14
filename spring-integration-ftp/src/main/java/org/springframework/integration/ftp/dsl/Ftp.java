@@ -31,7 +31,7 @@ import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 
 /**
- * The factory for Spring Integration FTP components.
+ * The factory for FTP components.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -131,7 +131,6 @@ public final class Ftp {
 	 * @param command the command to perform on the FTP.
 	 * @param expression the remoteFilePath SpEL expression.
 	 * @return the {@link FtpOutboundGatewaySpec}
-	 * @see RemoteFileTemplate
 	 */
 	public static FtpOutboundGatewaySpec outboundGateway(SessionFactory<FTPFile> sessionFactory,
 			AbstractRemoteFileOutboundGateway.Command command, String expression) {
