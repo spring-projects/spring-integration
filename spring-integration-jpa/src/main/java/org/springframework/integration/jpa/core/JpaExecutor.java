@@ -597,17 +597,15 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		this.firstResultExpression = firstResultExpression;
 	}
 
-
 	/**
 	 * Set the expression that will be evaluated to get the {@code primaryKey} for
 	 * {@link javax.persistence.EntityManager#find(Class, Object)}
-	 * @param idExpression The first result expression.
+	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @since 4.0
 	 */
 	public void setIdExpression(Expression idExpression) {
 		this.idExpression = idExpression;
 	}
-
 
 	/**
 	 * Set the expression for maximum number of results expression. It has be a non null value
