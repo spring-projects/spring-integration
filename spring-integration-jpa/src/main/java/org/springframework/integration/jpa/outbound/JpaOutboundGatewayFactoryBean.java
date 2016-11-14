@@ -41,7 +41,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @since 2.2
  *
  */
-public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHandler> {
+public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<JpaOutboundGateway> {
 
 	private JpaExecutor jpaExecutor;
 
@@ -120,7 +120,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	}
 
 	@Override
-	protected MessageHandler createInstance() {
+	protected JpaOutboundGateway createInstance() {
 		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(this.jpaExecutor);
 		jpaOutboundGateway.setGatewayType(this.gatewayType);
 		jpaOutboundGateway.setProducesReply(this.producesReply);

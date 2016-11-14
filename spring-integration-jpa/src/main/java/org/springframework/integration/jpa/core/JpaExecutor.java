@@ -39,6 +39,7 @@ import org.springframework.integration.jpa.support.parametersource.ParameterSour
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Executes Jpa Operations that produce payload objects from the result of the provided:
@@ -172,7 +173,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	@Override
 	public void afterPropertiesSet() {
 
-		if (this.jpaParameters != null) {
+		if (!CollectionUtils.isEmpty(this.jpaParameters)) {
 
 			if (this.parameterSourceFactory == null) {
 				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
@@ -597,17 +598,15 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		this.firstResultExpression = firstResultExpression;
 	}
 
-
 	/**
 	 * Set the expression that will be evaluated to get the {@code primaryKey} for
 	 * {@link javax.persistence.EntityManager#find(Class, Object)}
-	 * @param idExpression The first result expression.
+	 * @param idExpression the SpEL expression for entity {@code primaryKey}.
 	 * @since 4.0
 	 */
 	public void setIdExpression(Expression idExpression) {
 		this.idExpression = idExpression;
 	}
-
 
 	/**
 	 * Set the expression for maximum number of results expression. It has be a non null value

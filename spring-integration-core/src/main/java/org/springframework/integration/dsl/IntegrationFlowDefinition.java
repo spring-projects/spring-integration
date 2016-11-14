@@ -2761,6 +2761,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
+	 * @param <T> the expected {@code payload} type
 	 * @return the Reactive Streams {@link Publisher}
 	 */
 	@SuppressWarnings("unchecked")
