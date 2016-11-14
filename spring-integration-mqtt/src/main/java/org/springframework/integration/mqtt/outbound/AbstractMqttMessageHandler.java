@@ -18,10 +18,15 @@ package org.springframework.integration.mqtt.outbound;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
@@ -37,21 +42,30 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
+	private static final MessageProcessor<String> DEFAULT_TOPIC_PROCESSOR =
+			m -> (String) m.getHeaders().get(MqttHeaders.TOPIC);
+
 	private final AtomicBoolean running = new AtomicBoolean();
 
 	private final String url;
 
 	private final String clientId;
 
-	private volatile String defaultTopic;
+	private String defaultTopic;
 
-	private volatile int defaultQos = 0;
+	private MessageProcessor<String> topicProcessor = DEFAULT_TOPIC_PROCESSOR;
 
-	private volatile boolean defaultRetained = false;
+	private int defaultQos = 0;
 
-	private volatile MessageConverter converter;
+	private MessageProcessor<Integer> qosProcessor;
 
-	private volatile int clientInstance;
+	private boolean defaultRetained = false;
+
+	private MessageProcessor<Boolean> retainedProcessor;
+
+	private MessageConverter converter;
+
+	private int clientInstance;
 
 	public AbstractMqttMessageHandler(String url, String clientId) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -59,16 +73,91 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.clientId = clientId;
 	}
 
+	/**
+	 * Set the topic to which the message will be published if the
+	 * {@link #setTopicExpression(Expression) topicExpression} evaluates to `null`.
+	 * @param defaultTopic the default topic.
+	 */
 	public void setDefaultTopic(String defaultTopic) {
 		this.defaultTopic = defaultTopic;
 	}
 
+	/**
+	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * @param topicExpression the expression.
+	 * @since 5.0
+	 */
+	public void setTopicExpression(Expression topicExpression) {
+		Assert.notNull(topicExpression, "'topicExpression' cannot be null");
+		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+	}
+
+	/**
+	 * Set the topic expression; default "headers['mqtt_topic']".
+	 * @param topicExpression the expression.
+	 * @since 5.0
+	 */
+	public void setTopicExpressionString(String topicExpression) {
+		Assert.hasText(topicExpression, "'topicExpression' must not be null or empty");
+		this.topicProcessor = new ExpressionEvaluatingMessageProcessor<>(topicExpression);
+	}
+
+	/**
+	 * Set the qos for messages if the {@link #setQosExpression(Expression) qosExpression}
+	 * evaluates to null.
+	 * @param defaultQos the default qos.
+	 */
 	public void setDefaultQos(int defaultQos) {
 		this.defaultQos = defaultQos;
 	}
 
-	public void setDefaultRetained(boolean defaultRetain) {
-		this.defaultRetained = defaultRetain;
+	/**
+	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * @param qosExpression the expression.
+	 * @since 5.0
+	 */
+	public void setQosExpression(Expression qosExpression) {
+		Assert.notNull(qosExpression, "'qosExpression' cannot be null");
+		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+	}
+
+	/**
+	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * @param qosExpression the expression.
+	 * @since 5.0
+	 */
+	public void setQosExpressionString(String qosExpression) {
+		Assert.hasText(qosExpression, "'qosExpression' must not be null or empty");
+		this.qosProcessor = new ExpressionEvaluatingMessageProcessor<>(qosExpression);
+	}
+
+	/**
+	 * Set the retained boolean for messages if the
+	 * {@link #setRetainedExpression(Expression) retainedExpression} evaluates to null.
+	 * @param defaultRetained the default defaultRetained.
+	 */
+	public void setDefaultRetained(boolean defaultRetained) {
+		this.defaultRetained = defaultRetained;
+	}
+
+	/**
+	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * @param retainedExpression the expression.
+	 * @since 5.0
+	 */
+	public void setRetainedExpression(Expression retainedExpression) {
+		Assert.notNull(retainedExpression, "'qosExpression' cannot be null");
+		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
+	}
+
+	/**
+	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * @param retainedExpression the expression.
+	 * @since 5.0
+	 */
+	public void setRetainedExpressionString(String retainedExpression) {
+		Assert.hasText(retainedExpression, "'qosExpression' must not be null or empty");
+		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
 	}
 
 	public void setConverter(MessageConverter converter) {
@@ -109,8 +198,49 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
+		if (this.topicProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
+			((BeanFactoryAware) this.topicProcessor).setBeanFactory(getBeanFactory());
+		}
+		if (this.qosProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
+			((BeanFactoryAware) this.qosProcessor).setBeanFactory(getBeanFactory());
+		}
+		if (this.retainedProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
+			((BeanFactoryAware) this.retainedProcessor).setBeanFactory(getBeanFactory());
+		}
 		if (this.converter == null) {
-			this.converter = new DefaultPahoMessageConverter(this.defaultQos, this.defaultRetained);
+			DefaultPahoMessageConverter mConverter = new DefaultPahoMessageConverter(
+					m -> {
+						if (this.qosProcessor == null) {
+							return MqttMessageConverter.defaultQosFunction(this.defaultQos).apply(m);
+						}
+						else {
+							Integer result = this.qosProcessor.processMessage(m);
+							if (result == null) {
+								return this.defaultQos;
+							}
+							else {
+								return result;
+							}
+						}
+					},
+					m -> {
+						if (this.retainedProcessor == null) {
+							return  MqttMessageConverter.defaultRetainedFunction(this.defaultRetained).apply(m);
+						}
+						else {
+							Boolean result = this.retainedProcessor.processMessage(m);
+							if (result == null) {
+								return this.defaultRetained;
+							}
+							else {
+								return result;
+							}
+						}
+					});
+			if (getBeanFactory() != null) {
+				mConverter.setBeanFactory(getBeanFactory());
+			}
+			this.converter = mConverter;
 		}
 	}
 
@@ -139,11 +269,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
 		Object mqttMessage = this.converter.fromMessage(message, Object.class);
+		String topic = this.topicProcessor.processMessage(message);
 		if (topic == null && this.defaultTopic == null) {
 			throw new MessageHandlingException(message,
-					"No '" + MqttHeaders.TOPIC + "' header and no default topic defined");
+					"No topic could be determined from the message and no default topic defined");
 		}
 		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
 	}

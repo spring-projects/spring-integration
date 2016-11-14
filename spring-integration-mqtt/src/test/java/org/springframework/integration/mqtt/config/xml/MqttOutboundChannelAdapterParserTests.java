@@ -22,6 +22,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.function.Function;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +33,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
@@ -38,16 +41,17 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
  * @since 4.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class MqttOutboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("withConverter")
@@ -65,11 +69,21 @@ public class MqttOutboundChannelAdapterParserTests {
 	@Autowired
 	private DefaultMqttPahoClientFactory clientFactory;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithConverter() throws Exception {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withConverterHandler, "url"));
 		assertEquals("foo", TestUtils.getPropertyValue(withConverterHandler, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(withConverterHandler, "defaultTopic"));
+		GenericMessage<String> message = new GenericMessage<>("foo");
+		assertEquals("bar",
+				TestUtils.getPropertyValue(withConverterHandler, "topicProcessor", MessageProcessor.class)
+						.processMessage(message));
+		assertEquals(2, TestUtils.getPropertyValue(withConverterHandler, "qosProcessor", MessageProcessor.class)
+				.processMessage(message));
+		assertEquals(Boolean.TRUE,
+				TestUtils.getPropertyValue(withConverterHandler, "retainedProcessor", MessageProcessor.class)
+						.processMessage(message));
 		assertSame(converter, TestUtils.getPropertyValue(withConverterHandler, "converter"));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withConverterHandler, "clientFactory"));
 		assertFalse(TestUtils.getPropertyValue(withConverterHandler, "async", Boolean.class));
@@ -85,6 +99,7 @@ public class MqttOutboundChannelAdapterParserTests {
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithDefaultConverter() {
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withDefaultConverterHandler, "url"));
@@ -95,8 +110,10 @@ public class MqttOutboundChannelAdapterParserTests {
 		MqttMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler, "converter",
 				MqttMessageConverter.class);
 		assertTrue(defaultConverter instanceof DefaultPahoMessageConverter);
-		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "defaultQos"));
-		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));
+		GenericMessage<String> message = new GenericMessage<>("foo");
+		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "qosFunction", Function.class).apply(message));
+		assertTrue((Boolean) TestUtils.getPropertyValue(defaultConverter, "retainedFunction", Function.class)
+				.apply(message));
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class));

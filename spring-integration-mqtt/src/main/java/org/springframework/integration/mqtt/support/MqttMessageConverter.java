@@ -16,10 +16,13 @@
 
 package org.springframework.integration.mqtt.support;
 
+import java.util.function.Function;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.Assert;
 
 /**
  * Extension of {@link MessageConverter} allowing the topic to be added as
@@ -39,4 +42,21 @@ public interface MqttMessageConverter extends MessageConverter {
 	 * @return The Message.
 	 */
 	Message<?> toMessage(String topic, MqttMessage mqttMessage);
+
+	static Function<Message<?>, Integer> defaultQosFunction(int defaultQos) {
+		return message -> {
+			Object header = message.getHeaders().get(MqttHeaders.QOS);
+			Assert.isTrue(header == null || header instanceof Integer, MqttHeaders.QOS + " header must be Integer");
+			return header == null ? defaultQos : (Integer) header;
+		};
+	}
+
+	static Function<Message<?>, Boolean> defaultRetainedFunction(boolean defaultRetained) {
+		return message -> {
+			Object header = message.getHeaders().get(MqttHeaders.RETAINED);
+			Assert.isTrue(header == null || header instanceof Boolean, MqttHeaders.RETAINED + " header must be Boolean");
+			return header == null ? defaultRetained : (Boolean) header;
+		};
+	}
+
 }
