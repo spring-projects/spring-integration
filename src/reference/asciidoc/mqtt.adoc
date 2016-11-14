@@ -20,17 +20,17 @@ A minimal configuration might be:
 [source,xml]
 ----
 <bean id="clientFactory"
-		class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-	<property name="userName" value="${mqtt.username}"/>
-	<property name="password" value="${mqtt.password}"/>
+        class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+    <property name="userName" value="${mqtt.username}"/>
+    <property name="password" value="${mqtt.password}"/>
 </bean>
 
 <int-mqtt:message-driven-channel-adapter id="mqttInbound"
-	client-id="${mqtt.default.client.id}.src"
-	url="${mqtt.url}"
-	topics="sometopic"
-	client-factory="clientFactory"
-	channel="output"/>
+    client-id="${mqtt.default.client.id}.src"
+    url="${mqtt.url}"
+    topics="sometopic"
+    client-factory="clientFactory"
+    channel="output"/>
 ----
 
 Attributes:
@@ -38,16 +38,16 @@ Attributes:
 [source,xml]
 ----
 <int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
-	client-id="foo"  <1>
-	url="tcp://localhost:1883"  <2>
-	topics="bar,baz"  <3>
-	qos="1,2"  <4>
-	converter="myConverter"  <5>
-	client-factory="clientFactory"  <6>
-	send-timeout="123"  <7>
-	error-channel="errors"  <8>
-	recovery-interval="10000"  <9>
-	channel="out" />
+    client-id="foo"  <1>
+    url="tcp://localhost:1883"  <2>
+    topics="bar,baz"  <3>
+    qos="1,2"  <4>
+    converter="myConverter"  <5>
+    client-factory="clientFactory"  <6>
+    send-timeout="123"  <7>
+    error-channel="errors"  <8>
+    recovery-interval="10000"  <9>
+    channel="out" />
 ----
 
 <1> The client id.
@@ -109,6 +109,11 @@ The latter (the default) will unsubscribe only if the `cleanSession` property is
 To revert to the pre-4.2.3 behavior, use `UNSUBSCRIBE_ALWAYS`.
 ====
 
+[IMPORTANT]
+====
+Starting with _version 5.0_, the `topic`, `qos` and `retained` properties are mapped to `.RECEIVED_...` headers (`MqttHeaders.RECEIVED_TOPIC`, `MqttHeaders.RECEIVED_QOS`, and `MqttHeaders.RECEIVED_RETAINED`), to avoid inadvertent propagation to an outbound message which (by default) uses the `MqttHeaders.TOPIC`, `MqttHeaders.QOS`, and `MqttHeaders.RETAINED` headers.
+====
+
 ==== Adding/Removing Topics at Runtime
 
 Starting with _version 4.1_, it is possible to programmatically change the topics to which the adapter is subscribed.
@@ -130,39 +135,39 @@ The following Spring Boot application provides an example of configuring the inb
 public class MqttJavaApplication {
 
     public static void main(String[] args) {
-    	new SpringApplicationBuilder(MqttJavaApplication.class)
-    			.web(false)
-    			.run(args);
+        new SpringApplicationBuilder(MqttJavaApplication.class)
+                .web(false)
+                .run(args);
     }
 
     @Bean
     public MessageChannel mqttInputChannel() {
-    	return new DirectChannel();
+        return new DirectChannel();
     }
 
     @Bean
     public MessageProducer inbound() {
-    	MqttPahoMessageDrivenChannelAdapter adapter =
-    			new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "testClient",
-    			                                 "topic1", "topic2");
-    	adapter.setCompletionTimeout(5000);
-    	adapter.setConverter(new DefaultPahoMessageConverter());
-    	adapter.setQos(1);
-    	adapter.setOutputChannel(mqttInputChannel());
-    	return adapter;
+        MqttPahoMessageDrivenChannelAdapter adapter =
+                new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "testClient",
+                                                 "topic1", "topic2");
+        adapter.setCompletionTimeout(5000);
+        adapter.setConverter(new DefaultPahoMessageConverter());
+        adapter.setQos(1);
+        adapter.setOutputChannel(mqttInputChannel());
+        return adapter;
     }
 
     @Bean
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public MessageHandler handler() {
-    	return new MessageHandler() {
+        return new MessageHandler() {
 
-    		@Override
-    		public void handleMessage(Message<?> message) throws MessagingException {
-    			System.out.println(message.getPayload());
-    		}
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+                System.out.println(message.getPayload());
+            }
 
-    	};
+        };
     }
 
 }
@@ -182,16 +187,19 @@ Attributes:
 [source,xml]
 ----
 <int-mqtt:outbound-channel-adapter id="withConverter"
-	client-id="foo"  <1>
-	url="tcp://localhost:1883"  <2>
-	converter="myConverter"  <3>
-	client-factory="clientFactory"  <4>
-	default-qos="1"  <5>
-	default-retained="true"  <6>
-	default-topic="bar"  <7>
-	async="false"  <8>
-	async-events="false"  <9>
-	channel="target" />
+    client-id="foo"  <1>
+    url="tcp://localhost:1883"  <2>
+    converter="myConverter"  <3>
+    client-factory="clientFactory"  <4>
+    default-qos="1"  <5>
+    qos-expression="" <6>
+    default-retained="true"  <7>
+    retained-expression="" <8>
+    default-topic="bar"  <9>
+    topic-expression="" <10>
+    async="false"  <11>
+    async-events="false"  <12>
+    channel="target" />
 ----
 
 <1> The client id.
@@ -210,22 +218,25 @@ The default `DefaultPahoMessageConverter` recognizes the following headers: +
 <4> The client factory.
 
 
-<5> The default quality of service (used if no `mqtt_qos` header is found).
-Not allowed if a custom `converter` is supplied.
+<5> The default quality of service (used if no `mqtt_qos` header is found or the `qos-expression` returns `null`.
+Not used if a custom `converter` is supplied.
 
+<6> An expression to evaluate to determine the qos; default `headers[mqtt_qos]`.
 
-<6> The default value of the retained flag (used if no `mqtt_retained` header is found).
-Not allowed if a custom `converter` is supplied.
+<7> The default value of the retained flag (used if no `mqtt_retained` header is found).
+Not used if a custom `converter` is supplied.
 
+<8> An expression to evaluate to determine the retained boolean; default `headers[mqtt_retained]`.
 
-<7> The default topic to which the message will be sent (used if no `mqtt_topic` header is found).
+<9> The default topic to which the message will be sent (used if no `mqtt_topic` header is found).
 
+<10> An expression to evaluate to determine the destination topic; default `headers['topic']`.
 
-<8> When `true`, the caller will not block waiting for delivery confirmation when a message is sent.
+<11> When `true`, the caller will not block waiting for delivery confirmation when a message is sent.
 Default:false (the send blocks until delivery is confirmed).
 
 
-<9> When `async` and `async-events` are both `true`, an `MqttMessageSentEvent` is emitted, containing the message, the topic, the `messageId` generated by the client library, the `clientId` and the `clientInstance` (incremented each time the client is connected).
+<12> When `async` and `async-events` are both `true`, an `MqttMessageSentEvent` is emitted, containing the message, the topic, the `messageId` generated by the client library, the `clientId` and the `clientInstance` (incremented each time the client is connected).
 When the delivery is confirmed by the client library, an `MqttMessageDeliveredEvent` is emitted, containing the the `messageId`, `clientId` and the `clientInstance`, enabling delivery to be correlated with the send.
 These events can be received by any `ApplicationListener`, or by an event inbound channel adapter.
 Note that it is possible that the `MqttMessageDeliveredEvent` might be received before the `MqttMessageSentEvent`.
@@ -245,9 +256,9 @@ public class MqttJavaApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context =
-        		new SpringApplicationBuilder(MqttJavaApplication.class)
-        				.web(false)
-        				.run(args);
+                new SpringApplicationBuilder(MqttJavaApplication.class)
+                        .web(false)
+                        .run(args);
         MyGateway gateway = context.getBean(MyGateway.class);
         gateway.sendToMqtt("foo");
     }

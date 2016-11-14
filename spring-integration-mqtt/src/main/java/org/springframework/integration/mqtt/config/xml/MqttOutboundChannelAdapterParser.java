@@ -52,6 +52,8 @@ public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 		MqttParserUtils.parseCommon(element, builder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-topic");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "topic-expression",
+				"topicExpressionString");
 		if (StringUtils.hasText(element.getAttribute("converter")) &&
 				(StringUtils.hasText(element.getAttribute("default-qos")) ||
 						StringUtils.hasText(element.getAttribute("default-retained")))) {
@@ -59,7 +61,10 @@ public class MqttOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 					"'default-qos' or 'default-retained'", element);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-qos");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "qos-expression", "qosExpressionString");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-retained");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "retained-expression",
+				"retainedExpressionString");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "async-events");
 

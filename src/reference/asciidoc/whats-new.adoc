@@ -92,3 +92,11 @@ See <<http-header-mapping>> for more information.
 Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
 Empty groups are now scheduled for removal after `empty-group-min-timeout`.
 See <<aggregator>> for more information.
+
+==== MQTT Changes
+
+Inbound messages are now mapped with headers `RECEIVED_TOPIC`, `RECEIVED_QOS` and `RECEIVED_RETAINED` to avoid inadvertent propagation to outbound messages when an application is relaying messages.
+
+The outbound channel adapter now supports expressions for the topic, qos and retained properties; the defaults remain the same.
+
+See <<mqtt>> for more information.

@@ -133,22 +133,48 @@
 				<xsd:attribute name="default-topic">
 					<xsd:annotation>
 						<xsd:documentation>
-							Specifies the default topic to which messages will be sent. Required if an
-							outbound message does not have an 'mqtt_topic' header.
+							Specifies the default topic to which messages will be sent. Required if
+							the 'topic-expression' evaluates to 'null'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="topic-expression">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies an expression to evaluate to determine the destination topic.
+							Default "headers['mqtt_topic']".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="default-qos">
 					<xsd:annotation>
 						<xsd:documentation>
-							Specifies the default quality of service. Default 0.
+							Specifies the default quality of service; used if the 'qos-expression'
+							evaluates to 'null'. Default 0.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="qos-expression">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies an expression to evaluate to determine the message qos.
+							Default "headers['mqtt_qos']".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="default-retained">
 					<xsd:annotation>
 						<xsd:documentation>
-							Specifies the default value of the 'retained' flag. Default false.
+							Specifies the default value of the 'retained' flag; used if the
+							'retained-expression' evaluates to 'null'. Default false.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="retained-expression">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies an expression to evaluate to determine the message 'retained'
+							flag. Default "headers['mqtt_retained']".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

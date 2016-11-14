@@ -802,7 +802,7 @@ Typically, you would use the `#remoteDirectory` variable in the `local-directory
 Starting with _version 5.0_, the `FtpSimplePatternFileListFilter` and `FtpRegexPatternFileListFilter` can be configured to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
 This allows recursion for a simple pattern; examples follow:
 
-[code, xml]
+[source, xml]
 ----
 <bean id="startDotTxtFilter" class="org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter">
     <constructor-arg value="*.txt" />

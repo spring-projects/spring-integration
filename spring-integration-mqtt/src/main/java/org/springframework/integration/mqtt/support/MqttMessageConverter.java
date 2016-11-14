@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt.support;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 
@@ -39,4 +40,13 @@ public interface MqttMessageConverter extends MessageConverter {
 	 * @return The Message.
 	 */
 	Message<?> toMessage(String topic, MqttMessage mqttMessage);
+
+	static MessageProcessor<Integer> defaultQosProcessor() {
+		return message -> message.getHeaders().get(MqttHeaders.QOS, Integer.class);
+	}
+
+	static MessageProcessor<Boolean> defaultRetainedProcessor() {
+		return message -> message.getHeaders().get(MqttHeaders.RETAINED, Boolean.class);
+	}
+
 }

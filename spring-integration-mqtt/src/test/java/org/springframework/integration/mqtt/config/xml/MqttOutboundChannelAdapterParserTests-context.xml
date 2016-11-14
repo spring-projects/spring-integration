@@ -17,6 +17,9 @@
 									   converter="myConverter"
 									   client-factory="clientFactory"
 									   default-topic="bar"
+									   topic-expression="'bar'"
+									   qos-expression="2"
+									   retained-expression="true"
 									   phase="25"
 									   order="1"
 									   channel="target">

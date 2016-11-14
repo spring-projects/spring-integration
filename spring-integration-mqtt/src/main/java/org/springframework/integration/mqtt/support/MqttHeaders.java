@@ -29,11 +29,18 @@ public final class MqttHeaders {
 
 	public static final String QOS = prefix + "qos";
 
+	public static final String RECEIVED_QOS = prefix + "receivedQos";
+
 	public static final String DUPLICATE = prefix + "duplicate";
 
 	public static final String RETAINED = prefix + "retained";
 
+	public static final String RECEIVED_RETAINED = prefix + "receivedRetained";
+
 	public static final String TOPIC = prefix + "topic";
+
+	public static final String RECEIVED_TOPIC = prefix + "receivedTopic";
+
 	private MqttHeaders() {
 		throw new AssertionError();
 	}

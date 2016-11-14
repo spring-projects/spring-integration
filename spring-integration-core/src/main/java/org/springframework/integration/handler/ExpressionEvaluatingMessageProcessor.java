@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
@@ -54,6 +55,38 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 		Assert.notNull(expression, "The expression must not be null");
 		try {
 			this.expression = expression;
+			this.expectedType = expectedType;
+		}
+		catch (ParseException e) {
+			throw new IllegalArgumentException("Failed to parse expression.", e);
+		}
+	}
+
+	/**
+	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression.
+	 * @param expression a SpEL expression to evaluate.
+	 * @since 5.0
+	 */
+	public ExpressionEvaluatingMessageProcessor(String expression) {
+		try {
+			this.expression = EXPRESSION_PARSER.parseExpression(expression);
+			this.expectedType = null;
+		}
+		catch (ParseException e) {
+			throw new IllegalArgumentException("Failed to parse expression.", e);
+		}
+	}
+
+	/**
+	 * Construct {@link ExpressionEvaluatingMessageProcessor} for the provided
+	 * SpEL expression and expected result type.
+	 * @param expression a SpEL expression to evaluate.
+	 * @param expectedType the expected result type.
+	 * @since 5.0
+	 */
+	public ExpressionEvaluatingMessageProcessor(String expression, Class<T> expectedType) {
+		try {
+			this.expression = EXPRESSION_PARSER.parseExpression(expression);
 			this.expectedType = expectedType;
 		}
 		catch (ParseException e) {

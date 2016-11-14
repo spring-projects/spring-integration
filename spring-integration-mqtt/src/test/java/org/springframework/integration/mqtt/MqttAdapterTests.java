@@ -59,8 +59,12 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory.Will;
@@ -69,6 +73,8 @@ import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -337,6 +343,31 @@ public class MqttAdapterTests {
 		verifyNotUnsubscribe(client);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCustomExpressions() {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+		MqttPahoMessageHandler handler = ctx.getBean("handler", MqttPahoMessageHandler.class);
+		GenericMessage<String> message = new GenericMessage<>("foo");
+		assertEquals("fooTopic",
+				TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class).processMessage(message));
+		assertEquals(1,
+				TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
+					.processMessage(message));
+		assertEquals(Boolean.TRUE,
+				TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
+					.processMessage(message));
+
+		handler = ctx.getBean("handlerWithNullExpressions", MqttPahoMessageHandler.class);
+		assertEquals(1,
+				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+					.fromMessage(message, null).getQos());
+		assertEquals(Boolean.TRUE,
+				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+					.fromMessage(message, null).isRetained());
+		ctx.close();
+	}
+
 	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final MqttAsyncClient client, Boolean cleanSession,
 			ConsumerStopAction action) throws MqttException, MqttSecurityException {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
@@ -378,6 +409,45 @@ public class MqttAdapterTests {
 		verify(client).subscribe(any(String[].class), any(int[].class));
 		verify(client, never()).unsubscribe(any(String[].class));
 		verify(client).disconnect();
+	}
+
+	@Configuration
+	public static class Config {
+
+		@Bean
+		public MqttPahoMessageHandler handler() {
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
+			handler.setTopicExpressionString("@topic");
+			handler.setQosExpressionString("@qos");
+			handler.setRetainedExpressionString("@retained");
+			return handler;
+		}
+
+		@Bean
+		public String topic() {
+			return "fooTopic";
+		}
+
+		@Bean
+		public Integer qos() {
+			return 1;
+		}
+
+		@Bean
+		public Boolean retained() {
+			return true;
+		}
+
+		@Bean
+		public MqttPahoMessageHandler handlerWithNullExpressions() {
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
+			handler.setDefaultQos(1);
+			handler.setQosExpressionString("null");
+			handler.setDefaultRetained(true);
+			handler.setRetainedExpressionString("null");
+			return handler;
+		}
+
 	}
 
 }

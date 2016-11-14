@@ -54,8 +54,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
@@ -63,8 +62,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class BackToBackAdapterTests {
 
@@ -103,7 +101,7 @@ public class BackToBackAdapterTests {
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 	}
 
 	@Test
@@ -124,21 +122,21 @@ public class BackToBackAdapterTests {
 		inbound.start();
 		inbound.addTopic("mqtt-foo");
 		adapter.handleMessage(new GenericMessage<String>("foo"));
-		Message<?> out = outputChannel.receive(10000);
+		Message<?> out = outputChannel.receive(10_000);
 		assertNotNull(out);
 		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 
 		inbound.addTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
-		out = outputChannel.receive(10000);
+		out = outputChannel.receive(10_000);
 		assertNotNull(out);
 		assertEquals("bar", out.getPayload());
-		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 
 		inbound.removeTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
-		out = outputChannel.receive(10000);
+		out = outputChannel.receive(10_000);
 		assertNull(out);
 
 		try {
@@ -183,12 +181,12 @@ public class BackToBackAdapterTests {
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 		out = outputChannel.receive(10000);
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("bar", out.getPayload());
-		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 	}
 
 	@Test
@@ -220,7 +218,7 @@ public class BackToBackAdapterTests {
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
-		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 	}
 
 	@Test
@@ -288,10 +286,10 @@ public class BackToBackAdapterTests {
 			out = outputChannel.receive(10000);
 			assertNotNull(out);
 			if ("foo".equals(out.getPayload())) {
-				assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.TOPIC));
+				assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 			}
 			else if ("bar".equals(out.getPayload())) {
-				assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.TOPIC));
+				assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 			}
 			else {
 				fail("unexpected payload " + out.getPayload());
