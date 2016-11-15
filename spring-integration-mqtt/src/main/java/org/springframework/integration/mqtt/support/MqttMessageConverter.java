@@ -21,7 +21,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.util.Assert;
 
 /**
  * Extension of {@link MessageConverter} allowing the topic to be added as
@@ -43,19 +42,11 @@ public interface MqttMessageConverter extends MessageConverter {
 	Message<?> toMessage(String topic, MqttMessage mqttMessage);
 
 	static MessageProcessor<Integer> defaultQosProcessor() {
-		return message -> {
-			Object header = message.getHeaders().get(MqttHeaders.QOS);
-			Assert.state(header == null || header instanceof Integer, MqttHeaders.QOS + " header must be Integer");
-			return (Integer) header;
-		};
+		return message -> message.getHeaders().get(MqttHeaders.QOS, Integer.class);
 	}
 
 	static MessageProcessor<Boolean> defaultRetainedProcessor() {
-		return message -> {
-			Object header = message.getHeaders().get(MqttHeaders.RETAINED);
-			Assert.state(header == null || header instanceof Boolean, MqttHeaders.RETAINED + " header must be Boolean");
-			return (Boolean) header;
-		};
+		return message -> message.getHeaders().get(MqttHeaders.RETAINED, Boolean.class);
 	}
 
 }

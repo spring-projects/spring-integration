@@ -142,7 +142,7 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specifies an expression to evaluate to determine the destination topic.
-							Default "headers['mqtt_topic']]".
+							Default "headers['mqtt_topic']".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
