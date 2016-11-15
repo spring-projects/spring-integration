@@ -16,12 +16,11 @@
 
 package org.springframework.integration.mqtt.support;
 
-import java.util.function.Function;
-
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -44,9 +43,13 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	private final String charset;
 
-	private final Function<Message<?>, Integer> qosFunction;
+	private final int defaultQos;
 
-	private final Function<Message<?>, Boolean> retainedFunction;
+	private final MessageProcessor<Integer> qosProcessor;
+
+	private final boolean defaultRetained;
+
+	private final MessageProcessor<Boolean> retainedProcessor;
 
 	private volatile boolean payloadAsBytes = false;
 
@@ -70,23 +73,9 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * {@code byte[]} and inbound {@code byte[]} to String (unless
 	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 * @param defaultQos the default qos.
-	 * @param defaultRetain the default retain.
+	 * @param defaultRetained the default retained.
 	 */
-	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetain) {
-		this(defaultQos, defaultRetain, "UTF-8");
-	}
-
-	/**
-	 * Construct a converter to create outbound messages with the supplied default qos and
-	 * retain message processors and a UTF-8 charset for converting outbound String payloads to
-	 * {@code byte[]} and inbound {@code byte[]} to String (unless
-	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
-	 * @param defaultQos the default qos.
-	 * @param defaultRetained the default retain.
-	 * @since 5.0
-	 */
-	public DefaultPahoMessageConverter(Function<Message<?>, Integer> defaultQos,
-			Function<Message<?>, Boolean> defaultRetained) {
+	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained) {
 		this(defaultQos, defaultRetained, "UTF-8");
 	}
 
@@ -105,31 +94,52 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * Construct a converter to create outbound messages with the supplied default qos and
 	 * retain settings and the supplied charset.
 	 * @param defaultQos the default qos.
-	 * @param defaultRetained the default retain.
+	 * @param defaultRetained the default retained.
 	 * @param charset the charset used to convert outbound String paylaods to
 	 * {@code byte[]} and inbound {@code byte[]} to String (unless
 	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 */
 	public DefaultPahoMessageConverter(int defaultQos, boolean defaultRetained, String charset) {
-		this.qosFunction = MqttMessageConverter.defaultQosFunction(defaultQos);
-		this.retainedFunction = MqttMessageConverter.defaultRetainedFunction(defaultRetained);
-		this.charset = charset;
+		this(defaultQos, MqttMessageConverter.defaultQosProcessor(), defaultRetained,
+				MqttMessageConverter.defaultRetainedProcessor(), charset);
+	}
+
+	/**
+	 * Construct a converter to create outbound messages with the supplied default qos and
+	 * retained message processors and a UTF-8 charset for converting outbound String payloads to
+	 * {@code byte[]} and inbound {@code byte[]} to String (unless
+	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
+	 * @param defaultQos the default qos.
+	 * @param qosProcessor a message processor to determine the qos.
+	 * @param defaultRetained the default retained.
+	 * @param retainedProcessor a message processor to determine the retained flag.
+	 * @since 5.0
+	 */
+	public DefaultPahoMessageConverter(int defaultQos, MessageProcessor<Integer> qosProcessor, boolean defaultRetained,
+			MessageProcessor<Boolean> retainedProcessor) {
+		this(defaultQos, qosProcessor, defaultRetained, retainedProcessor, "UTF-8");
 	}
 
 	/**
 	 * Construct a converter to create outbound messages with the supplied default qos and
 	 * retain settings and the supplied charset.
-	 * @param qosFunction a function to determine the qos.
-	 * @param retainedFunction to determine the retained flag.
+	 * @param defaultQos the default qos.
+	 * @param qosProcessor a message processor to determine the qos.
+	 * @param defaultRetained the default retained.
+	 * @param retainedProcessor a message processor to determine the retained flag.
 	 * @param charset the charset used to convert outbound String paylaods to
 	 * {@code byte[]} and inbound {@code byte[]} to String (unless
 	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 * @since 5.0
 	 */
-	public DefaultPahoMessageConverter(Function<Message<?>, Integer> qosFunction,
-			Function<Message<?>, Boolean> retainedFunction, String charset) {
-		this.qosFunction = qosFunction;
-		this.retainedFunction = retainedFunction;
+	public DefaultPahoMessageConverter(int defaultQos, MessageProcessor<Integer> qosProcessor, boolean defaultRetained,
+			MessageProcessor<Boolean> retainedProcessor, String charset) {
+		Assert.notNull(qosProcessor, "'qosProcessor' cannot be null");
+		Assert.notNull(retainedProcessor, "'retainedProcessor' cannot be null");
+		this.defaultQos = defaultQos;
+		this.qosProcessor = qosProcessor;
+		this.defaultRetained = defaultRetained;
+		this.retainedProcessor = retainedProcessor;
 		this.charset = charset;
 	}
 
@@ -193,8 +203,10 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	public MqttMessage fromMessage(Message<?> message, Class<?> targetClass) {
 		byte[] payloadBytes = messageToMqttBytes(message);
 		MqttMessage mqttMessage = new MqttMessage(payloadBytes);
-		mqttMessage.setRetained(this.retainedFunction.apply(message));
-		mqttMessage.setQos(this.qosFunction.apply(message));
+		Integer qos = this.qosProcessor.processMessage(message);
+		mqttMessage.setQos(qos == null ? this.defaultQos : qos);
+		Boolean retained = this.retainedProcessor.processMessage(message);
+		mqttMessage.setRetained(retained == null ? this.defaultRetained : retained);
 		return mqttMessage;
 	}
 

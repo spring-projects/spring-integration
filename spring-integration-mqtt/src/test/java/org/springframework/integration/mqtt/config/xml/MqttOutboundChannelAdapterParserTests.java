@@ -22,8 +22,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.function.Function;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,21 +97,19 @@ public class MqttOutboundChannelAdapterParserTests {
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithDefaultConverter() {
+		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertEquals("tcp://localhost:1883", TestUtils.getPropertyValue(withDefaultConverterHandler, "url"));
 		assertEquals("foo", TestUtils.getPropertyValue(withDefaultConverterHandler, "clientId"));
 		assertEquals("bar", TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic"));
 		assertEquals(1, TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos"));
-		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class));
-		MqttMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler, "converter",
-				MqttMessageConverter.class);
-		assertTrue(defaultConverter instanceof DefaultPahoMessageConverter);
-		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "qosFunction", Function.class).apply(message));
-		assertTrue((Boolean) TestUtils.getPropertyValue(defaultConverter, "retainedFunction", Function.class)
-				.apply(message));
+		assertEquals(Boolean.TRUE,
+				TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class));
+		DefaultPahoMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler,
+				"converter", DefaultPahoMessageConverter.class);
+		assertEquals(1, defaultConverter.fromMessage(message, null).getQos());
+		assertTrue(defaultConverter.fromMessage(message, null).isRetained());
 		assertSame(clientFactory, TestUtils.getPropertyValue(withDefaultConverterHandler, "clientFactory"));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "async", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "asyncEvents", Boolean.class));

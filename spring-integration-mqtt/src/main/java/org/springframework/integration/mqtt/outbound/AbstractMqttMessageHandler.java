@@ -57,11 +57,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private int defaultQos = 0;
 
-	private MessageProcessor<Integer> qosProcessor;
+	private MessageProcessor<Integer> qosProcessor = MqttMessageConverter.defaultQosProcessor();
 
-	private boolean defaultRetained = false;
+	private boolean defaultRetained;
 
-	private MessageProcessor<Boolean> retainedProcessor;
+	private MessageProcessor<Boolean> retainedProcessor = MqttMessageConverter.defaultRetainedProcessor();
 
 	private MessageConverter converter;
 
@@ -104,8 +104,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	/**
 	 * Set the qos for messages if the {@link #setQosExpression(Expression) qosExpression}
-	 * evaluates to null.
+	 * evaluates to null. Only applies if a message converter is not provided.
 	 * @param defaultQos the default qos.
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setDefaultQos(int defaultQos) {
 		this.defaultQos = defaultQos;
@@ -113,7 +114,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	/**
 	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * Only applies if a message converter is not provided.
 	 * @param qosExpression the expression.
+	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
 	 */
 	public void setQosExpression(Expression qosExpression) {
@@ -123,7 +126,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	/**
 	 * Set the qos expression; default "headers['mqtt_qos']".
+	 * Only applies if a message converter is not provided.
 	 * @param qosExpression the expression.
+	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
 	 */
 	public void setQosExpressionString(String qosExpression) {
@@ -134,7 +139,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	/**
 	 * Set the retained boolean for messages if the
 	 * {@link #setRetainedExpression(Expression) retainedExpression} evaluates to null.
+	 * Only applies if a message converter is not provided.
 	 * @param defaultRetained the default defaultRetained.
+	 * @see #setConverter(MessageConverter)
 	 */
 	public void setDefaultRetained(boolean defaultRetained) {
 		this.defaultRetained = defaultRetained;
@@ -142,7 +149,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	/**
 	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * Only applies if a message converter is not provided.
 	 * @param retainedExpression the expression.
+	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
 	 */
 	public void setRetainedExpression(Expression retainedExpression) {
@@ -152,7 +161,9 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	/**
 	 * Set the retained expression; default "headers['mqtt_retained']".
+	 * Only applies if a message converter is not provided.
 	 * @param retainedExpression the expression.
+	 * @see #setConverter(MessageConverter)
 	 * @since 5.0
 	 */
 	public void setRetainedExpressionString(String retainedExpression) {
@@ -160,6 +171,11 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.retainedProcessor = new ExpressionEvaluatingMessageProcessor<>(retainedExpression);
 	}
 
+	/**
+	 * Set the message converter to use; if this is provided, the adapter qos and retained
+	 * settings are ignored.
+	 * @param converter the converter.
+	 */
 	public void setConverter(MessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
@@ -208,39 +224,12 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 			((BeanFactoryAware) this.retainedProcessor).setBeanFactory(getBeanFactory());
 		}
 		if (this.converter == null) {
-			DefaultPahoMessageConverter mConverter = new DefaultPahoMessageConverter(
-					m -> {
-						if (this.qosProcessor == null) {
-							return MqttMessageConverter.defaultQosFunction(this.defaultQos).apply(m);
-						}
-						else {
-							Integer result = this.qosProcessor.processMessage(m);
-							if (result == null) {
-								return this.defaultQos;
-							}
-							else {
-								return result;
-							}
-						}
-					},
-					m -> {
-						if (this.retainedProcessor == null) {
-							return  MqttMessageConverter.defaultRetainedFunction(this.defaultRetained).apply(m);
-						}
-						else {
-							Boolean result = this.retainedProcessor.processMessage(m);
-							if (result == null) {
-								return this.defaultRetained;
-							}
-							else {
-								return result;
-							}
-						}
-					});
+			DefaultPahoMessageConverter defaultConverter = new DefaultPahoMessageConverter(this.defaultQos,
+					this.qosProcessor, this.defaultRetained, this.retainedProcessor);
 			if (getBeanFactory() != null) {
-				mConverter.setBeanFactory(getBeanFactory());
+				defaultConverter.setBeanFactory(getBeanFactory());
 			}
-			this.converter = mConverter;
+			this.converter = defaultConverter;
 		}
 	}
 

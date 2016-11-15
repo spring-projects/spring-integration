@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
-import org.springframework.integration.aggregator.ExpressionEvaluatingMessageListProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -28,6 +27,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
@@ -78,7 +78,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 	}
 
 	/**
-	 * Construct {@link ExpressionEvaluatingMessageListProcessor} for the provided
+	 * Construct {@link ExpressionEvaluatingMessageProcessor} for the provided
 	 * SpEL expression and expected result type.
 	 * @param expression a SpEL expression to evaluate.
 	 * @param expectedType the expected result type.

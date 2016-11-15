@@ -40,7 +40,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 import javax.net.SocketFactory;
 
@@ -74,6 +73,7 @@ import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -347,14 +347,24 @@ public class MqttAdapterTests {
 	@Test
 	public void testCustomExpressions() {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
-		MqttPahoMessageHandler handler = ctx.getBean(MqttPahoMessageHandler.class);
+		MqttPahoMessageHandler handler = ctx.getBean("handler", MqttPahoMessageHandler.class);
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		assertEquals("fooTopic",
 				TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class).processMessage(message));
 		assertEquals(1,
-				TestUtils.getPropertyValue(handler, "converter.qosFunction", Function.class).apply(message));
+				TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
+					.processMessage(message));
 		assertEquals(Boolean.TRUE,
-				TestUtils.getPropertyValue(handler, "converter.retainedFunction", Function.class).apply(message));
+				TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
+					.processMessage(message));
+
+		handler = ctx.getBean("handlerWithNullExpressions", MqttPahoMessageHandler.class);
+		assertEquals(1,
+				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+					.fromMessage(message, null).getQos());
+		assertEquals(Boolean.TRUE,
+				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
+					.fromMessage(message, null).isRetained());
 		ctx.close();
 	}
 
@@ -426,6 +436,16 @@ public class MqttAdapterTests {
 		@Bean
 		public Boolean retained() {
 			return true;
+		}
+
+		@Bean
+		public MqttPahoMessageHandler handlerWithNullExpressions() {
+			MqttPahoMessageHandler handler = new MqttPahoMessageHandler("tcp://localhost:1883", "bar");
+			handler.setDefaultQos(1);
+			handler.setQosExpressionString("null");
+			handler.setDefaultRetained(true);
+			handler.setRetainedExpressionString("null");
+			return handler;
 		}
 
 	}

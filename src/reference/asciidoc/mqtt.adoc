@@ -20,17 +20,17 @@ A minimal configuration might be:
 [source,xml]
 ----
 <bean id="clientFactory"
-		class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-	<property name="userName" value="${mqtt.username}"/>
-	<property name="password" value="${mqtt.password}"/>
+        class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+    <property name="userName" value="${mqtt.username}"/>
+    <property name="password" value="${mqtt.password}"/>
 </bean>
 
 <int-mqtt:message-driven-channel-adapter id="mqttInbound"
-	client-id="${mqtt.default.client.id}.src"
-	url="${mqtt.url}"
-	topics="sometopic"
-	client-factory="clientFactory"
-	channel="output"/>
+    client-id="${mqtt.default.client.id}.src"
+    url="${mqtt.url}"
+    topics="sometopic"
+    client-factory="clientFactory"
+    channel="output"/>
 ----
 
 Attributes:
@@ -38,16 +38,16 @@ Attributes:
 [source,xml]
 ----
 <int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
-	client-id="foo"  <1>
-	url="tcp://localhost:1883"  <2>
-	topics="bar,baz"  <3>
-	qos="1,2"  <4>
-	converter="myConverter"  <5>
-	client-factory="clientFactory"  <6>
-	send-timeout="123"  <7>
-	error-channel="errors"  <8>
-	recovery-interval="10000"  <9>
-	channel="out" />
+    client-id="foo"  <1>
+    url="tcp://localhost:1883"  <2>
+    topics="bar,baz"  <3>
+    qos="1,2"  <4>
+    converter="myConverter"  <5>
+    client-factory="clientFactory"  <6>
+    send-timeout="123"  <7>
+    error-channel="errors"  <8>
+    recovery-interval="10000"  <9>
+    channel="out" />
 ----
 
 <1> The client id.
@@ -135,39 +135,39 @@ The following Spring Boot application provides an example of configuring the inb
 public class MqttJavaApplication {
 
     public static void main(String[] args) {
-    	new SpringApplicationBuilder(MqttJavaApplication.class)
-    			.web(false)
-    			.run(args);
+        new SpringApplicationBuilder(MqttJavaApplication.class)
+                .web(false)
+                .run(args);
     }
 
     @Bean
     public MessageChannel mqttInputChannel() {
-    	return new DirectChannel();
+        return new DirectChannel();
     }
 
     @Bean
     public MessageProducer inbound() {
-    	MqttPahoMessageDrivenChannelAdapter adapter =
-    			new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "testClient",
-    			                                 "topic1", "topic2");
-    	adapter.setCompletionTimeout(5000);
-    	adapter.setConverter(new DefaultPahoMessageConverter());
-    	adapter.setQos(1);
-    	adapter.setOutputChannel(mqttInputChannel());
-    	return adapter;
+        MqttPahoMessageDrivenChannelAdapter adapter =
+                new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883", "testClient",
+                                                 "topic1", "topic2");
+        adapter.setCompletionTimeout(5000);
+        adapter.setConverter(new DefaultPahoMessageConverter());
+        adapter.setQos(1);
+        adapter.setOutputChannel(mqttInputChannel());
+        return adapter;
     }
 
     @Bean
     @ServiceActivator(inputChannel = "mqttInputChannel")
     public MessageHandler handler() {
-    	return new MessageHandler() {
+        return new MessageHandler() {
 
-    		@Override
-    		public void handleMessage(Message<?> message) throws MessagingException {
-    			System.out.println(message.getPayload());
-    		}
+            @Override
+            public void handleMessage(Message<?> message) throws MessagingException {
+                System.out.println(message.getPayload());
+            }
 
-    	};
+        };
     }
 
 }
@@ -187,19 +187,19 @@ Attributes:
 [source,xml]
 ----
 <int-mqtt:outbound-channel-adapter id="withConverter"
-	client-id="foo"  <1>
-	url="tcp://localhost:1883"  <2>
-	converter="myConverter"  <3>
-	client-factory="clientFactory"  <4>
-	default-qos="1"  <5>
-	qos-expression="" <6>
-	default-retained="true"  <7>
-	retained-expression="" <8>
-	default-topic="bar"  <9>
-	topic-expression="" <10>
-	async="false"  <11>
-	async-events="false"  <12>
-	channel="target" />
+    client-id="foo"  <1>
+    url="tcp://localhost:1883"  <2>
+    converter="myConverter"  <3>
+    client-factory="clientFactory"  <4>
+    default-qos="1"  <5>
+    qos-expression="" <6>
+    default-retained="true"  <7>
+    retained-expression="" <8>
+    default-topic="bar"  <9>
+    topic-expression="" <10>
+    async="false"  <11>
+    async-events="false"  <12>
+    channel="target" />
 ----
 
 <1> The client id.
@@ -256,9 +256,9 @@ public class MqttJavaApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context =
-        		new SpringApplicationBuilder(MqttJavaApplication.class)
-        				.web(false)
-        				.run(args);
+                new SpringApplicationBuilder(MqttJavaApplication.class)
+                        .web(false)
+                        .run(args);
         MyGateway gateway = context.getBean(MyGateway.class);
         gateway.sendToMqtt("foo");
     }
