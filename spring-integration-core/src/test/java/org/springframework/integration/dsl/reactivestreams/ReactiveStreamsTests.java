@@ -120,12 +120,12 @@ public class ReactiveStreamsTests {
 								.map(Message::getPayload)
 								.take(7)
 								.collectList()
-								.block(Duration.ofSeconds(5)));
+								.block(Duration.ofSeconds(10)));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		List<Integer> integers = future.get(10, TimeUnit.SECONDS);
+		List<Integer> integers = future.get(20, TimeUnit.SECONDS);
 		assertNotNull(integers);
 		assertEquals(7, integers.size());
 	}
