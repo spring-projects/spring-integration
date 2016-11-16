@@ -116,7 +116,7 @@ subprojects { subproject ->
 		nettyVersion = '4.1.4.Final'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '3.0.0.BUILD-SNAPSHOT'
+		reactorVersion = '3.0.3.RELEASE'
 		romeToolsVersion = '1.7.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
@@ -261,7 +261,6 @@ project('spring-integration-test') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
-		compile ("io.projectreactor:reactor-core:$reactorVersion", optional)
 		compile ("log4j:log4j:$log4jVersion", optional)
 	}
 }
@@ -303,6 +302,7 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
+		compile "io.projectreactor.addons:reactor-test:$reactorVersion"
 	}
 }
 

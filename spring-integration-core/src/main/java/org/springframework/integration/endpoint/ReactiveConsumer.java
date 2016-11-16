@@ -143,12 +143,13 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 		@Override
 		public void subscribe(Subscriber<? super Message<?>> subscriber) {
-			Flux.<Message<?>>create(emitter -> {
-				MessageHandler messageHandler = emitter::next;
-				SubscribableChannelPublisherAdapter.this.channel.subscribe(messageHandler);
-				emitter.setCancellation(() ->
-						SubscribableChannelPublisherAdapter.this.channel.unsubscribe(messageHandler));
-			}, FluxSink.OverflowStrategy.IGNORE)
+			Flux.
+					<Message<?>>create(emitter -> {
+								MessageHandler messageHandler = emitter::next;
+								this.channel.subscribe(messageHandler);
+								emitter.setCancellation(() -> this.channel.unsubscribe(messageHandler));
+							},
+							FluxSink.OverflowStrategy.IGNORE)
 					.subscribe(subscriber);
 		}
 
@@ -165,7 +166,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 		@Override
 		public void subscribe(Subscriber<? super Message<?>> subscriber) {
-			Iterator<Message<?>> channelIterator = new Iterator<Message<?>>() {
+			Iterator<Message<?>> messageIterator = new Iterator<Message<?>>() {
 
 				private Message<?> next = null;
 
@@ -185,9 +186,10 @@ public class ReactiveConsumer extends AbstractEndpoint {
 				}
 
 			};
+
 			Mono.<Message<?>>delayMillis(100)
 					.repeat()
-					.concatMap(value -> Flux.fromIterable(() -> channelIterator))
+					.concatMap(value -> Flux.fromIterable(() -> messageIterator))
 					.subscribe(subscriber);
 		}
 

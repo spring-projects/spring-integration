@@ -70,7 +70,6 @@ public class ReactiveChannelTests {
 			Message<?> receive = replyChannel.receive(10000);
 			assertNotNull(receive);
 			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
-			System .out.println("Receive: " + receive.getPayload());
 		}
 	}
 
