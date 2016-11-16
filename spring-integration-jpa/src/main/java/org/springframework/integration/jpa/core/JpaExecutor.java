@@ -39,6 +39,7 @@ import org.springframework.integration.jpa.support.parametersource.ParameterSour
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Executes Jpa Operations that produce payload objects from the result of the provided:
@@ -172,7 +173,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	@Override
 	public void afterPropertiesSet() {
 
-		if (this.jpaParameters != null) {
+		if (!CollectionUtils.isEmpty(this.jpaParameters)) {
 
 			if (this.parameterSourceFactory == null) {
 				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =

@@ -34,8 +34,8 @@ public class JpaRetrievingOutboundGatewaySpec extends JpaBaseOutboundEndpointSpe
 
 	JpaRetrievingOutboundGatewaySpec(JpaExecutor jpaExecutor) {
 		super(jpaExecutor);
-		this.jpaOutboundGatewayFactoryBean.setGatewayType(OutboundGatewayType.RETRIEVING);
-		this.jpaOutboundGatewayFactoryBean.setRequiresReply(true);
+		this.target.setGatewayType(OutboundGatewayType.RETRIEVING);
+		this.target.setRequiresReply(true);
 	}
 
 	/**

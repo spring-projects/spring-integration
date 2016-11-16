@@ -21,13 +21,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
-import org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
@@ -45,15 +42,14 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 		extends MessageHandlerSpec<S, JpaOutboundGateway>
 		implements ComponentsRegistration {
 
-	protected JpaOutboundGatewayFactoryBean jpaOutboundGatewayFactoryBean = new JpaOutboundGatewayFactoryBean();
-
 	private final List<JpaParameter> jpaParameters = new LinkedList<>();
 
 	protected final JpaExecutor jpaExecutor;
 
 	protected JpaBaseOutboundEndpointSpec(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
-		this.jpaOutboundGatewayFactoryBean.setJpaExecutor(this.jpaExecutor);
+		this.jpaExecutor.setJpaParameters(this.jpaParameters);
+		this.target = new JpaOutboundGateway(this.jpaExecutor);
 	}
 
 	/**
@@ -166,26 +162,6 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 	@Override
 	public Collection<Object> getComponentsToRegister() {
 		return Collections.singletonList(this.jpaExecutor);
-	}
-
-	@Override
-	protected JpaOutboundGateway doGet() {
-		if (!this.jpaParameters.isEmpty()) {
-			this.jpaExecutor.setJpaParameters(this.jpaParameters);
-		}
-
-		/*
-		We need this artificial BeanFactory to overcome JpaOutboundGatewayFactoryBean initialization.
-		The real BeanFactory will be applied later for the target JpaOutboundGateway instance.
-		*/
-		this.jpaOutboundGatewayFactoryBean.setBeanFactory(new DefaultListableBeanFactory());
-		try {
-			this.jpaOutboundGatewayFactoryBean.afterPropertiesSet();
-			return this.jpaOutboundGatewayFactoryBean.getObject();
-		}
-		catch (Exception e) {
-			throw new BeanCreationException("Cannot create the JpaOutboundGateway", e);
-		}
 	}
 
 }

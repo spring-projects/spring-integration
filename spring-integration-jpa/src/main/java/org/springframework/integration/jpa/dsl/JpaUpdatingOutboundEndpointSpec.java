@@ -35,9 +35,9 @@ public class JpaUpdatingOutboundEndpointSpec extends JpaBaseOutboundEndpointSpec
 	}
 
 	JpaUpdatingOutboundEndpointSpec producesReply(boolean producesReply) {
-		this.jpaOutboundGatewayFactoryBean.setProducesReply(producesReply);
+		this.target.setProducesReply(producesReply);
 		if (producesReply) {
-			this.jpaOutboundGatewayFactoryBean.setRequiresReply(true);
+			this.target.setRequiresReply(true);
 		}
 		return this;
 	}

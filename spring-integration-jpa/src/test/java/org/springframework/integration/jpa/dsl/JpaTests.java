@@ -70,7 +70,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class JpaDslTests {
+public class JpaTests {
 
 	private static EmbeddedDatabase dataSource;
 
