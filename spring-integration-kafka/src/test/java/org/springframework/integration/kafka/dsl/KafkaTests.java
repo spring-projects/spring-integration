@@ -108,7 +108,7 @@ public class KafkaTests {
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
 
 		for (int i = 0; i < 100; i++) {
-			Message<?> receive = this.listeningFromKafkaResults.receive(10000);
+			Message<?> receive = this.listeningFromKafkaResults.receive(20000);
 			assertThat(receive).isNotNull();
 			assertThat(receive.getPayload()).isEqualTo("FOO");
 			MessageHeaders headers = receive.getHeaders();
