@@ -16,16 +16,11 @@
 
 package org.springframework.integration.dsl;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
-import org.springframework.integration.store.MessageGroup;
-import org.springframework.util.Assert;
 
 /**
  * A {@link CorrelationHandlerSpec} for an {@link AggregatingMessageHandler}.
@@ -37,7 +32,7 @@ import org.springframework.util.Assert;
 public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, AggregatingMessageHandler> {
 
 	AggregatorSpec() {
-		super(new InternalAggregatingMessageHandler());
+		super(new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor()));
 	}
 
 	/**
@@ -45,7 +40,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * and {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy} using the target
 	 * object which should have methods annotated appropriately for each function.
 	 * Also set the output processor.
-	 * @param target     the target object.
+	 * @param target the target object.
 	 * @return the handler spec.
 	 */
 	public AggregatorSpec processor(Object target) {
@@ -57,17 +52,16 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * and {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy} using the target
 	 * object which should have methods annotated appropriately for each function.
 	 * Also set the output processor.
-	 * @param target     the target object.
+	 * @param target the target object.
 	 * @param methodName The method name for the output processor (or 'null' in which case, the
-	 *                   target object must have an {@link org.springframework.integration.annotation.Aggregator}
-	 *                   annotation).
+	 * target object must have an {@link org.springframework.integration.annotation.Aggregator} annotation).
 	 * @return the handler spec.
 	 */
 	public AggregatorSpec processor(Object target, String methodName) {
 		super.processor(target);
 		return this.outputProcessor(methodName != null
-				? new MethodInvokingMessageGroupProcessor(target, methodName)
-				: new MethodInvokingMessageGroupProcessor(target));
+									? new MethodInvokingMessageGroupProcessor(target, methodName)
+									: new MethodInvokingMessageGroupProcessor(target));
 	}
 
 	/**
@@ -87,8 +81,7 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	 * @return the aggregator spec.
 	 */
 	public AggregatorSpec outputProcessor(MessageGroupProcessor outputProcessor) {
-		Assert.notNull(outputProcessor, "'outputProcessor' must not be null.");
-		((InternalAggregatingMessageHandler) this.handler).getOutputProcessor().setDelegate(outputProcessor);
+		this.handler.setOutputProcessor(outputProcessor);
 		return _this();
 	}
 
@@ -100,46 +93,6 @@ public class AggregatorSpec extends CorrelationHandlerSpec<AggregatorSpec, Aggre
 	public AggregatorSpec expireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.handler.setExpireGroupsUponCompletion(expireGroupsUponCompletion);
 		return _this();
-	}
-
-	//TODO Move the logic to the AggregatingMessageHandler
-	private static class InternalAggregatingMessageHandler extends AggregatingMessageHandler {
-
-		InternalAggregatingMessageHandler() {
-			super(new MessageGroupProcessorWrapper());
-		}
-
-		@Override
-		protected MessageGroupProcessorWrapper getOutputProcessor() {
-			return (MessageGroupProcessorWrapper) super.getOutputProcessor();
-		}
-
-	}
-
-	private static class MessageGroupProcessorWrapper implements MessageGroupProcessor, BeanFactoryAware {
-
-		MessageGroupProcessorWrapper() {
-			super();
-		}
-
-		private MessageGroupProcessor delegate = new DefaultAggregatingMessageGroupProcessor();
-
-		void setDelegate(MessageGroupProcessor delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public Object processMessageGroup(MessageGroup group) {
-			return this.delegate.processMessageGroup(group);
-		}
-
-		@Override
-		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-			if (this.delegate instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.delegate).setBeanFactory(beanFactory);
-			}
-		}
-
 	}
 
 }

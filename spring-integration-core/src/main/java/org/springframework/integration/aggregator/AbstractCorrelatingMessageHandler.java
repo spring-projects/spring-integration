@@ -93,7 +93,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
 
-	private final MessageGroupProcessor outputProcessor;
+	private MessageGroupProcessor outputProcessor;
 
 	private volatile MessageGroupStore messageStore;
 
@@ -133,9 +133,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
-		Assert.notNull(processor);
+		Assert.notNull(processor, "'processor' must not be null");
+		Assert.notNull(store, "'store' must not be null");
 
-		Assert.notNull(store);
 		setMessageStore(store);
 		this.outputProcessor = processor;
 		this.correlationStrategy = (correlationStrategy == null
@@ -187,8 +187,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.forceReleaseAdviceChain = forceReleaseAdviceChain;
 	}
 
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
+	/**
+	 * Specify a {@link MessageGroupProcessor} for the output function.
+	 * @param outputProcessor the {@link MessageGroupProcessor} to use
+	 * @since 5.0
+	 */
+	public void setOutputProcessor(MessageGroupProcessor outputProcessor) {
+		Assert.notNull(outputProcessor, "'processor' must not be null");
+		this.outputProcessor = outputProcessor;
 	}
 
 	@Override

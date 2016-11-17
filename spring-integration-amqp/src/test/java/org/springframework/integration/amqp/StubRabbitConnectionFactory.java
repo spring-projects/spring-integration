@@ -40,7 +40,6 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Command;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.FlowListener;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.Method;
 import com.rabbitmq.client.ReturnListener;
@@ -181,13 +180,13 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void addReturnListener(ReturnListener listener) {
 		}
 
-		@SuppressWarnings("unused")
-		public FlowListener getFlowListener() {
+		@SuppressWarnings("deprecation")
+		public com.rabbitmq.client.FlowListener getFlowListener() {
 			return null;
 		}
 
-		@SuppressWarnings("unused")
-		public void setFlowListener(FlowListener listener) {
+		@SuppressWarnings("deprecation")
+		public void setFlowListener(com.rabbitmq.client.FlowListener listener) {
 		}
 
 		@SuppressWarnings("unused")
@@ -497,12 +496,12 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 
 		@Override
 		@Deprecated
-		public void addFlowListener(FlowListener listener) {
+		public void addFlowListener(com.rabbitmq.client.FlowListener listener) {
 		}
 
 		@Override
 		@Deprecated
-		public boolean removeFlowListener(FlowListener listener) {
+		public boolean removeFlowListener(com.rabbitmq.client.FlowListener listener) {
 			return false;
 		}
 
