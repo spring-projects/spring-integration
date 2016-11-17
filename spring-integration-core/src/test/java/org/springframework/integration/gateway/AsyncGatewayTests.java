@@ -227,7 +227,7 @@ public class AsyncGatewayTests {
 
 
 	@Test
-	public void promiseWithMessageReturned() throws Exception {
+	public void monoWithMessageReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -237,13 +237,13 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Mono<Message<?>> promise = service.returnMessagePromise("foo");
-		Object result = promise.block(Duration.ofSeconds(10));
+		Mono<Message<?>> mono = service.returnMessagePromise("foo");
+		Object result = mono.block(Duration.ofSeconds(10));
 		assertEquals("foobar", ((Message<?>) result).getPayload());
 	}
 
 	@Test
-	public void promiseWithPayloadReturned() throws Exception {
+	public void monoWithPayloadReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -253,13 +253,13 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Mono<String> promise = service.returnStringPromise("foo");
-		Object result = promise.block(Duration.ofSeconds(10));
+		Mono<String> mono = service.returnStringPromise("foo");
+		Object result = mono.block(Duration.ofSeconds(10));
 		assertEquals("foobar", result);
 	}
 
 	@Test
-	public void promiseWithWildcardReturned() throws Exception {
+	public void monoWithWildcardReturned() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -269,14 +269,14 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Mono<?> promise = service.returnSomethingPromise("foo");
-		Object result = promise.block(Duration.ofSeconds(10));
+		Mono<?> mono = service.returnSomethingPromise("foo");
+		Object result = mono.block(Duration.ofSeconds(10));
 		assertNotNull(result);
 		assertEquals("foobar", result);
 	}
 
 	@Test
-	public void promiseWithConsumer() throws Exception {
+	public void monoWithConsumer() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -286,12 +286,12 @@ public class AsyncGatewayTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
-		Mono<String> promise = service.returnStringPromise("foo");
+		Mono<String> mono = service.returnStringPromise("foo");
 
 		final AtomicReference<String> result = new AtomicReference<String>();
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		promise.subscribe(s -> {
+		mono.subscribe(s -> {
 			result.set(s);
 			latch.countDown();
 		});

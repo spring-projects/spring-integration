@@ -73,7 +73,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setPrefix(String)
 	 */
 	public RouterSpec<K, R> prefix(String prefix) {
-		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
+		Assert.state(this.componentsToRegister.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.prefix = prefix;
 		this.target.setPrefix(prefix);
 		return _this();
@@ -86,7 +86,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setSuffix(String)
 	 */
 	public RouterSpec<K, R> suffix(String suffix) {
-		Assert.state(this.subFlows.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
+		Assert.state(this.componentsToRegister.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.suffix = suffix;
 		this.target.setSuffix(suffix);
 		return _this();
@@ -140,7 +140,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
 
-		this.subFlows.add(flowBuilder);
+		this.componentsToRegister.add(flowBuilder);
 
 		this.mappingProvider.addMapping(key, channel);
 		return _this();
@@ -150,7 +150,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	public Collection<Object> getComponentsToRegister() {
 		// The 'mappingProvider' must be added to the 'componentToRegister' in the end to
 		// let all other components to be registered before the 'RouterMappingProvider.onInit()' logic.
-		this.subFlows.add(this.mappingProvider);
+		this.componentsToRegister.add(this.mappingProvider);
 		return super.getComponentsToRegister();
 	}
 

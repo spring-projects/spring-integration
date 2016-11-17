@@ -20,8 +20,10 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -36,7 +38,7 @@ import org.springframework.util.StringUtils;
 public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRouterSpec, RecipientListRouter> {
 
 	RecipientListRouterSpec() {
-		super(new DslRecipientListRouter());
+		super(new RecipientListRouter());
 	}
 
 	/**
@@ -55,7 +57,13 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(String channelName, String expression) {
-		return recipient(channelName, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
+		if (StringUtils.hasText(expression)) {
+			return recipient(channelName, PARSER.parseExpression(expression));
+		}
+		else {
+			this.target.addRecipient(channelName);
+			return _this();
+		}
 	}
 
 	/**
@@ -65,11 +73,11 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(String channelName, Expression expression) {
-		Assert.hasText(channelName);
-		((DslRecipientListRouter) this.target).add(channelName, expression);
+		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
+		this.target.addRecipient(channelName, selector);
+		this.componentsToRegister.add(selector);
 		return _this();
 	}
-
 
 	/**
 	 * Adds a recipient channel that will be selected if the the selector's accept method returns 'true'.
@@ -78,7 +86,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientMessageSelector(String channelName, MessageSelector selector) {
-		return recipient(channelName, (GenericSelector<Message<?>>) selector);
+		return recipient(channelName, selector);
 	}
 
 	/**
@@ -89,9 +97,22 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipient(String channelName, GenericSelector<P> selector) {
-		Assert.hasText(channelName);
-		((DslRecipientListRouter) this.target).add(channelName, selector);
+		MessageSelector messageSelector;
+		if (selector instanceof MessageSelector) {
+			messageSelector = (MessageSelector) selector;
+		}
+		else {
+			messageSelector = isLambda(selector)
+					? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
+					: new MethodInvokingSelector(selector);
+		}
+		this.target.addRecipient(channelName, messageSelector);
 		return _this();
+	}
+
+	private static boolean isLambda(Object o) {
+		Class<?> aClass = o.getClass();
+		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
 	}
 
 	/**
@@ -120,8 +141,9 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
-		Assert.notNull(channel);
-		((DslRecipientListRouter) this.target).add(channel, expression);
+		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
+		this.target.addRecipient(channel, selector);
+		this.componentsToRegister.add(selector);
 		return _this();
 	}
 
@@ -132,7 +154,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientMessageSelector(MessageChannel channel, MessageSelector selector) {
-		return recipient(channel, (GenericSelector<Message<?>>) selector);
+		return recipient(channel, selector);
 	}
 
 	/**
@@ -143,8 +165,14 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
-		Assert.notNull(channel);
-		((DslRecipientListRouter) this.target).add(channel, selector);
+		MessageSelector messageSelector;
+		if (selector instanceof MessageSelector) {
+			messageSelector = (MessageSelector) selector;
+		}
+		else {
+			messageSelector = new MethodInvokingSelector(new LambdaMessageProcessor(selector, null));
+		}
+		this.target.addRecipient(channel, messageSelector);
 		return _this();
 	}
 
@@ -155,7 +183,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipientMessageSelectorFlow(MessageSelector selector, IntegrationFlow subFlow) {
-		return recipientFlow((GenericSelector<Message<?>>) selector, subFlow);
+		return recipientFlow(selector, subFlow);
 	}
 
 	/**
@@ -168,8 +196,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);
-		((DslRecipientListRouter) this.target).add(channel, selector);
-		return _this();
+		return recipient(channel, selector);
 	}
 
 	/**
@@ -203,15 +230,14 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
 		Assert.notNull(subFlow);
 		DirectChannel channel = populateSubFlow(subFlow);
-		((DslRecipientListRouter) this.target).add(channel, expression);
-		return _this();
+		return recipient(channel, expression);
 	}
 
 	private DirectChannel populateSubFlow(IntegrationFlow subFlow) {
 		DirectChannel channel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
-		this.subFlows.add(flowBuilder.get());
+		this.componentsToRegister.add(flowBuilder.get());
 		return channel;
 	}
 

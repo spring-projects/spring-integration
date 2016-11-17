@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl;
+package org.springframework.integration.gateway;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.gateway.GatewayProxyFactoryBean;
-import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * The {@link AbstractReplyProducingMessageHandler} implementation for mid-flow Gateway.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  */
-class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final GatewayProxyFactoryBean gatewayProxyFactoryBean;
 
@@ -39,16 +39,16 @@ class GatewayMessageHandler extends AbstractReplyProducingMessageHandler impleme
 
 	private volatile boolean running;
 
-	GatewayMessageHandler() {
+	public GatewayMessageHandler() {
 		this.gatewayProxyFactoryBean = new GatewayProxyFactoryBean();
 		this.gatewayProxyFactoryBean.setServiceInterface(RequestReplyExchanger.class);
 	}
 
-	void setRequestChannel(MessageChannel requestChannel) {
+	public void setRequestChannel(MessageChannel requestChannel) {
 		this.gatewayProxyFactoryBean.setDefaultRequestChannel(requestChannel);
 	}
 
-	void setRequestChannelName(String requestChannel) {
+	public void setRequestChannelName(String requestChannel) {
 		this.gatewayProxyFactoryBean.setDefaultRequestChannelName(requestChannel);
 	}
 

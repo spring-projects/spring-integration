@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import org.springframework.integration.gateway.GatewayMessageHandler;
 import org.springframework.messaging.MessageChannel;
 
 /**

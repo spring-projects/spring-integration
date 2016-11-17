@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl;
+package org.springframework.integration.handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -36,11 +35,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * The {@link MessageProcessor} implementation for method invocation on the single method classes
+ * - functional interface implementations.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  */
-class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAware {
+public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAware {
 
 	private final Object target;
 
@@ -50,10 +52,9 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 
 	private final Class<?>[] parameterTypes;
 
-
 	private ConversionService conversionService;
 
-	LambdaMessageProcessor(Object target, Class<?> payloadType) {
+	public LambdaMessageProcessor(Object target, Class<?> payloadType) {
 		Assert.notNull(target);
 		this.target = target;
 		final AtomicReference<Method> methodValue = new AtomicReference<>();
@@ -79,7 +80,7 @@ class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAwa
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
 		if (conversionService == null) {
-			conversionService = new DefaultConversionService();
+			conversionService = DefaultConversionService.getSharedInstance();
 		}
 		this.conversionService = conversionService;
 	}
