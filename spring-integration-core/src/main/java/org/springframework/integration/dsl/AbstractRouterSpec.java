@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
 public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends AbstractMessageRouter>
 		extends MessageHandlerSpec<S, R> implements ComponentsRegistration {
 
-	protected final List<Object> subFlows = new ArrayList<Object>();
+	protected final List<Object> componentsToRegister = new ArrayList<>();
 
 	private boolean defaultToParentFlow;
 
@@ -102,7 +102,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
 
-		this.subFlows.add(flowBuilder);
+		this.componentsToRegister.add(flowBuilder);
 
 		return defaultOutputChannel(channel);
 	}
@@ -125,7 +125,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		return this.subFlows;
+		return this.componentsToRegister;
 	}
 
 }
