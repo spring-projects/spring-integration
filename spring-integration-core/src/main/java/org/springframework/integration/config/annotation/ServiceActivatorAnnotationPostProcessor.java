@@ -84,7 +84,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 		return serviceActivator;
 	}
 
-	private final class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
+	private static final class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
 			implements Lifecycle {
 
 		private final MessageHandler target;

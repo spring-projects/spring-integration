@@ -785,7 +785,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private Object sendAndReceiveWithContainer(Message<?> requestMessage) throws JMSException {
-		Connection connection = this.createConnection();
+		Connection connection = this.createConnection(); // NOSONAR - closed in ConnectionFactoryUtils.
 		Session session = null;
 		Destination replyTo = this.replyContainer.getReplyDestination();
 		try {
@@ -841,7 +841,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private javax.jms.Message sendAndReceiveWithoutContainer(Message<?> requestMessage) throws JMSException {
-		Connection connection = this.createConnection();
+		Connection connection = this.createConnection(); // NOSONAR - closed in ConnectionFactoryUtils.
 		Session session = null;
 		Destination replyTo = null;
 		try {
@@ -1329,7 +1329,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	private class GatewayReplyListenerContainer extends DefaultMessageListenerContainer {
+	private static class GatewayReplyListenerContainer extends DefaultMessageListenerContainer {
 
 		private volatile Destination replyDestination;
 
@@ -1421,7 +1421,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	private final class TimedReply {
+	private static final class TimedReply {
 
 		private final long timeStamp = System.currentTimeMillis();
 
@@ -1470,6 +1470,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 						new Date(now + JmsOutboundGateway.this.receiveTimeout));
 			}
 		}
+
 	}
 
 	private class IdleContainerStopper implements Runnable {

@@ -119,7 +119,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
 					long deadline = System.nanoTime() + nanos;
 					while (this.queue.size() == 0 && nanos > 0) {
-						this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS);
+						this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS); // NOSONAR - ok to ignore result
 						nanos = deadline - System.nanoTime();
 					}
 					return this.queue.poll();

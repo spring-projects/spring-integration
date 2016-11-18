@@ -35,7 +35,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<SmartLifecycle>();
 
-	private final boolean registerComponents = true;
+	private final boolean registerComponents = true; // NOSONAR
 
 	private boolean running;
 
@@ -43,7 +43,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		this.integrationComponents = new LinkedList<Object>(integrationComponents);
 	}
 
-	//TODO Figure out some custom DestinationResolver when we don't register singletons
+	//TODO Figure out some custom DestinationResolver when we don't register singletons - remove NOSONAR above when done
 	/*public void setRegisterComponents(boolean registerComponents) {
 		this.registerComponents = registerComponents;
 	}*/

@@ -122,18 +122,22 @@ public class SimplePool<T> implements Pool<T> {
 	 * if it was recently reduced and too many items were in use to allow the new size
 	 * to be set.
 	 */
-	public int getPoolSize() {
+	@Override
+	public synchronized int getPoolSize() {
 		return this.poolSize.get();
 	}
 
+	@Override
 	public int getIdleCount() {
 		return this.available.size();
 	}
 
+	@Override
 	public int getActiveCount() {
 		return this.inUse.size();
 	}
 
+	@Override
 	public int getAllocatedCount() {
 		return this.allocated.size();
 	}
@@ -153,6 +157,7 @@ public class SimplePool<T> implements Pool<T> {
 	 * Obtains an item from the pool; waits up to waitTime milliseconds (default infinity).
 	 * @throws MessagingException if no items become available in time.
 	 */
+	@Override
 	public T getItem() {
 		boolean permitted = false;
 		try {
@@ -205,6 +210,7 @@ public class SimplePool<T> implements Pool<T> {
 	/**
 	 * Returns an item to the pool.
 	 */
+	@Override
 	public synchronized void releaseItem(T item) {
 		Assert.notNull(item, "Item cannot be null");
 		Assert.isTrue(this.allocated.contains(item),
@@ -234,6 +240,7 @@ public class SimplePool<T> implements Pool<T> {
 		}
 	}
 
+	@Override
 	public synchronized void removeAllIdleItems() {
 		T item;
 		while ((item = this.available.poll()) != null) {

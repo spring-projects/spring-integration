@@ -262,7 +262,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	/**
 	 * Callback used for handling the event-driven idle response.
 	 */
-	private class SimpleMessageCountListener extends MessageCountAdapter {
+	private static class SimpleMessageCountListener extends MessageCountAdapter {
 
 		SimpleMessageCountListener() {
 			super();

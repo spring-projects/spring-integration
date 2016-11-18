@@ -755,7 +755,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@WritingConverter
-	private class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
+	private static class ThrowableToBytesConverter implements Converter<Throwable, byte[]> {
 
 		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
 

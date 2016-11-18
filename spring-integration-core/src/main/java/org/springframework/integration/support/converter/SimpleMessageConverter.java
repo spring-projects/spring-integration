@@ -141,7 +141,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	}
 
 
-	private class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
+	private static class DefaultOutboundMessageMapper implements OutboundMessageMapper<Object> {
 
 		DefaultOutboundMessageMapper() {
 			super();

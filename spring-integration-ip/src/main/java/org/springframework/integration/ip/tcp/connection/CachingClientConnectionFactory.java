@@ -95,7 +95,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	 * @param poolSize the new pool size.
 	 * @see SimplePool#setPoolSize(int)
 	 */
-	public synchronized void setPoolSize(int poolSize) {
+	public void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
