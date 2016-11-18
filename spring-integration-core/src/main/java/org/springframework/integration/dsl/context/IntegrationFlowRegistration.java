@@ -53,7 +53,7 @@ public class IntegrationFlowRegistration {
 	}
 
 	void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+		this.beanFactory = beanFactory; // NOSONAR (synchronization)
 	}
 
 	void setIntegrationFlowContext(IntegrationFlowContext integrationFlowContext) {
@@ -78,28 +78,24 @@ public class IntegrationFlowRegistration {
 
 	public MessageChannel getInputChannel() {
 		if (this.inputChannel == null) {
-			synchronized (this) {
-				if (this.inputChannel == null) {
-					if (this.integrationFlow instanceof StandardIntegrationFlow) {
-						StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) this.integrationFlow;
-						Object next = integrationFlow.getIntegrationComponents().iterator().next();
-						if (next instanceof MessageChannel) {
-							this.inputChannel = (MessageChannel) next;
-						}
-						else {
-							throw new IllegalStateException("The 'IntegrationFlow' [" + integrationFlow + "] " +
-									"doesn't start with 'MessageChannel' for direct message sending.");
-						}
-					}
-					else {
-						throw new IllegalStateException("Only 'StandardIntegrationFlow' instances " +
-								"(e.g. extracted from 'IntegrationFlow' Lambdas) can be used " +
-								"for direct 'send' operation. " +
-								"But [" + this.integrationFlow + "] ins't one of them.\n" +
-								"Consider 'BeanFactory.getBean()' usage for sending messages " +
-								"to the required 'MessageChannel'.");
-					}
+			if (this.integrationFlow instanceof StandardIntegrationFlow) {
+				StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) this.integrationFlow;
+				Object next = integrationFlow.getIntegrationComponents().iterator().next();
+				if (next instanceof MessageChannel) {
+					this.inputChannel = (MessageChannel) next;
 				}
+				else {
+					throw new IllegalStateException("The 'IntegrationFlow' [" + integrationFlow + "] " +
+							"doesn't start with 'MessageChannel' for direct message sending.");
+				}
+			}
+			else {
+				throw new IllegalStateException("Only 'StandardIntegrationFlow' instances " +
+						"(e.g. extracted from 'IntegrationFlow' Lambdas) can be used " +
+						"for direct 'send' operation. " +
+						"But [" + this.integrationFlow + "] ins't one of them.\n" +
+						"Consider 'BeanFactory.getBean()' usage for sending messages " +
+						"to the required 'MessageChannel'.");
 			}
 		}
 		return this.inputChannel;
@@ -115,25 +111,21 @@ public class IntegrationFlowRegistration {
 	 */
 	public MessagingTemplate getMessagingTemplate() {
 		if (this.messagingTemplate == null) {
-			synchronized (this) {
-				if (this.messagingTemplate == null) {
-					this.messagingTemplate = new MessagingTemplate(getInputChannel()) {
+			this.messagingTemplate = new MessagingTemplate(getInputChannel()) {
 
-						@Override
-						public Message<?> receive() {
-							return receiveAndConvert(Message.class);
-						}
-
-						@Override
-						public <T> T receiveAndConvert(Class<T> targetClass) {
-							throw new UnsupportedOperationException("The 'receive()/receiveAndConvert()' " +
-									"isn't supported on the 'IntegrationFlow' input channel.");
-						}
-
-					};
-					this.messagingTemplate.setBeanFactory(this.beanFactory);
+				@Override
+				public Message<?> receive() {
+					return receiveAndConvert(Message.class);
 				}
-			}
+
+				@Override
+				public <T> T receiveAndConvert(Class<T> targetClass) {
+					throw new UnsupportedOperationException("The 'receive()/receiveAndConvert()' " +
+							"isn't supported on the 'IntegrationFlow' input channel.");
+				}
+
+			};
+			this.messagingTemplate.setBeanFactory(this.beanFactory);
 		}
 		return this.messagingTemplate;
 	}

@@ -349,7 +349,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		if (!this.running) {
 			if (!this.lazyConnect && this.connectionFactory != null) {
 				try {
-					Connection connection = this.connectionFactory.createConnection();
+					Connection connection = this.connectionFactory.createConnection(); // NOSONAR (close)
 					if (connection != null) {
 						connection.close();
 					}

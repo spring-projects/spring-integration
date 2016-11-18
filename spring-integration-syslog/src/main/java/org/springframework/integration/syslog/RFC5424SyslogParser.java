@@ -196,7 +196,7 @@ public class RFC5424SyslogParser {
 		return fragments;
 	}
 
-	protected class Reader {
+	protected static class Reader {
 
 		private final String line;
 

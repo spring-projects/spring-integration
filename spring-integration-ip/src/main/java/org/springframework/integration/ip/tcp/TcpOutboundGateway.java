@@ -312,7 +312,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					 * before the reply, on a different thread.
 					 */
 					logger.debug("second chance");
-					this.secondChanceLatch.await(2, TimeUnit.SECONDS);
+					this.secondChanceLatch.await(2, TimeUnit.SECONDS); // NOSONAR don't care about result
 					waitForMessageAfterError = false;
 				}
 				else if (this.reply.getPayload() instanceof MessagingException) {

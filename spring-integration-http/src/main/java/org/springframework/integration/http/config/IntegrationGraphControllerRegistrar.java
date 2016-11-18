@@ -119,7 +119,7 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 
 		private final String[] allowedOrigins;
 
-		private IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) {
+		private IntegrationGraphCorsConfigurer(String path, String[] allowedOrigins) { // NOSONAR
 			this.path = path;
 			this.allowedOrigins = allowedOrigins;
 		}

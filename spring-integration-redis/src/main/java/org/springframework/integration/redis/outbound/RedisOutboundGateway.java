@@ -137,7 +137,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 				(RedisCallback<Object>) connection -> connection.execute(command, actualArgs));
 	}
 
-	private class PayloadArgumentsStrategy implements ArgumentsStrategy {
+	private static class PayloadArgumentsStrategy implements ArgumentsStrategy {
 
 		PayloadArgumentsStrategy() {
 			super();

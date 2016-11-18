@@ -95,8 +95,7 @@ public class OnlyOnceTrigger implements Trigger {
 
 	public void await() {
 		try {
-			this.latch.await(5000, TimeUnit.MILLISECONDS);
-			if (latch.getCount() != 0) {
+			if (!this.latch.await(5000, TimeUnit.MILLISECONDS)) {
 				throw new RuntimeException("test latch.await() did not count down");
 			}
 		}

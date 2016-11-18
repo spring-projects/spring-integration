@@ -278,13 +278,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 						throw outOfCapacityException;
 					}
 					group = getMessageGroupFactory().create(groupId);
-					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
+					this.groupIdToMessageGroup.put(groupId, group);
 					upperBound = new UpperBound(this.groupCapacity);
 					for (Message<?> message : messages) {
 						upperBound.tryAcquire(-1);
 						group.add(message);
 					}
-					this.groupToUpperBound.putIfAbsent(groupId, upperBound);
+					this.groupToUpperBound.put(groupId, upperBound);
 				}
 				else {
 					upperBound = this.groupToUpperBound.get(groupId);

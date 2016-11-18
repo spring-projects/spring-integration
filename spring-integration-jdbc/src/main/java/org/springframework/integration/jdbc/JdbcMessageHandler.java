@@ -169,7 +169,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 						(PreparedStatementCallback<List<Map<String, Object>>>) ps -> {
 							JdbcMessageHandler.this.preparedStatementSetter.setValues(ps, message);
 							ps.executeUpdate();
-							ResultSet keys = ps.getGeneratedKeys();
+							ResultSet keys = ps.getGeneratedKeys(); // NOSONAR closed in JdbcUtils
 							if (keys != null) {
 								try {
 
