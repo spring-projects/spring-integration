@@ -37,9 +37,9 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	protected final static SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 
-	protected volatile T target;
+	protected volatile T target; // NOSONAR
 
 	private String id;
 

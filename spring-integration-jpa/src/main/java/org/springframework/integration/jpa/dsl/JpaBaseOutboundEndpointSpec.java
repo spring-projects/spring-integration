@@ -26,7 +26,6 @@ import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
 
 /**
@@ -44,7 +43,7 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 
 	private final List<JpaParameter> jpaParameters = new LinkedList<>();
 
-	protected final JpaExecutor jpaExecutor;
+	protected final JpaExecutor jpaExecutor; // NOSONAR
 
 	protected JpaBaseOutboundEndpointSpec(JpaExecutor jpaExecutor) {
 		this.jpaExecutor = jpaExecutor;
@@ -146,12 +145,12 @@ public abstract class JpaBaseOutboundEndpointSpec<S extends JpaBaseOutboundEndpo
 	}
 
 	/**
-	 * Indicates that whether only the payload of the passed in {@code Message}
-	 * will be used as a source of parameters. The is 'true' by default because as a
-	 * default a {@link BeanPropertyParameterSourceFactory} implementation is
-	 * used for the sqlParameterSourceFactory property.
-	 * @param usePayloadAsParameterSource the {@code boolean} flag to indicate
-	 * if use {@code payload} as a source of parameter values or not.
+	 * Indicates that whether only the payload of the passed in {@code Message} will be
+	 * used as a source of parameters. The is 'true' by default because as a default a
+	 * {@link org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory}
+	 * implementation is used for the sqlParameterSourceFactory property.
+	 * @param usePayloadAsParameterSource the {@code boolean} flag to indicate if use
+	 * {@code payload} as a source of parameter values or not.
 	 * @return the spec
 	 */
 	public S usePayloadAsParameterSource(Boolean usePayloadAsParameterSource) {
