@@ -115,6 +115,8 @@ public class ReactiveStreamsTests {
 				.take(6)
 				.subscribe();
 
+		final CountDownLatch asyncSetupLatch = new CountDownLatch(1);
+
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
 						Flux.just("11,12,13")
@@ -126,7 +128,9 @@ public class ReactiveStreamsTests {
 								.map(Message::getPayload)
 								.take(7)
 								.collectList()
-								.block(Duration.ofSeconds(10)));
+								.block(getDuration(asyncSetupLatch)));
+
+		assertTrue(asyncSetupLatch.await(10, TimeUnit.SECONDS));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
@@ -134,6 +138,11 @@ public class ReactiveStreamsTests {
 		List<Integer> integers = future.get(20, TimeUnit.SECONDS);
 		assertNotNull(integers);
 		assertEquals(7, integers.size());
+	}
+
+	private Duration getDuration(CountDownLatch asyncSetupLatch) {
+		asyncSetupLatch.countDown();
+		return Duration.ofSeconds(10);
 	}
 
 	@Configuration
