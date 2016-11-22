@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory<FTPFile> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
 	protected FTPClientConfig config;
 

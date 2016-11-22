@@ -893,7 +893,8 @@ This allows recursion for a simple pattern; examples follow:
 
 [source, xml]
 ----
-<bean id="startDotTxtFilter" class="org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter">
+<bean id="starDotTxtFilter"
+            class="org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter">
     <constructor-arg value="*.txt" />
     <property name="alwaysAcceptDirectories" value="true" />
 </bean>
