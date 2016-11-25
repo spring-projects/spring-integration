@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
@@ -67,7 +68,8 @@ public class ExpressionUtilsTests {
 		assertNotNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertSame(TestUtils.getPropertyValue(typeConverter, "defaultConversionService"), TestUtils.getPropertyValue(typeConverter, "conversionService"));
+		assertSame(DefaultConversionService.getSharedInstance(),
+				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 	}
 
 	@Test
@@ -80,7 +82,7 @@ public class ExpressionUtilsTests {
 		assertNotNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertNotSame(TestUtils.getPropertyValue(typeConverter, "defaultConversionService"),
+		assertNotSame(DefaultConversionService.getSharedInstance(),
 				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 		assertSame(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME),
 				TestUtils.getPropertyValue(typeConverter, "conversionService"));
@@ -92,7 +94,7 @@ public class ExpressionUtilsTests {
 		assertNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertSame(TestUtils.getPropertyValue(typeConverter, "defaultConversionService"),
+		assertSame(DefaultConversionService.getSharedInstance(),
 				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 	}
 }
