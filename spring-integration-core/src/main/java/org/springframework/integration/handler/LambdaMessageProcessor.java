@@ -35,6 +35,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * The {@link MessageProcessor} implementation for method invocation on the single method classes
+ * - functional interface implementations.
+ *
  * @author Artem Bilan
  *
  * @since 5.0

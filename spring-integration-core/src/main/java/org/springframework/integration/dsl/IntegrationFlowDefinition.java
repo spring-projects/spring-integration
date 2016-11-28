@@ -1619,7 +1619,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 		Assert.notNull(splitter);
-		return this.register(new SplitterEndpointSpec<S>(splitter), endpointConfigurer);
+		return this.register(new SplitterEndpointSpec<>(splitter), endpointConfigurer);
 	}
 
 	/**
@@ -1797,7 +1797,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String beanName, String method, Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+	public B route(String beanName, String method,
+				   Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 		return route(beanName, method, routerConfigurer, null);
 	}
 
@@ -2136,7 +2137,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <K, R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<K, R>> routerConfigurer,
 			Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
 
-		RouterSpec<K, R> routerSpec = new RouterSpec<K, R>(router);
+		RouterSpec<K, R> routerSpec = new RouterSpec<>(router);
 		if (routerConfigurer != null) {
 			routerConfigurer.accept(routerSpec);
 		}
@@ -2418,7 +2419,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B log(Function<Message<P>, Object> function) {
 		Assert.notNull(function);
-		return log(new FunctionExpression<Message<P>>(function));
+		return log(new FunctionExpression<>(function));
 	}
 
 	/**
@@ -2512,7 +2513,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
 		Assert.notNull(function);
-		return log(level, category, new FunctionExpression<Message<P>>(function));
+		return log(level, category, new FunctionExpression<>(function));
 	}
 
 

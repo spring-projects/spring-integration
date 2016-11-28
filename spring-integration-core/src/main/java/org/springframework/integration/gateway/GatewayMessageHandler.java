@@ -25,6 +25,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
+ * The {@link AbstractReplyProducingMessageHandler} implementation for mid-flow Gateway.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
