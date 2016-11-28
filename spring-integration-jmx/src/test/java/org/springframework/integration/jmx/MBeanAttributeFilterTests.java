@@ -120,6 +120,7 @@ public class MBeanAttributeFilterTests {
 				"MeanSendRate",
 				"MinSendDuration",
 				"StandardDeviationSendDuration",
+				"SubscriberCount",
 				"TimeSinceLastSend"));
 
 		adapterNot.stop();
