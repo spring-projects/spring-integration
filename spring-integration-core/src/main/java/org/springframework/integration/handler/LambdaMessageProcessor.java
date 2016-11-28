@@ -77,6 +77,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 				"classes with single method - functional interface implementations.");
 
 		this.method = methodValue.get();
+		this.method.setAccessible(true);
 		this.parameterTypes = this.method.getParameterTypes();
 		this.payloadType = payloadType != null ? TypeDescriptor.valueOf(payloadType) : null;
 	}
