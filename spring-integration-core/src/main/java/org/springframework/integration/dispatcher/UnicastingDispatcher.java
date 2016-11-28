@@ -129,7 +129,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	}
 
 	private boolean doDispatch(Message<?> message) {
-		if (this.tryOptimizedDispatch(message)) {
+		if (tryOptimizedDispatch(message)) {
 			return true;
 		}
 		boolean success = false;

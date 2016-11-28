@@ -140,10 +140,9 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}
 
-	/**
-	 * @return The current number of handlers
-	 */
+	@Override
 	public int getHandlerCount() {
 		return this.handlers.size();
 	}
+
 }

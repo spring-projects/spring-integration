@@ -26,6 +26,7 @@ import javax.persistence.Id;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -48,11 +49,12 @@ import javax.persistence.TemporalType;
 	@NamedQuery(name = "updateStudent", query = "update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })
 @NamedNativeQuery(resultClass = StudentDomain.class, name = "updateStudentNativeQuery", query = "update Student s set s.lastName = :lastName, lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
+@SequenceGenerator(name = "student_sequence", initialValue = 1004, allocationSize = 1)
 public class StudentDomain {
 
 	@Id
 	@Column(name = "rollNumber")
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(generator = "student_sequence")
 	private Long rollNumber;
 
 	@Column(name = "firstName")

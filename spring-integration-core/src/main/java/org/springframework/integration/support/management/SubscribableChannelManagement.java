@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,19 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
 /**
- * Metrics for pollable channels.
+ * Metrics for subscribable channels.
  *
  * @author Gary Russell
- * @since 4.2
+ * @since 4.3.6
  *
  */
-public interface PollableChannelManagement extends MessageChannelMetrics {
+public interface SubscribableChannelManagement {
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
-	int getReceiveCount();
-
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
-	long getReceiveCountLong();
-
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
-	int getReceiveErrorCount();
-
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
-	long getReceiveErrorCountLong();
+	/**
+	 * The number of message handlers currently subscribed to this channel.
+	 * @return the number of subscribers.
+	 */
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Subscriber Count")
+	int getSubscriberCount();
 
 }

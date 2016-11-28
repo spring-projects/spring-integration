@@ -31,7 +31,6 @@ import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ReflectionUtils;
 
@@ -46,23 +45,6 @@ public class P2pChannelTests {
 	public void testDirectChannelLoggingWithMoreThenOneSubscriber() {
 		final DirectChannel channel = new DirectChannel();
 		channel.setBeanName("directChannel");
-
-		verifySubscriptions(channel);
-	}
-
-	@Test
-	public void testCustomChannelLoggingWithMoreThenOneSubscriberNotAbstractDispatcher() {
-		final MessageDispatcher mockDispatcher = mock(MessageDispatcher.class);
-		when(mockDispatcher.addHandler(Mockito.any(MessageHandler.class))).thenReturn(true);
-		when(mockDispatcher.removeHandler(Mockito.any(MessageHandler.class))).thenReturn(true).thenReturn(false).thenReturn(true);
-
-		final AbstractSubscribableChannel channel = new AbstractSubscribableChannel() {
-			@Override
-			protected MessageDispatcher getDispatcher() {
-				return mockDispatcher;
-			}
-		};
-		channel.setBeanName("customChannel");
 
 		verifySubscriptions(channel);
 	}
@@ -91,15 +73,20 @@ public class P2pChannelTests {
 
 		MessageHandler handler1 = mock(MessageHandler.class);
 		channel.subscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(String.format(log, 1), logs.remove(0));
 		MessageHandler handler2 = mock(MessageHandler.class);
 		channel.subscribe(handler2);
+		assertEquals(2, channel.getSubscriberCount());
 		assertEquals(String.format(log, 2), logs.remove(0));
 		channel.unsubscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(String.format(log, 1), logs.remove(0));
 		channel.unsubscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(0, logs.size());
 		channel.unsubscribe(handler2);
+		assertEquals(0, channel.getSubscriberCount());
 		assertEquals(String.format(log, 0), logs.remove(0));
 		verify(logger, times(4)).info(Mockito.anyString());
 	}
