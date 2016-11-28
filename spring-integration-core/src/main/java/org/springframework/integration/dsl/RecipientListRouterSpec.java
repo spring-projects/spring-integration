@@ -102,9 +102,10 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 			messageSelector = (MessageSelector) selector;
 		}
 		else {
-			messageSelector = isLambda(selector)
-					? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
-					: new MethodInvokingSelector(selector);
+			messageSelector =
+					isLambda(selector)
+							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
+							: new MethodInvokingSelector(selector);
 		}
 		this.target.addRecipient(channelName, messageSelector);
 		return _this();
@@ -170,7 +171,10 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 			messageSelector = (MessageSelector) selector;
 		}
 		else {
-			messageSelector = new MethodInvokingSelector(new LambdaMessageProcessor(selector, null));
+			messageSelector =
+					isLambda(selector)
+							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
+							: new MethodInvokingSelector(selector);
 		}
 		this.target.addRecipient(channel, messageSelector);
 		return _this();
