@@ -28,8 +28,8 @@ import static org.junit.Assert.fail;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -67,6 +67,7 @@ import org.springframework.util.SocketUtils;
  * @author Gary Russell
  * @since 4.2
  */
+@Ignore("Until Reactor 3.0 support: https://jira.spring.io/browse/INT-4125. IO Cairo doesn't support Reactor 2.0")
 public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 
 	private static BrokerService activeMQBroker;
