@@ -1798,7 +1798,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B route(String beanName, String method,
-				   Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 		return route(beanName, method, routerConfigurer, null);
 	}
 

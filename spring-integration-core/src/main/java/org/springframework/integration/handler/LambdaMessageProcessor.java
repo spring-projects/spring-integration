@@ -60,12 +60,18 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		final AtomicReference<Method> methodValue = new AtomicReference<>();
 		ReflectionUtils.doWithMethods(target.getClass(),
 				methodValue::set,
-				methodCandidate ->
-						!methodCandidate.isBridge()
-								&& !methodCandidate.isDefault()
-								&& methodCandidate.getDeclaringClass() != Object.class
-								&& Modifier.isPublic(methodCandidate.getModifiers())
-								&& !Modifier.isStatic(methodCandidate.getModifiers()));
+				methodCandidate -> {
+					boolean isCandidate = !methodCandidate.isBridge()
+							&& !methodCandidate.isDefault()
+							&& methodCandidate.getDeclaringClass() != Object.class
+							&& Modifier.isPublic(methodCandidate.getModifiers())
+							&& !Modifier.isStatic(methodCandidate.getModifiers());
+					if (isCandidate) {
+						Assert.isNull(methodValue.get(), "LambdaMessageProcessor is applicable for inline or lambda " +
+								"classes with single method - functional interface implementations.");
+					}
+					return isCandidate;
+				});
 
 		Assert.notNull(methodValue.get(), "LambdaMessageProcessor is applicable for inline or lambda " +
 				"classes with single method - functional interface implementations.");
