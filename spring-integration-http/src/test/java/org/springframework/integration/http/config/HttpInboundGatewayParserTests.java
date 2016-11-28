@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +45,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
@@ -140,17 +141,21 @@ public class HttpInboundGatewayParserTests {
 		assertEquals(1001, TestUtils.getPropertyValue(this.gateway, "phase"));
 	}
 
-	@Test @DirtiesContext
+	@Test
+	@DirtiesContext
 	public void checkFlow() throws Exception {
 		this.requests.subscribe(handlerExpecting(any(Message.class)));
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
-		request.addHeader("Accept", "application/x-java-serialized-object");
+		request.addHeader("Accept", "application/my-serialized");
 		request.setParameter("foo", "bar");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
-		converters.add(new SerializingHttpMessageConverter());
+		List<HttpMessageConverter<?>> converters = new ArrayList<>();
+		SerializingHttpMessageConverter serializingHttpMessageConverter = new SerializingHttpMessageConverter();
+		serializingHttpMessageConverter.setSupportedMediaTypes(
+				Collections.singletonList(new MediaType("application", "my-serialized")));
+		converters.add(serializingHttpMessageConverter);
 		this.gateway.setMessageConverters(converters);
 		this.gateway.afterPropertiesSet();
 		this.gateway.start();
@@ -158,13 +163,13 @@ public class HttpInboundGatewayParserTests {
 		this.gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 
-		assertEquals(response.getContentType(), "application/x-java-serialized-object");
+		assertEquals(response.getContentType(), "application/my-serialized");
 	}
 
 	@Test
 	public void testController() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
-		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		String errorCode = (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
 		LiteralExpression viewExpression = (LiteralExpression) accessor.getPropertyValue("viewExpression");
 		assertEquals("foo", viewExpression.getValue());
@@ -173,7 +178,7 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void testControllerViewExp() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundControllerViewExp);
-		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		String errorCode = (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
 		SpelExpression viewExpression = (SpelExpression) accessor.getPropertyValue("viewExpression");
 		assertNotNull(viewExpression);
@@ -183,7 +188,7 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void requestWithHeaders() throws Exception {
 		DefaultHttpHeaderMapper headerMapper =
-			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
+				(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
@@ -207,7 +212,7 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void requestWithHeadersWithConversionService() throws Exception {
 		DefaultHttpHeaderMapper headerMapper =
-			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
+				(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
 
 		headerMapper.setUserDefinedHeaderPrefix("X-");
 
@@ -239,7 +244,7 @@ public class HttpInboundGatewayParserTests {
 	public void testInboundGatewayWithMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-			TestUtils.getPropertyValue(gatewayWithOneCustomConverter, "messageConverters", List.class);
+				TestUtils.getPropertyValue(gatewayWithOneCustomConverter, "messageConverters", List.class);
 		assertThat("There should be only 1 message converter, by default register-default-converters is off",
 				messageConverters.size(), is(1));
 
