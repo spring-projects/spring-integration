@@ -49,8 +49,8 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  */
-public abstract class
-		CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S, H>, H extends AbstractCorrelatingMessageHandler>
+public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S, H>,
+		H extends AbstractCorrelatingMessageHandler>
 		extends ConsumerEndpointSpec<S, H> {
 
 	private final List<Advice> forceReleaseAdviceChain = new LinkedList<Advice>();
@@ -166,7 +166,7 @@ public abstract class
 	 * Configure the handler with {@link org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy}
 	 * and {@link org.springframework.integration.aggregator.MethodInvokingReleaseStrategy} using the target
 	 * object which should have methods annotated appropriately for each function.
-	 * @param target the target object,
+	 * @param target the target object
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)
@@ -188,8 +188,8 @@ public abstract class
 	}
 
 	/**
-	 * Configure the handler with an {@link ExpressionEvaluatingCorrelationStrategy} for the
-	 * given expression.
+	 * Configure the handler with an {@link ExpressionEvaluatingCorrelationStrategy}
+	 * for the given expression.
 	 * @param correlationExpression the correlation expression.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setCorrelationStrategy(CorrelationStrategy)
@@ -233,6 +233,7 @@ public abstract class
 	/**
 	 * Configure the handler with an {@link ExpressionEvaluatingReleaseStrategy} for the
 	 * given expression.
+	 *
 	 * @param releaseExpression the correlation expression.
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setReleaseStrategy(ReleaseStrategy)

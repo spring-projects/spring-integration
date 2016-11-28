@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.GenericHandler;
+import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.messaging.support.GenericMessage;
 
 

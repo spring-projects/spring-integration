@@ -54,12 +54,14 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.gateway.GatewayMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.BeanNameMessageProcessor;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.GenericHandler;
+import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MessageTriggerAction;
@@ -1617,7 +1619,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <S extends AbstractMessageSplitter> B split(S splitter,
 			Consumer<SplitterEndpointSpec<S>> endpointConfigurer) {
 		Assert.notNull(splitter);
-		return this.register(new SplitterEndpointSpec<S>(splitter), endpointConfigurer);
+		return this.register(new SplitterEndpointSpec<>(splitter), endpointConfigurer);
 	}
 
 	/**
@@ -1736,31 +1738,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
-	 *  .resequence(r -> r.releasePartialSequences(true).correlationExpression("'foo'"),
-	 *             e -> e.phase(100))
-	 * }
-	 * </pre>
-	 * @param resequencerConfigurer the {@link Consumer} to provide {@link ResequencingMessageHandler} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see GenericEndpointSpec
-	 * @deprecated since 1.1 in favor of {@link #resequence(Consumer)}
-	 */
-	@Deprecated
-	public B resequence(Consumer<ResequencerSpec> resequencerConfigurer,
-			Consumer<GenericEndpointSpec<ResequencingMessageHandler>> endpointConfigurer) {
-		Assert.notNull(resequencerConfigurer);
-		ResequencerSpec spec = new ResequencerSpec();
-		resequencerConfigurer.accept(spec);
-		return handle(spec.get().getT2(), endpointConfigurer);
-	}
-
-	/**
-	 * Populate the {@link ResequencingMessageHandler} with provided options from {@link ResequencerSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
 	 *  .resequence(r -> r.releasePartialSequences(true)
 	 *                    .correlationExpression("'foo'")
 	 *                    .phase(100))
@@ -1780,31 +1757,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B aggregate() {
 		return aggregate(null);
-	}
-
-	/**
-	 * Populate the {@link AggregatingMessageHandler} with provided options from {@link AggregatorSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .aggregate(a -> a.correlationExpression("1").releaseStrategy(g -> g.size() == 25),
-	 *            e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param aggregatorConfigurer the {@link Consumer} to provide {@link AggregatingMessageHandler} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see GenericEndpointSpec
-	 * @deprecated since 1.1 in favor of {@link #aggregate(Consumer)}
-	 */
-	@Deprecated
-	public B aggregate(Consumer<AggregatorSpec> aggregatorConfigurer,
-			Consumer<GenericEndpointSpec<AggregatingMessageHandler>> endpointConfigurer) {
-		Assert.notNull(aggregatorConfigurer);
-		AggregatorSpec spec = new AggregatorSpec();
-		aggregatorConfigurer.accept(spec);
-		return this.handle(spec.get().getT2(), endpointConfigurer);
 	}
 
 	/**
@@ -1845,7 +1797,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String beanName, String method, Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
+	public B route(String beanName, String method,
+			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
 		return route(beanName, method, routerConfigurer, null);
 	}
 
@@ -2184,7 +2137,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <K, R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<K, R>> routerConfigurer,
 			Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
 
-		RouterSpec<K, R> routerSpec = new RouterSpec<K, R>(router);
+		RouterSpec<K, R> routerSpec = new RouterSpec<>(router);
 		if (routerConfigurer != null) {
 			routerConfigurer.accept(routerSpec);
 		}
@@ -2466,7 +2419,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B log(Function<Message<P>, Object> function) {
 		Assert.notNull(function);
-		return log(new FunctionExpression<Message<P>>(function));
+		return log(new FunctionExpression<>(function));
 	}
 
 	/**
@@ -2560,7 +2513,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
 		Assert.notNull(function);
-		return log(level, category, new FunctionExpression<Message<P>>(function));
+		return log(level, category, new FunctionExpression<>(function));
 	}
 
 

@@ -584,20 +584,18 @@ CompletableFuture result = process("foo")
 String out = result.get(10, TimeUnit.SECONDS);
 ----
 
-===== Reactor Promise
+===== Reactor Mono
 
-Starting with _version 4.1_, the `GatewayProxyFactoryBean` allows the use of a `Reactor` with gateway interface methods, utilizing a https://github.com/reactor/reactor/wiki/Promises[`Promise<?>`] return type.
-The internal `AsyncInvocationTask` is wrapped in a `reactor.function.Supplier`, using a default `RingBufferDispatcher` for the `Promise` consumption.
-Only methods with the `Promise<?>` return type are run on the reactor's dispatcher.
+Starting with _version 5.0_, the `GatewayProxyFactoryBean` allows the use of the Project Reactor with gateway interface methods, utilizing a https://github.com/reactor/reactor-core[`Mono<T>`] return type.
+The internal `AsyncInvocationTask` is wrapped in a `Mono.fromCallable()`.
 
-A `Promise` can be used to retrieve the result later (similar to a `Future<?>`) or you can consume from it with the dispatcher invoking your `Consumer` when the result is returned to the gateway.
+A `Mono` can be used to retrieve the result later (similar to a `Future<?>`) or you can consume from it with the dispatcher invoking your `Consumer` when the result is returned to the gateway.
 
-IMPORTANT: The `Promise` isn't _flushed_ immediately by the framework.
+IMPORTANT: The `Mono` isn't _flushed_ immediately by the framework.
 Hence the underlying message flow won't be started before the gateway method returns (as it is with `Future<?>` `Executor` task).
-The flow will be started when the `Promise` is _flushed_ or via `Promise.await()`.
-Alternatively, the `Promise` (being a `Composable`) might be a part of Reactor `Stream<?>`, when the `flush()` is related to the entire `Stream`.
+The flow will be started when the `Mono` is _subscribed_.
+Alternatively, the `Mono` (being a `Composable`) might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
 For example:
-
 
 [source,java]
 ----
@@ -605,7 +603,7 @@ For example:
 public static interface TestGateway {
 
 	@Gateway(requestChannel = "promiseChannel")
-	Promise<Integer> multiply(Integer value);
+	Mono<Integer> multiply(Integer value);
 
 	}
 
@@ -618,27 +616,20 @@ public static interface TestGateway {
 
 		...
 
-	Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
-			.get()
-			.map(Integer::parseInt)
-			.mapMany(integer -> testGateway.multiply(integer))
-			.collect()
-			.consume(integers -> ...)
-			.flush();
+    Flux.just("1", "2", "3", "4", "5")
+            .map(Integer::parseInt)
+            .flatMap(this.testGateway::multiply)
+            .collectList()
+            .subscribe(integers -> ...);
+
 ----
 
 Another example is a simple callback scenario:
 [source,java]
 ----
-Promise<Invoice> promise = service.process(myOrder);
+Mono<Invoice> mono = service.process(myOrder);
 
-promise.consume(new Consumer<Invoice>() {
-	@Override
-	public void accept(Invoice invoice) {
-		handleInvoice(invoice);
-	}
-})
-.flush();
+mono.subscribe(invoice -> handleInvoice(invoice));
 ----
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
