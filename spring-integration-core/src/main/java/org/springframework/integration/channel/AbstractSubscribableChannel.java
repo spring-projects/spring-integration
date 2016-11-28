@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.support.management.SubscribableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -37,19 +38,30 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
-		implements SubscribableChannel {
+		implements SubscribableChannel, SubscribableChannelManagement {
 
 	private final AtomicInteger handlerCounter = new AtomicInteger();
 
+	@Override
+	public int getSubscriberCount() {
+		MessageDispatcher dispatcher = getRequiredDispatcher();
+		if (dispatcher instanceof AbstractDispatcher) {
+			return ((AbstractDispatcher) dispatcher).getHandlerCount();
+		}
+		return this.handlerCounter.get();
+	}
+
+	@Override
 	public boolean subscribe(MessageHandler handler) {
-		MessageDispatcher dispatcher = this.getRequiredDispatcher();
+		MessageDispatcher dispatcher = getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);
 		this.adjustCounterIfNecessary(dispatcher, added ? 1 : 0);
 		return added;
 	}
 
+	@Override
 	public boolean unsubscribe(MessageHandler handle) {
-		MessageDispatcher dispatcher = this.getRequiredDispatcher();
+		MessageDispatcher dispatcher = getRequiredDispatcher();
 		boolean removed = dispatcher.removeHandler(handle);
 		this.adjustCounterIfNecessary(dispatcher, removed ? -1 : 0);
 		return removed;
@@ -74,7 +86,7 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		try {
-			return this.getRequiredDispatcher().dispatch(message);
+			return getRequiredDispatcher().dispatch(message);
 		}
 		catch (MessageDispatchingException e) {
 			String description = e.getMessage() + " for channel '" + this.getFullChannelName() + "'.";
@@ -83,7 +95,7 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	}
 
 	private MessageDispatcher getRequiredDispatcher() {
-		MessageDispatcher dispatcher = this.getDispatcher();
+		MessageDispatcher dispatcher = getDispatcher();
 		Assert.state(dispatcher != null, "'dispatcher' must not be null");
 		return dispatcher;
 	}

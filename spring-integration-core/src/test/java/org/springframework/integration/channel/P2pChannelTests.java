@@ -102,15 +102,20 @@ public class P2pChannelTests {
 
 		MessageHandler handler1 = mock(MessageHandler.class);
 		channel.subscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(String.format(log, 1), logs.remove(0));
 		MessageHandler handler2 = mock(MessageHandler.class);
 		channel.subscribe(handler2);
+		assertEquals(2, channel.getSubscriberCount());
 		assertEquals(String.format(log, 2), logs.remove(0));
 		channel.unsubscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(String.format(log, 1), logs.remove(0));
 		channel.unsubscribe(handler1);
+		assertEquals(1, channel.getSubscriberCount());
 		assertEquals(0, logs.size());
 		channel.unsubscribe(handler2);
+		assertEquals(0, channel.getSubscriberCount());
 		assertEquals(String.format(log, 0), logs.remove(0));
 		verify(logger, times(4)).info(Mockito.anyString());
 	}
