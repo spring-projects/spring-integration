@@ -25,8 +25,9 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
-
+import org.reactivestreams.Subscriber;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationException;
@@ -95,6 +96,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import reactor.core.publisher.EmitterProcessor;
 import reactor.util.function.Tuple2;
 
 /**
@@ -2725,21 +2727,17 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			publisher = (Publisher<Message<T>>) channelForPublisher;
 		}
 		else {
-			MessageChannel reactiveChannel = new ReactiveChannel();
-			publisher = (Publisher<Message<T>>) reactiveChannel;
-
 			if (channelForPublisher != null) {
-				BridgeHandler bridge = new BridgeHandler();
-				bridge.setOutputChannel(reactiveChannel);
-
-				addComponent(bridge)
-						.addComponent(new ReactiveConsumer(channelForPublisher, bridge))
-						.addComponent(reactiveChannel);
+				Processor<?, ?> processor = EmitterProcessor.create(false);
+				publisher = (Publisher<Message<T>>) processor;
+				Subscriber<Message<?>> subscriber = (Subscriber<Message<?>>) processor;
+				addComponent(new ReactiveConsumer(channelForPublisher, subscriber));
 			}
 			else {
+				MessageChannel reactiveChannel = new ReactiveChannel();
+				publisher = (Publisher<Message<T>>) reactiveChannel;
 				channel(reactiveChannel);
 			}
-
 		}
 
 		get();

@@ -39,7 +39,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.Lifecycle;
@@ -107,15 +106,15 @@ public class ReactiveStreamsTests {
 	public void testPollableReactiveFlow() throws InterruptedException, TimeoutException, ExecutionException {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
+		CountDownLatch warmUpLatch = new CountDownLatch(3);
 		CountDownLatch latch = new CountDownLatch(6);
 
 		Flux.from(this.pollablePublisher)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 				.doOnNext(p -> latch.countDown())
+				.doOnNext(p -> warmUpLatch.countDown())
 				.take(6)
 				.subscribe();
-
-		final CountDownLatch asyncSetupLatch = new CountDownLatch(1);
 
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
@@ -127,23 +126,21 @@ public class ReactiveStreamsTests {
 								.concatWith(this.pollablePublisher)
 								.map(Message::getPayload)
 								.take(7)
+								.log("org.springframework.integration.flux")
 								.collectList()
-								.block(getDuration(asyncSetupLatch)));
+								.block(Duration.ofSeconds(10)));
 
-		assertTrue(asyncSetupLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(warmUpLatch.await(10, TimeUnit.SECONDS));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		List<Integer> integers = future.get(20, TimeUnit.SECONDS);
+
 		assertNotNull(integers);
 		assertEquals(7, integers.size());
 	}
 
-	private Duration getDuration(CountDownLatch asyncSetupLatch) {
-		asyncSetupLatch.countDown();
-		return Duration.ofSeconds(10);
-	}
 
 	@Configuration
 	@EnableIntegration
