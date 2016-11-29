@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Proxy;
 import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
@@ -361,6 +362,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 						try {
 							if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
 								this.sharedJschSession = new JSchSessionWrapper(initJschSession());
+								try {
+									this.sharedJschSession.getSession().connect();
+								}
+								catch (JSchException e) {
+									throw new IllegalStateException("failed to connect", e);
+								}
 							}
 						}
 						finally {
