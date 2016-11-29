@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -75,6 +76,7 @@ import com.jcraft.jsch.SftpATTRS;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class SftpOutboundTests {
 
@@ -101,7 +103,7 @@ public class SftpOutboundTests {
 		File destFile = new File(targetDir, srcFile.getName() + ".test");
 		destFile.deleteOnExit();
 
-		handler.handleMessage(new GenericMessage<File>(srcFile));
+		handler.handleMessage(new GenericMessage<>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
 	}
 
@@ -112,7 +114,7 @@ public class SftpOutboundTests {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setBeanFactory(mock(BeanFactory.class));
 		fGenerator.setExpression("'foo.txt'");
@@ -231,8 +233,21 @@ public class SftpOutboundTests {
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
-		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
-		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+
+		willAnswer(invocation -> {
+			new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
+			return null;
+		})
+				.given(jschSession1)
+				.connect();
+
+		willAnswer(invocation -> {
+			new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+			return null;
+		})
+				.given(jschSession2)
+				.connect();
+
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
 		final ChannelSftp channel1 = spy(new ChannelSftp());
 		doReturn("channel1").when(channel1).toString();
@@ -265,7 +280,8 @@ public class SftpOutboundTests {
 	@Test
 	public void testNotSharedSession() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
+		Constructor<com.jcraft.jsch.Session> ctor =
+				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
@@ -294,12 +310,26 @@ public class SftpOutboundTests {
 	@Test
 	public void testSharedSessionCachedReset() throws Exception {
 		JSch jsch = spy(new JSch());
-		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
+		Constructor<com.jcraft.jsch.Session> ctor =
+				com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class, String.class, String.class, int.class);
 		ctor.setAccessible(true);
 		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch, "foo", "host", 22));
 		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch, "foo", "host", 22));
-		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
-		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+
+		willAnswer(invocation -> {
+			new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
+			return null;
+		})
+				.given(jschSession1)
+				.connect();
+
+		willAnswer(invocation -> {
+			new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+			return null;
+		})
+				.given(jschSession2)
+				.connect();
+
 		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
 		final ChannelSftp channel1 = spy(new ChannelSftp());
 		doReturn("channel1").when(channel1).toString();
