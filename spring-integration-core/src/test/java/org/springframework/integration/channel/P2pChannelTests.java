@@ -31,7 +31,6 @@ import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.ReflectionUtils;
 
@@ -46,23 +45,6 @@ public class P2pChannelTests {
 	public void testDirectChannelLoggingWithMoreThenOneSubscriber() {
 		final DirectChannel channel = new DirectChannel();
 		channel.setBeanName("directChannel");
-
-		verifySubscriptions(channel);
-	}
-
-	@Test
-	public void testCustomChannelLoggingWithMoreThenOneSubscriberNotAbstractDispatcher() {
-		final MessageDispatcher mockDispatcher = mock(MessageDispatcher.class);
-		when(mockDispatcher.addHandler(Mockito.any(MessageHandler.class))).thenReturn(true);
-		when(mockDispatcher.removeHandler(Mockito.any(MessageHandler.class))).thenReturn(true).thenReturn(false).thenReturn(true);
-
-		final AbstractSubscribableChannel channel = new AbstractSubscribableChannel() {
-			@Override
-			protected MessageDispatcher getDispatcher() {
-				return mockDispatcher;
-			}
-		};
-		channel.setBeanName("customChannel");
 
 		verifySubscriptions(channel);
 	}

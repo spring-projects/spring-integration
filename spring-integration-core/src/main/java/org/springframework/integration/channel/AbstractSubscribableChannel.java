@@ -16,10 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.management.SubscribableChannelManagement;
 import org.springframework.messaging.Message;
@@ -40,22 +37,16 @@ import org.springframework.util.Assert;
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 		implements SubscribableChannel, SubscribableChannelManagement {
 
-	private final AtomicInteger handlerCounter = new AtomicInteger();
-
 	@Override
 	public int getSubscriberCount() {
-		MessageDispatcher dispatcher = getRequiredDispatcher();
-		if (dispatcher instanceof AbstractDispatcher) {
-			return ((AbstractDispatcher) dispatcher).getHandlerCount();
-		}
-		return this.handlerCounter.get();
+		return getRequiredDispatcher().getHandlerCount();
 	}
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);
-		this.adjustCounterIfNecessary(dispatcher, added ? 1 : 0);
+		adjustCounterIfNecessary(dispatcher, added ? 1 : 0);
 		return added;
 	}
 
@@ -69,16 +60,9 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 
 	private void adjustCounterIfNecessary(MessageDispatcher dispatcher, int delta) {
 		if (delta != 0) {
-			int counter = 0;
-			if (dispatcher instanceof AbstractDispatcher) {
-				counter = ((AbstractDispatcher) dispatcher).getHandlerCount();
-			}
-			else {
-				// some other dispatcher - hand-roll the counter
-				counter = this.handlerCounter.addAndGet(delta);
-			}
 			if (logger.isInfoEnabled()) {
-				logger.info("Channel '" + this.getFullChannelName() + "' has " + counter + " subscriber(s).");
+				logger.info("Channel '" + this.getFullChannelName() + "' has " + dispatcher.getHandlerCount()
+						+ " subscriber(s).");
 			}
 		}
 	}
