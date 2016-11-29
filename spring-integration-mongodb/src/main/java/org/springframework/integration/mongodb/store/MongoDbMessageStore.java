@@ -25,7 +25,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.Binary;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -37,10 +41,12 @@ import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -74,8 +80,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BulkWriteOperation;
 import com.mongodb.DBObject;
 
 
@@ -230,7 +234,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return this.template.getCollection(this.collectionName).getCount();
+		return this.template.getCollection(this.collectionName).count();
 	}
 
 	@Override
@@ -300,7 +304,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
-		Collection<UUID> ids = new ArrayList<UUID>();
+		Collection<UUID> ids = new ArrayList<>();
 		for (Message<?> messageToRemove : messages) {
 			ids.add(messageToRemove.getHeaders().getId());
 			if (ids.size() >= getRemoveBatchSize()) {
@@ -315,13 +319,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	private void bulkRemove(Object groupId, Collection<UUID> ids) {
-		BulkWriteOperation bulkOp = this.template.getCollection(this.collectionName)
-				.initializeOrderedBulkOperation();
+		BulkOperations bulkOperations = this.template.bulkOps(BulkOperations.BulkMode.ORDERED, this.collectionName);
+
 		for (UUID id : ids) {
-			bulkOp.find(whereMessageIdIsAndGroupIdIs(id, groupId).getQueryObject())
-					.remove();
+			bulkOperations.remove(whereMessageIdIsAndGroupIdIs(id, groupId));
 		}
-		bulkOp.execute();
+		bulkOperations.execute();
 	}
 
 	@Override
@@ -331,13 +334,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
+		List<MessageGroup> messageGroups = new ArrayList<>();
 
 		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
 
 		@SuppressWarnings("rawtypes")
-		List groupIds = this.template.getCollection(this.collectionName)
-				.distinct(GROUP_ID_KEY, query.getQueryObject());
+		Iterable<String> groupIds = this.template.getCollection(collectionName)
+				.distinct(GROUP_ID_KEY, query.getQueryObject(), String.class);
 
 		for (Object groupId : groupIds) {
 			messageGroups.add(getMessageGroup(groupId));
@@ -394,12 +397,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = whereGroupIdOrder(groupId);
 		List<MessageWrapper> messageWrappers = this.template.find(query, MessageWrapper.class, this.collectionName);
-		List<Message<?>> messages = new ArrayList<Message<?>>();
 
-		for (MessageWrapper messageWrapper : messageWrappers) {
-			messages.add(messageWrapper.getMessage());
-		}
-		return messages;
+		return messageWrappers.stream()
+				.map(MessageWrapper::getMessage)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -417,7 +418,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	public int getMessageGroupCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
 		return this.template.getCollection(this.collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject())
+				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), Object.class)
+				.into(new ArrayList<>())
 				.size();
 	}
 
@@ -430,11 +432,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	 */
 
 	private static Query whereMessageIdIs(UUID id) {
-		return new Query(Criteria.where("headers.id._value").is(id.toString()));
+		return new Query(Criteria.where("headers.id").is(id));
 	}
 
 	private static Query whereMessageIdIsAndGroupIdIs(UUID id, Object groupId) {
-		return new Query(Criteria.where("headers.id._value").is(id.toString()).and(GROUP_ID_KEY).is(groupId));
+		return new Query(Criteria.where("headers.id").is(id).and(GROUP_ID_KEY).is(groupId));
 	}
 
 	private static Query whereGroupIdOrder(Object groupId) {
@@ -469,6 +471,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 	}
 
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> asMap(Bson bson) {
+		if (bson instanceof Document) {
+			return (Document) bson;
+		}
+
+		if (bson instanceof DBObject) {
+			return ((DBObject) bson).toMap();
+		}
+
+		throw new IllegalArgumentException(
+				String.format("Cannot read %s. as map. Given Bson must be a Document or DBObject!", bson.getClass()));
+	}
+
 
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
@@ -482,56 +498,56 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 		@Override
 		public void afterPropertiesSet() {
-			List<Object> customConverters = new ArrayList<Object>();
-			customConverters.add(new UuidToDBObjectConverter());
-			customConverters.add(new DBObjectToUUIDConverter());
-			customConverters.add(new MessageHistoryToDBObjectConverter());
-			customConverters.add(new DBObjectToGenericMessageConverter());
-			customConverters.add(new DBObjectToMutableMessageConverter());
-			customConverters.add(new DBObjectToErrorMessageConverter());
-			customConverters.add(new DBObjectToAdviceMessageConverter());
+			List<Object> customConverters = new ArrayList<>();
+			customConverters.add(new MessageHistoryToDocumentConverter());
+			customConverters.add(new DocumentToGenericMessageConverter());
+			customConverters.add(new DocumentToMutableMessageConverter());
+			customConverters.add(new DocumentToErrorMessageConverter());
+			customConverters.add(new DocumentToAdviceMessageConverter());
 			customConverters.add(new ThrowableToBytesConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
 
 		@Override
-		public void write(Object source, DBObject target) {
+		public void write(Object source, Bson target) {
 			Assert.isInstanceOf(MessageWrapper.class, source);
 
-			target.put(CREATED_DATE, System.currentTimeMillis());
+			asMap(target).put(CREATED_DATE, System.currentTimeMillis());
 
 			super.write(source, target);
 		}
 
 		@Override
-		@SuppressWarnings({ "unchecked" })
-		public <S> S read(Class<S> clazz, DBObject source) {
+		@SuppressWarnings({"unchecked"})
+		public <S> S read(Class<S> clazz, Bson source) {
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
 			}
 			if (source != null) {
+				Map<String, Object> sourceMap = asMap(source);
 				Message<?> message = null;
-				Object messageType = source.get("_messageType");
+				Object messageType = sourceMap.get("_messageType");
 				if (messageType == null) {
 					messageType = GenericMessage.class.getName();
 				}
 				try {
-					message = (Message<?>) this.read(ClassUtils.forName(messageType.toString(), MongoDbMessageStore.this.classLoader), source);
+					message = (Message<?>) read(ClassUtils.forName(messageType.toString(),
+							MongoDbMessageStore.this.classLoader), source);
 				}
 				catch (ClassNotFoundException e) {
 					throw new IllegalStateException("failed to load class: " + messageType, e);
 				}
 
-				Long groupTimestamp = (Long) source.get(GROUP_TIMESTAMP_KEY);
-				Long lastModified = (Long) source.get(GROUP_UPDATE_TIMESTAMP_KEY);
-				Integer lastReleasedSequenceNumber = (Integer) source.get(LAST_RELEASED_SEQUENCE_NUMBER);
-				Boolean completeGroup = (Boolean) source.get(GROUP_COMPLETE_KEY);
+				Long groupTimestamp = (Long) sourceMap.get(GROUP_TIMESTAMP_KEY);
+				Long lastModified = (Long) sourceMap.get(GROUP_UPDATE_TIMESTAMP_KEY);
+				Integer lastReleasedSequenceNumber = (Integer) sourceMap.get(LAST_RELEASED_SEQUENCE_NUMBER);
+				Boolean completeGroup = (Boolean) sourceMap.get(GROUP_COMPLETE_KEY);
 
 				MessageWrapper wrapper = new MessageWrapper(message);
 
-				if (source.containsField(GROUP_ID_KEY)) {
-					wrapper.set_GroupId(source.get(GROUP_ID_KEY));
+				if (sourceMap.containsKey(GROUP_ID_KEY)) {
+					wrapper.set_GroupId(sourceMap.get(GROUP_ID_KEY));
 				}
 				if (groupTimestamp != null) {
 					wrapper.set_Group_timestamp(groupTimestamp);
@@ -557,19 +573,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			for (Entry<String, Object> entry : headers.entrySet()) {
 				String headerName = entry.getKey();
 				Object headerValue = entry.getValue();
-				if (headerValue instanceof DBObject) {
-					DBObject source = (DBObject) headerValue;
+				if (headerValue instanceof Bson) {
+					Bson source = (Bson) headerValue;
+					Map<String, Object> document = asMap(source);
 					try {
 						Class<?> typeClass = null;
-						if (source.containsField("_class")) {
-							Object type = source.get("_class");
+						if (document.containsKey("_class")) {
+							Object type = document.get("_class");
 							typeClass = ClassUtils.forName(type.toString(), MongoDbMessageStore.this.classLoader);
 						}
 						else if (source instanceof BasicDBList) {
 							typeClass = List.class;
 						}
 						else {
-							throw new IllegalStateException("Unsupported 'DBObject' type: " + source.getClass());
+							throw new IllegalStateException("Unsupported 'Bson' type: " + source.getClass());
 						}
 						normalizedHeaders.put(headerName, super.read(typeClass, source));
 					}
@@ -584,14 +601,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return normalizedHeaders;
 		}
 
-		private Object extractPayload(DBObject source) {
-			Object payload = source.get("payload");
-			if (payload instanceof DBObject) {
-				DBObject payloadObject = (DBObject) payload;
-				Object payloadType = payloadObject.get("_class");
+		private Object extractPayload(Bson source) {
+			Object payload = asMap(source).get("payload");
+
+			if (payload instanceof Bson) {
+				Bson payloadObject = (Bson) payload;
+				Object payloadType = asMap(payloadObject).get("_class");
 				try {
 					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), MongoDbMessageStore.this.classLoader);
-					payload = this.read(payloadClass, payloadObject);
+					payload = read(payloadClass, payloadObject);
 				}
 				catch (Exception e) {
 					throw new IllegalStateException("failed to load class: " + payloadType, e);
@@ -602,86 +620,61 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
 
-		UuidToDBObjectConverter() {
+	@WritingConverter
+	private static class MessageHistoryToDocumentConverter implements Converter<MessageHistory, Document> {
+
+		MessageHistoryToDocumentConverter() {
 			super();
 		}
 
 		@Override
-		public DBObject convert(UUID source) {
-			BasicDBObject dbObject = new BasicDBObject();
-			dbObject.put("_value", source.toString());
-			dbObject.put("_class", source.getClass().getName());
-			return dbObject;
-		}
-	}
-
-	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
-
-		DBObjectToUUIDConverter() {
-			super();
-		}
-
-		@Override
-		public UUID convert(DBObject source) {
-			return UUID.fromString((String) source.get("_value"));
-		}
-	}
-
-
-	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory, DBObject> {
-
-		MessageHistoryToDBObjectConverter() {
-			super();
-		}
-
-		@Override
-		public DBObject convert(MessageHistory source) {
-			BasicDBObject obj = new BasicDBObject();
-			obj.put("_class", MessageHistory.class.getName());
+		public Document convert(MessageHistory source) {
 			BasicDBList dbList = new BasicDBList();
 			for (Properties properties : source) {
-				BasicDBObject dbo = new BasicDBObject();
-				dbo.put(MessageHistory.NAME_PROPERTY, properties.getProperty(MessageHistory.NAME_PROPERTY));
-				dbo.put(MessageHistory.TYPE_PROPERTY, properties.getProperty(MessageHistory.TYPE_PROPERTY));
-				dbo.put(MessageHistory.TIMESTAMP_PROPERTY, properties.getProperty(MessageHistory.TIMESTAMP_PROPERTY));
-				dbList.add(dbo);
+				Document historyProperty = new Document()
+						.append(MessageHistory.NAME_PROPERTY, properties.getProperty(MessageHistory.NAME_PROPERTY))
+						.append(MessageHistory.TYPE_PROPERTY, properties.getProperty(MessageHistory.TYPE_PROPERTY))
+						.append(MessageHistory.TIMESTAMP_PROPERTY,
+								properties.getProperty(MessageHistory.TIMESTAMP_PROPERTY));
+				dbList.add(historyProperty);
 			}
-			obj.put("components", dbList);
-			return obj;
+			return new Document("components", dbList)
+					.append("_class", MessageHistory.class.getName());
 		}
+
 	}
 
-	private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage<?>> {
+	@ReadingConverter
+	private class DocumentToGenericMessageConverter implements Converter<Document, GenericMessage<?>> {
 
-		DBObjectToGenericMessageConverter() {
+		DocumentToGenericMessageConverter() {
 			super();
 		}
 
 		@Override
-		public GenericMessage<?> convert(DBObject source) {
+		public GenericMessage<?> convert(Document source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			GenericMessage<?> message =
-					new GenericMessage<Object>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
+					new GenericMessage<>(MongoDbMessageStore.this.converter.extractPayload(source), headers);
 			enhanceHeaders(message.getHeaders(), headers);
 			return message;
 		}
 
 	}
 
-	private final class DBObjectToMutableMessageConverter implements Converter<DBObject, MutableMessage<?>> {
+	@ReadingConverter
+	private final class DocumentToMutableMessageConverter implements Converter<Document, MutableMessage<?>> {
 
-
-		DBObjectToMutableMessageConverter() {
+		DocumentToMutableMessageConverter() {
 			super();
 		}
 
 		@Override
-		public MutableMessage<?> convert(DBObject source) {
+		public MutableMessage<?> convert(Document source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
@@ -694,14 +687,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private class DBObjectToAdviceMessageConverter implements Converter<DBObject, AdviceMessage<?>> {
+	@ReadingConverter
+	private class DocumentToAdviceMessageConverter implements Converter<Document, AdviceMessage<?>> {
 
-		DBObjectToAdviceMessageConverter() {
+		DocumentToAdviceMessageConverter() {
 			super();
 		}
 
 		@Override
-		public AdviceMessage<?> convert(DBObject source) {
+		public AdviceMessage<?> convert(Document source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
@@ -709,8 +703,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			Message<?> inputMessage = null;
 
 			if (source.get("inputMessage") != null) {
-				DBObject inputMessageObject = (DBObject) source.get("inputMessage");
-				Object inputMessageType = inputMessageObject.get("_class");
+				Bson inputMessageObject = (Bson) source.get("inputMessage");
+				Object inputMessageType = asMap(inputMessageObject).get("_class");
 				try {
 					Class<?> messageClass = ClassUtils.forName(inputMessageType.toString(),
 							MongoDbMessageStore.this.classLoader);
@@ -722,7 +716,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				}
 			}
 
-			AdviceMessage<?> message = new AdviceMessage<Object>(
+			AdviceMessage<?> message = new AdviceMessage<>(
 					MongoDbMessageStore.this.converter.extractPayload(source), headers, inputMessage);
 			enhanceHeaders(message.getHeaders(), headers);
 
@@ -731,21 +725,22 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	}
 
-	private class DBObjectToErrorMessageConverter implements Converter<DBObject, ErrorMessage> {
+	@ReadingConverter
+	private class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
 
 		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
 
-		DBObjectToErrorMessageConverter() {
+		DocumentToErrorMessageConverter() {
 			super();
 		}
 
 		@Override
-		public ErrorMessage convert(DBObject source) {
+		public ErrorMessage convert(Document source) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> headers =
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
-			Object payload = this.deserializingConverter.convert((byte[]) source.get("payload"));
+			Object payload = this.deserializingConverter.convert(((Binary) source.get("payload")).getData());
 			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);
 			enhanceHeaders(message.getHeaders(), headers);
 

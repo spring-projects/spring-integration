@@ -22,7 +22,7 @@
 
 	<bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
 		<constructor-arg>
-			<bean class="com.mongodb.Mongo"/>
+			<bean class="com.mongodb.MongoClient"/>
 		</constructor-arg>
 		<constructor-arg value="test"/>
 	</bean>

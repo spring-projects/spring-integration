@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -88,16 +86,6 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
-
-		try {
-			context.getBean("input", MessageChannel.class);
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertTrue(e instanceof IllegalStateException);
-			assertTrue(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"));
-		}
 
 		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
 
@@ -115,6 +103,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 				.getOriginal();
 		assertThat(message1, Matchers.anyOf(Matchers.is(original1), Matchers.is(original2)));
 
+		context.destroy();
+
 		context.refresh();
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
@@ -128,6 +118,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		assertNotNull(message);
 		Object payload2 = message.getPayload();
 		assertNotSame(payload1, payload2);
+
+		messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 		context.destroy();

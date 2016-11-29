@@ -33,7 +33,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.gemstone.gemfire.internal.cache.DistributedRegion;
+import org.apache.geode.internal.cache.DistributedRegion;
 
 /**
  * @author David Turanski

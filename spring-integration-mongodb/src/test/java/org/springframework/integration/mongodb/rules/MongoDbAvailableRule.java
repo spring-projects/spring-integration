@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -47,8 +46,8 @@ public final class MongoDbAvailableRule implements MethodRule {
 				if (mongoAvailable != null) {
 					try {
 						MongoClientOptions options = new MongoClientOptions.Builder().connectTimeout(100).build();
-						Mongo mongo = new MongoClient(ServerAddress.defaultHost(), options);
-						mongo.getDatabaseNames();
+						MongoClient mongo = new MongoClient(ServerAddress.defaultHost(), options);
+						mongo.listDatabaseNames();
 					}
 					catch (Exception e) {
 						logger.warn("MongoDb is not available. Skipping the test: " +

@@ -11,7 +11,7 @@
 
     <beans:bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
         <beans:constructor-arg>
-            <beans:bean class="com.mongodb.Mongo"/>
+            <beans:bean class="com.mongodb.MongoClient"/>
         </beans:constructor-arg>
         <beans:constructor-arg value="test"/>
     </beans:bean>

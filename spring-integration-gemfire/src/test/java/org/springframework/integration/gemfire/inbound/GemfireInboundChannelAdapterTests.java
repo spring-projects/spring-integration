@@ -32,8 +32,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.gemstone.gemfire.cache.EntryEvent;
-import com.gemstone.gemfire.internal.cache.LocalRegion;
+import org.apache.geode.cache.EntryEvent;
+import org.apache.geode.internal.cache.LocalRegion;
 
 /**
  * @author David Turanski

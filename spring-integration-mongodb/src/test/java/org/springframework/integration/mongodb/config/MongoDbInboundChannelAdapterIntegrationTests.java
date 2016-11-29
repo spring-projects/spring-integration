@@ -22,9 +22,9 @@ import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
+import org.bson.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -45,7 +45,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 /**
@@ -117,7 +116,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.mongoInboundAdapterNamedFactory.start();
 
 		@SuppressWarnings("unchecked")
-		Message<List<DBObject>> message = (Message<List<DBObject>>) replyChannel.receive(10000);
+		Message<List<Document>> message = (Message<List<Document>>) replyChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Bob", message.getPayload().get(0).get("name"));
 

@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="region" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.gemstone.gemfire.cache.Region"/>
+		<constructor-arg value="org.apache.geode.cache.Region"/>
 	</bean>
 
 	<int-gfe:inbound-channel-adapter id="channel1"

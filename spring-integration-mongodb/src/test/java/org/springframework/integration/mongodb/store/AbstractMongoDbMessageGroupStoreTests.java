@@ -378,9 +378,9 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		MessageGroupStore store2 = this.getMessageGroupStore();
 
 		Message<?> message = new GenericMessage<String>("1");
-		store2.addMessagesToGroup(1, message);
-		store1.addMessagesToGroup(2, new GenericMessage<String>("2"));
-		store2.addMessagesToGroup(3, new GenericMessage<String>("3"));
+		store2.addMessagesToGroup("1", message);
+		store1.addMessagesToGroup("2", new GenericMessage<String>("2"));
+		store2.addMessagesToGroup("3", new GenericMessage<String>("3"));
 
 		MessageGroupStore store3 = this.getMessageGroupStore();
 		Iterator<MessageGroup> iterator = store3.iterator();
@@ -392,7 +392,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		}
 		assertEquals(3, counter);
 
-		store2.removeMessagesFromGroup(1, message);
+		store2.removeMessagesFromGroup("1", message);
 
 		iterator = store3.iterator();
 		counter = 0;

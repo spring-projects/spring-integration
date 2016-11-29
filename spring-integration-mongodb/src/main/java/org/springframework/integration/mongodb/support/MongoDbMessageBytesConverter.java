@@ -19,11 +19,14 @@ package org.springframework.integration.mongodb.support;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bson.types.Binary;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.messaging.Message;
 
 /**
@@ -33,7 +36,11 @@ import org.springframework.messaging.Message;
 
  * @author Artem Bilan
  * @since 4.2.10
+ * @deprecated since 5.0 in favor of {@link MessageToBinaryConverter} and {@link BinaryToMessageConverter}
  */
+@WritingConverter
+@ReadingConverter
+@Deprecated
 public class MongoDbMessageBytesConverter implements GenericConverter {
 
 	private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
@@ -42,19 +49,19 @@ public class MongoDbMessageBytesConverter implements GenericConverter {
 
 	@Override
 	public Set<ConvertiblePair> getConvertibleTypes() {
-		Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>();
-		convertiblePairs.add(new ConvertiblePair(Message.class, byte[].class));
-		convertiblePairs.add(new ConvertiblePair(byte[].class, Message.class));
+		Set<ConvertiblePair> convertiblePairs = new HashSet<>();
+		convertiblePairs.add(new ConvertiblePair(Message.class, Binary.class));
+		convertiblePairs.add(new ConvertiblePair(Binary.class, Message.class));
 		return convertiblePairs;
 	}
 
 	@Override
 	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 		if (Message.class.isAssignableFrom(sourceType.getObjectType())) {
-			return this.serializingConverter.convert(source);
+			return new Binary(this.serializingConverter.convert(source));
 		}
 		else {
-			return this.deserializingConverter.convert((byte[]) source);
+			return this.deserializingConverter.convert(((Binary) source).getData());
 		}
 	}
 

@@ -33,8 +33,8 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
- * @since 3.0
  *
+ * @since 3.0
  */
 public class ExpressionUtilsTests {
 
@@ -49,8 +49,9 @@ public class ExpressionUtilsTests {
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
 		assertNotNull(evalContext.getBeanResolver());
 		assertNotNull(evalContext.getTypeConverter());
-		IntegrationEvaluationContextFactoryBean factory = context.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
-				IntegrationEvaluationContextFactoryBean.class);
+		IntegrationEvaluationContextFactoryBean factory =
+				context.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+						IntegrationEvaluationContextFactoryBean.class);
 		assertSame(evalContext.getTypeConverter(), TestUtils.getPropertyValue(factory, "typeConverter"));
 	}
 
