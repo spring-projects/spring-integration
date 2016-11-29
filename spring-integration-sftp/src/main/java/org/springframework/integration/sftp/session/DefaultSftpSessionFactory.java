@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Proxy;
 import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UIKeyboardInteractive;
@@ -361,6 +362,12 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 						try {
 							if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
 								this.sharedJschSession = new JSchSessionWrapper(initJschSession());
+								try {
+									this.sharedJschSession.getSession().connect();
+								}
+								catch (JSchException e) {
+									throw new IllegalStateException("failed to connect", e);
+								}
 							}
 						}
 						finally {
@@ -378,19 +385,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				jschSession = new JSchSessionWrapper(initJschSession());
 			}
 			SftpSession sftpSession = new SftpSession(jschSession);
-
-			if (this.isSharedSession) {
-				this.sharedSessionLock.readLock().lock();
-			}
-			try {
-				sftpSession.connect();
-			}
-			finally {
-				if (this.isSharedSession) {
-					this.sharedSessionLock.readLock().unlock();
-				}
-			}
-
+			sftpSession.connect();
 			jschSession.addChannel();
 			return sftpSession;
 		}
