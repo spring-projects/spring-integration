@@ -378,7 +378,19 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 				jschSession = new JSchSessionWrapper(initJschSession());
 			}
 			SftpSession sftpSession = new SftpSession(jschSession);
-			sftpSession.connect();
+
+			if (this.isSharedSession) {
+				this.sharedSessionLock.readLock().lock();
+			}
+			try {
+				sftpSession.connect();
+			}
+			finally {
+				if (this.isSharedSession) {
+					this.sharedSessionLock.readLock().unlock();
+				}
+			}
+
 			jschSession.addChannel();
 			return sftpSession;
 		}
