@@ -76,8 +76,7 @@ subprojects { subproject ->
 	}
 
 	compileTestJava {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		sourceCompatibility = 1.8
 	}
 
 
@@ -288,11 +287,6 @@ project('spring-integration-amqp') {
 
 project('spring-integration-core') {
 	description = 'Spring Integration Core'
-
-	compileTestJava {
-		sourceCompatibility = 1.8
-		targetCompatibility = 1.8
-	}
 
 	dependencies {
 		compile "org.springframework:spring-core:$springVersion"
