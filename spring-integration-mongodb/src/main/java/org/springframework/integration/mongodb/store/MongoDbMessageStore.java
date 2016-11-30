@@ -854,7 +854,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._groupId = groupId;
 		}
 
-		public void set_Group_timestamp(Long groupTimestamp) {
+		public void set_Group_timestamp(long groupTimestamp) {
 			this._group_timestamp = groupTimestamp;
 		}
 
@@ -862,7 +862,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return this._message_timestamp;
 		}
 
-		public void set_message_timestamp(Long _message_timestamp) {
+		public void set_message_timestamp(long _message_timestamp) {
 			this._message_timestamp = _message_timestamp;
 		}
 
@@ -870,11 +870,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			return this._group_update_timestamp;
 		}
 
-		public void set_Group_update_timestamp(Long lastModified) {
+		public void set_Group_update_timestamp(long lastModified) {
 			this._group_update_timestamp = lastModified;
 		}
 
-		public void set_LastReleasedSequenceNumber(Integer lastReleasedSequenceNumber) {
+		public void set_LastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
 			this._last_released_sequence = lastReleasedSequenceNumber;
 		}
 
@@ -882,7 +882,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			this._group_complete = completedGroup;
 		}
 
-		public void set_Sequence(Integer sequence) {
+		public void set_Sequence(int sequence) {
 			this.sequence = sequence;
 		}
 
