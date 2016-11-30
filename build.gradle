@@ -443,6 +443,12 @@ project('spring-integration-jmx') {
 
 project('spring-integration-jpa') {
 	description = 'Spring Integration JPA Support'
+
+	compileTestJava {
+		sourceCompatibility = 1.7
+		targetCompatibility = 1.7
+	}
+
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-orm:$springVersion"
