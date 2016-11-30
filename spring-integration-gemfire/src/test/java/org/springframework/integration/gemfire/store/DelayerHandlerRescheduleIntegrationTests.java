@@ -86,7 +86,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		// Emulate restart and check Cache state before next start
 		// Interrupt taskScheduler as quickly as possible
-		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		ThreadPoolTaskScheduler taskScheduler =
+				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
@@ -133,6 +134,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
+		context.destroy();
 	}
 
 }

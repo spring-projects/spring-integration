@@ -18,6 +18,7 @@ package org.springframework.integration.gemfire.fork;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -51,7 +52,7 @@ public class CacheServerProcess {
 	public static void main(String[] args) throws Exception {
 
 		Properties props = new Properties();
-		props.setProperty("name", "CacheServer");
+		props.setProperty("name", "CacheServer at " + new Date());
 		props.setProperty("log-level", "info");
 
 		logger.info("Connecting to the distributed system and creating the cache.");
@@ -75,6 +76,6 @@ public class CacheServerProcess {
 
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 		bufferedReader.readLine();
-
 	}
+
 }
