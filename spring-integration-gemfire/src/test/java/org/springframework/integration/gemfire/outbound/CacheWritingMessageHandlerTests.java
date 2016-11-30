@@ -23,11 +23,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
-import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -37,6 +38,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
 
 /**
  * @author Mark Fisher
@@ -48,17 +50,38 @@ import com.gemstone.gemfire.cache.Region;
  */
 public class CacheWritingMessageHandlerTests {
 
+	private static CacheFactoryBean cacheFactoryBean;
+
+	private static Region<Object, Object> region;
+
+	@BeforeClass
+	public static void startUp() throws Exception {
+		cacheFactoryBean = new CacheFactoryBean();
+		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = cacheFactoryBean.getObject();
+		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
+	}
+
+	@AfterClass
+	public static void cleanUp() throws Exception {
+		if (region != null) {
+			region.close();
+		}
+		if (cacheFactoryBean != null) {
+			cacheFactoryBean.destroy();
+		}
+	}
+
+	@Before
+	public void prepare() {
+		if (region != null) {
+			region.clear();
+		}
+	}
+
+
 	@Test
 	public void mapPayloadWritesToCache() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>() { };
-		regionFactoryBean.setName("test.mapPayloadWritesToCache");
-		regionFactoryBean.setCache(cache);
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, String> region = regionFactoryBean.getObject();
-
 		assertEquals(0, region.size());
 
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
@@ -71,23 +94,10 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(message);
 		assertEquals(1, region.size());
 		assertEquals("bar", region.get("foo"));
-
-		regionFactoryBean.destroy();
-		cacheFactoryBean.destroy();
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void ExpressionsWriteToCache() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		Cache cache = cacheFactoryBean.getObject();
-
-		RegionFactoryBean<String, Object> regionFactoryBean = new RegionFactoryBean<String, Object>() { };
-		regionFactoryBean.setName("test.expressionsWriteToCache");
-		regionFactoryBean.setCache(cache);
-		regionFactoryBean.afterPropertiesSet();
-		Region<String, Object> region = regionFactoryBean.getObject();
-
 		assertEquals(0, region.size());
 
 		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
@@ -113,9 +123,6 @@ public class CacheWritingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("test"));
 		assertEquals(3, region.size());
 		assertEquals(10L, region.get("baz"));
-
-		regionFactoryBean.destroy();
-		cacheFactoryBean.destroy();
 	}
 
 }
