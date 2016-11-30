@@ -25,9 +25,10 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -39,7 +40,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
-import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 /**
@@ -75,8 +75,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInListAsDbObject() throws Exception {
-
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -87,16 +86,16 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<DBObject> results = ((List<DBObject>) messageSource.receive().getPayload());
+		List<Document> results = ((List<Document>) messageSource.receive().getPayload());
 		assertEquals(1, results.size());
-		DBObject resultObject = results.get(0);
+		Document resultObject = results.get(0);
 
 		assertEquals("Oleg", resultObject.get("name"));
 	}
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInList() throws Exception {
+	public void validateSuccessfulQueryWithSingleElementIfOneInList() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -118,7 +117,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInListAndSingleResult() throws Exception {
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -140,7 +139,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullSubObjectQueryWithSinigleElementIfOneInList() throws Exception {
+	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -161,7 +160,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithMultipleElements() throws Exception {
+	public void validateSuccessfulQueryWithMultipleElements() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -181,7 +180,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithNullReturn() throws Exception {
+	public void validateSuccessfulQueryWithNullReturn() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -200,7 +199,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithCustomConverter() throws Exception {
+	public void validateSuccessfulQueryWithCustomConverter() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -220,13 +219,13 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
 		assertEquals(3, persons.size());
-		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(DBObject.class));
+		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithMongoTemplate() throws Exception {
+	public void validateSuccessfulQueryWithMongoTemplate() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -247,7 +246,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
 		assertEquals(3, persons.size());
-		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(DBObject.class));
+		verify(converter, times(3)).read((Class<Person>) Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@Test
@@ -265,11 +264,12 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		messageSource.setExpectSingleResult(true);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		DBObject result = (DBObject) messageSource.receive().getPayload();
+		Document result = (Document) messageSource.receive().getPayload();
 		Object id = result.get("_id");
 		result.put("company", "PepBoys");
 		template.save(result, "data");
-		result = (DBObject) messageSource.receive().getPayload();
+		result = (Document) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));
 	}
+
 }

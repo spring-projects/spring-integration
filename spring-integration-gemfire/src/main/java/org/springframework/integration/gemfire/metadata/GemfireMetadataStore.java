@@ -19,9 +19,9 @@ package org.springframework.integration.gemfire.metadata;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.Scope;
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.Scope;
 
 /**
  * Gemfire implementation of {@link ConcurrentMetadataStore}.

@@ -122,16 +122,16 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
-		springDataJpaVersion = '1.11.0.BUILD-SNAPSHOT'
-		springDataMongoVersion = '1.10.0.BUILD-SNAPSHOT'
-		springDataRedisVersion = '1.8.0.BUILD-SNAPSHOT'
-		springGemfireVersion = '1.9.0.BUILD-SNAPSHOT'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.M1'
+		springDataJpaVersion = '2.0.0.M1'
+		springDataMongoVersion = '2.0.0.M1'
+		springDataRedisVersion = '2.0.0.M1'
+		springGemfireVersion = '2.0.0.M1'
 		springSecurityVersion = '4.2.0.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.2.0.RC1'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
-		springWsVersion = '2.3.0.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.M3'
+		springWsVersion = '2.4.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
 	}

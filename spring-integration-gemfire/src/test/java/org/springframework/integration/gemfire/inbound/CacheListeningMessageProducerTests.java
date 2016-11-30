@@ -33,7 +33,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 
-import com.gemstone.gemfire.cache.Region;
+import org.apache.geode.cache.Region;
 
 /**
  * @author Mark Fisher

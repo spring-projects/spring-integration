@@ -27,11 +27,11 @@ import org.springframework.integration.endpoint.ExpressionMessageProducerSupport
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
-import com.gemstone.gemfire.cache.CacheClosedException;
-import com.gemstone.gemfire.cache.CacheListener;
-import com.gemstone.gemfire.cache.EntryEvent;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
+import org.apache.geode.cache.CacheClosedException;
+import org.apache.geode.cache.CacheListener;
+import org.apache.geode.cache.EntryEvent;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.util.CacheListenerAdapter;
 
 /**
  * An inbound endpoint that listens to a GemFire region for events and then publishes Messages to

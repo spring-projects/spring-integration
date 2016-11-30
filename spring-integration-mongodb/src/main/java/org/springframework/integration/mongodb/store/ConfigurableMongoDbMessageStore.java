@@ -259,9 +259,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
 
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
-		@SuppressWarnings("rawtypes")
-		List groupIds = mongoTemplate.getCollection(collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject());
+		Iterable<String> groupIds = mongoTemplate.getCollection(collectionName)
+				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), String.class);
 
 		for (Object groupId : groupIds) {
 			messageGroups.add(getMessageGroup(groupId));
@@ -310,7 +309,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public int getMessageGroupCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
 		return this.mongoTemplate.getCollection(this.collectionName)
-				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject())
+				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), Object.class)
+				.into(new ArrayList<>())
 				.size();
 	}
 

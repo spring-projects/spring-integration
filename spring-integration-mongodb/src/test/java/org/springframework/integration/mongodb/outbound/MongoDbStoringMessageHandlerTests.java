@@ -22,9 +22,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -38,8 +38,6 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-
-import com.mongodb.DBObject;
 
 /**
  * @author Amol Nayak
@@ -122,7 +120,7 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
 		assertEquals("Bob", person.getName());
 		assertEquals("PA", person.getAddress().getState());
-		verify(converter, times(1)).write(Mockito.any(), Mockito.any(DBObject.class));
+		verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 
 	@Test
@@ -148,6 +146,6 @@ public class MongoDbStoringMessageHandlerTests extends MongoDbAvailableTests {
 
 		assertEquals("Bob", person.getName());
 		assertEquals("PA", person.getAddress().getState());
-		verify(converter, times(1)).write(Mockito.any(), Mockito.any(DBObject.class));
+		verify(converter, times(1)).write(Mockito.any(), Mockito.any(Bson.class));
 	}
 }

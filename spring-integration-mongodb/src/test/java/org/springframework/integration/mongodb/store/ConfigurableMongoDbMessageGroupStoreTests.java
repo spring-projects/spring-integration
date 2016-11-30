@@ -22,13 +22,14 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Map;
 
+import org.bson.Document;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -43,7 +44,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StopWatch;
 
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
 /**
@@ -198,12 +198,15 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 
 	}
 
-	public static class MessageReadConverter implements Converter<DBObject, Message<?>> {
+	@ReadingConverter
+	public static class MessageReadConverter implements Converter<Document, Message<?>> {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public Message<?> convert(DBObject source) {
-			return MessageBuilder.withPayload(source.get("payload")).copyHeaders((Map<String, ?>) source.get("headers")).build();
+		public Message<?> convert(Document source) {
+			return MessageBuilder.withPayload(source.get("payload"))
+					.copyHeaders((Map<String, ?>) source.get("headers"))
+					.build();
 		}
 
 	}

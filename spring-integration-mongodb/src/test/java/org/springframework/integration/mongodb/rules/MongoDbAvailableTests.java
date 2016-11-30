@@ -16,10 +16,8 @@
 
 package org.springframework.integration.mongodb.rules;
 
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
+import org.bson.conversions.Bson;
 import org.junit.Rule;
-
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,6 +26,8 @@ import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
+
+import com.mongodb.MongoClient;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
@@ -148,12 +148,12 @@ public abstract class MongoDbAvailableTests {
 		}
 
 		@Override
-		public void write(Object source, DBObject target) {
+		public void write(Object source, Bson target) {
 			super.write(source, target);
 		}
 
 		@Override
-		public <S> S read(Class<S> clazz, DBObject source) {
+		public <S> S read(Class<S> clazz, Bson source) {
 			return super.read(clazz, source);
 		}
 

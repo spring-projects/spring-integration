@@ -29,8 +29,8 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.Region;
 
 /**
  * Gemfire implementation of the key/value style {@link MessageStore} and

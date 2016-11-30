@@ -21,9 +21,9 @@ import java.util.concurrent.locks.Lock;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.util.Assert;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.Scope;
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.Region;
+import org.apache.geode.cache.Scope;
 
 /**
  * Implementation of {@link LockRegistry} providing a distributed lock using Gemfire.

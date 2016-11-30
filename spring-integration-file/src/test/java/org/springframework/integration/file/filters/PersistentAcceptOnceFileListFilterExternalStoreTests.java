@@ -37,7 +37,7 @@ import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 
-import com.gemstone.gemfire.cache.CacheFactory;
+import org.apache.geode.cache.CacheFactory;
 
 /**
  * @author Gary Russell

@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.metadata;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bson.Document;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,7 +29,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 
 /**
@@ -109,10 +109,10 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	public void put(String key, String value) {
 		Assert.hasText(key, "'key' must not be empty.");
 		Assert.hasText(value, "'value' must not be empty.");
-		final Map<String, String> entry = new HashMap<>();
+		final Map<String, Object> entry = new HashMap<>();
 		entry.put(ID_FIELD, key);
 		entry.put(VALUE, value);
-		this.template.execute(this.collectionName, collection -> collection.save(new BasicDBObject(entry)));
+		this.template.save(new Document(entry), this.collectionName);
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		Assert.hasText(newValue, "'newValue' must not be empty.");
 		Query query = new Query(Criteria.where(ID_FIELD).is(key).and(VALUE).is(oldValue));
 		return this.template.updateFirst(query, Update.update(VALUE, newValue), this.collectionName)
-				.isUpdateOfExisting();
+				.getModifiedCount() > 0;
 	}
 
 }

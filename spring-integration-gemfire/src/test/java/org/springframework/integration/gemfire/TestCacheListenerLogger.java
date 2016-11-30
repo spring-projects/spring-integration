@@ -16,8 +16,8 @@
 
 package org.springframework.integration.gemfire;
 
-import com.gemstone.gemfire.cache.EntryEvent;
-import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
+import org.apache.geode.cache.EntryEvent;
+import org.apache.geode.cache.util.CacheListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

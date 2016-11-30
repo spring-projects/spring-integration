@@ -22,7 +22,7 @@
 	</int-gfe:outbound-channel-adapter>
 
 	<bean id="region" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.gemstone.gemfire.cache.Region"/>
+		<constructor-arg value="org.apache.geode.cache.Region"/>
 	</bean>
 
 </beans>

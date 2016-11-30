@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -44,7 +43,8 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.integration.mongodb.support.MongoDbMessageBytesConverter;
+import org.springframework.integration.mongodb.support.BinaryToMessageConverter;
+import org.springframework.integration.mongodb.support.MessageToBinaryConverter;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.BasicMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -131,7 +131,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 						new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
 				List<Object> customConverters = new ArrayList<Object>();
-				customConverters.add(new MongoDbMessageBytesConverter());
+				customConverters.add(new MessageToBinaryConverter());
+				customConverters.add(new BinaryToMessageConverter());
 				this.mappingMongoConverter.setCustomConversions(new CustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}
