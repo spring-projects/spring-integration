@@ -59,13 +59,13 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 	@Test
 	@MongoDbAvailable
 	public void testWithMongoDbMessageStore() throws Exception {
-		this.testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationTests-context.xml");
+		testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationTests-context.xml");
 	}
 
 	@Test
 	@MongoDbAvailable
 	public void testWithConfigurableMongoDbMessageStore() throws Exception {
-		this.testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationConfigurableTests-context.xml");
+		testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationConfigurableTests-context.xml");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -84,7 +84,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 		// Emulate restart and check DB state before next start
 		// Interrupt taskScheduler as quickly as possible
-		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		ThreadPoolTaskScheduler taskScheduler =
+				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
@@ -110,7 +111,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 		Message<String> original1 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) payload).getOriginal();
 		messageInStore = iterator.next();
-		Message<String> original2 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) messageInStore.getPayload()).getOriginal();
+		Message<String> original2 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) messageInStore.getPayload())
+				.getOriginal();
 		assertThat(message1, Matchers.anyOf(Matchers.is(original1), Matchers.is(original2)));
 
 		context.refresh();
@@ -128,7 +130,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		assertNotSame(payload1, payload2);
 
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
-
+		context.destroy();
 	}
 
 }
