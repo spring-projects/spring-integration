@@ -70,7 +70,8 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 		// Emulate restart and check DB state before next start
 		// Interrupt taskScheduler as quickly as possible
-		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		ThreadPoolTaskScheduler taskScheduler =
+				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
@@ -118,7 +119,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
-
+		context.destroy();
 	}
 
 }

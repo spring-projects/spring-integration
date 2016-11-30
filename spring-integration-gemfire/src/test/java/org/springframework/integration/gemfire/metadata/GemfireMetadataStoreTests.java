@@ -40,19 +40,24 @@ import com.gemstone.gemfire.cache.Region;
  */
 public class GemfireMetadataStoreTests {
 
-	public static Cache cache;
+	private static Cache cache;
 
-	public static ConcurrentMetadataStore metadataStore;
+	private static ConcurrentMetadataStore metadataStore;
+
+	private static Region<Object, Object> region;
 
 	@BeforeClass
 	public static void startUp() throws Exception {
 		cache = new CacheFactory().create();
 		metadataStore = new GemfireMetadataStore(cache);
+		region = cache.getRegion(GemfireMetadataStore.KEY);
 	}
 
 	@AfterClass
 	public static void cleanUp() {
-		getRegion().close();
+		if (region != null) {
+			region.close();
+		}
 		if (cache != null) {
 			cache.close();
 			Assert.isTrue(cache.isClosed(), "Cache did not close after close() call");
@@ -62,7 +67,9 @@ public class GemfireMetadataStoreTests {
 	@Before
 	@After
 	public void setup() {
-		getRegion().clear();
+		if (region != null) {
+			region.clear();
+		}
 	}
 
 	@Test
@@ -75,7 +82,7 @@ public class GemfireMetadataStoreTests {
 	public void testPersistKeyValue() {
 		metadataStore.put("GemfireMetadataStoreTests-Spring", "Integration");
 
-		GemfireTemplate gemfireTemplate = new GemfireTemplate(getRegion());
+		GemfireTemplate gemfireTemplate = new GemfireTemplate(region);
 
 		assertEquals("Integration", gemfireTemplate.get("GemfireMetadataStoreTests-Spring"));
 	}
@@ -155,13 +162,9 @@ public class GemfireMetadataStoreTests {
 	public void testPersistKeyValueIfAbsent() {
 		metadataStore.putIfAbsent("GemfireMetadataStoreTests-Spring", "Integration");
 
-		GemfireTemplate gemfireTemplate = new GemfireTemplate(getRegion());
+		GemfireTemplate gemfireTemplate = new GemfireTemplate(region);
 
 		assertEquals("Integration", gemfireTemplate.get("GemfireMetadataStoreTests-Spring"));
-	}
-
-	private static Region<Object, Object> getRegion() {
-		return cache.getRegion(GemfireMetadataStore.KEY);
 	}
 
 }

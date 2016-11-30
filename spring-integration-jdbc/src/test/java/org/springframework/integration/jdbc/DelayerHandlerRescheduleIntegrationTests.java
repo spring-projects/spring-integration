@@ -132,7 +132,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		assertEquals(1, messageStore.getMessageGroupCount());
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
-
+		context.destroy();
 	}
 
 	@Test //INT-2649
