@@ -86,7 +86,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
 		if (conversionService == null) {
-			conversionService = DefaultConversionService.getSharedInstance();
+			conversionService = new DefaultConversionService();
 		}
 		this.conversionService = conversionService;
 	}

@@ -17,16 +17,13 @@
 package org.springframework.integration.expression;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
@@ -68,8 +65,6 @@ public class ExpressionUtilsTests {
 		assertNotNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 	}
 
 	@Test
@@ -82,8 +77,6 @@ public class ExpressionUtilsTests {
 		assertNotNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertNotSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 		assertSame(context.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME),
 				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 	}
@@ -94,7 +87,5 @@ public class ExpressionUtilsTests {
 		assertNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
-		assertSame(DefaultConversionService.getSharedInstance(),
-				TestUtils.getPropertyValue(typeConverter, "conversionService"));
 	}
 }
