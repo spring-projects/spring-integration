@@ -48,7 +48,7 @@ public final class MongoDbAvailableRule implements MethodRule {
 				if (mongoAvailable != null) {
 					try {
 						MongoClientOptions options = new MongoClientOptions.Builder()
-								.serverSelectionTimeout(0)
+								.serverSelectionTimeout(100)
 								.build();
 						MongoClient mongo = new MongoClient(ServerAddress.defaultHost(), options);
 						mongo.listDatabaseNames()
