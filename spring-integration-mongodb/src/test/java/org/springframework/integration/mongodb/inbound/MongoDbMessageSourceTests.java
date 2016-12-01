@@ -75,8 +75,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInListAsDbObject() throws Exception {
-
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAsDbObject() throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -96,7 +95,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInList() throws Exception {
+	public void validateSuccessfulQueryWithSingleElementIfOneInList() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -118,7 +117,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithSinigleElementIfOneInListAndSingleResult() throws Exception {
+	public void validateSuccessfulQueryWithSingleElementIfOneInListAndSingleResult() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -140,7 +139,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullSubObjectQueryWithSinigleElementIfOneInList() throws Exception {
+	public void validateSuccessfulSubObjectQueryWithSingleElementIfOneInList() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -161,7 +160,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithMultipleElements() throws Exception {
+	public void validateSuccessfulQueryWithMultipleElements() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -181,7 +180,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithNullReturn() throws Exception {
+	public void validateSuccessfulQueryWithNullReturn() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -200,7 +199,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithCustomConverter() throws Exception {
+	public void validateSuccessfulQueryWithCustomConverter() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -226,7 +225,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	@MongoDbAvailable
-	public void validateSuccessfullQueryWithMongoTemplate() throws Exception {
+	public void validateSuccessfulQueryWithMongoTemplate() throws Exception {
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
@@ -272,4 +271,5 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		result = (Document) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));
 	}
+
 }

@@ -31,6 +31,8 @@ import com.mongodb.ServerAddress;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public final class MongoDbAvailableRule implements MethodRule {
@@ -45,9 +47,12 @@ public final class MongoDbAvailableRule implements MethodRule {
 				MongoDbAvailable mongoAvailable = method.getAnnotation(MongoDbAvailable.class);
 				if (mongoAvailable != null) {
 					try {
-						MongoClientOptions options = new MongoClientOptions.Builder().connectTimeout(100).build();
+						MongoClientOptions options = new MongoClientOptions.Builder()
+								.serverSelectionTimeout(0)
+								.build();
 						MongoClient mongo = new MongoClient(ServerAddress.defaultHost(), options);
-						mongo.listDatabaseNames();
+						mongo.listDatabaseNames()
+								.first();
 					}
 					catch (Exception e) {
 						logger.warn("MongoDb is not available. Skipping the test: " +
