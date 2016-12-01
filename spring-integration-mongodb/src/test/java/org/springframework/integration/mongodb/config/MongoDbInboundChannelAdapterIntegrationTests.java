@@ -64,6 +64,9 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	private QueueChannel replyChannel;
 
 	@Autowired
+	private QueueChannel afterCommitChannel;
+
+	@Autowired
 	@Qualifier("mongoInboundAdapter")
 	private SourcePollingChannelAdapter mongoInboundAdapter;
 
@@ -183,6 +186,8 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertNull(replyChannel.receive(100));
 
 		this.inboundAdapterWithOnSuccessDisposition.stop();
+
+		assertNotNull(this.afterCommitChannel.receive(10000));
 
 		assertNull(this.mongoTemplate.findOne(new Query(Criteria.where("name").is("Bob")), Person.class, "data"));
 		this.replyChannel.purge(null);
