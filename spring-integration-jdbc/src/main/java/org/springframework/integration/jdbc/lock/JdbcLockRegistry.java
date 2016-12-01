@@ -26,6 +26,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.CannotSerializeTransactionException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
@@ -43,6 +44,8 @@ import org.springframework.util.Assert;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Vedran Pavić
+ *
  * @since 4.3
  */
 public class JdbcLockRegistry implements ExpirableLockRegistry {
@@ -120,6 +123,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					break;
 				}
+				catch (CannotSerializeTransactionException e) {
+					// try again
+				}
 				catch (TransactionTimedOutException e) {
 					// try again
 				}
@@ -153,6 +159,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 						}
 					}
 					break;
+				}
+				catch (CannotSerializeTransactionException e) {
+					// try again
 				}
 				catch (TransactionTimedOutException e) {
 					// try again
@@ -197,6 +206,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 						this.delegate.unlock();
 					}
 					return acquired;
+				}
+				catch (CannotSerializeTransactionException e) {
+					// try again
 				}
 				catch (TransactionTimedOutException e) {
 					// try again
