@@ -339,7 +339,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Query query = Query.query(Criteria.where(GROUP_ID_KEY).exists(true));
 
 		@SuppressWarnings("rawtypes")
-		Iterable<String> groupIds = this.template.getCollection(collectionName)
+		Iterable<String> groupIds = this.template.getCollection(this.collectionName)
 				.distinct(GROUP_ID_KEY, query.getQueryObject(), String.class);
 
 		for (Object groupId : groupIds) {
