@@ -5,6 +5,12 @@ services:
   - mongodb
   - rabbitmq
   - redis-server
+addons:
+  apt:
+    sources:
+    - mongodb-3.0-precise
+    packages:
+    - mongodb-org-server
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
@@ -15,4 +21,4 @@ install: true
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true NO_REFERENCE_TASK=true
 script:
-    - ./gradlew :spring-integration-mongodb:test --no-daemon -d
+    - ./gradlew check --refresh-dependencies --no-daemon
