@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<gfe:cache />
+	<gfe:cache use-bean-factory-locator="false"/>
 
 	<bean id="lockRegistry" class="org.springframework.integration.gemfire.util.GemfireLockRegistry">
 		<constructor-arg ref="gemfireCache"/>

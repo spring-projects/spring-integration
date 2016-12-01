@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<gfe:cache id="gemfire-cache-2"/>
+	<gfe:cache id="gemfire-cache-2" use-bean-factory-locator="false"/>
 
 	<gfe:local-region id="region1" cache-ref="gemfire-cache-2"/>
 

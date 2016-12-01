@@ -24,6 +24,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -36,6 +37,7 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class GemfireInboundChannelAdapterTests {
 	@Autowired
 	SubscribableChannel channel1;
