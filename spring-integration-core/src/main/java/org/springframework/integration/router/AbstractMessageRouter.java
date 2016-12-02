@@ -140,7 +140,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 		if (this.getConversionService() == null) {
 			synchronized (this) {
 				if (this.getConversionService() == null) {
-					this.setConversionService(new DefaultConversionService());
+					this.setConversionService(DefaultConversionService.getSharedInstance());
 				}
 			}
 		}

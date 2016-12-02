@@ -121,7 +121,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			this.conversionService = conversionService;
 		}
 		else {
-			this.conversionService = new DefaultConversionService();
+			this.conversionService = DefaultConversionService.getSharedInstance();
 		}
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),

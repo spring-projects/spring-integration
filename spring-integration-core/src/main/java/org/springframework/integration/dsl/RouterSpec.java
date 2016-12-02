@@ -172,7 +172,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		protected void onInit() throws Exception {
 			ConversionService conversionService = getConversionService();
 			if (conversionService == null) {
-				conversionService = new DefaultConversionService();
+				conversionService = DefaultConversionService.getSharedInstance();
 			}
 			for (Map.Entry<Object, NamedComponent> entry : this.mapping.entrySet()) {
 				Object key = entry.getKey();

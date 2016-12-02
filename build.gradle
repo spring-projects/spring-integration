@@ -447,7 +447,15 @@ project('spring-integration-jpa') {
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
 
-		testCompile "org.springframework.data:spring-data-jpa:$springDataJpaVersion"
+		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion") {
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-core'
+			exclude group: 'org.springframework', module: 'spring-expression'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-orm'
+			exclude group: 'org.springframework', module: 'spring-tx'
+		}
 
 		testCompile "com.h2database:h2:$h2Version"
 		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"

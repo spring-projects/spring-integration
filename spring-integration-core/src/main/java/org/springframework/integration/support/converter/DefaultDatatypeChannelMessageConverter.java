@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
 public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 		BeanFactoryAware {
 
-	private volatile ConversionService conversionService = new DefaultConversionService();
+	private volatile ConversionService conversionService = DefaultConversionService.getSharedInstance();
 
 	private volatile boolean conversionServiceSet;
 
