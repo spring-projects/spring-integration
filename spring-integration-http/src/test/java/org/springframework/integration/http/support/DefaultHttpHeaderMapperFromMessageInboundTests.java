@@ -507,7 +507,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
-		ConversionService cs = new DefaultConversionService();
+		ConversionService cs = DefaultConversionService.getSharedInstance();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
@@ -528,7 +528,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() throws Exception {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] { "customHeader*" });
-		GenericConversionService cs = new DefaultConversionService();
+		GenericConversionService cs = DefaultConversionService.getSharedInstance();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);

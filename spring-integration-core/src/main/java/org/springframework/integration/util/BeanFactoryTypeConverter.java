@@ -52,7 +52,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	public BeanFactoryTypeConverter() {
 		synchronized (BeanFactoryTypeConverter.class) {
 			if (defaultConversionService == null) {
-				defaultConversionService = new DefaultConversionService();
+				defaultConversionService = DefaultConversionService.getSharedInstance();
 			}
 		}
 		this.conversionService = defaultConversionService;

@@ -266,7 +266,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		GenericConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = DefaultConversionService.getSharedInstance();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
 			@Override
 			public Iterator<?> convert(ArrayList<?> source) {

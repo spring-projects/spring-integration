@@ -81,7 +81,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GenericConversionService cs = new DefaultConversionService();
+		GenericConversionService cs = DefaultConversionService.getSharedInstance();
 		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
 			@Override
 			public byte[] convert(String source) {

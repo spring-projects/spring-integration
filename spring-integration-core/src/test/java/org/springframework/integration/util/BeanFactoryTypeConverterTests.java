@@ -160,7 +160,7 @@ public class BeanFactoryTypeConverterTests {
 	@Test
 	public void testMapOfMapOfCollectionIsConverted() {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		conversionService.addConverter(new Converter<Foo, Bar>() {
 			@Override
 			public Bar convert(Foo source) {
@@ -203,7 +203,7 @@ public class BeanFactoryTypeConverterTests {
 	@Test
 	public void testCollectionIsConverted() {
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		conversionService.addConverter(new Converter<Foo, Bar>() {
 			@Override
 			public Bar convert(Foo source) {
@@ -228,7 +228,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testNullArg() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Bar.class));
 		assertNull(foo);
@@ -236,7 +236,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testVoidArg() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Void.class));
 		assertNull(foo);
@@ -246,7 +246,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testEditorWithTargetString() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		UUID uuid = UUID.randomUUID();
 		Object foo = typeConverter.convertValue(uuid, TypeDescriptor.valueOf(UUID.class),
@@ -256,7 +256,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testEditorWithTargetFoo() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		final Foo foo = new Foo();
 		conversionService.addConverter(new Converter<String, Foo>() {
 			@Override
@@ -273,7 +273,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testDelegateWithTargetUUID() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		UUID uuid = UUID.randomUUID();
 		Object converted = typeConverter.convertValue(uuid.toString(), TypeDescriptor.valueOf(String.class),

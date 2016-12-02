@@ -73,7 +73,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final ConversionService defaultConversionService = new DefaultConversionService();
+	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
 
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 

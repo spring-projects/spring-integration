@@ -84,7 +84,7 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?, ?>
 		DataBinder binder = new DataBinder(target);
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService == null) {
-			conversionService = new DefaultConversionService();
+			conversionService = DefaultConversionService.getSharedInstance();
 		}
 		binder.setConversionService(conversionService);
 		binder.bind(new MutablePropertyValues(payload));
