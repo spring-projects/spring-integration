@@ -113,9 +113,9 @@ subprojects { subproject ->
 		log4jVersion = '1.2.17'
 		mockitoVersion = '1.10.19'
 		mysqlVersion = '5.1.34'
-		nettyVersion = '4.1.4.Final'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
+		reactorNettyVersion = '0.6.0.BUILD-SNAPSHOT'
 		reactorVersion = '3.0.3.RELEASE'
 		romeToolsVersion = '1.7.0'
 		servletApiVersion = '3.1.0'
@@ -123,14 +123,14 @@ subprojects { subproject ->
 		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
-		springDataJpaVersion = '2.0.0.M1'
-		springDataMongoVersion = '2.0.0.M1'
-		springDataRedisVersion = '2.0.0.M1'
-		springGemfireVersion = '2.0.0.M1'
+		springDataJpaVersion = '2.0.0.BUILD-SNAPSHOT'
+		springDataMongoVersion = '2.0.0.BUILD-SNAPSHOT'
+		springDataRedisVersion = '2.0.0.BUILD-SNAPSHOT'
+		springGemfireVersion = '2.0.0.BUILD-SNAPSHOT'
 		springSecurityVersion = '4.2.0.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.2.0.RC1'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.M3'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.4.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
@@ -515,6 +515,8 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework', module: 'spring-context-support'
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-oxm'
 		}
 		testCompile "redis.clients:jedis:$jedisVersion"
 	}
@@ -569,6 +571,8 @@ project('spring-integration-stomp') {
 
 		compile ("org.springframework:spring-websocket:$springVersion", optional)
 
+		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
+
 		testCompile project(":spring-integration-websocket")
 		testCompile project(":spring-integration-websocket").sourceSets.test.output
 		testCompile project(":spring-integration-event")
@@ -576,11 +580,6 @@ project('spring-integration-stomp') {
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
 
 		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
-		testRuntime("io.projectreactor:reactor-core:2.0.8.RELEASE") {
-			force = true  // enforce 2.0.x
-		}
-		testRuntime("io.projectreactor:reactor-net:2.0.8.RELEASE")
-		testRuntime "io.netty:netty-all:$nettyVersion"
 	}
 }
 

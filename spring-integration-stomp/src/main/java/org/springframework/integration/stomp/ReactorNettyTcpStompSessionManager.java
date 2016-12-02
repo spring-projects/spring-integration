@@ -16,27 +16,29 @@
 
 package org.springframework.integration.stomp;
 
-import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
+import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * The {@link Reactor2TcpStompClient} based {@link AbstractStompSessionManager} implementation.
+ * The {@link ReactorNettyTcpStompClient} based {@link AbstractStompSessionManager} implementation.
  *
  * @author Artem Bilan
- * @see Reactor2TcpStompClient
- * @since 4.2
+ *
+ * @since 5.0
+ *
+ * @see ReactorNettyTcpStompClient
  */
-public class Reactor2TcpStompSessionManager extends AbstractStompSessionManager {
+public class ReactorNettyTcpStompSessionManager extends AbstractStompSessionManager {
 
-	public Reactor2TcpStompSessionManager(Reactor2TcpStompClient reactor2TcpStompClient) {
-		super(reactor2TcpStompClient);
+	public ReactorNettyTcpStompSessionManager(ReactorNettyTcpStompClient reactorNettyTcpStompClient) {
+		super(reactorNettyTcpStompClient);
 	}
 
 	@Override
 	protected ListenableFuture<StompSession> doConnect(StompSessionHandler handler) {
-		return ((Reactor2TcpStompClient) this.stompClient).connect(getConnectHeaders(), handler);
+		return ((ReactorNettyTcpStompClient) this.stompClient).connect(getConnectHeaders(), handler);
 	}
 
 }

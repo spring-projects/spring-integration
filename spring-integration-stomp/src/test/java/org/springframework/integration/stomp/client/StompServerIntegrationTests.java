@@ -28,7 +28,6 @@ import static org.junit.Assert.fail;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -41,7 +40,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
-import org.springframework.integration.stomp.Reactor2TcpStompSessionManager;
+import org.springframework.integration.stomp.AbstractStompSessionManager;
+import org.springframework.integration.stomp.ReactorNettyTcpStompSessionManager;
 import org.springframework.integration.stomp.StompSessionManager;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
@@ -56,7 +56,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.simp.stomp.Reactor2TcpStompClient;
+import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -67,17 +67,16 @@ import org.springframework.util.SocketUtils;
  * @author Gary Russell
  * @since 4.2
  */
-@Ignore("Until Reactor 3.0 support: https://jira.spring.io/browse/INT-4125. IO Cairo doesn't support Reactor 2.0")
 public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 
 	private static BrokerService activeMQBroker;
 
-	private static Reactor2TcpStompClient stompClient;
+	private static ReactorNettyTcpStompClient stompClient;
 
 
 	public StompServerIntegrationTests() {
 		super("org.springframework", "org.springframework.integration.stomp",
-				"org.apache.activemq.broker", "reactor.io", "io.netty");
+				"org.apache.activemq.broker", "reactor.ipc", "io.netty");
 	}
 
 	@BeforeClass
@@ -91,7 +90,7 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();
 
-		stompClient = new Reactor2TcpStompClient("127.0.0.1", port);
+		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
@@ -242,7 +241,7 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 
 		@Bean
 		public StompSessionManager stompSessionManager() {
-			Reactor2TcpStompSessionManager stompSessionManager = new Reactor2TcpStompSessionManager(stompClient);
+			AbstractStompSessionManager stompSessionManager = new ReactorNettyTcpStompSessionManager(stompClient);
 			stompSessionManager.setAutoReceipt(true);
 			stompSessionManager.setRecoveryInterval(500);
 			return stompSessionManager;
