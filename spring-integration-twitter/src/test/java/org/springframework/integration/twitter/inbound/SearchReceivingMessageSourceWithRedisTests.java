@@ -150,15 +150,15 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 			SearchOperations so = mock(SearchOperations.class);
 
 			Tweet tweet3 = mock(Tweet.class);
-			given(tweet3.getId()).willReturn(3L);
+			given(tweet3.getId()).willReturn("3");
 			given(tweet3.getCreatedAt()).willReturn(new GregorianCalendar(2013, 2, 20).getTime());
 
 			Tweet tweet1 = mock(Tweet.class);
-			given(tweet1.getId()).willReturn(1L);
+			given(tweet1.getId()).willReturn("1");
 			given(tweet1.getCreatedAt()).willReturn(new GregorianCalendar(2013, 0, 20).getTime());
 
 			final Tweet tweet2 = mock(Tweet.class);
-			given(tweet2.getId()).willReturn(2L);
+			given(tweet2.getId()).willReturn("2");
 			given(tweet2.getCreatedAt()).willReturn(new GregorianCalendar(2013, 1, 20).getTime());
 
 			final List<Tweet> tweets = new ArrayList<Tweet>();

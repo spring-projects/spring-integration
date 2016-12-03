@@ -74,7 +74,7 @@ public class StatusUpdatingMessageHandlerTests {
 				prop.getProperty("z_oleg.oauth.consumerSecret"),
 				prop.getProperty("z_oleg.oauth.accessToken"),
 				prop.getProperty("z_oleg.oauth.accessTokenSecret"));
-		Message<?> message1 = MessageBuilder.withPayload("Polishing #springintegration migration to Spring Social. test").build();
+		Message<?> message1 = new GenericMessage<>("Polishing #springintegration migration to Spring Social. test");
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(template);
 		handler.afterPropertiesSet();
 		handler.handleMessage(message1);
@@ -90,7 +90,7 @@ public class StatusUpdatingMessageHandlerTests {
 		this.in1.send(new GenericMessage<String>("foo"));
 
 		Mockito.verify(timelineOperations).updateStatus(argument.capture());
-		assertEquals("foo", argument.getValue().toRequestParameters().getFirst("status"));
+		assertEquals("foo", argument.getValue().toTweetParameters().getFirst("status"));
 
 		Mockito.reset(timelineOperations);
 
@@ -101,7 +101,7 @@ public class StatusUpdatingMessageHandlerTests {
 
 		Mockito.verify(timelineOperations).updateStatus(argument.capture());
 		TweetData tweetData = argument.getValue();
-		MultiValueMap<String, Object> requestParameters = tweetData.toRequestParameters();
+		MultiValueMap<String, Object> requestParameters = tweetData.toTweetParameters();
 		assertEquals("bar", requestParameters.getFirst("status"));
 		assertNull(requestParameters.getFirst("media"));
 		MultiValueMap<String, Object> uploadMediaParameters = tweetData.toUploadMediaParameters();

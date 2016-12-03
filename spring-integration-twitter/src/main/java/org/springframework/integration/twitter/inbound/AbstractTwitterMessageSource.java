@@ -88,10 +88,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		this.twitter = twitter;
 		if (this.twitter.isAuthorized()) {
 			UserOperations userOperations = this.twitter.userOperations();
-			String profileId = String.valueOf(userOperations.getProfileId());
-			if (profileId != null) {
-				metadataKey += "." + profileId;
-			}
+			metadataKey += "." + userOperations.getProfileId();
 		}
 		this.metadataKey = metadataKey;
 	}
@@ -206,7 +203,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private long getIdForTweet(T twitterMessage) {
 		if (twitterMessage instanceof Tweet) {
-			return ((Tweet) twitterMessage).getId();
+			return Long.parseLong(((Tweet) twitterMessage).getId());
 		}
 		else if (twitterMessage instanceof DirectMessage) {
 			return ((DirectMessage) twitterMessage).getId();
