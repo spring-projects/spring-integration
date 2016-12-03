@@ -61,6 +61,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -441,6 +442,10 @@ public class RouterTests {
 	@Qualifier("recipientListOrderResult")
 	private PollableChannel recipientListOrderResult;
 
+	@Autowired
+	@Qualifier("alwaysRecipient")
+	private QueueChannel alwaysRecipient;
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testRecipientListRouterOrder() {
@@ -455,6 +460,8 @@ public class RouterTests {
 		assertNotNull(receive);
 		result = (AtomicReference<String>) receive.getPayload();
 		assertEquals("Hello World", result.get());
+
+		assertEquals(1, this.alwaysRecipient.getQueueSize());
 	}
 
 	@Autowired
@@ -582,7 +589,6 @@ public class RouterTests {
 					.get();
 		}
 
-
 		@Bean
 		public RoutingTestBean routingTestBean() {
 			return new RoutingTestBean();
@@ -646,6 +652,7 @@ public class RouterTests {
 		public IntegrationFlow recipientListOrderFlow() {
 			return f -> f
 					.routeToRecipients(r -> r
+							.recipient(alwaysRecipient())
 							.recipient("recipient2.input")
 							.recipient("recipient1.input"));
 		}
@@ -672,6 +679,11 @@ public class RouterTests {
 
 		@Bean
 		public PollableChannel recipientListOrderResult() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel alwaysRecipient() {
 			return new QueueChannel();
 		}
 
