@@ -27,8 +27,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -39,9 +39,6 @@ import org.springframework.util.ClassUtils;
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
-	private static ConversionService defaultConversionService;
-
-
 	private volatile SimpleTypeConverter delegate = new SimpleTypeConverter();
 
 	private volatile boolean haveCalledDelegateGetDefaultEditor;
@@ -50,12 +47,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 
 
 	public BeanFactoryTypeConverter() {
-		synchronized (BeanFactoryTypeConverter.class) {
-			if (defaultConversionService == null) {
-				defaultConversionService = DefaultConversionService.getSharedInstance();
-			}
-		}
-		this.conversionService = defaultConversionService;
+		this.conversionService = DefaultConversionService.getSharedInstance();
 	}
 
 	public BeanFactoryTypeConverter(ConversionService conversionService) {
@@ -67,6 +59,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		this.conversionService = conversionService;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof ConfigurableBeanFactory) {
 			Object typeConverter = ((ConfigurableBeanFactory) beanFactory).getTypeConverter();
@@ -90,6 +83,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		return this.delegate.findCustomEditor(targetType, null) != null || this.getDefaultEditor(targetType) != null;
 	}
 
+	@Override
 	public boolean canConvert(TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
 		if (this.conversionService.canConvert(sourceTypeDescriptor, targetTypeDescriptor)) {
 			return true;
@@ -100,6 +94,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		return canConvert(sourceType, targetType);
 	}
 
+	@Override
 	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 		// Echoes org.springframework.expression.common.ExpressionUtils.convertTypedValue()
 		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {

@@ -75,7 +75,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void unsupportedTypeButConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
-		ConversionService conversionService = DefaultConversionService.getSharedInstance();
+		ConversionService conversionService = new DefaultConversionService();
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
@@ -85,7 +85,7 @@ public class DatatypeChannelTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void unsupportedTypeAndConversionServiceDoesNotSupport() {
 		QueueChannel channel = createChannel(Integer.class);
-		ConversionService conversionService = DefaultConversionService.getSharedInstance();
+		ConversionService conversionService = new DefaultConversionService();
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
 		converter.setConversionService(conversionService);
 		channel.setMessageConverter(converter);
@@ -95,7 +95,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void unsupportedTypeButCustomConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
-		GenericConversionService conversionService = DefaultConversionService.getSharedInstance();
+		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Boolean, Integer>() {
 			@Override
 			public Integer convert(Boolean source) {
@@ -151,7 +151,7 @@ public class DatatypeChannelTests {
 				return source ? 1 : 0;
 			}
 		};
-		GenericConversionService customConversionService = DefaultConversionService.getSharedInstance();
+		GenericConversionService customConversionService = new DefaultConversionService();
 		customConversionService.addConverter(new Converter<Boolean, Integer>() {
 			@Override
 			public Integer convert(Boolean source) {
@@ -209,7 +209,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void genericConverters() {
 		QueueChannel channel = createChannel(Foo.class);
-		DefaultConversionService conversionService = DefaultConversionService.getSharedInstance();
+		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new StringToBarConverter());
 		conversionService.addConverter(new IntegerToBazConverter());
 		DefaultDatatypeChannelMessageConverter converter = new DefaultDatatypeChannelMessageConverter();
