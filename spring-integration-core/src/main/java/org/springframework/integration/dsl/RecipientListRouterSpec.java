@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * An {@link AbstractRouterSpec} for a {@link RecipientListRouter}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -142,9 +143,14 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
-		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
-		this.target.addRecipient(channel, selector);
-		this.componentsToRegister.add(selector);
+		if (expression != null) {
+			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
+			this.target.addRecipient(channel, selector);
+			this.componentsToRegister.add(selector);
+		}
+		else {
+			this.target.addRecipient(channel);
+		}
 		return _this();
 	}
 
