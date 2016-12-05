@@ -25,8 +25,10 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
+import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -55,11 +57,12 @@ import com.mongodb.DBObject;
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Yaron Yamin
  *
  * @since 2.2
  */
 public class MongoDbMessageSource extends IntegrationObjectSupport
-				implements MessageSource<Object> {
+		implements MessageSource<Object> {
 
 	private final Expression queryExpression;
 
@@ -84,7 +87,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * which should resolve to a MongoDb 'query' string
 	 * (see http://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param mongoDbFactory The mongodb factory.
 	 * @param queryExpression The query expression.
 	 */
@@ -102,7 +104,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * (see http://www.mongodb.org/display/DOCS/Querying).
 	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param mongoTemplate The mongo template.
 	 * @param queryExpression The query expression.
 	 */
@@ -119,7 +120,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * {@link MongoTemplate#find(Query, Class)} or {@link MongoTemplate#findOne(Query, Class)}
 	 * method.
 	 * Default is {@link DBObject}.
-	 *
 	 * @param entityClass The entity class.
 	 */
 	public void setEntityClass(Class<?> entityClass) {
@@ -134,7 +134,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)},
 	 * and the payload of the returned {@link Message} will be the returned target Object of type
 	 * identified by {{@link #entityClass} instead of a List.
-	 *
 	 * @param expectSingleResult true if a single result is expected.
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
@@ -145,7 +144,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * Sets the SpEL {@link Expression} that should resolve to a collection name
 	 * used by the {@link Query}. The resulting collection name will be included
 	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
-	 *
 	 * @param collectionNameExpression The collection name expression.
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
@@ -157,7 +155,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
 	 * data read from MongoDb. Only allowed if this instance was constructed with a
 	 * {@link MongoDbFactory}.
-	 *
 	 * @param mongoConverter The mongo converter.
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -174,8 +171,12 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	@Override
 	protected void onInit() throws Exception {
 		this.evaluationContext =
-					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-
+				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			//Register MongoDB query API package so FQCN can be avoided in query-expression.
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
+		}
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
@@ -194,7 +195,20 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
-		Query query = new BasicQuery(this.queryExpression.getValue(this.evaluationContext, String.class));
+		Object value = this.queryExpression.getValue(this.evaluationContext);
+		Assert.notNull(value, "'queryExpression' must not evaluate to null");
+		Query query;
+		if (value instanceof String) {
+			query = new BasicQuery((String) value);
+		}
+		else if (value instanceof Query) {
+			query = ((Query) value);
+		}
+		else {
+			throw new IllegalStateException("'queryExpression' must evaluate to String " +
+					"or org.springframework.data.mongodb.core.query.Query");
+		}
+
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
@@ -225,4 +239,5 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 
 		return message;
 	}
+
 }
