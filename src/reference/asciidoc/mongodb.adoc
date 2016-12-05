@@ -187,7 +187,8 @@ The _MongoDb Inbound Channel Adapter_ is a polling consumer that reads data from
 
 As you can see from the configuration above, you configure a _MongoDb Inbound Channel Adapter_ using the `inbound-channel-adapter` element, providing values for various attributes such as:
 
-* `query` or `query-expression` - a JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDb Querying])
+* `query` - a JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDb Querying])
+* `query-expression` - A SpEL expression that is evaluated to a JSON query String (as the `query` attribute above), or to an instance of `o.s.data.mongodb.core.query.Query`. Mutually exclusive with `query` attribute.
 * `entity-class` - the type of the payload object; if not supplied, a `com.mongodb.DBObject` will be returned.
 * `collection-name` or `collection-name-expression` - Identifies the name of the MongoDb collection to use.
 * `mongodb-factory` - reference to an instance of `o.s.data.mongodb.MongoDbFactory`
@@ -211,7 +212,7 @@ You can do this using Transaction Synchronization feature that was added with Sp
 ----
 <int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
     channel="replyChannel"
-    query="{'name' : 'Bob'}"
+    query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(100)"
     entity-class="java.lang.Object"
     auto-startup="false">
         <int:poller fixed-rate="200" max-messages-per-poll="1">
