@@ -37,12 +37,21 @@
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
-	<int-mongodb:inbound-channel-adapter id="fullConfigWithQuery"
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithSpelQuery"
 						collection-name-expression="'foo'"
 						query="{''address.state'' : ''PA''}"
 						mongo-converter="mongoConverter"
 						mongodb-factory="mongoDbFactory"
 						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithQuery"
+										 collection-name-expression="'foo'"
+										 query="{'address.state' : 'PA'}"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 

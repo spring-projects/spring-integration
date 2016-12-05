@@ -76,6 +76,10 @@ public class MongoDbInboundChannelAdapterParserTests {
 	private SourcePollingChannelAdapter fullConfigWithQueryAdapter;
 
 	@Autowired
+	@Qualifier("fullConfigWithSpelQuery.adapter")
+	private SourcePollingChannelAdapter fullConfigWithSpelQueryAdapter;
+
+	@Autowired
 	@Qualifier("fullConfigWithCollectionName.adapter")
 	private SourcePollingChannelAdapter fullConfigWithCollectionNameAdapter;
 
@@ -109,10 +113,16 @@ public class MongoDbInboundChannelAdapterParserTests {
 		assertEquals("new org.springframework.data.mongodb.core.query.BasicQuery('{''address.state'' : ''PA''}').limit(2)", TestUtils.getPropertyValue(source, "queryExpression.expression"));
 	}
 	@Test
+	public void fullConfigWithSpelQuery() {
+		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithSpelQueryAdapter);
+		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression);
+		assertEquals("{''address.state'' : ''PA''}", TestUtils.getPropertyValue(source, "queryExpression.literalValue"));
+	}
+	@Test
 	public void fullConfigWithQuery() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithQueryAdapter);
 		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof LiteralExpression);
-		assertEquals("{''address.state'' : ''PA''}", TestUtils.getPropertyValue(source, "queryExpression.literalValue"));
+		assertEquals("{'address.state' : 'PA'}", TestUtils.getPropertyValue(source, "queryExpression.literalValue"));
 	}
 
 	@Test
