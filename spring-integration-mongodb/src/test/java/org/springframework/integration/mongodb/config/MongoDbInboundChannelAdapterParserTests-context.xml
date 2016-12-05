@@ -28,6 +28,33 @@
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithQueryExpression"
+						collection-name-expression="'foo'"
+						query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+						mongo-converter="mongoConverter"
+						mongodb-factory="mongoDbFactory"
+						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithSpelQuery"
+						collection-name-expression="'foo'"
+						query="{''address.state'' : ''PA''}"
+						mongo-converter="mongoConverter"
+						mongodb-factory="mongoDbFactory"
+						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithQuery"
+										 collection-name-expression="'foo'"
+										 query="{'address.state' : 'PA'}"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithCollectionName"
 						collection-name="foo"
 						query="bar"

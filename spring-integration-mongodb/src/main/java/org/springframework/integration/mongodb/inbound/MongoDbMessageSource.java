@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.List;
 
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -27,6 +28,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -175,6 +177,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		evaluationContext.setTypeConverter(new StandardTypeConverter(new DefaultConversionService()));
 
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
@@ -194,7 +197,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
-		Query query = new BasicQuery(this.queryExpression.getValue(this.evaluationContext, String.class));
+		Query query = this.queryExpression.getValue(this.evaluationContext, BasicQuery.class);
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
