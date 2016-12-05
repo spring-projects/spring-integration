@@ -177,7 +177,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		evaluationContext.setTypeConverter(new StandardTypeConverter(new DefaultConversionService()));
+		this.evaluationContext.setTypeConverter(new StandardTypeConverter(new DefaultConversionService()));
 
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
