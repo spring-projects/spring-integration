@@ -48,12 +48,21 @@
 										 auto-startup="false">
 		<int:poller fixed-delay="5000" />
 	</int-mongodb:inbound-channel-adapter>
+	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithStringQueryExpression"
+										 channel="replyChannel"
+										 collection-name="foo"
+										 mongo-template="mongoDbTemplate"
+										 query-expression="new String('{''name'' : ''Bob''}')"
+										 entity-class="java.lang.Object"
+										 auto-startup="false">
+		<int:poller fixed-rate="5000" />
+	</int-mongodb:inbound-channel-adapter>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithQueryExpression"
 										 channel="replyChannel"
 										 collection-name="foo"
 										 mongo-template="mongoDbTemplate"
-										 query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''name'' : ''Bob''}').limit(2)"
+										 query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''name'' : ''Bob''}').limit(1)"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
 		<int:poller fixed-rate="5000" />

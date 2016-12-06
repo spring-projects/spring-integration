@@ -18,7 +18,9 @@ package org.springframework.integration.context;
 
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.util.ClassUtils;
 
 /**
  * This is a workaround until SPR-8818 will be resolved.
@@ -30,11 +32,22 @@ import org.springframework.core.convert.support.GenericConversionService;
  */
 class CustomConversionServiceFactoryBean extends ConversionServiceFactoryBean {
 
+	public static final String MONGO_BASIC_QUERY_CONVERTER_CLASS_NAME = "org.springframework.integration.mongodb.support.StringToBasicQueryConverter";
+	private static final boolean isMongodbIntegrationPresent = ClassUtils.isPresent(MONGO_BASIC_QUERY_CONVERTER_CLASS_NAME, CustomConversionServiceFactoryBean.class.getClassLoader());
+
 	@Override
 	public ConversionService getObject() {
 		ConversionService service = super.getObject();
 		if (service instanceof GenericConversionService) {
 			((GenericConversionService) service).removeConvertible(Object.class, Object.class);
+			if (isMongodbIntegrationPresent) {
+				try {
+					Class<?> stringToBasicQueryConverterCls = Class.forName(MONGO_BASIC_QUERY_CONVERTER_CLASS_NAME);
+					((GenericConversionService) service).addConverter((GenericConverter) stringToBasicQueryConverterCls.newInstance());
+				}
+				catch (Exception ignore) {
+				}
+			}
 		}
 		return service;
 	}

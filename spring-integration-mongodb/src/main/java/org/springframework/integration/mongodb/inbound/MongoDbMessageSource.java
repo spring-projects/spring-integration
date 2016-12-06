@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mongodb.inbound;
 
-import java.util.List;
-
-import org.springframework.core.convert.support.DefaultConversionService;
+import com.mongodb.DBObject;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,7 +26,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -39,7 +36,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import com.mongodb.DBObject;
+import java.util.List;
 
 /**
  * An instance of {@link MessageSource} which returns a {@link Message} with a payload
@@ -177,7 +174,6 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		this.evaluationContext.setTypeConverter(new StandardTypeConverter(new DefaultConversionService()));
 
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
