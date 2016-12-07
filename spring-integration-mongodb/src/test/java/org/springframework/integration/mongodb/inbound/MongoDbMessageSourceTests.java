@@ -180,7 +180,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	public void validateSuccessfullBasicQueryExpressionWithMultipleElements() throws Exception {
 
 		@SuppressWarnings("unchecked") List<Person> persons = queryMultipleElements(new SpelExpressionParser()
-				.parseExpression("new org.springframework.data.mongodb.core.query.BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
+				.parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
 		assertEquals(2, persons.size());
 	}
 

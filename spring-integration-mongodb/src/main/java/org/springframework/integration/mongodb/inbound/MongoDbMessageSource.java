@@ -24,8 +24,10 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
+import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -174,7 +176,11 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-
+        TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+        if (typeLocator instanceof StandardTypeLocator) {
+            //Register mongo api package to avoid FQCN for query-expression.
+            ((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
+        }
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}

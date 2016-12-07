@@ -110,7 +110,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 	public void fullConfigWithQueryExpression() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithQueryExpressionAdapter);
 		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof SpelExpression);
-		assertEquals("new org.springframework.data.mongodb.core.query.BasicQuery('{''address.state'' : ''PA''}').limit(2)", TestUtils.getPropertyValue(source, "queryExpression.expression"));
+		assertEquals("new BasicQuery('{''address.state'' : ''PA''}').limit(2)", TestUtils.getPropertyValue(source, "queryExpression.expression"));
 	}
 	@Test
 	public void fullConfigWithSpelQuery() {

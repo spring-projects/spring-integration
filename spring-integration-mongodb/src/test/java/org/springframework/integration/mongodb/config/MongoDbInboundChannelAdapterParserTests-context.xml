@@ -30,7 +30,7 @@
 
 	<int-mongodb:inbound-channel-adapter id="fullConfigWithQueryExpression"
 						collection-name-expression="'foo'"
-						query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+						query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
 						mongo-converter="mongoConverter"
 						mongodb-factory="mongoDbFactory"
 						auto-startup="false">
