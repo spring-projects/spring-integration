@@ -193,7 +193,19 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
-		Query query = this.queryExpression.getValue(this.evaluationContext, BasicQuery.class);
+		Object value = this.queryExpression.getValue(this.evaluationContext, Object.class);
+		Assert.notNull(value, "'queryExpression' must not evaluate to null");
+		Query query;
+		if (value instanceof String) {
+			query = new BasicQuery((String) value);
+		}
+		else if (value instanceof Query) {
+			query = ((Query) value);
+		}
+		else {
+			throw new AssertionError("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
+		}
+
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
