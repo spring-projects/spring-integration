@@ -81,6 +81,13 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	private SourcePollingChannelAdapter mongoInboundAdapterWithNamedCollection;
 
 	@Autowired
+	@Qualifier("mongoInboundAdapterWithQueryExpression")
+	private SourcePollingChannelAdapter mongoInboundAdapterWithQueryExpression;
+	@Autowired
+	@Qualifier("mongoInboundAdapterWithStringQueryExpression")
+	private SourcePollingChannelAdapter mongoInboundAdapterWithStringQueryExpression;
+
+	@Autowired
 	@Qualifier("mongoInboundAdapterWithNamedCollectionExpression")
 	private SourcePollingChannelAdapter mongoInboundAdapterWithNamedCollectionExpression;
 
@@ -151,6 +158,30 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().get(0).getName());
 
 		this.mongoInboundAdapterWithNamedCollection.stop();
+	}
+	@Test
+	@MongoDbAvailable
+	public void testWithQueryExpression() throws Exception {
+		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+		this.mongoInboundAdapterWithQueryExpression.start();
+		@SuppressWarnings("unchecked")
+		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals(1, message.getPayload().size());
+		assertEquals("Bob", message.getPayload().get(0).getName());
+		this.mongoInboundAdapterWithQueryExpression.stop();
+	}
+	@Test
+	@MongoDbAvailable
+	public void testWithStringQueryExpression() throws Exception {
+		this.mongoTemplate.save(this.createPerson("Bob"), "foo");
+		this.mongoInboundAdapterWithStringQueryExpression.start();
+		@SuppressWarnings("unchecked")
+		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Bob", message.getPayload().get(0).getName());
+		this.mongoInboundAdapterWithStringQueryExpression.stop();
 	}
 
 	@Test

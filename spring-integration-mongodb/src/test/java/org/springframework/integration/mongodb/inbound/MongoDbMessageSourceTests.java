@@ -36,6 +36,7 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
@@ -163,6 +164,27 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@MongoDbAvailable
 	public void validateSuccessfullQueryWithMultipleElements() throws Exception {
 
+		@SuppressWarnings("unchecked") List<Person> persons = queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"));
+		assertEquals(3, persons.size());
+	}
+	@Test
+	@MongoDbAvailable
+	public void validateSuccessfullStringQueryExpressionWithMultipleElements() throws Exception {
+
+		@SuppressWarnings("unchecked") List<Person> persons = queryMultipleElements(new SpelExpressionParser()
+				.parseExpression("\"{'address.state' : 'PA'}\""));
+		assertEquals(3, persons.size());
+	}
+	@Test
+	@MongoDbAvailable
+	public void validateSuccessfullBasicQueryExpressionWithMultipleElements() throws Exception {
+
+		@SuppressWarnings("unchecked") List<Person> persons = queryMultipleElements(new SpelExpressionParser()
+				.parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
+		assertEquals(2, persons.size());
+	}
+
+	private List<Person> queryMultipleElements(Expression queryExpression) throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -170,13 +192,10 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		template.save(this.createPerson("Moe"), "data");
 		template.save(this.createPerson("Jack"), "data");
 
-		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
-		@SuppressWarnings("unchecked")
-		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertEquals(3, persons.size());
+		return (List<Person>) messageSource.receive().getPayload();
 	}
 
 	@Test
