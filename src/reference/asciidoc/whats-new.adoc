@@ -9,6 +9,10 @@ development process.
 [[x5.0-new-components]]
 === New Components
 
+==== MongoDB Outbound Gateway
+
+The new `MongoDbOutboundGateway` allows you to make queries to the database on demand by sending a message to its request channel.
+See <<mongodb-outbound-gateway>> for more information.
 
 [[x5.0-general]]
 === General Changes

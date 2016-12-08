@@ -290,3 +290,117 @@ and other attributes that are common across all other inbound adapters (e.g., 'c
 The example above is relatively simple and static since it has a literal value for the `collection-name`.
 Sometimes you may need to change this value at runtime based on some condition.
 To do that, simply use `collection-name-expression` where the provided expression can be any valid SpEL expression.
+
+[[mongodb-outbound-gateway]]
+=== MongoDB Outbound Gateway
+
+Starting with _version 5.0_, the MongoDb Outbound Gateway allows you to query a database by sending a Message to its request channel.
+The gateway will then send the response to the reply channel.
+The Message payload and headers can be used to specify the query.
+
+[source,xml]
+----
+<int-mongodb:outbound-gateway id="gatewayQuery"
+    mongodb-factory="mongoDbFactory"
+    mongo-converter="mongoConverter"
+    query="{firstName: 'Bob'}"
+    collection-name="foo"
+    request-channel="in"
+    reply-channel="out"
+    entity-class="org.springframework.integration.mongodb.test.entity.Person"/>
+----
+
+* `collection-name` or `collection-name-expression` - Identifies the name of the MongoDb collection to use.
+* `mongo-converter` - reference to an instance of `o.s.data.mongodb.core.convert.MongoConverter` to assist with converting a raw java object to a JSON document representation
+* `mongodb-factory` - reference to an instance of `o.s.data.mongodb.MongoDbFactory`
+* `mongo-template` - reference to an instance of `o.s.data.mongodb.core.MongoTemplate` (NOTE: you can not have both mongo-template and mongodb-factory set)
+* `entity-class` - The fully qualified name of the entity class to be passed to `find(..)` or `findOne(..)` method in MongoTemplate. If this attribute is not provided the default value is `org.bson.Document`.
+* `query` or `query-expression` - Specifies the MongoDb query. Please refer to http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+
+==== Configuring with Java Configuration
+
+The following Spring Boot application provides an example of configuring the outbound gateway using Java configuration:
+
+[source, java]
+----
+@SpringBootApplication
+public class MongoDbJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(MongoDbJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private MongoDbFactory mongoDbFactory;
+
+    @Bean
+    public MessageChannel requestChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageChannel replyChannel() {
+        return new QueueChannel(5);
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "requestChannel")
+    public MessageHandler mongoDbOutboundGateway() {
+        MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(this.mongoDbFactory);
+        gateway.setCollectionNameExpression(new LiteralExpression("foo"));
+        gateway.setMongoDbQuery("{'name' : 'Bob'}");
+        gateway.setExpectSingleResult(true);
+        gateway.setEntityClass(Person.class);
+        gateway.setOutputChannelName("replyChannel");
+
+        return gateway;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "replyChannel", poller =  @Poller(fixedDelay = "2000"))
+    public MessageHandler handler() {
+        return message -> System.out.println(message.getPayload());
+    }
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the Outbound Gateway using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class MongoDbJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(MongoDbJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Autowired
+    private MongoDbFactory;
+
+    @Autowired
+    private MongoConverter
+
+
+    @Bean
+    public IntegrationFlow gatewaySingleQueryFlow() {
+        return f -> f
+                .handle(queryOutboundGateway())
+                .channel(c -> c.queue("retrieveResults"));
+    }
+
+    private MongoDbOutboundGatewaySpec queryOutboundGateway() {
+        return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
+                .query("{name : 'Bob'}")
+                .collectionNameExpression(new LiteralExpression("foo"))
+                .expectSingleResult(true)
+                .entityClass(Person.class);
+    }
+}
+----

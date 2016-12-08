@@ -102,6 +102,131 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.mongodb.outbound.MongoDbOutboundGateway' for
+				querying a MongoDb database in response to a message on the request channel.
+
+				The response received from the database will be used to create the response
+				Message on the reply channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="mongodbAdapterType">
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The Message Channel where messages will be sent in order
+								to query the database.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The Message Channel to which the database response will be sent.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expect-single-result">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							This parameter indicates that only one result object will be
+							returned from the database by using a findOne query.
+
+							If set to 'false', the complete result list is returned
+							as the payload.
+							]]>
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="query" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								String representation of a MongoDb Query (e.g.,
+								query="{'name' : 'Bob'}").
+								Please refer to MongoDb documentation for more query samples
+								http://www.mongodb.org/display/DOCS/Querying
+								This attribute is
+								mutually exclusive with 'query-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="query-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression which should resolve to a String query (please refer to the 'query'
+								attribute), or to an instance of MongoDb Query (e.q.,
+								query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(2)").
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="entity-class" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									The fully qualified name of the entity class to be passed to
+									find(..) or findOne(..) method MongoTemplate.
+									If this attribute is not provided the default value is org.bson.Document
+								</xsd:documentation>
+								<tool:annotation kind="direct">
+									<tool:expected-type type="java.lang.Class" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="mongodbAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
