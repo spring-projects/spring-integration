@@ -204,7 +204,7 @@ subprojects { subproject ->
 		}
 	}
 
-	task testAll(type: Test)
+	task testAll(type: Test, dependsOn: [checkstyleMain, checkstyleTest])
 
 	tasks.withType(Test).all {
 		// suppress all console output during testing unless running `gradle -i`
