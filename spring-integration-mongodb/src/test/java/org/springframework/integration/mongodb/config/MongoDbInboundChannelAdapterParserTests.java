@@ -16,14 +16,8 @@
 
 package org.springframework.integration.mongodb.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -39,6 +33,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Oleg Zhurakousky
@@ -110,7 +106,7 @@ public class MongoDbInboundChannelAdapterParserTests {
 	public void fullConfigWithQueryExpression() {
 		MongoDbMessageSource source = assertMongoDbMessageSource(this.fullConfigWithQueryExpressionAdapter);
 		assertTrue(TestUtils.getPropertyValue(source, "queryExpression") instanceof SpelExpression);
-		assertEquals("new org.springframework.data.mongodb.core.query.BasicQuery('{''address.state'' : ''PA''}').limit(2)", TestUtils.getPropertyValue(source, "queryExpression.expression"));
+		assertEquals("new BasicQuery('{''address.state'' : ''PA''}').limit(2)", TestUtils.getPropertyValue(source, "queryExpression.expression"));
 	}
 	@Test
 	public void fullConfigWithSpelQuery() {

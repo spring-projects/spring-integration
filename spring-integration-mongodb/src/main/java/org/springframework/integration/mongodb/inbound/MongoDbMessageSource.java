@@ -24,8 +24,10 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
+import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -174,7 +176,11 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			//Register mongo api package to avoid FQCN for query-expression.
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
+		}
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
@@ -193,7 +199,19 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
-		Query query = this.queryExpression.getValue(this.evaluationContext, BasicQuery.class);
+		Object value = this.queryExpression.getValue(this.evaluationContext, Object.class);
+		Assert.notNull(value, "'queryExpression' must not evaluate to null");
+		Query query;
+		if (value instanceof String) {
+			query = new BasicQuery((String) value);
+		}
+		else if (value instanceof Query) {
+			query = ((Query) value);
+		}
+		else {
+			throw new AssertionError("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
+		}
+
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");

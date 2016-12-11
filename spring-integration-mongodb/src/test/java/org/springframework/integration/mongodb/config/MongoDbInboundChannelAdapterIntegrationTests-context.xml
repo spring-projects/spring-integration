@@ -62,7 +62,7 @@
 										 channel="replyChannel"
 										 collection-name="foo"
 										 mongo-template="mongoDbTemplate"
-										 query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''name'' : ''Bob''}').limit(1)"
+										 query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(1)"
 										 entity-class="java.lang.Object"
 										 auto-startup="false">
 		<int:poller fixed-rate="5000" />

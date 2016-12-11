@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/mongodb"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:tool="http://www.springframework.org/schema/tool"
-	xmlns:integration="http://www.springframework.org/schema/integration"
-	targetNamespace="http://www.springframework.org/schema/integration/mongodb"
-	elementFormDefault="qualified" attributeFormDefault="unqualified">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/mongodb"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
@@ -45,8 +45,8 @@
 					<xsd:attribute name="query-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								SpEL expression which should resolve to a String query (please refer to the 'query' attribute) or a BasicQuery object (
-								e.q., query-expression="new org.springframework.data.mongodb.core.query.BasicQuery('{''name'' : ''Bob''}').limit(2)").
+								SpEL expression which should resolve to a String query (please refer to the 'query' attribute) or a
+								BasicQuery object (e.q., query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(2)").
 								This attribute is mutually exclusive with 'query' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
