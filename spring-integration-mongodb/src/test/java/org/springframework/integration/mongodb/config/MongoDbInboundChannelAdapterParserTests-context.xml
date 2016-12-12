@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/mongodb http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
@@ -25,6 +23,33 @@
 						mongo-converter="mongoConverter"
 						mongodb-factory="mongoDbFactory"
 						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithQueryExpression"
+						collection-name-expression="'foo'"
+						query-expression="new BasicQuery('{''address.state'' : ''PA''}').limit(2)"
+						mongo-converter="mongoConverter"
+						mongodb-factory="mongoDbFactory"
+						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithSpelQuery"
+						collection-name-expression="'foo'"
+						query="{''address.state'' : ''PA''}"
+						mongo-converter="mongoConverter"
+						mongodb-factory="mongoDbFactory"
+						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter id="fullConfigWithQuery"
+										 collection-name-expression="'foo'"
+										 query="{'address.state' : 'PA'}"
+										 mongo-converter="mongoConverter"
+										 mongodb-factory="mongoDbFactory"
+										 auto-startup="false">
 		<int:poller fixed-rate="100"/>
 	</int-mongodb:inbound-channel-adapter>
 

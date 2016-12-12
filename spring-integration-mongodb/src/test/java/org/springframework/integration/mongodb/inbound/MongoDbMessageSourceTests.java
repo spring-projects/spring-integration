@@ -16,15 +16,7 @@
 
 package org.springframework.integration.mongodb.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.List;
-
+import com.mongodb.util.JSON;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Test;
@@ -37,15 +29,24 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
-import com.mongodb.util.JSON;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Yaron Yamin
  *
  * @since 2.2
  *
@@ -161,7 +162,25 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void validateSuccessfulQueryWithMultipleElements() throws Exception {
+		List<Person> persons = queryMultipleElements(new LiteralExpression("{'address.state' : 'PA'}"));
+		assertEquals(3, persons.size());
+	}
 
+	@Test
+	@MongoDbAvailable
+	public void validateSuccessfulStringQueryExpressionWithMultipleElements() throws Exception {
+		List<Person> persons = queryMultipleElements(new SpelExpressionParser().parseExpression("\"{'address.state' : 'PA'}\""));
+		assertEquals(3, persons.size());
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void validateSuccessfulBasicQueryExpressionWithMultipleElements() throws Exception {
+		List<Person> persons = queryMultipleElements(new SpelExpressionParser().parseExpression("new BasicQuery(\"{'address.state' : 'PA'}\").limit(2)"));
+		assertEquals(2, persons.size());
+	}
+
+	private List<Person> queryMultipleElements(Expression queryExpression) throws Exception {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -169,13 +188,12 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		template.save(this.createPerson("Moe"), "data");
 		template.save(this.createPerson("Jack"), "data");
 
-		Expression queryExpression = new LiteralExpression("{'address.state' : 'PA'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setBeanFactory(mock(BeanFactory.class));
 		messageSource.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
-		List<Person> persons = (List<Person>) messageSource.receive().getPayload();
-		assertEquals(3, persons.size());
+		List<Person> payload = (List<Person>) messageSource.receive().getPayload();
+		return payload;
 	}
 
 	@Test

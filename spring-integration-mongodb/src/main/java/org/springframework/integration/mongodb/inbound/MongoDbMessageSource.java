@@ -16,8 +16,7 @@
 
 package org.springframework.integration.mongodb.inbound;
 
-import java.util.List;
-
+import com.mongodb.DBObject;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -25,8 +24,10 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.Expression;
+import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeLocator;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -37,7 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import com.mongodb.DBObject;
+import java.util.List;
 
 /**
  * An instance of {@link MessageSource} which returns a {@link Message} with a payload
@@ -55,6 +56,7 @@ import com.mongodb.DBObject;
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Yaron Yamin
  *
  * @since 2.2
  */
@@ -175,7 +177,11 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-
+		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
+		if (typeLocator instanceof StandardTypeLocator) {
+			//Register MongoDB query api package so FQCN can be avoided in query-expression.
+			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
+		}
 		if (this.mongoTemplate == null) {
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
@@ -194,7 +200,19 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
-		Query query = new BasicQuery(this.queryExpression.getValue(this.evaluationContext, String.class));
+		Object value = this.queryExpression.getValue(this.evaluationContext, Object.class);
+		Assert.notNull(value, "'queryExpression' must not evaluate to null");
+		Query query;
+		if (value instanceof String) {
+			query = new BasicQuery((String) value);
+		}
+		else if (value instanceof Query) {
+			query = ((Query) value);
+		}
+		else {
+			throw new IllegalStateException("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
+		}
+
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
 		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
