@@ -38,13 +38,14 @@ public class LastModifiedFileListFilterTests {
 	@Test
 	public void testAge() throws Exception {
 		LastModifiedFileListFilter filter = new LastModifiedFileListFilter();
-		filter.setAge(1, TimeUnit.SECONDS);
+		filter.setAge(10, TimeUnit.SECONDS);
 		File foo = this.folder.newFile();
 		FileOutputStream fileOutputStream = new FileOutputStream(foo);
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
 		assertEquals(0, filter.filterFiles(new File[] { foo }).size());
-		Thread.sleep(2000);
+		filter.setAge(50, TimeUnit.MILLISECONDS);
+		Thread.sleep(100);
 		assertEquals(1, filter.filterFiles(new File[] { foo }).size());
 	}
 
