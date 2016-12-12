@@ -27,11 +27,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Level;
@@ -79,7 +77,7 @@ public class ReactiveStreamsTests {
 	private Publisher<Message<Integer>> pollablePublisher;
 
 	@Autowired
-	@Qualifier("reactiveSteamsMessageSource")
+	@Qualifier("reactiveStreamsMessageSource")
 	private Lifecycle messageSource;
 
 	@Autowired
@@ -87,7 +85,7 @@ public class ReactiveStreamsTests {
 	private MessageChannel inputChannel;
 
 	@Test
-	public void testReactiveFlow() throws InterruptedException {
+	public void testReactiveFlow() throws Exception {
 		List<String> results = new ArrayList<>();
 		CountDownLatch latch = new CountDownLatch(6);
 		Flux.from(this.publisher)
@@ -100,10 +98,11 @@ public class ReactiveStreamsTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		String[] strings = results.toArray(new String[results.size()]);
 		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
+		this.messageSource.stop();
 	}
 
 	@Test
-	public void testPollableReactiveFlow() throws InterruptedException, TimeoutException, ExecutionException {
+	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
 		CountDownLatch warmUpLatch = new CountDownLatch(3);
@@ -154,7 +153,7 @@ public class ReactiveStreamsTests {
 					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
 							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : new Date()))
 									.autoStartup(false)
-									.id("reactiveSteamsMessageSource"))
+									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
 					.toReactivePublisher();
 		}

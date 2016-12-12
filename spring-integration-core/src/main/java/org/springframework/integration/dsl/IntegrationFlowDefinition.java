@@ -96,7 +96,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.TopicProcessor;
 import reactor.util.function.Tuple2;
 
 /**
@@ -2728,7 +2728,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 		else {
 			if (channelForPublisher != null) {
-				Processor<?, ?> processor = EmitterProcessor.create(false);
+				Processor<?, ?> processor = TopicProcessor.share(false);
 				publisher = (Publisher<Message<T>>) processor;
 				Subscriber<Message<?>> subscriber = (Subscriber<Message<?>>) processor;
 				addComponent(new ReactiveConsumer(channelForPublisher, subscriber));

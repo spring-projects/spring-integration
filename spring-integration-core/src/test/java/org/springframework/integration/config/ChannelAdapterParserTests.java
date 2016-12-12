@@ -55,6 +55,7 @@ import org.springframework.messaging.support.GenericMessage;
 public class ChannelAdapterParserTests {
 
 	private AbstractApplicationContext applicationContext;
+
 	private AbstractApplicationContext applicationContextInner;
 
 
@@ -69,6 +70,7 @@ public class ChannelAdapterParserTests {
 	@After
 	public void tearDown() {
 		this.applicationContext.close();
+		this.applicationContextInner.close();
 	}
 
 
@@ -307,17 +309,21 @@ public class ChannelAdapterParserTests {
 		assertEquals("test", message.getPayload());
 
 		MessageSource<?> testMessageSource = this.applicationContext.getBean("testMessageSource", MessageSource.class);
-		SourcePollingChannelAdapter adapterWithMessageSourceRef = this.applicationContext.getBean("adapterWithMessageSourceRef", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapterWithMessageSourceRef =
+				this.applicationContext.getBean("adapterWithMessageSourceRef", SourcePollingChannelAdapter.class);
 		MessageSource<?> source = TestUtils.getPropertyValue(adapterWithMessageSourceRef, "source", MessageSource.class);
 		assertSame(testMessageSource, source);
 	}
 
 	public static class SampleBean {
+
 		private final String message = "hello";
 
 		String getMessage() {
 			return message;
 		}
+
 	}
+
 }
 
