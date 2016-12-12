@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.filters;
 
 import static org.junit.Assert.assertEquals;
@@ -27,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
@@ -38,14 +40,14 @@ public class LastModifiedFileListFilterTests {
 	@Test
 	public void testAge() throws Exception {
 		LastModifiedFileListFilter filter = new LastModifiedFileListFilter();
-		filter.setAge(10, TimeUnit.SECONDS);
+		filter.setAge(60, TimeUnit.SECONDS);
 		File foo = this.folder.newFile();
 		FileOutputStream fileOutputStream = new FileOutputStream(foo);
 		fileOutputStream.write("x".getBytes());
 		fileOutputStream.close();
 		assertEquals(0, filter.filterFiles(new File[] { foo }).size());
-		filter.setAge(50, TimeUnit.MILLISECONDS);
-		Thread.sleep(100);
+		// Make a file as of yesterday's
+		foo.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
 		assertEquals(1, filter.filterFiles(new File[] { foo }).size());
 	}
 
