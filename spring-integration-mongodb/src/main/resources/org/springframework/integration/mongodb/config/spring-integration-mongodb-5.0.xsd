@@ -45,8 +45,8 @@
 					<xsd:attribute name="query-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								SpEL expression which should resolve to a String query (please refer to the 'query' attribute) or a
-								BasicQuery object (e.q., query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(2)").
+								SpEL expression which should resolve to a String query (please refer to the 'query' attribute),
+								or to an instance of MongoDb Query (e.q., query-expression="new BasicQuery('{''name'' : ''Bob''}').limit(2)").
 								This attribute is mutually exclusive with 'query' attribute.
 							</xsd:documentation>
 						</xsd:annotation>

@@ -37,12 +37,16 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Yaron Yamin
  *
  * @since 2.2
  *

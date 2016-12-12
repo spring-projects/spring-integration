@@ -50,6 +50,7 @@ import com.mongodb.util.JSON;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Yaron Yamin
  * @since 2.2
  */
 @ContextConfiguration
@@ -85,6 +86,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 	@Autowired
 	@Qualifier("mongoInboundAdapterWithQueryExpression")
 	private SourcePollingChannelAdapter mongoInboundAdapterWithQueryExpression;
+
 	@Autowired
 	@Qualifier("mongoInboundAdapterWithStringQueryExpression")
 	private SourcePollingChannelAdapter mongoInboundAdapterWithStringQueryExpression;

@@ -56,6 +56,7 @@ import java.util.List;
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Yaron Yamin
  *
  * @since 2.2
  */
@@ -178,7 +179,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
 		if (typeLocator instanceof StandardTypeLocator) {
-			//Register mongo api package to avoid FQCN for query-expression.
+			//Register MongoDB query api package so FQCN can be avoided in query-expression.
 			((StandardTypeLocator) typeLocator).registerImport("org.springframework.data.mongodb.core.query");
 		}
 		if (this.mongoTemplate == null) {
@@ -209,7 +210,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 			query = ((Query) value);
 		}
 		else {
-			throw new AssertionError("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
+			throw new IllegalStateException("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
 		}
 
 		Assert.notNull(query, "'queryExpression' must not evaluate to null");
