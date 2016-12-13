@@ -19,10 +19,12 @@ package org.springframework.integration.http.support;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,11 +37,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -67,15 +67,13 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
-	private volatile ConversionService conversionService;
-
-	private volatile BeanFactory beanFactory;
 
 	private static final String ACCEPT = "Accept";
 
@@ -212,7 +210,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			WARNING
 	};
 
-	private static final Set<String> HTTP_REQUEST_HEADER_NAMES_LOWER = new HashSet<String>();
+	private static final Set<String> HTTP_REQUEST_HEADER_NAMES_LOWER = new HashSet<>();
 
 	private static final String[] HTTP_RESPONSE_HEADER_NAMES = new String[] {
 			ACCEPT_RANGES,
@@ -260,13 +258,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
 
 	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATS'
-	private static final String[] DATE_FORMATS = new String[] {
-			"EEE, dd MMM yyyy HH:mm:ss zzz",
-			"EEE, dd-MMM-yy HH:mm:ss zzz",
-			"EEE MMM dd HH:mm:ss yyyy"
+	private static final DateTimeFormatter[] DATE_FORMATS = new DateTimeFormatter[] {
+			DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).withZone(ZoneId.of("GMT")),
+			DateTimeFormatter.ofPattern("EEE, dd-MMM-yy HH:mm:ss zzz", Locale.US).withZone(ZoneId.of("GMT")),
+			DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss yyyy", Locale.US).withZone(ZoneId.of("GMT"))
 	};
-
-	private static TimeZone GMT = TimeZone.getTimeZone("GMT");
 
 	static {
 		for (String header : HTTP_REQUEST_HEADER_NAMES) {
@@ -278,8 +274,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private volatile String[] outboundHeaderNames = new String[0];
-
-	private volatile String[] outboundHeaderNamesLower = new String[0];
 
 	private volatile String[] outboundHeaderNamesLowerWithContentType = new String[0];
 
@@ -296,6 +290,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private volatile boolean isDefaultOutboundMapper;
 
 	private volatile boolean isDefaultInboundMapper;
+
+	private volatile ConversionService conversionService;
+
+	private volatile BeanFactory beanFactory;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -319,18 +317,18 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		this.outboundHeaderNames = outboundHeaderNames != null ?
 				Arrays.copyOf(outboundHeaderNames, outboundHeaderNames.length) : new String[0];
-		this.outboundHeaderNamesLower = new String[this.outboundHeaderNames.length];
+		String[] outboundHeaderNamesLower = new String[this.outboundHeaderNames.length];
 		for (int i = 0; i < this.outboundHeaderNames.length; i++) {
 			if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(this.outboundHeaderNames[i])
 					|| HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(this.outboundHeaderNames[i])) {
-				this.outboundHeaderNamesLower[i] = this.outboundHeaderNames[i];
+				outboundHeaderNamesLower[i] = this.outboundHeaderNames[i];
 			}
 			else {
-				this.outboundHeaderNamesLower[i] = this.outboundHeaderNames[i].toLowerCase();
+				outboundHeaderNamesLower[i] = this.outboundHeaderNames[i].toLowerCase();
 			}
 		}
 		this.outboundHeaderNamesLowerWithContentType =
-				Arrays.copyOf(this.outboundHeaderNamesLower, this.outboundHeaderNames.length + 1);
+				Arrays.copyOf(outboundHeaderNamesLower, this.outboundHeaderNames.length + 1);
 		this.outboundHeaderNamesLowerWithContentType[this.outboundHeaderNamesLowerWithContentType.length - 1]
 				= MessageHeaders.CONTENT_TYPE.toLowerCase();
 	}
@@ -1063,13 +1061,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	// Utility methods
 
 	private long getFirstDate(String headerValue, String headerName) {
-		for (String dateFormat : DATE_FORMATS) {
-			DateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.US);
-			simpleDateFormat.setTimeZone(GMT);
+		for (DateTimeFormatter dateFormat : DATE_FORMATS) {
 			try {
-				return simpleDateFormat.parse(headerValue).getTime();
+				return dateFormat.parse(headerValue, ZonedDateTime::from)
+						.toInstant()
+						.toEpochMilli();
 			}
-			catch (ParseException e) {
+			catch (DateTimeParseException e) {
 				// ignore
 			}
 		}
@@ -1078,9 +1076,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private String formatDate(long date) {
-		DateFormat dateFormat = new SimpleDateFormat(DATE_FORMATS[0], Locale.US);
-		dateFormat.setTimeZone(GMT);
-		return dateFormat.format(new Date(date));
+		return DATE_FORMATS[0].format(Instant.ofEpochMilli(date));
 	}
 
 	/**
