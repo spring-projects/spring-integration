@@ -105,31 +105,35 @@ public class ReactiveStreamsTests {
 	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
-		CountDownLatch warmUpLatch = new CountDownLatch(3);
 		CountDownLatch latch = new CountDownLatch(6);
 
 		Flux.from(this.pollablePublisher)
+				.take(6)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 				.doOnNext(p -> latch.countDown())
-				.doOnNext(p -> warmUpLatch.countDown())
-				.take(6)
 				.subscribe();
 
-		Future<List<Integer>> future =
-				Executors.newSingleThreadExecutor().submit(() ->
-						Flux.just("11,12,13")
-								.map(v -> v.split(","))
-								.flatMapIterable(Arrays::asList)
-								.map(Integer::parseInt)
-								.<Message<Integer>>map(GenericMessage<Integer>::new)
-								.concatWith(this.pollablePublisher)
-								.map(Message::getPayload)
-								.take(7)
-								.log("org.springframework.integration.flux")
-								.collectList()
-								.block(Duration.ofSeconds(10)));
+		CountDownLatch secondSubscriberLatch = new CountDownLatch(1);
 
-		assertTrue(warmUpLatch.await(10, TimeUnit.SECONDS));
+		Future<List<Integer>> future =
+				Executors.newSingleThreadExecutor().submit(() -> {
+					Thread.sleep(100);
+					return Flux.just("11,12,13")
+							.map(v -> v.split(","))
+							.flatMapIterable(Arrays::asList)
+							.map(Integer::parseInt)
+							.<Message<Integer>>map(GenericMessage<Integer>::new)
+							.concatWith(this.pollablePublisher)
+							.take(7)
+							.map(Message::getPayload)
+							.log("org.springframework.integration.flux")
+							.collectList()
+							.doOnSubscribe(s -> secondSubscriberLatch.countDown())
+							.block(Duration.ofSeconds(10));
+				}
+				);
+
+		assertTrue(secondSubscriberLatch.await(10, TimeUnit.SECONDS));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
