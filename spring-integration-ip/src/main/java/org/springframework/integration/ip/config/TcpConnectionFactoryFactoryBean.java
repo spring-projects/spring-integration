@@ -112,6 +112,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile TcpSSLContextSupport sslContextSupport;
 
+	private volatile Integer sslHandshakeTimeout;
+
 	private volatile TcpSocketSupport socketSupport = new DefaultTcpSocketSupport();
 
 	private volatile TcpNioConnectionSupport nioConnectionSupport;
@@ -165,6 +167,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
 				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
+			}
+			if (this.sslHandshakeTimeout != null) {
+				this.connectionFactory.setSslHandshakeTimeout(this.sslHandshakeTimeout);
 			}
 		}
 		else {
@@ -522,6 +527,15 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	/**
+	 * Set the SSL handshake timeout (only used with SSL and NIO).
+	 * @param sslHandshakeTimeout the timeout.
+	 * @since 4.3.6
+	 */
+	public void setSslHandshakeTimeout(Integer sslHandshakeTimeout) {
+		this.sslHandshakeTimeout = sslHandshakeTimeout;
 	}
 
 	private boolean isClient() {

@@ -92,7 +92,10 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 				IpAdapterParserUtils.SOCKET_SUPPORT);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.MAPPER);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "read-delay");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SSL_HANDSHAKE_TIMEOUT);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.READ_DELAY);
 
 		return builder.getBeanDefinition();
 	}

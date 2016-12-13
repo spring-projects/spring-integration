@@ -124,7 +124,12 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String MAPPER = "mapper";
 
-	private IpAdapterParserUtils() { }
+	public static final String READ_DELAY = "read-delay";
+
+	public static final String SSL_HANDSHAKE_TIMEOUT = "ssl-handshake-timeout";
+
+	private IpAdapterParserUtils() {
+	}
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder

@@ -692,6 +692,14 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="ssl-handshake-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The timeout (in seconds) to use while performing handshakes on SSL sockets;
+						only applies when 'using-nio' is 'true'. Default: 30.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="socket-support" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>

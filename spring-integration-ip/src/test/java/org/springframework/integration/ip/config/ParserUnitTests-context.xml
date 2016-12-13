@@ -73,6 +73,7 @@
 		apply-sequence="true"
 		using-nio="true"
 		ssl-context-support="sslContextSupport"
+		ssl-handshake-timeout="43"
 		/>
 
 	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport">
@@ -88,6 +89,17 @@
 		lookup-host="false"
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
+		socket-support="socketSupport"
+		socket-factory-support="socketFactorySupport" />
+
+	<ip:tcp-connection-factory id="secureServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(5250)}"
+		lookup-host="false"
+		apply-sequence="true"
+		using-nio="true"
+		ssl-context-support="sslContextSupport"
+		ssl-handshake-timeout="34"
 		socket-support="socketSupport"
 		socket-factory-support="socketFactorySupport" />
 
