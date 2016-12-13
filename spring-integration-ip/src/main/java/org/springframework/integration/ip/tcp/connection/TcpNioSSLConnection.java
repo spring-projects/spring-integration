@@ -53,6 +53,8 @@ import org.springframework.util.Assert;
  */
 public class TcpNioSSLConnection extends TcpNioConnection {
 
+	private static final int DEFAULT_HANDSHAKE_TIMEOUT = 30;
+
 	private final SSLEngine sslEngine;
 
 	private volatile ByteBuffer decoded;
@@ -67,6 +69,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private volatile boolean writerActive;
 
+	private volatile int handshakeTimeout = DEFAULT_HANDSHAKE_TIMEOUT;
+
 	private boolean needMoreNetworkData;
 
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
@@ -74,6 +78,15 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			SSLEngine sslEngine) throws Exception {
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.sslEngine = sslEngine;
+	}
+
+	/**
+	 * Set the timeout while waiting for handshake data (in seconds). Default 30.
+	 * @param handshakeTimeout the timeout.
+	 * @since 4.3.6
+	 */
+	public void setHandshakeTimeout(int handshakeTimeout) {
+		this.handshakeTimeout = handshakeTimeout;
 	}
 
 	@Override
@@ -368,7 +381,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Writer waiting for handshake");
 				}
-				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(30, TimeUnit.SECONDS)) {
+				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(TcpNioSSLConnection.this.handshakeTimeout,
+						TimeUnit.SECONDS)) {
 					throw new MessagingException("SSL Handshaking taking too long");
 				}
 				if (logger.isTraceEnabled()) {

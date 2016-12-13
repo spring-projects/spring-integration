@@ -893,6 +893,9 @@ The `DefaulTcpSSLContextSupport` class also has an optional 'protocol' property,
 
 The keystore file names (first two constructor arguments) use the Spring `Resource` abstraction; by default the files will be located on the classpath, but this can be overridden by using the `file:` prefix, to find the files on the filesystem instead.
 
+Starting with _version 4.3.6_, when using NIO, you can specify an `ssl-handshake-timeout` (seconds) on the connection factory.
+This timeout (default 30) is used during SSL handshake when waiting for data; if the timeout is exceeded, the process is aborted and the socket closed.
+
 ==== Advanced Techniques
 
 In many cases, the configuration described above is all that is needed to enable secure communication over TCP/IP.

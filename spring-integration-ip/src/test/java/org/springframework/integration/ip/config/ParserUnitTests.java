@@ -257,6 +257,9 @@ public class ParserUnitTests {
 	TcpNetServerConnectionFactory secureServer;
 
 	@Autowired
+	TcpNioServerConnectionFactory secureServerNio;
+
+	@Autowired
 	TcpSocketFactorySupport socketFactorySupport;
 
 	@Autowired
@@ -343,6 +346,7 @@ public class ParserUnitTests {
 		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
 		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
 		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
+		assertEquals(43, TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout"));
 	}
 
 	@Test
@@ -656,6 +660,7 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
 		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
+		assertEquals(34, TestUtils.getPropertyValue(this.secureServerNio, "sslHandshakeTimeout"));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

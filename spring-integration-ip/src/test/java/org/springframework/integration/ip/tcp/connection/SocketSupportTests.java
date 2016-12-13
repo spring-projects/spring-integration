@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
@@ -295,6 +296,9 @@ Certificate fingerprints:
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
 		assertNotNull(messages.get(0).getHeaders().get("cipher"));
+
+		client.stop();
+		server.stop();
 	}
 
 	@Test
@@ -330,12 +334,16 @@ Certificate fingerprints:
 		connection.send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+
+		client.stop();
+		server.stop();
 	}
 
 	@Test
 	public void testNioClientAndServerSSL() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		server.setSslHandshakeTimeout(43);
 		DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
@@ -351,19 +359,36 @@ Certificate fingerprints:
 			return false;
 		});
 		server.setMapper(new SSLMapper());
+		final AtomicReference<String> serverConnectionId = new AtomicReference<>();
+		server.setApplicationEventPublisher(e -> {
+			if (e instanceof TcpConnectionOpenEvent) {
+				serverConnectionId.set(((TcpConnectionEvent) e).getConnectionId());
+			}
+		});
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
+		client.setSslHandshakeTimeout(34);
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		client.registerListener(message -> false);
+		client.setApplicationEventPublisher(e -> { });
 		client.start();
 
 		TcpConnection connection = client.getConnection();
+		assertEquals(34, TestUtils.getPropertyValue(connection, "handshakeTimeout"));
 		connection.send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
 		assertNotNull(messages.get(0).getHeaders().get("cipher"));
+
+		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
+		Object serverConnection = connections.get(serverConnectionId.get());
+		assertNotNull(serverConnection);
+		assertEquals(43, TestUtils.getPropertyValue(serverConnection, "handshakeTimeout"));
+
+		client.stop();
+		server.stop();
 	}
 
 	@Test
@@ -394,6 +419,12 @@ Certificate fingerprints:
 		ByteArrayCrLfSerializer deserializer = new ByteArrayCrLfSerializer();
 		deserializer.setMaxMessageSize(120000);
 		server.setDeserializer(deserializer);
+		final AtomicReference<String> serverConnectionId = new AtomicReference<>();
+		server.setApplicationEventPublisher(e -> {
+			if (e instanceof TcpConnectionOpenEvent) {
+				serverConnectionId.set(((TcpConnectionEvent) e).getConnectionId());
+			}
+		});
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
@@ -410,9 +441,11 @@ Certificate fingerprints:
 			return false;
 		});
 		client.setDeserializer(deserializer);
+		client.setApplicationEventPublisher(e -> { });
 		client.start();
 
 		TcpConnection connection = client.getConnection();
+		assertEquals(30, TestUtils.getPropertyValue(connection, "handshakeTimeout"));
 		byte[] bytes = new byte[100000];
 		connection.send(new GenericMessage<String>("Hello, world!" + new String(bytes)));
 		assertTrue(latch.await(60, TimeUnit.SECONDS));
@@ -422,6 +455,14 @@ Certificate fingerprints:
 		payload = (byte[]) messages.get(1).getPayload();
 		assertEquals(13 + bytes.length, payload.length);
 		assertEquals("Hello, world!", new String(payload).substring(0, 13));
+
+		Map<?, ?> connections = TestUtils.getPropertyValue(server, "connections", Map.class);
+		Object serverConnection = connections.get(serverConnectionId.get());
+		assertNotNull(serverConnection);
+		assertEquals(30, TestUtils.getPropertyValue(serverConnection, "handshakeTimeout"));
+
+		client.stop();
+		server.stop();
 	}
 
 	private static class Replier implements TcpSender {
