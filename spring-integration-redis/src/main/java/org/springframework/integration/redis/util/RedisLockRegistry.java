@@ -19,11 +19,12 @@ package org.springframework.integration.redis.util;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +36,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
@@ -528,9 +528,10 @@ public final class RedisLockRegistry implements LockRegistry {
 
 		@Override
 		public String toString() {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd@HH:mm:ss.SSS");
 			return "RedisLock [lockKey=" + constructLockKey()
-					+ ",lockedAt=" + dateFormat.format(new Date(this.lockedAt))
+					+ ",lockedAt=" + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
+					Instant.ofEpochMilli(this.lockedAt)
+							.atZone(ZoneId.systemDefault()))
 					+ ", thread=" + this.threadName
 					+ ", lockHost=" + new String(this.lockHost)
 					+ "]";

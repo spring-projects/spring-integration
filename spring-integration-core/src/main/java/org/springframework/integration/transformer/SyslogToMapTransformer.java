@@ -17,13 +17,12 @@
 package org.springframework.integration.transformer;
 
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +43,7 @@ import org.springframework.util.StringUtils;
  */
 public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, Map<String, ?>> {
 
-	private static final BlockingQueue<SimpleDateFormat> dateFormats = new LinkedBlockingQueue<SimpleDateFormat>();
+	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
 
 	public static final String FACILITY = "FACILITY";
 
@@ -90,10 +89,6 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	private Map<String, ?> transform(String payload) {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		Matcher matcher = this.pattern.matcher(payload);
-		SimpleDateFormat dateFormat = dateFormats.poll();
-		if (dateFormat == null) {
-			dateFormat = new SimpleDateFormat("MMM dd HH:mm:ss");
-		}
 		if (matcher.matches()) {
 			try {
 				String facilityString = matcher.group(1);
@@ -103,14 +98,12 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 				map.put(FACILITY, facility);
 				map.put(SEVERITY, severity);
 				String timestamp = matcher.group(2);
-				Date date;
 				try {
-					date = dateFormat.parse(timestamp);
-					dateFormats.offer(dateFormat);
+					LocalDate localDate = this.dateTimeFormatter.parse(timestamp, LocalDate::from);
 					Calendar calendar = Calendar.getInstance();
 					int year = calendar.get(Calendar.YEAR);
 					int month = calendar.get(Calendar.MONTH);
-					calendar.setTime(date);
+					calendar.setTime(Date.valueOf(localDate));
 					/*
 					 * syslog date doesn't include a year so we
 					 * need to insert the current year - adjusted
