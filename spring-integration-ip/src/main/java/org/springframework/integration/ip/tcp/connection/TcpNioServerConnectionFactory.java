@@ -220,6 +220,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				}
 				connection.setTaskExecutor(getTaskExecutor());
 				connection.setLastRead(now);
+				if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+					((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+				}
 				this.channelMap.put(channel, connection);
 				channel.register(selector, SelectionKey.OP_READ, connection);
 				connection.publishConnectionOpenEvent();

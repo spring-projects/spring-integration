@@ -88,6 +88,9 @@ public class TcpNioClientConnectionFactory extends
 				socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), this.getComponentName());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		connection.setTaskExecutor(this.getTaskExecutor());
+		if (getSslHandshakeTimeout() != null && connection instanceof TcpNioSSLConnection) {
+			((TcpNioSSLConnection) connection).setHandshakeTimeout(getSslHandshakeTimeout());
+		}
 		TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 		initializeConnection(wrappedConnection, socketChannel.socket());
 		socketChannel.configureBlocking(false);

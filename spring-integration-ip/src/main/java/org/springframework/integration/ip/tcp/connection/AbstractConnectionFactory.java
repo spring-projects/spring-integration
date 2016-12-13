@@ -127,6 +127,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile long readDelay = DEFAULT_READ_DELAY;
 
+	private volatile Integer sslHandshakeTimeout;
+
 	public AbstractConnectionFactory(int port) {
 		this.port = port;
 	}
@@ -454,6 +456,25 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	public void setNioHarvestInterval(int nioHarvestInterval) {
 		Assert.isTrue(nioHarvestInterval > 0, "NIO Harvest interval must be > 0");
 		this.nioHarvestInterval = nioHarvestInterval;
+	}
+
+	/**
+	 * Set the handshake timeout used when waiting for SSL handshake data; only applies
+	 * to SSL connections, when using NIO.
+	 * @param sslHandshakeTimeout the timeout.
+	 * @since 4.6.3
+	 */
+	public void setSslHandshakeTimeout(int sslHandshakeTimeout) {
+		this.sslHandshakeTimeout = sslHandshakeTimeout;
+	}
+
+	/**
+	 * @return the handshake timeout.
+	 * @see #setSslHandshakeTimeout(int)
+	 * @since 4.6.3
+	 */
+	protected Integer getSslHandshakeTimeout() {
+		return this.sslHandshakeTimeout;
 	}
 
 	protected BlockingQueue<PendingIO> getDelayedReads() {
