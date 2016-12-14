@@ -16,9 +16,7 @@
 
 package org.springframework.integration.transaction;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.ResourceHolder;
@@ -38,16 +36,29 @@ public class IntegrationResourceHolder implements ResourceHolder {
 
 	public static final String INPUT_CHANNEL = "inputChannel";
 
-	private volatile Message<?> message;
+	private final List<Message<?>> messages = new ArrayList<Message<?>>();
 
 	private final Map<String, Object> attributes = new HashMap<String, Object>();
 
 	public void setMessage(Message<?> message) {
-		this.message = message;
+		this.messages.add(message);
 	}
 
 	public Message<?> getMessage() {
-		return this.message;
+		try {
+			return this.messages.get(0);
+		}
+		catch (IndexOutOfBoundsException e){
+			return null;
+		}
+	}
+
+	public void addMessage(Message<?> message) {
+		this.messages.add(message);
+	}
+
+	public List<Message<?>> getMessages() {
+		return this.messages;
 	}
 
 	/**
