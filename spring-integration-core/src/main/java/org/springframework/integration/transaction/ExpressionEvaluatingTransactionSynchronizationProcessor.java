@@ -127,51 +127,46 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	private void doProcess(IntegrationResourceHolder holder, Expression expression, MessageChannel messageChannel,
 			String expressionType) {
-		Message<?> message = holder.getMessage();
-		if (message != null) {
-			if (expression != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString()
-							+ "' on " + message);
-				}
-				EvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(holder);
-				Object value = expression.getValue(evaluationContextToUse, message);
-				if (value != null) {
-					Message<?> spelResultMessage = null;
+		for(Message<?> message : holder.getMessages()) {
+			if (message != null) {
+				if (expression != null) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Sending expression result message to " + messageChannel + " " +
-								"as part of '" + expressionType + "' transaction synchronization");
+						logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString() + "' on " + message);
 					}
-					try {
-						spelResultMessage = this.getMessageBuilderFactory().withPayload(value)
-								.copyHeaders(message.getHeaders())
-								.build();
-						this.sendMessage(messageChannel, spelResultMessage);
+					EvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(holder);
+					Object value = expression.getValue(evaluationContextToUse, message);
+					if (value != null) {
+						Message<?> spelResultMessage = null;
+						if (logger.isDebugEnabled()) {
+							logger.debug("Sending expression result message to " + messageChannel + " " + "as part of '" + expressionType + "' transaction synchronization");
+						}
+						try {
+							spelResultMessage = this.getMessageBuilderFactory().withPayload(value).copyHeaders(message.getHeaders()).build();
+							this.sendMessage(messageChannel, spelResultMessage);
+						}
+						catch (Exception e) {
+							logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
+						}
 					}
-					catch (Exception e) {
-						logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
+					else {
+						if (logger.isTraceEnabled()) {
+							logger.trace("Expression evaluation returned null");
+						}
 					}
 				}
 				else {
-					if (logger.isTraceEnabled()) {
-						logger.trace("Expression evaluation returned null");
+					if (logger.isDebugEnabled()) {
+						logger.debug("Sending received message to " + messageChannel + " as part of '" + expressionType + "' transaction synchronization");
+					}
+					try {
+						// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
+						// this means that this method will be called without explicit configuration thus no channel
+						this.sendMessage(messageChannel, this.getMessageBuilderFactory().fromMessage(message).build());
+					}
+					catch (Exception e) {
+						logger.error("Failed to send " + message, e);
 					}
 				}
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Sending received message to " + messageChannel + " as part of '" +
-							expressionType + "' transaction synchronization");
-				}
-				try {
-					// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
-					// this means that this method will be called without explicit configuration thus no channel
-					this.sendMessage(messageChannel, this.getMessageBuilderFactory().fromMessage(message).build());
-				}
-				catch (Exception e) {
-					logger.error("Failed to send " + message, e);
-				}
-
 			}
 		}
 	}
