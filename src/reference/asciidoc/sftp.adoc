@@ -469,17 +469,17 @@ public class SftpJavaApplication {
     public SftpInboundFileSynchronizer sftpInboundFileSynchronizer() {
         SftpInboundFileSynchronizer fileSynchronizer = new SftpInboundFileSynchronizer(sftpSessionFactory());
         fileSynchronizer.setDeleteRemoteFiles(false);
-        fileSynchronizer.setRemoteDirectory("/");
+        fileSynchronizer.setRemoteDirectory("foo");
         fileSynchronizer.setFilter(new SftpSimplePatternFileListFilter("*.xml"));
         return fileSynchronizer;
     }
 
     @Bean
-    @InboundChannelAdapter(channel = "sftpChannel")
+    @InboundChannelAdapter(channel = "sftpChannel", poller = @Poller(fixedDelay = "5000"))
     public MessageSource<File> sftpMessageSource() {
         SftpInboundFileSynchronizingMessageSource source =
                 new SftpInboundFileSynchronizingMessageSource(sftpInboundFileSynchronizer());
-        source.setLocalDirectory(new File("ftp-inbound"));
+        source.setLocalDirectory(new File("sftp-inbound"));
         source.setAutoCreateLocalDirectory(true);
         source.setLocalFilter(new AcceptOnceFileListFilter<File>());
         source.setMaxFetchSize(1);
@@ -521,12 +521,14 @@ public class SftpJavaApplication {
     public IntegrationFlow sftpInboundFlow() {
         return IntegrationFlows
             .from(s -> s.sftp(this.sftpSessionFactory)
-                     .preserveTimestamp(true)
-                     .remoteDirectory("sftpSource")
-                     .regexFilter(".*\\.txt$")
-                     .localFilenameExpression("#this.toUpperCase() + '.a'")
-                     .localDirectory(this.sftpServer.getTargetLocalDirectory()),
-                 e -> e.id("sftpInboundAdapter").autoStartup(false))
+                    .preserveTimestamp(true)
+                    .remoteDirectory("foo")
+                    .regexFilter(".*\\.txt$")
+                    .localFilenameExpression("#this.toUpperCase() + '.a'")
+                    .localDirectory(new File("sftp-inbound")),
+                 e -> e.id("sftpInboundAdapter")
+                    .autoStartup(true)
+                    .poller(Pollers.fixedDelay(5000)))
             .handle(m -> System.out.println(m.getPayload()))
             .get();
     }

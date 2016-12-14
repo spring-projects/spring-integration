@@ -430,13 +430,13 @@ public class FtpJavaApplication {
     public FtpInboundFileSynchronizer ftpInboundFileSynchronizer() {
         FtpInboundFileSynchronizer fileSynchronizer = new FtpInboundFileSynchronizer(ftpSessionFactory());
         fileSynchronizer.setDeleteRemoteFiles(false);
-        fileSynchronizer.setRemoteDirectory("/");
+        fileSynchronizer.setRemoteDirectory("foo");
         fileSynchronizer.setFilter(new FtpSimplePatternFileListFilter("*.xml"));
         return fileSynchronizer;
     }
 
     @Bean
-    @InboundChannelAdapter(channel = "ftpChannel")
+    @InboundChannelAdapter(channel = "ftpChannel", poller = @Poller(fixedDelay = "5000"))
     public MessageSource<File> ftpMessageSource() {
         FtpInboundFileSynchronizingMessageSource source =
                 new FtpInboundFileSynchronizingMessageSource(ftpInboundFileSynchronizer());
@@ -483,11 +483,13 @@ public class FtpJavaApplication {
         return IntegrationFlows
             .from(s -> s.ftp(this.ftpSessionFactory)
                     .preserveTimestamp(true)
-                    .remoteDirectory("ftpSource")
+                    .remoteDirectory("foo")
                     .regexFilter(".*\\.txt$")
                     .localFilename(f -> f.toUpperCase() + ".a")
-                    .localDirectory(new File("d:\ftp_files")),
-                e -> e.id("ftpInboundAdapter").autoStartup(false))
+                    .localDirectory(new File("d:\\ftp_files")),
+                e -> e.id("ftpInboundAdapter")
+                    .autoStartup(true)
+                    .poller(Pollers.fixedDelay(5000)))
             .handle(m -> System.out.println(m.getPayload()))
             .get();
     }
