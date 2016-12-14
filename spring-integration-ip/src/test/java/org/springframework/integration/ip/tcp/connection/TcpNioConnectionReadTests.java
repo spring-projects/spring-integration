@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
@@ -38,9 +41,11 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializ
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class TcpNioConnectionReadTests {
@@ -187,8 +192,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			semaphore.release();
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -211,6 +223,12 @@ public class TcpNioConnectionReadTests {
 		CountDownLatch done = SocketTestUtils.testSendLengthOverflow(scf.getPort());
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("Message length 2147483647 exceeds max message length: 2048"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
@@ -224,8 +242,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			semaphore.release();
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -248,6 +273,12 @@ public class TcpNioConnectionReadTests {
 		CountDownLatch done = SocketTestUtils.testSendStxEtxOverflow(scf.getPort());
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("ETX not found before max message length: 1024"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
@@ -261,8 +292,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			semaphore.release();
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -285,6 +323,12 @@ public class TcpNioConnectionReadTests {
 		CountDownLatch done = SocketTestUtils.testSendCrLfOverflow(scf.getPort());
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("CRLF not found before max message length: 1024"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
@@ -293,7 +337,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -303,8 +346,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			semaphore.release();
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -325,6 +375,12 @@ public class TcpNioConnectionReadTests {
 		socket.close();
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("Connection is closed"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
@@ -332,7 +388,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -342,8 +397,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			semaphore.release();
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -365,6 +427,12 @@ public class TcpNioConnectionReadTests {
 		socket.close();
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("Connection is closed"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
@@ -372,7 +440,6 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -383,10 +450,8 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 *
 	 * @throws Exception
 	 */
-
 	@Test
 	public void testCloseCleanupStxEtx() throws Exception {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
@@ -395,10 +460,8 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 *
 	 * @throws Exception
 	 */
-
 	@Test
 	public void testCloseCleanupLengthHeader() throws Exception {
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
@@ -411,8 +474,15 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+
+		final CountDownLatch errorMessageLetch = new CountDownLatch(1);
+		final AtomicReference<Throwable> errorMessageRef = new AtomicReference<Throwable>();
+
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
-			responses.add(message);
+			if (message instanceof ErrorMessage) {
+				errorMessageRef.set(((ErrorMessage) message).getPayload());
+				errorMessageLetch.countDown();
+			}
 			return false;
 		}, new TcpSender() {
 
@@ -433,6 +503,12 @@ public class TcpNioConnectionReadTests {
 		socket.close();
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+
+		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
+
+		assertThat(errorMessageRef.get().getMessage(),
+				containsString("Connection is closed"));
+
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.stop();
