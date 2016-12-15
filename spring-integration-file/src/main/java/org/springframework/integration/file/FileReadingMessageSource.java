@@ -270,13 +270,16 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Switch this {@link FileReadingMessageSource} to use its internal
-	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} based on the Java 7 {@link WatchService}.
 	 * @param useWatchService the {@code boolean} flag to switch to
 	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @throws IllegalArgumentException if {@link WatchService} isn't available, e.g. Java 6 environment.
 	 * @since 4.3
 	 * @see #setWatchEvents
 	 */
 	public void setUseWatchService(boolean useWatchService) {
+		Assert.isTrue(!useWatchService || WATCH_SERVICE_PRESENT,
+				"'java.nio.file.WatchService' is available only since Java 7.");
 		this.useWatchService = useWatchService;
 	}
 
@@ -284,10 +287,13 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * The {@link WatchService} event types.
 	 * If {@link #setUseWatchService} isn't {@code true}, this option is ignored.
 	 * @param watchEvents the set of {@link WatchEventType}.
+	 * @throws IllegalArgumentException if {@link WatchService} isn't available, e.g. Java 6 environment.
 	 * @since 4.3
 	 * @see #setUseWatchService
 	 */
 	public void setWatchEvents(WatchEventType... watchEvents) {
+		Assert.isTrue(!this.useWatchService || WATCH_SERVICE_PRESENT,
+				"'java.nio.file.WatchService' is available only since Java 7.");
 		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
 		Assert.noNullElements(watchEvents, "'watchEvents' must not contain null elements.");
 		Assert.state(!this.running.get(), "Cannot change watch events while running.");
