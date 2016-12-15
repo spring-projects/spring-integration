@@ -54,6 +54,7 @@ import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@link MessageSource} that creates messages from a file system directory.
@@ -85,6 +86,9 @@ import org.springframework.util.Assert;
  */
 public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File>, Lifecycle {
 
+	private static boolean WATCH_SERVICE_PRESENT =
+			ClassUtils.isPresent("java.nio.file.WatchService", ClassUtils.getDefaultClassLoader());
+
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
@@ -114,7 +118,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private boolean useWatchService;
 
-	private WatchEventType[] watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+	private WatchEventType[] watchEvents;
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -161,6 +165,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
 		this.toBeReceived = new PriorityBlockingQueue<File>(
 				DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+		if (WATCH_SERVICE_PRESENT) {
+			this.watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+		}
 	}
 
 
