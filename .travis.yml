@@ -21,5 +21,4 @@ install: true
 env:
   - TERM=dumb SI_FATAL_WHEN_NO_BEANFACTORY=true NO_REFERENCE_TASK=true
 script:
-#    - ./gradlew check --refresh-dependencies --no-daemon
-    - ./gradlew :spring-integration-ip:test --no-daemon --tests=*TcpNioConnectionReadTests -d
+    - ./gradlew check --refresh-dependencies --no-daemon
