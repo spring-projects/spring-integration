@@ -54,6 +54,7 @@ import org.springframework.lang.UsesJava7;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@link MessageSource} that creates messages from a file system directory.
@@ -85,6 +86,9 @@ import org.springframework.util.Assert;
  */
 public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File>, Lifecycle {
 
+	private static boolean WATCH_SERVICE_PRESENT =
+			ClassUtils.isPresent("java.nio.file.WatchService", ClassUtils.getDefaultClassLoader());
+
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
@@ -114,7 +118,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private boolean useWatchService;
 
-	private WatchEventType[] watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+	private WatchEventType[] watchEvents;
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -161,6 +165,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
 		this.toBeReceived = new PriorityBlockingQueue<File>(
 				DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+		if (WATCH_SERVICE_PRESENT) {
+			this.watchEvents = new WatchEventType[] { WatchEventType.CREATE };
+		}
 	}
 
 
@@ -263,13 +270,16 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Switch this {@link FileReadingMessageSource} to use its internal
-	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} based on the Java 7 {@link WatchService}.
 	 * @param useWatchService the {@code boolean} flag to switch to
 	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @throws IllegalArgumentException if {@link WatchService} isn't available, e.g. Java 6 environment.
 	 * @since 4.3
 	 * @see #setWatchEvents
 	 */
 	public void setUseWatchService(boolean useWatchService) {
+		Assert.isTrue(!useWatchService || WATCH_SERVICE_PRESENT,
+				"'java.nio.file.WatchService' is available only since Java 7.");
 		this.useWatchService = useWatchService;
 	}
 
@@ -277,10 +287,13 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * The {@link WatchService} event types.
 	 * If {@link #setUseWatchService} isn't {@code true}, this option is ignored.
 	 * @param watchEvents the set of {@link WatchEventType}.
+	 * @throws IllegalArgumentException if {@link WatchService} isn't available, e.g. Java 6 environment.
 	 * @since 4.3
 	 * @see #setUseWatchService
 	 */
 	public void setWatchEvents(WatchEventType... watchEvents) {
+		Assert.isTrue(!this.useWatchService || WATCH_SERVICE_PRESENT,
+				"'java.nio.file.WatchService' is available only since Java 7.");
 		Assert.notEmpty(watchEvents, "'watchEvents' must not be empty.");
 		Assert.noNullElements(watchEvents, "'watchEvents' must not contain null elements.");
 		Assert.state(!this.running.get(), "Cannot change watch events while running.");
