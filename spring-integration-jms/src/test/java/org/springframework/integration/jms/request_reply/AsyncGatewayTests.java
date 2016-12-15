@@ -112,7 +112,7 @@ public class AsyncGatewayTests {
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));
 		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(JmsTimeoutException.class));
 		assertEquals("foo", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
-		this.gateway1.stop();
+		this.gateway2.stop();
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class AsyncGatewayTests {
 		assertNotNull(received);
 		org.springframework.messaging.Message<?> error = errors.receive(1000);
 		assertNull(error);
-		this.gateway1.stop();
+		this.gateway2.stop();
 	}
 
 	@Configuration
@@ -138,7 +138,7 @@ public class AsyncGatewayTests {
 		@Bean
 		public CachingConnectionFactory ccf() {
 			return new CachingConnectionFactory(
-					new ActiveMQConnectionFactory("vm://localhosti?broker.persistent=false"));
+					new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		}
 
 		@Bean

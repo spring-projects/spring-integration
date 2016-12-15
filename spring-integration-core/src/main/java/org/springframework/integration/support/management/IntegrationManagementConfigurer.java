@@ -17,8 +17,12 @@
 package org.springframework.integration.support.management;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
@@ -35,13 +39,22 @@ import org.springframework.util.StringUtils;
  * Configures counts, stats, logging for all (or selected) components.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2
  *
  */
 public class IntegrationManagementConfigurer implements SmartInitializingSingleton, ApplicationContextAware,
 		BeanNameAware {
 
+	private static final Log logger = LogFactory.getLog(IntegrationManagementConfigurer.class);
+
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
+
+	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<String, MessageChannelMetrics>();
+
+	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
+
+	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
 
 	private ApplicationContext applicationContext;
 
@@ -60,7 +73,6 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	private String[] enabledCountsPatterns = {  };
 
 	private String[] enabledStatsPatterns = {  };
-
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -230,6 +242,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		if (bean instanceof ConfigurableMetricsAware) {
 			((ConfigurableMetricsAware<AbstractMessageChannelMetrics>) bean).configureMetrics(metrics);
 		}
+		this.channelsByName.put(name, bean);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -255,6 +268,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		if (bean instanceof ConfigurableMetricsAware) {
 			((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) bean).configureMetrics(metrics);
 		}
+
+		this.handlersByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
 	}
 
 	private void configureSourceMetrics(String name, MessageSourceMetrics bean) {
@@ -265,6 +280,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		else {
 			bean.setCountsEnabled(this.defaultCountsEnabled);
 		}
+		this.sourcesByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
 	}
 
 	/**
@@ -294,23 +310,52 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		return null; //NOSONAR - intentional null return
 	}
 
+	public String[] getChannelNames() {
+		return this.channelsByName.keySet().toArray(new String[this.channelsByName.size()]);
+	}
+
+	public String[] getHandlerNames() {
+		return this.handlersByName.keySet().toArray(new String[this.handlersByName.size()]);
+	}
+
+	public String[] getSourceNames() {
+		return this.sourcesByName.keySet().toArray(new String[this.sourcesByName.size()]);
+	}
+
 	public MessageChannelMetrics getChannelMetrics(String name) {
-		if (this.applicationContext.containsBean(name)) {
-			return this.applicationContext.getBean(name, MessageChannelMetrics.class);
+		if (this.channelsByName.containsKey(name)) {
+			return this.channelsByName.get(name);
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("No channel found for (" + name + ")");
 		}
 		return null;
 	}
 
 	public MessageHandlerMetrics getHandlerMetrics(String name) {
-		if (this.applicationContext.containsBean(name)) {
-			return this.applicationContext.getBean(name, MessageHandlerMetrics.class);
+		if (this.handlersByName.containsKey(name)) {
+			return this.handlersByName.get(name);
+		}
+		if (this.handlersByName.containsKey(name + ".handler")) {
+			return this.handlersByName.get(name + ".handler");
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("No handler found for (" + name + ")");
 		}
 		return null;
 	}
 
 	public MessageSourceMetrics getSourceMetrics(String name) {
-		if (this.applicationContext.containsBean(name)) {
-			return this.applicationContext.getBean(name, MessageSourceMetrics.class);
+		if (this.sourcesByName.containsKey(name)) {
+			return this.sourcesByName.get(name);
+		}
+		if (this.sourcesByName.containsKey(name + ".source")) {
+			return this.sourcesByName.get(name + ".source");
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("No source found for (" + name + ")");
 		}
 		return null;
 	}
