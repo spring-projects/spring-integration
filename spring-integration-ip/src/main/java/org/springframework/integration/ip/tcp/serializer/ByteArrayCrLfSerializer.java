@@ -53,7 +53,7 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 		int n = 0;
 		int bite;
 		if (logger.isDebugEnabled()) {
-			logger.debug("Available to read:" + inputStream.available());
+			logger.debug("Available to read: " + inputStream.available());
 		}
 		try {
 			while (true) {
@@ -67,8 +67,7 @@ public class ByteArrayCrLfSerializer extends AbstractPooledBufferByteArraySerial
 				}
 				buffer[n++] = (byte) bite;
 				if (n >= this.maxMessageSize) {
-					throw new IOException("CRLF not found before max message length: "
-							+ this.maxMessageSize);
+					throw new IOException("CRLF not found before max message length: " + this.maxMessageSize);
 				}
 			}
 			return n - 1; // trim \r
