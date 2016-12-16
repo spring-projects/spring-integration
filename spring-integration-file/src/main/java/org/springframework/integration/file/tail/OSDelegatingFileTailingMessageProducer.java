@@ -62,6 +62,11 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		}
 	}
 
+	/**
+	 * If false, thread for capturing stderr will not be started
+	 * and stderr output will be ignored
+	 * @param enableStatusReader true or false
+	 */
 	public void setEnableStatusReader(boolean enableStatusReader) {
 		this.enableStatusReader = enableStatusReader;
 	}

@@ -95,6 +95,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertSame(exec, TestUtils.getPropertyValue(nativeAdapter, "taskExecutor"));
 		assertSame(sched, TestUtils.getPropertyValue(nativeAdapter, "taskScheduler"));
 		assertTrue(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(nativeAdapter, "enableStatusReader" ,Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(nativeAdapter, "phase"));
 		assertEquals(456L, TestUtils.getPropertyValue(nativeAdapter, "tailAttemptsDelay"));
 	}
