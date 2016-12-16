@@ -121,8 +121,9 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			this.process = process;
 			this.startProcessMonitor();
-			if(enableStatusReader)
+			if (this.enableStatusReader) {
 				this.startStatusReader();
+			}
 			this.reader = reader;
 			this.getTaskExecutor().execute(this);
 		}
