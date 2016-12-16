@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Gavin Gray
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -46,6 +47,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
+	private volatile boolean enableStatusReader = true;
+
 	private volatile BufferedReader reader;
 
 	private volatile TaskScheduler scheduler;
@@ -57,6 +60,10 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		else {
 			this.options = options;
 		}
+	}
+
+	public void setEnableStatusReader(boolean enableStatusReader) {
+		this.enableStatusReader = enableStatusReader;
 	}
 
 	public String getCommand() {
@@ -114,7 +121,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			this.process = process;
 			this.startProcessMonitor();
-			this.startStatusReader();
+			if(enableStatusReader)
+				this.startStatusReader();
 			this.reader = reader;
 			this.getTaskExecutor().execute(this);
 		}

@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -41,6 +42,7 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 			builder.addPropertyReference("outputChannel", channelName);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "native-options");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "enable-status-reader");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-scheduler");

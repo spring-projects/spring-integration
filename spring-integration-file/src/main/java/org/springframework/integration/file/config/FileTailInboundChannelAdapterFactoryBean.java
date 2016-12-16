@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -42,6 +43,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		implements BeanNameAware, SmartLifecycle, ApplicationEventPublisherAware {
 
 	private volatile String nativeOptions;
+
+	private volatile boolean enableStatusReader = true;
 
 	private volatile File file;
 
@@ -75,6 +78,10 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		if (StringUtils.hasText(nativeOptions)) {
 			this.nativeOptions = nativeOptions;
 		}
+	}
+
+	public void setEnableStatusReader(boolean enableStatusReader) {
+		this.enableStatusReader = enableStatusReader;
 	}
 
 	public void setFile(File file) {
@@ -180,6 +187,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		FileTailingMessageProducerSupport adapter;
 		if (this.delay == null && this.end == null && this.reopen == null) {
 			adapter = new OSDelegatingFileTailingMessageProducer();
+			((OSDelegatingFileTailingMessageProducer) adapter).setEnableStatusReader(this.enableStatusReader);
 			if (this.nativeOptions != null) {
 				((OSDelegatingFileTailingMessageProducer) adapter).setOptions(this.nativeOptions);
 			}
