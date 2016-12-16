@@ -37,6 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.Lifecycle;
@@ -110,15 +111,15 @@ public class ReactiveStreamsTests {
 		Flux.from(this.pollablePublisher)
 				.take(6)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+				.log("org.springframework.integration.flux2")
 				.doOnNext(p -> latch.countDown())
 				.subscribe();
 
 		CountDownLatch secondSubscriberLatch = new CountDownLatch(1);
 
 		Future<List<Integer>> future =
-				Executors.newSingleThreadExecutor().submit(() -> {
-					Thread.sleep(100);
-					return Flux.just("11,12,13")
+				Executors.newSingleThreadExecutor().submit(() ->
+					Flux.just("11,12,13")
 							.map(v -> v.split(","))
 							.flatMapIterable(Arrays::asList)
 							.map(Integer::parseInt)
@@ -128,9 +129,8 @@ public class ReactiveStreamsTests {
 							.map(Message::getPayload)
 							.log("org.springframework.integration.flux")
 							.collectList()
-							.doOnSubscribe(s -> secondSubscriberLatch.countDown())
-							.block(Duration.ofSeconds(10));
-				}
+							.doOnRequest(s -> secondSubscriberLatch.countDown())
+							.block(Duration.ofSeconds(10))
 				);
 
 		assertTrue(secondSubscriberLatch.await(10, TimeUnit.SECONDS));
