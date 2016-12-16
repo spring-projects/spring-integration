@@ -28,6 +28,7 @@
 		native-options="-F -n 6"
 		task-executor="exec"
 		task-scheduler="sched"
+		enable-status-reader="false"
 		file-delay="456"
 		file="/tmp/foo"
 		auto-startup="true"

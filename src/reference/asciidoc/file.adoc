@@ -448,6 +448,18 @@ If the tail command fails (on some platforms, a missing file causes the `tail` t
 
 [source,xml]
 ----
+<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	enable-status-reader="false"
+	task-executor="exec"
+	file="/tmp/foo"/>
+----
+
+By default native adapter capture from standard output and send them as messages and from standard error to raise events.
+Starting with _version 4.3.6_, you can discard the standard error events by setting the `enable-status-reader` to `false`.
+
+[source,xml]
+----
 <int-file:tail-inbound-channel-adapter id="apache"
 	channel="input"
 	task-executor="exec"
