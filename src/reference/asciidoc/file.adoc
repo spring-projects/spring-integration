@@ -448,6 +448,18 @@ If the tail command fails (on some platforms, a missing file causes the `tail` t
 
 [source,xml]
 ----
+<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	enable-status-reader="false"
+	task-executor="exec"
+	file="/tmp/foo"/>
+----
+
+This creates a native adapter with default '-F -n 0' options (follow the file name from the current end) and discard any messages logged to stderr.
+
+
+[source,xml]
+----
 <int-file:tail-inbound-channel-adapter id="apache"
 	channel="input"
 	task-executor="exec"
