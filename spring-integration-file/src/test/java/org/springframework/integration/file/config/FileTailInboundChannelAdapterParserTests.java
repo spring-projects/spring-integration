@@ -38,6 +38,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author Gary Russell
@@ -47,6 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class FileTailInboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("default")
@@ -78,6 +80,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertEquals("tail -F -n 0 " + fileName, TestUtils.getPropertyValue(defaultAdapter, "command"));
 		assertSame(exec, TestUtils.getPropertyValue(defaultAdapter, "taskExecutor"));
 		assertTrue(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(defaultAdapter, "enableStatusReader", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(defaultAdapter, "phase"));
 		assertSame(this.tailErrorChannel, TestUtils.getPropertyValue(defaultAdapter, "errorChannel"));
 		this.defaultAdapter.stop();
@@ -95,7 +98,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertSame(exec, TestUtils.getPropertyValue(nativeAdapter, "taskExecutor"));
 		assertSame(sched, TestUtils.getPropertyValue(nativeAdapter, "taskScheduler"));
 		assertTrue(TestUtils.getPropertyValue(nativeAdapter, "autoStartup", Boolean.class));
-		assertTrue(TestUtils.getPropertyValue(nativeAdapter, "enableStatusReader" ,Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(nativeAdapter, "enableStatusReader", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(nativeAdapter, "phase"));
 		assertEquals(456L, TestUtils.getPropertyValue(nativeAdapter, "tailAttemptsDelay"));
 	}

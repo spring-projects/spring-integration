@@ -234,6 +234,14 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="enable-status-reader" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configure the adapter to either start a thread for capturing stderr or not
+                        Default: True
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="file" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>

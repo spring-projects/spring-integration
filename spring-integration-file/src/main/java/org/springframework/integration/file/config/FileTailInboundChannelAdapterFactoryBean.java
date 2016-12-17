@@ -84,6 +84,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	 * If false, thread for capturing stderr will not be started
 	 * and stderr output will be ignored
 	 * @param enableStatusReader true or false
+	 * @since 4.3.6
 	 */
 	public void setEnableStatusReader(boolean enableStatusReader) {
 		this.enableStatusReader = enableStatusReader;
