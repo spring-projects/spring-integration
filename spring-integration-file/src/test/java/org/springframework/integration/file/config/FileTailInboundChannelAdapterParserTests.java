@@ -44,6 +44,7 @@ import org.springframework.test.annotation.DirtiesContext;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gavin Gray
+ * @author Ali Shahbour
  * @since 3.0
  */
 @ContextConfiguration
