@@ -455,8 +455,8 @@ If the tail command fails (on some platforms, a missing file causes the `tail` t
 	file="/tmp/foo"/>
 ----
 
-This creates a native adapter with default '-F -n 0' options (follow the file name from the current end) and discard any messages logged to stderr.
-
+By default native adapter capture from standard output and send them as messages and from standard error to raise events.
+You can discard the standard error events by setting enable-status-reader to false.
 
 [source,xml]
 ----
