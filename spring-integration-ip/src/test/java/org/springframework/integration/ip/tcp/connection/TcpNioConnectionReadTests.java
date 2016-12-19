@@ -301,7 +301,8 @@ public class TcpNioConnectionReadTests {
 		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
 
 		assertThat(errorMessageRef.get().getMessage(),
-				containsString("ETX not found before max message length: 1024"));
+				anyOf(containsString("Connection is closed"),
+						containsString("ETX not found before max message length: 1024")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
@@ -351,7 +352,8 @@ public class TcpNioConnectionReadTests {
 		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
 
 		assertThat(errorMessageRef.get().getMessage(),
-				containsString("CRLF not found before max message length: 1024"));
+				anyOf(containsString("Connection is closed"),
+						containsString("CRLF not found before max message length: 1024")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
@@ -528,7 +530,8 @@ public class TcpNioConnectionReadTests {
 		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
 
 		assertThat(errorMessageRef.get().getMessage(),
-				containsString("Connection is closed"));
+				anyOf(containsString("Connection is closed"),
+						containsString("Socket closed during message assembly")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
