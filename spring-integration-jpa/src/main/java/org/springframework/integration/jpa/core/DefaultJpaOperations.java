@@ -39,9 +39,9 @@ import org.springframework.util.StringUtils;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.2
- *
  */
 public class DefaultJpaOperations extends AbstractJpaOperations {
 
@@ -307,7 +307,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 					if (position != null) {
 
 						if (source instanceof PositionSupportingParameterSource) {
-							paramValue = ((PositionSupportingParameterSource) source).getValueByPosition(position - 1);
+							paramValue = ((PositionSupportingParameterSource) source).getValueByPosition(position);
 							query.setParameter(position, paramValue);
 						}
 						else {
@@ -325,7 +325,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 						else {
 							throw new JpaOperationFailedException(
 									"This parameter does not contain a parameter name. " +
-									"Additionally it is not a postitional parameter, neither.", queryString);
+									"Additionally it is not a positional parameter, neither.", queryString);
 						}
 					}
 

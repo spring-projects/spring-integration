@@ -33,12 +33,13 @@ import org.springframework.integration.jpa.support.parametersource.ExpressionEva
 import org.springframework.util.Assert;
 
 /**
+ * A SpEL expression based {@link ParameterSourceFactory} implementation.
  *
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
- * @since 2.2
  *
+ * @since 2.2
  */
 public class ExpressionEvaluatingParameterSourceFactory implements ParameterSourceFactory {
 
@@ -55,13 +56,12 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	}
 
 	public ExpressionEvaluatingParameterSourceFactory(BeanFactory beanFactory) {
-		this.parameters = new ArrayList<JpaParameter>();
+		this.parameters = new ArrayList<>();
 		this.expressionEvaluator.setBeanFactory(beanFactory);
 	}
 
 	/**
 	 * Define the (optional) parameter values.
-	 *
 	 * @param parameters the parameters to be set
 	 */
 	public void setParameters(List<JpaParameter> parameters) {
@@ -83,11 +83,11 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	}
 
 
-	class ExpressionEvaluatingParameterSource implements PositionSupportingParameterSource {
+	protected class ExpressionEvaluatingParameterSource implements PositionSupportingParameterSource {
 
 		private final Object input;
 
-		private volatile Map<String, Object> values = new HashMap<String, Object>();
+		private volatile Map<String, Object> values = new HashMap<>();
 
 		private final List<JpaParameter> parameters;
 
@@ -95,12 +95,13 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		private final ParameterExpressionEvaluator expressionEvaluator;
 
-		ExpressionEvaluatingParameterSource(Object input, List<JpaParameter> parameters, ParameterExpressionEvaluator expressionEvaluator) {
+		protected ExpressionEvaluatingParameterSource(Object input, List<JpaParameter> parameters,
+				ParameterExpressionEvaluator expressionEvaluator) {
 
 			this.input = input;
 			this.expressionEvaluator = expressionEvaluator;
 			this.parameters = parameters;
-			this.parametersMap = new HashMap<String, JpaParameter>(parameters.size());
+			this.parametersMap = new HashMap<>(parameters.size());
 			for (JpaParameter parameter : parameters) {
 				this.parametersMap.put(parameter.getName(), parameter);
 			}
@@ -110,7 +111,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		public Object getValueByPosition(int position) {
 
-			Assert.isTrue(position >= 0, "The position must be be non-negative.");
+			Assert.isTrue(position >= 0, "The position must be non-negative.");
 
 			if (position <= this.parameters.size()) {
 
@@ -160,7 +161,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 			JpaParameter jpaParameter = this.parametersMap.get(paramName);
 
-			Expression expression = null;
+			Expression expression;
 
 			if (this.input instanceof Collection<?>) {
 				expression = jpaParameter.getProjectionExpression();
