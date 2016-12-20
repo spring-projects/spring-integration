@@ -29,6 +29,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
@@ -131,8 +132,8 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		this.channel.send(new GenericMessage<String>("foo"));
 		latch.await(10, TimeUnit.SECONDS);
 		latch.reset();
-		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils
-				.getPropertyValue(this.channel, "container.consumers", Map.class).keySet().iterator().next();
+		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(this.channel,
+				"container.consumers", Set.class).iterator().next();
 		factory.destroy();
 		waitForNewConsumer(this.channel, consumer);
 		this.channel.send(new GenericMessage<String>("bar"));
@@ -144,15 +145,15 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 	private void waitForNewConsumer(PublishSubscribeAmqpChannel channel, BlockingQueueConsumer consumer)
 			throws Exception {
-		BlockingQueueConsumer newConsumer = (BlockingQueueConsumer) TestUtils
-				.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
+		BlockingQueueConsumer newConsumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(channel,
+				"container.consumers", Set.class).iterator().next();
 		int n = 0;
 		boolean newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
 				"consumerTags", Map.class).size() > 0;
 		while (n++ < 100 && !newConsumerIsConsuming) {
 			Thread.sleep(100);
-			newConsumer = (BlockingQueueConsumer) TestUtils
-					.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
+			newConsumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(channel,
+					"container.consumers", Set.class).iterator().next();
 			newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
 					"consumerTags", Map.class).size() > 0;
 		}
