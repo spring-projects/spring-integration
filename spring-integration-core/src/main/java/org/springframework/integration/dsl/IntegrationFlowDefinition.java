@@ -25,9 +25,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanCreationException;
@@ -96,7 +95,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import reactor.core.publisher.EmitterProcessor;
 import reactor.util.function.Tuple2;
 
 /**
@@ -2728,10 +2726,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 		else {
 			if (channelForPublisher != null) {
-				Processor<?, ?> processor = EmitterProcessor.create(false);
-				publisher = (Publisher<Message<T>>) processor;
-				Subscriber<Message<?>> subscriber = (Subscriber<Message<?>>) processor;
-				addComponent(new ReactiveConsumer(channelForPublisher, subscriber));
+				Publisher<?> messagePublisher = ReactiveConsumer.adaptToPublisher(channelForPublisher);
+				publisher = (Publisher<Message<T>>) messagePublisher;
 			}
 			else {
 				MessageChannel reactiveChannel = new ReactiveChannel();
@@ -2742,7 +2738,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		get();
 
-		return new PublisherIntegrationFlow<T>(this.integrationComponents, publisher);
+		return new PublisherIntegrationFlow<>(this.integrationComponents, publisher);
 	}
 
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,

@@ -111,7 +111,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		this.subscriber.cancel();
 	}
 
-	private Publisher<Message<?>> adaptToPublisher(MessageChannel inputChannel) {
+	public static Publisher<Message<?>> adaptToPublisher(MessageChannel inputChannel) {
 		if (inputChannel instanceof SubscribableChannel) {
 			return adaptSubscribableChannelToPublisher((SubscribableChannel) inputChannel);
 		}
@@ -124,11 +124,11 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		}
 	}
 
-	private Publisher<Message<?>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
+	private static Publisher<Message<?>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
 		return new SubscribableChannelPublisherAdapter(inputChannel);
 	}
 
-	private Publisher<Message<?>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
+	private static Publisher<Message<?>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
 		return new PollableChannelPublisherAdapter(inputChannel);
 	}
 

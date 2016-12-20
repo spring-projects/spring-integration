@@ -52,6 +52,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import reactor.core.publisher.Flux;
@@ -103,6 +104,7 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
+	@Repeat(10)
 	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
@@ -114,8 +116,6 @@ public class ReactiveStreamsTests {
 				.log("org.springframework.integration.flux2")
 				.doOnNext(p -> latch.countDown())
 				.subscribe();
-
-		CountDownLatch secondSubscriberLatch = new CountDownLatch(1);
 
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
@@ -129,11 +129,8 @@ public class ReactiveStreamsTests {
 							.map(Message::getPayload)
 							.log("org.springframework.integration.flux")
 							.collectList()
-							.doOnRequest(s -> secondSubscriberLatch.countDown())
 							.block(Duration.ofSeconds(10))
 				);
-
-		assertTrue(secondSubscriberLatch.await(10, TimeUnit.SECONDS));
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
