@@ -752,6 +752,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
 
+		private final SimpleMessageGroup sourceGroup;
+
 		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
 			/*
 			 * Since this group is temporary, and never added to, we simply use the
@@ -760,6 +762,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			 */
 			super(messageGroup.getMessages(), null, messageGroup.getGroupId(), messageGroup.getTimestamp(),
 					messageGroup.isComplete(), true);
+			if (messageGroup instanceof SimpleMessageGroup) {
+				this.sourceGroup = (SimpleMessageGroup) messageGroup;
+			}
+			else {
+				this.sourceGroup = null;
+			}
 		}
 
 		/**
@@ -773,20 +781,25 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.size() == 0) {
 				return true;
 			}
-			IntegrationMessageHeaderAccessor messageHeaderAccessor = new IntegrationMessageHeaderAccessor(message);
-			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
+			Integer messageSequenceNumber = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+					Integer.class);
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
-				return messageSequenceSize.equals(this.getSequenceSize())
-						&& !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
+				Integer messageSequenceSize = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
+						Integer.class);
+				if (messageSequenceSize == null) {
+					messageSequenceSize = Integer.valueOf(0);
+				}
+				return messageSequenceSize.equals(getSequenceSize())
+						&& !(this.sourceGroup != null ? this.sourceGroup.containsSequence(messageSequenceNumber)
+								: containsSequenceNumber(this.getMessages(), messageSequenceNumber));
 			}
 			return true;
 		}
 
 		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 			for (Message<?> member : messages) {
-				Integer memberSequenceNumber = new IntegrationMessageHeaderAccessor(member).getSequenceNumber();
-				if (messageSequenceNumber.equals(memberSequenceNumber)) {
+				if (messageSequenceNumber.equals(member.getHeaders().get(
+						IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class))) {
 					return true;
 				}
 			}
