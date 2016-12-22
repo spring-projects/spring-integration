@@ -419,7 +419,7 @@ public class IntegrationFlowTests {
 
 
 	@MessagingGateway(defaultRequestChannel = "controlBus")
-	private interface ControlBusGateway {
+	public interface ControlBusGateway {
 
 		void send(String command);
 	}
