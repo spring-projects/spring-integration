@@ -17,6 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -155,6 +156,55 @@ public class AggregatorTests {
 		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
 		assertNotNull(result);
 		assertEquals(60000, result.size());
+	}
+
+	@Test
+	public void testAggPerfDefaultPartial() throws InterruptedException, ExecutionException, TimeoutException {
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
+		handler.setCorrelationStrategy(message -> "foo");
+		handler.setReleasePartialSequences(true);
+		DirectChannel outputChannel = new DirectChannel();
+		handler.setOutputChannel(outputChannel);
+
+		final CompletableFuture<Collection<?>> resultFuture = new CompletableFuture<>();
+		outputChannel.subscribe(message -> {
+			Collection<?> payload = (Collection<?>) message.getPayload();
+			logger.warn("Received " + payload.size());
+			resultFuture.complete(payload);
+		});
+
+		SimpleMessageStore store = new SimpleMessageStore();
+
+		SimpleMessageGroupFactory messageGroupFactory =
+				new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.BLOCKING_QUEUE);
+
+		store.setMessageGroupFactory(messageGroupFactory);
+
+		handler.setMessageStore(store);
+
+
+		StopWatch stopwatch = new StopWatch();
+		stopwatch.start();
+		for (int i = 0; i < 120000; i++) {
+			if (i % 10000 == 0) {
+				stopwatch.stop();
+				logger.warn("Sent " + i + " in " + stopwatch.getTotalTimeSeconds() +
+						" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+				stopwatch.start();
+			}
+			handler.handleMessage(MessageBuilder.withPayload("foo")
+					.setSequenceSize(120000)
+					.setSequenceNumber(i + 1)
+					.build());
+		}
+		stopwatch.stop();
+		logger.warn("Sent " + 120000 + " in " + stopwatch.getTotalTimeSeconds() +
+				" (10k in " + stopwatch.getLastTaskTimeMillis() + "ms)");
+
+		Collection<?> result = resultFuture.get(10, TimeUnit.SECONDS);
+		assertNotNull(result);
+		assertEquals(120000, result.size());
+		assertThat(stopwatch.getTotalTimeSeconds(), lessThan(60.0)); // actually < 2.0, was many minutes
 	}
 
 	@Test
