@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +50,7 @@ import org.springframework.core.type.filter.AspectJTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
+import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -86,26 +89,13 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Map<String, Object> componentScan = importingClassMetadata
-				.getAnnotationAttributes("org.springframework.integration.annotation.IntegrationComponentScan");
+		Map<String, Object> componentScan =
+				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
 
-		Set<String> basePackages = new HashSet<String>();
-		for (String pkg : (String[]) componentScan.get("value")) {
-			if (StringUtils.hasText(pkg)) {
-				basePackages.add(pkg);
-			}
-		}
-		for (String pkg : (String[]) componentScan.get("basePackages")) {
-			if (StringUtils.hasText(pkg)) {
-				basePackages.add(pkg);
-			}
-		}
-		for (Class<?> clazz : (Class[]) componentScan.get("basePackageClasses")) {
-			basePackages.add(ClassUtils.getPackageName(clazz));
-		}
+		Collection<String> basePackages = getBasePackages(importingClassMetadata, registry);
 
 		if (basePackages.isEmpty()) {
-			basePackages.add(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
+			basePackages = Collections.singleton(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false) {
@@ -148,6 +138,26 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 				}
 			}
 		}
+	}
+
+	protected Collection<String> getBasePackages(AnnotationMetadata importingClassMetadata,
+			BeanDefinitionRegistry registry) {
+		Map<String, Object> componentScan =
+				importingClassMetadata.getAnnotationAttributes(IntegrationComponentScan.class.getName());
+
+		Set<String> basePackages = new HashSet<>();
+
+		for (String pkg : (String[]) componentScan.get("value")) {
+			if (StringUtils.hasText(pkg)) {
+				basePackages.add(pkg);
+			}
+		}
+
+		for (Class<?> clazz : (Class[]) componentScan.get("basePackageClasses")) {
+			basePackages.add(ClassUtils.getPackageName(clazz));
+		}
+
+		return basePackages;
 	}
 
 	private List<TypeFilter> typeFiltersFor(AnnotationAttributes filter, BeanDefinitionRegistry registry) {
