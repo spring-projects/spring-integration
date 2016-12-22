@@ -531,7 +531,8 @@ public class TcpNioConnectionReadTests {
 
 		assertThat(errorMessageRef.get().getMessage(),
 				anyOf(containsString("Connection is closed"),
-						containsString("Socket closed during message assembly")));
+						containsString("Socket closed during message assembly"),
+						containsString("Stream closed after 2 of 3")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
