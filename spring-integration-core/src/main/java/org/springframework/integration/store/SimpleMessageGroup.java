@@ -66,21 +66,23 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-	                          boolean complete) {
-		this(new LinkedHashSet<Message<?>>(), messages, groupId, timestamp, complete);
+			boolean complete) {
+		this(new LinkedHashSet<Message<?>>(), messages, groupId, timestamp, complete, false);
 	}
 
-	SimpleMessageGroup(Collection<Message<?>> internalStore, Collection<? extends Message<?>> messages, Object groupId,
-	                   long timestamp, boolean complete) {
+	protected SimpleMessageGroup(Collection<Message<?>> internalStore, Collection<? extends Message<?>> messages,
+			Object groupId, long timestamp, boolean complete, boolean storePreLoaded) {
 		Assert.notNull(internalStore, "'internalStore' must not be null");
-		Assert.notNull(messages, "'messages' must not be null");
 		this.messages = internalStore;
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
-		for (Message<?> message : messages) {
-			if (message != null) { //see INT-2666
-				addMessage(message);
+		if (!storePreLoaded) {
+			Assert.notNull(messages, "'messages' must not be null");
+			for (Message<?> message : messages) {
+				if (message != null) { //see INT-2666
+					addMessage(message);
+				}
 			}
 		}
 	}

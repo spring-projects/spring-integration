@@ -26,10 +26,12 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -40,6 +42,7 @@ import org.springframework.util.StopWatch;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class SimpleMessageGroupTests {
 
@@ -54,11 +57,12 @@ public class SimpleMessageGroupTests {
 		Constructor<SimpleMessageGroup> ctr = clazz.getDeclaredConstructor(MessageGroup.class);
 		ctr.setAccessible(true);
 		group = ctr.newInstance(group);
+		new DirectFieldAccessor(group).setPropertyValue("messages", new HashSet<Message<?>>());
 	}
 
 	@Test
 	public void shouldFindSupersedingMessagesIfSequenceAware() throws Exception {
-		this.prepareForSequenceAwareMessageGroup();
+		prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").setSequenceNumber(1).build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).setSequenceNumber(1).build();
 		assertThat(group.canAdd(message1), is(true));
@@ -69,7 +73,7 @@ public class SimpleMessageGroupTests {
 
 	@Test
 	public void shouldIgnoreMessagesWithZeroSequenceNumberIfSequenceAware() throws Exception {
-		this.prepareForSequenceAwareMessageGroup();
+		prepareForSequenceAwareMessageGroup();
 		final Message<?> message1 = MessageBuilder.withPayload("test").build();
 		final Message<?> message2 = MessageBuilder.fromMessage(message1).build();
 		assertThat(group.canAdd(message1), is(true));

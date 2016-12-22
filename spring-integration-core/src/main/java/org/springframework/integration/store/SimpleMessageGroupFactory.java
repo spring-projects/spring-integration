@@ -56,7 +56,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	@Override
 	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
 							   boolean complete) {
-		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete);
+		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete, false);
 	}
 
 	@Override
