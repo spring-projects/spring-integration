@@ -110,11 +110,11 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		if (queryExpression == null) {
+		if (this.queryExpression == null) {
 			throw new IllegalStateException("no query specified");
 		}
 
-		if (collectionNameExpression == null) {
+		if (this.collectionNameExpression == null) {
 			throw new IllegalStateException("no collection name specified");
 		}
 

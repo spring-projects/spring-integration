@@ -180,7 +180,8 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		try {
 			gateway.afterPropertiesSet();
 			Assert.fail("Expected the test case to throw an IllegalStateException");
-		} catch (IllegalStateException e) {
+		}
+		catch (IllegalStateException e) {
 			assertEquals("no query specified", e.getMessage());
 		}
 	}
