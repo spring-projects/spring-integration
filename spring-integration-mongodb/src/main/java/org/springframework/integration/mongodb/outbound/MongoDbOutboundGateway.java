@@ -82,6 +82,11 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.queryExpression = queryExpression;
 	}
 
+	public void setQueryExpressionString(String queryExpressionString) {
+		Assert.notNull(queryExpressionString, "queryExpressionString must not be null.");
+		this.queryExpression = EXPRESSION_PARSER.parseExpression(queryExpressionString);
+	}
+
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
@@ -110,13 +115,8 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		if (this.queryExpression == null) {
-			throw new IllegalStateException("no query specified");
-		}
-
-		if (this.collectionNameExpression == null) {
-			throw new IllegalStateException("no collection name specified");
-		}
+		Assert.state(this.queryExpression != null, "no query specified");
+		Assert.state(this.collectionNameExpression != null, "no collection name specified");
 
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
@@ -163,7 +163,8 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 			query = ((Query) expressionValue);
 		}
 		else {
-			throw new IllegalStateException("'queryExpression' must evaluate to String or org.springframework.data.mongodb.core.query.Query");
+			throw new IllegalStateException("'queryExpression' must evaluate to " +
+					"String or org.springframework.data.mongodb.core.query.Query");
 		}
 
 		return query;

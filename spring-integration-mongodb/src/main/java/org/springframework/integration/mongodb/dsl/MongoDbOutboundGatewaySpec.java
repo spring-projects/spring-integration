@@ -58,7 +58,7 @@ public class MongoDbOutboundGatewaySpec
 	}
 
 	public MongoDbOutboundGatewaySpec queryExpression(String queryExpression) {
-		this.target.setQueryExpression(PARSER.parseExpression(queryExpression));
+		this.target.setQueryExpressionString(queryExpression);
 		return this;
 	}
 
