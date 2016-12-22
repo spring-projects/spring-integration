@@ -294,9 +294,9 @@ To do that, simply use `collection-name-expression` where the provided expressio
 [[mongodb-outbound-gateway]]
 === MongoDB Outbound Gateway
 
-Starting with _version 5.0_, the MongoDb Outbound Gateway allows you to query a database by sending a Message to its request channel.
+Starting with _version 5.0_, the MongoDb Outbound Gateway is provided and it allows you to query a database by sending a Message to its request channel.
 The gateway will then send the response to the reply channel.
-The Message payload and headers can be used to specify the query.
+The Message payload and headers can be used to specify the query, as well as collection name.
 
 [source,xml]
 ----
@@ -349,7 +349,7 @@ public class MongoDbJavaApplication {
     @ServiceActivator(inputChannel = "requestChannel")
     public MessageHandler mongoDbOutboundGateway() {
         MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(this.mongoDbFactory);
-        gateway.setCollectionNameExpression(new LiteralExpression("foo"));
+        gateway.setCollectionName("foo");
         gateway.setMongoDbQuery("{'name' : 'Bob'}");
         gateway.setExpectSingleResult(true);
         gateway.setEntityClass(Person.class);
@@ -398,7 +398,7 @@ public class MongoDbJavaApplication {
     private MongoDbOutboundGatewaySpec queryOutboundGateway() {
         return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
                 .query("{name : 'Bob'}")
-                .collectionNameExpression(new LiteralExpression("foo"))
+                .collectionNameExpression("headers.collection")
                 .expectSingleResult(true)
                 .entityClass(Person.class);
     }

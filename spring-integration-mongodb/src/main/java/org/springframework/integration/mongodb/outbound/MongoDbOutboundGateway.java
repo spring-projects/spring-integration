@@ -78,6 +78,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setQueryExpression(Expression queryExpression) {
+		Assert.notNull(queryExpression, "queryExpression must not be null.");
 		this.queryExpression = queryExpression;
 	}
 
@@ -91,7 +92,13 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
+		Assert.notNull(collectionNameExpression, "collectionNameExpression must not be null.");
 		this.collectionNameExpression = collectionNameExpression;
+	}
+
+	public void setCollectionNameExpressionString(String collectionNameExpressionString) {
+		Assert.notNull(collectionNameExpressionString, "collectionNameExpressionString must not be null.");
+		this.collectionNameExpression = EXPRESSION_PARSER.parseExpression(collectionNameExpressionString);
 	}
 
 	public void setMongoConverter(MongoConverter mongoConverter) {
@@ -103,8 +110,13 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		Assert.isTrue(this.queryExpression != null, "no query specified");
-		Assert.isTrue(this.collectionNameExpression != null, "no collection name specified");
+		if (queryExpression == null) {
+			throw new IllegalStateException("no query specified");
+		}
+
+		if (collectionNameExpression == null) {
+			throw new IllegalStateException("no collection name specified");
+		}
 
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());

@@ -22,7 +22,6 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
@@ -78,8 +77,8 @@ public class MongoDbOutboundGatewaySpec
 		return this;
 	}
 
-	public MongoDbOutboundGatewaySpec collectionNameExpression(Expression collectionNameExpression) {
-		this.target.setCollectionNameExpression(collectionNameExpression);
+	public MongoDbOutboundGatewaySpec collectionNameExpression(String collectionNameExpression) {
+		this.target.setCollectionNameExpressionString(collectionNameExpression);
 		return this;
 	}
 

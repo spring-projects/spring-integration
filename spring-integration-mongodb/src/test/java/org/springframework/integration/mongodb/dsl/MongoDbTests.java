@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.dsl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -31,13 +32,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.BasicQuery;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
@@ -109,7 +110,10 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	@Test
 	@MongoDbAvailable
 	public void testGatewayWithSingleQuery() {
-		gatewaySingleQueryFlow.send(MessageBuilder.withPayload("Xavi").build());
+		gatewaySingleQueryFlow.send(MessageBuilder
+				.withPayload("Xavi")
+				.setHeader("collection", "data")
+				.build());
 
 		Message<?> result = this.getResultChannel.receive(10_000);
 
@@ -191,6 +195,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	public void testGatewayWithQueryFunction() {
 		gatewayQueryFunctionFlow.send(MessageBuilder
 				.withPayload("Gary")
+				.setHeader("collection", "data")
 				.build());
 
 		Message<?> result = this.getResultChannel.receive(10_000);
@@ -221,10 +226,13 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	}
 
 	private void createPersons() {
-		this.mongoTemplate.save(this.createPerson("Artem"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Gary"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Oleg"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Xavi"), COLLECTION_NAME);
+		BulkOperations bulkOperations = this.mongoTemplate.bulkOps(BulkOperations.BulkMode.ORDERED, COLLECTION_NAME);
+		bulkOperations.insert(Arrays.asList(
+				this.createPerson("Artem"),
+				this.createPerson("Gary"),
+				this.createPerson("Oleg"),
+				this.createPerson("Xavi")));
+		bulkOperations.execute();
 	}
 
 	@Configuration
@@ -303,7 +311,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		private MongoDbOutboundGatewaySpec queryOutboundGateway(String query, boolean expectSingleResult) {
 			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.query(query)
-					.collectionNameExpression(new LiteralExpression(COLLECTION_NAME))
+					.collectionNameExpression("headers.collection")
 					.expectSingleResult(expectSingleResult)
 					.entityClass(Person.class);
 		}
@@ -311,7 +319,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		private MongoDbOutboundGatewaySpec queryOutboundGatewayWithTemplate(String query, boolean expectSingleResult) {
 			return MongoDb.outboundGateway(mongoTemplate())
 					.query(query)
-					.collectionNameExpression(new LiteralExpression(COLLECTION_NAME))
+					.collectionName(COLLECTION_NAME)
 					.expectSingleResult(expectSingleResult)
 					.entityClass(Person.class);
 		}
@@ -319,7 +327,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		private MongoDbOutboundGatewaySpec queryExpressionOutboundGateway(boolean expectSingleResult) {
 			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryExpression("headers.query")
-					.collectionNameExpression(new LiteralExpression(COLLECTION_NAME))
+					.collectionName(COLLECTION_NAME)
 					.expectSingleResult(expectSingleResult)
 					.entityClass(Person.class);
 		}
@@ -327,7 +335,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		private MongoDbOutboundGatewaySpec queryExpressionOutboundGateway(boolean expectSingleResult, int maxResults) {
 			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryExpression("new BasicQuery('{''address.state'' : ''PA''}').limit(" + maxResults + ")")
-					.collectionNameExpression(new LiteralExpression(COLLECTION_NAME))
+					.collectionName(COLLECTION_NAME)
 					.expectSingleResult(expectSingleResult)
 					.entityClass(Person.class);
 		}
@@ -335,7 +343,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		private MongoDbOutboundGatewaySpec queryFunctionOutboundGateway(boolean expectSingleResult) {
 			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.queryFunction(msg -> new BasicQuery("{'name' : '" + msg.getPayload() + "'}"))
-					.collectionNameExpression(new LiteralExpression(COLLECTION_NAME))
+					.collectionNameExpression("headers.collection")
 					.expectSingleResult(expectSingleResult)
 					.entityClass(Person.class);
 		}

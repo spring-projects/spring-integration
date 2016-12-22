@@ -50,7 +50,7 @@ public class MongoDbOutboundGatewayParser extends AbstractConsumerEndpointParser
 
 		BeanDefinition queryExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("query", "query-expression",
-						parserContext, element, false);
+						parserContext, element, true);
 
 		if (queryExpressionDef != null) {
 			builder.addPropertyValue("queryExpression", queryExpressionDef);

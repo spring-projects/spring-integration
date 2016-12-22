@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -33,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
@@ -45,6 +47,7 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -54,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 	private static final String COLLECTION_NAME = "data";
 
@@ -73,10 +77,13 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Before
 	public void setUp() {
-		this.mongoTemplate.save(this.createPerson("Artem"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Gary"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Oleg"), COLLECTION_NAME);
-		this.mongoTemplate.save(this.createPerson("Xavi"), COLLECTION_NAME);
+		BulkOperations bulkOperations = this.mongoTemplate.bulkOps(BulkOperations.BulkMode.ORDERED, COLLECTION_NAME);
+		bulkOperations.insert(Arrays.asList(
+				this.createPerson("Artem"),
+				this.createPerson("Gary"),
+				this.createPerson("Oleg"),
+				this.createPerson("Xavi")));
+		bulkOperations.execute();
 	}
 
 	@After
@@ -125,7 +132,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 			gateway.handleRequestMessage(message);
 			Assert.fail("Expected the test case to throw an IllegalArgumentException");
 		}
-		catch (IllegalArgumentException e) {
+		catch (IllegalStateException e) {
 			assertEquals("no query specified", e.getMessage());
 		}
 	}
@@ -164,16 +171,18 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		assertEquals("Xavi", person.getName());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	@MongoDbAvailable
 	public void testListOfResultsWithQueryExpressionNotInitialized() {
-		Message<String> message = MessageBuilder.withPayload("{name : 'Xavi'}").build();
 		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(mongoDbFactory);
+		gateway.setBeanFactory(beanFactory);
 		gateway.setMongoConverter(mongoConverter);
-		gateway.setQueryExpression(PARSER.parseExpression("payload"));
-		gateway.afterPropertiesSet();
-
-		gateway.handleRequestMessage(message);
+		try {
+			gateway.afterPropertiesSet();
+			Assert.fail("Expected the test case to throw an IllegalStateException");
+		} catch (IllegalStateException e) {
+			assertEquals("no query specified", e.getMessage());
+		}
 	}
 
 	@Test
@@ -266,7 +275,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 			gateway.afterPropertiesSet();
 			Assert.fail("Expected the test case to throw an IllegalArgumentException");
 		}
-		catch (IllegalArgumentException e) {
+		catch (IllegalStateException e) {
 			assertEquals("no collection name specified", e.getMessage());
 		}
 	}
