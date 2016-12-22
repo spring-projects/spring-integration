@@ -411,6 +411,10 @@ Examples of such events are:
 
 This sequence of events might occur, for example, when a file is rotated.
 
+Starting with _version 5.0_, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
+
+`[message=Idle timeout, file=/tmp/foo] [idle time=5438]`
+
 NOTE: Not all platforms supporting a `tail` command provide these status messages.
 
 Messages emitted from these endpoints have the following headers:
@@ -418,7 +422,7 @@ Messages emitted from these endpoints have the following headers:
 - `FileHeaders.ORIGINAL_FILE` - the `File` object
 - `FileHeaders.FILENAME` - the file name (`File.getName()`)
 
-NOTE: In versions prior to _5.0_, the `FileHeaders.FILENAME` header contained a string representation of the file's absolute path.
+NOTE: In versions prior to _version 5.0_, the `FileHeaders.FILENAME` header contained a string representation of the file's absolute path.
 You can now obtain that by calling `getAbsolutePath()` on the original file header.
 
 Example configurations:
@@ -457,6 +461,18 @@ If the tail command fails (on some platforms, a missing file causes the `tail` t
 
 By default native adapter capture from standard output and send them as messages and from standard error to raise events.
 Starting with _version 4.3.6_, you can discard the standard error events by setting the `enable-status-reader` to `false`.
+
+[source,xml]
+----
+<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	idle-event-interval="5000"
+	task-executor="exec"
+	file="/tmp/foo"/>
+----
+
+`IdleEventInterval` is set to 5000 then, if no lines are written for 5 second, `FileTailingIdleEvent` will be triggered every 5 second.
+This can be useful if we need to stop the adapter.
 
 [source,xml]
 ----

@@ -16,16 +16,25 @@
 
 package org.springframework.integration.file.tail;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,17 +45,21 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
+import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingIdleEvent;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
  * @author Gavin Gray
  * @author Artem Bilan
- * @since 3.0
+ * @author Ali Shahbour
  *
+ * @since 3.0
  */
 public class FileTailingMessageProducerTests {
 
@@ -124,13 +137,61 @@ public class FileTailingMessageProducerTests {
 		adapter.stop();
 	}
 
+	@Test
+	public void testIdleEvent() throws Exception {
+		ApacheCommonsFileTailingMessageProducer adapter = new ApacheCommonsFileTailingMessageProducer();
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
+
+		CountDownLatch idleCountDownLatch = new CountDownLatch(1);
+		CountDownLatch fileExistCountDownLatch = new CountDownLatch(1);
+
+		adapter.setApplicationEventPublisher(event -> {
+			if (event instanceof FileTailingIdleEvent) {
+				idleCountDownLatch.countDown();
+			}
+			if (event instanceof FileTailingEvent) {
+				FileTailingEvent fileTailingEvent = (FileTailingEvent) event;
+				if (fileTailingEvent.getMessage().contains("File not found")) {
+					fileExistCountDownLatch.countDown();
+				}
+			}
+		});
+
+		File file = spy(new File(this.testDir, "foo"));
+		file.delete();
+		adapter.setFile(file);
+
+		adapter.setOutputChannel(new NullChannel());
+		adapter.setIdleEventInterval(10);
+		adapter.afterPropertiesSet();
+		adapter.start();
+
+		boolean noFile = fileExistCountDownLatch.await(10, TimeUnit.SECONDS);
+		assertTrue("file does not exist event did not emit ", noFile);
+		boolean noEvent = idleCountDownLatch.await(100, TimeUnit.MILLISECONDS);
+		assertFalse("event should not emit when no file exit", noEvent);
+		verify(file, atLeastOnce()).exists();
+
+		file.createNewFile();
+		boolean eventRaised = idleCountDownLatch.await(10, TimeUnit.SECONDS);
+		assertTrue("idle event did not emit", eventRaised);
+		adapter.stop();
+		file.delete();
+	}
+
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
 			throws Exception {
 		this.adapter = adapter;
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(event -> {
 			FileTailingEvent tailEvent = (FileTailingEvent) event;
-			logger.warn(event);
+			logger.debug(event);
 			events.add(tailEvent);
 		});
 		adapter.setFile(new File(testDir, "foo"));
@@ -174,6 +235,8 @@ public class FileTailingMessageProducerTests {
 			assertEquals(file, message.getHeaders().get(FileHeaders.ORIGINAL_FILE));
 			assertEquals(file.getName(), message.getHeaders().get(FileHeaders.FILENAME));
 		}
+
+		assertThat(events.size(), greaterThanOrEqualTo(1));
 	}
 
 	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {

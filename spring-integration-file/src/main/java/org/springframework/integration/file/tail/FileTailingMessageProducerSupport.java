@@ -17,6 +17,8 @@
 package org.springframework.integration.file.tail;
 
 import java.io.File;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -33,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -46,6 +49,14 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private volatile long tailAttemptsDelay = 5000;
+
+	private final AtomicLong lastNoMessageAlert = new AtomicLong();
+
+	private long idleEventInterval = 0;
+
+	private volatile long lastProduce = System.currentTimeMillis();
+
+	private ScheduledFuture<?> idleEventScheduledFuture;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -87,6 +98,16 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		this.tailAttemptsDelay = tailAttemptsDelay;
 	}
 
+	/**
+	 * How often to emit {@link FileTailingIdleEvent}s in milliseconds.
+	 * @param idleEventInterval the interval.
+	 * @since 5.0
+	 */
+	public void setIdleEventInterval(long idleEventInterval) {
+		Assert.isTrue(idleEventInterval > 0, "'idleEventInterval' must be > 0");
+		this.idleEventInterval = idleEventInterval;
+	}
+
 	protected long getMissingFileDelay() {
 		return this.tailAttemptsDelay;
 	}
@@ -106,6 +127,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
 				.build();
 		super.sendMessage(message);
+		updateLastProduce();
 	}
 
 	protected void publish(String message) {
@@ -114,8 +136,72 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.eventPublisher.publishEvent(event);
 		}
 		else {
-			logger.info("No publisher for event:" + message);
+			logger.info("No publisher for event: " + message);
 		}
+	}
+
+
+
+	@Override
+	protected void doStart() {
+		super.doStart();
+		if (this.idleEventInterval > 0) {
+			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
+				long now = System.currentTimeMillis();
+				long lastAlertAt = this.lastNoMessageAlert.get();
+				long lastProduce = this.lastProduce;
+				if (now > lastProduce + this.idleEventInterval
+						&& now > lastAlertAt + this.idleEventInterval
+						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
+					publishIdleEvent(now - lastProduce);
+				}
+			}, this.idleEventInterval);
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		super.doStop();
+		if (this.idleEventScheduledFuture != null) {
+			this.idleEventScheduledFuture.cancel(true);
+		}
+	}
+
+	private void publishIdleEvent(long idleTime) {
+		if (this.eventPublisher != null) {
+			if (getFile().exists()) {
+				FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
+				this.eventPublisher.publishEvent(event);
+			}
+		}
+		else {
+			logger.info("No publisher for idle event");
+		}
+	}
+
+	private void updateLastProduce() {
+		if (this.idleEventInterval > 0) {
+			this.lastProduce = System.currentTimeMillis();
+		}
+	}
+
+	public static class FileTailingIdleEvent extends FileTailingEvent {
+
+		private static final long serialVersionUID = -967118535347976767L;
+
+		private final long idleTime;
+
+		public FileTailingIdleEvent(Object source, File file, long idleTime) {
+			super(source, "Idle timeout", file);
+			this.idleTime = idleTime;
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() +
+					" [idle time=" + this.idleTime + "]";
+		}
+
 	}
 
 	public static class FileTailingEvent extends FileIntegrationEvent {
@@ -148,4 +234,5 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 
 	}
+
 }

@@ -23,8 +23,6 @@ import java.util.Date;
 
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -50,8 +48,6 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	private volatile boolean enableStatusReader = true;
 
 	private volatile BufferedReader reader;
-
-	private volatile TaskScheduler scheduler;
 
 	public void setOptions(String options) {
 		if (options == null) {
@@ -138,18 +134,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		}
 	}
 
-	private TaskScheduler getRequiredTaskScheduler() {
-		if (this.scheduler == null) {
-			TaskScheduler taskScheduler = super.getTaskScheduler();
-			if (taskScheduler == null) {
-				ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-				scheduler.initialize();
-				taskScheduler = scheduler;
-			}
-			this.scheduler = taskScheduler;
-		}
-		return this.scheduler;
-	}
+
 	/**
 	 * Runs a thread that waits for the Process result.
 	 */
@@ -185,7 +170,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 				if (logger.isInfoEnabled()) {
 					logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
 				}
-				getRequiredTaskScheduler()
+				getTaskScheduler()
 						.schedule(this::runExec, new Date(System.currentTimeMillis() + getMissingFileDelay()));
 			}
 		});

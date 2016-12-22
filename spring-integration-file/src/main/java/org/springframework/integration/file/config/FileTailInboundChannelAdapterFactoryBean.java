@@ -46,6 +46,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	private volatile boolean enableStatusReader = true;
 
+	private volatile Long idleEventInterval;
+
 	private volatile File file;
 
 	private volatile TaskExecutor taskExecutor;
@@ -88,6 +90,15 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	 */
 	public void setEnableStatusReader(boolean enableStatusReader) {
 		this.enableStatusReader = enableStatusReader;
+	}
+
+	/**
+	 * How often to emit {@link FileTailingMessageProducerSupport.FileTailingIdleEvent}s in milliseconds.
+	 * @param idleEventInterval the interval.
+	 * @since 5.0
+	 */
+	public void setIdleEventInterval(long idleEventInterval) {
+		this.idleEventInterval = idleEventInterval;
 	}
 
 	public void setFile(File file) {
@@ -221,6 +232,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		}
 		if (this.fileDelay != null) {
 			adapter.setTailAttemptsDelay(this.fileDelay);
+		}
+		if (this.idleEventInterval != null) {
+			adapter.setIdleEventInterval(this.idleEventInterval);
 		}
 		adapter.setOutputChannel(this.outputChannel);
 		adapter.setErrorChannel(this.errorChannel);

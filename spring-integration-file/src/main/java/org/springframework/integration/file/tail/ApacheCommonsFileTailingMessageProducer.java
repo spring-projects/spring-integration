@@ -88,7 +88,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void fileNotFound() {
-		this.publish("File not found:" + this.getFile().getAbsolutePath());
+		this.publish("File not found: " + this.getFile().getAbsolutePath());
 		try {
 			Thread.sleep(this.getMissingFileDelay());
 		}
@@ -99,7 +99,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void fileRotated() {
-		this.publish("File rotated:" + this.getFile().getAbsolutePath());
+		this.publish("File rotated: " + this.getFile().getAbsolutePath());
 	}
 
 	@Override
