@@ -31,5 +31,6 @@ public class MongoDbNamespaceHandler extends AbstractIntegrationNamespaceHandler
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new MongoDbInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new MongoDbOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-gateway", new MongoDbOutboundGatewayParser());
 	}
 }
