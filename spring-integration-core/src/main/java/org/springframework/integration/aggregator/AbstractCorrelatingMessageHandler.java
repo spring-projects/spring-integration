@@ -753,13 +753,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
 
 		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
-			super(messageGroup);
+			/*
+			 * Since this group is temporary, and never added to, we simply use the
+			 * supplied group's message collection for the lookup rather than creating a
+			 * new group.
+			 */
+			super(messageGroup.getMessages(), null, messageGroup.getGroupId(), messageGroup.getTimestamp(),
+					messageGroup.isComplete(), true);
 		}
 
 		/**
-		 * This method determines whether messages have been added to this group that supersede the given message based on
-		 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
-		 * or sequences that are missing certain sequence numbers.
+		 * This method determines whether messages have been added to this group that
+		 * supersede the given message based on its sequence id. This can be helpful to
+		 * avoid ending up with sequences larger than their required sequence size or
+		 * sequences that are missing certain sequence numbers.
 		 */
 		@Override
 		public boolean canAdd(Message<?> message) {

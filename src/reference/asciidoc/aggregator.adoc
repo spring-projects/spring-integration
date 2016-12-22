@@ -221,6 +221,35 @@ As shown above, it is also the default strategy.
 NOTE: Before _version 5.0_, the default release strategy was `SequenceSizeReleaseStrategy` which does not perform well with large groups.
 With that strategy, duplicate sequence numbers are detected and rejected; this operation can be expensive.
 
+If you are aggregating large groups, you don't need to release partial groups, and you don't need to detect/reject duplicate sequences, consider using the `SimpleSequenceSizeReleaseStrategy` instead - it is much more efficient for these use cases, and is the default since _version 5.0_ when partial group release is not specified.
+
+===== Aggregating Large Groups
+
+The 4.3 release changed the default `Collection` for messages in a `SimpleMessageGroup` to `HashSet` (it was previously a `BlockingQueue`).
+This was expensive when removing individual messages from large groups (an O(n) linear scan was required).
+Although the hash set is generally much faster for removing, it can be expensive for large messages because the hash has to be calculated (on both inserts and removes).
+If you have messages that are expensive to hash, consider using some other collection type.
+As discussed in <<message-group-factory>>, a `SimpleMessageGroupFactory` is provided so you can select the `Collection` that best suits your needs.
+You can also provide your own factory implementation to create some other `Collection<Message<?>>`.
+
+Here is an example of how to configure an aggregator with the previous implementation and a `SimpleSequenceSizeReleaseStrategy`.
+
+[source, xml]
+----
+<int:aggregator input-channel="aggregate"
+    output-channel="out" message-store="store" release-strategy="releaser" />
+
+<bean id="store" class="org.springframework.integration.store.SimpleMessageStore">
+    <property name="messageGroupFactory">
+        <bean class="org.springframework.integration.store.SimpleMessageGroupFactory">
+            <constructor-arg value="BLOCKING_QUEUE"/>
+        </bean>
+    </property>
+</bean>
+
+<bean id="releaser" class="SimpleSequenceSizeReleaseStrategy" />
+----
+
 ===== CorrelationStrategy
 
 The `CorrelationStrategy` interface is defined as follows:
@@ -635,9 +664,9 @@ For this purpose the `groupTimeout` option allows scheduling the `MessageGroup` 
 [source,xml]
 ----
 <aggregator input-channel="input" output-channel="output"
-		send-partial-result-on-expiry="true"
-		group-timeout-expression="size() ge 2 ? 10000 : -1"
-		release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+        send-partial-result-on-expiry="true"
+        group-timeout-expression="size() ge 2 ? 10000 : -1"
+        release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
 ----
 
 With this example, the normal _release_ will be possible if the aggregator receives the last message in sequence as defined by the `release-strategy-expression`.
