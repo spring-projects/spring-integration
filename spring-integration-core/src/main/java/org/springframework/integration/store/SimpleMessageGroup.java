@@ -18,8 +18,10 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
@@ -43,6 +45,8 @@ public class SimpleMessageGroup implements MessageGroup {
 	private final Object groupId;
 
 	private final Collection<Message<?>> messages;
+
+	private final Set<Integer> sequences = new HashSet<>();
 
 	private final long timestamp;
 
@@ -114,6 +118,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public boolean remove(Message<?> message) {
+		this.sequences.remove(message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
 		return this.messages.remove(message);
 	}
 
@@ -123,6 +128,10 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	private boolean addMessage(Message<?> message) {
+		Object sequence = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER);
+		if (sequence instanceof Integer) {
+			this.sequences.add((Integer) sequence);
+		}
 		return this.messages.add(message);
 	}
 
@@ -175,6 +184,18 @@ public class SimpleMessageGroup implements MessageGroup {
 	@Override
 	public void clear() {
 		this.messages.clear();
+		this.sequences.clear();
+	}
+
+	/**
+	 * Return true if a message with this sequence number header exists in
+	 * the group.
+	 * @param sequence the sequence number.
+	 * @return true if it exists.
+	 * @since 4.3.7
+	 */
+	public boolean containsSequence(Integer sequence) {
+		return this.sequences.contains(sequence);
 	}
 
 	@Override
