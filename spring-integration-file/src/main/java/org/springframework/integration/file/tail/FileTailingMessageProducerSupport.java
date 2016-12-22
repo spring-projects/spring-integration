@@ -17,6 +17,7 @@
 package org.springframework.integration.file.tail;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -26,6 +27,8 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.event.FileIntegrationEvent;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -33,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -46,6 +50,14 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private volatile long tailAttemptsDelay = 5000;
+
+	private final AtomicLong lastNoMessageAlert = new AtomicLong();
+
+	private long idleEventInterval = 0;
+
+	private volatile long lastReceive = System.currentTimeMillis();
+
+	private volatile TaskScheduler scheduler;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -95,6 +107,19 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		return this.taskExecutor;
 	}
 
+	protected TaskScheduler getRequiredTaskScheduler() {
+		if (this.scheduler == null) {
+			TaskScheduler taskScheduler = super.getTaskScheduler();
+			if (taskScheduler == null) {
+				ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+				scheduler.initialize();
+				taskScheduler = scheduler;
+			}
+			this.scheduler = taskScheduler;
+		}
+		return this.scheduler;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "file:tail-inbound-channel-adapter";
@@ -106,6 +131,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
 				.build();
 		super.sendMessage(message);
+		this.updateLastReceive();
 	}
 
 	protected void publish(String message) {
@@ -115,6 +141,68 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 		else {
 			logger.info("No publisher for event:" + message);
+		}
+	}
+
+	@Override
+	protected void doStart() {
+		super.doStart();
+		if (this.idleEventInterval > 0) {
+			this.getRequiredTaskScheduler().scheduleWithFixedDelay(() -> {
+				long now = System.currentTimeMillis();
+				long lastAlertAt = FileTailingMessageProducerSupport.this.lastNoMessageAlert.get();
+				long lastReceive = FileTailingMessageProducerSupport.this.lastReceive;
+				if (now > lastReceive + FileTailingMessageProducerSupport.this.idleEventInterval
+						&& now > lastAlertAt + FileTailingMessageProducerSupport.this.idleEventInterval
+						&& FileTailingMessageProducerSupport.this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
+					publishIdleEvent(now - lastReceive);
+				}
+			}, this.idleEventInterval);
+		}
+	}
+
+	/**
+	 * How often to emit {@link FileTailingIdleEvent}s in milliseconds.
+	 * @param idleEventInterval the interval.
+	 * @since 5.0
+	 */
+	public void setIdleEventInterval(long idleEventInterval) {
+		Assert.isTrue(idleEventInterval > 0, "'idleEventInterval' must be > 0");
+		this.idleEventInterval = idleEventInterval;
+	}
+
+	private void publishIdleEvent(long idleTime) {
+
+		if (this.eventPublisher != null) {
+			FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
+			this.eventPublisher.publishEvent(event);
+		}
+		else {
+			logger.info("No publisher for idle event:");
+		}
+	}
+
+	private void updateLastReceive() {
+		if (this.idleEventInterval > 0) {
+			this.lastReceive = System.currentTimeMillis();
+		}
+	}
+
+	public static class FileTailingIdleEvent extends FileTailingEvent {
+
+		private static final long serialVersionUID = -967118535347976767L;
+
+		private final long idleTime;
+
+		public FileTailingIdleEvent(Object source, File file, long idleTime) {
+			super(source, "Idle timeout", file);
+			this.idleTime = idleTime;
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() +
+					" [idle time=" + this.idleTime + "]";
 		}
 	}
 

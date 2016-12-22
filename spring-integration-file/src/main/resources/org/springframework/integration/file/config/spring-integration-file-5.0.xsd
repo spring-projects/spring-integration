@@ -302,6 +302,13 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="idle-event-interval" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The delay in milliseconds between idle events when no new lines are being tailed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="end">
                 <xsd:annotation>
                     <xsd:documentation>
