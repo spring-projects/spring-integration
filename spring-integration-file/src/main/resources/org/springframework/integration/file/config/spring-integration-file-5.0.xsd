@@ -272,8 +272,8 @@ Only files matching this regular expression will be picked up by this adapter.
                         A reference to a TaskScheduler; the default is the 'taskScheduler' bean
                         which is automatically configured for all Spring Integration applications.
                         The scheduler is used by the native adapter to reschedule
-                        the 'tail' process after a failure according to the 'file-delay'.
-                        This attribute is not allowed when using the Apache adapter.
+                        the 'tail' process after a failure according to the 'file-delay', and also
+                        it is used to send idle event.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">

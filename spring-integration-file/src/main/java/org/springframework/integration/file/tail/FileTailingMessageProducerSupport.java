@@ -17,6 +17,7 @@
 package org.springframework.integration.file.tail;
 
 import java.io.File;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,7 +29,6 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.event.FileIntegrationEvent;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -57,7 +57,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private volatile long lastReceive = System.currentTimeMillis();
 
-	private volatile TaskScheduler scheduler;
+	private ScheduledFuture<?> idleEventScheduledFuture;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -107,17 +107,9 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		return this.taskExecutor;
 	}
 
-	protected TaskScheduler getRequiredTaskScheduler() {
-		if (this.scheduler == null) {
-			TaskScheduler taskScheduler = super.getTaskScheduler();
-			if (taskScheduler == null) {
-				ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-				scheduler.initialize();
-				taskScheduler = scheduler;
-			}
-			this.scheduler = taskScheduler;
-		}
-		return this.scheduler;
+	@Override
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	@Override
@@ -131,7 +123,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
 				.build();
 		super.sendMessage(message);
-		this.updateLastReceive();
+		updateLastReceive();
 	}
 
 	protected void publish(String message) {
@@ -144,11 +136,13 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 	}
 
+
+
 	@Override
 	protected void doStart() {
 		super.doStart();
 		if (this.idleEventInterval > 0) {
-			this.getRequiredTaskScheduler().scheduleWithFixedDelay(() -> {
+			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
 				long lastAlertAt = FileTailingMessageProducerSupport.this.lastNoMessageAlert.get();
 				long lastReceive = FileTailingMessageProducerSupport.this.lastReceive;
@@ -158,6 +152,14 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 					publishIdleEvent(now - lastReceive);
 				}
 			}, this.idleEventInterval);
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		super.doStop();
+		if (this.idleEventScheduledFuture != null) {
+			this.idleEventScheduledFuture.cancel(true);
 		}
 	}
 
@@ -178,7 +180,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.eventPublisher.publishEvent(event);
 		}
 		else {
-			logger.info("No publisher for idle event:");
+			logger.info("No publisher for idle event");
 		}
 	}
 

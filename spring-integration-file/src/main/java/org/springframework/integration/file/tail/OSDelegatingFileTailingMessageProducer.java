@@ -170,7 +170,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 				if (logger.isInfoEnabled()) {
 					logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
 				}
-				this.getRequiredTaskScheduler()
+				getTaskScheduler()
 						.schedule(this::runExec, new Date(System.currentTimeMillis() + getMissingFileDelay()));
 			}
 		});

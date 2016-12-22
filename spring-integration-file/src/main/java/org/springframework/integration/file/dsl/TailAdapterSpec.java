@@ -65,6 +65,27 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 		return _this();
 	}
 
+
+	/**
+	 * This field control the stderr events
+	 * @param enableStatusReader
+	 * @return the spec
+	 */
+	public TailAdapterSpec enableStatusReader(boolean enableStatusReader) {
+		this.factoryBean.setEnableStatusReader(enableStatusReader);
+		return _this();
+	}
+
+	/**
+	 * Specify the idle interval before start sending idle events
+	 * @param idleEventInterval
+	 * @return the spec.
+	 */
+	public TailAdapterSpec idleEventInterval(long idleEventInterval)  {
+		this.factoryBean.setIdleEventInterval(idleEventInterval);
+		return _this();
+	}
+
 	/**
 	 * Configure a task executor. Defaults to a
 	 * {@link org.springframework.core.task.SimpleAsyncTaskExecutor}.
