@@ -28,7 +28,6 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.event.FileIntegrationEvent;
 import org.springframework.messaging.Message;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -108,11 +107,6 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	@Override
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
-	}
-
-	@Override
 	public String getComponentType() {
 		return "file:tail-inbound-channel-adapter";
 	}
@@ -144,11 +138,11 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		if (this.idleEventInterval > 0) {
 			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
-				long lastAlertAt = FileTailingMessageProducerSupport.this.lastNoMessageAlert.get();
-				long lastReceive = FileTailingMessageProducerSupport.this.lastReceive;
-				if (now > lastReceive + FileTailingMessageProducerSupport.this.idleEventInterval
-						&& now > lastAlertAt + FileTailingMessageProducerSupport.this.idleEventInterval
-						&& FileTailingMessageProducerSupport.this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
+				long lastAlertAt = this.lastNoMessageAlert.get();
+				long lastReceive = this.lastReceive;
+				if (now > lastReceive + this.idleEventInterval
+						&& now > lastAlertAt + this.idleEventInterval
+						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
 					publishIdleEvent(now - lastReceive);
 				}
 			}, this.idleEventInterval);

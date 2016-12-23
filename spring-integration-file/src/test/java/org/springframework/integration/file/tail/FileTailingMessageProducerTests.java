@@ -19,6 +19,7 @@ package org.springframework.integration.file.tail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -39,7 +40,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
+import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingIdleEvent;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -124,9 +127,47 @@ public class FileTailingMessageProducerTests {
 		adapter.stop();
 	}
 
+	@Test
+	@TailAvailable
+	public void testIdleEvent() throws Exception {
+		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
+		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
+		final List<FileTailingIdleEvent> events = new ArrayList<>();
+		adapter.setApplicationEventPublisher(event -> {
+			if (event instanceof FileTailingIdleEvent) {
+				FileTailingIdleEvent tailEvent = (FileTailingIdleEvent) event;
+				logger.warn(event);
+				events.add(tailEvent);
+			}
+		});
+		File file = new File(testDir, "foo");
+		file.delete();
+		FileOutputStream foo = new FileOutputStream(file);
+		for (int i = 0; i < 50; i++) {
+			foo.write(("hello" + i + "\n").getBytes());
+		}
+		foo.flush();
+		foo.close();
+		adapter.setFile(file);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		adapter.setIdleEventInterval(1000);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		Thread.sleep(4000);
+		assertTrue("expected at least one idle event", events.size() > 0);
+		adapter.stop();
+	}
+
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
 			throws Exception {
 		this.adapter = adapter;
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(event -> {
 			FileTailingEvent tailEvent = (FileTailingEvent) event;
