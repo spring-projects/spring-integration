@@ -8,7 +8,7 @@ buildscript {
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.7'
+		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 	}
 }
 
@@ -63,7 +63,7 @@ subprojects { subproject ->
 		ftpServerVersion = '1.0.6'
 
 
-		springVersionDefault = '3.2.15.RELEASE'
+		springVersionDefault = '3.2.18.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.2.RELEASE'
@@ -788,5 +788,5 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.7'
+	gradleVersion = '2.14.1'
 }
