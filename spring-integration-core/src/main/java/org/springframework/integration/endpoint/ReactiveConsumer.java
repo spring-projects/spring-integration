@@ -33,7 +33,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
-import reactor.core.Cancellation;
+import reactor.core.Disposable;
 import reactor.core.Exceptions;
 import reactor.core.Receiver;
 import reactor.core.Trackable;
@@ -195,7 +195,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	}
 
-	private static final class ConsumerSubscriber implements Subscriber<Message<?>>, Receiver, Cancellation, Trackable {
+	private static final class ConsumerSubscriber implements Subscriber<Message<?>>, Receiver, Disposable, Trackable {
 
 		private final Consumer<Message<?>> consumer;
 
