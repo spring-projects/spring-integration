@@ -46,7 +46,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final Collection<Message<?>> messages;
 
-	private final Set<Integer> sequences = new HashSet<>();
+	private final Set<Integer> sequences = new HashSet<Integer>();
 
 	private final long timestamp;
 
@@ -118,7 +118,8 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	@Override
 	public boolean remove(Message<?> message) {
-		this.sequences.remove(message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		this.sequences.remove(message.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class));
 		return this.messages.remove(message);
 	}
 
