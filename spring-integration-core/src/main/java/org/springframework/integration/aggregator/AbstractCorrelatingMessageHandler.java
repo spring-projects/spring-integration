@@ -781,10 +781,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.size() == 0) {
 				return true;
 			}
-			IntegrationMessageHeaderAccessor messageHeaderAccessor = new IntegrationMessageHeaderAccessor(message);
-			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
+			Integer messageSequenceNumber = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+					Integer.class);
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
+				Integer messageSequenceSize = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
+						Integer.class);
+				if (messageSequenceSize == null) {
+					messageSequenceSize = Integer.valueOf(0);
+				}
 				return messageSequenceSize.equals(getSequenceSize())
 						&& !(this.sourceGroup != null ? this.sourceGroup.containsSequence(messageSequenceNumber)
 								: containsSequenceNumber(this.getMessages(), messageSequenceNumber));
@@ -794,16 +798,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 			for (Message<?> member : messages) {
-				Object sequenceNumber = member.getHeaders().get(
-						IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER);
-				if (sequenceNumber instanceof Integer) {
-					Integer memberSequenceNumber = (Integer) sequenceNumber;
-					if (messageSequenceNumber.equals(memberSequenceNumber)) {
-						return true;
-					}
-				}
-				else {
-					throw new IllegalArgumentException("Expected Integer for sequenceNumber header");
+				if (messageSequenceNumber.equals(member.getHeaders().get(
+						IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class))) {
+					return true;
 				}
 			}
 			return false;

@@ -128,10 +128,8 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	private boolean addMessage(Message<?> message) {
-		Object sequence = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER);
-		if (sequence instanceof Integer) {
-			this.sequences.add((Integer) sequence);
-		}
+		Integer sequence = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class);
+		this.sequences.add(sequence != null ? sequence : 0);
 		return this.messages.add(message);
 	}
 
