@@ -169,7 +169,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private void publishIdleEvent(long idleTime) {
 
-		if (this.eventPublisher != null) {
+		if (this.eventPublisher != null && getFile().exists()) {
 			FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
 			this.eventPublisher.publishEvent(event);
 		}

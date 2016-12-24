@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -148,13 +149,15 @@ public class FileTailingMessageProducerTests {
 		});
 		File file = new File(testDir, "foo");
 		file.delete();
-		file.createNewFile();
 		adapter.setFile(file);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		adapter.setIdleEventInterval(100);
 		adapter.afterPropertiesSet();
 		adapter.start();
+		boolean noEvent = countDownLatch.await(500, TimeUnit.MILLISECONDS);
+		assertFalse("event should not emit when no file exit", noEvent);
+		file.createNewFile();
 		boolean eventRaised = countDownLatch.await(1, TimeUnit.SECONDS);
 		assertTrue("idle event did not emit", eventRaised);
 		adapter.stop();
