@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.CannotLoadBeanClassException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -28,11 +29,11 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.core.type.MethodMetadata;
-import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -82,8 +83,16 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 						if (value != null) {
 							String[] interceptors = (String[]) value;
 							String endpoint = beanName;
-							if (!MessageHandler.class.isAssignableFrom(
-									((StandardMethodMetadata) beanMethod).getIntrospectedMethod().getReturnType())) {
+							Class<?> returnType;
+							try {
+								returnType = ClassUtils.forName(beanMethod.getReturnTypeName(),
+										beanFactory.getBeanClassLoader());
+							}
+							catch (ClassNotFoundException e) {
+								throw new CannotLoadBeanClassException(beanDefinition.getDescription(),
+										beanName, beanMethod.getReturnTypeName(), e);
+							}
+							if (!MessageHandler.class.isAssignableFrom(returnType)) {
 								/*
 								   MessageHandler beans, populated from @Bean methods, have a complex id,
 								   including @Configuration bean name, method name and the Messaging annotation name.
