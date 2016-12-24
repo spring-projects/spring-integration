@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.StandardMethodMetadata;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.messaging.MessageHandler;
@@ -81,17 +82,24 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 					if (beanMethod.isAnnotated(annotationType)) {
 						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value");
 						if (value != null) {
-							String[] interceptors = (String[]) value;
-							String endpoint = beanName;
+
 							Class<?> returnType;
-							try {
-								returnType = ClassUtils.forName(beanMethod.getReturnTypeName(),
-										beanFactory.getBeanClassLoader());
+							if (beanMethod instanceof StandardMethodMetadata) {
+								returnType = ((StandardMethodMetadata) beanMethod).getIntrospectedMethod()
+										.getReturnType();
 							}
-							catch (ClassNotFoundException e) {
-								throw new CannotLoadBeanClassException(beanDefinition.getDescription(),
-										beanName, beanMethod.getReturnTypeName(), e);
+							else {
+								try {
+									returnType = ClassUtils.forName(beanMethod.getReturnTypeName(),
+											beanFactory.getBeanClassLoader());
+								}
+								catch (ClassNotFoundException e) {
+									throw new CannotLoadBeanClassException(beanDefinition.getDescription(),
+											beanName, beanMethod.getReturnTypeName(), e);
+								}
 							}
+
+							String endpoint = beanName;
 							if (!MessageHandler.class.isAssignableFrom(returnType)) {
 								/*
 								   MessageHandler beans, populated from @Bean methods, have a complex id,
@@ -101,6 +109,8 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 								endpoint = beanDefinition.getFactoryBeanName() + "." + beanName +
 										".*" + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 							}
+
+							String[] interceptors = (String[]) value;
 							for (String interceptor : interceptors) {
 								Map<String, String> idempotentEndpoint = new ManagedMap<String, String>();
 								idempotentEndpoint.put(interceptor, endpoint);
