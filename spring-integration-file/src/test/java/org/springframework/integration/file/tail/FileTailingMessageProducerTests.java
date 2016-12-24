@@ -27,6 +27,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +50,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Gary Russell
  * @author Gavin Gray
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -135,30 +138,25 @@ public class FileTailingMessageProducerTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(taskScheduler);
-		final List<FileTailingIdleEvent> events = new ArrayList<>();
+		CountDownLatch countDownLatch = new CountDownLatch(1);
 		adapter.setApplicationEventPublisher(event -> {
 			if (event instanceof FileTailingIdleEvent) {
 				FileTailingIdleEvent tailEvent = (FileTailingIdleEvent) event;
-				logger.warn(event);
-				events.add(tailEvent);
+				logger.debug(event);
+				countDownLatch.countDown();
 			}
 		});
 		File file = new File(testDir, "foo");
 		file.delete();
-		FileOutputStream foo = new FileOutputStream(file);
-		for (int i = 0; i < 50; i++) {
-			foo.write(("hello" + i + "\n").getBytes());
-		}
-		foo.flush();
-		foo.close();
+		file.createNewFile();
 		adapter.setFile(file);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
-		adapter.setIdleEventInterval(1000);
+		adapter.setIdleEventInterval(100);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		Thread.sleep(4000);
-		assertTrue("expected at least one idle event", events.size() > 0);
+		boolean eventRaised = countDownLatch.await(1, TimeUnit.SECONDS);
+		assertTrue("idle event did not emit", eventRaised);
 		adapter.stop();
 	}
 
@@ -171,7 +169,7 @@ public class FileTailingMessageProducerTests {
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(event -> {
 			FileTailingEvent tailEvent = (FileTailingEvent) event;
-			logger.warn(event);
+			logger.debug(event);
 			events.add(tailEvent);
 		});
 		adapter.setFile(new File(testDir, "foo"));

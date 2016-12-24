@@ -51,6 +51,8 @@ See <<feed>> for more information.
 The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to represent relative path in the `FileReadingMessageSource`.
 See <<file-reading>> for more information.
 
+The tail adapter now support `IdelEventInterval` to emit events when idle.
+
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.

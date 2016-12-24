@@ -67,8 +67,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 
 
 	/**
-	 * This field control the stderr events
-	 * @param enableStatusReader
+	 * This field control the stderr events.
+	 * @param enableStatusReader boolean to enable or disable events from stderr.
 	 * @return the spec
 	 */
 	public TailAdapterSpec enableStatusReader(boolean enableStatusReader) {
@@ -77,8 +77,8 @@ public class TailAdapterSpec extends MessageProducerSpec<TailAdapterSpec, FileTa
 	}
 
 	/**
-	 * Specify the idle interval before start sending idle events
-	 * @param idleEventInterval
+	 * Specify the idle interval before start sending idle events.
+	 * @param idleEventInterval interval in ms for the event idle time.
 	 * @return the spec.
 	 */
 	public TailAdapterSpec idleEventInterval(long idleEventInterval)  {

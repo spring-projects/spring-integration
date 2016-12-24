@@ -54,7 +54,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private long idleEventInterval = 0;
 
-	private volatile long lastReceive = System.currentTimeMillis();
+	private volatile long lastProduce = System.currentTimeMillis();
 
 	private ScheduledFuture<?> idleEventScheduledFuture;
 
@@ -98,6 +98,16 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		this.tailAttemptsDelay = tailAttemptsDelay;
 	}
 
+	/**
+	 * How often to emit {@link FileTailingIdleEvent}s in milliseconds.
+	 * @param idleEventInterval the interval.
+	 * @since 5.0
+	 */
+	public void setIdleEventInterval(long idleEventInterval) {
+		Assert.isTrue(idleEventInterval > 0, "'idleEventInterval' must be > 0");
+		this.idleEventInterval = idleEventInterval;
+	}
+
 	protected long getMissingFileDelay() {
 		return this.tailAttemptsDelay;
 	}
@@ -139,7 +149,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
 				long lastAlertAt = this.lastNoMessageAlert.get();
-				long lastReceive = this.lastReceive;
+				long lastReceive = this.lastProduce;
 				if (now > lastReceive + this.idleEventInterval
 						&& now > lastAlertAt + this.idleEventInterval
 						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
@@ -157,16 +167,6 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 	}
 
-	/**
-	 * How often to emit {@link FileTailingIdleEvent}s in milliseconds.
-	 * @param idleEventInterval the interval.
-	 * @since 5.0
-	 */
-	public void setIdleEventInterval(long idleEventInterval) {
-		Assert.isTrue(idleEventInterval > 0, "'idleEventInterval' must be > 0");
-		this.idleEventInterval = idleEventInterval;
-	}
-
 	private void publishIdleEvent(long idleTime) {
 
 		if (this.eventPublisher != null) {
@@ -180,7 +180,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private void updateLastReceive() {
 		if (this.idleEventInterval > 0) {
-			this.lastReceive = System.currentTimeMillis();
+			this.lastProduce = System.currentTimeMillis();
 		}
 	}
 
