@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -139,26 +140,35 @@ public class FileTailingMessageProducerTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();
 		adapter.setTaskScheduler(taskScheduler);
-		CountDownLatch countDownLatch = new CountDownLatch(1);
+		CountDownLatch idleCountDownLatch = new CountDownLatch(1);
+		CountDownLatch fileExistCountDownLatch = new CountDownLatch(1);
 		adapter.setApplicationEventPublisher(event -> {
 			if (event instanceof FileTailingIdleEvent) {
 				FileTailingIdleEvent tailEvent = (FileTailingIdleEvent) event;
-				logger.debug(event);
-				countDownLatch.countDown();
+				idleCountDownLatch.countDown();
 			}
+			if (event instanceof FileTailingEvent) {
+				FileTailingEvent fileTailingEvent = (FileTailingEvent) event;
+				if (fileTailingEvent.getMessage().contains("No such file or directory")) {
+					fileExistCountDownLatch.countDown();
+				}
+			}
+			logger.debug(event);
 		});
-		File file = new File(testDir, "foo");
-		file.delete();
+		File file = mock(File.class);
+		when(file.exists()).thenReturn(false);
 		adapter.setFile(file);
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		adapter.setIdleEventInterval(100);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		boolean noEvent = countDownLatch.await(500, TimeUnit.MILLISECONDS);
+		boolean noFile = fileExistCountDownLatch.await(500, TimeUnit.MILLISECONDS);
+		assertTrue("file does not exist event did not emit ", noFile);
+		boolean noEvent = idleCountDownLatch.await(500, TimeUnit.MILLISECONDS);
 		assertFalse("event should not emit when no file exit", noEvent);
-		file.createNewFile();
-		boolean eventRaised = countDownLatch.await(1, TimeUnit.SECONDS);
+		when(file.exists()).thenReturn(true);
+		boolean eventRaised = idleCountDownLatch.await(1, TimeUnit.SECONDS);
 		assertTrue("idle event did not emit", eventRaised);
 		adapter.stop();
 	}

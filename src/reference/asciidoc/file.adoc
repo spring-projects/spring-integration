@@ -411,7 +411,7 @@ Examples of such events are:
 
 This sequence of events might occur, for example, when a file is rotated.
 
-NOTE: Starting with version 5.0, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
+Starting with version 5.0, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
 
 `[message=Idle timeout, file=/tmp/foo] [idle time=5438]`
 

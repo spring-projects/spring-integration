@@ -52,6 +52,7 @@ The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to repres
 See <<file-reading>> for more information.
 
 The tail adapter now support `IdelEventInterval` to emit events when idle.
+See <<file-tailing>> for more information.
 
 ==== (S)FTP Changes
 

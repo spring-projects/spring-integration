@@ -127,7 +127,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 				.setHeader(FileHeaders.ORIGINAL_FILE, this.file)
 				.build();
 		super.sendMessage(message);
-		updateLastReceive();
+		updateLastProduce();
 	}
 
 	protected void publish(String message) {
@@ -149,11 +149,11 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
 				long lastAlertAt = this.lastNoMessageAlert.get();
-				long lastReceive = this.lastProduce;
-				if (now > lastReceive + this.idleEventInterval
+				long lastProduce = this.lastProduce;
+				if (now > lastProduce + this.idleEventInterval
 						&& now > lastAlertAt + this.idleEventInterval
 						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
-					publishIdleEvent(now - lastReceive);
+					publishIdleEvent(now - lastProduce);
 				}
 			}, this.idleEventInterval);
 		}
@@ -169,16 +169,18 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private void publishIdleEvent(long idleTime) {
 
-		if (this.eventPublisher != null && getFile().exists()) {
-			FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
-			this.eventPublisher.publishEvent(event);
+		if (this.eventPublisher != null) {
+			if (getFile().exists()) {
+				FileTailingIdleEvent event = new FileTailingIdleEvent(this, this.file, idleTime);
+				this.eventPublisher.publishEvent(event);
+			}
 		}
 		else {
 			logger.info("No publisher for idle event");
 		}
 	}
 
-	private void updateLastReceive() {
+	private void updateLastProduce() {
 		if (this.idleEventInterval > 0) {
 			this.lastProduce = System.currentTimeMillis();
 		}
