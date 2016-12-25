@@ -112,6 +112,7 @@ public class FileTailInboundChannelAdapterParserTests {
 		assertSame(exec, TestUtils.getPropertyValue(apacheDefault, "taskExecutor"));
 		assertEquals(2000L, TestUtils.getPropertyValue(apacheDefault, "pollingDelay"));
 		assertEquals(10000L, TestUtils.getPropertyValue(apacheDefault, "tailAttemptsDelay"));
+		assertEquals(10000L, TestUtils.getPropertyValue(apacheDefault, "idleEventInterval"));
 		assertFalse(TestUtils.getPropertyValue(apacheDefault, "autoStartup", Boolean.class));
 		assertEquals(123, TestUtils.getPropertyValue(apacheDefault, "phase"));
 		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(apacheDefault, "end"));

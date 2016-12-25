@@ -44,6 +44,7 @@
 		file="/tmp/bar"
 		delay="${foo}"
 		file-delay="10000"
+		idle-event-interval="10000"
 		auto-startup="false"
 		phase="123" />
 

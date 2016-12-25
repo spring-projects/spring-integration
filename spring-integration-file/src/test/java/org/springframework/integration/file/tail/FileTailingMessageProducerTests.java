@@ -19,13 +19,18 @@ package org.springframework.integration.file.tail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,12 +44,15 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
+import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingIdleEvent;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
  * @author Gavin Gray
  * @author Artem Bilan
+ * @author Ali Shahbour
  * @since 3.0
  *
  */
@@ -124,13 +132,57 @@ public class FileTailingMessageProducerTests {
 		adapter.stop();
 	}
 
+	@Test
+	@TailAvailable
+	public void testIdleEvent() throws Exception {
+		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
+		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_ALL_LINES);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
+		CountDownLatch idleCountDownLatch = new CountDownLatch(1);
+		CountDownLatch fileExistCountDownLatch = new CountDownLatch(1);
+		adapter.setApplicationEventPublisher(event -> {
+			if (event instanceof FileTailingIdleEvent) {
+				FileTailingIdleEvent tailEvent = (FileTailingIdleEvent) event;
+				idleCountDownLatch.countDown();
+			}
+			if (event instanceof FileTailingEvent) {
+				FileTailingEvent fileTailingEvent = (FileTailingEvent) event;
+				if (fileTailingEvent.getMessage().contains("No such file or directory")) {
+					fileExistCountDownLatch.countDown();
+				}
+			}
+			logger.debug(event);
+		});
+		File file = mock(File.class);
+		when(file.exists()).thenReturn(false);
+		adapter.setFile(file);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		adapter.setIdleEventInterval(100);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		boolean noFile = fileExistCountDownLatch.await(500, TimeUnit.MILLISECONDS);
+		assertTrue("file does not exist event did not emit ", noFile);
+		boolean noEvent = idleCountDownLatch.await(500, TimeUnit.MILLISECONDS);
+		assertFalse("event should not emit when no file exit", noEvent);
+		when(file.exists()).thenReturn(true);
+		boolean eventRaised = idleCountDownLatch.await(1, TimeUnit.SECONDS);
+		assertTrue("idle event did not emit", eventRaised);
+		adapter.stop();
+	}
+
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
 			throws Exception {
 		this.adapter = adapter;
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		adapter.setTaskScheduler(taskScheduler);
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(event -> {
 			FileTailingEvent tailEvent = (FileTailingEvent) event;
-			logger.warn(event);
+			logger.debug(event);
 			events.add(tailEvent);
 		});
 		adapter.setFile(new File(testDir, "foo"));

@@ -43,6 +43,7 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "native-options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "enable-status-reader");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-event-interval");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-scheduler");
