@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.integration.mongodb.rules;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -28,11 +32,14 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
  *
  * @author Oleg Zhurakousky
+ * @author Xavier Padró
  * @since 2.1
  */
 public abstract class MongoDbAvailableTests {
@@ -155,6 +162,15 @@ public abstract class MongoDbAvailableTests {
 		@Override
 		public <S> S read(Class<S> clazz, Bson source) {
 			return super.read(clazz, source);
+		}
+
+	}
+
+	public static class TestCollectionCallback implements CollectionCallback<Long> {
+
+		@Override
+		public Long doInCollection(MongoCollection<Document> collection) throws MongoException, DataAccessException {
+			return collection.count();
 		}
 
 	}

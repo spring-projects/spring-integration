@@ -64,6 +64,15 @@
 		reply-channel="out"
 		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
 
+	<int-mongodb:outbound-gateway id="gatewayCollectionCallback"
+		mongodb-factory="mongoDbFactory"
+		mongo-converter="mongoConverter"
+		collection-callback="countCollectionCallback"
+		collection-name-expression="headers.collectionName"
+		request-channel="in"
+		reply-channel="out"
+		entity-class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$Person"/>
+
 
 	<mongo:db-factory id="mongoDbFactory" dbname="test" />
 
@@ -78,5 +87,8 @@
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
 		</constructor-arg>
 	</bean>
+
+	<bean id="countCollectionCallback"
+		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests$TestCollectionCallback" />
 
 </beans>

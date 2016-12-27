@@ -950,7 +950,7 @@ public class EnableIntegrationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "controlBusChannel")
 		@Role("bar")
-		public ExpressionControlBusFactoryBean controlBus() throws Exception {
+		public ExpressionControlBusFactoryBean controlBus() {
 			return new ExpressionControlBusFactoryBean();
 		}
 

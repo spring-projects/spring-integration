@@ -42,18 +42,28 @@ public class MongoDbOutboundGatewayParser extends AbstractConsumerEndpointParser
 		MongoParserUtils.processCommonAttributes(element, parserContext, builder);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
-		String replyChannel = element.getAttribute("reply-channel");
 
-		if (StringUtils.hasText(replyChannel)) {
-			builder.addPropertyReference("outputChannel", replyChannel);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
+		String collectionCallback = element.getAttribute("collection-callback");
+
+		if (StringUtils.hasText(collectionCallback)) {
+			if (StringUtils.hasText(element.getAttribute("query")) ||
+							StringUtils.hasText(element.getAttribute("query-expression"))) {
+
+				parserContext.getReaderContext().error("'collection-callback' is not allowed with " +
+						"'query' or 'query-expression'", element);
+			}
+
+			builder.addPropertyReference("collectionCallback", collectionCallback);
 		}
+		else {
+			BeanDefinition queryExpressionDef =
+					IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("query",
+							"query-expression", parserContext, element, true);
 
-		BeanDefinition queryExpressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("query",
-						"query-expression", parserContext, element, true);
-
-		if (queryExpressionDef != null) {
-			builder.addPropertyValue("queryExpression", queryExpressionDef);
+			if (queryExpressionDef != null) {
+				builder.addPropertyValue("queryExpression", queryExpressionDef);
+			}
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
