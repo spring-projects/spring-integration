@@ -200,7 +200,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	@Override
 	public boolean isRunning() {
-		return this.running;
+		synchronized (this.lifecycleMonitor) {
+			return this.running;
+		}
 	}
 
 	@Override
@@ -399,9 +401,11 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		public void yield() {
 			if (LockRegistryLeaderInitiator.this.future != null) {
 				LockRegistryLeaderInitiator.this.future.cancel(true);
-				LockRegistryLeaderInitiator.this.future =
-						LockRegistryLeaderInitiator.this.executorService
-								.submit(LockRegistryLeaderInitiator.this.leaderSelector);
+				if (isRunning()) {
+					LockRegistryLeaderInitiator.this.future =
+							LockRegistryLeaderInitiator.this.executorService
+									.submit(LockRegistryLeaderInitiator.this.leaderSelector);
+				}
 			}
 		}
 

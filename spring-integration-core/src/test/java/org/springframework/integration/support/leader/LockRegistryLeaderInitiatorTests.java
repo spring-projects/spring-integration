@@ -22,7 +22,9 @@ import static org.junit.Assert.assertThat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Level;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.leader.Context;
@@ -30,27 +32,33 @@ import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiatorTests {
 
-	private CountDownLatch granted = new CountDownLatch(1);
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration");
 
-	private CountDownLatch revoked = new CountDownLatch(1);
+	private CountDownLatch granted;
+
+	private CountDownLatch revoked;
 
 	private LockRegistry registry = new DefaultLockRegistry();
-
-	private CountingPublisher publisher = new CountingPublisher(this.granted, this.revoked);
 
 	private LockRegistryLeaderInitiator initiator =
 			new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
 
 	@Before
 	public void init() {
-		this.initiator.setLeaderEventPublisher(this.publisher);
+		this.granted = new CountDownLatch(1);
+		this.revoked = new CountDownLatch(1);
+		this.initiator.setLeaderEventPublisher(new CountingPublisher(this.granted, this.revoked));
 	}
 
 	@Test
