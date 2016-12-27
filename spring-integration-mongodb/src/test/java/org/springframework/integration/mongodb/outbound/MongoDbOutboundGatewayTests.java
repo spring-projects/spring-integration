@@ -17,8 +17,9 @@
 package org.springframework.integration.mongodb.outbound;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +51,8 @@ import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.mongodb.client.MongoCollection;
 
 /**
  * @author Xavier Padró
@@ -300,6 +303,46 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 				(LiteralExpression) TestUtils.getPropertyValue(gateway, "collectionNameExpression");
 		assertNotNull(collectionNameExpression);
 		assertEquals("anotherCollection", collectionNameExpression.getValue());
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testWithCollectionCallbackCount() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("").build();
+		MongoDbOutboundGateway gateway = createGateway();
+		gateway.setEntityClass(Person.class);
+		gateway.setExpectSingleResult(true);
+		gateway.setCollectionNameExpression(new LiteralExpression("data"));
+
+		gateway.setCollectionCallback(MongoCollection::count);
+		gateway.afterPropertiesSet();
+
+		long result = (long) gateway.handleRequestMessage(message);
+
+		assertEquals(4, result);
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testWithCollectionCallbackFindOne() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("").build();
+		MongoDbOutboundGateway gateway = createGateway();
+		gateway.setEntityClass(Person.class);
+		gateway.setExpectSingleResult(true);
+		gateway.setCollectionNameExpression(new LiteralExpression("data"));
+		gateway.setRequiresReply(false);
+
+		gateway.setCollectionCallback(collection -> {
+			collection.insertOne(new Document("name", "Mike"));
+			return null;
+		});
+		gateway.afterPropertiesSet();
+
+		gateway.handleRequestMessage(message);
+
+		List<Person> persons = this.mongoTemplate.find(new Query(), Person.class, COLLECTION_NAME);
+		assertEquals(5, persons.size());
+		assertTrue(persons.stream().anyMatch(p -> p.getName().equals("Mike")));
 	}
 
 	@SuppressWarnings("unchecked")

@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.dsl;
 import java.util.function.Function;
 
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
@@ -84,6 +85,11 @@ public class MongoDbOutboundGatewaySpec
 
 	public <P> MongoDbOutboundGatewaySpec collectionNameFunction(Function<Message<P>, String> collectionNameFunction) {
 		this.target.setCollectionNameExpression(new FunctionExpression<>(collectionNameFunction));
+		return this;
+	}
+
+	public <P> MongoDbOutboundGatewaySpec collectionCallback(CollectionCallback<P> collectionCallback) {
+		this.target.setCollectionCallback(collectionCallback);
 		return this;
 	}
 

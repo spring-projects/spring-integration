@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.outbound;
 import org.bson.Document;
 
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -54,6 +55,8 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression queryExpression;
 
+	private CollectionCallback<?> collectionCallback;
+
 	private boolean expectSingleResult = false;
 
 	private Class<?> entityClass = Document.class;
@@ -87,6 +90,11 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.queryExpression = EXPRESSION_PARSER.parseExpression(queryExpressionString);
 	}
 
+	public void setCollectionCallback(CollectionCallback<?> collectionCallback) {
+		Assert.notNull(collectionCallback, "collectionCallback must not be null.");
+		this.collectionCallback = collectionCallback;
+	}
+
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
@@ -115,7 +123,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		Assert.state(this.queryExpression != null, "no query specified");
+		Assert.state(this.queryExpression != null || this.collectionCallback != null, "no query specified");
 		Assert.state(this.collectionNameExpression != null, "no collection name specified");
 
 		if (this.evaluationContext == null) {
@@ -136,15 +144,21 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
-		Query query = buildQuery(requestMessage);
 
 		Object result;
 
-		if (this.expectSingleResult) {
-			result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
+		if (this.collectionCallback != null) {
+			result = this.mongoTemplate.execute(collectionName, this.collectionCallback);
 		}
 		else {
-			result = this.mongoTemplate.find(query, this.entityClass, collectionName);
+			Query query = buildQuery(requestMessage);
+
+			if (this.expectSingleResult) {
+				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
+			}
+			else {
+				result = this.mongoTemplate.find(query, this.entityClass, collectionName);
+			}
 		}
 
 		return result;
