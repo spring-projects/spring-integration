@@ -36,7 +36,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -324,29 +323,26 @@ public class ParserUnitTests {
 		assertEquals(124, tcpIn.getPhase());
 		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper", TcpMessageMapper.class);
 		assertSame(mapper, cfS1Mapper);
-		assertTrue((Boolean) TestUtils.getPropertyValue(cfS1Mapper, "applySequence"));
+		assertTrue(TestUtils.getPropertyValue(cfS1Mapper, "applySequence", Boolean.class));
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
 		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
 		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));
 
-		TcpSSLContextSupport contextSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport.sslContextSupport", TcpSSLContextSupport.class);
-		assertSame(contextSupport, this.contextSupport);
-		assertTrue(TestUtils.getPropertyValue(contextSupport, "keyStore") instanceof ClassPathResource);
-		assertTrue(TestUtils.getPropertyValue(contextSupport, "trustStore") instanceof ClassPathResource);
-
-		contextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
-		assertTrue(TestUtils.getPropertyValue(contextSupport, "keyStore") instanceof UrlResource);
-		assertTrue(TestUtils.getPropertyValue(contextSupport, "trustStore") instanceof UrlResource);
+		TcpSSLContextSupport tcpSSLContextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
+		assertTrue(TestUtils.getPropertyValue(tcpSSLContextSupport, "keyStore") instanceof UrlResource);
+		assertTrue(TestUtils.getPropertyValue(tcpSSLContextSupport, "trustStore") instanceof UrlResource);
 	}
 
 	@Test
 	public void testInTcpNioSSLDefaultConfig() {
 		assertFalse(cfS1Nio.isLookupHost());
-		assertTrue((Boolean) TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence"));
+		assertTrue(TestUtils.getPropertyValue(cfS1Nio, "mapper.applySequence", Boolean.class));
 		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
 		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
 		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
 		assertEquals(43, TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout"));
+		assertSame(this.ctx.getBean(DefaultTcpNioSSLConnectionSupport.class),
+				TestUtils.getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"));
 	}
 
 	@Test

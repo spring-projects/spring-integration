@@ -91,6 +91,8 @@ public class TcpConnectionFactoryParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SOCKET_SUPPORT);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.NIO_CONNECTION_SUPPORT);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.MAPPER);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SSL_HANDSHAKE_TIMEOUT);
