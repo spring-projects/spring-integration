@@ -172,15 +172,13 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 					timeout = getReadDelay();
 				}
 				if (logger.isTraceEnabled()) {
-					logger.trace("Delayed reads:" + getDelayedReads().size() + " timeout " + timeout);
+					logger.trace("Delayed reads: " + getDelayedReads().size() + " timeout " + timeout);
 				}
 				selectionCount = selector.select(timeout);
 				processNioSelections(selectionCount, selector, server, this.channelMap);
 			}
 			catch (CancelledKeyException cke) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("CancelledKeyException during Selector.select()");
-				}
+				logger.debug("CancelledKeyException during Selector.select()");
 			}
 			catch (ClosedSelectorException cse) {
 				if (isActive()) {

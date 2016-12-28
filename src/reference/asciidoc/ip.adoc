@@ -900,17 +900,20 @@ After establishing the key stores, the next step is to indicate their locations 
     type="client"
     host="localhost"
     port="1234"
-    ssl-context-support="sslContextSupport"
+    ssl-context-support="sslContextSupport" />
 ----
 
-The `DefaulTcpSSLContextSupport` class also has an optional 'protocol' property, which can be 'SSL' or 'TLS' (default).
+The `DefaulTcpSSLContextSupport` class also has an optional `protocol` property, which can be `SSL` or `TLS` (default).
 
 The keystore file names (first two constructor arguments) use the Spring `Resource` abstraction; by default the files will be located on the classpath, but this can be overridden by using the `file:` prefix, to find the files on the filesystem instead.
 
 Starting with _version 4.3.6_, when using NIO, you can specify an `ssl-handshake-timeout` (seconds) on the connection factory.
 This timeout (default 30) is used during SSL handshake when waiting for data; if the timeout is exceeded, the process is aborted and the socket closed.
 
-==== Advanced Techniques
+[[advanced-techniques]]
+=== Advanced Techniques
+
+==== Strategy Interfaces
 
 In many cases, the configuration described above is all that is needed to enable secure communication over TCP/IP.
 However, a number of strategy interfaces are provided to allow customization and modification of socket factories and sockets.
@@ -918,18 +921,19 @@ However, a number of strategy interfaces are provided to allow customization and
 * `TcpSSLContextSupport`
 * `TcpSocketFactorySupport`
 * `TcpSocketSupport`
+* `TcpNioConnectionSupport`
 
 [source,java]
 ----
 public interface TcpSSLContextSupport {
 
-	SSLContext getSSLContext() throws Exception;
+    SSLContext getSSLContext() throws Exception;
 
 }
 ----
 
 Implementations of this interface are responsible for creating an SSLContext.
-The sole implementation provided by the framework is the `DefaultTcpSSLContextSupport` described above.
+The implementation provided by the framework is the `DefaultTcpSSLContextSupport` described above.
 If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
 
 [source,java]
@@ -945,8 +949,8 @@ public interface TcpSocketFactorySupport {
 ----
 
 Implementations of this interface are responsible for obtaining references to `ServerSocketFactory` and `SocketFactory`.
-Two implementations are provided; the first is `DefaultTcpNetSocketFactorySupport` for non-SSL sockets (when no 'ssl-context-support' attribute is defined); this simply uses the JDK's default factories.
-The second implementation is `DefaultTcpNetSSLSocketFactorySupport`; this is used, by default, when an 'ssl-context-support' attribute is defined; it uses the `SSLContext` created by that bean to create the socket factories.
+Two implementations are provided; the first is `DefaultTcpNetSocketFactorySupport` for non-SSL sockets (when no `ssl-context-support` attribute is defined); this simply uses the JDK's default factories.
+The second implementation is `DefaultTcpNetSSLSocketFactorySupport`; this is used, by default, when an `ssl-context-support` attribute is defined; it uses the `SSLContext` created by that bean to create the socket factories.
 
 NOTE: This interface only applies if `using-nio` is "false"; socket factories are not used by NIO.
 
@@ -958,7 +962,7 @@ public interface TcpSocketSupport {
 
     void postProcessSocket(Socket socket);
 
-
+}
 ----
 
 Implementations of this interface can modify sockets after they are created, and after all configured attributes have been applied, but before the sockets are used.
@@ -967,6 +971,68 @@ For example, you could use an implementation of this interface to modify the sup
 The sole implementation provided by the framework is the `DefaultTcpSocketSupport` which does not modify the sockets in any way
 
 To supply your own implementation of `TcpSocketFactorySupport` or `TcpSocketSupport`, provide the connection factory with references to beans of your custom type using the `socket-factory-support` and `socket-support` attributes, respectively.
+
+[source, java]
+----
+public interface TcpNioConnectionSupport {
+
+    TcpNioConnection createNewConnection(SocketChannel socketChannel,
+            boolean server, boolean lookupHost,
+            ApplicationEventPublisher applicationEventPublisher,
+            String connectionFactoryName) throws Exception;
+
+}
+----
+
+This interface is invoked to create `TcpNioConnection` objects (or subclasses).
+Two implementations are provided `DefaultTcpNioSSLConnectionSupport` and `DefaultTcpNioConnectionSupport` which are used depending on whether SSL is in use or not.
+A common use case would be to subclass `DefaultTcpNioSSLConnectionSupport` and override `postProcessSSLEngine`; see the example below.
+
+==== Example: Enabling SSL Client Authentication
+
+To enable client certificate authentication when using SSL, the technique depends on whether NIO is in use or not.
+When NIO is not being used, provide a custom `TcpSocketSupport` implementation to post-process the server socket:
+
+[source, java]
+----
+serverFactory.setTcpSocketSupport(new DefaultTcpSocketSupport() {
+
+    @Override
+    public void postProcessServerSocket(ServerSocket serverSocket) {
+        ((SSLServerSocket) serverSocket).setNeedClientAuth(true);
+    }
+
+});
+----
+
+(When using XML configuration, provide a reference to your bean using the `socket-support` attribute).
+
+When using NIO, provide a custom `TcpNioSslConnectionSupport` implementation to post-process the `SSLEngine`.
+
+[source, java]
+----
+@Bean
+public DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport() {
+    return new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
+
+            @Override
+            protected void postProcessSSLEngine(SSLEngine sslEngine) {
+                sslEngine.setNeedClientAuth(true);
+            }
+
+    }
+}
+
+@Bean
+public TcpNioServerConnectionFactory server() {
+    ...
+    serverFactory.setTcpNioConnectionSupport(tcpNioConnectionSupport());
+    ...
+}
+----
+
+(When using XML configuration, since _version 4.3.7_, provide a reference to your bean using the `nio-connection-support` attribute).
+
 
 [[ip-endpoint-reference]]
 === IP Configuration Attributes
@@ -1130,6 +1196,11 @@ Defaults to true.
 | Y
 |
 | See <<ssl-tls>>
+| nio-connection-support
+| Y
+| Y
+|
+| See <<advanced-techniques>>
 | read-delay
 | Y
 | Y

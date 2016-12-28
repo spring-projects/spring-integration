@@ -16,17 +16,23 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +45,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLServerSocket;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -291,7 +299,6 @@ Certificate fingerprints:
 				"test.truststore.ks", "secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport tcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(sslContextSupport);
-		tcpSocketFactorySupport.afterPropertiesSet();
 		server.setTcpSocketFactorySupport(tcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -326,13 +333,23 @@ Certificate fingerprints:
 	@Test
 	@Ignore
 	public void testNetClientAndServerSSLDifferentContexts() throws Exception {
+		testNetClientAndServerSSLDifferentContexts(false);
+		try {
+			testNetClientAndServerSSLDifferentContexts(true);
+			fail("expected Exception");
+		}
+		catch (SSLException | SocketException e) {
+			// NOSONAR
+		}
+	}
+
+	private void testNetClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport serverTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(serverSslContextSupport);
-		serverTcpSocketFactorySupport.afterPropertiesSet();
 		server.setTcpSocketFactorySupport(serverTcpSocketFactorySupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -346,15 +363,23 @@ Certificate fingerprints:
 			}
 
 		});
+		server.setTcpSocketSupport(new DefaultTcpSocketSupport() {
+
+			@Override
+			public void postProcessServerSocket(ServerSocket serverSocket) {
+				((SSLServerSocket) serverSocket).setNeedClientAuth(true);
+			}
+
+		});
 		server.start();
 		TestingUtilities.waitListening(server, null);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
-		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
+		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport(
+				badClient ? "server.ks" : "client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
-		clientTcpSocketFactorySupport.afterPropertiesSet();
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
 		client.start();
 
@@ -377,7 +402,6 @@ Certificate fingerprints:
 		sslContextSupport.setProtocol("SSL");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
-		tcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -454,6 +478,63 @@ Certificate fingerprints:
 	}
 
 	@Test
+	public void testNioClientAndServerSSLDifferentContexts() throws Exception {
+		testNioClientAndServerSSLDifferentContexts(false);
+		try {
+			testNioClientAndServerSSLDifferentContexts(true);
+			fail("expected Exception");
+		}
+		catch (IOException e) {
+			if (!(e instanceof ClosedChannelException)) {
+				assertThat(e.getMessage(), containsString("Socket closed during SSL Handshake"));
+			}
+		}
+	}
+
+	private void testNioClientAndServerSSLDifferentContexts(boolean badClient) throws Exception {
+		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
+		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
+		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
+				"server.truststore.ks", "secret", "secret");
+		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
+
+					@Override
+					protected void postProcessSSLEngine(SSLEngine sslEngine) {
+						sslEngine.setNeedClientAuth(true);
+					}
+
+		};
+		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		server.registerListener(message -> {
+			messages.add(message);
+			latch.countDown();
+			return false;
+		});
+		server.start();
+		TestingUtilities.waitListening(server, null);
+
+		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", server.getPort());
+		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport(
+				badClient ? "server.ks" : "client.ks",
+				"client.truststore.ks", "secret", "secret");
+		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
+		client.start();
+
+		TcpConnection connection = client.getConnection();
+		connection.send(new GenericMessage<String>("Hello, world!"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+
+		client.stop();
+		server.stop();
+	}
+
+	@Test
 	public void testNioClientAndServerSSLDifferentContextsLargeDataWithReply() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
@@ -461,7 +542,6 @@ Certificate fingerprints:
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
-		serverTcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -476,12 +556,11 @@ Certificate fingerprints:
 					replier.send(message);
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 				latch.countDown();
 				return false;
 			}
-
 		});
 		ByteArrayCrLfSerializer deserializer = new ByteArrayCrLfSerializer();
 		deserializer.setMaxMessageSize(120000);
@@ -510,7 +589,6 @@ Certificate fingerprints:
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
-		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(new TcpListener() {
 

@@ -118,6 +118,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String SOCKET_SUPPORT = "socket-support";
 
+	public static final String NIO_CONNECTION_SUPPORT = "nio-connection-support";
+
 	public static final String SOCKET_FACTORY_SUPPORT = "socket-factory-support";
 
 	public static final String BACKLOG = "backlog";

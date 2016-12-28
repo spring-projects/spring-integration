@@ -16,12 +16,13 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.security.GeneralSecurityException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
@@ -32,32 +33,54 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport, InitializingBean {
+public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport {
 
-	private volatile SSLContext sslContext;
-
-	private final TcpSSLContextSupport sslContextSupport;
+	private final SSLContext sslContext;
 
 	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport) {
 		Assert.notNull(sslContextSupport, "TcpSSLContextSupport must not be null");
-		this.sslContextSupport = sslContextSupport;
+		try {
+			this.sslContext = sslContextSupport.getSSLContext();
+		}
+		catch (GeneralSecurityException e) {
+			throw new IllegalArgumentException("Invalid TcpSSLContextSupport - it failed to provide an SSLContext", e);
+		}
+		catch (IOException e) {
+			throw new IllegalArgumentException("Invalid TcpSSLContextSupport - it failed to provide an SSLContext", e);
+		}
+		Assert.notNull(this.sslContext, "SSLContext retrieved from context support must not be null");
 	}
 
 	/**
 	 * Creates a {@link TcpNioSSLConnection}.
 	 */
+	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
+		postProcessSSLEngine(sslEngine);
 		TcpNioSSLConnection tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost,
 				applicationEventPublisher, connectionFactoryName, sslEngine);
 		tcpNioSSLConnection.init();
 		return tcpNioSSLConnection;
 	}
 
+	/**
+	 * @deprecated without no-op, in favor of just constructor initialization
+	 * @throws Exception an exception
+	 */
+	@Deprecated
 	public void afterPropertiesSet() throws Exception {
-		this.sslContext = this.sslContextSupport.getSSLContext();
-		Assert.notNull(this.sslContext, "SSLContext must not be null");
+		// NOSONAR (empty)
+	}
+
+	/**
+	 * Subclasses can post-process the ssl engine (set properties).
+	 * @param sslEngine the engine.
+	 * @since 4.3.7
+	 */
+	protected void postProcessSSLEngine(SSLEngine sslEngine) {
+		// NOSONAR (empty)
 	}
 
 }
