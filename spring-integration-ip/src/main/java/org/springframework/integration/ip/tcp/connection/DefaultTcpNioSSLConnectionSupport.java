@@ -46,18 +46,30 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 	/**
 	 * Creates a {@link TcpNioSSLConnection}.
 	 */
+	@Override
 	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
+		postProcessSSLEngine(sslEngine);
 		TcpNioSSLConnection tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost,
 				applicationEventPublisher, connectionFactoryName, sslEngine);
 		tcpNioSSLConnection.init();
 		return tcpNioSSLConnection;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.sslContext = this.sslContextSupport.getSSLContext();
 		Assert.notNull(this.sslContext, "SSLContext must not be null");
+	}
+
+	/**
+	 * Subclasses can post-process the ssl engine (set properties).
+	 * @param sslEngine the engine.
+	 * @since 4.3.7
+	 */
+	protected void postProcessSSLEngine(SSLEngine sslEngine) {
+		// NOSONAR (empty)
 	}
 
 }
