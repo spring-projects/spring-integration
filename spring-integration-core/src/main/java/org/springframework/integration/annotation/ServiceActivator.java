@@ -115,7 +115,17 @@ public @interface ServiceActivator {
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Only one {@link Poller} element is allowed.
+	 * Mutually exclusive with {@link #reactive()}.
 	 */
 	Poller[] poller() default {};
+
+	/**
+	 * @return the {@link Reactive} options for a reactive endpoint.
+	 * This attribute is an {@code array} just to allow an empty default (not reactive).
+	 * Only one {@link Reactive} element is allowed.
+	 * Mutually exclusive with {@link #poller()}.
+	 * @since 5.0
+	 */
+	Reactive[] reactive() default { };
 
 }

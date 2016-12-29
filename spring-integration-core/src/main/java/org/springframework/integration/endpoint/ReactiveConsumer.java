@@ -23,8 +23,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.reactive.MessageChannelReactiveUtils;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -36,6 +36,7 @@ import reactor.core.Disposable;
 import reactor.core.Exceptions;
 import reactor.core.Receiver;
 import reactor.core.Trackable;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Operators;
 
 
@@ -49,7 +50,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	private final Lifecycle lifecycleDelegate;
 
-	private volatile Publisher<Message<?>> publisher;
+	private volatile Flux<Message<?>> publisher;
 
 	private ErrorHandler errorHandler;
 
@@ -67,7 +68,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 
 		Publisher<?> messagePublisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
-		this.publisher = (Publisher<Message<?>>) messagePublisher;
+		this.publisher = Flux.from((Publisher<Message<?>>) messagePublisher);
 
 		this.subscriber = new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
 
@@ -104,7 +105,8 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.start();
 		}
-		this.publisher.subscribe(this.subscriber);
+		this.publisher
+				.subscribe(this.subscriber);
 	}
 
 	@Override

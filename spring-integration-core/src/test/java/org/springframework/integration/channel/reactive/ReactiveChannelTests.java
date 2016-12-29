@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.channel.MessageChannelReactiveUtils;
+import org.springframework.integration.reactive.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;

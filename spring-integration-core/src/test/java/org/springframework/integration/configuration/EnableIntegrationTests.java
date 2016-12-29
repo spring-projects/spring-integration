@@ -83,6 +83,7 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.annotation.Reactive;
 import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
@@ -109,6 +110,7 @@ import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.json.JsonPropertyAccessor;
+import org.springframework.integration.reactive.BackpressureType;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
@@ -138,6 +140,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
+import reactor.core.publisher.BufferOverflowStrategy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -987,7 +990,11 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		@ServiceActivator(inputChannel = "sendAsyncChannel")
+		@ServiceActivator(inputChannel = "sendAsyncChannel",
+				reactive = @Reactive(
+						backpressure = BackpressureType.BUFFER,
+						bufferOverflowStrategy = BufferOverflowStrategy.ERROR,
+						bufferMaxSize = "100"))
 		@Role("foo")
 		public MessageHandler sendAsyncHandler() {
 			return new MessageHandler() {
