@@ -30,6 +30,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -109,6 +110,20 @@ public class MongoDbOutboundGatewayParserTests {
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
 	}
 
+	@Test
+	public void fullConfigWithCollectionCallback() {
+		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
+				context.getBean("fullConfigWithCollectionCallback"), "handler", MongoDbOutboundGateway.class);
+
+		assertEquals(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(gateway, "mongoTemplate"));
+		assertNull(TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
+		assertNull(TestUtils.getPropertyValue(gateway, "mongoConverter"));
+		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof LiteralExpression);
+		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "collectionCallback") instanceof CollectionCallback);
+	}
+
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void templateAndFactoryFail() {
 		new ClassPathXmlApplicationContext("outbound-gateway-fail-template-factory-config.xml", this.getClass())
@@ -118,6 +133,12 @@ public class MongoDbOutboundGatewayParserTests {
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void templateAndConverterFail() {
 		new ClassPathXmlApplicationContext("outbound-gateway-fail-template-converter-config.xml",
+				this.getClass()).close();
+	}
+
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void collectionCallbackAndQueryFail() {
+		new ClassPathXmlApplicationContext("outbound-gateway-fail-collection-callback-config.xml",
 				this.getClass()).close();
 	}
 

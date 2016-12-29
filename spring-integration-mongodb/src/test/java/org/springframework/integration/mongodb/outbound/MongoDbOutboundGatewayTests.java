@@ -137,7 +137,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 			Assert.fail("Expected the test case to throw an IllegalArgumentException");
 		}
 		catch (IllegalStateException e) {
-			assertEquals("no query specified", e.getMessage());
+			assertEquals("no query or collectionCallback is specified", e.getMessage());
 		}
 	}
 
@@ -187,7 +187,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 			Assert.fail("Expected the test case to throw an IllegalStateException");
 		}
 		catch (IllegalStateException e) {
-			assertEquals("no query specified", e.getMessage());
+			assertEquals("no query or collectionCallback is specified", e.getMessage());
 		}
 	}
 
@@ -311,7 +311,6 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
-		gateway.setExpectSingleResult(true);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 
 		gateway.setCollectionCallback(MongoCollection::count);
@@ -328,7 +327,6 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
-		gateway.setExpectSingleResult(true);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 		gateway.setRequiresReply(false);
 

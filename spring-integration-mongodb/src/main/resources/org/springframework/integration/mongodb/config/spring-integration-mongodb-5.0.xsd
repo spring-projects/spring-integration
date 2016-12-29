@@ -234,6 +234,20 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="collection-callback" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to an instance of
+									org.springframework.data.mongodb.core.CollectionCallback
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.data.mongodb.core.CollectionCallback" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

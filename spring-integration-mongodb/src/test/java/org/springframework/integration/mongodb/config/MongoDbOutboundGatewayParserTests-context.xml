@@ -39,6 +39,18 @@
 			request-channel="in"
 			reply-channel="out"/>
 
+	<int-mongodb:outbound-gateway id="fullConfigWithCollectionCallback"
+			mongo-template="mongoDbTemplate"
+			collection-name="foo"
+			collection-callback="mockCollectionCallback"
+			request-channel="in"
+			reply-channel="out"/>
+
+
+	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.mongodb.core.CollectionCallback"/>
+	</bean>
+
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
 	</bean>
