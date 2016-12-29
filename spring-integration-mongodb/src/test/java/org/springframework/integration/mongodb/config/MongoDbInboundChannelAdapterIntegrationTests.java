@@ -25,6 +25,7 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -218,11 +219,10 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertNotNull(replyChannel.receive(10000));
 		assertNull(replyChannel.receive(100));
 
-		this.inboundAdapterWithOnSuccessDisposition.stop();
-
 		assertNotNull(this.afterCommitChannel.receive(10000));
 
 		assertNull(this.mongoTemplate.findOne(new Query(Criteria.where("name").is("Bob")), Person.class, "data"));
+		this.inboundAdapterWithOnSuccessDisposition.stop();
 		this.replyChannel.purge(null);
 	}
 
