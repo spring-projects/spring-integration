@@ -247,16 +247,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			return new DefaultTcpNioConnectionSupport();
 		}
 		else {
-			DefaultTcpNioSSLConnectionSupport connectionSupport = new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
-			try {
-				connectionSupport.afterPropertiesSet();
-			}
-			catch (Exception e) {
-				throw new IllegalStateException("Failed to set up TcpConnectionSupport", e);
-			}
-			return connectionSupport;
+			return new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
 		}
-
 	}
 
 	/**

@@ -16,18 +16,22 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLServerSocket;
 
 import org.junit.Test;
@@ -310,7 +315,7 @@ Certificate fingerprints:
 			testNetClientAndServerSSLDifferentContexts(true);
 			fail("expected Exception");
 		}
-		catch (Exception e) {
+		catch (SSLHandshakeException e) {
 			// NOSONAR
 		}
 	}
@@ -371,7 +376,6 @@ Certificate fingerprints:
 		sslContextSupport.setProtocol("SSL");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
-		tcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -420,8 +424,10 @@ Certificate fingerprints:
 			testNioClientAndServerSSLDifferentContexts(true);
 			fail("expected Exception");
 		}
-		catch (Exception e) {
-			// NOSONAR
+		catch (IOException e) {
+			if (!(e instanceof ClosedChannelException)) {
+				assertThat(e.getMessage(), containsString("Socket closed during SSL Handshake"));
+			}
 		}
 	}
 
@@ -439,7 +445,6 @@ Certificate fingerprints:
 					}
 
 		};
-		tcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -457,7 +462,6 @@ Certificate fingerprints:
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
-		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.start();
 
@@ -475,12 +479,9 @@ Certificate fingerprints:
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
 		TcpNioServerConnectionFactory server = new TcpNioServerConnectionFactory(0);
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
-				"server.truststore.ks", "secret", "secret") {
-
-		};
+				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
-		serverTcpNioConnectionSupport.afterPropertiesSet();
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -492,7 +493,7 @@ Certificate fingerprints:
 				replier.send(message);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			latch.countDown();
 			return false;
@@ -514,7 +515,6 @@ Certificate fingerprints:
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
-		clientTcpNioConnectionSupport.afterPropertiesSet();
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(message -> {
 			messages.add(message);

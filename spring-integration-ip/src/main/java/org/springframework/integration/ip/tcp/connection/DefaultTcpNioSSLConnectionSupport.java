@@ -16,12 +16,13 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.security.GeneralSecurityException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
@@ -32,7 +33,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport, InitializingBean {
+public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport {
 
 	private volatile SSLContext sslContext;
 
@@ -41,6 +42,13 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport) {
 		Assert.notNull(sslContextSupport, "TcpSSLContextSupport must not be null");
 		this.sslContextSupport = sslContextSupport;
+		try {
+			this.sslContext = this.sslContextSupport.getSSLContext();
+		}
+		catch (GeneralSecurityException | IOException e) {
+			throw new IllegalArgumentException("Invalid TcpSSLContextSupport - it failed to provide an SSLContext", e);
+		}
+		Assert.notNull(this.sslContext, "SSLContext retrieved from context support must not be null");
 	}
 
 	/**
@@ -57,10 +65,12 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 		return tcpNioSSLConnection;
 	}
 
-	@Override
+	/**
+	 * @deprecated - no longer needed
+	 * @throws Exception an Exception
+	 */
+	@Deprecated
 	public void afterPropertiesSet() throws Exception {
-		this.sslContext = this.sslContextSupport.getSSLContext();
-		Assert.notNull(this.sslContext, "SSLContext must not be null");
 	}
 
 	/**
