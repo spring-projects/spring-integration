@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
 
 import org.junit.Test;
@@ -315,7 +316,7 @@ Certificate fingerprints:
 			testNetClientAndServerSSLDifferentContexts(true);
 			fail("expected Exception");
 		}
-		catch (SSLHandshakeException e) {
+		catch (SSLException | SocketException e) {
 			// NOSONAR
 		}
 	}
