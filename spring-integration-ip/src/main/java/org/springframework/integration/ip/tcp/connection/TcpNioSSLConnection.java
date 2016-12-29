@@ -27,6 +27,7 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -73,6 +74,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private boolean needMoreNetworkData;
 
+	private SSLHandshakeException sslFatal;
+
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
 			SSLEngine sslEngine) throws Exception {
@@ -110,7 +113,14 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 		SSLEngineResult result = null;
 		while (!this.needMoreNetworkData) {
-			result = decode(networkBuffer);
+			try {
+				result = decode(networkBuffer);
+			}
+			catch (SSLHandshakeException e) {
+				this.sslFatal = e;
+				this.semaphore.release();
+				throw e;
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("result " + resultToString(result) + ", remaining:" + networkBuffer.remaining());
 			}
@@ -285,6 +295,12 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		return result.toString().replace('\n', ' ');
 	}
 
+	@Override
+	public void close() {
+		super.close();
+		this.semaphore.release();
+	}
+
 	/**
 	 * Subclass of {@link TcpNioConnection.ChannelOutputStream} to handle encryption
 	 * of outbound data. Wraps an instance of the superclass, which is invoked to
@@ -384,6 +400,14 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(TcpNioSSLConnection.this.handshakeTimeout,
 						TimeUnit.SECONDS)) {
 					throw new MessagingException("SSL Handshaking taking too long");
+				}
+				else {
+					if (TcpNioSSLConnection.this.sslFatal != null) {
+						throw TcpNioSSLConnection.this.sslFatal;
+					}
+					else if (!isOpen()) {
+						throw new IOException("Socket closed during SSL Handshake");
+					}
 				}
 				if (logger.isTraceEnabled()) {
 					logger.trace("Writer resuming handshake");

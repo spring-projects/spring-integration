@@ -347,6 +347,8 @@ public class ParserUnitTests {
 		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
 		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
 		assertEquals(43, TestUtils.getPropertyValue(this.cfS1Nio, "sslHandshakeTimeout"));
+		assertSame(this.ctx.getBean(DefaultTcpNioSSLConnectionSupport.class),
+				TestUtils.getPropertyValue(this.cfS1Nio, "tcpNioConnectionSupport"));
 	}
 
 	@Test

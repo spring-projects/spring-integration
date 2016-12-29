@@ -382,7 +382,7 @@ public class TcpNioConnectionReadTests {
 		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
 
 		assertThat(errorMessageRef.get().getMessage(),
-				containsString("Connection is closed"));
+				anyOf(containsString("Connection is closed"), containsString("Stream closed after 2 of 3")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
@@ -473,7 +473,6 @@ public class TcpNioConnectionReadTests {
 
 	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
 			throws Exception {
-		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
@@ -500,6 +499,7 @@ public class TcpNioConnectionReadTests {
 				removed.add(connection);
 				semaphore.release();
 			}
+
 		});
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", scf.getPort());
 		socket.getOutputStream().write(shortMessage.getBytes());
