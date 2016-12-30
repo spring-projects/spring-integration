@@ -16,11 +16,12 @@
 
 package org.springframework.integration.mongodb.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,7 +67,8 @@ public class MongoDbOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "mongoTemplate"));
 		assertSame(this.mongoDbFactory, TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof LiteralExpression);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
+				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
 	}
 
@@ -79,7 +81,8 @@ public class MongoDbOutboundGatewayParserTests {
 		assertSame(this.mongoDbFactory, TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
 		assertSame(this.mongoConverter, TestUtils.getPropertyValue(gateway, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof SpelExpression);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
+				instanceOf(SpelExpression.class));
 		assertEquals("headers.collectionName",
 				TestUtils.getPropertyValue(gateway, "collectionNameExpression.expression"));
 	}
@@ -93,7 +96,8 @@ public class MongoDbOutboundGatewayParserTests {
 		assertSame(this.mongoDbFactory, TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
 		assertSame(this.mongoConverter, TestUtils.getPropertyValue(gateway, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof LiteralExpression);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
+				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
 	}
 
@@ -102,26 +106,29 @@ public class MongoDbOutboundGatewayParserTests {
 		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
 				context.getBean("fullConfigWithTemplate"), "handler", MongoDbOutboundGateway.class);
 
-		assertEquals(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(gateway, "mongoTemplate"));
+		assertSame(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(gateway, "mongoTemplate"));
 		assertNull(TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
 		assertNull(TestUtils.getPropertyValue(gateway, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof LiteralExpression);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
+				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
 	}
 
 	@Test
-	public void fullConfigWithCollectionCallback() {
+	public void fullConfigWithMongoDbCollectionCallback() {
 		MongoDbOutboundGateway gateway = TestUtils.getPropertyValue(
-				context.getBean("fullConfigWithCollectionCallback"), "handler", MongoDbOutboundGateway.class);
+				context.getBean("fullConfigWithMongoDbCollectionCallback"), "handler", MongoDbOutboundGateway.class);
 
-		assertEquals(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(gateway, "mongoTemplate"));
+		assertSame(context.getBean("mongoDbTemplate"), TestUtils.getPropertyValue(gateway, "mongoTemplate"));
 		assertNull(TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
 		assertNull(TestUtils.getPropertyValue(gateway, "mongoConverter"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "evaluationContext"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionNameExpression") instanceof LiteralExpression);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
+				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "collectionCallback") instanceof CollectionCallback);
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionCallback"),
+				instanceOf(CollectionCallback.class));
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)

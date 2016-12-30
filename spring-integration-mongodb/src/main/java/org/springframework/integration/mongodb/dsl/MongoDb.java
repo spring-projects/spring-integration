@@ -28,12 +28,25 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
  */
 public final class MongoDb {
 
+	/**
+	 * Create a {@link MongoDbOutboundGatewaySpec} builder instance based on the provided {@link MongoDbFactory}
+	 * and {@link MongoConverter}.
+	 * @param mongoDbFactory the {@link MongoDbFactory} to use.
+	 * @param mongoConverter the {@link MongoConverter} to use.
+	 * @return the {@link MongoDbOutboundGatewaySpec} instance
+	 */
 	public static MongoDbOutboundGatewaySpec outboundGateway(
 			MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
 
 		return new MongoDbOutboundGatewaySpec(mongoDbFactory, mongoConverter);
 	}
 
+	/**
+	 * Create a {@link MongoDbOutboundGatewaySpec} builder instance based on the provided
+	 * {@link MongoOperations}
+	 * @param mongoTemplate the {@link MongoOperations} to use.
+	 * @return the {@link MongoDbOutboundGatewaySpec} instance
+	 */
 	public static MongoDbOutboundGatewaySpec outboundGateway(MongoOperations mongoTemplate) {
 		return new MongoDbOutboundGatewaySpec(mongoTemplate);
 	}

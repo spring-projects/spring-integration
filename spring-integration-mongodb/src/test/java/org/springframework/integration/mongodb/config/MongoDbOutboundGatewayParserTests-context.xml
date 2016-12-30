@@ -39,7 +39,7 @@
 			request-channel="in"
 			reply-channel="out"/>
 
-	<int-mongodb:outbound-gateway id="fullConfigWithCollectionCallback"
+	<int-mongodb:outbound-gateway id="fullConfigWithMongoDbCollectionCallback"
 			mongo-template="mongoDbTemplate"
 			collection-name="foo"
 			collection-callback="mockCollectionCallback"
@@ -55,7 +55,8 @@
 		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
 	</bean>
 
-	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+	<bean id="mongoConverter"
+		  class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
 			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>

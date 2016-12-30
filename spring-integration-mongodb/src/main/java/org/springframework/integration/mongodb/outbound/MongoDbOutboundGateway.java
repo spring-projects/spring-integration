@@ -123,7 +123,8 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	protected void doInit() {
-		Assert.state(this.queryExpression != null || this.collectionCallback != null, "no query or collectionCallback is specified");
+		Assert.state(this.queryExpression != null || this.collectionCallback != null,
+				"no query or collectionCallback is specified");
 		Assert.state(this.collectionNameExpression != null, "no collection name specified");
 		if (this.queryExpression != null && this.collectionCallback != null) {
 			throw new IllegalStateException("query and collectionCallback are mutually exclusive");

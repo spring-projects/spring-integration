@@ -418,7 +418,6 @@ the collectionCallback property. The following example specifies a count operati
 private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
         return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
                 .collectionCallback(MongoCollection::count)
-                .collectionName("foo")
-                .entityClass(Person.class);
+                .collectionName("foo");
 		}
 ----
