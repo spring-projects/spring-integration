@@ -301,7 +301,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testInt3430FailForNotLazyConnect() {
-		RabbitTemplate amqpTemplate = mock(RabbitTemplate.class);
+		RabbitTemplate amqpTemplate = spy(new RabbitTemplate());
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		RuntimeException toBeThrown = new RuntimeException("Test Connection Exception");
 		doThrow(toBeThrown).when(connectionFactory).createConnection();

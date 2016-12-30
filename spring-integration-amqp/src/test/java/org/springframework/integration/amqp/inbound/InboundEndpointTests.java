@@ -21,12 +21,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -163,7 +168,10 @@ public class InboundEndpointTests {
 					.build();
 		}));
 
-		RabbitTemplate rabbitTemplate = Mockito.mock(RabbitTemplate.class);
+		RabbitTemplate rabbitTemplate = spy(new RabbitTemplate());
+		rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
+
+		CountDownLatch sendLatch = new CountDownLatch(1);
 
 		Mockito.doAnswer(invocation -> {
 			org.springframework.amqp.core.Message message =
@@ -176,9 +184,11 @@ public class InboundEndpointTests {
 			assertFalse(headers.containsKey(JsonHeaders.TYPE_ID));
 			assertFalse(headers.containsKey(JsonHeaders.KEY_TYPE_ID));
 			assertFalse(headers.containsKey(JsonHeaders.CONTENT_TYPE_ID));
+			sendLatch.countDown();
 			return null;
-		}).when(rabbitTemplate).send(Mockito.anyString(), Mockito.anyString(),
-				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
+		}).when(rabbitTemplate)
+				.send(anyString(), anyString(), any(org.springframework.amqp.core.Message.class),
+						any(CorrelationData.class));
 
 		AmqpInboundGateway gateway = new AmqpInboundGateway(container, rabbitTemplate);
 		gateway.setMessageConverter(new Jackson2JsonMessageConverter());
@@ -198,6 +208,7 @@ public class InboundEndpointTests {
 		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage, rabbitChannel);
 
+		assertTrue(sendLatch.await(10, TimeUnit.SECONDS));
 	}
 
 

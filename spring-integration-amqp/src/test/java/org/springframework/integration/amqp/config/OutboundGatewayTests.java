@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import org.junit.After;
@@ -95,7 +96,7 @@ public class OutboundGatewayTests {
 		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				StandardEvaluationContext.class))
 			.thenReturn(evalContext);
-		RabbitTemplate template = mock(RabbitTemplate.class);
+		RabbitTemplate template = spy(new RabbitTemplate());
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
 		endpoint.setRoutingKeyExpression(PARSER.parseExpression("@foo"));
 		endpoint.setExchangeNameExpression(PARSER.parseExpression("@bar"));
