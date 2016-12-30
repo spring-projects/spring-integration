@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 package org.springframework.integration.channel.reactive;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,15 +36,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
@@ -50,6 +62,9 @@ public class ReactiveChannelTests {
 	@Autowired
 	private MessageChannel reactiveChannel;
 
+	@Autowired
+	private MessageChannel queueChannel;
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReactiveMessageChannel() throws InterruptedException {
@@ -60,8 +75,9 @@ public class ReactiveChannelTests {
 				this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
 			}
 			catch (Exception e) {
-				assertThat(e.getCause(), instanceOf(MessageHandlingException.class));
-				assertThat(e.getCause().getCause(), instanceOf(IllegalStateException.class));
+				assertThat(e, instanceOf(MessageDeliveryException.class));
+				assertThat(e.getCause().getCause(), instanceOf(MessageHandlingException.class));
+				assertThat(e.getCause().getCause().getCause(), instanceOf(IllegalStateException.class));
 				assertThat(e.getMessage(), containsString("intentional"));
 			}
 		}
@@ -71,6 +87,24 @@ public class ReactiveChannelTests {
 			assertNotNull(receive);
 			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
 		}
+	}
+
+	@Test
+	public void testMessageChannelReactiveAdaptation() throws InterruptedException {
+		CountDownLatch done = new CountDownLatch(2);
+		List<String> results = new ArrayList<>();
+
+		Flux.from(MessageChannelReactiveUtils.<String>toPublisher(this.queueChannel))
+				.map(Message::getPayload)
+				.map(String::toUpperCase)
+				.doOnNext(results::add)
+				.subscribe(v -> done.countDown());
+
+		this.queueChannel.send(new GenericMessage<>("foo"));
+		this.queueChannel.send(new GenericMessage<>("bar"));
+
+		assertTrue(done.await(10, TimeUnit.SECONDS));
+		assertThat(results, contains("FOO", "BAR"));
 	}
 
 	@Configuration
@@ -88,6 +122,11 @@ public class ReactiveChannelTests {
 				throw new IllegalStateException("intentional");
 			}
 			return "" + payload;
+		}
+
+		@Bean
+		public MessageChannel queueChannel() {
+			return new QueueChannel();
 		}
 
 	}

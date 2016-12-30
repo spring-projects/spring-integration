@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,17 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -37,9 +34,6 @@ import reactor.core.Disposable;
 import reactor.core.Exceptions;
 import reactor.core.Receiver;
 import reactor.core.Trackable;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.Operators;
 
 
@@ -65,12 +59,8 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		Assert.notNull(inputChannel);
 		Assert.notNull(subscriber);
 
-		if (inputChannel instanceof Publisher) {
-			this.publisher = (Publisher<Message<?>>) inputChannel;
-		}
-		else {
-			this.publisher = adaptToPublisher(inputChannel);
-		}
+		Publisher<?> messagePublisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
+		this.publisher = (Publisher<Message<?>>) messagePublisher;
 
 		this.subscriber = new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
 
@@ -111,89 +101,6 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		this.subscriber.cancel();
 	}
 
-	public static Publisher<Message<?>> adaptToPublisher(MessageChannel inputChannel) {
-		if (inputChannel instanceof SubscribableChannel) {
-			return adaptSubscribableChannelToPublisher((SubscribableChannel) inputChannel);
-		}
-		else if (inputChannel instanceof PollableChannel) {
-			return adaptPollableChannelToPublisher((PollableChannel) inputChannel);
-		}
-		else {
-			throw new IllegalArgumentException("The 'inputChannel' must be an instance of SubscribableChannel or " +
-					"PollableChannel, not: " + inputChannel);
-		}
-	}
-
-	private static Publisher<Message<?>> adaptSubscribableChannelToPublisher(SubscribableChannel inputChannel) {
-		return new SubscribableChannelPublisherAdapter(inputChannel);
-	}
-
-	private static Publisher<Message<?>> adaptPollableChannelToPublisher(PollableChannel inputChannel) {
-		return new PollableChannelPublisherAdapter(inputChannel);
-	}
-
-
-	private final static class SubscribableChannelPublisherAdapter implements Publisher<Message<?>> {
-
-		private final SubscribableChannel channel;
-
-		SubscribableChannelPublisherAdapter(SubscribableChannel channel) {
-			this.channel = channel;
-		}
-
-		@Override
-		public void subscribe(Subscriber<? super Message<?>> subscriber) {
-			Flux.
-					<Message<?>>create(emitter -> {
-								MessageHandler messageHandler = emitter::next;
-								this.channel.subscribe(messageHandler);
-								emitter.setCancellation(() -> this.channel.unsubscribe(messageHandler));
-							},
-							FluxSink.OverflowStrategy.IGNORE)
-					.subscribe(subscriber);
-		}
-
-	}
-
-	private final static class PollableChannelPublisherAdapter implements Publisher<Message<?>> {
-
-		private final PollableChannel channel;
-
-
-		PollableChannelPublisherAdapter(final PollableChannel channel) {
-			this.channel = channel;
-		}
-
-		@Override
-		public void subscribe(Subscriber<? super Message<?>> subscriber) {
-			Iterator<Message<?>> messageIterator = new Iterator<Message<?>>() {
-
-				private Message<?> next = null;
-
-				@Override
-				public Message<?> next() {
-					Message<?> message = this.next;
-					this.next = null;
-					return message;
-				}
-
-				@Override
-				public boolean hasNext() {
-					if (this.next == null) {
-						this.next = PollableChannelPublisherAdapter.this.channel.receive(0);
-					}
-					return this.next != null;
-				}
-
-			};
-
-			Mono.<Message<?>>delayMillis(100)
-					.repeat()
-					.concatMap(value -> Flux.fromIterable(() -> messageIterator))
-					.subscribe(subscriber);
-		}
-
-	}
 
 	private static final class ConsumerSubscriber implements Subscriber<Message<?>>, Receiver, Disposable, Trackable {
 
