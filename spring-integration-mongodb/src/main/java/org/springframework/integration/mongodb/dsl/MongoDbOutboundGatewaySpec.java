@@ -63,7 +63,7 @@ public class MongoDbOutboundGatewaySpec
 	/**
 	 * {@code String} representation of a MongoDb {@link Query} (e.g., query("{'name' : 'Bob'}")).
 	 * Please refer to MongoDb documentation for more query samples
-	 * @see <a href="http://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
+	 * see <a href="http://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
 	 * This property is mutually exclusive with 'queryExpression' property.
 	 * @param query the MongoDb {@link Query} to use.
 	 * @return the spec
@@ -85,8 +85,7 @@ public class MongoDbOutboundGatewaySpec
 	}
 
 	/**
-	 * {@link Function} which should resolve to a {@link Query} instance (e.q.,
-	 * queryFunction(msg -> Query.query(Criteria.where("name").is(msg.getPayload()))))
+	 * {@link Function} which should resolve to a {@link Query} instance.
 	 * @param queryFunction the {@link Function} to use.
 	 * @param <P> the type of the message payload.
 	 * @return the spec
