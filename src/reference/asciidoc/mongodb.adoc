@@ -318,6 +318,8 @@ The Message payload and headers can be used to specify the query, as well as col
 If this attribute is not provided the default value is `org.bson.Document`;
 * `query` or `query-expression` - specifies the MongoDb query.
 Please refer to http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+* `collection-callback` - reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`
+(NOTE: you can not have both collection-callback and any of the query attributes).
 
 ==== Configuring with Java Configuration
 
@@ -406,4 +408,16 @@ public class MongoDbJavaApplication {
     }
 
 }
+----
+
+Alternatively to the query and query-expression properties, you can specify other database operations through
+the collectionCallback property. The following example specifies a count operation:
+
+[source, java]
+----
+private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
+        return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
+                .collectionCallback(MongoCollection::count)
+                .collectionName("foo");
+		}
 ----

@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.dsl;
 import java.util.function.Function;
 
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
@@ -47,43 +48,108 @@ public class MongoDbOutboundGatewaySpec
 		this.target.setRequiresReply(true);
 	}
 
+	/**
+	 * This parameter indicates that only one result object will be returned from the database
+	 * by using a findOne query.
+	 * If set to 'false', the complete result list is returned as the payload.
+	 * @param expectSingleResult the {@code boolean} flag to indicate if a single result is returned or not.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec expectSingleResult(boolean expectSingleResult) {
 		this.target.setExpectSingleResult(expectSingleResult);
 		return this;
 	}
 
+	/**
+	 * {@code String} representation of a MongoDb {@link Query} (e.g., query("{'name' : 'Bob'}")).
+	 * Please refer to MongoDb documentation for more query samples
+	 * see <a href="http://www.mongodb.org/display/DOCS/Querying">MongoDB Docs</a>
+	 * This property is mutually exclusive with 'queryExpression' property.
+	 * @param query the MongoDb {@link Query} to use.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec query(String query) {
 		this.target.setQueryExpression(new LiteralExpression(query));
 		return this;
 	}
 
+	/**
+	 * SpEL expression which should resolve to a {@code String} query (please refer to the 'query' property), or to an
+	 * instance of MongoDb {@link Query} (e.q., queryExpression("new BasicQuery('{''address.state'' : ''PA''}')")).
+	 * @param queryExpression the {@code String} query to use.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec queryExpression(String queryExpression) {
 		this.target.setQueryExpressionString(queryExpression);
 		return this;
 	}
 
+	/**
+	 * {@link Function} which should resolve to a {@link Query} instance.
+	 * @param queryFunction the {@link Function} to use.
+	 * @param <P> the type of the message payload.
+	 * @return the spec
+	 */
 	public <P> MongoDbOutboundGatewaySpec queryFunction(Function<Message<P>, Query> queryFunction) {
 		this.target.setQueryExpression(new FunctionExpression<>(queryFunction));
 		return this;
 	}
 
+	/**
+	 * The fully qualified name of the entity class to be passed to find(..) or findOne(..) method
+	 * in {@link org.springframework.data.mongodb.core.MongoTemplate}.
+	 * If this attribute is not provided the default value is {@link org.bson.Document}.
+	 * @param entityClass the {@link Class} to use.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec entityClass(Class<?> entityClass) {
 		this.target.setEntityClass(entityClass);
 		return this;
 	}
 
+	/**
+	 * Identifies the name of the MongoDb collection to use. This attribute is mutually exclusive with
+	 * 'collectionNameExpression' property.
+	 * @param collectionName the {@link String} specifying the collection.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec collectionName(String collectionName) {
 		this.target.setCollectionNameExpression(new LiteralExpression(collectionName));
 		return this;
 	}
 
+	/**
+	 * SpEL expression which should resolve to a {@link String} value identifying the name of the MongoDb
+	 * collection to use.
+	 * This property is mutually exclusive with 'collectionName' property.
+	 * @param collectionNameExpression the {@link String} expression to use.
+	 * @return the spec
+	 */
 	public MongoDbOutboundGatewaySpec collectionNameExpression(String collectionNameExpression) {
 		this.target.setCollectionNameExpressionString(collectionNameExpression);
 		return this;
 	}
 
+	/**
+	 * {@link Function} which should resolve to a {@link String} (e.q., collectionNameFunction(Message::getPayload))
+	 * @param collectionNameFunction the {@link Function} to use.
+	 * @param <P> the type of the message payload.
+	 * @return the spec
+	 */
 	public <P> MongoDbOutboundGatewaySpec collectionNameFunction(Function<Message<P>, String> collectionNameFunction) {
 		this.target.setCollectionNameExpression(new FunctionExpression<>(collectionNameFunction));
+		return this;
+	}
+
+	/**
+	 * Reference to an instance of {@link CollectionCallback} which specifies the database operation to execute.
+	 * This property is mutually exclusive with 'query' and 'queryExpression' properties.
+	 * @param collectionCallback the {@link CollectionCallback} instance
+	 * @param <P> the type of the message payload.
+	 * @return the spec
+	 */
+	public <P> MongoDbOutboundGatewaySpec collectionCallback(CollectionCallback<P> collectionCallback) {
+		this.target.setCollectionCallback(collectionCallback);
 		return this;
 	}
 

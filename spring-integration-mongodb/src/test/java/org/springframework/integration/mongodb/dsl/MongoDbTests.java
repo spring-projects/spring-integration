@@ -32,10 +32,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -54,6 +55,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
 
 /**
  * @author Xavier Padró
@@ -95,6 +97,10 @@ public class MongoDbTests extends MongoDbAvailableTests {
 	@Autowired
 	@Qualifier("gatewayCollectionNameFunctionFlow.input")
 	private MessageChannel gatewayCollectionNameFunctionFlow;
+
+	@Autowired
+	@Qualifier("gatewayCollectionCallbackFlow.input")
+	private MessageChannel gatewayCollectionCallbackFlow;
 
 	@Autowired
 	private MongoOperations mongoTemplate;
@@ -222,6 +228,20 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		assertEquals("Gary", person.getName());
 	}
 
+	@Test
+	@MongoDbAvailable
+	public void testGatewayWithCollectionCallback() {
+		gatewayCollectionCallbackFlow.send(MessageBuilder
+				.withPayload("")
+				.build());
+
+		Message<?> result = this.getResultChannel.receive(10_000);
+
+		assertNotNull(result);
+		long count = (Long) result.getPayload();
+		assertEquals(4, count);
+	}
+
 	@SuppressWarnings("unchecked")
 	private List<Person> getPersons(Message<?> message) {
 		return (List<Person>) message.getPayload();
@@ -287,6 +307,13 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		public IntegrationFlow gatewayCollectionNameFunctionFlow() {
 			return f -> f
 					.handle(collectionNameFunctionOutboundGateway(true))
+					.channel(getResultChannel());
+		}
+
+		@Bean
+		public IntegrationFlow gatewayCollectionCallbackFlow() {
+			return f -> f
+					.handle(collectionCallbackOutboundGateway(MongoCollection::count))
 					.channel(getResultChannel());
 		}
 
@@ -357,6 +384,13 @@ public class MongoDbTests extends MongoDbAvailableTests {
 					.queryExpression("headers.query")
 					.<String>collectionNameFunction(Message::getPayload)
 					.expectSingleResult(expectSingleResult)
+					.entityClass(Person.class);
+		}
+
+		private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway(CollectionCallback<?> collectionCallback) {
+			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
+					.collectionCallback(collectionCallback)
+					.collectionName(COLLECTION_NAME)
 					.entityClass(Person.class);
 		}
 

@@ -155,6 +155,24 @@ public class MongoDbOutboundGatewayXmlTests extends MongoDbAvailableTests {
 		assertEquals(2, persons.size());
 	}
 
+	@Test
+	@MongoDbAvailable
+	public void testCollectionCallback() throws Exception {
+		EventDrivenConsumer consumer = context.getBean("gatewayCollectionCallback", EventDrivenConsumer.class);
+		PollableChannel outChannel = context.getBean("out", PollableChannel.class);
+
+		Message<String> message = MessageBuilder
+				.withPayload("")
+				.setHeader("collectionName", "data")
+				.build();
+
+		consumer.getHandler().handleMessage(message);
+
+		Message<?> result = outChannel.receive(10000);
+		long personsCount = (Long) result.getPayload();
+		assertEquals(4, personsCount);
+	}
+
 	private Person getPerson(Message<?> message) {
 		return (Person) message.getPayload();
 	}

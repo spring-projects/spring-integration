@@ -16,10 +16,14 @@
 
 package org.springframework.integration.mongodb.rules;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Rule;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
@@ -28,6 +32,8 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
@@ -157,6 +163,14 @@ public abstract class MongoDbAvailableTests {
 			return super.read(clazz, source);
 		}
 
+	}
+
+	public static class TestCollectionCallback implements CollectionCallback<Long> {
+
+		@Override
+		public Long doInCollection(MongoCollection<Document> collection) throws MongoException, DataAccessException {
+			return collection.count();
+		}
 	}
 
 }

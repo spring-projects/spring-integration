@@ -48,12 +48,26 @@ public class MongoDbOutboundGatewayParser extends AbstractConsumerEndpointParser
 			builder.addPropertyReference("outputChannel", replyChannel);
 		}
 
-		BeanDefinition queryExpressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("query",
-						"query-expression", parserContext, element, true);
+		String collectionCallback = element.getAttribute("collection-callback");
 
-		if (queryExpressionDef != null) {
-			builder.addPropertyValue("queryExpression", queryExpressionDef);
+		if (StringUtils.hasText(collectionCallback)) {
+			if (StringUtils.hasText(element.getAttribute("query")) ||
+							StringUtils.hasText(element.getAttribute("query-expression"))) {
+
+				parserContext.getReaderContext().error("'collection-callback' is not allowed with " +
+						"'query' or 'query-expression'", element);
+			}
+
+			builder.addPropertyReference("collectionCallback", collectionCallback);
+		}
+		else {
+			BeanDefinition queryExpressionDef =
+					IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("query",
+							"query-expression", parserContext, element, true);
+
+			if (queryExpressionDef != null) {
+				builder.addPropertyValue("queryExpression", queryExpressionDef);
+			}
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
