@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Level;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -44,9 +43,12 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -67,7 +69,7 @@ import reactor.core.publisher.Flux;
 @DirtiesContext
 public class ReactiveStreamsTests {
 
-	@Rule
+//	@Rule
 	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.DEBUG, "org.springframework.integration");
 
 	@Autowired
@@ -86,6 +88,9 @@ public class ReactiveStreamsTests {
 	@Qualifier("inputChannel")
 	private MessageChannel inputChannel;
 
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
+
 	@Test
 	public void testReactiveFlow() throws Exception {
 		List<String> results = new ArrayList<>();
@@ -99,7 +104,7 @@ public class ReactiveStreamsTests {
 		this.messageSource.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		String[] strings = results.toArray(new String[results.size()]);
-		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
+		assertArrayEquals(new String[] {"A", "B", "C", "D", "E", "F"}, strings);
 		this.messageSource.stop();
 	}
 
@@ -119,17 +124,17 @@ public class ReactiveStreamsTests {
 
 		Future<List<Integer>> future =
 				Executors.newSingleThreadExecutor().submit(() ->
-					Flux.just("11,12,13")
-							.map(v -> v.split(","))
-							.flatMapIterable(Arrays::asList)
-							.map(Integer::parseInt)
-							.<Message<Integer>>map(GenericMessage<Integer>::new)
-							.concatWith(this.pollablePublisher)
-							.take(7)
-							.map(Message::getPayload)
-							.log("org.springframework.integration.flux")
-							.collectList()
-							.block(Duration.ofSeconds(10))
+						Flux.just("11,12,13")
+								.map(v -> v.split(","))
+								.flatMapIterable(Arrays::asList)
+								.map(Integer::parseInt)
+								.<Message<Integer>>map(GenericMessage<Integer>::new)
+								.concatWith(this.pollablePublisher)
+								.take(7)
+								.map(Message::getPayload)
+								.log("org.springframework.integration.flux")
+								.collectList()
+								.block(Duration.ofSeconds(10))
 				);
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
@@ -141,6 +146,33 @@ public class ReactiveStreamsTests {
 		assertEquals(7, integers.size());
 	}
 
+	@Test
+	public void testFromPublisher() {
+		Flux<Message<?>> messageFlux = Flux.just("1,2,3,4")
+				.map(v -> v.split(","))
+				.flatMapIterable(Arrays::asList)
+				.map(Integer::parseInt)
+				.log("org.springframework.integration.flux")
+				.map(GenericMessage<Integer>::new);
+
+		QueueChannel resultChannel = new QueueChannel();
+
+		IntegrationFlow integrationFlow =
+				IntegrationFlows.from(messageFlux)
+						.log("org.springframework.integration.flux2")
+						.<Integer, Integer>transform(p -> p * 2)
+						.channel(resultChannel)
+						.get();
+
+		this.integrationFlowContext.registration(integrationFlow)
+				.register();
+
+		for (int i = 0; i < 4; i++) {
+			Message<?> receive = resultChannel.receive(10000);
+			assertNotNull(receive);
+			assertEquals((i + 1) * 2, receive.getPayload());
+		}
+	}
 
 	@Configuration
 	@EnableIntegration

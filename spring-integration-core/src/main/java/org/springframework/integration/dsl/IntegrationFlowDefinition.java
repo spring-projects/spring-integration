@@ -38,6 +38,7 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -48,7 +49,6 @@ import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
-import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.expression.ControlBusMethodFilter;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
@@ -2726,8 +2726,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 		else {
 			if (channelForPublisher != null) {
-				Publisher<?> messagePublisher = ReactiveConsumer.adaptToPublisher(channelForPublisher);
-				publisher = (Publisher<Message<T>>) messagePublisher;
+				publisher = MessageChannelReactiveUtils.toPublisher(channelForPublisher);
 			}
 			else {
 				MessageChannel reactiveChannel = new ReactiveChannel();

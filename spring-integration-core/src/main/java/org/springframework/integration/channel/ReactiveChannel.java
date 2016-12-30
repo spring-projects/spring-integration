@@ -16,26 +16,39 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.DirectProcessor;
+import reactor.core.publisher.Operators;
 
 /**
  * @author Artem Bilan
+ *
  * @since 5.0
  */
-public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
+public class ReactiveChannel extends AbstractMessageChannel
+		implements Publisher<Message<?>>, ReactiveSubscribableChannel {
+
+	private final List<Subscriber<? super Message<?>>> subscribers = new ArrayList<>();
+
+	private final List<Publisher<Message<?>>> publishers = new CopyOnWriteArrayList<>();
 
 	private final Processor<Message<?>, Message<?>> processor;
 
 	private final BlockingSink<Message<?>> sink;
+
+	private volatile boolean upstreamSubscribed;
 
 	public ReactiveChannel() {
 		this(DirectProcessor.create());
@@ -48,18 +61,55 @@ public class ReactiveChannel implements MessageChannel, Publisher<Message<?>> {
 	}
 
 	@Override
-	public boolean send(Message<?> message) {
-		return send(message, -1);
-	}
-
-	@Override
-	public boolean send(Message<?> message, long timeout) {
+	protected boolean doSend(Message<?> message, long timeout) {
 		return this.sink.submit(message, timeout) > -1;
 	}
 
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
-		this.processor.subscribe(subscriber);
+		this.subscribers.add(subscriber);
+		this.processor.subscribe(new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
+
+			@Override
+			protected void doCancel() {
+				super.doCancel();
+				ReactiveChannel.this.subscribers.remove(subscriber);
+			}
+
+		});
+
+		if (!this.upstreamSubscribed) {
+			this.publishers.forEach(this::doSubscribeTo);
+		}
+	}
+
+	@Override
+	public void subscribeTo(Publisher<Message<?>> publisher) {
+		this.publishers.add(publisher);
+		if (!this.subscribers.isEmpty()) {
+			doSubscribeTo(publisher);
+		}
+	}
+
+	private void doSubscribeTo(Publisher<Message<?>> publisher) {
+		publisher.subscribe(new Operators.SubscriberAdapter<Message<?>, Message<?>>(this.processor) {
+
+			@Override
+			protected void doOnSubscribe(Subscription subscription) {
+				super.doOnSubscribe(subscription);
+				ReactiveChannel.this.upstreamSubscribed = true;
+			}
+
+			@Override
+			protected void doComplete() {
+				super.doComplete();
+				ReactiveChannel.this.publishers.remove(publisher);
+				if (ReactiveChannel.this.publishers.isEmpty()) {
+					ReactiveChannel.this.upstreamSubscribed = false;
+				}
+			}
+
+		});
 	}
 
 }
