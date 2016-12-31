@@ -20,7 +20,7 @@ The Spring Framework provides these implementations:
 * `WebSocketStompClient` - built on the Spring WebSocket API with support for standard JSR-356 WebSocket, Jetty 9,
 as well as SockJS for HTTP-based WebSocket emulation with SockJS Client.
 
-* `Reactor2TcpStompClient` - built on `NettyTcpClient` from the `reactor-net` project.
+* `ReactorNettyTcpStompClient` - built on `ReactorNettyTcpClient` from the `reactor-netty` project.
 
 Any other `StompClientSupport` implementation can be provided.
 See the JavaDocs of those classes for more information.
@@ -121,8 +121,8 @@ A comprehensive Java & Annotation Configuration for STOMP Adapters may look like
 public class StompConfiguration {
 
     @Bean
-    public Reactor2TcpStompClient stompClient() {
-        Reactor2TcpStompClient stompClient = new Reactor2TcpStompClient("127.0.0.1", 61613);
+    public ReactorNettyTcpStompClient stompClient() {
+        ReactorNettyTcpStompClient stompClient = new ReactorNettyTcpStompClient("127.0.0.1", 61613);
         stompClient.setMessageConverter(new PassThruMessageConverter());
         ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.afterPropertiesSet();
@@ -133,7 +133,7 @@ public class StompConfiguration {
 
     @Bean
     public StompSessionManager stompSessionManager() {
-        Reactor2TcpStompSessionManager stompSessionManager = new Reactor2TcpStompSessionManager(stompClient());
+        ReactorNettyTcpStompSessionManager stompSessionManager = new ReactorNettyTcpStompSessionManager(stompClient());
         stompSessionManager.setAutoReceipt(true);
         return stompSessionManager;
     }

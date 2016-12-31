@@ -15,13 +15,12 @@ you can specify an output channel if the result of the operation has a return va
 
 The Control Bus executes messages on the input channel as Spring Expression Language expressions.
 It takes a message, compiles the body to an expression, adds some context, and then executes it.
-The default context supports any method that has been annotated with @ManagedAttribute or @ManagedOperation.
-It also supports the methods on Spring's Lifecycle interface, and it supports methods that are used to configure several of Spring's TaskExecutor and TaskScheduler implementations.
-The simplest way to ensure that your own methods are available to the Control Bus is to use the @ManagedAttribute and/or @ManagedOperation annotations.
-Since those are also used for exposing methods to a JMX MBean registry, it's a convenient by-product (often the same
-types of operations you want to expose to the Control Bus would be reasonable for exposing via JMX).
+The default context supports any method that has been annotated with `@ManagedAttribute` or `@ManagedOperation`.
+It also supports the methods on Spring's `Lifecycle` interface, and it supports methods that are used to configure several of Spring's `TaskExecutor` and `TaskScheduler` implementations.
+The simplest way to ensure that your own methods are available to the Control Bus is to use the `@ManagedAttribute` and/or `@ManagedOperation` annotations.
+Since those are also used for exposing methods to a JMX MBean registry, it's a convenient by-product (often the same types of operations you want to expose to the Control Bus would be reasonable for exposing via JMX).
 Resolution of any particular instance within the application context is achieved in the typical SpEL syntax.
-Simply provide the bean name with the SpEL prefix for beans (@).
+Simply provide the bean name with the SpEL prefix for beans (`@`).
 For example, to execute a method on a Spring Bean a client could send a message to the operation channel as follows:
 
 [source,java]
@@ -30,5 +29,40 @@ Message operation = MessageBuilder.withPayload("@myServiceBean.shutdown()").buil
 operationChannel.send(operation)
 ----
 
-The root of the context for the expression is the `Message` itself, so you also have access to the 'payload' and 'headers' as variables within your expression.
+The root of the context for the expression is the `Message` itself, so you also have access to the `payload` and `headers` as variables within your expression.
 This is consistent with all the other expression support in Spring Integration endpoints.
+
+With Java and Annotations the Control Bus can be configured as follows:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "operationChannel")
+public ExpressionControlBusFactoryBean controlBus() {
+    return new ExpressionControlBusFactoryBean();
+}
+----
+
+Or, when using Java DSL flow definitions:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow controlBusFlow() {
+    return IntegrationFlows.from("controlBus")
+              .controlBus()
+              .get();
+}
+----
+
+Or, if you prefer Lambda style with automatic `DirectChannel` creation:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow controlBus() {
+    return IntegrationFlowDefinition::controlBus;
+}
+----
+
+In this case, the channel is named `controlBus.input`.
