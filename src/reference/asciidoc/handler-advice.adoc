@@ -171,18 +171,18 @@ It also adds an `ExponentialBackoffPolicy` where the first retry waits 1 second,
 </int:service-activator>
 
 <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
-	<property name="retryPolicy">
-		<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
-			<property name="maxAttempts" value="4" />
-		</bean>
-	</property>
-	<property name="backOffPolicy">
-		<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
-			<property name="initialInterval" value="1000" />
-			<property name="multiplier" value="5.0" />
-			<property name="maxInterval" value="60000" />
-		</bean>
-	</property>
+    <property name="retryPolicy">
+        <bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+            <property name="maxAttempts" value="4" />
+        </bean>
+    </property>
+    <property name="backOffPolicy">
+        <bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+            <property name="initialInterval" value="1000" />
+            <property name="multiplier" value="5.0" />
+            <property name="maxInterval" value="60000" />
+        </bean>
+    </property>
 </bean>
 
 27.058 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=...]
@@ -214,7 +214,7 @@ Starting with _version 4.0_, the above configuration can be greatly simplified w
 </int:service-activator>
 
 <int:handler-retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
-	<int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
+    <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
 </int:handler-retry-advice>
 ----
 
@@ -225,9 +225,9 @@ You can also define the advice directly within the chain:
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
     <int:request-handler-advice-chain>
-		<int:retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
-			<int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
-		</int:retry-advice>
+        <int:retry-advice id="retrier" max-attempts="4" recovery-channel="myErrorChannel">
+            <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
+        </int:retry-advice>
     </request-handler-advice-chain>
 </int:service-activator>
 ----
@@ -390,6 +390,59 @@ Like all `MessagingException` s, this payload has `failedMessage` and `cause` pr
 When an exception is thrown in the scope of the advice, by default, that exception is thrown to caller after any
 `failureExpression` is evaluated.
 If you wish to suppress throwing the exception, set the `trapException` property to `true`.
+
+.Example - Configuring the Advice with Java DSL
+[source, java]
+----
+@SpringBootApplication
+public class EerhaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(EerhaApplication.class, args);
+        MessageChannel in = context.getBean("advised.input", MessageChannel.class);
+        in.send(new GenericMessage<>("good"));
+        in.send(new GenericMessage<>("bad"));
+        context.close();
+    }
+
+    @Bean
+    public IntegrationFlow advised() {
+        return f -> f.handle((GenericHandler<String>) (payload, headers) -> {
+            if (payload.equals("good")) {
+                return null;
+            }
+            else {
+                throw new RuntimeException("some failure");
+            }
+        }, c -> c.advice(expressionAdvice()));
+    }
+
+    @Bean
+    public Advice expressionAdvice() {
+        ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+        advice.setSuccessChannelName("success.input");
+        advice.setOnSuccessExpression("payload + ' was successful'");
+        advice.setFailureChannelName("failure.input");
+        advice.setOnFailureExpression(
+                "payload + ' was bad, with reason: ' + #exception.cause.message");
+        advice.setTrapException(true);
+        return advice;
+    }
+
+    @Bean
+    public IntegrationFlow success() {
+        return f -> f.handle(System.out::println);
+    }
+
+    @Bean
+    public IntegrationFlow failure() {
+        return f -> f.handle(m -> {
+            System.out.println(m + ", failedMessage=" + ((MessagingException) m.getPayload()).getFailedMessage());
+        });
+    }
+
+}
+----
 
 [[custom-advice]]
 ==== Custom Advice Classes
@@ -586,7 +639,7 @@ public class MyAdvisedFilter {
     @Filter(inputChannel="input", outputChannel="output",
             adviceChain="adviceChain", discardWithinAdvice="false")
     public boolean filter(String s) {
-    	return s.contains("good");
+        return s.contains("good");
     }
 }
 ----
@@ -665,16 +718,16 @@ For convenience, the `MetadataStoreSelector` options are configurable directly o
 [source,xml]
 ----
 <idempotent-receiver
-		id=""  <1>
-		endpoint=""  <2>
-		selector=""  <3>
-		discard-channel=""  <4>
-		metadata-store=""  <5>
-		key-strategy=""  <6>
-		key-expression=""  <7>
-		value-strategy=""  <8>
-		value-expression=""  <9>
-		throw-exception-on-rejection="" />  <10>
+        id=""  <1>
+        endpoint=""  <2>
+        selector=""  <3>
+        discard-channel=""  <4>
+        metadata-store=""  <5>
+        key-strategy=""  <6>
+        key-expression=""  <7>
+        value-strategy=""  <8>
+        value-expression=""  <9>
+        throw-exception-on-rejection="" />  <10>
 ----
 
 <1> The id of the `IdempotentReceiverInterceptor` bean.

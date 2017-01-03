@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,9 +50,13 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private volatile MessageChannel successChannel;
 
+	private volatile String successChannelName;
+
 	private volatile Expression onFailureExpression;
 
 	private volatile MessageChannel failureChannel;
+
+	private volatile String failureChannelName;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -83,13 +87,19 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	public void setSuccessChannel(MessageChannel successChannel) {
-		Assert.notNull(successChannel, "'successChannel' must not be null");
 		this.successChannel = successChannel;
 	}
 
+	public void setSuccessChannelName(String successChannelName) {
+		this.successChannelName = successChannelName;
+	}
+
 	public void setFailureChannel(MessageChannel failureChannel) {
-		Assert.notNull(failureChannel, "'failureChannel' must not be null");
 		this.failureChannel = failureChannel;
+	}
+
+	public void setFailureChannelName(String failureChannelName) {
+		this.failureChannelName = failureChannelName;
 	}
 
 	/**
@@ -163,6 +173,9 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			evalResult = e;
 			evaluationFailed = true;
 		}
+		if (this.successChannel == null && this.successChannelName != null && getChannelResolver() != null) {
+			this.successChannel = getChannelResolver().resolveDestination(this.successChannelName);
+		}
 		if (evalResult != null && this.successChannel != null) {
 			AdviceMessage<?> resultMessage = new AdviceMessage<Object>(evalResult, message);
 			this.messagingTemplate.send(this.successChannel, resultMessage);
@@ -180,6 +193,9 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		catch (Exception e) {
 			evalResult = e;
 			logger.error("Failure expression evaluation failed for " + message + ": " + e.getMessage());
+		}
+		if (this.failureChannel == null && this.failureChannelName != null && getChannelResolver() != null) {
+			this.failureChannel = getChannelResolver().resolveDestination(this.failureChannelName);
 		}
 		if (evalResult != null && this.failureChannel != null) {
 			MessagingException messagingException = new MessageHandlingExpressionEvaluatingAdviceException(message,
