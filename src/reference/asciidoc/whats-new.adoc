@@ -17,6 +17,9 @@ See <<mongodb-outbound-gateway>> for more information.
 [[x5.0-general]]
 === General Changes
 
+Spring Integration is now fully based on Spring Framework `5.0` and Project Reactor `3.0`.
+The previous Project Reactor versions aren't supported any more.
+
 ==== Core Changes
 
 The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
@@ -107,3 +110,10 @@ Inbound messages are now mapped with headers `RECEIVED_TOPIC`, `RECEIVED_QOS` an
 The outbound channel adapter now supports expressions for the topic, qos and retained properties; the defaults remain the same.
 
 See <<mqtt>> for more information.
+
+==== STOMP Changes
+
+The STOMP module has been changed to use `ReactorNettyTcpStompClient`, based on the Project Reactor `3.0` and `reactor-netty` extension.
+The `Reactor2TcpStompSessionManager` has been renamed to the `ReactorNettyTcpStompSessionManager` according to the `ReactorNettyTcpStompClient` foundation.
+
+See <<stomp>> for more information.
