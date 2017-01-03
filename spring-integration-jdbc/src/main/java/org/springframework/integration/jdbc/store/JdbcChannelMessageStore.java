@@ -656,7 +656,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	public void removeFromIdCache(String messageId) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Removing Message Id:" + messageId);
+			logger.debug("Removing Message Id: " + messageId);
 		}
 		this.idCacheWriteLock.lock();
 		try {

@@ -171,7 +171,7 @@ public class StoredProcOutboundGatewayParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testProcedurepParametersAreSet() throws Exception {
+	public void testProcedureParametersAreSet() throws Exception {
 		setUp("storedProcOutboundGatewayParserTest.xml", getClass());
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
@@ -200,7 +200,7 @@ public class StoredProcOutboundGatewayParserTests {
 		assertEquals("kenny",              parameter1.getValue());
 		assertEquals("Who killed Kenny?",  parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  parameter4.getValue());
+		assertEquals(30, parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());
@@ -273,11 +273,8 @@ public class StoredProcOutboundGatewayParserTests {
 		assertEquals("SqlType is ", Types.INTEGER, parameter3.getSqlType());
 		assertEquals("SqlType is ", Types.VARCHAR, parameter4.getSqlType());
 
-		assertTrue(parameter1 instanceof SqlParameter);
 		assertTrue(parameter2 instanceof SqlOutParameter);
 		assertTrue(parameter3 instanceof SqlInOutParameter);
-		assertTrue(parameter4 instanceof SqlParameter);
-
 	}
 
 	@Test

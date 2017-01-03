@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -33,6 +34,7 @@ import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvi
 import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -117,8 +119,18 @@ public class JdbcMessageHandlerParserTests {
 		MessageChannel target = context.getBean("target", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		target.send(message);
-		Thread.sleep(2000);
-		Map<String, Object> map = (context.getBean("jdbcTemplate", JdbcTemplate.class)).queryForMap("SELECT * from FOOW");
+
+		JdbcTemplate jdbcTemplate = context.getBean("jdbcTemplate", JdbcTemplate.class);
+		int n = 0;
+		List<Map<String, Object>> result = jdbcTemplate.query("SELECT * from FOOW", new ColumnMapRowMapper());
+		while (result.isEmpty() && n++ < 100) {
+			Thread.sleep(100);
+			result = jdbcTemplate.query("SELECT * from FOOW", new ColumnMapRowMapper());
+		}
+		assertTrue(n < 100);
+
+		assertEquals(1, result.size());
+		Map<String, Object> map = result.get(0);
 		assertEquals("Wrong id", "FOO", map.get("ID"));
 		assertEquals("Wrong id", "foo", map.get("name"));
 	}
