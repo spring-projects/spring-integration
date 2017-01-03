@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -600,7 +600,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 
-		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		if (messages.size() > 1) {
+			throw new IllegalStateException("The query must return zero or 1 row; got " + messages.size() + " rows");
+		}
 		if (messages.size() > 0) {
 
 			final Message<?> message = messages.get(0);
