@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testPromiseGateway() throws Exception {
+	public void testMonoGateway() throws Exception {
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		MessageChannel replyChannel = context.getBean("replyChannel", MessageChannel.class);
 		this.startResponder(requestChannel, replyChannel);
@@ -280,7 +280,7 @@ public class GatewayParserTests {
 	}
 
 	@Test
-	public void testAsyncCompletableMessge() throws Exception {
+	public void testAsyncCompletableMessage() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
 		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {

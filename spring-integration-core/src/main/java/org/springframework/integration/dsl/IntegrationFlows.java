@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.dsl;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
@@ -26,6 +27,8 @@ import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototy
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -274,6 +277,36 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
 		return from(inboundGateway, (IntegrationFlowBuilder) null);
+	}
+
+	/**
+	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder} chain,
+	 * which becomes as a {@code requestChannel} for the Messaging Gateway(s) built on the provided
+	 * service interface.
+	 * <p> A gateway proxy bean for provided service interface is registered
+	 * under a name of the {@link IntegrationFlow} bean plus {@code .gateway} suffix.
+	 * @param serviceInterface the class with a {@link MessagingGateway} annotation.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 */
+	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {
+		final DirectChannel gatewayRequestChannel = new DirectChannel();
+
+		GatewayProxyFactoryBean gatewayProxyFactoryBean =
+				new AnnotationGatewayProxyFactoryBean(serviceInterface) {
+
+					@Override
+					protected void onInit() {
+						super.onInit();
+						getGateways()
+								.values()
+								.forEach(gateway ->
+										gateway.setRequestChannel(gatewayRequestChannel));
+					}
+
+				};
+
+		return from(gatewayRequestChannel)
+				.addComponent(gatewayProxyFactoryBean);
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -82,7 +81,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
@@ -91,8 +90,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class IntegrationFlowTests {
 
@@ -418,7 +416,7 @@ public class IntegrationFlowTests {
 	}
 
 
-	@MessagingGateway(defaultRequestChannel = "controlBus")
+	@MessagingGateway
 	public interface ControlBusGateway {
 
 		void send(String command);
@@ -426,12 +424,13 @@ public class IntegrationFlowTests {
 
 	@Configuration
 	@EnableIntegration
-	@IntegrationComponentScan
 	public static class ContextConfiguration {
 
 		@Bean
 		public IntegrationFlow controlBusFlow() {
-			return IntegrationFlows.from("controlBus").controlBus().get();
+			return IntegrationFlows.from(ControlBusGateway.class)
+					.controlBus()
+					.get();
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
