@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,15 +44,15 @@ public class GatewayWithHeaderAnnotations {
 	@Test // INT-1205
 	public void priorityAsArgument() {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
-		String result = gateway.test("foo", 99, "bar");
-		assertEquals("foo99bar", result);
+		String result = gateway.test("foo", 99, "bar", "qux");
+		assertEquals("foo99barqux", result);
 	}
 
 
 	public interface TestService {
 		// wrt INT-1205, priority no longer has a $ prefix, so here we are testing the $custom header as well
 		String test(String str, @Header(IntegrationMessageHeaderAccessor.PRIORITY) int priority,
-				@Header("$custom") String custom);
+				@Header("$custom") String custom, @Header(name = "baz") String baz);
 
 	}
 
