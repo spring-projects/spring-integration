@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Test;
@@ -33,8 +35,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.IntegrationComponentScan;
+import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
@@ -53,6 +60,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -66,6 +74,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -115,6 +124,8 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 	@Autowired
 	TestHandler testConsumer;
 
+	@Autowired
+	TestGateway testGateway;
 
 	@After
 	public void tearDown() {
@@ -252,6 +263,21 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 				instanceOf(AuthenticationCredentialsNotFoundException.class));
 	}
 
+	@Test
+	public void testSecurityContextPropagationAsyncGateway() throws Exception {
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
+		Future<String> future = this.testGateway.test("foo");
+		Message<?> receive = this.securedChannelQueue.receive(10000);
+		assertNotNull(receive);
+
+		MessageChannel replyChannel = receive.getHeaders().get(MessageHeaders.REPLY_CHANNEL, MessageChannel.class);
+		replyChannel.send(new GenericMessage<>("bar"));
+
+		String result = future.get(10, TimeUnit.SECONDS);
+		assertNotNull(result);
+		assertEquals("bar", result);
+	}
+
 	private void login(String username, String password, String... roles) {
 		SecurityContext context = SecurityTestUtils.createContext(username, password, roles);
 		SecurityContextHolder.setContext(context);
@@ -260,6 +286,7 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 
 	@Configuration
 	@EnableIntegration
+	@IntegrationComponentScan
 	@ImportResource("classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml")
 	public static class ContextConfiguration {
 
@@ -369,6 +396,19 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
 			return channelSecurityInterceptor;
 		}
+
+		@Bean
+		public AsyncTaskExecutor securityContextExecutor() {
+			return new DelegatingSecurityContextAsyncTaskExecutor(new SimpleAsyncTaskExecutor());
+		}
+
+	}
+
+	@MessagingGateway(asyncExecutor = "securityContextExecutor")
+	public interface TestGateway {
+
+		@Gateway(requestChannel = "queueChannel")
+		Future<String> test(String payload);
 
 	}
 

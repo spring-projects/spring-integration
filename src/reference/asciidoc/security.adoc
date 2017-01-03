@@ -88,7 +88,8 @@ public class ContextConfiguration {
     }
 
     @Bean
-    public ChannelSecurityInterceptor channelSecurityInterceptor(AuthenticationManager authenticationManager,
+    public ChannelSecurityInterceptor channelSecurityInterceptor(
+            AuthenticationManager authenticationManager,
     		AccessDecisionManager accessDecisionManager) {
     	ChannelSecurityInterceptor channelSecurityInterceptor = new ChannelSecurityInterceptor();
     	channelSecurityInterceptor.setAuthenticationManager(authenticationManager);
@@ -111,7 +112,7 @@ application objects, such as message channels.
 By default, the `SecurityContext` is tied with the current `Thread` 's execution state using the
 (`ThreadLocalSecurityContextHolderStrategy`).
 It is accessed by an AOP interceptor on secured methods to check if that `principal` of the invocation has
-sufficent permissions to call that method, for example.
+sufficient permissions to call that method, for example.
 This works well with the current thread, but often, processing logic can be performed on another thread or even
 on several threads, or on to some external system(s).
 
@@ -155,3 +156,31 @@ implementation to do the clean up operation to free the Thread in the end of inv
 This means that, when the thread that processes the handed-off message, completes the processing of the message
 (successfully or otherwise), the context is cleared so that it can't be inadvertently be used when processing another
 message.
+
+NOTE: When working with <<async-gateway,Asynchronous Gateway>>, you should use an appropriate `AbstractDelegatingSecurityContextSupport` implementation from Spring Security http://docs.spring.io/spring-security/site/docs/current/reference/html/concurrency.html[Concurrency Support], when security context propagation should be ensured over gateway invocation:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+@IntegrationComponentScan
+public class ContextConfiguration {
+
+    @Bean
+    public AsyncTaskExecutor securityContextExecutor() {
+        return new DelegatingSecurityContextAsyncTaskExecutor(
+                         new SimpleAsyncTaskExecutor());
+    }
+
+}
+
+...
+
+@MessagingGateway(asyncExecutor = "securityContextExecutor")
+public interface SecuredGateway {
+
+    @Gateway(requestChannel = "queueChannel")
+    Future<String> send(String payload);
+
+}
+----
