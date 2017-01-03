@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.beans.BeanMetadataAttribute;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -39,12 +38,10 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.gateway.GatewayCompletableFutureProxyFactoryBean;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -56,21 +53,16 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Andy Wilksinson
+ *
  * @since 4.0
  */
-public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar, BeanClassLoaderAware {
-
-	private ClassLoader beanClassLoader;
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.beanClassLoader = classLoader;
-	}
+public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (importingClassMetadata != null && importingClassMetadata.isAnnotated(MessagingGateway.class.getName())) {
-			Assert.isTrue(importingClassMetadata.isInterface(),	"@MessagingGateway can only be specified on an interface");
+			Assert.isTrue(importingClassMetadata.isInterface(),
+					"@MessagingGateway can only be specified on an interface");
 			List<MultiValueMap<String, Object>> valuesHierarchy = captureMetaAnnotationValues(importingClassMetadata);
 			Map<String, Object> annotationAttributes =
 					importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
@@ -82,14 +74,6 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 	}
 
 	public BeanDefinitionHolder parse(Map<String, Object> gatewayAttributes) {
-		boolean completableFutureCapable = true;
-		try {
-			ClassUtils.forName("java.util.concurrent.CompletableFuture", this.beanClassLoader);
-		}
-		catch (Exception e1) {
-			completableFutureCapable = false;
-		}
-
 		String defaultPayloadExpression = (String) gatewayAttributes.get("defaultPayloadExpression");
 
 		@SuppressWarnings("unchecked")
@@ -107,14 +91,15 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar,
 				"'defaultPayloadExpression' is not allowed when a 'mapper' is provided");
 
 		boolean hasDefaultHeaders = !ObjectUtils.isEmpty(defaultHeaders);
-		Assert.state(!hasMapper || !hasDefaultHeaders, "'defaultHeaders' are not allowed when a 'mapper' is provided");
+		Assert.state(!hasMapper || !hasDefaultHeaders,
+				"'defaultHeaders' are not allowed when a 'mapper' is provided");
 
-		BeanDefinitionBuilder gatewayProxyBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				completableFutureCapable ? GatewayCompletableFutureProxyFactoryBean.class
-						: GatewayProxyFactoryBean.class);
+		BeanDefinitionBuilder gatewayProxyBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(GatewayProxyFactoryBean.class);
 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
-			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
+			BeanDefinitionBuilder methodMetadataBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
 			if (hasDefaultPayloadExpression) {
 				methodMetadataBuilder.addPropertyValue("payloadExpression", defaultPayloadExpression);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -111,7 +113,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private volatile Object serviceProxy;
 
-	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
+	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<>();
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
@@ -304,7 +306,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * @since 4.3
 	 */
 	public Map<Method, MessagingGatewaySupport> getGateways() {
-		return Collections.<Method, MessagingGatewaySupport>unmodifiableMap(this.gatewayMap);
+		return Collections.unmodifiableMap(this.gatewayMap);
 	}
 
 	@Override
@@ -323,7 +325,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
-			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
+			this.serviceProxy = new ProxyFactory(proxyInterface, this)
+					.getProxy(this.beanClassLoader);
 			if (this.asyncExecutor != null) {
 				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);
@@ -368,11 +371,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		final Class<?> returnType = invocation.getMethod().getReturnType();
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
+			Invoker invoker = new Invoker(invocation);
 			if (returnType.isAssignableFrom(this.asyncSubmitType)) {
-				return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
+				return this.asyncExecutor.submit(invoker::get);
 			}
 			else if (returnType.isAssignableFrom(this.asyncSubmitListenableType)) {
-				return ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(new AsyncInvocationTask(invocation));
+				return ((AsyncListenableTaskExecutor) this.asyncExecutor).submitListenable(invoker::get);
+			}
+			else if (CompletableFuture.class.equals(returnType)) { // exact
+				return CompletableFuture.supplyAsync(invoker, this.asyncExecutor);
 			}
 			else if (Future.class.isAssignableFrom(returnType)) {
 				if (logger.isDebugEnabled()) {
@@ -383,7 +390,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			}
 		}
 		if (Mono.class.isAssignableFrom(returnType)) {
-			return Mono.fromCallable(new AsyncInvocationTask(invocation));
+			return Mono.fromSupplier(new Invoker(invocation));
 		}
 		return this.doInvoke(invocation, true);
 	}
@@ -661,17 +668,16 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	}
 
-
-	private final class AsyncInvocationTask implements Callable<Object> {
+	private final class Invoker implements Supplier<Object> {
 
 		private final MethodInvocation invocation;
 
-		AsyncInvocationTask(MethodInvocation invocation) {
-			this.invocation = invocation;
+		Invoker(MethodInvocation methodInvocation) {
+			this.invocation = methodInvocation;
 		}
 
 		@Override
-		public Object call() throws Exception {
+		public Object get() {
 			try {
 				return doInvoke(this.invocation, false);
 			}

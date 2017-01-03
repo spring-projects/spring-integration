@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +36,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -59,9 +61,11 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -114,6 +118,7 @@ public class GatewayInterfaceTests {
 	@Autowired
 	@Qualifier("&gatewayInterfaceTests$NoExecGateway")
 	private GatewayProxyFactoryBean noExecGatewayFB;
+
 	@Autowired
 	private SimpleAsyncTaskExecutor exec;
 
@@ -123,6 +128,18 @@ public class GatewayInterfaceTests {
 	@Autowired(required = false)
 	private NotAGatewayByScanFilter notAGatewayByScanFilter;
 
+	@Autowired(required = false)
+	private GatewayByAnnotationGPFB gatewayByAnnotationGPFB;
+
+	@Autowired
+	@Qualifier("&annotationGatewayProxyFactoryBean")
+	private GatewayProxyFactoryBean annotationGatewayProxyFactoryBean;
+
+	@Autowired
+	private MessageChannel gatewayChannel;
+
+	@Autowired
+	private MessageChannel errorChannel;
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
@@ -403,6 +420,40 @@ public class GatewayInterfaceTests {
 		assertEquals("foo", this.autoCreateChannelService.service("foo"));
 	}
 
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void testAnnotationGatewayProxyFactoryBean() {
+		assertNotNull(this.gatewayByAnnotationGPFB);
+
+		assertSame(this.exec, this.annotationGatewayProxyFactoryBean.getAsyncExecutor());
+		assertEquals(1111L,
+				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultRequestTimeout"));
+		assertEquals(222L,
+				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultReplyTimeout"));
+
+		Collection<MessagingGatewaySupport> messagingGateways =
+				this.annotationGatewayProxyFactoryBean.getGateways().values();
+		assertEquals(1, messagingGateways.size());
+
+		MessagingGatewaySupport gateway = messagingGateways.iterator().next();
+		assertSame(this.gatewayChannel, gateway.getRequestChannel());
+		assertSame(this.gatewayChannel, gateway.getReplyChannel());
+		assertSame(this.errorChannel, gateway.getErrorChannel());
+		Object requestMapper = TestUtils.getPropertyValue(gateway, "requestMapper");
+
+		assertEquals("@foo",
+				TestUtils.getPropertyValue(requestMapper, "payloadExpression.expression"));
+
+		Map globalHeaderExpressions = TestUtils.getPropertyValue(requestMapper, "globalHeaderExpressions", Map.class);
+		assertEquals(1, globalHeaderExpressions.size());
+
+		Object barHeaderExpression = globalHeaderExpressions.get("bar");
+		assertNotNull(barHeaderExpression);
+		assertThat(barHeaderExpression, instanceOf(LiteralExpression.class));
+		assertEquals("baz", ((LiteralExpression) barHeaderExpression).getValue());
+	}
+
+
 	public interface Foo {
 
 		@Gateway(requestChannel = "requestChannelFoo")
@@ -506,6 +557,11 @@ public class GatewayInterfaceTests {
 			return new BridgeHandler();
 		}
 
+
+		@Bean
+		public GatewayProxyFactoryBean annotationGatewayProxyFactoryBean() {
+			return new AnnotationGatewayProxyFactoryBean(GatewayByAnnotationGPFB.class);
+		}
 	}
 
 	@MessagingGateway
@@ -555,6 +611,24 @@ public class GatewayInterfaceTests {
 
 	@MessagingGateway
 	public interface NotAGatewayByScanFilter {
+
+		String foo(String payload);
+
+	}
+
+	@MessagingGateway(
+			defaultRequestChannel = "${gateway.channel:gatewayChannel}",
+			defaultReplyChannel = "${gateway.channel:gatewayChannel}",
+			defaultPayloadExpression = "${gateway.payload:@foo}",
+			errorChannel = "${gateway.channel:errorChannel}",
+			asyncExecutor = "${gateway.executor:exec}",
+			defaultRequestTimeout = "${gateway.timeout:1111}",
+			defaultReplyTimeout = "${gateway.timeout:222}",
+			defaultHeaders = {
+					@GatewayHeader(name = "${gateway.header.name:bar}",
+							value = "${gateway.header.value:baz}")
+			})
+	public interface GatewayByAnnotationGPFB {
 
 		String foo(String payload);
 
