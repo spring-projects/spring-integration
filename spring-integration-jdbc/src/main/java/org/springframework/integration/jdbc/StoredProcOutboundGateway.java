@@ -45,10 +45,9 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * @param storedProcExecutor Must not be null.
 	 */
 	public StoredProcOutboundGateway(StoredProcExecutor storedProcExecutor) {
-
 		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
 		this.executor = storedProcExecutor;
-
+		setRequiresReply(true); // NOSONAR It's fine to be modified from outside
 	}
 
 	@Override
