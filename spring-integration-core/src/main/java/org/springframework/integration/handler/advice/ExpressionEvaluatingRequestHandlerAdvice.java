@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.handler.advice;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -41,6 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -50,9 +50,13 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private volatile MessageChannel successChannel;
 
+	private volatile String successChannelName;
+
 	private volatile Expression onFailureExpression;
 
 	private volatile MessageChannel failureChannel;
+
+	private volatile String failureChannelName;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -64,32 +68,104 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private volatile EvaluationContext evaluationContext;
 
+	/**
+	 * Set the expression to evaluate against the message after a successful
+	 * handler invocation.
+	 * @param onSuccessExpression the SpEL expression.
+	 * @deprecated since 4.3.7 in favor of {@link #setOnSuccessExpressionString(String)}
+	 */
+	@Deprecated
 	public void setOnSuccessExpression(String onSuccessExpression) {
-		Assert.notNull(onSuccessExpression, "'onSuccessExpression' must not be null");
-		this.onSuccessExpression = new SpelExpressionParser().parseExpression(onSuccessExpression);
+		setOnSuccessExpressionString(onSuccessExpression);
 	}
 
+	/**
+	 * Set the expression to evaluate against the message after a successful
+	 * handler invocation.
+	 * @param onSuccessExpression the SpEL expression.
+	 * @since 4.3.7
+	 */
+	public void setOnSuccessExpressionString(String onSuccessExpression) {
+		Assert.notNull(onSuccessExpression, "'onSuccessExpression' must not be null");
+		this.onSuccessExpression = EXPRESSION_PARSER.parseExpression(onSuccessExpression);
+	}
+
+	/**
+	 * Set the expression to evaluate against the message after a successful
+	 * handler invocation.
+	 * @param onSuccessExpression the SpEL expression.
+	 */
 	public void setExpressionOnSuccess(Expression onSuccessExpression) {
 		this.onSuccessExpression = onSuccessExpression;
 	}
 
+	/**
+	 * Set the expression to evaluate against the root message after a failed
+	 * handler invocation. The exception is available as the variable {@code #exception}
+	 * @param onFailureExpression the SpEL expression.
+	 * @deprecated since 4.3.7 in favor of {@link #setOnFailureExpressionString(String)}
+	 */
+	@Deprecated
 	public void setOnFailureExpression(String onFailureExpression) {
-		Assert.notNull(onFailureExpression, "'onFailureExpression' must not be null");
-		this.onFailureExpression = new SpelExpressionParser().parseExpression(onFailureExpression);
+		setOnFailureExpressionString(onFailureExpression);
 	}
 
+	/**
+	 * Set the expression to evaluate against the root message after a failed
+	 * handler invocation. The exception is available as the variable {@code #exception}
+	 * @param onFailureExpression the SpEL expression.
+	 * @since 4.3.7
+	 */
+	public void setOnFailureExpressionString(String onFailureExpression) {
+		Assert.notNull(onFailureExpression, "'onFailureExpression' must not be null");
+		this.onFailureExpression = EXPRESSION_PARSER.parseExpression(onFailureExpression);
+	}
+
+	/**
+	 * Set the expression to evaluate against the root message after a failed
+	 * handler invocation. The exception is available as the variable {@code #exception}
+	 * @param onFailureExpression the SpEL expression.
+	 */
 	public void setExpressionOnFailure(Expression onFailureExpression) {
 		this.onFailureExpression = onFailureExpression;
 	}
 
+	/**
+	 * Set the channel to which to send the {@link AdviceMessage} after evaluating the
+	 * success expression.
+	 * @param successChannel the channel.
+	 */
 	public void setSuccessChannel(MessageChannel successChannel) {
-		Assert.notNull(successChannel, "'successChannel' must not be null");
 		this.successChannel = successChannel;
 	}
 
+	/**
+	 * Set the channel name to which to send the {@link AdviceMessage} after evaluating
+	 * the success expression.
+	 * @param successChannelName the channel name.
+	 * @since 4.3.7
+	 */
+	public void setSuccessChannelName(String successChannelName) {
+		this.successChannelName = successChannelName;
+	}
+
+	/**
+	 * Set the channel to which to send the {@link ErrorMessage} after evaluating the
+	 * failure expression.
+	 * @param failureChannel the channel.
+	 */
 	public void setFailureChannel(MessageChannel failureChannel) {
-		Assert.notNull(failureChannel, "'failureChannel' must not be null");
 		this.failureChannel = failureChannel;
+	}
+
+	/**
+	 * Set the channel name to which to send the {@link ErrorMessage} after evaluating the
+	 * failure expression.
+	 * @param failureChannelName the channel name.
+	 * @since 4.3.7
+	 */
+	public void setFailureChannelName(String failureChannelName) {
+		this.failureChannelName = failureChannelName;
 	}
 
 	/**
@@ -104,7 +180,6 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	/**
 	 * If true, the result of evaluating the onFailureExpression will
 	 * be returned as the result of AbstractReplyProducingMessageHandler.handleRequestMessage(Message).
-	 *
 	 * @param returnFailureExpressionResult true to return the result of the evaluation.
 	 */
 	public void setReturnFailureExpressionResult(boolean returnFailureExpressionResult) {
@@ -112,10 +187,12 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	/**
-	 * If true and an onSuccess expression evaluation fails with an exception, the exception will be thrown to the
-	 * caller. If false, the exception is caught. Default false. Ignored for onFailure expression evaluation - the
-	 * original exception will be propagated (unless trapException is true).
-	 * @param propagateOnSuccessEvaluationFailures The propagateOnSuccessEvaluationFailures to set.
+	 * If true and an onSuccess expression evaluation fails with an exception, the
+	 * exception will be thrown to the caller. If false, the exception is caught. Default
+	 * false. Ignored for onFailure expression evaluation - the original exception will be
+	 * propagated (unless trapException is true).
+	 * @param propagateOnSuccessEvaluationFailures The
+	 * propagateOnSuccessEvaluationFailures to set.
 	 */
 	public void setPropagateEvaluationFailures(boolean propagateOnSuccessEvaluationFailures) {
 		this.propagateOnSuccessEvaluationFailures = propagateOnSuccessEvaluationFailures;
@@ -163,6 +240,9 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			evalResult = e;
 			evaluationFailed = true;
 		}
+		if (this.successChannel == null && this.successChannelName != null && getChannelResolver() != null) {
+			this.successChannel = getChannelResolver().resolveDestination(this.successChannelName);
+		}
 		if (evalResult != null && this.successChannel != null) {
 			AdviceMessage<?> resultMessage = new AdviceMessage<Object>(evalResult, message);
 			this.messagingTemplate.send(this.successChannel, resultMessage);
@@ -180,6 +260,9 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		catch (Exception e) {
 			evalResult = e;
 			logger.error("Failure expression evaluation failed for " + message + ": " + e.getMessage());
+		}
+		if (this.failureChannel == null && this.failureChannelName != null && getChannelResolver() != null) {
+			this.failureChannel = getChannelResolver().resolveDestination(this.failureChannelName);
 		}
 		if (evalResult != null && this.failureChannel != null) {
 			MessagingException messagingException = new MessageHandlingExpressionEvaluatingAdviceException(message,
