@@ -391,7 +391,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				return;
 			}
 			if (methodName == null
-					&& ObjectUtils.containsElement(new String[] {"start", "stop", "isRunning"}, method1.getName())) {
+					&& ObjectUtils.containsElement(new String[] { "start", "stop", "isRunning" }, method1.getName())) {
 				return;
 			}
 			HandlerMethod handlerMethod1 = null;

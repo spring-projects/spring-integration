@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -83,10 +84,12 @@ public class RouterAnnotationPostProcessorTests {
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();
-		routingChannel.send(new GenericMessage<String>("foo"));
-		Message<?> replyMessage = stringChannel.receive(0);
-		assertEquals("foo", replyMessage.getPayload());
 
+		routingChannel.send(new GenericMessage<>(Collections.singletonList("foo")));
+		Message<?> replyMessage = stringChannel.receive(0);
+		assertEquals(Collections.singletonList("foo"), replyMessage.getPayload());
+
+		// The SpEL ReflectiveMethodExecutor does a conversion of single value to the List
 		routingChannel.send(new GenericMessage<Integer>(2));
 		replyMessage = integerChannel.receive(0);
 		assertEquals(2, replyMessage.getPayload());
