@@ -19,6 +19,8 @@ package org.springframework.integration.dsl.channel;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 
+import org.reactivestreams.Processor;
+
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
@@ -121,6 +123,22 @@ public final class MessageChannels {
 	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(String id,
 			Executor executor) {
 		return MessageChannels.<S>publishSubscribe(executor).id(id);
+	}
+
+	public static ReactiveChannelSpec reactive() {
+		return new ReactiveChannelSpec();
+	}
+
+	public static ReactiveChannelSpec reactive(String id) {
+		return reactive().id(id);
+	}
+
+	public static ReactiveChannelSpec reactive(Processor<Message<?>, Message<?>> processor) {
+		return new ReactiveChannelSpec(processor);
+	}
+
+	public static ReactiveChannelSpec reactive(String id, Processor<Message<?>, Message<?>> processor) {
+		return reactive(processor).id(id);
 	}
 
 	private MessageChannels() {

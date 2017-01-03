@@ -17,9 +17,11 @@
 package org.springframework.integration.dsl;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
+
+import org.reactivestreams.Publisher;
 
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
@@ -27,6 +29,7 @@ import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -73,20 +76,6 @@ public final class IntegrationFlows {
 		return fixedSubscriber
 				? from(new FixedSubscriberChannelPrototype(messageChannelName))
 				: from(messageChannelName);
-	}
-
-	/**
-	 * Populate the {@link MessageChannel} object to the
-	 * {@link IntegrationFlowBuilder} chain using the fluent API from {@link Channels} factory.
-	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
-	 * @param channels the {@link Function} to use method chain to configure.
-	 * {@link MessageChannel} via {@link Channels} factory.
-	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see Channels
-	 */
-	public static IntegrationFlowBuilder from(Function<Channels, MessageChannelSpec<?, ?>> channels) {
-		Assert.notNull(channels);
-		return from(channels.apply(new Channels()));
 	}
 
 	/**
@@ -274,6 +263,18 @@ public final class IntegrationFlows {
 	 */
 	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
 		return from(inboundGateway, (IntegrationFlowBuilder) null);
+	}
+
+	/**
+	 * Populate a {@link ReactiveChannel} to the {@link IntegrationFlowBuilder} chain
+	 * and subscribe it to the provided {@link Publisher}.
+	 * @param publisher the {@link Publisher} to subscribe to.
+	 * @return new {@link IntegrationFlowBuilder}.
+	 */
+	public static IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
+		ReactiveChannel reactiveChannel = new ReactiveChannel();
+		reactiveChannel.subscribeTo(publisher);
+		return from((MessageChannel) reactiveChannel);
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
