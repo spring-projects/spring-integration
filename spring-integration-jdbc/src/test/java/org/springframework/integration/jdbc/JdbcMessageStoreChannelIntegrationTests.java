@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,10 +126,10 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 			synchronized (storeLock) {
 
-				boolean result1 = input.send(new GenericMessage<String>("foo"), 500L);
+				boolean result1 = input.send(new GenericMessage<String>("foo"), 100L);
 				// This will time out because the transaction has not committed yet
 				try {
-					Service.await(3000);
+					Service.await(300);
 					fail("Expected timeout");
 				}
 				catch (Exception e) {

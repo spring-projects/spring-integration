@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,9 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 	@Autowired
 	protected PollableChannel priorityChannel;
 
+	@Autowired
+	protected PollableChannel afterTxChannel;
+
 	@Test
 	public void test() throws InterruptedException {
 
@@ -129,7 +132,10 @@ public abstract class AbstractTxTimeoutMessageStoreTests {
 		Assert.assertTrue(String.format("Countdown latch did not count down from " +
 				"%s to 0 in %sms.", maxMessages, maxWaitTime), testService.await(maxWaitTime));
 
-		Thread.sleep(2000);
+		for (int i = 0; i < maxMessages; i++) {
+			Message<?> afterTxMessage = this.afterTxChannel.receive(10000);
+			assertNotNull(afterTxMessage);
+		}
 
 		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache()));
 		Assert.assertEquals(Integer.valueOf(maxMessages), Integer.valueOf(testService.getSeenMessages().size()));
