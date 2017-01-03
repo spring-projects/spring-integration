@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,9 +52,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroupFactory;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -134,8 +131,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@Deprecated
 	public static final String CREATED_DATE_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".CREATED_DATE";
-
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	private volatile String region = DEFAULT_REGION;
 
@@ -402,9 +397,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			logger.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
-		if (this.beanFactory != null) {
-			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
 
@@ -419,7 +411,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param message a message
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 
 		String groupKey = getKey(groupId);
@@ -600,7 +591,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 
-		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		Assert.state(messages.size() < 2,
+				() -> "The query must return zero or 1 row; got " + messages.size() + " rows");
 		if (messages.size() > 0) {
 
 			final Message<?> message = messages.get(0);
