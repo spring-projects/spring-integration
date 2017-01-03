@@ -57,6 +57,7 @@
 										   stored-procedure-name="GET_MESSAGE"
 										   ignore-column-meta-data="true"
 										   expect-single-result="true"
+										   requires-reply="true"
 										   reply-channel="output2Channel">
 		<int-jdbc:sql-parameter-definition name="message_id"/>
 		<int-jdbc:sql-parameter-definition name="message_json" type="CLOB" direction="OUT" type-name="" return-type="clobSqlReturnType"/>

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.sql.CallableStatement;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
@@ -149,6 +151,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	@Test
 	@Transactional
 	public void testInt2865SqlReturnType() throws Exception {
+		Mockito.reset(this.clobSqlReturnType);
 		Message<String> testMessage = MessageBuilder.withPayload("TEST").setHeader("FOO", "BAR").build();
 		String messageId = testMessage.getHeaders().getId().toString();
 		String jsonMessage = new JsonOutboundMessageMapper().fromMessage(testMessage);
@@ -166,6 +169,17 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		assertEquals(testMessage.getHeaders().get("FOO"), message.getHeaders().get("FOO"));
 		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
 				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq((String) null));
+	}
+
+	@Test
+	public void testNoIllegalArgumentButRequiresReplyException() {
+		try {
+			this.getMessageChannel.send(new GenericMessage<String>("foo"));
+			fail("ReplyRequiredException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(ReplyRequiredException.class));
+		}
 	}
 
 	static class Counter {

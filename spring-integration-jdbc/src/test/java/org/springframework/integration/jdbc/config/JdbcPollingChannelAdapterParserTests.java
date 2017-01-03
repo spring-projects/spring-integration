@@ -48,6 +48,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author David Syer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -67,6 +69,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testNoAutoStartupInboundChannelAdapter() {
 		setUp("pollingNoAutoStartupJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
+		messagingTemplate.setReceiveTimeout(1);
 		Message<?> message = messagingTemplate.receive();
 		assertNull("Message found ", message);
 	}
@@ -92,8 +95,9 @@ public class JdbcPollingChannelAdapterParserTests {
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
+		messagingTemplate.setReceiveTimeout(1);
 		message = messagingTemplate.receive();
-		assertNull(messagingTemplate.receive());
+		assertNull(message);
 	}
 
 	@Test
@@ -102,8 +106,9 @@ public class JdbcPollingChannelAdapterParserTests {
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
+		messagingTemplate.setReceiveTimeout(1);
 		message = messagingTemplate.receive();
-		assertNull(messagingTemplate.receive());
+		assertNull(message);
 	}
 
 	@Test

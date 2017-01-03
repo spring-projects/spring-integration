@@ -126,10 +126,10 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 			synchronized (storeLock) {
 
-				boolean result1 = input.send(new GenericMessage<String>("foo"), 500L);
+				boolean result1 = input.send(new GenericMessage<String>("foo"), 100L);
 				// This will time out because the transaction has not committed yet
 				try {
-					Service.await(3000);
+					Service.await(300);
 					fail("Expected timeout");
 				}
 				catch (Exception e) {

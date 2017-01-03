@@ -69,7 +69,7 @@ public class TestService {
 
 			if (this.threadSleep > 0) {
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(10);
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();

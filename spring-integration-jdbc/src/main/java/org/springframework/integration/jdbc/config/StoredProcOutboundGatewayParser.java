@@ -51,11 +51,11 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		final ManagedMap<String, BeanMetadataElement> returningResultsetMap =
+		final ManagedMap<String, BeanMetadataElement> returningResultSetMap =
 				StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
-		if (!returningResultsetMap.isEmpty()) {
-			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
+		if (!returningResultSetMap.isEmpty()) {
+			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultSetMap);
 		}
 
 		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
