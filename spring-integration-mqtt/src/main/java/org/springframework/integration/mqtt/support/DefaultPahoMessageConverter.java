@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,9 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	@Override
 	public Message<?> toMessage(Object mqttMessage, MessageHeaders headers) {
-		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
+		Assert.isInstanceOf(MqttMessage.class, mqttMessage,
+				() -> "This converter can only convert an 'MqttMessage'; received: "
+						+ mqttMessage.getClass().getName());
 		return toMessage(null, (MqttMessage) mqttMessage);
 	}
 
@@ -236,7 +238,10 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 */
 	protected byte[] messageToMqttBytes(Message<?> message) {
 		Object payload = message.getPayload();
-		Assert.isTrue(payload instanceof byte[] || payload instanceof String);
+		Assert.isTrue(payload instanceof byte[] || payload instanceof String,
+				() -> "This default converter can only handle 'byte[]' or 'String' payloads; consider adding a "
+						+ "transformer to your flow definition, or subclass this converter for "
+						+ payload.getClass().getName() + " payloads");
 		byte[] payloadBytes;
 		if (payload instanceof String) {
 			try {
