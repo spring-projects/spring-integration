@@ -96,6 +96,6 @@
 	</router>
 
 	<beans:bean id="testChannelResolver"
-		class="org.springframework.integration.router.config.RouterParserTests$TestChannelResover"/>
+		class="org.springframework.integration.router.config.RouterParserTests$TestChannelResolver"/>
 
 </beans:beans>
