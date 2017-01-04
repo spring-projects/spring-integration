@@ -436,9 +436,7 @@ public class EerhaApplication {
 
     @Bean
     public IntegrationFlow failure() {
-        return f -> f.handle(m -> {
-            System.out.println(m + ", failedMessage=" + ((MessagingException) m.getPayload()).getFailedMessage());
-        });
+        return f -> f.handle(System.out::println);
     }
 
 }
