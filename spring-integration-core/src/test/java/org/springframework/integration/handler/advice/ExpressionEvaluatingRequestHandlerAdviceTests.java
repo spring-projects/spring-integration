@@ -87,9 +87,9 @@ public class ExpressionEvaluatingRequestHandlerAdviceTests {
 		public Advice expressionAdvice() {
 			ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
 			advice.setSuccessChannelName("success.input");
-			advice.setOnSuccessExpression("payload + ' was successful'");
+			advice.setOnSuccessExpressionString("payload + ' was successful'");
 			advice.setFailureChannelName("failure.input");
-			advice.setOnFailureExpression(
+			advice.setOnFailureExpressionString(
 					"payload + ' was bad, with reason: ' + #exception.cause.message");
 			advice.setTrapException(true);
 			return advice;
