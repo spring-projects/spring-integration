@@ -115,7 +115,7 @@
 								   directory="test">
 		<file:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice">
-				<property name="onSuccessExpression" value="@fileWriteLatch.countDown()"/>
+				<property name="onSuccessExpressionString" value="@fileWriteLatch.countDown()"/>
 			</bean>
 		</file:request-handler-advice-chain>
 	</file:outbound-channel-adapter>
