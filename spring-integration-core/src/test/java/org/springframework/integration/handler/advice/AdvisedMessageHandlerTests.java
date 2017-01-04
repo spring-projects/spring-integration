@@ -143,8 +143,8 @@ public class AdvisedMessageHandlerTests {
 		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
-		advice.setOnSuccessExpression("'foo'");
-		advice.setOnFailureExpression("'bar:' + #exception.message");
+		advice.setOnSuccessExpressionString("'foo'");
+		advice.setOnFailureExpressionString("'bar:' + #exception.message");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -237,8 +237,8 @@ public class AdvisedMessageHandlerTests {
 		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
-		advice.setOnSuccessExpression("1/0");
-		advice.setOnFailureExpression("1/0");
+		advice.setOnSuccessExpressionString("1/0");
+		advice.setOnFailureExpressionString("1/0");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -301,8 +301,8 @@ public class AdvisedMessageHandlerTests {
 		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
-		advice.setOnSuccessExpression("1/0");
-		advice.setOnFailureExpression("1/0");
+		advice.setOnSuccessExpressionString("1/0");
+		advice.setOnFailureExpressionString("1/0");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -722,7 +722,7 @@ public class AdvisedMessageHandlerTests {
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
 		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
 //		MessagingException / RuntimeException
-		expressionAdvice.setOnFailureExpression("#exception.cause.message");
+		expressionAdvice.setOnFailureExpressionString("#exception.cause.message");
 		expressionAdvice.setReturnFailureExpressionResult(true);
 		final AtomicInteger outerCounter = new AtomicInteger();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
@@ -769,7 +769,7 @@ public class AdvisedMessageHandlerTests {
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
 		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
-		expressionAdvice.setOnFailureExpression("#exception.message");
+		expressionAdvice.setOnFailureExpressionString("#exception.message");
 		expressionAdvice.setFailureChannel(errors);
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
@@ -849,7 +849,7 @@ public class AdvisedMessageHandlerTests {
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
 		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
-		expressionAdvice.setOnFailureExpression("'foo'");
+		expressionAdvice.setOnFailureExpressionString("'foo'");
 		expressionAdvice.setFailureChannel(errors);
 
 		Throwable theThrowable = new Throwable("foo");
