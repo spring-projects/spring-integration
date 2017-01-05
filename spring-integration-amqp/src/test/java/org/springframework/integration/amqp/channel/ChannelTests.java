@@ -114,7 +114,10 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 	@After
 	public void tearDown() {
-		new RabbitAdmin(this.factory).deleteExchange("si.fanout.foo");
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.factory);
+		rabbitAdmin.deleteExchange("si.fanout.foo");
+		rabbitAdmin.deleteExchange("si.fanout.channel");
+		rabbitAdmin.deleteExchange("si.fanout.pubSubWithEP");
 		brokerIsRunning.removeTestQueues();
 	}
 
