@@ -3,7 +3,8 @@ buildscript {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
-		classpath 'io.spring.gradle:spring-io-plugin:0.0.5.RELEASE'
+		classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
+		classpath 'io.spring.gradle:spring-io-plugin:0.0.6.RELEASE'
 		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 	}
@@ -122,15 +123,15 @@ subprojects { subproject ->
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
-		springDataJpaVersion = '2.0.0.BUILD-SNAPSHOT'
-		springDataMongoVersion = '2.0.0.BUILD-SNAPSHOT'
-		springDataRedisVersion = '2.0.0.BUILD-SNAPSHOT'
-		springGemfireVersion = '2.0.0.BUILD-SNAPSHOT'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.M2'
+		springDataJpaVersion = '2.0.0.M1'
+		springDataMongoVersion = '2.0.0.M1'
+		springDataRedisVersion = '2.0.0.M1'
+		springGemfireVersion = '2.0.0.M1'
 		springSecurityVersion = '4.2.0.RELEASE'
-		springSocialTwitterVersion = '2.0.0.BUILD-SNAPSHOT'
+		springSocialTwitterVersion = '2.0.0.M1'
 		springRetryVersion = '1.2.0.RC1'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.M4'
 		springWsVersion = '2.4.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
@@ -151,7 +152,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.7.201606060606"
+		toolVersion = "0.7.8"
 	}
 
 	// dependencies that are common across all java projects
@@ -240,7 +241,14 @@ subprojects { subproject ->
 
 	jar {
 		manifest {
-			attributes('Implementation-Version': version)
+			attributes(
+					'Implementation-Version': version,
+					'Created-By': "JDK ${System.properties['java.version']} (${System.properties['java.specification.vendor']})",
+					'Implementation-Title': subproject.name,
+					'Implementation-Vendor-Id': subproject.group,
+					'Implementation-Vendor': 'Pivotal Software, Inc.',
+					'Implementation-URL': linkHomepage,
+			)
 		}
 	}
 
