@@ -33,7 +33,7 @@ public interface TcpSocketFactorySupport {
 	/**
 	 * Supplies the {@link ServerSocketFactory} to be used to create new
 	 * {@link ServerSocket}s.
-	 * @return the ServerSocketFacory
+	 * @return the ServerSocketFactory
 	 */
 	ServerSocketFactory getServerSocketFactory();
 
